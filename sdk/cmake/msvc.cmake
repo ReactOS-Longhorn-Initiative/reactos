@@ -1,5 +1,6 @@
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if((CMAKE_BUILD_TYPE STREQUAL "Release") OR
+   (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
     add_compile_options(/Ox /Ob2 /Ot /Oy)
     # Avoid spam in clang-cl as it doesn't support /GT
     if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
@@ -177,6 +178,7 @@ endif()
 # Debugging
 if(NOT (_PREFAST_ OR _VS_ANALYZE_))
     add_compile_options($<$<CONFIG:Debug>:/Zi>)
+    add_compile_options($<$<CONFIG:RelWithDebInfo>:/Zi>)
 endif()
 add_compile_definitions($<$<CONFIG:Release>:NDEBUG=>)
 
