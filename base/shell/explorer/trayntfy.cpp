@@ -32,6 +32,127 @@ static const WCHAR szTrayNotifyWndClass[] = L"TrayNotifyWnd";
  * TrayNotifyWnd
  */
 
+
+class CTrayToggleButton
+    : public CWindowImpl<CTrayToggleButton>
+{
+    SIZE m_Size;
+    BOOL expanded;
+    BOOL isHorizontal;
+    CNotifyToolbar* toolbar;
+
+public:
+    CTrayToggleButton()
+    {
+        m_Size.cx = 19;
+        m_Size.cy = 20;
+        expanded = FALSE;
+        isHorizontal = TRUE;
+    }
+
+    virtual ~CTrayToggleButton()
+    {
+
+    }
+
+    SIZE GetSize()
+    {
+        return m_Size;
+    }
+
+    VOID UpdateSize()
+    {
+       /* SIZE Size = { 0, 0 };
+
+        if (m_ImageList == NULL ||
+            !SendMessageW(BCM_GETIDEALSIZE, 0, (LPARAM) &Size))
+        {
+            Size.cx = 2 * GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CYCAPTION) * 3;
+        }
+
+        Size.cy = max(Size.cy, GetSystemMetrics(SM_CYCAPTION));
+
+        m_Size = Size;*/
+    }
+
+    VOID UpdateFont()
+    {
+        /* Get the system fonts, we use the caption font, always bold, though. 
+        NONCLIENTMETRICS ncm = {sizeof(ncm)};
+        if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, FALSE))
+            return;
+
+        if (m_Font)
+            DeleteObject(m_Font);
+
+        ncm.lfCaptionFont.lfWeight = FW_BOLD;
+        m_Font = CreateFontIndirect(&ncm.lfCaptionFont);
+
+        SetFont(m_Font, FALSE);*/
+    }
+
+    VOID Initialize()
+    {
+        SubclassWindow(m_hWnd);
+        SetWindowTheme(m_hWnd, L"TrayNotifyHoriz", NULL);
+
+        UpdateSize();
+    }
+
+    HWND Create(HWND hwndParent, IUnknown* pager)
+    {
+        DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | BS_PUSHBUTTON | BS_TEXT;
+
+        m_hWnd = CreateWindowEx(
+            0,
+            WC_BUTTON,
+            NULL,
+            dwStyle,
+            0, 6, 19, 20,
+            hwndParent,
+            NULL,
+            hExplorerInstance,
+            NULL);
+
+        if (m_hWnd)
+            Initialize();
+
+        toolbar = CSysPagerWnd_GetTrayToolbar(pager);
+        
+        return m_hWnd;
+    }
+
+	VOID UpdateTheme()
+    {
+        SetWindowTheme(m_hWnd, !expanded 
+            ? (isHorizontal ? L"TrayNotifyHoriz" : L"TrayNotifyVert") 
+            : (isHorizontal ? L"TrayNotifyHorizOpen" : L"TrayNotifyVertOpen"), 
+            NULL);
+    }
+
+    LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {   
+        expanded = !expanded;
+        
+        UpdateTheme();
+        toolbar->Toogle(expanded);
+        
+        return 0;
+    }
+    
+    VOID SetHorizontal(BOOL horizontal)
+    {
+        isHorizontal = horizontal;
+        
+        UpdateTheme();
+    }
+
+    BEGIN_MSG_MAP(CTrayToggleButton)
+        MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
+    END_MSG_MAP()
+
+};
+
 class CTrayNotifyWnd :
     public CComCoClass<CTrayNotifyWnd>,
     public CComObjectRootEx<CComMultiThreadModelNoCS>,
@@ -42,6 +163,7 @@ class CTrayNotifyWnd :
     CTrayShowDesktopButton m_ShowDesktopButton;
     CComPtr<IUnknown> m_pager;
 
+	CTrayToggleButton m_ToggleButton;
     HWND m_hwndClock;
     HWND m_hwndShowDesktop;
     HWND m_hwndPager;
@@ -55,6 +177,7 @@ class CTrayNotifyWnd :
 
 public:
     CTrayNotifyWnd() :
+	    m_ToggleButton(),
         m_hwndClock(NULL),
         m_hwndPager(NULL),
         TrayTheme(NULL),
@@ -122,6 +245,9 @@ public:
         hr = CSysPagerWnd_CreateInstance(m_hWnd, IID_PPV_ARG(IUnknown, &m_pager));
         if (FAILED_UNEXPECTEDLY(hr))
             return FALSE;
+        
+        /* Create the Tray Toggle button */
+        m_ToggleButton.Create(m_hWnd, m_pager);
 
         hr = IUnknown_GetWindow(m_pager, &m_hwndPager);
         if (FAILED_UNEXPECTEDLY(hr))
@@ -396,7 +522,7 @@ public:
                        IsHorizontal ? L"TrayNotifyHoriz" : L"TrayNotifyVert",
                        NULL);
         m_ShowDesktopButton.m_bHorizontal = Horizontal;
-
+        m_ToggleButton.SetHorizontal(IsHorizontal);
         return (LRESULT)GetMinimumSize((PSIZE)lParam);
     }
 
@@ -412,6 +538,7 @@ public:
             return 0;
         }
 
+        m_ToggleButton.SetHorizontal(IsHorizontal);
         *ptr = &m_ShowDesktopButton;
         bHandled = TRUE;
         return 0;
@@ -515,6 +642,10 @@ public:
         Create(hwndParent, 0, NULL, dwStyle, WS_EX_STATICEDGE);
         return m_hWnd ? S_OK : E_FAIL;
     }
+    IUnknown* GetPager()
+    {
+        return m_pager;
+    }
 
     DECLARE_NOT_AGGREGATABLE(CTrayNotifyWnd)
 
@@ -548,4 +679,16 @@ public:
 HRESULT CTrayNotifyWnd_CreateInstance(HWND hwndParent, REFIID riid, void **ppv)
 {
     return ShellObjectCreatorInit<CTrayNotifyWnd>(hwndParent, riid, ppv);
+}
+
+CNotifyToolbar* CTrayNotifyWnd_GetTrayToolbar(IUnknown* pTray)
+{
+    CTrayNotifyWnd *tray = static_cast<CTrayNotifyWnd*>(pTray);
+
+    if (tray != NULL)
+    {
+        return CSysPagerWnd_GetTrayToolbar(tray->GetPager());
+    }
+
+    return NULL;
 }
