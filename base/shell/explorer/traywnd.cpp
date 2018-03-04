@@ -572,7 +572,7 @@ public:
 
         m_TrayPropertiesOwner = hwnd;
 
-        DisplayTrayProperties(hwnd, m_hWnd);
+        DisplayTrayProperties(hwnd, m_hWnd, m_TrayNotifyInstance);
 
         m_TrayPropertiesOwner = NULL;
         ::DestroyWindow(hwnd);
@@ -714,7 +714,7 @@ public:
             break;
 
         case ID_SHELL_CMD_CUST_NOTIF:
-            ShowCustomizeNotifyIcons(hExplorerInstance, m_hWnd);
+            ShowCustomizeNotifyIcons(hExplorerInstance, m_hWnd, m_TrayNotifyInstance);
             break;
 
         case ID_SHELL_CMD_ADJUST_DAT:
@@ -973,7 +973,7 @@ public:
         }
 
         TRACE("Before Query\n");
-        hr = contextMenu->QueryContextMenu(popup, 0, 0, UINT_MAX, CMF_NORMAL);
+        hr = contextMenu->QueryContextMenu(popup, 0, 0, UINT_MAX, CMF_NORMAL | (Context == NULL ? CMF_RESERVED : 0));
         if (FAILED_UNEXPECTEDLY(hr))
         {
             TRACE("Query failed\n");
@@ -2891,6 +2891,8 @@ ChangePos:
         }
         else
         {
+            BOOL bHideTrayNotifications = FALSE;
+
             /* See if the context menu should be handled by the task band site */
             if (ppt != NULL && m_TrayBandSite != NULL)
             {
@@ -2910,7 +2912,10 @@ ChangePos:
 
                     hWndAtPt = ::ChildWindowFromPointEx(m_Rebar, ptClient, CWP_SKIPINVISIBLE | CWP_SKIPDISABLED);
                     if (hWndAtPt == m_TaskSwitch)
+                    {
+                        bHideTrayNotifications = TRUE;
                         goto HandleTrayContextMenu;
+                    }
 
                     /* Forward the message to the task band site */
                     m_TrayBandSite->ProcessMessage(m_hWnd, uMsg, wParam, lParam, &Ret);
@@ -2922,7 +2927,7 @@ ChangePos:
             {
 HandleTrayContextMenu:
                 /* Tray the default tray window context menu */
-                TrackCtxMenu(this, ppt, NULL, FALSE, this);
+                TrackCtxMenu(this, ppt, NULL, FALSE, bHideTrayNotifications ? NULL : this);
             }
         }
         return Ret;
@@ -3360,9 +3365,14 @@ HandleTrayContextMenu:
             HWND hWndInsertAfter = newSettings->sr.AlwaysOnTop ? HWND_TOPMOST : HWND_BOTTOM;
             SetWindowPos(hWndInsertAfter, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
         }
+        
+        g_TaskbarSettings.bHideInactiveIcons = newSettings->bHideInactiveIcons;
+        g_TaskbarSettings.bShowSeconds = newSettings->bShowSeconds;
+        g_TaskbarSettings.bGroupButtons = newSettings->bGroupButtons;
 
         /* Adjust taskbar size */
         CheckTrayWndPosition();
+        g_TaskbarSettings.bHideInactiveIcons = newSettings->bHideInactiveIcons;
 
         g_TaskbarSettings.Save();
         return 0;
@@ -3596,6 +3606,7 @@ public:
             SetMenuItemInfoW(hMenuBase, ID_SHELL_CMD_SHOW_DESKTOP, FALSE, &mii);
         }
 
+
         if (SHRestricted(REST_CLASSICSHELL) != 0)
         {
             DeleteMenu(hPopup,
@@ -3619,7 +3630,7 @@ public:
             if (FAILED(TrayWnd->m_TrayBandSite->AddContextMenus(
                 hPopup,
                 indexMenu,
-                idCmdNext,
+                idCmdFirst,
                 idCmdLast,
                 CMF_NORMAL,
                 &pcm)))

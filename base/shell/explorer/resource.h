@@ -118,6 +118,15 @@
 #define IDS_ADVANCED_DISPLAY_ADMINTOOLS             30476
 #define IDS_ADVANCED_SMALL_START_MENU               30477
 
+#define IDS_NOTIF_BEH_NAME                 1000
+#define IDS_NOTIF_BEH_BEHAVIOR             1001
+#define IDS_NOTIF_BEH_HIDE_INACTIVE        1002
+#define IDS_NOTIF_BEH_HIDE                 1003
+#define IDS_NOTIF_BEH_SHOW                 1004
+
+#define IDS_NOTIF_BEH_CURRENT              1403
+#define IDS_NOTIF_BEH_PAST                 1404
+
 /*******************************************************************************\
 |*                              Control Resources                              *|
 \*******************************************************************************/

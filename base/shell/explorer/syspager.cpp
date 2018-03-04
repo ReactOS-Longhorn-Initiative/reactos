@@ -22,13 +22,6 @@
 #include "precomp.h"
 
 #define BALLOON_MAXWIDTH 340
-
-struct InternalIconData : NOTIFYICONDATA
-{
-    // Must keep a separate copy since the original is unioned with uTimeout.
-    UINT uVersionCopy;
-};
-
 struct IconWatcherData
 {
     HANDLE hProcess;
@@ -144,45 +137,6 @@ private:
     void Close(IN OUT InternalIconData * notifyItem, IN UINT uReason);
 };
 
-class CNotifyToolbar :
-    public CWindowImplBaseT< CToolbar<InternalIconData>, CControlWinTraits >
-{
-    HIMAGELIST m_ImageList;
-    int m_VisibleButtonCount;
-
-    CBalloonQueue * m_BalloonQueue;
-
-public:
-    CNotifyToolbar();
-    virtual ~CNotifyToolbar();
-
-    int GetVisibleButtonCount();
-    int FindItem(IN HWND hWnd, IN UINT uID, InternalIconData ** pdata);
-    int FindExistingSharedIcon(HICON handle);
-    BOOL AddButton(IN CONST NOTIFYICONDATA *iconData);
-    BOOL SwitchVersion(IN CONST NOTIFYICONDATA *iconData);
-    BOOL UpdateButton(IN CONST NOTIFYICONDATA *iconData);
-    BOOL RemoveButton(IN CONST NOTIFYICONDATA *iconData);
-    VOID ResizeImagelist();
-    bool SendNotifyCallback(InternalIconData* notifyItem, UINT uMsg);
-    void RefreshToolbarMetrics(BOOL bForceRefresh);
-
-private:
-    LRESULT OnCtxMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-    VOID SendMouseEvent(IN WORD wIndex, IN UINT uMsg, IN WPARAM wParam);
-    LRESULT OnMouseEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-    LRESULT OnTooltipShow(INT uCode, LPNMHDR hdr, BOOL& bHandled);
-
-public:
-    BEGIN_MSG_MAP(CNotifyToolbar)
-        MESSAGE_HANDLER(WM_CONTEXTMENU, OnCtxMenu)
-        MESSAGE_RANGE_HANDLER(WM_MOUSEFIRST, WM_MOUSELAST, OnMouseEvent)
-        NOTIFY_CODE_HANDLER(TTN_SHOW, OnTooltipShow)
-    END_MSG_MAP()
-
-    void Initialize(HWND hWndParent, CBalloonQueue * queue);
-};
-
 
 static const WCHAR szSysPagerWndClass[] = L"SysPager";
 
@@ -215,6 +169,7 @@ public:
     LRESULT OnCopyData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     LRESULT OnSettingChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     LRESULT OnGetMinimumSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+    CNotifyToolbar* GetToolbar();
 
 public:
 
@@ -664,7 +619,8 @@ void CBalloonQueue::Close(IN OUT InternalIconData * notifyItem, IN UINT uReason)
 CNotifyToolbar::CNotifyToolbar() :
     m_ImageList(NULL),
     m_VisibleButtonCount(0),
-    m_BalloonQueue(NULL)
+    m_BalloonQueue(NULL),
+    expanded(FALSE)
 {
 }
 
@@ -673,8 +629,24 @@ CNotifyToolbar::~CNotifyToolbar()
 }
 
 int CNotifyToolbar::GetVisibleButtonCount()
-{
-    return m_VisibleButtonCount;
+{   
+    // hm, should work
+    //if (!expanded)
+    //    return m_VisibleButtonCount;
+
+    int visible = 0;
+    int tbc = GetButtonCount();
+    
+    for (int i = 0; i< tbc; i++)
+    {
+        TBBUTTON tbb;
+        GetButton(i, &tbb);
+        InternalIconData* data = (InternalIconData*)tbb.dwData;
+        if (!(tbb.fsState & TBSTATE_HIDDEN) || (expanded == TRUE && data->Locked != TRUE))
+            visible++;
+    }
+    
+    return visible;//m_VisibleButtonCount;
 }
 
 int CNotifyToolbar::FindItem(IN HWND hWnd, IN UINT uID, InternalIconData ** pdata)
@@ -794,6 +766,8 @@ BOOL CNotifyToolbar::AddButton(_In_ CONST NOTIFYICONDATA *iconData)
     if (notifyItem->dwState & NIS_HIDDEN)
     {
         tbBtn.fsState |= TBSTATE_HIDDEN;
+        notifyItem->Locked = TRUE;
+        notifyItem->uBehaviour = BEH_HIDE_INACTIVE;
     }
     else
     {
@@ -866,7 +840,8 @@ BOOL CNotifyToolbar::UpdateButton(_In_ CONST NOTIFYICONDATA *iconData)
     if (iconData->uFlags & NIF_STATE)
     {
         if (iconData->dwStateMask & NIS_HIDDEN &&
-            (notifyItem->dwState & NIS_HIDDEN) != (iconData->dwState & NIS_HIDDEN))
+            (notifyItem->dwState & NIS_HIDDEN) != (iconData->dwState & NIS_HIDDEN) &&
+            notifyItem->uBehaviour != 1)
         {
             tbbi.dwMask |= TBIF_STATE;
             if (iconData->dwState & NIS_HIDDEN)
@@ -1278,6 +1253,69 @@ void CNotifyToolbar::RefreshToolbarMetrics(BOOL bForceRefresh = FALSE)
         SetMetrics(&tbm);
     }
 }
+void CNotifyToolbar::Realign()
+{
+    NMHDR nmh = {GetParent().GetParent(), 0, NTNWM_REALIGN};
+    GetParent().GetParent().SendMessage(WM_NOTIFY, 0, (LPARAM) &nmh);
+}
+
+void CNotifyToolbar::SetBehavior(int iItem, int iBehavior)
+{
+    TBBUTTONINFO tbbi = { sizeof(tbbi) };
+    tbbi.dwMask = TBIF_STATE | TBIF_LPARAM;
+    GetButtonInfo(iItem, &tbbi);
+    
+    if (iBehavior == BEH_ALWAYS_HIDE)
+    {
+        if(!(tbbi.fsState & TBSTATE_HIDDEN))
+            m_VisibleButtonCount--;    
+        
+        tbbi.fsState |= TBSTATE_HIDDEN;
+        ((InternalIconData*)tbbi.lParam)->dwState |= NIS_HIDDEN;
+    }
+    else
+    {
+        if (tbbi.fsState & TBSTATE_HIDDEN)
+            m_VisibleButtonCount++;
+        
+        tbbi.fsState &= ~TBSTATE_HIDDEN;
+        ((InternalIconData*)tbbi.lParam)->dwState &= ~NIS_HIDDEN;
+    }
+    
+    ((InternalIconData*)tbbi.lParam)->uBehaviour = iBehavior;
+    
+    SetButtonInfo(iItem, &tbbi);
+    
+    Realign();
+}
+
+void CNotifyToolbar::Toogle(BOOL expand)
+{
+    expanded = expand;
+    
+    TBBUTTONINFO tbbi = { sizeof(tbbi) };
+    tbbi.dwMask = TBIF_STATE | TBIF_LPARAM;
+    
+    for (int i = 0; i < GetButtonCount(); i++)
+    {
+        GetButtonInfo(i, &tbbi);
+        InternalIconData* data = (InternalIconData*)tbbi.lParam;
+        if (data->Locked) continue;
+        
+        if (!expand)
+        {
+            if (data->uBehaviour != BEH_ALWAYS_SHOW)
+                tbbi.fsState |= TBSTATE_HIDDEN;
+        }
+        else
+        {
+            tbbi.fsState &= ~TBSTATE_HIDDEN;
+        }
+        
+        SetButtonInfo(i, &tbbi);
+    }
+    Realign();
+}
 
 /*
  * SysPagerWnd
@@ -1608,7 +1646,24 @@ HRESULT CSysPagerWnd::Initialize(IN HWND hWndParent)
     return S_OK;
 }
 
+CNotifyToolbar* CSysPagerWnd::GetToolbar()
+{
+    return &Toolbar;
+}
+
 HRESULT CSysPagerWnd_CreateInstance(HWND hwndParent, REFIID riid, void **ppv)
 {
     return ShellObjectCreatorInit<CSysPagerWnd>(hwndParent, riid, ppv);
+}
+
+CNotifyToolbar* CSysPagerWnd_GetTrayToolbar(IUnknown *pPager)
+{
+    CSysPagerWnd *pager = static_cast<CSysPagerWnd*>(pPager);
+
+    if (pager != NULL)
+    {
+        return pager->GetToolbar();
+    }
+
+    return NULL;
 }
