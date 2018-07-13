@@ -1,4 +1,9 @@
 
+if(MSVC)
+    #replace_compile_flags("/Ox /Ob2 /Ot /Oy /GT /GF" "/Od /Ob0")
+    #replace_compile_flags("/Od /Ob0" "/Ox /Ob2 /Ot /Oy /GT /GF")
+endif()
+
 include_directories(include)
 #include_directories(.)
 

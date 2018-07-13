@@ -1,4 +1,8 @@
 
+if(MSVC)
+    replace_compile_flags("/Ox /Ob2 /Ot /Oy /GT /GF" "/Od /Ob0")
+endif()
+
 add_definitions(
     -D_NTOSKRNL_
     -DNO_RTL_INLINES
