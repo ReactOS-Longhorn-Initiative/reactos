@@ -1,6 +1,10 @@
 
 PROJECT(NTOS)
 
+if(MSVC)
+    replace_compile_flags("/Od /Ob0" "/Ox /Ob2 /Ot /Oy /GT /GF")
+endif()
+
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     # Enable this again. CORE-17637
     add_compile_options(-Wunused-result)
