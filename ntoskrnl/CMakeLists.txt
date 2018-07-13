@@ -2,7 +2,7 @@
 PROJECT(NTOS)
 
 if(MSVC)
-    replace_compile_flags("/Od /Ob0" "/Ox /Ob2 /Ot /Oy /GT /GF")
+    #replace_compile_flags("/Ob0 /Od" "/Ox /Ob2 /Ot /Oy /GT /GF")
 endif()
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
