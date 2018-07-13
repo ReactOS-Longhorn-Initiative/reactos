@@ -1,4 +1,9 @@
 
+if(MSVC)
+    replace_compile_flags("/Ox /Ob2 /Ot /Oy /GT /GF" "/Od /Ob0")
+endif()
+
+
 remove_definitions(-D_WIN32_WINNT=0x502)
 add_definitions(-D_WIN32_WINNT=0x600)
 
