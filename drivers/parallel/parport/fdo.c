@@ -153,6 +153,7 @@ FdoStartDevice(IN PDEVICE_OBJECT DeviceObject,
     {
         PCM_PARTIAL_RESOURCE_DESCRIPTOR PartialDescriptor = &ResourceList->List[0].PartialResourceList.PartialDescriptors[i];
         PCM_PARTIAL_RESOURCE_DESCRIPTOR PartialDescriptorTranslated = &ResourceListTranslated->List[0].PartialResourceList.PartialDescriptors[i];
+        DBG_UNREFERENCED_PARAMETER(PartialDescriptorTranslated);
 
         switch (PartialDescriptor->Type)
         {
