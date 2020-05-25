@@ -334,9 +334,20 @@ void ReadGeneric(XMLHandle dbNode, std::list<T>& result, const char* nodeName, P
 template<typename T>
 bool WriteGeneric(std::list<T>& data, Database& db)
 {
-    for (typename std::list<T>::iterator it = data.begin(); it != data.end(); ++it)
+    for (auto& it: data)
     {
-        if (!it->toSdb(db))
+        if (!it.toSdb(db))
+            return false;
+    }
+    return true;
+}
+
+template<typename T>
+bool WriteGeneric(std::list<T>& data, Database& db, TAG tag_type)
+{
+    for (auto& it: data)
+    {
+        if (!it.toSdb(db, tag_type))
             return false;
     }
     return true;
@@ -356,15 +367,23 @@ bool ShimRef::fromXml(XMLHandle dbNode)
     return !Name.empty();
 }
 
-bool ShimRef::toSdb(Database& db)
+bool ShimRef::toSdb(Database& db, TAG tag_type)
 {
-    TAGID tagid = db.BeginWriteListTag(TAG_SHIM_REF);
+    TAGID tagid = db.BeginWriteListTag(tag_type);
     db.WriteString(TAG_NAME, Name, true);
     db.WriteString(TAG_COMMAND_LINE, CommandLine);
 
-    if (!ShimTagid)
-        ShimTagid = db.FindShimTagid(Name);
-    db.WriteDWord(TAG_SHIM_TAGID, ShimTagid);
+    if (tag_type == TAG_SHIM_REF)
+    {
+        TAGID ShimTagid = db.FindShimTagid(Name);
+        db.WriteDWord(TAG_SHIM_TAGID, ShimTagid);
+    }
+    else
+    {
+        std::string ShimModule = db.FindKShimModule(Name);
+        db.WriteString(TAG_MODULE, ShimModule);
+    }
+
     return !!db.EndWriteListTag(tagid);
 }
 
@@ -400,24 +419,32 @@ bool Shim::fromXml(XMLHandle dbNode)
 {
     Name = ReadStringNode(dbNode, "NAME");
     DllFile = ReadStringNode(dbNode, "DLLFILE");
+    if (DllFile.empty())
+    {
+        DllFile = ReadStringNode(dbNode, "MODULE");
+        KShim = !DllFile.empty();
+    }
     ReadGuidNode(dbNode, "FIX_ID", FixID);
     // GENERAL ?
     // DESCRIPTION_RC_ID
-    ReadGeneric(dbNode, InExcludes, "INCLUDE");
-    ReadGeneric(dbNode, InExcludes, "EXCLUDE");
+    if (!KShim)
+    {
+        ReadGeneric(dbNode, InExcludes, "INCLUDE");
+        ReadGeneric(dbNode, InExcludes, "EXCLUDE");
+    }
     return !Name.empty() && !DllFile.empty();
 }
 
 bool Shim::toSdb(Database& db)
 {
-    Tagid = db.BeginWriteListTag(TAG_SHIM);
-    db.InsertShimTagid(Name, Tagid);
+    Tagid = db.BeginWriteListTag(KShim ? TAG_KSHIM : TAG_SHIM);
+    //db.InsertShimTagid(Name, Tagid);
     db.WriteString(TAG_NAME, Name);
-    db.WriteString(TAG_DLLFILE, DllFile);
+    db.WriteString(KShim ?  TAG_MODULE : TAG_DLLFILE, DllFile);
     if (IsEmptyGuid(FixID))
         RandomGuid(FixID);
     db.WriteBinary(TAG_FIX_ID, FixID);
-    if (!WriteGeneric(InExcludes, db))
+    if (!KShim && !WriteGeneric(InExcludes, db))
         return false;
     return !!db.EndWriteListTag(Tagid);
 }
@@ -441,7 +468,7 @@ bool Flag::fromXml(XMLHandle dbNode)
 bool Flag::toSdb(Database& db)
 {
     Tagid = db.BeginWriteListTag(TAG_FLAG);
-    db.InsertFlagTagid(Name, Tagid);
+    //db.InsertFlagTagid(Name, Tagid);
     db.WriteString(TAG_NAME, Name, true);
 
     db.WriteQWord(TAG_FLAG_MASK_KERNEL, KernelFlags);
@@ -532,7 +559,7 @@ bool Layer::toSdb(Database& db)
 {
     Tagid = db.BeginWriteListTag(TAG_LAYER);
     db.WriteString(TAG_NAME, Name, true);
-    if (!WriteGeneric(ShimRefs, db))
+    if (!WriteGeneric(ShimRefs, db, TAG_SHIM_REF))     // cannot be a KSHIM_REF
         return false;
     if (!WriteGeneric(FlagRefs, db))
         return false;
@@ -607,16 +634,24 @@ bool Exe::fromXml(XMLHandle dbNode)
     ReadGeneric(dbNode, MatchingFiles, "MATCHING_FILE");
 
     ReadGeneric(dbNode, ShimRefs, "SHIM_REF");
-    ReadGeneric(dbNode, FlagRefs, "FLAG_REF");
+    if (ShimRefs.empty())
+    {
+        ReadGeneric(dbNode, ShimRefs, "KSHIM_REF");
+        KShim = !ShimRefs.empty();
+    }
+    if (!KShim)
+    {
+        ReadGeneric(dbNode, FlagRefs, "FLAG_REF");
+    }
 
     Platform = ReadPlatformNode(dbNode, "RUNTIME_PLATFORM");
 
     return !Name.empty();
 }
 
-bool Exe::toSdb(Database& db)
+bool Exe::toSdb(Database& db, TAG tag_type)
 {
-    Tagid = db.BeginWriteListTag(TAG_EXE);
+    Tagid = db.BeginWriteListTag(tag_type);
 
     db.WriteString(TAG_NAME, Name, true);
     if (IsEmptyGuid(ExeID))
@@ -629,9 +664,9 @@ bool Exe::toSdb(Database& db)
 
     if (!WriteGeneric(MatchingFiles, db))
         return false;
-    if (!WriteGeneric(ShimRefs, db))
+    if (!WriteGeneric(ShimRefs, db, KShim ? TAG_KSHIM_REF : TAG_SHIM_REF))
         return false;
-    if (!WriteGeneric(FlagRefs, db))
+    if (!KShim && !WriteGeneric(FlagRefs, db))
         return false;
 
     return !!db.EndWriteListTag(Tagid);
@@ -724,6 +759,11 @@ bool Database::fromXml(XMLHandle dbNode)
 
     ReadGeneric(dbNode, Layers, "LAYER", platform);
     ReadGeneric(dbNode, Exes, "EXE", platform);
+
+    ReadGeneric(dbNode, KDrivers, "KDRIVER");
+    ReadGeneric(dbNode, KDevices, "KDEVICE");
+    ReadGeneric(dbNode, KShims, "KSHIM");
+
     return true;
 }
 
@@ -762,7 +802,13 @@ bool Database::toSdb(LPCWSTR path)
     EndWriteListTag(tidLibrary);
     if (!WriteGeneric(Layers, *this))
         return false;
-    if (!WriteGeneric(Exes, *this))
+    if (!WriteGeneric(Exes, *this, TAG_EXE))
+        return false;
+    if (!WriteGeneric(KDrivers, *this, TAG_KDRIVER))
+        return false;
+    if (!WriteGeneric(KDevices, *this, TAG_KDEVICE))
+        return false;
+    if (!WriteGeneric(KShims, *this))
         return false;
     EndWriteListTag(tidDatabase);
 
@@ -771,55 +817,52 @@ bool Database::toSdb(LPCWSTR path)
     return true;
 }
 
-static void InsertTagid(const sdbstring& name, TAGID tagid, std::map<sdbstring, TAGID>& lookup, const char* type)
+bool iequals(const std::string& a, const std::string& b)
 {
-    sdbstring nameLower = name;
-    std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
-    if (lookup.find(nameLower) != lookup.end())
+    unsigned int sz = a.size();
+    if (b.size() != sz)
+        return false;
+    for (unsigned int i = 0; i < sz; ++i)
+        if (tolower(a[i]) != tolower(b[i]))
+            return false;
+    return true;
+}
+
+TAGID Database::FindShimTagid(const std::string& name)
+{
+    for (const auto& it : Library.Shims)
     {
-        std::string nameA(name.begin(), name.end());
-        SHIM_WARN("%s '%s' redefined\n", type, nameA.c_str());
-        return;
+        if (iequals(name, it.Name))
+        {
+            return it.Tagid;
+        }
     }
-    lookup[nameLower] = tagid;
+    assert(false);
+    return 0;
 }
 
-static TAGID FindTagid(const sdbstring& name, const std::map<sdbstring, TAGID>& lookup)
+std::string Database::FindKShimModule(const std::string& name)
 {
-    sdbstring nameLower = name;
-    std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
-    std::map<sdbstring, TAGID>::const_iterator it = lookup.find(nameLower);
-    if (it == lookup.end())
-        return 0;
-    return it->second;
+    for (const auto& it : KShims)
+    {
+        if (iequals(name, it.Name))
+        {
+            return it.DllFile;
+        }
+    }
+    assert(false);
+    return std::string();
 }
 
-void Database::InsertShimTagid(const sdbstring& name, TAGID tagid)
+TAGID Database::FindFlagTagid(const std::string& name)
 {
-    InsertTagid(name, tagid, KnownShims, "Shim");
-}
-
-TAGID Database::FindShimTagid(const sdbstring& name)
-{
-    return FindTagid(name, KnownShims);
-}
-
-void Database::InsertPatchTagid(const sdbstring& name, TAGID tagid)
-{
-    InsertTagid(name, tagid, KnownPatches, "Patch");
-}
-
-TAGID Database::FindPatchTagid(const sdbstring& name)
-{
-    return FindTagid(name, KnownPatches);
-}
-
-void Database::InsertFlagTagid(const sdbstring& name, TAGID tagid)
-{
-    InsertTagid(name, tagid, KnownFlags, "Flag");
-}
-
-TAGID Database::FindFlagTagid(const sdbstring& name)
-{
-    return FindTagid(name, KnownFlags);
+    for (const auto& it : Library.Flags)
+    {
+        if (iequals(name, it.Name))
+        {
+            return it.Tagid;
+        }
+    }
+    assert(false);
+    return 0;
 }

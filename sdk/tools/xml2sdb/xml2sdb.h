@@ -63,7 +63,7 @@ struct InExclude
 struct ShimRef
 {
     bool fromXml(XMLHandle dbNode);
-    bool toSdb(Database& db);
+    bool toSdb(Database& db, TAG tag_type);
 
     std::string Name;
     std::string CommandLine;
@@ -89,6 +89,7 @@ struct Shim
     std::string DllFile;
     GUID FixID = {};
     TAGID Tagid = 0;
+    bool KShim = false;
     std::list<InExclude> InExcludes;
     PlatformType Platform = PLATFORM_ANY;
 };
@@ -158,13 +159,14 @@ struct MatchingFile
 struct Exe
 {
     bool fromXml(XMLHandle dbNode);
-    bool toSdb(Database& db);
+    bool toSdb(Database& db, TAG tag_type);
 
     std::string Name;
     GUID ExeID = {};
     std::string AppName;
     std::string Vendor;
     TAGID Tagid = 0;
+    bool KShim = false;
     std::list<MatchingFile> MatchingFiles;
     std::list<ShimRef> ShimRefs;
     std::list<FlagRef> FlagRefs;
@@ -194,39 +196,10 @@ struct Database
     TAGID BeginWriteListTag(TAG tag);
     BOOL EndWriteListTag(TAGID tagid);
 
-    void InsertShimTagid(const sdbstring& name, TAGID tagid);
-    inline void InsertShimTagid(const std::string& name, TAGID tagid)
-    {
-        InsertShimTagid(sdbstring(name.begin(), name.end()), tagid);
-    }
-    TAGID FindShimTagid(const sdbstring& name);
-    inline TAGID FindShimTagid(const std::string& name)
-    {
-        return FindShimTagid(sdbstring(name.begin(), name.end()));
-    }
 
-
-    void InsertPatchTagid(const sdbstring& name, TAGID tagid);
-    inline void InsertPatchTagid(const std::string& name, TAGID tagid)
-    {
-        InsertPatchTagid(sdbstring(name.begin(), name.end()), tagid);
-    }
-    TAGID FindPatchTagid(const sdbstring& name);
-    inline TAGID FindPatchTagid(const std::string& name)
-    {
-        return FindPatchTagid(sdbstring(name.begin(), name.end()));
-    }
-
-    void InsertFlagTagid(const sdbstring& name, TAGID tagid);
-    inline void InsertFlagTagid(const std::string& name, TAGID tagid)
-    {
-        InsertFlagTagid(sdbstring(name.begin(), name.end()), tagid);
-    }
-    TAGID FindFlagTagid(const sdbstring& name);
-    inline TAGID FindFlagTagid(const std::string& name)
-    {
-        return FindFlagTagid(sdbstring(name.begin(), name.end()));
-    }
+    TAGID FindShimTagid(const std::string& name);
+    std::string FindKShimModule(const std::string& name);
+    TAGID FindFlagTagid(const std::string& name);
 
     std::string Name;
     GUID ID = {};
@@ -236,9 +209,9 @@ struct Database
     std::list<Exe> Exes;
 
 private:
-    std::map<sdbstring, TAGID> KnownShims;
-    std::map<sdbstring, TAGID> KnownPatches;
-    std::map<sdbstring, TAGID> KnownFlags;
+    std::list<Exe> KDrivers;
+    std::list<Exe> KDevices;
+    std::list<Shim> KShims;
     PDB pdb = nullptr;
     PlatformType platform = PLATFORM_ANY;
 };
