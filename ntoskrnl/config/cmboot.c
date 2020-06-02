@@ -25,9 +25,6 @@
 #include <cmlib.h>
 #include "internal/cmboot.h"
 
-// HACK: This is part of non-NT-compatible SafeBoot support in kernel.
-ULONG InitSafeBootMode = 0;
-
 DBG_DEFAULT_CHANNEL(REGISTRY);
 #define CMTRACE(x, fmt, ...) TRACE(fmt, ##__VA_ARGS__) // DPRINT
 
@@ -43,9 +40,6 @@ DBG_DEFAULT_CHANNEL(REGISTRY);
 
 
 /* FUNCTIONS ******************************************************************/
-
-// HACK: This is part of non-NT-compatible SafeBoot support in kernel.
-extern ULONG InitSafeBootMode;
 
 CODE_SEG("INIT")
 static
