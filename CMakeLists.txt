@@ -72,6 +72,7 @@ add_definitions(
     -D__REACTOS__
     # swprintf without count argument is used in most of the codebase
     -D_CRT_NON_CONFORMING_SWPRINTFS
+    -DNATIVE_REACTX
 )
 
 # There doesn't seem to be a standard for __FILE__ being relative or absolute, so detect it at runtime.
