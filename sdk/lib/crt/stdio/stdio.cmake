@@ -1,5 +1,6 @@
 
 list(APPEND CRT_STDIO_SOURCE
+    stdio/acrt_iob_func.c
     stdio/_flsbuf.c
     stdio/_flswbuf.c
     stdio/access.c

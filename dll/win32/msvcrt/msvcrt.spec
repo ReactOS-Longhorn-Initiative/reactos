@@ -256,8 +256,9 @@
 @ cdecl ___lc_collate_cp_func()
 @ cdecl ___lc_handle_func()
 @ cdecl ___mb_cur_max_func()
-@ cdecl -arch=i386,x86_64 ___setlc_active_func()
-@ cdecl -arch=i386,x86_64 ___unguarded_readlc_active_add_func()
+@ cdecl ___setlc_active_func()
+@ cdecl ___unguarded_readlc_active_add_func()
+@ cdecl -version=0x601+ __acrt_iob_func(long)
 @ extern __argc
 @ extern __argv
 @ extern __badioinfo __badioinfo
