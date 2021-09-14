@@ -11,7 +11,6 @@
 
 
 #include "dxapi_driver.h"
-
 #define NDEBU /* debug prints are enabled, add a G at the end to disable it ;-) */
 #include <debug.h>
 
@@ -198,127 +197,127 @@ DxGetVersionNumber(PVOID lpvInBuffer, LPDDGETVERSIONNUMBER lpvOutBuffer)
 VOID
 DxCloseHandle(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxOpenDirectDraw(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxOpenSurface(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxOpenVideoPort(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxGetKernelCaps(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxGetFieldNumber(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxSetFieldNumber(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxSetSkipPattern(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxGetSurfaceState(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxSetSurfaceState(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxLock(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxFlipOverlay(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxFlipVideoPort(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxGetCurrentAutoflip(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxGetPreviousAutoflip(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxRegisterEvent(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxUnregisterEvent(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxGetPolarity(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxOpenVpCatureDevice(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxAddVpCaptureBuffer(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 VOID
 DxFlushVpCaptureBuffs(PVOID lpvInBuffer, PVOID lpvOutBuffer)
 {
-    /* FIXME Unimplement */
+    UNIMPLEMENTED;
 }
 
 

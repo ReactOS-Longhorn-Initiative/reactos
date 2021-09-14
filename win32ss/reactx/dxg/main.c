@@ -89,6 +89,7 @@ DxDdStartupDxGraphics (ULONG SizeEngDrv,
     }
 
     /* Note 12/1-2004 : Why is this set to 0x618 */
+    /* Note 09/13/2021 : i come from the future, what the fuck. */
     *DirectDrawContext = 0x618;
 
     if (DdHmgCreate())
