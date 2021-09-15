@@ -18,6 +18,7 @@
 #include "rosdraw.h"
 
 #include <string.h>
+#include <debug.h>
 
 LPDDRAWI_DIRECTDRAW_INT
 internal_directdraw_int_alloc(LPDDRAWI_DIRECTDRAW_INT This)
@@ -486,26 +487,20 @@ Main_DirectDraw_CreateSurface (LPDDRAWI_DIRECTDRAW_INT This, LPDDSURFACEDESC pDD
     EnterCriticalSection(&ddcs);
     *ppSurf = NULL;
 
-    _SEH2_TRY
+
+    if (pDDSD->dwSize == sizeof(DDSURFACEDESC))
     {
-        if (pDDSD->dwSize == sizeof(DDSURFACEDESC))
-        {
-            CopyDDSurfDescToDDSurfDesc2(&dd_desc_v2, (LPDDSURFACEDESC)pDDSD);
-            ret = Internal_CreateSurface(This,
-                                         &dd_desc_v2,
-                                         ppSurf,
-                                         pUnkOuter);
-        }
-        else
-        {
-            ret = DDERR_INVALIDPARAMS;
-        }
+        CopyDDSurfDescToDDSurfDesc2(&dd_desc_v2, (LPDDSURFACEDESC)pDDSD);
+        ret = Internal_CreateSurface(This,
+                                     &dd_desc_v2,
+                                     ppSurf,
+                                     pUnkOuter);
     }
-    _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+    else
     {
         ret = DDERR_INVALIDPARAMS;
     }
-    _SEH2_END;
+    
     LeaveCriticalSection(&ddcs);
     return ret;
 }
@@ -545,6 +540,7 @@ Main_DirectDraw_CreateSurface4(LPDDRAWI_DIRECTDRAW_INT This, LPDDSURFACEDESC2 pD
 HRESULT WINAPI Main_DirectDraw_CreatePalette(LPDDRAWI_DIRECTDRAW_INT This, DWORD dwFlags,
                   LPPALETTEENTRY palent, LPDIRECTDRAWPALETTE* ppPalette, LPUNKNOWN pUnkOuter)
 {
+    __debugbreak();
 	HRESULT ret = DD_OK;
     DX_WINDBG_trace();
 

@@ -7,7 +7,7 @@
  *
  */
 #include "rosdraw.h"
-
+#include <debug.h>
 /*
 * All parameters must have been checked if they are valid before they are passed to Internal_CreateSurface.
 * If not please fix the code in the functions which call Internal_CreateSurface.
@@ -279,7 +279,7 @@ Internal_CreateSurface( LPDDRAWI_DIRECTDRAW_INT pDDraw, LPDDSURFACEDESC2 pDDSD,
         DxHeapMemFree(slist_gbl);
 
     *ppSurf = (LPDDRAWI_DDRAWSURFACE_INT) &slist_int[0]->lpVtbl;
-
+    DPRINT1("InternalCreateSurface is sucessful");
     return DD_OK;
 
 cleanup:
