@@ -21,11 +21,11 @@ if (NOT MSDX)
     add_subdirectory(d3dxof)
     add_subdirectory(ddraw) #disabled in trunk, see wine subfolder
 endif()
-#add_subdirectory(dinput)
-#add_subdirectory(dinput8)
+add_subdirectory(dinput)
+add_subdirectory(dinput8)
 if(ARCH STREQUAL "i386")
-   #add_subdirectory(dmusic)
-   #add_subdirectory(dplayx)
+   add_subdirectory(dmusic)
+   add_subdirectory(dplayx)
 endif()
 add_subdirectory(dsound_new) #disabled in trunk
 #add_subdirectory(ksproxy) Not needed at the moment
