@@ -1,12 +1,18 @@
 
 #add_subdirectory(bdaplgin) #disabled in trunk
 if(ARCH STREQUAL "i386")
-    add_subdirectory(d3d8) #disabled in trunk, see wine subfolder
+    if (NOT MSDX)
+        add_subdirectory(d3d8) #disabled in trunk, see wine subfolder
+    endif()
 endif()
-add_subdirectory(d3d8thk)
-add_subdirectory(d3d9) #disabled in trunk, see wine subfolder
+if (NOT MSDX)
+    add_subdirectory(d3d8thk)
+    add_subdirectory(d3d9) #disabled in trunk, see wine subfolder
+endif()
 if(ARCH STREQUAL "i386")
-    add_subdirectory(d3dim) #disabled in trunk, see wine subfolder
+    if (NOT MSDX)
+        add_subdirectory(d3dim) #disabled in trunk, see wine subfolder
+    endif()
     add_subdirectory(d3drm)
 endif()
 add_subdirectory(d3dxof)
