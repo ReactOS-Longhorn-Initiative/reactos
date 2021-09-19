@@ -196,7 +196,7 @@ Direct3DSwapChain9_INT* CreateDirect3DSwapChain9(enum REF_TYPE RefType, struct _
     pThisSwapChain->ChainIndex = ChainIndex;
     pThisSwapChain->AdapterGroupIndex = ChainIndex;
     pThisSwapChain->pUnknown6BC = pBaseDevice->DeviceData[ChainIndex].pUnknown6BC;
-    pThisSwapChain->pUnknown015c = (LPVOID)0xD3D9D3D9;
+    pThisSwapChain->pUnknown015c = (LPVOID)0xD3D9D3D9D3D9D3D9;
 
     return pThisSwapChain;
 }
