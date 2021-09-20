@@ -101,9 +101,9 @@ HDC NTAPI DxEngCreateMemoryDC(HDEV hDev);
 
 BOOLEAN NTAPI DxEngIsHdevLockedByCurrentThread(HDEV hDev);
 BOOLEAN NTAPI DxEngUnreferenceHdev(HDEV hDev);
-DWORD NTAPI DxEngSpTearDownSprites(DWORD x1, DWORD x2, DWORD x3);
-DWORD NTAPI DxEngSpUnTearDownSprites(DWORD x1, DWORD x2, DWORD x3);
-DWORD NTAPI DxEngSpSpritesVisible(DWORD x1);
+DWORD NTAPI DxEngSpTearDownSprites(HDEV hDev, DWORD x2, DWORD x3);
+DWORD NTAPI DxEngSpUnTearDownSprites(HDEV hDev, DWORD x2, DWORD x3);
+DWORD NTAPI DxEngSpSpritesVisible(HDEV hDev);
 HDC NTAPI DxEngGetDesktopDC(ULONG DcType, BOOL EmptyDC, BOOL ValidatehWnd);
 BOOLEAN NTAPI DxEngDeleteDC(HDC hdc, BOOL Force);
 BOOLEAN NTAPI DxEngSetDCState(HDC hDC, DWORD SetType, DWORD Set);
@@ -113,11 +113,11 @@ BOOLEAN NTAPI DxEngDeleteSurface(HSURF hsurf);
 DWORD NTAPI DxEngGetSurfaceData(DWORD x1, DWORD x2);
 SURFOBJ * NTAPI DxEngAltLockSurface(HSURF hsurf);
 DWORD NTAPI DxEngUploadPaletteEntryToSurface(DWORD x1, DWORD x2,DWORD x3, DWORD x4);
-DWORD NTAPI DxEngMarkSurfaceAsDirectDraw(DWORD x1, DWORD x2);
-DWORD NTAPI DxEngSelectPaletteToSurface(DWORD x1, DWORD x2);
-DWORD NTAPI DxEngSyncPaletteTableWithDevice(DWORD x1, DWORD x2);
-DWORD NTAPI DxEngSetPaletteState(DWORD x1, DWORD x2, DWORD x3);
+DWORD NTAPI DxEngMarkSurfaceAsDirectDraw(HSURF hSurf, DWORD x2);
+DWORD NTAPI DxEngSelectPaletteToSurface(HSURF hSurf, HPALETTE hPalette);
+DWORD NTAPI DxEngSyncPaletteTableWithDevice(HPALETTE hPalette, DWORD x2);
+DWORD NTAPI DxEngSetPaletteState(HPALETTE hPalette, DWORD x2, DWORD x3);
 DWORD NTAPI DxEngGetRedirectionBitmap(DWORD x1);
-DWORD NTAPI DxEngLoadImage(DWORD x1,DWORD x2);
+PLDEVOBJ NTAPI DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype);
 
 

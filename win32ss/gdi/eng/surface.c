@@ -561,7 +561,6 @@ EngModifySurface(
     return TRUE;
 }
 
-
 BOOL
 APIENTRY
 EngDeleteSurface(

@@ -103,18 +103,18 @@ typedef PDC       (APIENTRY* PFN_DxEngLockDC)(HDC);
 typedef BOOLEAN   (APIENTRY* PFN_DxEngUnlockDC)(PDC);
 typedef BOOLEAN   (APIENTRY* PFN_DxEngSetDCState)(HDC, DWORD, DWORD);
 typedef DWORD_PTR (APIENTRY* PFN_DxEngGetDCState)(HDC, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngSelectBitmap)(DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngSetBitmapOwner)(DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngDeleteSurface)(DWORD);
+typedef DWORD     (APIENTRY* PFN_DxEngSelectBitmap)(HDC, HBITMAP);
+typedef BOOL      (APIENTRY* PFN_DxEngSetBitmapOwner)(HBITMAP, ULONG);
+typedef DWORD     (APIENTRY* PFN_DxEngDeleteSurface)(HSURF);
 typedef DWORD     (APIENTRY* PFN_DxEngGetSurfaceData)(DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngAltLockSurface)(DWORD);
+typedef DWORD     (APIENTRY* PFN_DxEngAltLockSurface)(HSURF);
 typedef DWORD     (APIENTRY* PFN_DxEngUploadPaletteEntryToSurface)(DWORD, DWORD, DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngMarkSurfaceAsDirectDraw)(DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngSelectPaletteToSurface)(DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngSyncPaletteTableWithDevice)(DWORD, DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngSetPaletteState)(DWORD, DWORD, DWORD);
+typedef DWORD     (APIENTRY* PFN_DxEngMarkSurfaceAsDirectDraw)(HSURF, DWORD);
+typedef DWORD     (APIENTRY* PFN_DxEngSelectPaletteToSurface)(HSURF, HPALETTE);
+typedef DWORD     (APIENTRY* PFN_DxEngSyncPaletteTableWithDevice)(HPALETTE, DWORD);
+typedef DWORD     (APIENTRY* PFN_DxEngSetPaletteState)(HPALETTE, DWORD, DWORD);
 typedef DWORD     (APIENTRY* PFN_DxEngGetRedirectionBitmap)(DWORD);
-typedef DWORD     (APIENTRY* PFN_DxEngLoadImage)(DWORD, DWORD);
+typedef DWORD_PTR (APIENTRY* PFN_DxEngLoadImage)(LPWSTR, ULONG);
 
 
 typedef struct _DXENG_FUNCTIONS

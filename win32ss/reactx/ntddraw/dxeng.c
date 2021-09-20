@@ -5,6 +5,7 @@
  * PURPOSE:          Implementation of DxEng functions
  * PROGRAMMERS:      Magnus Olsen (magnus@greatlord.com)
  *                   Oleg Dubinskiy (oleg.dubinskij30@gmail.com)
+ *                   Copyright Justin Miller <justinmiller100@gmail.com>
  */
 
 #include <win32k.h>
@@ -811,47 +812,85 @@ SURFOBJ * APIENTRY DxEngAltLockSurface(HSURF hsurf)
 DWORD APIENTRY DxEngUploadPaletteEntryToSurface(DWORD x1, DWORD x2,DWORD x3, DWORD x4)
 {
     UNIMPLEMENTED;
-    return FALSE;
+    return TRUE;
 }
 
 /************************************************************************/
 /* DxEngMarkSurfaceAsDirectDraw                                         */
 /************************************************************************/
-DWORD APIENTRY DxEngMarkSurfaceAsDirectDraw(DWORD x1, DWORD x2)
+DWORD APIENTRY DxEngMarkSurfaceAsDirectDraw(HSURF hSurf, DWORD x2)
 {
+    if (!hSurf)
+    {
+        return FALSE;
+    }
     __debugbreak();
-    UNIMPLEMENTED;
-    return FALSE;
+
+    return TRUE; /* Aren't we always a valid surface? */
 }
 
 /************************************************************************/
 /* DxEngSelectPaletteToSurface                                          */
 /************************************************************************/
-DWORD APIENTRY DxEngSelectPaletteToSurface(DWORD x1, DWORD x2)
+DWORD APIENTRY DxEngSelectPaletteToSurface(HSURF hSurf, HPALETTE hPalette)
 {
+    //HPALETTE hSurfTwo;
+    //HPALETTE hSurfThree;
+
     __debugbreak();
-    UNIMPLEMENTED;
-    return FALSE;
+    /*  if the surface is valid and the palette is valid */
+    if (hSurf)
+    {
+        if (!hPalette)
+        {
+            DPRINT1("ReactX says the surface isn't valid");
+            return 0;
+        }
+    }
+    DPRINT1("ReactX says the surface is valid");
+    return 0;
 }
 
 /************************************************************************/
 /* DxEngSyncPaletteTableWithDevice                                      */
 /************************************************************************/
-DWORD APIENTRY DxEngSyncPaletteTableWithDevice(DWORD x1, DWORD x2)
+DWORD APIENTRY DxEngSyncPaletteTableWithDevice(HPALETTE hPalette, DWORD x2)
 {
+    DPRINT1("The value of x2 is %X\n", x2);
     __debugbreak();
     UNIMPLEMENTED;
-    return FALSE;
+    return TRUE;
 }
 
 /************************************************************************/
 /* DxEngSetPaletteState                                                 */
 /************************************************************************/
-DWORD APIENTRY DxEngSetPaletteState(DWORD x1, DWORD x2, DWORD x3)
+DWORD APIENTRY DxEngSetPaletteState(HPALETTE hPalette, DWORD x2, DWORD x3)
 {
+    BOOL Result;
+    Result = FALSE;
+    if (hPalette)
+    {
+        if (x2 == TRUE)
+        {
+            if (x3)
+            {
+                
+            }
+            else
+            {
+
+            }
+            Result = TRUE;
+        }
+        /* HmgDecrementShareReferenceCount */
+    }
     __debugbreak();
-    UNIMPLEMENTED;
-    return FALSE;
+    DPRINT1("The value of x1 is %X\n", hPalette);
+    DPRINT1("The value of x2 is %X\n", x2);
+    DPRINT1("The value of x3 is %X\n", x3);
+    //EngSetPaletteState(hPalette, x2, x3);
+    return Result;
 }
 
 /************************************************************************/
@@ -867,39 +906,38 @@ DxEngGetRedirectionBitmap(DWORD x1)
 /************************************************************************/
 /* DxEngLoadImage                                                       */
 /************************************************************************/
-DWORD APIENTRY DxEngLoadImage(DWORD x1,DWORD x2)
+PLDEVOBJ APIENTRY DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype)
 {
-    __debugbreak();
-    UNIMPLEMENTED;
-    return FALSE;
+    return EngLoadImageEx(pwszDriverName, ldevtype);
 }
 
 /************************************************************************/
 /* DxEngSpTearDownSprites                                               */
 /************************************************************************/
-DWORD APIENTRY DxEngSpTearDownSprites(DWORD x1, DWORD x2, DWORD x3)
+DWORD APIENTRY DxEngSpTearDownSprites(HDEV hDev, DWORD x2, DWORD x3)
 {
-    __debugbreak();
     UNIMPLEMENTED;
-    return FALSE;
+    __debugbreak();
+    DPRINT1("Always return call a hidden func in gdi"); /* SpUnTearDownSprites */
+    return TRUE; /* SpTearDownSprites */
 }
 
 /************************************************************************/
 /* DxEngSpUnTearDownSprites                                             */
 /************************************************************************/
-DWORD APIENTRY DxEngSpUnTearDownSprites(DWORD x1, DWORD x2, DWORD x3)
+DWORD APIENTRY DxEngSpUnTearDownSprites(HDEV hDev, DWORD x2, DWORD x3)
 {
-    __debugbreak();
     UNIMPLEMENTED;
-    return FALSE;
+    __debugbreak();
+    DPRINT1("Always return true; but call a hidden func in gdi"); /* SpUnTearDownSprites */
+    return TRUE;
 }
 
 /************************************************************************/
 /* DxEngSpSpritesVisible                                                */
 /************************************************************************/
-DWORD APIENTRY DxEngSpSpritesVisible(DWORD x1)
+DWORD APIENTRY DxEngSpSpritesVisible(HDEV hDev)
 {
     __debugbreak();
-    UNIMPLEMENTED;
-    return FALSE;
+    return TRUE;
 }
