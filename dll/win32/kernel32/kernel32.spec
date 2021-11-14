@@ -617,7 +617,7 @@
 @ stdcall GetPrivateProfileStructW(wstr wstr ptr long wstr)
 @ stdcall GetProcAddress(long str)
 @ stdcall GetProcessAffinityMask(long ptr ptr)
-@ stdcall -version=0x600+ GetProcessDEPPolicy(ptr ptr ptr)
+@ stdcall GetProcessDEPPolicy(ptr ptr ptr)
 @ stdcall -version=0x601+ GetProcessGroupAffinity(long ptr ptr)
 @ stdcall GetProcessHandleCount(long ptr)
 @ stdcall -norelay GetProcessHeap()
@@ -655,7 +655,7 @@
 @ stdcall GetStringTypeExA(long long str long ptr)
 @ stdcall GetStringTypeExW(long long wstr long ptr)
 @ stdcall GetStringTypeW(long wstr long ptr)
-@ stub -version=0x600+ GetSystemDEPPolicy
+@ stdcall GetSystemDEPPolicy()
 @ stdcall -version=0xA00+ GetSystemCpuSetInformation(ptr long ptr ptr long)
 @ stdcall GetSystemDefaultLCID()
 @ stdcall GetSystemDefaultLangID()
@@ -1231,7 +1231,7 @@
 @ stdcall SetProcessAffinityMask(long long)
 @ stub -version=0x600+ SetProcessAffinityUpdateMode
 @ stdcall -version=0xA00+ SetProcessDefaultCpuSets(ptr ptr long)
-@ stub -version=0x600+ SetProcessDEPPolicy
+@ stdcall SetProcessDEPPolicy(long)
 @ stdcall -version=0x602+ SetProcessInformation(long long ptr long)
 @ stdcall -version=0x602+ SetProcessMitigationPolicy(long ptr long)
 @ stdcall -stub -version=0x601+ SetProcessPreferredUILanguages(long ptr ptr)
