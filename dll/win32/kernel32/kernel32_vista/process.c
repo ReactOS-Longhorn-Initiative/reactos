@@ -131,7 +131,24 @@ SetThreadGroupAffinity(HANDLE hThread, const GROUP_AFFINITY *GroupAffinity, PGRO
 		}
 		return SetThreadAffinityMask(hThread, GroupAffinity->Mask);
 }
-
+BOOL WINAPI
+GetThreadGroupAffinity(HANDLE hThread, PGROUP_AFFINITY GroupAffinity)
+{
+		DWORD_PTR ProcessAffinityMask;
+		DWORD_PTR SystemAffinityMask;
+		DWORD Pid;
+		HANDLE hProcess;
+			Pid = GetProcessIdOfThread(hThread);
+		    hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, Pid);
+			if(!hProcess)
+				return FALSE;
+			if(!GetProcessAffinityMask(hProcess, &ProcessAffinityMask, &SystemAffinityMask))
+				return FALSE;
+			GroupAffinity->Mask = ProcessAffinityMask;
+			GroupAffinity->Group = 0;
+                        CloseHandle(hProcess);
+		return TRUE;
+}
 BOOL WINAPI
 GetThreadIdealProcessorEx(HANDLE hThread, PPROCESSOR_NUMBER lpIdealProcessor)
 {
@@ -512,31 +529,6 @@ BOOL WINAPI GetNumaProximityNode(ULONG  proximity_id, PUCHAR node_number)
     return FALSE;
 }
 
-/**********************************************************************
- *           GetProcessDEPPolicy     (KERNEL32.@)
- */
-BOOL WINAPI GetProcessDEPPolicy(HANDLE process, LPDWORD flags, PBOOL permanent)
-{
-    ULONG dep_flags;
-
-    TRACE("(%p %p %p)\n", process, flags, permanent);
-
-    if (!NT_SUCCESS( NtQueryInformationProcess( GetCurrentProcess(), ProcessExecuteFlags,
-                                                  &dep_flags, sizeof(dep_flags), NULL )))
-        return FALSE;
-
-    if (flags)
-    {
-        *flags = 0;
-        if (dep_flags & MEM_EXECUTE_OPTION_DISABLE)
-            *flags |= PROCESS_DEP_ENABLE;
-        if (dep_flags & MEM_EXECUTE_OPTION_DISABLE_THUNK_EMULATION)
-            *flags |= PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION;
-    }
-
-    if (permanent) *permanent = (dep_flags & MEM_EXECUTE_OPTION_PERMANENT) != 0;
-    return TRUE;
-}
 
 /***********************************************************************
  *           UnregisterApplicationRestart       (KERNEL32.@)
