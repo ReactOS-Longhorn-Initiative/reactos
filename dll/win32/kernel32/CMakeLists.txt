@@ -20,6 +20,7 @@ add_library(kernel32_native
     client/actctx.c
     client/thread.c
     client/path.c
+    client/dep.c
     client/file/backup.c
     client/file/cnotify.c
     client/file/copy.c
