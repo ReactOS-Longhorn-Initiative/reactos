@@ -203,8 +203,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetThreadErrorMode(void)
 {
     return rtlmode_to_win32mode( RtlGetThreadErrorMode() );
 }
-#endif
-
+ 
 /***********************************************************************
  *           GetThreadGroupAffinity   (kernelbase.@)
  */
@@ -218,8 +217,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetThreadGroupAffinity( HANDLE thread, GROUP_AFFIN
     return set_ntstatus( NtQueryInformationThread( thread, ThreadGroupInformation,
                                                    affinity, sizeof(*affinity), NULL ));
 }
-#ifndef __REACTOS__
-
+ 
 /***********************************************************************
  *	     GetThreadIOPendingFlag   (kernelbase.@)
  */
