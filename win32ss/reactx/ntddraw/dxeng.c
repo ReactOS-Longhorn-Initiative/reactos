@@ -906,9 +906,9 @@ DxEngGetRedirectionBitmap(DWORD x1)
 /************************************************************************/
 /* DxEngLoadImage                                                       */
 /************************************************************************/
-PLDEVOBJ APIENTRY DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype)
+HANDLE APIENTRY DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype)
 {
-    return EngLoadImageEx(pwszDriverName, ldevtype);
+    return (HANDLE)EngLoadImageEx(pwszDriverName, ldevtype);
 }
 
 /************************************************************************/

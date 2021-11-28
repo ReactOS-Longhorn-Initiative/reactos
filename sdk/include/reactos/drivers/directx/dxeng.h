@@ -118,6 +118,6 @@ DWORD NTAPI DxEngSelectPaletteToSurface(HSURF hSurf, HPALETTE hPalette);
 DWORD NTAPI DxEngSyncPaletteTableWithDevice(HPALETTE hPalette, DWORD x2);
 DWORD NTAPI DxEngSetPaletteState(HPALETTE hPalette, DWORD x2, DWORD x3);
 DWORD NTAPI DxEngGetRedirectionBitmap(DWORD x1);
-PLDEVOBJ NTAPI DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype);
+HANDLE NTAPI DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype);
 
 
