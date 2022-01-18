@@ -3640,7 +3640,7 @@ NTSYSAPI
 VOID
 NTAPI
 RtlInitializeRangeList(
-    _Out_ PRTL_RANGE_LIST RangeList
+    _Inout_ PRTL_RANGE_LIST RangeList
 );
 
 NTSYSAPI
