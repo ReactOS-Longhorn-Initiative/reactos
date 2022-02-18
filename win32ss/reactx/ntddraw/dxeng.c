@@ -601,7 +601,7 @@ APIENTRY
 DxEngNUIsTermSrv(VOID)
 {
     /* FIXME: ReactOS does not suport terminal server yet, we can not check if we got connections or not */
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
     return FALSE;
 }
 
@@ -643,7 +643,7 @@ APIENTRY
 DxEngEnumerateHdev(HDEV *hdev)
 {
     /* FIXME: Enumerate all drivers in win32k */
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
     return FALSE;
 }
 
@@ -662,7 +662,7 @@ DxEngCreateMemoryDC(HDEV hDev)
 /************************************************************************/
 DWORD APIENTRY DxEngScreenAccessCheck(VOID)
 {
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
 
     /* We're cheating here and telling dxg.sys it has always had permissions to access the screen */
     return TRUE;
@@ -791,8 +791,10 @@ BOOLEAN APIENTRY DxEngDeleteSurface(HSURF hsurf)
 /************************************************************************/
 DWORD APIENTRY DxEngGetSurfaceData(DWORD x1, DWORD x2)
 {
+#ifndef NDEBUG
     __debugbreak();
-    UNIMPLEMENTED;
+#endif
+    UNIMPLEMENTED_ONCE;
     return FALSE;
 }
 
@@ -811,7 +813,7 @@ SURFOBJ * APIENTRY DxEngAltLockSurface(HSURF hsurf)
 /************************************************************************/
 DWORD APIENTRY DxEngUploadPaletteEntryToSurface(DWORD x1, DWORD x2,DWORD x3, DWORD x4)
 {
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
     return TRUE;
 }
 
@@ -824,7 +826,9 @@ DWORD APIENTRY DxEngMarkSurfaceAsDirectDraw(HSURF hSurf, DWORD x2)
     {
         return FALSE;
     }
+#ifndef NDEBUG
     __debugbreak();
+#endif
 
     return TRUE; /* Aren't we always a valid surface? */
 }
@@ -837,7 +841,9 @@ DWORD APIENTRY DxEngSelectPaletteToSurface(HSURF hSurf, HPALETTE hPalette)
     //HPALETTE hSurfTwo;
     //HPALETTE hSurfThree;
 
+#ifndef NDEBUG
     __debugbreak();
+#endif
     /*  if the surface is valid and the palette is valid */
     if (hSurf)
     {
@@ -847,7 +853,7 @@ DWORD APIENTRY DxEngSelectPaletteToSurface(HSURF hSurf, HPALETTE hPalette)
             return 0;
         }
     }
-    DPRINT1("ReactX says the surface is valid");
+    DPRINT("ReactX says the surface is valid");
     return 0;
 }
 
@@ -856,9 +862,11 @@ DWORD APIENTRY DxEngSelectPaletteToSurface(HSURF hSurf, HPALETTE hPalette)
 /************************************************************************/
 DWORD APIENTRY DxEngSyncPaletteTableWithDevice(HPALETTE hPalette, DWORD x2)
 {
-    DPRINT1("The value of x2 is %X\n", x2);
+    DPRINT("The value of x2 is %X\n", x2);
+#ifndef NDEBUG
     __debugbreak();
-    UNIMPLEMENTED;
+#endif
+    UNIMPLEMENTED_ONCE;
     return TRUE;
 }
 
@@ -885,10 +893,12 @@ DWORD APIENTRY DxEngSetPaletteState(HPALETTE hPalette, DWORD x2, DWORD x3)
         }
         /* HmgDecrementShareReferenceCount */
     }
+#ifndef NDEBUG
     __debugbreak();
-    DPRINT1("The value of x1 is %X\n", hPalette);
-    DPRINT1("The value of x2 is %X\n", x2);
-    DPRINT1("The value of x3 is %X\n", x3);
+#endif
+    DPRINT("The value of x1 is %X\n", hPalette);
+    DPRINT("The value of x2 is %X\n", x2);
+    DPRINT("The value of x3 is %X\n", x3);
     //EngSetPaletteState(hPalette, x2, x3);
     return Result;
 }
@@ -916,9 +926,11 @@ HANDLE APIENTRY DxEngLoadImage(LPWSTR pwszDriverName, ULONG ldevtype)
 /************************************************************************/
 DWORD APIENTRY DxEngSpTearDownSprites(HDEV hDev, DWORD x2, DWORD x3)
 {
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
+#ifndef NDEBUG
     __debugbreak();
-    DPRINT1("Always return call a hidden func in gdi"); /* SpUnTearDownSprites */
+#endif
+    DPRINT("Always return call a hidden func in gdi"); /* SpUnTearDownSprites */
     return TRUE; /* SpTearDownSprites */
 }
 
@@ -927,9 +939,11 @@ DWORD APIENTRY DxEngSpTearDownSprites(HDEV hDev, DWORD x2, DWORD x3)
 /************************************************************************/
 DWORD APIENTRY DxEngSpUnTearDownSprites(HDEV hDev, DWORD x2, DWORD x3)
 {
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
+#ifndef NDEBUG
     __debugbreak();
-    DPRINT1("Always return true; but call a hidden func in gdi"); /* SpUnTearDownSprites */
+#endif
+    DPRINT("Always return true; but call a hidden func in gdi"); /* SpUnTearDownSprites */
     return TRUE;
 }
 
@@ -938,6 +952,8 @@ DWORD APIENTRY DxEngSpUnTearDownSprites(HDEV hDev, DWORD x2, DWORD x3)
 /************************************************************************/
 DWORD APIENTRY DxEngSpSpritesVisible(HDEV hDev)
 {
+#ifndef NDEBUG
     __debugbreak();
+#endif
     return TRUE;
 }
