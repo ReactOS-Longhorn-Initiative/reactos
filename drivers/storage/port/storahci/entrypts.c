@@ -19,11 +19,12 @@ Revision History:
 
 #if _MSC_VER >= 1200
 #pragma warning(push)
-#endif
-
 #pragma warning(disable:4152) // nonstandard extension, function/data pointer conversion in expression
 #pragma warning(disable:4214) // bit field types other than int
 #pragma warning(disable:4201) // nameless struct/union
+#endif
+
+
 
 #include "generic.h"
 
@@ -54,11 +55,10 @@ AhciGPLogPageIntoPrivate =  IDE_GP_LOG_CURRENT_DEVICE_INTERNAL_STATUS;
 
 //
 
-ULONG
+NTSTATUS NTAPI
 DriverEntry(
-    _In_ PVOID Argument1,    //IN PDRIVER_OBJECT  DriverObject,
-    _In_ PVOID Argument2     //IN PUNICODE_STRING  RegistryPath
-    )
+	IN PDRIVER_OBJECT DriverObject,
+	IN PUNICODE_STRING RegistryPath)
 
 /*++
 
@@ -137,8 +137,8 @@ Return Value:
     hwInitializationData.SrbTypeFlags = SRB_TYPE_FLAG_STORAGE_REQUEST_BLOCK;
 
     // call StorPort to register HW init data
-    status = StorPortInitialize(Argument1,
-                                Argument2,
+    status = StorPortInitialize(DriverObject,
+                                RegistryPath,
                                 &hwInitializationData,
                                 NULL);
 
@@ -3030,7 +3030,6 @@ Return Value:
 
 #if _MSC_VER >= 1200
 #pragma warning(pop)
-#else
 #pragma warning(default:4152)
 #pragma warning(default:4214)
 #pragma warning(default:4201)

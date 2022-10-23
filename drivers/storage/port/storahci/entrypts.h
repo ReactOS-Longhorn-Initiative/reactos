@@ -18,12 +18,14 @@ Authors:
 
 #if _MSC_VER >= 1200
 #pragma warning(push)
-#endif
-
 #pragma warning(disable:4214)   // bit field types other than int
 #pragma warning(disable:4201)   // nameless struct/union
+#endif
 
 #include "data.h"
+
+// Maximum number of log pages collected into the public section
+#define TC_PUBLIC_DEVICEDUMP_CONTENT_GPLOG_MAX  16
 
 #define AHCI_POOL_TAG               'ichA'  // "Ahci" - StorAHCI miniport driver
 
@@ -647,8 +649,6 @@ typedef struct _ATA_COMMAND_ERROR_LOG {
 } ATA_COMMAND_ERROR, *PATA_COMMAND_ERROR;
 
 
-// Storport miniport driver entry routines, with prefix: "AhciHw"
-sp_DRIVER_INITIALIZE DriverEntry;
 
 HW_FIND_ADAPTER AhciHwFindAdapter;
 
@@ -693,7 +693,6 @@ extern ULONG AhciGPLogPageIntoPrivate;
 
 #if _MSC_VER >= 1200
 #pragma warning(pop)
-#else
 #pragma warning(default:4214)
 #pragma warning(default:4201)
 #endif

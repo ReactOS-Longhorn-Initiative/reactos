@@ -85,10 +85,12 @@ FreeSysPartDiskSpace = 450
 ; "MouseDrivers.Load" sections.
 ;
 [SourceDisksFiles]
+
+acpi.sys     = 1,,,,,,,4,1,,,1,4
+i8042prt.sys = 1,,,,,,,4,,,,1,4
 nmidebug.sys = 1,,,,,,x,4,,,,1,4
 sacdrv.sys   = 1,,,,,,x,4,,,,1,4
 ;uniata.sys   = 1,,,,,,x,4,,,,1,4
-atapi.sys    = 1,,,,,,x,4,,,,1,4
 buslogic.sys = 1,,,,,,x,4,,,,1,4
 blue.sys     = 1,,,,,,x,4,,,,1,4
 vgafonts.cab = 1,,,,,,,1,,,,1,1
@@ -103,7 +105,6 @@ kdcom.dll    = 1,,,,,,,2,,,,1,2
 kdvbox.dll   = 1,,,,,,,2,,,,1,2
 disk.sys     = 1,,,,,,x,4,,,,1,4
 floppy.sys   = 1,,,,,,x,4,,,,1,4
-i8042prt.sys = 1,,,,,,,4,,,,1,4
 hidclass.sys = 1,,,,,,,4,,,,1,4
 hidparse.sys = 1,,,,,,,4,,,,1,4
 hidusb.sys   = 1,,,,,,,4,,,,1,4
@@ -157,8 +158,17 @@ acpi.sys     = 1,,,,,,x,4,,,,1,4
 *PNP0C08 = acpi
 PCI\CC_0601 = isapnp
 PCI\CC_0604 = pci
+HID_DEVICE_SYSTEM_KEYBOARD = kbdhid,{4D36E96B-E325-11CE-BFC1-08002BE10318}
+USB\COMPOSITE = usbccgp
+GenDisk = disk,{4D36E967-E325-11CE-BFC1-08002BE10318}
+USB\Class_03 = hidusb
+GENERIC_HID_DEVICE = hidusb
+*nEC1F00 = inport,{4D36E96F-E325-11CE-BFC1-08002BE10318}
+ROOT\SWENUM = swenum
+*PNP0303 = i8042prt,{4D36E96B-E325-11CE-BFC1-08002BE10318}
 PCI\VEN_104B&CC_0100 = buslogic
 PCI\CC_0101 = pciide
+<<<<<<< HEAD
 ;PCI\CC_0104 = uniata
 ;PCI\CC_0105 = uniata
 ;PCI\CC_0106 = uniata
@@ -167,6 +177,11 @@ PCI\CC_0105 = pciide
 PCI\CC_0106 = pciide
 ;PCI\CC_0106 = storahci
 ;*PNP0600 = uniata
+=======
+PCI\CC_0104 = atapi
+PCI\CC_0105 = atapi
+PCI\CC_0106 = storahci
+>>>>>>> 42585260c0c (checkpoint storahci compilation)
 *PNP0600 = atapi
 USB\CLASS_09 = usbhub
 USB\ROOT_HUB = usbhub
@@ -176,15 +191,6 @@ PCI\CC_0C0310 = usbohci
 PCI\CC_0C0320 = usbehci
 USB\Class_08&SubClass_06&Prot_50 = usbstor
 USB\Class_08&SubClass_05&Prot_50 = usbstor
-HID_DEVICE_SYSTEM_KEYBOARD = kbdhid,{4D36E96B-E325-11CE-BFC1-08002BE10318}
-USB\COMPOSITE = usbccgp
-GenDisk = disk,{4D36E967-E325-11CE-BFC1-08002BE10318}
-USB\Class_03 = hidusb
-GENERIC_HID_DEVICE = hidusb
-*PNP0303 = i8042prt,{4D36E96B-E325-11CE-BFC1-08002BE10318}
-*PNP030B = i8042prt,{4D36E96B-E325-11CE-BFC1-08002BE10318}
-*nEC1F00 = inport,{4D36E96F-E325-11CE-BFC1-08002BE10318}
-ROOT\SWENUM = swenum
 
 [BootBusExtenders.Load]
 acpi = acpi.sys
@@ -209,8 +215,12 @@ pciide = pciide.sys
 atapi = atapi.sys
 
 [SCSI.Load]
+<<<<<<< HEAD
 ;uniata = uniata.sys
 atapi = atapi.sys
+=======
+atapi = atapi2.sys
+>>>>>>> 42585260c0c (checkpoint storahci compilation)
 buslogic = buslogic.sys
 storahci = storahci.sys
 disk = disk.sys

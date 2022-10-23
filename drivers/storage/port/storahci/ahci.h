@@ -20,10 +20,9 @@ Revision History:
 
 #if _MSC_VER >= 1200
 #pragma warning(push)
-#endif
-
 #pragma warning(disable:4214)   // bit field types other than int
 #pragma warning(disable:4201)   // nameless struct/union
+#endif
 
 //
 // 11/7/2011: update to AHCI 1.3.1 version.
@@ -914,7 +913,6 @@ typedef struct _AHCI_MEMORY_REGISTERS{
 
 #if _MSC_VER >= 1200
 #pragma warning(pop)
-#else
 #pragma warning(default:4214)
 #pragma warning(default:4201)
 #endif

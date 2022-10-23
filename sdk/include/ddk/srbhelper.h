@@ -267,6 +267,11 @@ SrbGetDefaultSrbLengthFromFunction(
   }
 }
 
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+#endif
+
 FORCEINLINE
 PCDB
 SrbGetScsiData(
@@ -577,6 +582,10 @@ SrbSetScsiData(
     }
   }
 }
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
 
 FORCEINLINE
 PCDB

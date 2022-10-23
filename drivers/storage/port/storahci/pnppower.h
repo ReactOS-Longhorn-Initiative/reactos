@@ -20,10 +20,9 @@ Revision History:
 
 #if _MSC_VER >= 1200
 #pragma warning(push)
-#endif
-
 #pragma warning(disable:4214) // bit field types other than int
 #pragma warning(disable:4201) // nameless struct/union
+#endif
 
 // ACPI methods
 #define ACPI_METHOD_GTF   ((ULONG) 'FTG_') // _GTF
@@ -175,7 +174,6 @@ AhciLpmSettingsModes(
 
 #if _MSC_VER >= 1200
 #pragma warning(pop)
-#else
 #pragma warning(default:4214)
 #pragma warning(default:4201)
 #endif
