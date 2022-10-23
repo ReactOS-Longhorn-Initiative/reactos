@@ -6096,7 +6096,7 @@ HybridControlCachingMediumCompletion(
     IsEnableRequest = ((srbExtension->Cfis.Command == IDE_COMMAND_SET_FEATURE) &&
                        (srbExtension->Cfis.Feature7_0 == IDE_FEATURE_ENABLE_SATA_FEATURE) &&
                        (srbExtension->Cfis.SectorCount == IDE_SATA_FEATURE_HYBRID_INFORMATION));
-
+#if 0
     //
     // Log ETW event about Hybrid Caching Medium Enable/Disable.
     //
@@ -6137,7 +6137,7 @@ HybridControlCachingMediumCompletion(
                                 0);
         }
     }
-
+#endif
     //
     // Command failed, bail out.
     //
@@ -6296,7 +6296,7 @@ Return Value:
     status = STOR_STATUS_SUCCESS;
 
 Exit:
-
+#if 0
     //
     // Log ETW event about Hybrid Caching Medium Disable.
     //
@@ -6318,7 +6318,7 @@ Exit:
                             NULL,
                             0);
     }
-
+#endif
     return status;
 }
 
@@ -6425,7 +6425,7 @@ Return Value:
     status = STOR_STATUS_SUCCESS;
 
 Exit:
-
+#if 0
     //
     // Log ETW event about Hybrid Caching Medium Enable.
     //
@@ -6447,7 +6447,7 @@ Exit:
                             NULL,
                             0);
     }
-
+#endif
     return status;
 }
 
@@ -6474,7 +6474,7 @@ HybridSetThresholdCompletion(
 
         dirtyLowThreshold = hybridDirtyThresholds->DirtyLowThreshold;
         dirtyHighThreshold = hybridDirtyThresholds->DirtyHighThreshold;
-
+#if 0
         StorPortEtwEvent4(ChannelExtension->AdapterExtension,
                             (PSTOR_ADDRESS)&(ChannelExtension->DeviceExtension->DeviceAddress),
                             AhciEtwEventUnitHybridSetDirtyThreshold,
@@ -6491,6 +6491,7 @@ HybridSetThresholdCompletion(
                             dirtyLowThreshold,
                             L"D_ThresholdHigh",
                             dirtyHighThreshold);
+#endif
     }
 
     return;
@@ -6651,6 +6652,7 @@ Exit:
     //
     // Log ETW event about Hybrid Set Dirty Threshold.
     //
+#if 0
     if ((Srb->SrbStatus != SRB_STATUS_PENDING) && (ChannelExtension->AdapterExtension->TracingEnabled)) {
         StorPortEtwEvent4(ChannelExtension->AdapterExtension,
                             (PSTOR_ADDRESS)&(ChannelExtension->DeviceExtension->DeviceAddress),
@@ -6669,7 +6671,7 @@ Exit:
                             L"D_ThresholdHigh",
                             dirtyHighThreshold);
     }
-
+#endif
     return status;
 }
 
@@ -7207,6 +7209,7 @@ HybridChangeByLbaCompletion(
         //
         // Log ETW event about Hybrid Change By LBA.
         //
+#if 0
         if (ChannelExtension->AdapterExtension->TracingEnabled) {
             StorPortEtwEvent4(ChannelExtension->AdapterExtension,
                                 (PSTOR_ADDRESS)&(ChannelExtension->DeviceExtension->DeviceAddress),
@@ -7225,7 +7228,7 @@ HybridChangeByLbaCompletion(
                                 L"LBA Range Count",
                                 lbaRangeContext->DataSetRangeCount);
         }
-
+#endif
         if (lbaRangeContext != NULL) {
             StorPortFreePool((PVOID)ChannelExtension->AdapterExtension, lbaRangeContext);
         }
@@ -7408,7 +7411,7 @@ Return Value:
     status = STOR_STATUS_SUCCESS;
 
 Exit:
-
+#if 0
     //
     // Log ETW event about Hybrid Change By LBA.
     //
@@ -7430,7 +7433,7 @@ Exit:
                             L"LBA Range Count",
                             dsmAttributes->DataSetRangesLength / sizeof(DEVICE_DATA_SET_RANGE));
     }
-
+#endif
     return status;
 }
 
@@ -7571,6 +7574,7 @@ Return Value:
         //
         // Log ETW event about Hybrid Evict.
         //
+#if 0
         if (ChannelExtension->AdapterExtension->TracingEnabled) {
             StorPortEtwEvent4(ChannelExtension->AdapterExtension,
                                 (PSTOR_ADDRESS)&(ChannelExtension->DeviceExtension->DeviceAddress),
@@ -7589,7 +7593,7 @@ Return Value:
                                 L"LBA Range Count",
                                 evictContext->DataSetRangeCount);
         }
-
+#endif
         if (buffer != NULL) {
             AhciFreeDmaBuffer((PVOID)ChannelExtension->AdapterExtension, evictContext->AllocatedBufferLength, buffer, srbExtension->DataBufferPhysicalAddress);
         }
@@ -7790,6 +7794,7 @@ Exit:
     //
     // Log ETW event about Hybrid Evict.
     //
+#if 0
     if ((Srb->SrbStatus != SRB_STATUS_PENDING) && (ChannelExtension->AdapterExtension->TracingEnabled)) {
         StorPortEtwEvent4(ChannelExtension->AdapterExtension,
                             (PSTOR_ADDRESS)&(ChannelExtension->DeviceExtension->DeviceAddress),
@@ -7808,7 +7813,7 @@ Exit:
                             L"LBA Range Count",
                             dsmAttributes->DataSetRangesLength / sizeof(DEVICE_DATA_SET_RANGE));
     }
-
+#endif
     //
     // the process failed before EVICT command can be sent. Free allocated resources.
     //

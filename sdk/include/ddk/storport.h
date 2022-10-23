@@ -1068,6 +1068,38 @@ typedef union _CDB {
     } CDB16;
 
     //
+    // Read Buffer(10) command from SPC-5
+    //
+
+    struct _READ_BUFFER_10 {
+
+        UCHAR OperationCode;    // 0x3c - SCSIOP_READ_DATA_BUFF
+        UCHAR Mode : 5;
+        UCHAR ModeSpecific : 3;
+        UCHAR BufferId;
+        UCHAR BufferOffset[3];
+        UCHAR AllocationLength[3];
+        UCHAR Control;
+
+    } READ_BUFFER_10;
+
+    //
+    // Read Buffer(16) command from SPC-5
+    //
+
+    struct _READ_BUFFER_16 {
+
+        UCHAR OperationCode;    // 0x9b - SCSIOP_READ_DATA_BUFF16
+        UCHAR Mode : 5;
+        UCHAR ModeSpecific : 3;
+        UCHAR BufferOffset[8];
+        UCHAR AllocationLength[4];
+        UCHAR BufferId;
+        UCHAR Control;
+
+    } READ_BUFFER_16;
+
+    //
     // Security-related commands from SPC-4
     //
 
@@ -2031,6 +2063,20 @@ typedef union _CDB {
 
     } SET_TIMESTAMP;
 
+    struct _REPORT_SUPPORTED_OPERATION_CODES {
+        UCHAR OperationCode;                            // 0xA3 SCSIOP_MAINTENANCE_IN
+        UCHAR ServiceAction                     : 5;    // 0x0C SERVICE_ACTION_REPORT_SUPPORTED_OPERATION_CODES
+        UCHAR Reserved0                         : 3;
+        UCHAR ReportOptions                     : 3;
+        UCHAR Reserved1                         : 4;
+        UCHAR ReturnCommandTimeoutsDescriptor   : 1;
+        UCHAR RequestedOperationCode;
+        UCHAR RequestedServiceAction[2];
+        UCHAR AllocationLength[4];
+        UCHAR Reserved2;
+        UCHAR Control;
+    } REPORT_SUPPORTED_OPERATION_CODES;
+
     //
     // MMC / SFF-8090 commands
     //
@@ -2117,27 +2163,32 @@ typedef union _CDB {
 
     struct _READ16 {
         UCHAR OperationCode;      // 0x88 - SCSIOP_READ16
-        UCHAR Reserved1         : 3;
-        UCHAR ForceUnitAccess   : 1;
-        UCHAR DisablePageOut    : 1;
-        UCHAR ReadProtect       : 3;
+        UCHAR DurationLimitDescriptor2      : 1;
+        UCHAR Reserved1                     : 1;
+        UCHAR RebuildAssistRecoveryControl  : 1;
+        UCHAR ForceUnitAccess               : 1;
+        UCHAR DisablePageOut                : 1;
+        UCHAR ReadProtect                   : 3;
         UCHAR LogicalBlock[8];
         UCHAR TransferLength[4];
-        UCHAR Reserved2         : 7;
-        UCHAR Streaming         : 1;
+        UCHAR Group                         : 6;
+        UCHAR DurationLimitDescriptor0      : 1;
+        UCHAR DurationLimitDescriptor1      : 1;
         UCHAR Control;
     } READ16;
 
     struct _WRITE16 {
         UCHAR OperationCode;      // 0x8A - SCSIOP_WRITE16
-        UCHAR Reserved1         : 3;
-        UCHAR ForceUnitAccess   : 1;
-        UCHAR DisablePageOut    : 1;
-        UCHAR WriteProtect      : 3;
+        UCHAR DurationLimitDescriptor2      : 1;
+        UCHAR Reserved1                     : 2;
+        UCHAR ForceUnitAccess               : 1;
+        UCHAR DisablePageOut                : 1;
+        UCHAR WriteProtect                  : 3;
         UCHAR LogicalBlock[8];
         UCHAR TransferLength[4];
-        UCHAR Reserved2         : 7;
-        UCHAR Streaming         : 1;
+        UCHAR Group                         : 6;
+        UCHAR DurationLimitDescriptor0      : 1;
+        UCHAR DurationLimitDescriptor1      : 1;
         UCHAR Control;
     } WRITE16;
 
@@ -2345,11 +2396,35 @@ typedef union _CDB32 {
         UCHAR Reserved2        : 3;
         UCHAR AdditionalCDBLength;
         UCHAR ServiceAction[2];
-        UCHAR Reserved3[2];
+        UCHAR Reserved3;
+        UCHAR DurationLimitDescriptor0  : 1;
+        UCHAR DurationLimitDescriptor1  : 1;
+        UCHAR DurationLimitDescriptor2  : 1;
+        UCHAR Reserved4                 : 5;
         UCHAR LogicalBlock[8];
-        UCHAR Reserved4[8];
+        UCHAR Reserved5[8];
         UCHAR TransferLength[4];
     } CDB32GENERIC;
+
+    struct _XDWRITEREAD32 {
+        UCHAR OperationCode;        // 0x7F - SCSIOP_OPERATION32
+        UCHAR Control;
+        UCHAR Reserved1[4];
+        UCHAR Group            : 5;
+        UCHAR Reserved2        : 3;
+        UCHAR AdditionalCDBLength;  // 0x18
+        UCHAR ServiceAction[2];     // 0x0007 - SERVICE_ACTION_XDWRITEREAD
+        UCHAR XorProtectionInfo : 1;
+        UCHAR Reservede         : 1;
+        UCHAR DisableWrite      : 1;
+        UCHAR ForceUnitAccess   : 1;
+        UCHAR DisablePageOut    : 1;
+        UCHAR WriteProtect      : 1;
+        UCHAR Reserved4;
+        UCHAR LogicalBlock[8];
+        UCHAR Reserved5[8];
+        UCHAR TransferLength[4];
+    } XDWRITEREAD32;
 
     ULONG AsUlong[8];
     UCHAR AsByte[32];
@@ -2357,7 +2432,6 @@ typedef union _CDB32 {
 } CDB32, *PCDB32;
 
 #pragma pack(pop, cdb)
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -8244,6 +8318,113 @@ typedef struct _STOR_POFX_POWER_CONTROL {
     PSIZE_T                     BytesReturned;
 } STOR_POFX_POWER_CONTROL, *PSTOR_POFX_POWER_CONTROL;
 
+
+//
+// STOR_FX_COMPONENT_IDLE_STATE defines an F-State for a STOR_POFX_COMPONENT.
+//
+typedef struct _STOR_POFX_COMPONENT_IDLE_STATE {
+    ULONG Version;
+    ULONG Size;
+    ULONGLONG TransitionLatency;        // unit: 100ns
+    ULONGLONG ResidencyRequirement;     // unit: 100ns
+    ULONG NominalPower;
+} STOR_POFX_COMPONENT_IDLE_STATE, *PSTOR_POFX_COMPONENT_IDLE_STATE;
+
+#define STOR_POFX_COMPONENT_IDLE_STATE_SIZE (sizeof(STOR_POFX_COMPONENT_IDLE_STATE))
+#define STOR_POFX_COMPONENT_IDLE_STATE_VERSION_V1 1
+
+//
+// STOR_FX_COMPONENT defines a component of a STOR_POFX_DEVICE.
+//
+typedef struct _STOR_POFX_COMPONENT {
+    ULONG Version;
+    ULONG Size;
+    ULONG FStateCount;
+    ULONG DeepestWakeableFState;
+    GUID Id;
+    _Field_size_full_(FStateCount) STOR_POFX_COMPONENT_IDLE_STATE FStates[ANYSIZE_ARRAY];
+} STOR_POFX_COMPONENT, *PSTOR_POFX_COMPONENT;
+
+#define STOR_POFX_COMPONENT_SIZE ((ULONG)FIELD_OFFSET(STOR_POFX_COMPONENT, FStates))
+#define STOR_POFX_COMPONENT_VERSION_V1 1
+
+//
+// STOR_POFX_DEVICE_V2 defines a device to be runtime power-managed and should be
+// used to register a device when calling StorPortInitializeFxPower().  This
+// version allows the caller to specify an idle timeout value.
+//
+typedef struct _STOR_POFX_DEVICE_V2 {
+    ULONG Version;
+    ULONG Size;
+    ULONG ComponentCount;
+    ULONG Flags;
+
+    //
+    // The following idle timeout fields will only be used if the
+    // STOR_POFX_DEVICE_FLAG_IDLE_TIMEOUT flag is set in the Flags field.
+    //
+    union {
+        //
+        // *Minimum* idle timeout for a unit, in milliseconds.  Storport will
+        // use the idle timeout provided by the class layer unless the class
+        // layer's idle timeout is less than the minimum specified here.
+        //
+        ULONG UnitMinIdleTimeoutInMS;
+
+        //
+        // Idle timeout for an adapter, in milliseconds.  If specified,
+        // the adapter's idle timeout is set to this value.
+        //
+        ULONG AdapterIdleTimeoutInMS;
+    };
+
+    _Field_size_full_(ComponentCount) STOR_POFX_COMPONENT Components[ANYSIZE_ARRAY];
+} STOR_POFX_DEVICE_V2, *PSTOR_POFX_DEVICE_V2;
+
+#define STOR_POFX_DEVICE_V2_SIZE ((ULONG)FIELD_OFFSET(STOR_POFX_DEVICE_V2, Components))
+#define STOR_POFX_DEVICE_VERSION_V2 2
+
+//
+// STOR_POFX_DEVICE_V3 defines a device to be runtime power-managed and should be
+// used to register a device when calling StorPortInitializeFxPower().  This
+// version allows the caller to specify an idle timeout value.
+//
+typedef struct _STOR_POFX_DEVICE_V3 {
+    ULONG Version;
+    ULONG Size;
+    ULONG ComponentCount;
+    ULONG Flags;
+
+    //
+    // The following idle timeout fields will only be used if the
+    // STOR_POFX_DEVICE_FLAG_IDLE_TIMEOUT flag is set in the Flags field.
+    //
+    union {
+        //
+        // *Minimum* idle timeout for a unit, in milliseconds.  Storport will
+        // use the idle timeout provided by the class layer unless the class
+        // layer's idle timeout is less than the minimum specified here.
+        //
+        ULONG UnitMinIdleTimeoutInMS;
+
+        //
+        // Idle timeout for an adapter, in milliseconds.  If specified,
+        // the adapter's idle timeout is set to this value.
+        //
+        ULONG AdapterIdleTimeoutInMS;
+    };
+
+    //
+    // Only valid if the STOR_POFX_DEVICE_FLAG_ADAPTIVE_D3_IDLE_TIMEOUT flag
+    // has been set.  Only valid for units.
+    // Indicates that the device should not be effectively power cycled (D0 -> D3 -> D0)
+    // more than once per the given period.
+    //
+    ULONG MinimumPowerCyclePeriodInMS;
+
+    _Field_size_full_(ComponentCount) STOR_POFX_COMPONENT Components[ANYSIZE_ARRAY];
+} STOR_POFX_DEVICE_V3, *PSTOR_POFX_DEVICE_V3;
+
 //
 // Parameter to miniport driver for ScsiUnitRichDescription.
 // Miniport can choose to support this UnitControl if the device reports
@@ -9035,8 +9216,49 @@ typedef enum _STORPORT_FUNCTION_CODE {
     ExtFunctionInitializeCryptoEngine,
     ExtFunctionGetRequestCryptoInfo,
     ExtFunctionMiniportTelemetry,
-    ExtFunctionUpdateAdapterMaxIO
+    ExtFunctionUpdateAdapterMaxIO,
+    ExtFunctionDelayExecution,
+    ExtFunctionAllocateDmaMemory,
+    ExtFunctionFreeDmaMemory,
+    ExtFunctionUpdateAdapterMaxIOInfo,
+    ExtFunctionMiniportChannelEtwEvent2,
+    ExtFunctionMiniportChannelEtwEvent4,
+    ExtFunctionMiniportChannelEtwEvent8,
+    ExtFunctionInitializeHighResolutionTimer,
+    ExtFunctionRequestHighResolutionTimer,
+    ExtFunctionCancelHighResolutionTimer,
+    ExtFunctionFreeHighResolutionTimer,
+    ExtFunctionGetCurrentProcessorIndex,
+    ExtFunctionAcquireSpinLock,
+    ExtFunctionGetProcessorCount,
+    ExtFunctionCancelDpc,
+    ExtFunctionMiniportTelemetryEx,
+    ExtFunctionQueryConfiguration,
+    ExtFunctionLogHardwareError,
+    ExtFunctionInitializeEvent,
+    ExtFunctionWaitForEvent,
+    ExtFunctionSetEvent,
+    ExtFunctionDeviceReset,
+    ExtFunctionSetFeatureList,
+    ExtFunctionCaptureLiveDump,
+    ExtFunctionMiniportLogByteStream,
+    ExtFunctionQueryDpcWatchdogInformation,
+    ExtFunctionQueryTimerMinInterval,
+    ExtFunctionMaskPciMsixEntry,
+    ExtFunctionGetCurrentIrql,
+    ExtFunctionCreateSystemThread,
+    ExtFunctionSetPriorityThread,
+    ExtFunctionSetSystemGroupAffinityThread,
+    ExtFunctionRevertToUserGroupAffinityThread,
+    ExtFunctionDeviceResetEx,
+    ExtFunctionMiniportReportInternalData,
+    ExtFunctionGetMessageInterruptIDFromProcessorIndex,
+    ExtFunctionGetNodeAffinity2,
+    ExtFunctionEnableRegistryKeyNotification,
+    ExtFunctionPoFxRegisterPerfStatesEx
+
 } STORPORT_FUNCTION_CODE, *PSTORPORT_FUNCTION_CODE;
+
 
 
 //
@@ -10683,6 +10905,154 @@ StorPortStateChangeDetected(
     return Status;
 }
 #endif
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Success_(return == STOR_STATUS_SUCCESS)
+FORCEINLINE
+ULONG
+StorPortAllocateDmaMemory(
+    _In_ PVOID HwDeviceExtension,
+    _In_ SIZE_T NumberOfBytes,
+    _In_ PHYSICAL_ADDRESS LowestAcceptableAddress,
+    _In_ PHYSICAL_ADDRESS HighestAcceptableAddress,
+    _In_opt_ PHYSICAL_ADDRESS BoundaryAddressMultiple,
+    _In_ MEMORY_CACHING_TYPE CacheType,
+    _In_ NODE_REQUIREMENT PreferredNode,
+    _Out_ _At_(*BufferPointer,
+        _When_(return!=STOR_STATUS_SUCCESS, _Post_null_)
+        _When_(return==STOR_STATUS_SUCCESS, _Post_notnull_ _Post_writable_byte_size_(NumberOfBytes)))
+         PVOID* BufferPointer,
+    _Out_ PPHYSICAL_ADDRESS PhysicalAddress
+    )
+{
+    ULONG status = STOR_STATUS_NOT_IMPLEMENTED;
+
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
+
+    status = StorPortExtendedFunction(ExtFunctionAllocateDmaMemory,
+                                      HwDeviceExtension,
+                                      NumberOfBytes,
+                                      LowestAcceptableAddress,
+                                      HighestAcceptableAddress,
+                                      BoundaryAddressMultiple,
+                                      CacheType,
+                                      PreferredNode,
+                                      BufferPointer,
+                                      PhysicalAddress);
+#else
+
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(NumberOfBytes);
+    UNREFERENCED_PARAMETER(LowestAcceptableAddress);
+    UNREFERENCED_PARAMETER(HighestAcceptableAddress);
+    UNREFERENCED_PARAMETER(BoundaryAddressMultiple);
+    UNREFERENCED_PARAMETER(CacheType);
+    UNREFERENCED_PARAMETER(PreferredNode);
+    UNREFERENCED_PARAMETER(BufferPointer);
+    UNREFERENCED_PARAMETER(PhysicalAddress);
+
+#endif
+
+    return status;
+}
+
+_Success_(return == STOR_STATUS_SUCCESS)
+FORCEINLINE
+ULONG
+StorPortFreeDmaMemory(
+    _In_ PVOID HwDeviceExtension,
+    _In_reads_bytes_(NumberOfBytes) _Post_invalid_ PVOID BaseAddress,
+    _In_ SIZE_T NumberOfBytes,
+    _In_ MEMORY_CACHING_TYPE CacheType,
+    _In_opt_ PHYSICAL_ADDRESS PhysicalAddress
+    )
+{
+    ULONG status = STOR_STATUS_NOT_IMPLEMENTED;
+
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
+
+    status = StorPortExtendedFunction(ExtFunctionFreeDmaMemory,
+                                      HwDeviceExtension,
+                                      BaseAddress,
+                                      NumberOfBytes,
+                                      CacheType,
+                                      PhysicalAddress);
+#else
+
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(BaseAddress);
+    UNREFERENCED_PARAMETER(NumberOfBytes);
+    UNREFERENCED_PARAMETER(CacheType);
+    UNREFERENCED_PARAMETER(PhysicalAddress);
+
+#endif
+
+    return status;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+FORCEINLINE
+ULONG
+StorPortPoFxActivateComponent(
+    _In_ PVOID HwDeviceExtension,
+    _In_opt_ PSTOR_ADDRESS Address,
+    _In_opt_ PSCSI_REQUEST_BLOCK Srb,
+    _In_ ULONG Component,
+    _In_ ULONG Flags
+)
+{
+    ULONG status = STOR_STATUS_NOT_IMPLEMENTED;
+
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+
+    status = StorPortExtendedFunction(ExtFunctionPoFxActivateComponent,
+                                      HwDeviceExtension,
+                                      Address,
+                                      Srb,
+                                      Component,
+                                      Flags);
+#else
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(Address);
+    UNREFERENCED_PARAMETER(Srb);
+    UNREFERENCED_PARAMETER(Component);
+    UNREFERENCED_PARAMETER(Flags);
+#endif
+
+    return status;
+}
+
+FORCEINLINE
+ULONG
+StorPortPoFxIdleComponent(
+    _In_ PVOID HwDeviceExtension,
+    _In_opt_ PSTOR_ADDRESS Address,
+    _In_opt_ PSCSI_REQUEST_BLOCK Srb,
+    _In_ ULONG Component,
+    _In_ ULONG Flags
+)
+{
+    ULONG status = STOR_STATUS_NOT_IMPLEMENTED;
+
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+
+    status = StorPortExtendedFunction(ExtFunctionPoFxIdleComponent,
+                                      HwDeviceExtension,
+                                      Address,
+                                      Srb,
+                                      Component,
+                                      Flags);
+#else
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(Address);
+    UNREFERENCED_PARAMETER(Srb);
+    UNREFERENCED_PARAMETER(Component);
+    UNREFERENCED_PARAMETER(Flags);
+#endif
+
+    return status;
+}
+
 #if DBG
 #define DebugPrint(x) StorPortDebugPrint x
 #else

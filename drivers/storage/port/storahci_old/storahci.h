@@ -581,12 +581,6 @@ AhciAdapterReset (
     __in PAHCI_ADAPTER_EXTENSION AdapterExtension
     );
 
-FORCEINLINE
-VOID
-AhciZeroMemory (
-    __out PCHAR Buffer,
-    __in ULONG BufferSize
-    );
 
 FORCEINLINE
 BOOLEAN

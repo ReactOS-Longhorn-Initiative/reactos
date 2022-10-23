@@ -19,12 +19,12 @@ Revision History:
 
 #if _MSC_VER >= 1200
 #pragma warning(push)
-#endif
-
 #pragma warning(disable:4054)
 #pragma warning(disable:4055)
 #pragma warning(disable:4214) // bit field types other than int
 #pragma warning(disable:4201) // nameless struct/union
+#endif
+
 
 #include "generic.h"
 
@@ -1447,7 +1447,6 @@ Return Value:
 
 #if _MSC_VER >= 1200
 #pragma warning(pop)
-#else
 #pragma warning(default:4054)
 #pragma warning(default:4055)
 #pragma warning(default:4214)
