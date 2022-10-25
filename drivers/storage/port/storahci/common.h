@@ -19,6 +19,7 @@ Revision History:
 #include <ntddk.h>
 #include <ata.h>
 #include <storport.h>
+#include <srbhelper.h>
 
 #pragma once
 
@@ -30,6 +31,7 @@ Revision History:
 #pragma warning(disable:4201) // nameless struct/union
 
 #define ATA_BLOCK_SIZE                      512     //0x200
+
 
 #define MAXULONG                            0xFFFFFFFF  // winnt
 

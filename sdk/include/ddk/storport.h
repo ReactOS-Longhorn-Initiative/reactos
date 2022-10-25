@@ -733,7 +733,7 @@ typedef struct SRB_ALIGN _STORAGE_REQUEST_BLOCK_HEADER {
 
 
 // STORAGE_REQUEST_BLOCK is the SRB used for SRB_FUNCTION_STORAGE_REQUEST_BLOCK
-typedef _Struct_size_bytes_(SrbLength) struct SRB_ALIGN _STORAGE_REQUEST_BLOCK {
+typedef struct _STORAGE_REQUEST_BLOCK {
     //
     // First 8 bytes of this structure is commom between all SRBs and should
     // have the same meaning as SCSI_REQEUST_BLOCK. To avoid compatibility
