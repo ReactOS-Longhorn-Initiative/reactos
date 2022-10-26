@@ -35,10 +35,10 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 %PCI\VEN_1191&DEV_0007.DeviceDesc%=PciIde_Inst, PCI\VEN_1191&DEV_0007
 %PCI\VEN_1191&DEV_0008.DeviceDesc%=PciIde_Inst, PCI\VEN_1191&DEV_0008
 %PCI\VEN_1191&DEV_0009.DeviceDesc%=PciIde_Inst, PCI\VEN_1191&DEV_0009
-%PCI\VEN_10b9&DEV_5289.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5289
-%PCI\VEN_10b9&DEV_5288.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5288
-%PCI\VEN_10b9&DEV_5287.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5287
-%PCI\VEN_10b9&DEV_5281.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5281
+%PCI\VEN_10b9&DEV_5289.DeviceDesc%=storahci_Inst, PCI\VEN_10b9&DEV_5289
+%PCI\VEN_10b9&DEV_5288.DeviceDesc%=storahci_Inst, PCI\VEN_10b9&DEV_5288
+%PCI\VEN_10b9&DEV_5287.DeviceDesc%=storahci_Inst, PCI\VEN_10b9&DEV_5287
+%PCI\VEN_10b9&DEV_5281.DeviceDesc%=storahci_Inst, PCI\VEN_10b9&DEV_5281
 %PCI\VEN_10b9&DEV_5229&REV_c5.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5229&REV_c5
 %PCI\VEN_10b9&DEV_5229&REV_c4.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5229&REV_c4
 %PCI\VEN_10b9&DEV_5229&REV_c2.DeviceDesc%=PciIde_Inst, PCI\VEN_10b9&DEV_5229&REV_c2
@@ -53,14 +53,14 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 %PCI\VEN_1002&DEV_4349.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4349
 %PCI\VEN_1002&DEV_4369.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4369
 %PCI\VEN_1002&DEV_4376.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4376
-%PCI\VEN_1002&DEV_436e.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_436e
-%PCI\VEN_1002&DEV_4379.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4379
-%PCI\VEN_1002&DEV_437a.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_437a
+%PCI\VEN_1002&DEV_436e.DeviceDesc%=storahci_Inst, PCI\VEN_1002&DEV_436e
+%PCI\VEN_1002&DEV_4379.DeviceDesc%=storahci_Inst, PCI\VEN_1002&DEV_4379
+%PCI\VEN_1002&DEV_437a.DeviceDesc%=storahci_Inst, PCI\VEN_1002&DEV_437a
 %PCI\VEN_1002&DEV_438c.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_438c
-%PCI\VEN_1002&DEV_4380.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4380
+%PCI\VEN_1002&DEV_4380.DeviceDesc%=storahci_Inst, PCI\VEN_1002&DEV_4380
 %PCI\VEN_1002&DEV_439c.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_439c
-%PCI\VEN_1002&DEV_4390.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4390
-%PCI\VEN_1002&DEV_4391.DeviceDesc%=PciIde_Inst, PCI\VEN_1002&DEV_4391
+%PCI\VEN_1002&DEV_4390.DeviceDesc%=storahci_Inst, PCI\VEN_1002&DEV_4390
+%PCI\VEN_1002&DEV_4391.DeviceDesc%=storahci_Inst, PCI\VEN_1002&DEV_4391
 %PCI\VEN_1103&DEV_0004&REV_05.DeviceDesc%=PciIde_Inst, PCI\VEN_1103&DEV_0004&REV_05
 %PCI\VEN_1103&DEV_0004&REV_03.DeviceDesc%=PciIde_Inst, PCI\VEN_1103&DEV_0004&REV_03
 %PCI\VEN_1103&DEV_0004&REV_02.DeviceDesc%=PciIde_Inst, PCI\VEN_1103&DEV_0004&REV_02
@@ -85,64 +85,66 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 %PCI\VEN_8086&DEV_24cb.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_24cb
 %PCI\VEN_8086&DEV_24ca.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_24ca
 %PCI\VEN_8086&DEV_24db.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_24db
-%PCI\VEN_8086&DEV_24d1.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_24d1
-%PCI\VEN_8086&DEV_24df.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_24df
+%PCI\VEN_8086&DEV_24d1.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_24d1
+%PCI\VEN_8086&DEV_24df.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_24df
 %PCI\VEN_8086&DEV_25a2.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_25a2
-%PCI\VEN_8086&DEV_25a3.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_25a3
-%PCI\VEN_8086&DEV_25b0.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_25b0
+%PCI\VEN_8086&DEV_25a3.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_25a3
+%PCI\VEN_8086&DEV_25b0.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_25b0
 %PCI\VEN_8086&DEV_266f.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_266f
-%PCI\VEN_8086&DEV_2651.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2651
-%PCI\VEN_8086&DEV_2652.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2652
-%PCI\VEN_8086&DEV_2653.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2653
+%PCI\VEN_8086&DEV_2651.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2651
+%PCI\VEN_8086&DEV_2652.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2652
+%PCI\VEN_8086&DEV_2653.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2653
 %PCI\VEN_8086&DEV_27df.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27df
-%PCI\VEN_8086&DEV_27c0.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27c0
-%PCI\VEN_8086&DEV_27c1.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27c1
-%PCI\VEN_8086&DEV_27c3.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27c3
-%PCI\VEN_8086&DEV_27c4.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27c4
-%PCI\VEN_8086&DEV_27c5.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27c5
-%PCI\VEN_8086&DEV_27c6.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_27c6
+%PCI\VEN_8086&DEV_27c0.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_27c0
+%PCI\VEN_8086&DEV_27c1.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_27c1
+%PCI\VEN_8086&DEV_27c3.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_27c3
+%PCI\VEN_8086&DEV_27c4.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_27c4
+%PCI\VEN_8086&DEV_27c5.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_27c5
+%PCI\VEN_8086&DEV_27c6.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_27c6
 %PCI\VEN_8086&DEV_269e.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_269e
-%PCI\VEN_8086&DEV_2680.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2680
-%PCI\VEN_8086&DEV_2681.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2681
-%PCI\VEN_8086&DEV_2682.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2682
-%PCI\VEN_8086&DEV_2683.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2683
-%PCI\VEN_8086&DEV_2820.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2820
-%PCI\VEN_8086&DEV_2821.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2821
-%PCI\VEN_8086&DEV_2822.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2822
-%PCI\VEN_8086&DEV_2824.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2824
-%PCI\VEN_8086&DEV_2825.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2825
-%PCI\VEN_8086&DEV_2828.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2828
-%PCI\VEN_8086&DEV_2829.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2829
-%PCI\VEN_8086&DEV_2850.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2850
-%PCI\VEN_8086&DEV_282a.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_282a
-%PCI\VEN_8086&DEV_2920.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2920
-%PCI\VEN_8086&DEV_2921.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2921
-%PCI\VEN_8086&DEV_2926.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2926
-%PCI\VEN_8086&DEV_2923.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2923
-%PCI\VEN_8086&DEV_2922.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2922
-%PCI\VEN_8086&DEV_2928.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2928
-%PCI\VEN_8086&DEV_2929.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_2929
-%PCI\VEN_8086&DEV_292d.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_292d
-%PCI\VEN_8086&DEV_292e.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_292e
-%PCI\VEN_8086&DEV_3a00.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a00
-%PCI\VEN_8086&DEV_3a02.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a02
-%PCI\VEN_8086&DEV_3a03.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a03
-%PCI\VEN_8086&DEV_3a06.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a06
-%PCI\VEN_8086&DEV_3a20.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a20
-%PCI\VEN_8086&DEV_3a22.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a22
-%PCI\VEN_8086&DEV_3a23.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a23
-%PCI\VEN_8086&DEV_3a26.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3a26
-%PCI\VEN_8086&DEV_3b20.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b20
-%PCI\VEN_8086&DEV_3b21.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b21
-%PCI\VEN_8086&DEV_3b22.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b22
-%PCI\VEN_8086&DEV_3b23.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b23
-%PCI\VEN_8086&DEV_3b26.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b26
-%PCI\VEN_8086&DEV_3b28.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b28
-%PCI\VEN_8086&DEV_3b29.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b29
-%PCI\VEN_8086&DEV_3b2d.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b2d
-%PCI\VEN_8086&DEV_3b2e.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b2e
-%PCI\VEN_8086&DEV_3b2f.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3b2f
-; %PCI\VEN_8086&DEV_3200.DeviceDesc%=PciIde_Inst, PCI\VEN_8086&DEV_3200
+%PCI\VEN_8086&DEV_2680.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2680
+%PCI\VEN_8086&DEV_2681.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2681
+%PCI\VEN_8086&DEV_2682.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2682
+%PCI\VEN_8086&DEV_2683.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2683
+%PCI\VEN_8086&DEV_2820.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2820
+%PCI\VEN_8086&DEV_2821.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2821
+%PCI\VEN_8086&DEV_2822.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2822
+%PCI\VEN_8086&DEV_2824.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2824
+%PCI\VEN_8086&DEV_2825.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2825
+%PCI\VEN_8086&DEV_2828.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2828
+%PCI\VEN_8086&DEV_2829.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2829
+%PCI\VEN_8086&DEV_2850.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2850
+%PCI\VEN_8086&DEV_282a.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_282a
+%PCI\VEN_8086&DEV_2920.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2920
+%PCI\VEN_8086&DEV_2921.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2921
+%PCI\VEN_8086&DEV_2926.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2926
+%PCI\VEN_8086&DEV_2923.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2923
+%PCI\VEN_8086&DEV_2922.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2922
+%PCI\VEN_8086&DEV_2928.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2928
+%PCI\VEN_8086&DEV_2929.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_2929
+%PCI\VEN_8086&DEV_292d.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_292d
+%PCI\VEN_8086&DEV_292e.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_292e
+%PCI\VEN_8086&DEV_3a00.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a00
+%PCI\VEN_8086&DEV_3a02.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a02
+%PCI\VEN_8086&DEV_3a03.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a03
+%PCI\VEN_8086&DEV_3a06.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a06
+%PCI\VEN_8086&DEV_3a20.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a20
+%PCI\VEN_8086&DEV_3a22.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a22
+%PCI\VEN_8086&DEV_3a23.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a23
+%PCI\VEN_8086&DEV_3a26.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3a26
+
+%PCI\VEN_8086&DEV_3b20.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b20
+%PCI\VEN_8086&DEV_3b21.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b21
+%PCI\VEN_8086&DEV_3b22.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b22
+%PCI\VEN_8086&DEV_3b23.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b23
+%PCI\VEN_8086&DEV_3b26.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b26
+%PCI\VEN_8086&DEV_3b28.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b28
+%PCI\VEN_8086&DEV_3b29.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b29
+%PCI\VEN_8086&DEV_3b2d.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b2d
+%PCI\VEN_8086&DEV_3b2e.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b2e
+%PCI\VEN_8086&DEV_3b2f.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3b2f
+
+%PCI\VEN_8086&DEV_3200.DeviceDesc%=storahci_Inst, PCI\VEN_8086&DEV_3200
 
 %PCI\VEN_11ab&DEV_5040.DeviceDesc%=PciIde_Inst, PCI\VEN_11ab&DEV_5040
 %PCI\VEN_11ab&DEV_5041.DeviceDesc%=PciIde_Inst, PCI\VEN_11ab&DEV_5041
@@ -156,27 +158,27 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 %PCI\VEN_10de&DEV_01bc.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_01bc
 %PCI\VEN_10de&DEV_0065.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0065
 %PCI\VEN_10de&DEV_0085.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0085
-%PCI\VEN_10de&DEV_008e.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_008e
+%PCI\VEN_10de&DEV_008e.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_008e
 %PCI\VEN_10de&DEV_00d5.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_00d5
 %PCI\VEN_10de&DEV_00e5.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_00e5
-%PCI\VEN_10de&DEV_00e3.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_00e3
-%PCI\VEN_10de&DEV_00ee.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_00ee
+%PCI\VEN_10de&DEV_00e3.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_00e3
+%PCI\VEN_10de&DEV_00ee.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_00ee
 %PCI\VEN_10de&DEV_0035.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0035
-%PCI\VEN_10de&DEV_0036.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0036
-%PCI\VEN_10de&DEV_003e.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_003e
+%PCI\VEN_10de&DEV_0036.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_0036
+%PCI\VEN_10de&DEV_003e.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_003e
 %PCI\VEN_10de&DEV_0053.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0053
-%PCI\VEN_10de&DEV_0054.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0054
-%PCI\VEN_10de&DEV_0055.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0055
+%PCI\VEN_10de&DEV_0054.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_0054
+%PCI\VEN_10de&DEV_0055.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_0055
 %PCI\VEN_10de&DEV_0265.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0265
-%PCI\VEN_10de&DEV_0266.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0266
-%PCI\VEN_10de&DEV_0267.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0267
+%PCI\VEN_10de&DEV_0266.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_0266
+%PCI\VEN_10de&DEV_0267.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_0267
 %PCI\VEN_10de&DEV_036e.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_036e
-%PCI\VEN_10de&DEV_037e.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_037e
-%PCI\VEN_10de&DEV_037f.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_037f
+%PCI\VEN_10de&DEV_037e.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_037e
+%PCI\VEN_10de&DEV_037f.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_037f
 %PCI\VEN_10de&DEV_03ec.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_03ec
-%PCI\VEN_10de&DEV_03e7.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_03e7
-%PCI\VEN_10de&DEV_03f6.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_03f6
-%PCI\VEN_10de&DEV_03f7.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_03f7
+%PCI\VEN_10de&DEV_03e7.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_03e7
+%PCI\VEN_10de&DEV_03f6.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_03f6
+%PCI\VEN_10de&DEV_03f7.DeviceDesc%=storahci_Inst, PCI\VEN_10de&DEV_03f7
 %PCI\VEN_10de&DEV_0448.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0448
 %PCI\VEN_10de&DEV_0560.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_0560
 %PCI\VEN_10de&DEV_056c.DeviceDesc%=PciIde_Inst, PCI\VEN_10de&DEV_056c
@@ -196,14 +198,14 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 %PCI\VEN_105a&DEV_1275.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_1275
 %PCI\VEN_105a&DEV_5275.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_5275
 %PCI\VEN_105a&DEV_7275.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_7275
-%PCI\VEN_105a&DEV_3318.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3318
-%PCI\VEN_105a&DEV_3319.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3319
-%PCI\VEN_105a&DEV_3371.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3371
-%PCI\VEN_105a&DEV_3375.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3375
-%PCI\VEN_105a&DEV_3376.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3376
-%PCI\VEN_105a&DEV_3377.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3377
-%PCI\VEN_105a&DEV_3373.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3373
-%PCI\VEN_105a&DEV_3372.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_3372
+%PCI\VEN_105a&DEV_3318.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3318
+%PCI\VEN_105a&DEV_3319.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3319
+%PCI\VEN_105a&DEV_3371.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3371
+%PCI\VEN_105a&DEV_3375.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3375
+%PCI\VEN_105a&DEV_3376.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3376
+%PCI\VEN_105a&DEV_3377.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3377
+%PCI\VEN_105a&DEV_3373.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3373
+%PCI\VEN_105a&DEV_3372.DeviceDesc%=storahci_Inst, PCI\VEN_105a&DEV_3372
 %PCI\VEN_105a&DEV_6617.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_6617
 %PCI\VEN_105a&DEV_6626.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_6626
 %PCI\VEN_105a&DEV_6629.DeviceDesc%=PciIde_Inst, PCI\VEN_105a&DEV_6629
@@ -217,19 +219,18 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 %PCI\VEN_1166&DEV_0213.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_0213
 %PCI\VEN_1166&DEV_0217.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_0217
 %PCI\VEN_1166&DEV_0214.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_0214
-%PCI\VEN_1166&DEV_024b.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_024b
-%PCI\VEN_1166&DEV_024a.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_024a
-%PCI\VEN_1166&DEV_0240.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_0240
-%PCI\VEN_1166&DEV_0241.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_0241
-%PCI\VEN_1166&DEV_0242.DeviceDesc%=PciIde_Inst, PCI\VEN_1166&DEV_0242
-
-%PCI\VEN_1095&DEV_3114.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_3114
-%PCI\VEN_1095&DEV_3512&REV_02.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_3512&REV_02
-%PCI\VEN_1095&DEV_3112&REV_02.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_3112&REV_02
-%PCI\VEN_1095&DEV_0240&REV_02.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_0240&REV_02
-%PCI\VEN_1095&DEV_3512.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_3512
-%PCI\VEN_1095&DEV_3112.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_3112
-%PCI\VEN_1095&DEV_0240.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_0240
+%PCI\VEN_1166&DEV_024b.DeviceDesc%=storahci_Inst, PCI\VEN_1166&DEV_024b
+%PCI\VEN_1166&DEV_024a.DeviceDesc%=storahci_Inst, PCI\VEN_1166&DEV_024a
+%PCI\VEN_1166&DEV_0240.DeviceDesc%=storahci_Inst, PCI\VEN_1166&DEV_0240
+%PCI\VEN_1166&DEV_0241.DeviceDesc%=storahci_Inst, PCI\VEN_1166&DEV_0241
+%PCI\VEN_1166&DEV_0242.DeviceDesc%=storahci_Inst, PCI\VEN_1166&DEV_0242
+%PCI\VEN_1095&DEV_3114.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_3114
+%PCI\VEN_1095&DEV_3512&REV_02.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_3512&REV_02
+%PCI\VEN_1095&DEV_3112&REV_02.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_3112&REV_02
+%PCI\VEN_1095&DEV_0240&REV_02.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_0240&REV_02
+%PCI\VEN_1095&DEV_3512.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_3512
+%PCI\VEN_1095&DEV_3112.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_3112
+%PCI\VEN_1095&DEV_0240.DeviceDesc%=storahci_Inst, PCI\VEN_1095&DEV_0240
 %PCI\VEN_1095&DEV_0680.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_0680
 %PCI\VEN_1095&DEV_0649.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_0649
 %PCI\VEN_1095&DEV_0648.DeviceDesc%=PciIde_Inst, PCI\VEN_1095&DEV_0648
@@ -322,16 +323,16 @@ HKR, , Installer32,    0, "syssetup.dll,HdcClassInstaller"
 
 %PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc%=PciIde_Inst, PCI\VEN_ffff&DEV_ffff&REV_ff
 
-; Compatible adapters
-%PCI\CC_0101.DeviceDesc%=PciIde_Inst,PCI\CC_0101                       ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
-%PCI\CC_0104.DeviceDesc%=PciIde_Inst,PCI\CC_0104                       ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
-%PCI\CC_0105.DeviceDesc%=PciIde_Inst,PCI\CC_0105                       ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
-%PCI\CC_0106.DeviceDesc%=PciIde_Inst,PCI\CC_0106                       ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
-%ataChan.DeviceDesc%=Atapi_Inst, Internal_IDE_Channel
-%*PNP0600.PriDeviceDesc%=Atapi_Inst, Primary_IDE_Channel
-%*PNP0600.SecDeviceDesc%=Atapi_Inst, Secondary_IDE_Channel
-%*PNP0600.DeviceDesc%=Atapi_Inst, *PNP0600                            ; Generic_ESDI_Hard_Disk_Controller   (BAD_IDE)
-%UniATA_Name%=PciIde_Inst
+;Compatible adapters
+
+%PCI\CC_0101.DeviceDesc% = PciIde_Inst,PCI\CC_0101                             ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
+%PCI\CC_0104.DeviceDesc% = storahci_Inst,PCI\CC_0104                             ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
+%PCI\CC_0105.DeviceDesc% = storahci_Inst,PCI\CC_0105                             ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
+%PCI\CC_0106.DeviceDesc% = storahci_Inst,PCI\CC_0106                             ; Device ID for generic Dual PCI IDE  (UNKNOWN_PCI_IDE)
+%*PNP0600.PriDeviceDesc% = storahci_Inst, Primary_IDE_Channel
+%*PNP0600.SecDeviceDesc% = storahci_Inst, Secondary_IDE_Channel
+%*PNP0600.DeviceDesc%    = storahci_Inst, *PNP0600                                ; Generic_ESDI_Hard_Disk_Controller   (BAD_IDE)
+%storahci_Name% = storahci_Inst
 
 ;---------------------------- ATA BUS DRIVER ----------------------------
 
@@ -358,25 +359,23 @@ ErrorControl   = 1
 ServiceBinary  = %12%\pciide.sys
 LoadOrderGroup = System Bus Extender
 
-;---------------------------- ATA PORT DRIVER ---------------------------
+--------------- storahci DRIVER -----------------------------
 
-[Atapi_Inst.NT]
-CopyFiles = Atapi_CopyFiles.NT
-AddReg = StorPropAddReg
+[storahci_Inst.NT]
+CopyFiles = storahci_CopyFiles.NT
 
-[Atapi_CopyFiles.NT]
-atapi.sys
-storprop.dll
+[storahci_CopyFiles.NT]
+storahci.sys
 
-[Atapi_Inst.NT.Services]
-AddService = atapi, 0x00000002, atapi_Service_Inst
+[storahci_Inst.NT.Services]
+AddService = storahci, 0x00000002, storahci_Service_Inst
 
-[atapi_Service_Inst]
+[storahci_Service_Inst]
 ServiceType    = 1
 StartType      = 0
 ErrorControl   = 1
-ServiceBinary  = %12%\atapi.sys
-LoadOrderGroup = SCSI Miniport
+ServiceBinary  = %12%\storahci.sys
+LoadOrderGroup = System Bus Extender
 
 ;-------------------------------- STRINGS -------------------------------
 
@@ -685,16 +684,16 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="HiNT VXII EIDE IDE DMA controller"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="IDE controller"
 
-; Compatible adapters
-UniATA_Name="Universal ATA Driver"
-ataChan.DeviceDesc="ATA Channel"
-*PNP0600.DeviceDesc="IDE/ESDI Hard Disk Controller"
-*PNP0600.PriDeviceDesc="Primary IDE Channel"
-*PNP0600.SecDeviceDesc="Secondary IDE Channel"
-PCI\CC_0101.DeviceDesc="Dual Channel PCI BusMaster IDE Controller"
-PCI\CC_0104.DeviceDesc="Generic RAID IDE Controller"
-PCI\CC_0105.DeviceDesc="Generic ATA Controller"
-PCI\CC_0106.DeviceDesc="Generic Serial ATA Controller"
+;Compatible adapters
+
+storahci_Name = "Universal ATA Driver"
+*PNP0600.DeviceDesc     = "IDE/ESDI Hard Disk Controller"
+*PNP0600.PriDeviceDesc  = "Primary IDE Channel"
+*PNP0600.SecDeviceDesc  = "Secondary IDE Channel"
+PCI\CC_0101.DeviceDesc  = "Dual Channel PCI BusMaster IDE Controller"
+PCI\CC_0104.DeviceDesc  = "Generic RAID IDE Controller"
+PCI\CC_0105.DeviceDesc  = "Generic ATA Controller"
+PCI\CC_0106.DeviceDesc  = "Generic Serial ATA Controller"
 
 [Strings.0404]
 GenericMfg="(標準硬碟控制器)"
@@ -995,28 +994,27 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="HiNT VXII EIDE IDE DMA 控制器"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="IDE 控制器"
 
-; Compatible adapters
-UniATA_Name="標準 ATA 驅動程式"
-*PNP0600.PriDeviceDesc="主 IDE 通道"
-*PNP0600.SecDeviceDesc="次 IDE 通道"
-PCI\CC_0101.DeviceDesc="雙通道 PCI BusMaster IDE 控制器"
-PCI\CC_0104.DeviceDesc="標準 RAID IDE 控制器"
-PCI\CC_0105.DeviceDesc="標準 ATA 控制器"
-PCI\CC_0106.DeviceDesc="標準序列 ATA 控制器"
+;Compatible adapters
+storahci_Name = "標準 ATA 驅動程式"
+*PNP0600.PriDeviceDesc  = "主 IDE 通道"
+*PNP0600.SecDeviceDesc  = "次 IDE 通道"
+PCI\CC_0101.DeviceDesc  = "雙通道 PCI BusMaster IDE 控制器"
+PCI\CC_0104.DeviceDesc  = "標準 RAID IDE 控制器"
+PCI\CC_0105.DeviceDesc  = "標準 ATA 控制器"
+PCI\CC_0106.DeviceDesc  = "標準序列 ATA 控制器"
 
 [Strings.0405]
 HDCClassName="IDE řadiče ATA/ATAPI"
 
 GenericMfg="(Obecné řadiče pevných disků)"
 
-; Compatible adapters
-UniATA_Name="Univerzální ATA ovladač"
-*PNP0600.PriDeviceDesc="Primární IDE kanál"
-*PNP0600.SecDeviceDesc="Sekundární IDE kanál"
-PCI\CC_0101.DeviceDesc="Dvoukanálový řadič PCI BusMaster IDE"
-PCI\CC_0104.DeviceDesc="Obecný řadič RAID IDE"
-PCI\CC_0105.DeviceDesc="Obecný řadič ATA"
-PCI\CC_0106.DeviceDesc="Obecný řadič Serial ATA"
+storahci_Name = "Univerzální ATA ovladač"
+*PNP0600.PriDeviceDesc  = "Primární IDE kanál"
+*PNP0600.SecDeviceDesc  = "Sekundární IDE kanál"
+PCI\CC_0101.DeviceDesc  = "Dvoukanálový řadič PCI BusMaster IDE"
+PCI\CC_0104.DeviceDesc  = "Obecný řadič RAID IDE"
+PCI\CC_0105.DeviceDesc  = "Obecný řadič ATA"
+PCI\CC_0106.DeviceDesc  = "Obecný řadič Serial ATA"
 
 [Strings.0407]
 HDCClassName="IDE ATA/ATAPI Controller"
@@ -1319,14 +1317,16 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="HiNT VXII EIDE IDE DMA Controller"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="IDE Controller"
 
-; Compatible adapters
-UniATA_Name="Universal ATA Treiber"
-*PNP0600.PriDeviceDesc="Primärer IDE Kanal"
-*PNP0600.SecDeviceDesc="Sekundärer IDE Kanal"
-PCI\CC_0101.DeviceDesc="PCI BusMaster IDE Controller (2-kanalig)"
-PCI\CC_0104.DeviceDesc="Generischer RAID IDE Controller"
-PCI\CC_0105.DeviceDesc="Generischer ATA Controller"
-PCI\CC_0106.DeviceDesc="Generischer Serial ATA Controller"
+;Compatible adapters
+
+storahci_Name = "Universal ATA Treiber"
+*PNP0600.PriDeviceDesc  = "Primärer IDE Kanal"
+*PNP0600.SecDeviceDesc  = "Sekundärer IDE Kanal"
+PCI\CC_0101.DeviceDesc  = "PCI BusMaster IDE Controller (2-kanalig)"
+PCI\CC_0104.DeviceDesc  = "Generischer RAID IDE Controller"
+PCI\CC_0105.DeviceDesc  = "Generischer ATA Controller"
+PCI\CC_0106.DeviceDesc  = "Generischer Serial ATA Controller"
+
 
 [Strings.0a]
 HDCClassName="Controladores IDE ATA/ATAPI genéricos"
@@ -1629,14 +1629,15 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="Controlador HiNT VXII EIDE IDE DMA"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="Controlador IDE"
 
-; Compatible adapters
-UniATA_Name="Controlador ATA universal"
-*PNP0600.PriDeviceDesc="Canal IDE primario"
-*PNP0600.SecDeviceDesc="Canal IDE secundario"
-PCI\CC_0101.DeviceDesc="Controlador PCI Dual Channel IDE BusMaster"
-PCI\CC_0104.DeviceDesc="Controlador RAID IDE genérico"
-PCI\CC_0105.DeviceDesc="Controlador ATA genérico"
-PCI\CC_0106.DeviceDesc="Controlador Serial ATA genérico"
+;Compatible adapters
+
+storahci_Name             = "Controlador ATA universal"
+*PNP0600.PriDeviceDesc  = "Canal IDE primario"
+*PNP0600.SecDeviceDesc  = "Canal IDE secundario"
+PCI\CC_0101.DeviceDesc  = "Controlador PCI Dual Channel IDE BusMaster"
+PCI\CC_0104.DeviceDesc  = "Controlador RAID IDE genérico"
+PCI\CC_0105.DeviceDesc  = "Controlador ATA genérico"
+PCI\CC_0106.DeviceDesc  = "Controlador Serial ATA genérico"
 
 [Strings.0415]
 HDCClassName="Kontrolery IDE ATA/ATAPI"
@@ -1939,14 +1940,15 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="Kontroler HiNT VXII EIDE IDE DMA"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="Kontroler IDE"
 
-; Compatible adapters
-UniATA_Name="Uniwersalny sterownik ATA"
-*PNP0600.PriDeviceDesc="Podstawowy kanał IDE"
-*PNP0600.SecDeviceDesc="Pomocniczy kanał IDE"
-PCI\CC_0101.DeviceDesc="Dwukanałowy kontroler PCI BusMaster IDE"
-PCI\CC_0104.DeviceDesc="Standardowy kontroler RAID IDE"
-PCI\CC_0105.DeviceDesc="Standardowy kontroler ATA"
-PCI\CC_0106.DeviceDesc="Standardowy kontroler Serial ATA"
+;Compatible adapters
+
+storahci_Name = "Uniwersalny sterownik ATA"
+*PNP0600.PriDeviceDesc  = "Podstawowy kanał IDE"
+*PNP0600.SecDeviceDesc  = "Pomocniczy kanał IDE"
+PCI\CC_0101.DeviceDesc  = "Dwukanałowy kontroler PCI BusMaster IDE"
+PCI\CC_0104.DeviceDesc  = "Standardowy kontroler RAID IDE"
+PCI\CC_0105.DeviceDesc  = "Standardowy kontroler ATA"
+PCI\CC_0106.DeviceDesc  = "Standardowy kontroler Serial ATA"
 
 [Strings.0418]
 HDCClassName="Dispozitive de control IDE ATA/ATAPI"
@@ -2249,14 +2251,15 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="Dispozitiv de control HiNT VXII EIDE IDE DMA"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="Dispozitiv de control IDE"
 
-; Compatible adapters
-UniATA_Name="Driver ATA universal"
-*PNP0600.PriDeviceDesc="Dispozitiv de control IDE primar"
-*PNP0600.SecDeviceDesc="Dispozitiv de control IDE secundar"
-PCI\CC_0101.DeviceDesc="Dispozitiv de control Dual Channel PCI BusMaster IDE"
-PCI\CC_0104.DeviceDesc="Dispozitiv de control RAID IDE generic"
-PCI\CC_0105.DeviceDesc="Dispozitiv de control ATA generic"
-PCI\CC_0106.DeviceDesc="Dispozitiv de control Serial ATA generic"
+;Compatible adapters
+
+storahci_Name = "Modúl-pilot ATA universal"
+*PNP0600.PriDeviceDesc  = "Dispozitiv de control IDE primar"
+*PNP0600.SecDeviceDesc  = "Dispozitiv de control IDE secundar"
+PCI\CC_0101.DeviceDesc  = "Dispozitiv de control Dual Channel PCI BusMaster IDE"
+PCI\CC_0104.DeviceDesc  = "Dispozitiv de control RAID IDE generic"
+PCI\CC_0105.DeviceDesc  = "Dispozitiv de control ATA generic"
+PCI\CC_0106.DeviceDesc  = "Dispozitiv de control Serial ATA generic"
 
 [Strings.0419]
 HDCClassName="IDE ATA/ATAPI контроллеры"
@@ -2569,6 +2572,16 @@ PCI\CC_0104.DeviceDesc="Универсальный RAID IDE контроллер
 PCI\CC_0105.DeviceDesc="Универсальный ATA контроллер"
 PCI\CC_0106.DeviceDesc="Универсальный Serial ATA контроллер"
 
+storahci_Name = "Универсальный ATA драйвер"
+*PNP0600.DeviceDesc     = "IDE/ESDI контроллер жёсткого диска"
+*PNP0600.PriDeviceDesc  = "Первичный канал IDE"
+*PNP0600.SecDeviceDesc  = "Вторичный канал IDE"
+PCI\CC_0101.DeviceDesc  = "Двухканальный PCI BusMaster IDE контроллер"
+PCI\CC_0104.DeviceDesc  = "Универсальный RAID IDE контроллер"
+PCI\CC_0105.DeviceDesc  = "Универсальный ATA контроллер"
+PCI\CC_0106.DeviceDesc  = "Универсальный Serial ATA контроллер"
+
+; Turkish
 [Strings.041f]
 HDCClassName="IDE ATA/ATAPI Denetleyicileri"
 
@@ -2870,14 +2883,15 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="HiNT VXII EIDE IDE DMA Denetleyicisi"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="IDE Denetleyicisi"
 
-; Compatible adapters
-UniATA_Name="Evrensel ATA Sürücüsü"
-*PNP0600.PriDeviceDesc="Birinci IDE Kanalı"
-*PNP0600.SecDeviceDesc="İkinci IDE Kanalı"
-PCI\CC_0101.DeviceDesc="İkili Kanal PCI BusMaster IDE Denetleyicisi"
-PCI\CC_0104.DeviceDesc="Genel RAID IDE Denetleyicisi"
-PCI\CC_0105.DeviceDesc="Genel ATA Denetleyicisi"
-PCI\CC_0106.DeviceDesc="Genel Seri ATA Denetleyicisi"
+;Compatible adapters
+
+storahci_Name = "Evrensel ATA Sürücüsü"
+*PNP0600.PriDeviceDesc  = "Birinci IDE Kanalı"
+*PNP0600.SecDeviceDesc  = "İkinci IDE Kanalı"
+PCI\CC_0101.DeviceDesc  = "İkili Kanal PCI BusMaster IDE Denetleyicisi"
+PCI\CC_0104.DeviceDesc  = "Genel RAID IDE Denetleyicisi"
+PCI\CC_0105.DeviceDesc  = "Genel ATA Denetleyicisi"
+PCI\CC_0106.DeviceDesc  = "Genel Seri ATA Denetleyicisi"
 
 [Strings.0422]
 HDCClassName="Контроллери IDE ATA/ATAPI"
@@ -3180,14 +3194,15 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="Контроллер HiNT VXII EIDE IDE DMA"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="Контроллер IDE"
 
-; Compatible adapters
-UniATA_Name="Універсальний драйвер ATA"
-*PNP0600.PriDeviceDesc="Основний канал IDE"
-*PNP0600.SecDeviceDesc="Вторинний канал IDE"
-PCI\CC_0101.DeviceDesc="Контроллер двоканальної PCI BusMaster IDE"
-PCI\CC_0104.DeviceDesc="Стандартний контроллер RAID IDE"
-PCI\CC_0105.DeviceDesc="Стандартний контроллер ATA"
-PCI\CC_0106.DeviceDesc="Стандартний контроллер Serial ATA"
+;Compatible adapters
+
+storahci_Name = "Універсальний драйвер ATA"
+*PNP0600.PriDeviceDesc  = "Основний канал IDE"
+*PNP0600.SecDeviceDesc  = "Вторинний канал IDE"
+PCI\CC_0101.DeviceDesc  = "Контроллер двоканальної PCI BusMaster IDE"
+PCI\CC_0104.DeviceDesc  = "Стандартний контроллер RAID IDE"
+PCI\CC_0105.DeviceDesc  = "Стандартний контроллер ATA"
+PCI\CC_0106.DeviceDesc  = "Стандартний контроллер Serial ATA"
 
 [Strings.0804]
 HDCClassName="IDE ATA/ATAPI 控制器"
@@ -3490,14 +3505,15 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="HiNT VXII EIDE IDE DMA 控制器"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="IDE 控制器"
 
-; Compatible adapters
-UniATA_Name="通用 ATA 驱动"
-*PNP0600.PriDeviceDesc="主 IDE 通道"
-*PNP0600.SecDeviceDesc="次 IDE 通道"
-PCI\CC_0101.DeviceDesc="双通道 PCI BusMaster IDE 控制器"
-PCI\CC_0104.DeviceDesc="通用 RAID IDE 控制器"
-PCI\CC_0105.DeviceDesc="通用 ATA 控制器"
-PCI\CC_0106.DeviceDesc="通用串口 ATA 控制器"
+;Compatible adapters
+
+storahci_Name = "通用 ATA 驱动"
+*PNP0600.PriDeviceDesc  = "主 IDE 通道"
+*PNP0600.SecDeviceDesc  = "次 IDE 通道"
+PCI\CC_0101.DeviceDesc  = "双通道 PCI BusMaster IDE 控制器"
+PCI\CC_0104.DeviceDesc  = "通用 RAID IDE 控制器"
+PCI\CC_0105.DeviceDesc  = "通用 ATA 控制器"
+PCI\CC_0106.DeviceDesc  = "通用串口 ATA 控制器"
 
 [Strings.0C04]
 GenericMfg="(標準硬碟控制器)"
@@ -3798,11 +3814,11 @@ PCI\VEN_3388&DEV_8013.DeviceDesc="HiNT VXII EIDE IDE DMA 控制器"
 
 PCI\VEN_ffff&DEV_ffff&REV_ff.DeviceDesc="IDE 控制器"
 
-; Compatible adapters
-UniATA_Name="標準 ATA 驅動程式"
-*PNP0600.PriDeviceDesc="主 IDE 通道"
-*PNP0600.SecDeviceDesc="次 IDE 通道"
-PCI\CC_0101.DeviceDesc="雙通道 PCI BusMaster IDE 控制器"
-PCI\CC_0104.DeviceDesc="標準 RAID IDE 控制器"
-PCI\CC_0105.DeviceDesc="標準 ATA 控制器"
-PCI\CC_0106.DeviceDesc="標準序列 ATA 控制器"
+;Compatible adapters
+storahci_Name = "標準 ATA 驅動程式"
+*PNP0600.PriDeviceDesc  = "主 IDE 通道"
+*PNP0600.SecDeviceDesc  = "次 IDE 通道"
+PCI\CC_0101.DeviceDesc  = "雙通道 PCI BusMaster IDE 控制器"
+PCI\CC_0104.DeviceDesc  = "標準 RAID IDE 控制器"
+PCI\CC_0105.DeviceDesc  = "標準 ATA 控制器"
+PCI\CC_0106.DeviceDesc  = "標準序列 ATA 控制器"

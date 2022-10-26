@@ -27,7 +27,7 @@ Revision History:
 
 
 #include "generic.h"
-
+#include <debug.h>
 
 // storahci.sys global variables
 PVOID   g_AdapterExtension[4] = {0};
@@ -80,7 +80,7 @@ Return Value:
     ULONG status;
     HW_INITIALIZATION_DATA hwInitializationData = {0};
 
-    DebugPrint((1, "\tSTORAHCI, Storport AHCI Miniport Driver.\n"));
+    DPRINT1("\tSTORAHCI, Storport AHCI Miniport Driver.\n");
 
     hwInitializationData.HwInitializationDataSize = sizeof(HW_INITIALIZATION_DATA);
 

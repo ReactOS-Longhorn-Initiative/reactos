@@ -559,7 +559,7 @@ StorPortDebugPrint(
     va_list ap;
 
     va_start(ap, DebugMessage);
-    vDbgPrintExWithPrefix("STORMINI: ", 0x58, DebugPrintLevel, DebugMessage, ap);
+    DPRINT1("STORMINI: %s", DebugMessage, ap);
     va_end(ap);
 }
 
