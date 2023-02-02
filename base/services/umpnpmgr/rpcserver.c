@@ -2618,11 +2618,18 @@ PNP_GetInterfaceDeviceList(
     DPRINT("PNP_GetInterfaceDeviceList(%p %p %S %p %p 0x%08lx)\n",
            hBinding, InterfaceGuid, pszDeviceID, Buffer, pulLength, ulFlags);
 
-    if (!IsValidDeviceInstanceID(pszDeviceID))
-        return CR_INVALID_DEVINST;
+    // the API allows passing NULL device ID to the kernel
+    if (pszDeviceID == NULL && pszDeviceID[0] == L'\0')
+    {
+        RtlInitUnicodeString(&PlugPlayData.DeviceInstance, NULL);
+    }
+    else
+    {
+        if (!IsValidDeviceInstanceID(pszDeviceID))
+            return CR_INVALID_DEVINST;
 
-    RtlInitUnicodeString(&PlugPlayData.DeviceInstance,
-                         pszDeviceID);
+        RtlInitUnicodeString(&PlugPlayData.DeviceInstance, pszDeviceID);
+    }
 
     PlugPlayData.Flags = ulFlags;
     PlugPlayData.FilterGuid = InterfaceGuid;
@@ -2665,11 +2672,18 @@ PNP_GetInterfaceDeviceListSize(
     DPRINT("PNP_GetInterfaceDeviceListSize(%p %p %p %S 0x%08lx)\n",
            hBinding, pulLen, InterfaceGuid, pszDeviceID, ulFlags);
 
-    if (!IsValidDeviceInstanceID(pszDeviceID))
-        return CR_INVALID_DEVINST;
+    // the API allows passing NULL device ID to the kernel
+    if (pszDeviceID == NULL && pszDeviceID[0] == L'\0')
+    {
+        RtlInitUnicodeString(&PlugPlayData.DeviceInstance, NULL);
+    }
+    else
+    {
+        if (!IsValidDeviceInstanceID(pszDeviceID))
+            return CR_INVALID_DEVINST;
 
-    RtlInitUnicodeString(&PlugPlayData.DeviceInstance,
-                         pszDeviceID);
+        RtlInitUnicodeString(&PlugPlayData.DeviceInstance, pszDeviceID);
+    }
 
     PlugPlayData.FilterGuid = InterfaceGuid;
     PlugPlayData.Buffer = NULL;
@@ -2688,7 +2702,7 @@ PNP_GetInterfaceDeviceListSize(
         ret = NtStatusToCrError(Status);
     }
 
-    DPRINT("PNP_GetInterfaceDeviceListSize() done (returns %lx)\n", ret);
+    DPRINT("PNP_GetInterfaceDeviceListSize() done (listSize %lx,returns %lx)\n",*pulLen , ret);
     return ret;
 }
 

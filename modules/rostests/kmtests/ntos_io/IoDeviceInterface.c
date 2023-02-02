@@ -249,6 +249,7 @@ Test_IoRegisterPlugPlayNotification(VOID)
 
 START_TEST(IoDeviceInterface)
 {
+<<<<<<< HEAD
     size_t n;
     for (n = 0; n < RTL_NUMBER_OF(Types); ++n)
     {
@@ -258,5 +259,7 @@ START_TEST(IoDeviceInterface)
     Test_IoGetDeviceInterfaceAlias(NULL);
     Test_IoOpenDeviceInterfaceRegistryKey(NULL);
     Test_IoSetDeviceInterfaceState(NULL);
+=======
+>>>>>>> 4ade3c6ee30 (HID changes for Windows 8 XHCI)
     Test_IoRegisterPlugPlayNotification();
 }
