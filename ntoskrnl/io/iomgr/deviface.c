@@ -1,12 +1,10 @@
 /*
- * PROJECT:         ReactOS Kernel
- * LICENSE:         GPL - See COPYING in the top level directory
- * FILE:            ntoskrnl/io/iomgr/deviface.c
- * PURPOSE:         Device interface functions
- *
- * PROGRAMMERS:     Filip Navara (xnavara@volny.cz)
- *                  Matthew Brace (ismarc@austin.rr.com)
- *                  Hervé Poussineau (hpoussin@reactos.org)
+ * PROJECT:     ReactOS Kernel
+ * LICENSE:     GPL-2.0-or-later (https://spdx.org/licenses/GPL-2.0-or-later)
+ * PURPOSE:     Device interface functions
+ * COPYRIGHT:   Copyright Filip Navara <xnavara@volny.cz>
+ *              Copyright Matthew Brace <ismarc@austin.rr.com>
+ *              Copyright Herv� Poussineau <hpoussin@reactos.org>
  */
 
 /* INCLUDES ******************************************************************/
@@ -28,6 +26,7 @@ IopGetDeviceObjectFromDeviceInstance(PUNICODE_STRING DeviceInstance);
 
 static PWCHAR BaseKeyString = L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\DeviceClasses\\";
 
+CODE_SEG("PAGE")
 static
 NTSTATUS
 OpenRegistryHandlesFromSymbolicLink(IN PUNICODE_STRING SymbolicLinkName,
@@ -212,40 +211,43 @@ cleanup:
     return Status;
 }
 
-/*++
- * @name IoOpenDeviceInterfaceRegistryKey
- * @unimplemented
- *
+/**
+ * @brief
  * Provides a handle to the device's interface instance registry key.
  * Documented in WDK.
  *
- * @param SymbolicLinkName
- *        Pointer to a string which identifies the device interface instance
+ * @param[in] SymbolicLinkName
+ * Pointer to a string which identifies the device interface instance.
  *
- * @param DesiredAccess
- *        Desired ACCESS_MASK used to access the key (like KEY_READ,
- *        KEY_WRITE, etc)
+ * @param[in] DesiredAccess
+ * Desired ACCESS_MASK used to access the key (like KEY_READ, KEY_WRITE, etc)
  *
- * @param DeviceInterfaceKey
- *        If a call has been succesfull, a handle to the registry key
- *        will be stored there
+ * @param[out] DeviceInterfaceKey
+ * If a call has been succesfull, a handle to the registry key will be stored
+ * there.
  *
- * @return Three different NTSTATUS values in case of errors, and STATUS_SUCCESS
- *         otherwise (see WDK for details)
+ * @return
+ * Three different NTSTATUS values in case of errors, and STATUS_SUCCESS
+ * otherwise (see WDK for details).
  *
- * @remarks Must be called at IRQL = PASSIVE_LEVEL in the context of a system thread
+ * @remarks
+ * Must be called at IRQL = PASSIVE_LEVEL in the context of a system thread.
  *
- *--*/
+ */
+CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
-IoOpenDeviceInterfaceRegistryKey(IN PUNICODE_STRING SymbolicLinkName,
-                                 IN ACCESS_MASK DesiredAccess,
-                                 OUT PHANDLE DeviceInterfaceKey)
+IoOpenDeviceInterfaceRegistryKey(
+    _In_ PUNICODE_STRING SymbolicLinkName,
+    _In_ ACCESS_MASK DesiredAccess,
+    _Out_ PHANDLE DeviceInterfaceKey)
 {
     HANDLE InstanceKey, DeviceParametersKey;
     NTSTATUS Status;
     OBJECT_ATTRIBUTES ObjectAttributes;
     UNICODE_STRING DeviceParametersU = RTL_CONSTANT_STRING(L"Device Parameters");
+
+    PAGED_CODE();
 
     Status = OpenRegistryHandlesFromSymbolicLink(SymbolicLinkName,
                                                  KEY_CREATE_SUB_KEY,
@@ -275,61 +277,52 @@ IoOpenDeviceInterfaceRegistryKey(IN PUNICODE_STRING SymbolicLinkName,
     return Status;
 }
 
-/*++
- * @name IoGetDeviceInterfaceAlias
- * @unimplemented
- *
- * Returns the alias device interface of the specified device interface
+/**
+ * @brief
+ * Returns the alias device interface of the specified device interface 
  * instance, if the alias exists.
  * Documented in WDK.
  *
- * @param SymbolicLinkName
- *        Pointer to a string which identifies the device interface instance
+ * @param[in] SymbolicLinkName
+ * Pointer to a string which identifies the device interface instance.
  *
- * @param AliasInterfaceClassGuid
- *        See WDK
+ * @param[in] AliasInterfaceClassGuid
+ * See WDK.
  *
- * @param AliasSymbolicLinkName
- *        See WDK
+ * @param[out] AliasSymbolicLinkName
+ * See WDK.
  *
- * @return Three different NTSTATUS values in case of errors, and STATUS_SUCCESS
- *         otherwise (see WDK for details)
+ * @return
+ * Three different NTSTATUS values in case of errors, and STATUS_SUCCESS
+ * otherwise (see WDK for details).
  *
- * @remarks Must be called at IRQL = PASSIVE_LEVEL in the context of a system thread
+ * @remarks
+ * Must be called at IRQL = PASSIVE_LEVEL in the context of a system thread.
  *
- *--*/
+ */
+CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
-IoGetDeviceInterfaceAlias(IN PUNICODE_STRING SymbolicLinkName,
-                          IN CONST GUID *AliasInterfaceClassGuid,
-                          OUT PUNICODE_STRING AliasSymbolicLinkName)
+IoGetDeviceInterfaceAlias(
+    _In_ PUNICODE_STRING SymbolicLinkName,
+    _In_ const GUID *AliasInterfaceClassGuid,
+    _Out_ PUNICODE_STRING AliasSymbolicLinkName)
 {
+    PAGED_CODE();
+
     return STATUS_NOT_IMPLEMENTED;
 }
 
-/*++
- * @name IopOpenInterfaceKey
- *
- * Returns the alias device interface of the specified device interface
- *
- * @param InterfaceClassGuid
- *        FILLME
- *
- * @param DesiredAccess
- *        FILLME
- *
- * @param pInterfaceKey
- *        FILLME
- *
- * @return Usual NTSTATUS
- *
- * @remarks None
- *
- *--*/
+/**
+ * @brief
+ * Returns the alias device interface of the specified device interface.
+ */
+CODE_SEG("PAGE")
 static NTSTATUS
-IopOpenInterfaceKey(IN CONST GUID *InterfaceClassGuid,
-                    IN ACCESS_MASK DesiredAccess,
-                    OUT HANDLE *pInterfaceKey)
+IopOpenInterfaceKey(
+    _In_ const GUID *InterfaceClassGuid,
+    _In_ ACCESS_MASK DesiredAccess,
+    _Out_ HANDLE *pInterfaceKey)
 {
     UNICODE_STRING LocalMachine = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\");
     UNICODE_STRING GuidString;
@@ -412,66 +405,61 @@ cleanup:
     return Status;
 }
 
-/*++
- * @name IoGetDeviceInterfaces
- * @implemented
- *
+/**
+ * @brief
  * Returns a list of device interfaces of a particular device interface class.
- * Documented in WDK
  *
- * @param InterfaceClassGuid
- *        Points to a class GUID specifying the device interface class
+ * @param[in] InterfaceClassGuid
+ * Points to a class GUID specifying the device interface class.
  *
- * @param PhysicalDeviceObject
- *        Points to an optional PDO that narrows the search to only the
- *        device interfaces of the device represented by the PDO
+ * @param[in] PhysicalDeviceObject
+ * Points to an optional PDO that narrows the search to only the device
+ * interfaces of the device represented by the PDO.
  *
- * @param Flags
- *        Specifies flags that modify the search for device interfaces. The
- *        DEVICE_INTERFACE_INCLUDE_NONACTIVE flag specifies that the list of
- *        returned symbolic links should contain also disabled device
- *        interfaces in addition to the enabled ones.
+ * @param[in] Flags
+ * Specifies flags that modify the search for device interfaces.
+ * The DEVICE_INTERFACE_INCLUDE_NONACTIVE flag specifies that the list of
+ * returned symbolic links should contain also disabled device interfaces in
+ * addition to the enabled ones.
+ * 
+ * @param[in] UseKernelPath
+ * If TRUE, all the device interfaces in the list will start from \??\ (and not from \\?\).
  *
- * @param SymbolicLinkList
- *        Points to a character pointer that is filled in on successful return
- *        with a list of unicode strings identifying the device interfaces
- *        that match the search criteria. The newly allocated buffer contains
- *        a list of symbolic link names. Each unicode string in the list is
- *        null-terminated; the end of the whole list is marked by an additional
- *        NULL. The caller is responsible for freeing the buffer (ExFreePool)
- *        when it is no longer needed.
- *        If no device interfaces match the search criteria, this routine
- *        returns STATUS_SUCCESS and the string contains a single NULL
- *        character.
+ * @param[out] SymbolicLinkList
+ * Points to a character pointer that is filled in on successful return with a
+ * list of unicode strings (in REG_MULTI_SZ format) identifying the device
+ * interfaces that match the search criteria. The newly allocated buffer
+ * contains a list of symbolic link names. The caller is responsible for freeing
+ * the buffer (ExFreePool) when it is no longer needed. If no device interfaces
+ * match the search criteria, this routine returns STATUS_SUCCESS and the string
+ * contains a single NULL character.
  *
- * @return Usual NTSTATUS
- *
- * @remarks None
- *
- *--*/
+ * @return
+ * Usual NTSTATUS
+ */
+CODE_SEG("PAGE")
 NTSTATUS
-NTAPI
-IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
-                      IN PDEVICE_OBJECT PhysicalDeviceObject OPTIONAL,
-                      IN ULONG Flags,
-                      OUT PWSTR *SymbolicLinkList)
+IopGetDeviceInterfaces(
+    _In_ const GUID *InterfaceClassGuid,
+    _In_opt_ PDEVICE_OBJECT PhysicalDeviceObject,
+    _In_ ULONG Flags,
+    _In_ BOOLEAN UseKernelPath,
+    _Out_ PZZWSTR *SymbolicLinkList)
 {
     UNICODE_STRING Control = RTL_CONSTANT_STRING(L"Control");
-    UNICODE_STRING SymbolicLink = RTL_CONSTANT_STRING(L"SymbolicLink");
     HANDLE InterfaceKey = NULL;
     HANDLE DeviceKey = NULL;
     HANDLE ReferenceKey = NULL;
     HANDLE ControlKey = NULL;
     PKEY_BASIC_INFORMATION DeviceBi = NULL;
     PKEY_BASIC_INFORMATION ReferenceBi = NULL;
-    PKEY_VALUE_PARTIAL_INFORMATION bip = NULL;
-    PKEY_VALUE_PARTIAL_INFORMATION PartialInfo;
+    PKEY_VALUE_FULL_INFORMATION bip = NULL;
+    PKEY_VALUE_FULL_INFORMATION PartialInfo;
     PEXTENDED_DEVOBJ_EXTENSION DeviceObjectExtension;
     PUNICODE_STRING InstanceDevicePath = NULL;
     UNICODE_STRING KeyName;
-    OBJECT_ATTRIBUTES ObjectAttributes;
     BOOLEAN FoundRightPDO = FALSE;
-    ULONG i = 0, j, Size, NeededLength, ActualLength, LinkedValue;
+    ULONG i = 0, j, Size, LinkedValue;
     UNICODE_STRING ReturnBuffer = { 0, 0, NULL };
     NTSTATUS Status;
 
@@ -550,16 +538,7 @@ IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
         /* Open device key */
         KeyName.Length = KeyName.MaximumLength = (USHORT)DeviceBi->NameLength;
         KeyName.Buffer = DeviceBi->Name;
-        InitializeObjectAttributes(
-            &ObjectAttributes,
-            &KeyName,
-            OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
-            InterfaceKey,
-            NULL);
-        Status = ZwOpenKey(
-            &DeviceKey,
-            KEY_ENUMERATE_SUB_KEYS,
-            &ObjectAttributes);
+        Status = IopOpenRegistryKeyEx(&DeviceKey, InterfaceKey, &KeyName, KEY_ENUMERATE_SUB_KEYS);
         if (!NT_SUCCESS(Status))
         {
             DPRINT("ZwOpenKey() failed with status 0x%08lx\n", Status);
@@ -571,45 +550,29 @@ IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
             /* Check if we are on the right physical device object,
             * by reading the DeviceInstance string
             */
-            RtlInitUnicodeString(&KeyName, L"DeviceInstance");
-            Status = ZwQueryValueKey(DeviceKey, &KeyName, KeyValuePartialInformation, NULL, 0, &NeededLength);
-            if (Status == STATUS_BUFFER_TOO_SMALL)
+            Status = IopGetRegistryValue(DeviceKey, L"DeviceInterface", &PartialInfo);
+            if (!NT_SUCCESS(Status))
             {
-                ActualLength = NeededLength;
-                PartialInfo = ExAllocatePool(NonPagedPool, ActualLength);
-                if (!PartialInfo)
-                {
-                    Status = STATUS_INSUFFICIENT_RESOURCES;
-                    goto cleanup;
-                }
-
-                Status = ZwQueryValueKey(DeviceKey, &KeyName, KeyValuePartialInformation, PartialInfo, ActualLength, &NeededLength);
-                if (!NT_SUCCESS(Status))
-                {
-                    DPRINT1("ZwQueryValueKey #2 failed (%x)\n", Status);
-                    ExFreePool(PartialInfo);
-                    goto cleanup;
-                }
-                if (PartialInfo->DataLength == InstanceDevicePath->Length)
-                {
-                    if (RtlCompareMemory(PartialInfo->Data, InstanceDevicePath->Buffer, InstanceDevicePath->Length) == InstanceDevicePath->Length)
-                    {
-                        /* found right pdo */
-                        FoundRightPDO = TRUE;
-                    }
-                }
-                ExFreePool(PartialInfo);
-                PartialInfo = NULL;
-                if (!FoundRightPDO)
-                {
-                    /* not yet found */
-                    continue;
-                }
-            }
-            else
-            {
-                /* error */
                 break;
+            }
+
+            UNICODE_STRING devInterface = {
+                .Length = PartialInfo->DataLength,
+                .MaximumLength = PartialInfo->DataLength,
+                .Buffer = (PVOID)((PUCHAR)PartialInfo + PartialInfo->DataOffset)
+            };
+
+            if (RtlEqualUnicodeString(&devInterface, InstanceDevicePath, FALSE))
+            {
+                /* found right pdo */
+                FoundRightPDO = TRUE;
+            }
+            ExFreePool(PartialInfo);
+            PartialInfo = NULL;
+            if (!FoundRightPDO)
+            {
+                /* not yet found */
+                continue;
             }
         }
 
@@ -663,19 +626,10 @@ IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
             }
 
             /* Open reference key */
-            InitializeObjectAttributes(
-                &ObjectAttributes,
-                &KeyName,
-                OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
-                DeviceKey,
-                NULL);
-            Status = ZwOpenKey(
-                &ReferenceKey,
-                KEY_QUERY_VALUE,
-                &ObjectAttributes);
+            Status = IopOpenRegistryKeyEx(&ReferenceKey, DeviceKey, &KeyName, KEY_QUERY_VALUE);
             if (!NT_SUCCESS(Status))
             {
-                DPRINT("ZwOpenKey() failed with status 0x%08lx\n", Status);
+                DPRINT("IopOpenRegistryKeyEx() failed with status 0x%08lx\n", Status);
                 goto cleanup;
             }
 
@@ -684,16 +638,7 @@ IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
                 /* We have to check if the interface is enabled, by
                 * reading the Linked value in the Control subkey
                 */
-                InitializeObjectAttributes(
-                    &ObjectAttributes,
-                    &Control,
-                    OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
-                    ReferenceKey,
-                    NULL);
-                Status = ZwOpenKey(
-                    &ControlKey,
-                    KEY_QUERY_VALUE,
-                    &ObjectAttributes);
+                Status = IopOpenRegistryKeyEx(&ControlKey, ReferenceKey, &Control, KEY_QUERY_VALUE);
                 if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
                 {
                     /* That's OK. The key doesn't exist (yet) because
@@ -703,92 +648,39 @@ IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
                 }
                 else if (!NT_SUCCESS(Status))
                 {
-                    DPRINT1("ZwOpenKey() failed with status 0x%08lx\n", Status);
+                    DPRINT1("IopOpenRegistryKeyEx() failed with status 0x%08lx\n", Status);
                     goto cleanup;
                 }
 
-                RtlInitUnicodeString(&KeyName, L"Linked");
-                Status = ZwQueryValueKey(ControlKey,
-                                         &KeyName,
-                                         KeyValuePartialInformation,
-                                         NULL,
-                                         0,
-                                         &NeededLength);
-                if (Status == STATUS_BUFFER_TOO_SMALL)
+                Status = IopGetRegistryValue(ControlKey, L"Linked", &PartialInfo);
+                if (!NT_SUCCESS(Status))
                 {
-                    ActualLength = NeededLength;
-                    PartialInfo = ExAllocatePool(NonPagedPool, ActualLength);
-                    if (!PartialInfo)
-                    {
-                        Status = STATUS_INSUFFICIENT_RESOURCES;
-                        goto cleanup;
-                    }
+                    DPRINT1("IopGetRegistryValue failed (%x)\n", Status);
+                    goto cleanup;
+                }
 
-                    Status = ZwQueryValueKey(ControlKey,
-                                             &KeyName,
-                                             KeyValuePartialInformation,
-                                             PartialInfo,
-                                             ActualLength,
-                                             &NeededLength);
-                    if (!NT_SUCCESS(Status))
-                    {
-                        DPRINT1("ZwQueryValueKey #2 failed (%x)\n", Status);
-                        ExFreePool(PartialInfo);
-                        goto cleanup;
-                    }
-
-                    if (PartialInfo->Type != REG_DWORD || PartialInfo->DataLength != sizeof(ULONG))
-                    {
-                        DPRINT1("Bad registry read\n");
-                        ExFreePool(PartialInfo);
-                        goto cleanup;
-                    }
-
-                    RtlCopyMemory(&LinkedValue,
-                                  PartialInfo->Data,
-                                  PartialInfo->DataLength);
-
+                if (PartialInfo->Type != REG_DWORD || PartialInfo->DataLength != sizeof(ULONG))
+                {
+                    DPRINT1("Bad registry read\n");
                     ExFreePool(PartialInfo);
-                    if (LinkedValue == 0)
-                    {
-                        /* This interface isn't active */
-                        goto NextReferenceString;
-                    }
-                }
-                else
-                {
-                    DPRINT1("ZwQueryValueKey #1 failed (%x)\n", Status);
                     goto cleanup;
+                }
+
+                RtlCopyMemory(
+                    &LinkedValue,
+                    (PVOID)((PUCHAR)PartialInfo + PartialInfo->DataOffset),
+                    PartialInfo->DataLength);
+
+                ExFreePool(PartialInfo);
+                if (LinkedValue == 0)
+                {
+                    /* This interface isn't active */
+                    goto NextReferenceString;
                 }
             }
 
             /* Read the SymbolicLink string and add it into SymbolicLinkList */
-            Status = ZwQueryValueKey(
-                ReferenceKey,
-                &SymbolicLink,
-                KeyValuePartialInformation,
-                NULL,
-                0,
-                &Size);
-            if (!NT_SUCCESS(Status) && Status != STATUS_BUFFER_TOO_SMALL)
-            {
-                DPRINT("ZwQueryValueKey() failed with status 0x%08lx\n", Status);
-                goto cleanup;
-            }
-            bip = ExAllocatePool(PagedPool, Size);
-            if (!bip)
-            {
-                DPRINT("ExAllocatePool() failed\n");
-                Status = STATUS_INSUFFICIENT_RESOURCES;
-                goto cleanup;
-            }
-            Status = ZwQueryValueKey(
-                ReferenceKey,
-                &SymbolicLink,
-                KeyValuePartialInformation,
-                bip,
-                Size,
-                &Size);
+            Status = IopGetRegistryValue(ReferenceKey, L"SymbolicLink", &bip);
             if (!NT_SUCCESS(Status))
             {
                 DPRINT("ZwQueryValueKey() failed with status 0x%08lx\n", Status);
@@ -807,10 +699,13 @@ IoGetDeviceInterfaces(IN CONST GUID *InterfaceClassGuid,
                 goto cleanup;
             }
             KeyName.Length = KeyName.MaximumLength = (USHORT)bip->DataLength;
-            KeyName.Buffer = (PWSTR)bip->Data;
+            KeyName.Buffer = (PVOID)((PUCHAR)bip + bip->DataOffset);
 
             /* Fixup the prefix (from "\\?\") */
-            RtlCopyMemory(KeyName.Buffer, L"\\??\\", 4 * sizeof(WCHAR));
+            if (1)
+            {
+                RtlCopyMemory(KeyName.Buffer, L"\\??\\", 4 * sizeof(WCHAR));
+            }
 
             /* Add new symbolic link to symbolic link list */
             if (ReturnBuffer.Length + KeyName.Length + sizeof(WCHAR) > ReturnBuffer.MaximumLength)
@@ -920,42 +815,62 @@ cleanup:
     return Status;
 }
 
-/*++
- * @name IoRegisterDeviceInterface
- * @implemented
+/**
+ * @brief
+ * Returns a list of device interfaces of a particular device interface class.
  *
+ * @remarks
+ * Use IopGetDeviceInterfaces for the kernel code instead.
+ */
+CODE_SEG("PAGE")
+NTSTATUS
+NTAPI
+IoGetDeviceInterfaces(
+    _In_ const GUID *InterfaceClassGuid,
+    _In_opt_ PDEVICE_OBJECT PDO,
+    _In_ ULONG Flags,
+    _Out_ PZZWSTR *SymbolicLinkList)
+{
+    PAGED_CODE();
+
+    return IopGetDeviceInterfaces(InterfaceClassGuid, PDO, Flags, TRUE, SymbolicLinkList);
+}
+
+/**
+ * @brief
  * Registers a device interface class, if it has not been previously registered,
  * and creates a new instance of the interface class, which a driver can
  * subsequently enable for use by applications or other system components.
  * Documented in WDK.
  *
- * @param PhysicalDeviceObject
- *        Points to an optional PDO that narrows the search to only the
- *        device interfaces of the device represented by the PDO
+ * @param[in] PhysicalDeviceObject
+ * Points to an optional PDO that narrows the search to only the device
+ * interfaces of the device represented by the PDO.
  *
- * @param InterfaceClassGuid
- *        Points to a class GUID specifying the device interface class
+ * @param[in] InterfaceClassGuid
+ * Points to a class GUID specifying the device interface class.
  *
- * @param ReferenceString
- *        Optional parameter, pointing to a unicode string. For a full
- *        description of this rather rarely used param (usually drivers
- *        pass NULL here) see WDK
+ * @param[in] ReferenceString
+ * Optional parameter, pointing to a unicode string. For a full description of
+ * this rather rarely used param (usually drivers pass NULL here).
  *
- * @param SymbolicLinkName
- *        Pointer to the resulting unicode string
+ * @param[out] SymbolicLinkName
+ * Pointer to the resulting unicode string.
  *
- * @return Usual NTSTATUS
+ * @return
+ * Usual NTSTATUS.
  *
- * @remarks Must be called at IRQL = PASSIVE_LEVEL in the context of a
- *          system thread
- *
- *--*/
+ * @remarks
+ * Must be called at IRQL = PASSIVE_LEVEL in the context of a system thread.
+ */
+CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
-IoRegisterDeviceInterface(IN PDEVICE_OBJECT PhysicalDeviceObject,
-                          IN CONST GUID *InterfaceClassGuid,
-                          IN PUNICODE_STRING ReferenceString OPTIONAL,
-                          OUT PUNICODE_STRING SymbolicLinkName)
+IoRegisterDeviceInterface(
+    _In_ PDEVICE_OBJECT PhysicalDeviceObject,
+    _In_ const GUID *InterfaceClassGuid,
+    _In_opt_ PUNICODE_STRING ReferenceString,
+    _Out_ PUNICODE_STRING SymbolicLinkName)
 {
     PUNICODE_STRING InstancePath;
     UNICODE_STRING GuidString;
@@ -975,7 +890,7 @@ IoRegisterDeviceInterface(IN PDEVICE_OBJECT PhysicalDeviceObject,
     NTSTATUS Status, SymLinkStatus;
     PEXTENDED_DEVOBJ_EXTENSION DeviceObjectExtension;
 
-    ASSERT_IRQL_EQUAL(PASSIVE_LEVEL);
+    PAGED_CODE();
 
     DPRINT("IoRegisterDeviceInterface(): PDO %p, RefString: %wZ\n",
         PhysicalDeviceObject, ReferenceString);
@@ -1286,26 +1201,24 @@ IoRegisterDeviceInterface(IN PDEVICE_OBJECT PhysicalDeviceObject,
     return NT_SUCCESS(Status) ? SymLinkStatus : Status;
 }
 
-/*++
- * @name IoSetDeviceInterfaceState
- * @implemented
+/**
+ * @brief
+ * Enables or disables an instance of a previously registered device interface
+ * class. Documented in WDK.
  *
- * Enables or disables an instance of a previously registered device
- * interface class.
- * Documented in WDK.
+ * @param[in] SymbolicLinkName
+ * Pointer to the string identifying instance to enable or disable.
  *
- * @param SymbolicLinkName
- *        Pointer to the string identifying instance to enable or disable
+ * @param[in] Enable
+ * TRUE = enable, FALSE = disable.
  *
- * @param Enable
- *        TRUE = enable, FALSE = disable
+ * @return
+ * Usual NTSTATUS
  *
- * @return Usual NTSTATUS
- *
- * @remarks Must be called at IRQL = PASSIVE_LEVEL in the context of a
- *          system thread
- *
- *--*/
+ * @remarks
+ * Must be called at IRQL = PASSIVE_LEVEL in the context of a system thread.
+ */
+CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
 IoSetDeviceInterfaceState(IN PUNICODE_STRING SymbolicLinkName,
@@ -1325,6 +1238,8 @@ IoSetDeviceInterfaceState(IN PUNICODE_STRING SymbolicLinkName,
     UNICODE_STRING LinkNameNoPrefix;
     USHORT i;
     USHORT ReferenceStringOffset;
+
+    PAGED_CODE();
 
     if (SymbolicLinkName == NULL)
     {
@@ -1471,5 +1386,3 @@ IoSetDeviceInterfaceState(IN PUNICODE_STRING SymbolicLinkName,
     DPRINT("Status %x\n", Status);
     return STATUS_SUCCESS;
 }
-
-/* EOF */
