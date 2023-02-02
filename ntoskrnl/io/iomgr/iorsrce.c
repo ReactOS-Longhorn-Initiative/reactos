@@ -829,7 +829,7 @@ IopFetchConfigurationInformation(
     PWSTR symbolicLinkList;
 
     /* Get the associated enabled interfaces with the given GUID */
-    Status = IoGetDeviceInterfaces(&Guid, NULL, 0, SymbolicLinkList);
+    Status = IopGetDeviceInterfaces(&Guid, NULL, 0, TRUE, SymbolicLinkList);
     if (!NT_SUCCESS(Status))
     {
         /* Zero output and leave */
