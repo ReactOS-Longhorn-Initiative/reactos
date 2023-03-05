@@ -75,12 +75,13 @@
 #include "CActiveDesktop.h"
 #include "CEnumIDListBase.h"
 #include "shfldr.h"
-#include "CShellItem.h"
+//#include "CShellItem.h"
 #include "CShellLink.h"
 #include "CFolderItemVerbs.h"
 #include "CFolderItems.h"
 #include "CFolder.h"
 #include "CShellDispatch.h"
+#include "CShellLibrary.h"
 #include "CDropTargetHelper.h"
 #include "CFolderOptions.h"
 #include "folders/CFSFolder.h"
@@ -108,6 +109,7 @@
 #include "shellmenu/CMenuSite.h"
 #include "shellmenu/CMergedFolder.h"
 #include "shellmenu/shellmenu.h"
+#include "CUserEventTimer.h"
 #include "CUserNotification.h"
 #include "dialogs/folder_options.h"
 #include "shelldesktop/CChangeNotifyServer.h"
@@ -248,7 +250,7 @@ Shell_DisplayNameOf(
     _In_ UINT cchBuf);
 
 EXTERN_C
-HRESULT SHBindToObject(
+HRESULT WINAPI SHBindToObject(
     _In_opt_ IShellFolder *psf,
     _In_ LPCITEMIDLIST pidl,
     _In_ REFIID riid,
