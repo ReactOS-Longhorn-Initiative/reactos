@@ -82,6 +82,7 @@ NtFindAtom 3
 NtFlushBuffersFile 2
 NtFlushInstructionCache 3
 NtFlushKey 1
+NtFlushProcessWriteBuffers 0
 NtFlushVirtualMemory 4
 NtFlushWriteBuffer 0
 NtFreeUserPhysicalPages 3

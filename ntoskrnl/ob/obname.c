@@ -1414,4 +1414,12 @@ ObQueryNameString(IN PVOID Object,
     return Status;
 }
 
+PVOID
+NTAPI
+ObQueryNameInfo(IN PVOID Object)
+{
+    UNIMPLEMENTED;
+    return NULL;
+}
+
 /* EOF */
