@@ -69,7 +69,7 @@
 @ stdcall -stub -version=0x600+ EtwEnumerateProcessRegGuids(ptr long ptr)
 @ stdcall -stub -version=0x502 EtwEnumerateTraceGuids(ptr long ptr)
 @ stdcall -stub -version=0x600+ EtwEventActivityIdControl(long ptr)
-@ stdcall -stub -version=0x600+ EtwEventEnabled(int64 ptr)
+@ stdcall -version=0x600+ EtwEventEnabled(int64 ptr)
 @ stdcall -stub -version=0x600+ EtwEventProviderEnabled(long long long)
 @ stdcall -stub -version=0x600+ EtwEventRegister(ptr ptr ptr ptr) 
 @ stdcall -stub -version=0x600+ EtwEventSetInformation(int64 long ptr long)

@@ -1047,4 +1047,51 @@ NtRequestWaitReplyPort(IN HANDLE PortHandle,
     return Status;
 }
 
+NTSTATUS
+NTAPI
+LpcRequestWaitReplyPortEx(IN PVOID PortAddress,
+                          IN PPORT_MESSAGE RequestMessage,
+                          OUT PPORT_MESSAGE ReplyMessage)
+{
+    return LpcRequestWaitReplyPort(PortAddress, RequestMessage, ReplyMessage);
+}
+
+NTSTATUS
+NTAPI
+NtAlpcSendWaitReceivePort(_In_ HANDLE PortHandle,
+                          _In_ ULONG Flags,
+                          _In_reads_bytes_opt_(SendMessage->u1.s1.TotalLength) PPORT_MESSAGE SendMessage,
+                          _Inout_opt_ PVOID SendMessageAttributes, // PALPC_MESSAGE_ATTRIBUTES
+                          _Out_writes_bytes_to_opt_(*BufferLength,*BufferLength) PPORT_MESSAGE ReceiveMessage,
+                          _Inout_opt_ PSIZE_T BufferLength,
+                          _Inout_opt_ PVOID ReceiveMessageAttributes, // PALPC_MESSAGE_ATTRIBUTES
+                          _In_opt_ PLARGE_INTEGER Timeout)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcQueryInformation(_In_opt_ HANDLE PortHandle,
+                       _In_ PVOID PortInformationClass, // ALPC_PORT_INFORMATION_CLASS
+                       _Inout_updates_bytes_to_(Length,*ReturnLength) PVOID PortInformation,
+                       _In_ ULONG Length,
+                       _Out_opt_ PULONG ReturnLength)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcSetInformation(_In_ HANDLE PortHandle,
+                     _In_ PVOID PortInformationClass, // ALPC_PORT_INFORMATION_CLASS
+                     _In_reads_bytes_opt_(Length) PVOID PortInformation,
+                     _In_ ULONG Length)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
 /* EOF */

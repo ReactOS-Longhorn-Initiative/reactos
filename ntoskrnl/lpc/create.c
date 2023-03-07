@@ -258,4 +258,48 @@ NtCreateWaitablePort(OUT PHANDLE PortHandle,
                           TRUE);
 }
 
+NTSTATUS
+NTAPI
+NtAlpcCreatePortSection(_In_ HANDLE PortHandle,
+		                _In_ ULONG Flags,
+		                _In_opt_ HANDLE SectionHandle,
+		                _In_ SIZE_T SectionSize,
+		                _Out_ PVOID AlpcSectionHandle, // PALPC_HANDLE
+		                _Out_ PSIZE_T ActualSectionSize)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcCreateResourceReserve(_In_ HANDLE PortHandle,
+                            _Reserved_ ULONG Flags,
+                            _In_ SIZE_T MessageSize,
+                            _Out_ PVOID ResourceId) // PALPC_HANDLE
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcCreateSectionView(_In_ HANDLE PortHandle,
+                        _Reserved_ ULONG Flags,
+                        _Inout_ PVOID ViewAttributes) // PALPC_DATA_VIEW_ATTR
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcCreateSecurityContext(_In_ HANDLE PortHandle,
+                            _Reserved_ ULONG Flags,
+                            _Inout_ PVOID SecurityAttribute) // PALPC_SECURITY_ATTR
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
 /* EOF */
