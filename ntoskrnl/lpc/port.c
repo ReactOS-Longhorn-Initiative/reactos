@@ -282,6 +282,33 @@ NtQueryPortInformationProcess(VOID)
 
 NTSTATUS
 NTAPI
+NtAlpcConnectPort(OUT PHANDLE PortHandle,
+                  IN PUNICODE_STRING PortName, 
+                  IN OPTIONAL POBJECT_ATTRIBUTES ObjectAttributes,
+                  IN OPTIONAL PVOID PortAttributes, // PALPC_PORT_ATTRIBUTES
+                  IN ULONG Flags,
+                  IN OPTIONAL PSID RequiredServerSid,
+                  _Inout_updates_bytes_to_opt_(*BufferLength,*BufferLength) PPORT_MESSAGE ConnectionMessage,
+                  IN OUT OPTIONAL PULONG BufferLength,
+                  IN OUT OPTIONAL PVOID OutMessageAttributes, // PALPC_MESSAGE_ATTRIBUTES
+                  IN OUT OPTIONAL PVOID InMessageAttributes, // PALPC_MESSAGE_ATTRIBUTES
+                  IN OPTIONAL PLARGE_INTEGER Timeout)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcDisconnectPort(_In_ HANDLE PortHandle,
+                     _In_ ULONG Flags)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
 NtQueryInformationPort(IN HANDLE PortHandle,
                        IN PORT_INFORMATION_CLASS PortInformationClass,
                        OUT PVOID PortInformation,

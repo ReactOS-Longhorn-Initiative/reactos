@@ -696,6 +696,16 @@ RtlQueryAtomInAtomTable(
 }
 
 
+BOOLEAN
+NTAPI
+RtlGetIntegerAtom(_In_ PWSTR AtomName,
+                  _Out_opt_ PUSHORT IntegerAtom)
+{
+    UNIMPLEMENTED;
+    return FALSE;
+}
+
+
 /*
  * @private - only used by NtQueryInformationAtom
  */
