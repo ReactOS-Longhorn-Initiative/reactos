@@ -4194,4 +4194,17 @@ NtDeleteFile(IN POBJECT_ATTRIBUTES ObjectAttributes)
     return OpenPacket.FinalStatus;
 }
 
+NTSTATUS
+NTAPI
+NtRemoveIoCompletionEx(_In_ HANDLE IoCompletionHandle,
+                       _Out_writes_to_(Count,*NumEntriesRemoved) PVOID IoCompletionInformation, // PFILE_IO_COMPLETION_INFORMATION
+                       _In_ ULONG Count,
+                       _Out_ PULONG NumEntriesRemoved,
+                       _In_opt_ PLARGE_INTEGER Timeout,
+                       _In_ BOOLEAN Alertable)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
 /* EOF */

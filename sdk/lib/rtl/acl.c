@@ -1028,4 +1028,76 @@ RtlValidAcl(IN PACL Acl)
     return TRUE;
 }
 
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
+RtlAddMandatoryAce(IN OUT PACL pAcl,
+                   IN ULONG AceRevision,
+                   IN ULONG AceFlags,
+                   IN ULONG MandatoryFlags,
+                   IN UCHAR AceType,
+                   IN PSID pSid)
+{
+    ACE *pAce;
+    ACE_HEADER *pAceHeader;
+    DWORD dwLengthSid;
+    DWORD dwAceSize;
+    DWORD *pAccessMask;
+    DWORD *pSidStart;
+    pAceHeader = NULL;
+    static const DWORD dwValidFlags = SYSTEM_MANDATORY_LABEL_NO_WRITE_UP |
+                                      SYSTEM_MANDATORY_LABEL_NO_READ_UP |
+                                      SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP;
+
+    DPRINT("(%p, %u, 0x%08x, 0x%08x, %u, %p)\n", pAcl, AceRevision, AceFlags,
+                                                 MandatoryFlags, AceType, pSid);
+
+    if (AceType != SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+        return STATUS_INVALID_PARAMETER;
+
+    if (MandatoryFlags & ~dwValidFlags)
+        return STATUS_INVALID_PARAMETER;
+
+    if (!RtlValidSid(pSid))
+        return STATUS_INVALID_SID;
+
+    if (pAcl->AclRevision > MAX_ACL_REVISION || AceRevision > MAX_ACL_REVISION)
+        return STATUS_REVISION_MISMATCH;
+
+    if (!RtlValidAcl(pAcl))
+        return STATUS_INVALID_ACL;
+
+    if (!RtlFirstFreeAce(pAcl, &pAce))
+        return STATUS_INVALID_ACL;
+
+    if (!pAceHeader)
+        return STATUS_ALLOTTED_SPACE_EXCEEDED;
+
+    /* Calculate generic size of the ACE */
+    dwLengthSid = RtlLengthSid(pSid);
+    dwAceSize = sizeof(ACE_HEADER) + sizeof(DWORD) + dwLengthSid;
+    if ((char *)pAceHeader + dwAceSize > (char *)pAcl + pAcl->AclSize)
+        return STATUS_ALLOTTED_SPACE_EXCEEDED;
+
+    /* Fill the new ACE */
+    pAceHeader->AceType = AceType;
+    pAceHeader->AceFlags = AceFlags;
+    pAceHeader->AceSize = dwAceSize;
+
+    /* Skip past the ACE_HEADER of the ACE */
+    pAccessMask = (DWORD *)(pAceHeader + 1);
+    *pAccessMask = MandatoryFlags;
+
+    /* Skip past ACE->Mask */
+    pSidStart = pAccessMask + 1;
+    RtlCopySid(dwLengthSid, pSidStart, pSid);
+
+    pAcl->AclRevision = max(pAcl->AclRevision, AceRevision);
+    pAcl->AceCount++;
+
+    return STATUS_SUCCESS;
+}
+
 /* EOF */

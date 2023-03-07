@@ -1615,4 +1615,50 @@ NtOpenProcess(OUT PHANDLE ProcessHandle,
     return Status;
 }
 
+
+NTSTATUS
+NTAPI
+PsAcquireProcessExitSynchronization(IN PEPROCESS Process)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+VOID
+NTAPI
+PsReleaseProcessExitSynchronization(IN PEPROCESS Process)
+{
+    UNIMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+PsEnterPriorityRegion(VOID)
+{
+    PETHREAD _Thread = PsGetCurrentThread();
+
+    _Thread->PriorityRegionActive--;
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS
+NTAPI
+PsLeavePriorityRegion(VOID)
+{
+    PETHREAD _Thread = PsGetCurrentThread();
+
+    _Thread->PriorityRegionActive++;
+
+    return STATUS_SUCCESS;
+}
+
+BOOLEAN
+NTAPI
+PsIsProtectedProcess(IN PEPROCESS Process)
+{
+    UNIMPLEMENTED;
+    return FALSE;
+}
+
 /* EOF */
