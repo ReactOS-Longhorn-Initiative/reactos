@@ -1,8 +1,7 @@
-add_subdirectory(avrt)
-add_subdirectory(bluetoothapis)
+
 add_subdirectory(clbcatq)
 add_subdirectory(cryptbase)
-add_subdirectory(dwmapi)
+
 #add_subdirectory(KernelBase)
 add_subdirectory(ktmw32)
 add_subdirectory(logoncli)
@@ -13,11 +12,9 @@ add_subdirectory(ncrypt)
 add_subdirectory(ndfapi)
 add_subdirectory(rstrtmgr)
 add_subdirectory(shcore)
-add_subdirectory(sspicli)
 add_subdirectory(uianimation)
 add_subdirectory(uiautomationcore)
-add_subdirectory(winecrt)
 add_subdirectory(winusb)
-add_subdirectory(wsdapi)
+add_subdirectory(sspicli)
 
-add_subdirectory(win32_vista)
+
