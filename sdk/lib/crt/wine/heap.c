@@ -48,6 +48,9 @@
 #define MSVCRT_memmove_s memmove_s
 //#define MSVCRT_strncpy_s strncpy_s
 #define msvcrt_set_errno _dosmaperr
+/* enable all CRT functions for Vista */
+#define _MSVCR_VER 140
+
 
 /* MT */
 #define LOCK_HEAP   _mlock( _HEAP_LOCK )
@@ -174,8 +177,10 @@ void* CDECL DECLSPEC_HOTPATCH MSVCRT_operator_new(MSVCRT_size_t size)
   } while(freed);
 
   TRACE("(%ld) out of memory\n", size);
+#if 0
 #if _MSVCR_VER >= 80
   throw_exception(EXCEPTION_BAD_ALLOC, 0, "bad allocation");
+#endif
 #endif
   return NULL;
 }
