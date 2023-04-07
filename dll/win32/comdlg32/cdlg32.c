@@ -242,6 +242,7 @@ static const IClassFactoryVtbl CDLGCF_Vtbl =
  */
 HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void **ppv)
 {
+#if DLL_EXPORT_VERSION >= _WIN32_WINNT_WIN7
     static IClassFactoryImpl FileOpenDlgClassFactory = {{&CDLGCF_Vtbl}, FileOpenDialog_Constructor};
     static IClassFactoryImpl FileSaveDlgClassFactory = {{&CDLGCF_Vtbl}, FileSaveDialog_Constructor};
 
@@ -252,7 +253,7 @@ HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void **ppv)
 
     if(IsEqualGUID(&CLSID_FileSaveDialog, rclsid))
         return IClassFactory_QueryInterface(&FileSaveDlgClassFactory.IClassFactory_iface, riid, ppv);
-
+#endif
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 

@@ -3352,7 +3352,7 @@ HRESULT SHGetFolderLocationHelper(HWND hwnd, int nFolder, REFCLSID clsid, LPITEM
     HRESULT hr;
     IShellFolder *psf;
     LPITEMIDLIST parent, child;
-    EXTERN_C HRESULT SHBindToObject(IShellFolder *psf, LPCITEMIDLIST pidl, REFIID riid, void **ppvObj);
+    EXTERN_C HRESULT WINAPI SHBindToObject(IShellFolder *psf, LPCITEMIDLIST pidl, REFIID riid, void **ppvObj);
     *ppidl = NULL;
     if (FAILED(hr = SHGetFolderLocation(hwnd, nFolder, NULL, 0, &parent)))
         return hr;
