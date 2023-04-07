@@ -529,7 +529,7 @@
 @   stub -version=0x601+ SHAssocEnumHandlersForProtocolByApplication
 @   stdcall -stub -version=0x600+ SHBindToFolderIDListParent(ptr ptr ptr ptr ptr)
 @   stdcall -stub -version=0x600+ SHBindToFolderIDListParentEx(ptr ptr ptr ptr ptr ptr)
-@   stdcall -version=0x600+ SHBindToObject(ptr ptr ptr ptr ptr)
+@   stdcall -version=0x600+ SHBindToObject(ptr ptr ptr ptr)
 @   stdcall -stub -version=0x600+ SHChangeNotifyRegisterThread(ptr)
 @   stdcall -stub -version=0x600+ SHCreateAssociationRegistration(ptr ptr)
 @   stdcall -version=0x600+ SHCreateDataObject(ptr long ptr ptr ptr ptr)
