@@ -20,22 +20,19 @@
 @ stub -arch=i386 __libm_sse2_sinf
 @ stub -arch=i386 __libm_sse2_tan
 @ stub -arch=i386 __libm_sse2_tanf
-@ cdecl -stub  wctype(ptr)
-@ cdecl -stub  _lock_locales(ptr)
-@ cdecl -stub  ___lc_locale_name_func(ptr)
-@ cdecl -stub  _unlock_locales()
-@ cdecl -stub  _get_stream_buffer_pointers()
-@ cdecl -stub  _configure_narrow_argv()
-@ cdecl -stub  _configure_wide_argv()
-@ cdecl -stub  _crt_atexit()
-@ cdecl -stub  _execute_onexit_table()
-@ cdecl -stub  _get_initial_narrow_environment()
-@ cdecl -stub  _get_initial_wide_environment()
-@ cdecl -stub  _initialize_narrow_environment()
-@ cdecl -stub  _initialize_onexit_table()
-@ cdecl -stub  _initialize_wide_environment()
-@ cdecl -stub  _invalid_parameter_noinfo()
-@ cdecl -stub  _invalid_parameter_noinfo_noreturn()
-@ cdecl -stub  _register_onexit_function()
-@ cdecl -stub  _register_thread_local_exe_atexit_callback()
+
+@ cdecl wctype(ptr)
+@ cdecl _get_stream_buffer_pointers(ptr ptr ptr ptr)
+
+@ cdecl _configure_narrow_argv(long)
+@ cdecl _configure_wide_argv(long)
+@ cdecl _get_initial_narrow_environment()
+@ cdecl _get_initial_wide_environment()
+@ cdecl _initialize_narrow_environment()
+@ cdecl _initialize_wide_environment()
+
+@ cdecl -stub  _register_thread_local_exe_atexit_callback(ptr)
+
+@ cdecl -stub _invalid_parameter_noinfo()
+@ cdecl -stub _invalid_parameter_noinfo_noreturn()
 @ cdecl -stub  _hypotf(long long)

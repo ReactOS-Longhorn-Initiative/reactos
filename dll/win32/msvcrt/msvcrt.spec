@@ -729,6 +729,7 @@
 @ cdecl _localtime64(ptr)
 @ cdecl -version=0x600+ _localtime64_s(ptr ptr)
 @ cdecl _lock(long)
+@ cdecl -version=0x600+ _lock_locales()
 @ cdecl _locking(long long long)
 @ cdecl _logb(double)
 @ cdecl -arch=i386 _longjmpex(ptr long) longjmp
@@ -1090,6 +1091,7 @@
 @ cdecl -arch=i386 _unloaddll(ptr)
 @ cdecl -arch=x86_64 -version=0x502 _unloaddll(ptr)
 @ cdecl _unlock(long)
+@ cdecl -version=0x600+ _unlock_locales()
 @ cdecl _utime(str ptr)
 @ stub -version=0x600+ _utime32
 @ cdecl _utime64(str ptr)
@@ -1586,21 +1588,20 @@
 @ cdecl -version=0x600+ _recalloc(ptr long long)
 
 @ cdecl -version=0x600+ wctype() winecrt.wctype
-@ cdecl -version=0x600+ _lock_locales() winecrt._lock_locales
-@ cdecl -version=0x600+ ___lc_locale_name_func() winecrt.___lc_locale_name_func
-@ cdecl -version=0x600+ _unlock_locales() winecrt._unlock_locales
+
+@ cdecl -version=0x600+ ___lc_locale_name_func()
 @ cdecl -version=0x600+ _get_stream_buffer_pointers() winecrt._get_stream_buffer_pointers
 @ cdecl -version=0x600+ _configure_narrow_argv() winecrt._configure_narrow_argv
 @ cdecl -version=0x600+ _configure_wide_argv() winecrt._configure_wide_argv
-@ cdecl -version=0x600+ _crt_atexit() winecrt._crt_atexit
-@ cdecl -version=0x600+ _execute_onexit_table() winecrt._execute_onexit_table
 @ cdecl -version=0x600+ _get_initial_narrow_environment() winecrt._get_initial_narrow_environment
 @ cdecl -version=0x600+ _get_initial_wide_environment() winecrt._get_initial_wide_environment
 @ cdecl -version=0x600+ _initialize_narrow_environment() winecrt._initialize_narrow_environment
-@ cdecl -version=0x600+ _initialize_onexit_table() winecrt._initialize_onexit_table
 @ cdecl -version=0x600+ _initialize_wide_environment() winecrt._initialize_wide_environment
 @ cdecl -version=0x600+ _invalid_parameter_noinfo() winecrt._invalid_parameter_noinfo
 @ cdecl -version=0x600+ _invalid_parameter_noinfo_noreturn() winecrt._invalid_parameter_noinfo_noreturn
-@ cdecl -version=0x600+ _register_onexit_function() winecrt._register_onexit_function
 @ cdecl -version=0x600+ _register_thread_local_exe_atexit_callback() winecrt._register_thread_local_exe_atexit_callback
 @ cdecl -version=0x600+ _hypotf() winecrt._hypotf
+@ cdecl -version=0x600+ _execute_onexit_table(ptr)
+@ cdecl -version=0x600+ _initialize_onexit_table(ptr)
+@ cdecl -version=0x600+ _register_onexit_function(ptr ptr)
+@ cdecl -version=0x600+ _crt_atexit(ptr)

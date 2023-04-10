@@ -718,6 +718,20 @@ void CDECL MSVCRT__free_locale(MSVCRT__locale_t locale)
     MSVCRT_free(locale);
 }
 
+void
+CDECL
+_lock_locales(void)
+{
+    _mlock(_SETLOCALE_LOCK);
+}
+
+void
+CDECL
+_unlock_locales(void)
+{
+    _munlock(_SETLOCALE_LOCK);
+}
+
 /* _create_locale - not exported in native msvcrt */
 MSVCRT__locale_t CDECL MSVCRT__create_locale(int category, const char *locale)
 {
@@ -1492,6 +1506,13 @@ unsigned int * CDECL ___unguarded_readlc_active_add_func(void)
   return &__unguarded_readlc_active;
 }
 
+/* vista+ */
+
+wchar_t** CDECL ___lc_locale_name_func(void)
+{
+    return NULL;
+}
+
 MSVCRT__locale_t global_locale = NULL;
 void __init_global_locale()
 {
@@ -1524,4 +1545,3 @@ const unsigned short* __cdecl __pctype_func(void)
 {
    return get_locinfo()->pctype;
 }
-
