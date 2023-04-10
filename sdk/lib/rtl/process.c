@@ -525,37 +525,6 @@ EtwEventEnabled(REGHANDLE RegHandle,
 
 NTSTATUS
 NTAPI
-EtwRegister(LPCGUID ProviderId,
-            PVOID EnableCallback, // PETWENABLECALLBACK
-            PVOID CallbackContext,
-            PREGHANDLE RegHandle)
-{
-    UNIMPLEMENTED;
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-NTSTATUS
-NTAPI
-EtwUnregister(REGHANDLE RegHandle)
-{
-    UNIMPLEMENTED;
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-NTSTATUS
-NTAPI
-EtwWrite(REGHANDLE RegHandle,
-         PCEVENT_DESCRIPTOR EventDescriptor,
-         LPCGUID ActivityId,
-         ULONG UserDataCount,
-         PEVENT_DATA_DESCRIPTOR UserData)
-{
-    UNIMPLEMENTED;
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-NTSTATUS
-NTAPI
 RtlQueryElevationFlags(DWORD* pFlags)
 {
     UNIMPLEMENTED;
