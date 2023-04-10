@@ -70,7 +70,7 @@ if(NOT MSVC)
     target_compile_options(ntdll PRIVATE -Wno-unused-function)
 endif()
 
-target_link_libraries(ntdll ntdll_vista_static etwtrace csrlib rtl rtl_um rtl_vista ntdllsys libcntpr uuid ${PSEH_LIB})
+target_link_libraries(ntdll ntdll_vista_static etwtrace csrlib ntoskrnl_vista rtl rtl_um rtl_vista ntdllsys libcntpr uuid ${PSEH_LIB})
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
     target_link_libraries(ntdll cryptlib)
 endif()
