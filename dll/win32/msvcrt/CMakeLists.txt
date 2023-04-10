@@ -44,5 +44,5 @@ if(MSVC)
     endif()
 endif()
 
-add_importlibs(msvcrt kernel32 ntdll)
+add_importlibs(msvcrt winecrt kernel32 ntdll)
 add_cd_file(TARGET msvcrt DESTINATION reactos/system32 FOR all)

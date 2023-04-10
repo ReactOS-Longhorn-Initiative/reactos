@@ -197,31 +197,31 @@
 @ cdecl -arch=i386 _CIsqrt()
 @ cdecl -arch=i386 _CItan()
 @ cdecl -arch=i386 _CItanh()
-@ stub -version=0x600+ _CrtCheckMemory
-@ stub -version=0x600+ _CrtDbgBreak
-@ cdecl -version=0x600+ _CrtDbgReport(long str long str str)
-@ cdecl -version=0x600+ _CrtDbgReportV(long str long str str ptr)
-@ cdecl -version=0x600+ _CrtDbgReportW(long wstr long wstr wstr)
-@ cdecl -version=0x600+ _CrtDbgReportWV(long wstr long wstr wstr ptr)
-@ stub -version=0x600+ _CrtDoForAllClientObjects
-@ stub -version=0x600+ _CrtDumpMemoryLeaks
-@ stub -version=0x600+ _CrtIsMemoryBlock
-@ stub -version=0x600+ _CrtIsValidHeapPointer
-@ stub -version=0x600+ _CrtIsValidPointer
-@ stub -version=0x600+ _CrtMemCheckpoint
-@ stub -version=0x600+ _CrtMemDifference
-@ stub -version=0x600+ _CrtMemDumpAllObjectsSince
-@ stub -version=0x600+ _CrtMemDumpStatistics
-@ stub -version=0x600+ _CrtReportBlockType
-@ stub -version=0x600+ _CrtSetAllocHook
-@ stub -version=0x600+ _CrtSetBreakAlloc
-@ stub -version=0x600+ _CrtSetDbgBlockType
-@ stub -version=0x600+ _CrtSetDbgFlag
-@ stub -version=0x600+ _CrtSetDumpClient
-@ cdecl -version=0x600+ _CrtSetReportFile(long ptr)
-@ stub -version=0x600+ _CrtSetReportHook
-@ stub -version=0x600+ _CrtSetReportHook2
-@ cdecl -version=0x600+ _CrtSetReportMode(long long)
+@ stdcall -stub -version=0x600+ _CrtCheckMemory(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDbgBreak(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDbgReport(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDbgReportV(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDbgReportW(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDbgReportWV(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDoForAllClientObjects(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtDumpMemoryLeaks(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtIsMemoryBlock(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtIsValidHeapPointer(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtIsValidPointer(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtMemCheckpoint(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtMemDifference(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtMemDumpAllObjectsSince(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtMemDumpStatistics(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtReportBlockType(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetAllocHook(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetBreakAlloc(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetDbgBlockType(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetDbgFlag(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetDumpClient(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetReportFile(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetReportHook(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetReportHook2(long long) ; most of these aren't correct, but im just..
+@ stdcall -stub -version=0x600+ _CrtSetReportMode(long long) ; most of these aren't correct, but im just..
 @ stdcall _CxxThrowException(long long)
 @ cdecl -arch=i386 -norelay _EH_prolog()
 @ cdecl _Getdays()
@@ -268,10 +268,10 @@
 @ cdecl __crtGetStringTypeW(long long wstr long ptr)
 @ cdecl __crtLCMapStringA(long long str long str long long long)
 @ cdecl __crtLCMapStringW(long long wstr long wstr long long long)
-@ stub -version=0x600+ __daylight
+@ stub -version=0x600+ __daylight ;TODO:
 @ cdecl __dllonexit(ptr ptr ptr)
 @ cdecl __doserrno()
-@ stub -version=0x600+ __dstbias
+@ stub -version=0x600+ __dstbias ;TODO:
 @ cdecl __fpecode()
 @ cdecl __getmainargs(ptr ptr ptr long ptr)
 @ extern -arch=i386,x86_64 __initenv
@@ -283,27 +283,27 @@
 @ extern -arch=i386,x86_64 __lc_collate_cp MSVCRT___lc_collate_cp
 @ extern __lc_handle MSVCRT___lc_handle
 @ cdecl __lconv_init()
-@ stub -version=0x600+ -arch=i386 __libm_sse2_acos
-@ stub -version=0x600+ -arch=i386 __libm_sse2_acosf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_asin
-@ stub -version=0x600+ -arch=i386 __libm_sse2_asinf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_atan
-@ stub -version=0x600+ -arch=i386 __libm_sse2_atan2
-@ stub -version=0x600+ -arch=i386 __libm_sse2_atanf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_cos
-@ stub -version=0x600+ -arch=i386 __libm_sse2_cosf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_exp
-@ stub -version=0x600+ -arch=i386 __libm_sse2_expf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_log
-@ stub -version=0x600+ -arch=i386 __libm_sse2_log10
-@ stub -version=0x600+ -arch=i386 __libm_sse2_log10f
-@ stub -version=0x600+ -arch=i386 __libm_sse2_logf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_pow
-@ stub -version=0x600+ -arch=i386 __libm_sse2_powf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_sin
-@ stub -version=0x600+ -arch=i386 __libm_sse2_sinf
-@ stub -version=0x600+ -arch=i386 __libm_sse2_tan
-@ stub -version=0x600+ -arch=i386 __libm_sse2_tanf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_acos() winecrt.__libm_sse2_acos
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_acosf() winecrt.__libm_sse2_acosf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_asin() winecrt.__libm_sse2_asin
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_asinf() winecrt.__libm_sse2_asinf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_atan() winecrt.__libm_sse2_atan
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_atan2() winecrt.__libm_sse2_atan2
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_atanf() winecrt.__libm_sse2_atanf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_cos() winecrt.__libm_sse2_cos
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_cosf() winecrt.__libm_sse2_cosf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_exp() winecrt.__libm_sse2_exp
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_expf() winecrt.__libm_sse2_expf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_log() winecrt.__libm_sse2_log
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_log10() winecrt.__libm_sse2_log10
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_log10f() winecrt.__libm_sse2_log10f
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_logf() winecrt.__libm_sse2_logf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_pow() winecrt.__libm_sse2_pow
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_powf() winecrt.__libm_sse2_powf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_sin() winecrt.__libm_sse2_sin
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_sinf() winecrt.__libm_sse2_sinf
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_tan() winecrt.__libm_sse2_tan
+@ cdecl -version=0x600+ -arch=i386 __libm_sse2_tanf() winecrt.__libm_sse2_tanf
 @ extern __mb_cur_max
 @ cdecl -arch=i386 __p___argc()
 @ cdecl -arch=i386 __p___argv()
@@ -341,7 +341,13 @@
 @ cdecl __set_app_type(long)
 @ extern -arch=i386,x86_64 __setlc_active
 @ cdecl __setusermatherr(ptr)
-@ stub -version=0x600+ __strncnt
+@ stub -version=0x600+ __strncnt ;TODO:
+@ cdecl -version=0x600+ __stdio_common_vfprintf(int64 ptr str ptr ptr)
+@ cdecl -version=0x600+ __stdio_common_vsnprintf_s(int64 ptr long long str ptr ptr)
+@ cdecl -version=0x600+ __stdio_common_vsnwprintf_s(int64 wstr long long wstr ptr ptr)
+@ cdecl -version=0x600+ __stdio_common_vswprintf_s(int64 wstr long wstr ptr ptr)
+@ cdecl -norelay -version=0x600+ __stdio_common_vsprintf(int64 ptr long str ptr ptr)
+@ cdecl -version=0x600+ __stdio_common_vswprintf(int64 ptr long wstr ptr ptr)
 @ cdecl __threadhandle() kernel32.GetCurrentThread
 @ cdecl __threadid() kernel32.GetCurrentThreadId
 @ cdecl __toascii(long)
@@ -1572,27 +1578,29 @@
 @ cdecl -version=0x600+ _get_heap_handle()
 ; I gotta implement all of these
 @ stdcall -stub -version=0x600+ wscanf_s(ptr)
-@ stdcall -version=0x600+ _calloc_base(long long)
-@ stdcall -version=0x600+ _aligned_msize(ptr long long)
-@ stdcall -version=0x600+ _free_base(ptr)
-@ stdcall -version=0x600+ _malloc_base(long)
-@ stdcall -version=0x600+ _realloc_base(ptr long)
-@ stdcall -version=0x600+ _recalloc(ptr long long)
-@ stdcall -stub -version=0x600+ wctype(ptr)
-@ stdcall -stub -version=0x600+ _lock_locales(ptr)
-@ stdcall -stub -version=0x600+ ___lc_locale_name_func(ptr)
-@ stdcall -stub -version=0x600+ _unlock_locales(ptr)
-@ stdcall -stub -version=0x600+ _get_stream_buffer_pointers(ptr)
-@ stdcall -stub -version=0x600+ _configure_narrow_argv(ptr)
-@ stdcall -stub -version=0x600+ _configure_wide_argv(ptr)
-@ cdecl -stub -version=0x600+ _crt_atexit(ptr)
-@ stdcall -stub -version=0x600+ _execute_onexit_table(ptr)
-@ stdcall -stub -version=0x600+ _get_initial_narrow_environment(ptr)
-@ stdcall -stub -version=0x600+ _get_initial_wide_environment(ptr)
-@ stdcall -stub -version=0x600+ _initialize_narrow_environment(ptr)
-@ stdcall -stub -version=0x600+ _initialize_onexit_table(ptr)
-@ stdcall -stub -version=0x600+ _initialize_wide_environment(ptr)
-@ stdcall -stub -version=0x600+ _invalid_parameter_noinfo(ptr)
-@ stdcall -stub -version=0x600+ _invalid_parameter_noinfo_noreturn(ptr)
-@ stdcall -stub -version=0x600+ _register_onexit_function(ptr)
-@ stdcall -stub -version=0x600+ _register_thread_local_exe_atexit_callback(ptr)
+@ cdecl -version=0x600+ _calloc_base(long long)
+@ cdecl -version=0x600+ _aligned_msize(ptr long long)
+@ cdecl -version=0x600+ _free_base(ptr)
+@ cdecl -version=0x600+ _malloc_base(long)
+@ cdecl -version=0x600+ _realloc_base(ptr long)
+@ cdecl -version=0x600+ _recalloc(ptr long long)
+
+@ cdecl -version=0x600+ wctype() winecrt.wctype
+@ cdecl -version=0x600+ _lock_locales() winecrt._lock_locales
+@ cdecl -version=0x600+ ___lc_locale_name_func() winecrt.___lc_locale_name_func
+@ cdecl -version=0x600+ _unlock_locales() winecrt._unlock_locales
+@ cdecl -version=0x600+ _get_stream_buffer_pointers() winecrt._get_stream_buffer_pointers
+@ cdecl -version=0x600+ _configure_narrow_argv() winecrt._configure_narrow_argv
+@ cdecl -version=0x600+ _configure_wide_argv() winecrt._configure_wide_argv
+@ cdecl -version=0x600+ _crt_atexit() winecrt._crt_atexit
+@ cdecl -version=0x600+ _execute_onexit_table() winecrt._execute_onexit_table
+@ cdecl -version=0x600+ _get_initial_narrow_environment() winecrt._get_initial_narrow_environment
+@ cdecl -version=0x600+ _get_initial_wide_environment() winecrt._get_initial_wide_environment
+@ cdecl -version=0x600+ _initialize_narrow_environment() winecrt._initialize_narrow_environment
+@ cdecl -version=0x600+ _initialize_onexit_table() winecrt._initialize_onexit_table
+@ cdecl -version=0x600+ _initialize_wide_environment() winecrt._initialize_wide_environment
+@ cdecl -version=0x600+ _invalid_parameter_noinfo() winecrt._invalid_parameter_noinfo
+@ cdecl -version=0x600+ _invalid_parameter_noinfo_noreturn() winecrt._invalid_parameter_noinfo_noreturn
+@ cdecl -version=0x600+ _register_onexit_function() winecrt._register_onexit_function
+@ cdecl -version=0x600+ _register_thread_local_exe_atexit_callback() winecrt._register_thread_local_exe_atexit_callback
+@ cdecl -version=0x600+ _hypotf() winecrt._hypotf
