@@ -43,47 +43,11 @@ GetDpiForWindow(
     return GetDpiForSystem();
 }
 
-BOOL
-WINAPI
-UnregisterPowerSettingNotification(HANDLE Handle) // HPOWERNOTIFY
-{
-    UNIMPLEMENTED;
-    return TRUE;
-}
-PVOID // HPOWERNOTIFY
-WINAPI
-RegisterPowerSettingNotification(HANDLE hRecipient,
-                                 LPCGUID PowerSettingGuid,
-                                 DWORD Flags)
-{
-    UNIMPLEMENTED;
-    return NULL;
-}
-
-BOOL WINAPI ChangeWindowMessageFilter( UINT message, DWORD flag )
-{
-  //  DbgPrint( "%x %08lx\n", message, flag );
-    return TRUE;
-}
-
-BOOL WINAPI ShutdownBlockReasonCreate(_In_ HWND    hWnd,
-                                      _In_ LPCWSTR pwszReason)
-{
-    UNREFERENCED_PARAMETER(hWnd);
-    UNREFERENCED_PARAMETER(pwszReason);
-    //UNIMPLEMENTED;
-    return TRUE;
-}
  
-BOOL WINAPI ChangeWindowMessageFilterEx(
-  HWND                hwnd,
-  UINT                message,
-  DWORD               action,
-  PVOID pChangeFilterStruct
-)
-{
-  return 1;
-}
+ 
+ 
+ 
+ 
 
 BOOL WINAPI CloseTouchInputHandle(
    PVOID  hTouchInput
@@ -103,18 +67,7 @@ BOOL WINAPI IsThreadDesktopComposited()
    // UNIMPLEMENTED;
     return FALSE;
 }
-
-HWND WINAPI GhostWindowFromHungWindow (HWND hwndGhost)
-{
-   // UNIMPLEMENTED;
-    return hwndGhost;
-}
-
-HWND WINAPI HungWindowFromGhostWindow (HWND hwndGhost)
-{
-  //  UNIMPLEMENTED;
-    return hwndGhost;
-}
+ 
 typedef struct DISPLAYCONFIG_DESKTOP_IMAGE_INFO {
   POINTL PathSourceSize;
   RECTL  DesktopImageRegion;
@@ -308,4 +261,244 @@ QueryDisplayConfig(
 )
 {
   return ERROR_ACCESS_DENIED;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * @unimplemented
+ */
+BOOL
+WINAPI
+LogicalToPhysicalPoint( HWND hWnd, LPPOINT lpPoint )
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+/*
+ * @unimplemented
+ */
+BOOL
+WINAPI
+ChangeWindowMessageFilter(
+    UINT  message,
+    DWORD dwFlag)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+/*
+ * @unimplemented
+ */
+BOOL WINAPI
+ChangeWindowMessageFilterEx(HWND hwnd,
+                            UINT message,
+                            DWORD action,
+                            PVOID pChangeFilterStruct)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+BOOL
+WINAPI
+ShutdownBlockReasonCreate(HWND hWnd, LPCWSTR pwszReason)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+
+BOOL
+WINAPI
+ShutdownBlockReasonQuery( HWND   hWnd,
+  LPWSTR pwszBuff,
+  DWORD  *pcchBuff)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+
+BOOL
+WINAPI
+ShutdownBlockReasonDestroy(HWND hWnd)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+
+BOOL
+WINAPI
+CalculatePopupWindowPosition(const POINT *anchorPoint,
+                             const SIZE *windowSize,
+                             UINT flags,
+                             RECT *excludeRect,
+                             RECT *popupWindowPosition)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+BOOL
+WINAPI
+DwmGetDxSharedSurface(HWND hwnd,
+                      HANDLE* phSurface,
+                      LUID* pAdapterLuid,
+                      ULONG* pFmtWindow,
+                      ULONG* pPresentFlags,
+                      ULONGLONG* pWin32kUpdateId)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+HWND
+WINAPI
+GhostWindowFromHungWindow(HWND hwndGhost)
+{
+    UNIMPLEMENTED;
+    return NULL;
+}
+
+HWND
+WINAPI
+HungWindowFromGhostWindow(HWND hwndGhost)
+{
+    UNIMPLEMENTED;
+    return NULL;
+}
+
+BOOL
+WINAPI
+IsProcessDPIAware(VOID)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+BOOL
+WINAPI
+IsTouchWindow(HWND hwnd,
+              PULONG pulFlags)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+ 
+
+BOOL
+WINAPI
+IsTopLevelWindow(IN HWND hWnd)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+BOOL
+WINAPI
+IsWindowRedirectedForPrint(IN HWND hWnd)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+BOOL
+WINAPI
+GetWindowCompositionAttribute(HWND hwnd,
+                              PVOID pAttrData) // WINCOMPATTRDATA
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+HICON
+WINAPI
+InternalGetWindowIcon(HWND hwnd, UINT iconType)
+{
+    UNIMPLEMENTED;
+    return NULL;
+}
+
+ 
+
+PVOID // HPOWERNOTIFY
+WINAPI
+RegisterPowerSettingNotification(HANDLE hRecipient,
+                                 LPCGUID PowerSettingGuid,
+                                 DWORD Flags)
+{
+    UNIMPLEMENTED;
+    return NULL;
+}
+
+BOOL
+WINAPI
+SetWindowCompositionAttribute(HWND hwnd,
+                              PVOID pAttrData) // WINCOMPATTRDATA
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+BOOL
+WINAPI
+UnregisterPowerSettingNotification(HANDLE Handle) // HPOWERNOTIFY
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
+LONG 
+WINAPI
+DisplayConfigGetDeviceInfo(
+  PVOID *requestPacket
+)
+{
+    return 0;
+}
+
+
+
+BOOL
+WINAPI
+GetProcessDpiAwarenessInternal(HANDLE handle,DPI_AWARENESS* dpi )
+{
+    return FALSE;
+}
+BOOL
+WINAPI
+SetProcessDpiAwarenessInternal(DPI_AWARENESS dpi)
+{
+    return FALSE;
+}
+BOOL
+WINAPI
+GetDpiForMonitorInternal(HMONITOR monitor ,UINT one,UINT* two,UINT* three)
+{
+    return FALSE;
 }

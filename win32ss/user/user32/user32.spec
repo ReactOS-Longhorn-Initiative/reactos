@@ -754,7 +754,7 @@
 @ stdcall -version=0x600+ UnregisterPowerSettingNotification(ptr)
 
 @ stdcall -version=0x600+ ChangeWindowMessageFilter(long long)
-@ stdcall -stub -version=0x600+ ShutdownBlockReasonDestroy(ptr)
+@ stdcall -version=0x600+ ShutdownBlockReasonDestroy(ptr)
 @ stub -version=0x600+ PaintMonitor
 @ stub IsWindowRedirectedForPrint
 @ stdcall ChangeWindowMessageFilterEx(ptr long long ptr)
@@ -766,6 +766,30 @@
 @ stdcall -stub SetGestureConfig(ptr)
 @ stdcall -stub CloseGestureInfoHandle(ptr)
 @ stdcall -stub GetGestureInfo(ptr)
-@ stdcall -stub DisplayConfigGetDeviceInfo(ptr)
+@ stdcall  DisplayConfigGetDeviceInfo(ptr)
 @ stdcall GetDisplayConfigBufferSizes(long ptr ptr)
 @ stdcall QueryDisplayConfig(long ptr ptr ptr ptr ptr)
+
+
+@   stdcall -version=0x600+ SetWindowCompositionAttribute(ptr ptr) ; user32_vista.SetWindowCompositionAttribute
+@   stdcall -version=0x600+ CalculatePopupWindowPosition(ptr long long ptr ptr) ; user32_vista.CalculatePopupWindowPosition
+@   stdcall -version=0x600+ DwmGetDxSharedSurface(ptr ptr ptr ptr ptr ptr) ; user32_vista.DwmGetDxSharedSurface
+@   stdcall -version=0x600+ GetWindowCompositionAttribute(ptr ptr) ; user32_vista.GetWindowCompositionAttribute
+@   stdcall -version=0x600+ GhostWindowFromHungWindow(ptr) ; user32_vista.GhostWindowFromHungWindow
+@   stdcall -version=0x600+ HungWindowFromGhostWindow(ptr) ; user32_vista.HungWindowFromGhostWindow
+@   stdcall -version=0x600+ InternalGetWindowIcon(ptr long) ; user32_vista.InternalGetWindowIcon
+@   stdcall -version=0x600+ IsProcessDPIAware() ; user32_vista.IsProcessDPIAware
+@   stdcall -version=0x600+ IsThreadDesktopComposited() ; user32_vista.IsThreadDesktopComposited
+@   stdcall -version=0x601+ IsTopLevelWindow(ptr) ; user32_vista.IsTopLevelWindow
+@   stdcall -version=0x601+ IsTouchWindow(ptr long) ; user32_vista.IsTouchWindow
+@   stdcall -version=0x600+ LogicalToPhysicalPoint(ptr ptr) ; user32_vista.LogicalToPhysicalPoint
+@   stdcall -version=0x600+ -stub OpenThreadDesktop(long long long long) ; user32_vista.OpenThreadDesktop
+@   stdcall -version=0x600+ -stub RegisterErrorReportingDialog(long long) ; user32_vista.RegisterErrorReportingDialog
+@   stdcall -version=0x600+ -stub RegisterFrostWindow(long long) ; user32_vista.RegisterFrostWindow
+@   stdcall -version=0x600+ -stub RegisterGhostWindow(long long) ; user32_vista.RegisterGhostWindow
+@   stdcall -version=0x600+ -stub SetProcessDPIAware() ; user32_vista.SetProcessDPIAware
+@ stdcall -version=0x600+ AddClipboardFormatListener(ptr) ; user32_vista.AddClipboardFormatListener
+@ stdcall -version=0x600+ RemoveClipboardFormatListener(ptr) ; user32_vista.RemoveClipboardFormatListener
+@ stdcall -version=0x600+ GetProcessDpiAwarenessInternal(ptr ptr) ; user32_vista.GetProcessDpiAwarenessInternal
+@ stdcall -version=0x600+ SetProcessDpiAwarenessInternal(long) ; user32_vista.SetProcessDpiAwarenessInternal
+@ stdcall -version=0x600+ GetDpiForMonitorInternal(ptr long ptr ptr) ; user32_vista.GetDpiForMonitorInternal
