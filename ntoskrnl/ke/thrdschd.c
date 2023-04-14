@@ -682,9 +682,165 @@ KiSetPriorityThread(IN PKTHREAD Thread,
 
 KAFFINITY
 FASTCALL
+KiSetAffinityThread1(
+    _In_ PKTHREAD Thread,
+    _In_ KAFFINITY Affinity)
+{
+    KAFFINITY OldAffinity;
+    PKPRCB Prcb;
+
+    /* Get the current affinity */
+    OldAffinity = Thread->UserAffinity;
+
+    /* Make sure that the affinity is valid */
+    if (((Affinity & Thread->ApcState.Process->Affinity) != (Affinity)) ||
+        (!Affinity))
+    {
+        /* Bugcheck the system */
+        KeBugCheck(INVALID_AFFINITY_SET);
+    }
+
+    /* Update the new affinity */
+    Thread->UserAffinity = Affinity;
+
+    /* Check if system affinity is disabled */
+    if (!Thread->SystemAffinityActive)
+    {
+        /* Acquire the thread lock */
+        KiAcquireThreadLock(Thread);
+
+        /* Get the PRCB that the thread is to be run on and lock it */
+        Prcb = KiProcessorBlock[Thread->NextProcessor];
+        KiAcquirePrcbLock(Prcb);
+
+        /* Set the thread's affinity and ideal processor */
+        Thread->Affinity = Affinity;
+#ifdef CONFIG_SMP
+        Thread->IdealProcessor = Thread->UserIdealProcessor;
+#endif
+
+#if 1
+        if ((Prcb->SetMember & Affinity) == 0)
+        {
+            if ((Thread->State == Standby) ||
+                ((Thread->State == Running) && (Prcb->NextThread == NULL)))
+            {
+                /* Select a new thread and set it on standby */
+                Prcb->NextThread = KiSelectNextThread(Prcb);
+                Prcb->NextThread->State = Standby;
+
+                if (Thread->State == Standby)
+                {
+                    KiInsertDeferredReadyList(Thread);
+                }
+                /* Check if the thread is running on another CPU */
+                else if (Thread->NextProcessor != KeGetCurrentProcessorNumber())
+                {
+                    /* It is, send an IPI */
+                    KiIpiSend(AFFINITY_MASK(Thread->NextProcessor), IPI_DPC);
+                }
+            }
+        }
+
+        if (Thread->State == Ready)
+        {
+            if (!Thread->ProcessReadyQueue)
+            {
+                ASSERT((Prcb->ReadySummary & PRIORITY_MASK(Thread->Priority)) != 0);
+
+                /* Remove it from the list */
+                if (RemoveEntryList(&Thread->WaitListEntry))
+                {
+                    /* The list is empty now, reset the ready summary */
+                    Prcb->ReadySummary ^= PRIORITY_MASK(Thread->Priority);
+                }
+
+                /* Insert the thread back into the ready list */
+                KiInsertDeferredReadyList(Thread);
+            }
+        }
+        /* Otherwise, is the thread running or in standby, but it's new affinity
+        does not allow running on it's current CPU? */
+        else if (((Thread->State == Running) || (Thread->State == Standby)) &&
+            ((Prcb->SetMember & Affinity) == 0))
+        {
+            /* Check if there is a different thread on standby in the PRCB */
+            if ((Prcb->NextThread == NULL) || (Prcb->NextThread == Thread))
+            {
+                /* There isn't, select a new thread and set it on standby */
+                Prcb->NextThread = KiSelectNextThread(Prcb);
+                Prcb->NextThread->State = Standby;
+
+                if (Thread->State == Standby)
+                {
+                    KiInsertDeferredReadyList(Thread);
+                }
+                /* Check if the thread is running on another CPU */
+                else if (Thread->NextProcessor != KeGetCurrentProcessorNumber())
+                {
+                    /* It is, send an IPI */
+                    KiIpiSend(AFFINITY_MASK(Thread->NextProcessor), IPI_DPC);
+                }
+            }
+        }
+#endif
+
+        if ((Thread->State == Running) && !(Prcb->SetMember & Affinity))
+        {
+            /* Check if there is the next thread is selected already */
+            if (Prcb->NextThread == NULL)
+            {
+                /* It is not, select a new thread and set it on standby */
+                Prcb->NextThread = KiSelectNextThread(Prcb);
+                Prcb->NextThread->State = Standby;
+            }
+
+            /* Check if the thread is running on another CPU */
+            if (Thread->NextProcessor != KeGetCurrentProcessorNumber())
+            {
+                /* It is, send an IPI */
+                KiIpiSend(AFFINITY_MASK(Thread->NextProcessor), IPI_DPC);
+            }
+        }
+        else if ((Thread->State == Standby) && !(Prcb->SetMember & Affinity))
+        {
+            /* Select a new thread and set it on standby */
+            Prcb->NextThread = KiSelectNextThread(Prcb);
+            Prcb->NextThread->State = Standby;
+
+            /* Insert the thread back into the ready list */
+            KiInsertDeferredReadyList(Thread);
+        }
+        else if ((Thread->State == Ready) && !Thread->ProcessReadyQueue)
+        {
+            /* Remove it from the list */
+            if (RemoveEntryList(&Thread->WaitListEntry))
+            {
+                /* The list is empty now, reset the ready summary */
+                Prcb->ReadySummary &= ~PRIORITY_MASK(Thread->Priority);
+            }
+
+            /* Insert the thread back into the ready list */
+            KiInsertDeferredReadyList(Thread);
+        }
+
+        KiReleasePrcbLock(Prcb);
+        KiReleaseThreadLock(Thread);
+    }
+
+    /* Return the old affinity */
+    return OldAffinity;
+}
+
+KAFFINITY
+FASTCALL
 KiSetAffinityThread(IN PKTHREAD Thread,
                     IN KAFFINITY Affinity)
 {
+#ifdef CONFIG_SMP
+    /* Call SMP comapatible varient instead */
+    return KiSetAffinityThread1(Thread, Affinity);
+#endif
     KAFFINITY OldAffinity;
 
     /* Get the current affinity */
