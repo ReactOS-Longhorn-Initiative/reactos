@@ -197,6 +197,9 @@ class CStartButton
     HIMAGELIST m_ImageList;
     SIZE       m_Size;
     HFONT      m_Font;
+    WCHAR      m_startCaption[32];
+    BOOL       m_floatingOrb = false;
+    HWND m_hwndParent;
 
 public:
     CStartButton()
@@ -216,12 +219,56 @@ public:
             DeleteObject(m_Font);
     }
 
+    BOOL IsFloatingOrb()
+    {
+        return m_floatingOrb;
+    }
+
     SIZE GetSize()
     {
         return m_Size;
     }
 
     VOID UpdateSize()
+    {
+        SIZE Size = CalcNewSize();
+
+        /* Save the size of the start button */
+        m_Size = Size;
+    }
+
+    SIZE CalcNewSize()
+    {
+        SIZE Size = CalcNewSizeWithTextAndIcon();
+
+        if (IsWindow() && IsThemeActive() && m_floatingOrb)
+        {
+            SIZE NewSize = { 0, 0 };
+            HDC hdc = GetWindowDC();
+            if (hdc)
+            {
+                HTHEME btnTheme = GetWindowTheme(m_hWnd);
+                if (btnTheme)
+                {
+                    HRESULT partSizeResult = GetThemePartSize(btnTheme, hdc, 0, 0, NULL, TS_TRUE, &NewSize);
+                    if (
+                        (partSizeResult == S_OK)
+                        && (NewSize.cx > 0) && (NewSize.cy > 0)
+                    )
+                    {
+                        /* Save the size of the start button */
+                        Size = NewSize;
+                    }
+                }
+
+                ReleaseDC(hdc);
+            }
+        }
+
+        return Size;
+    }
+
+    SIZE CalcNewSizeWithTextAndIcon()
     {
         SIZE Size = { 0, 0 };
 
@@ -233,8 +280,68 @@ public:
 
         Size.cy = max(Size.cy, GetSystemMetrics(SM_CYCAPTION));
 
-        /* Save the size of the start button */
-        m_Size = Size;
+        return Size;
+    }
+
+    BOOL UseMiddleOrbSize()
+    {
+        return m_Size.cy <= 45; //TODO: Figure out what Vista actually does instead of hardcoding a threshold
+    }
+
+    VOID UpdateAppearance(DWORD taskbarPos)
+    {
+        if (!IsWindow())
+            return;
+
+        UpdateSize();
+
+        if (!IsThemeActive())
+        {
+            SetIsFloatingOrb(false);
+            return;
+        }
+
+        BOOL isTallEnough = UseMiddleOrbSize();
+
+        if (isTallEnough)
+        {
+            if (taskbarPos == ABE_TOP)
+            {
+                SetWindowTheme(m_hWnd, L"StartTop", NULL);
+            }
+            else if (taskbarPos == ABE_BOTTOM)
+            {
+                SetWindowTheme(m_hWnd, L"StartBottom", NULL);
+            }
+            else
+                goto StartMiddle;
+        }
+        else
+            goto StartMiddle;
+
+        StartMiddle:
+        SetWindowTheme(m_hWnd, L"StartMiddle", NULL);
+
+        /*
+        https://stackoverflow.com/questions/45381719/using-setwindowtheme-and-pszsubidlist-parameter
+        HAS ANYONE EVER PASSED ANYTHING OTHER THAN nullptr, L"", OR L" " FOR pszSubIdList ???????
+        */
+
+        HTHEME btnTheme = GetWindowTheme(m_hWnd);
+
+        if ((btnTheme != NULL) &&
+
+            //IsThemePartDefined is returning the opposite of what anyone would consider a sane result, hence negation
+            !IsThemePartDefined(btnTheme, BP_PUSHBUTTON, 0)
+        )
+        {
+            SetIsFloatingOrb(true);
+        }
+        else
+        {
+            SetWindowTheme(m_hWnd, L"Start", NULL);
+            SetIsFloatingOrb(false);
+        }
     }
 
     VOID UpdateFont()
@@ -268,35 +375,63 @@ public:
                                            IMAGE_BITMAP,
                                            LR_LOADTRANSPARENT | LR_CREATEDIBSECTION);
 
-        BUTTON_IMAGELIST bil = {m_ImageList, {1,1,1,1}, BUTTON_IMAGELIST_ALIGN_LEFT};
-        SendMessageW(BCM_SETIMAGELIST, 0, (LPARAM) &bil);
+
+        SetIsFloatingOrb(false);
         UpdateSize();
+    }
+
+    VOID SetIsFloatingOrb(BOOL becomeRoundNow)
+    {
+        if (becomeRoundNow)
+        {
+            SendMessageW(BCM_SETIMAGELIST, 0, NULL);
+            SetWindowText(L"");
+            SetParent(nullptr);
+        }
+        else
+        {
+            BUTTON_IMAGELIST bil = {m_ImageList, {1,1,1,1}, BUTTON_IMAGELIST_ALIGN_LEFT};
+            SendMessageW(BCM_SETIMAGELIST, 0, (LPARAM) &bil);
+            SetWindowText(m_startCaption);
+            SetParent(m_hwndParent);
+        }
+
+        m_floatingOrb = becomeRoundNow;
     }
 
     HWND Create(HWND hwndParent)
     {
-        WCHAR szStartCaption[32];
+        m_hwndParent = hwndParent;
         if (!LoadStringW(hExplorerInstance,
                          IDS_START,
-                         szStartCaption,
-                         _countof(szStartCaption)))
+                         m_startCaption,
+                         _countof(m_startCaption)))
         {
-            wcscpy(szStartCaption, L"Start");
+            wcscpy(m_startCaption, L"Start");
         }
 
         DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | BS_PUSHBUTTON | BS_LEFT | BS_VCENTER;
+        DWORD dwExStyle = //0;
+            WS_EX_TOPMOST
+            | WS_EX_TOOLWINDOW
+            | WS_EX_NOACTIVATE
+            //| WS_EX_COMPOSITED
+            //| WS_EX_TRANSPARENT
+            //| WS_EX_LAYERED
+        ;
 
         // HACK & FIXME: CORE-18016
         m_hWnd = CreateWindowEx(
-            0,
-            WC_BUTTON,
-            szStartCaption,
-            dwStyle,
-            0, 0, 0, 0,
-            hwndParent,
-            (HMENU) IDC_STARTBTN,
-            hExplorerInstance,
-            NULL);
+            dwExStyle
+            , WC_BUTTON
+            , m_startCaption
+            , dwStyle
+            , 0, 0, 0, 0
+            , hwndParent
+            , (HMENU) IDC_STARTBTN
+            , hExplorerInstance
+            , NULL
+        );
 
         if (m_hWnd)
             Initialize();
@@ -304,12 +439,100 @@ public:
         return m_hWnd;
     }
 
+    HDWP FinalizeWindowPos(HDWP dwp, HWND hWndInsertAfter, POINT taskbarTopLeft, RECT rcClient, SIZE StartSize, DWORD taskbarPos)
+    {
+        LONG x = 0;
+        LONG y = 0;
+        LONG cx = 0;
+        LONG cy = 0;
+
+        if (m_floatingOrb)
+        {
+            x = taskbarTopLeft.x;
+            y = taskbarTopLeft.y;
+
+            /*if (taskbarPos == ABE_TOP)
+            {
+                y -= 8;
+            }
+            else if (taskbarPos == ABE_BOTTOM)
+            {
+                y -= 8;
+            }*/
+            if ((taskbarPos == ABE_TOP) || (taskbarPos == ABE_BOTTOM))
+            {
+                y += (rcClient.bottom - rcClient.top) / 2;
+                y -= m_Size.cy / 2;
+            }
+            else
+            {
+                x += (rcClient.right - rcClient.left) / 2;
+                x -= m_Size.cx / 2;
+            }
+
+            cx = m_Size.cx;
+            cy = m_Size.cy;
+        }
+        else
+        {
+            cx = StartSize.cx;
+            cy = StartSize.cy;
+        }
+
+
+        return DeferWindowPos(
+            dwp
+            , m_floatingOrb
+                ? ::GetNextWindow(m_hwndParent, GW_HWNDPREV)
+                : NULL
+            , x
+            , y
+            , cx
+            , cy
+            , m_floatingOrb
+                ? SWP_NOACTIVATE
+                : (SWP_NOZORDER | SWP_NOACTIVATE)
+        );
+    }
+
+    VOID EnsureZOrder()
+    {
+        if (!IsWindow())
+            return;
+
+        if (!m_floatingOrb)
+            return;
+
+        SetWindowPos(
+            ::GetNextWindow(m_hwndParent, GW_HWNDPREV)
+            , 0
+            , 0
+            , 0
+            , 0
+            ,
+                SWP_NOACTIVATE
+                //| SWP_ASYNCWINDOWPOS
+                | SWP_NOCOPYBITS
+                | SWP_NOMOVE
+                //| SWP_NOOWNERZORDER
+                | SWP_NOSIZE
+                | SWP_SHOWWINDOW
+        );
+    }
+
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         if (uMsg == WM_KEYUP && wParam != VK_SPACE)
             return 0;
 
-        GetParent().PostMessage(TWM_OPENSTARTMENU);
+        if (m_floatingOrb)
+        {
+            ::PostMessage(m_hwndParent, TWM_OPENSTARTMENU, wParam, lParam);
+        }
+        else
+        {
+            GetParent().PostMessage(TWM_OPENSTARTMENU);
+        }
         return 0;
     }
 
@@ -1693,7 +1916,6 @@ ChangePos:
         BOOL Horizontal;
         HDWP dwp;
 
-        m_StartButton.UpdateSize();
         if (prcClient != NULL)
         {
             rcClient = *prcClient;
@@ -1706,6 +1928,7 @@ ChangePos:
                 return;
             }
         }
+        m_StartButton.UpdateAppearance(m_Position);
 
         Horizontal = IsPosHorizontal();
 
@@ -1735,18 +1958,24 @@ ChangePos:
         if (m_StartButton.m_hWnd != NULL)
         {
             /* Resize and reposition the button */
-            dwp = m_StartButton.DeferWindowPos(dwp,
-                                               NULL,
-                                               0,
-                                               0,
-                                               StartSize.cx,
-                                               StartSize.cy,
-                                               SWP_NOZORDER | SWP_NOACTIVATE);
+            POINT taskbarTopLeft = { 0, 0 };
+            ClientToScreen(&taskbarTopLeft);
+            dwp = m_StartButton.FinalizeWindowPos(
+                dwp
+                , NULL
+                , taskbarTopLeft
+                , rcClient
+                , StartSize
+                , m_Position
+            );
+
             if (dwp == NULL)
             {
                 ERR("DeferWindowPos for start button failed. lastErr=%d\n", GetLastError());
                 return;
             }
+
+            m_StartButton.EnsureZOrder();
         }
 
         /* Determine the size that the tray notification window needs */
@@ -2439,7 +2668,7 @@ ChangePos:
             SetWindowStyle(m_hWnd, WS_THICKFRAME | WS_BORDER, WS_THICKFRAME | WS_BORDER);
         }
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-
+        m_StartButton.EnsureZOrder();
         return TRUE;
     }
 
@@ -2693,6 +2922,7 @@ ChangePos:
             /* Apply clipping */
             PostMessage(WM_SIZE, SIZE_RESTORED, 0);
         }
+        m_StartButton.EnsureZOrder();
         return TRUE;
     }
 
@@ -2828,6 +3058,9 @@ ChangePos:
      */
     LRESULT OnNcLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
+        m_StartButton.EnsureZOrder();
+        /* This handler implements the trick that makes  the start button to
+           get pressed when the user clicked left or below the button */
         POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
         WINDOWINFO wi = {sizeof(WINDOWINFO)};
 
@@ -3004,6 +3237,8 @@ HandleTrayContextMenu:
 
     LRESULT OnOpenStartMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
+        m_StartButton.EnsureZOrder();
+
         HWND hwndStartMenu;
         HRESULT hr = IUnknown_GetWindow(m_StartMenuPopup, &hwndStartMenu);
         if (FAILED_UNEXPECTEDLY(hr))
@@ -3216,6 +3451,7 @@ HandleTrayContextMenu:
         LRESULT ret = DefWindowProc(uMsg, wParam, lParam);
         DrawShowDesktopButton(); // We have to draw non-client area
         bHandled = TRUE;
+        m_StartButton.EnsureZOrder();
         return ret;
     }
 
