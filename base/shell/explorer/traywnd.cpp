@@ -283,12 +283,12 @@ public:
         return Size;
     }
 
-    BOOL UseMiddleOrbSize()
+    BOOL UseMiddleOrbSize(DWORD taskbarHeight)
     {
-        return m_Size.cy <= 45; //TODO: Figure out what Vista actually does instead of hardcoding a threshold
+        return taskbarHeight >= 45; //TODO: Figure out what Vista actually does instead of hardcoding a threshold
     }
 
-    VOID UpdateAppearance(DWORD taskbarPos)
+    VOID UpdateAppearance(DWORD taskbarPos, BOOL isTaskbarHorizontal, DWORD taskbarHeight)
     {
         if (!IsWindow())
             return;
@@ -301,26 +301,15 @@ public:
             return;
         }
 
-        BOOL isTallEnough = UseMiddleOrbSize();
 
-        if (isTallEnough)
-        {
-            if (taskbarPos == ABE_TOP)
-            {
-                SetWindowTheme(m_hWnd, L"StartTop", NULL);
-            }
-            else if (taskbarPos == ABE_BOTTOM)
-            {
-                SetWindowTheme(m_hWnd, L"StartBottom", NULL);
-            }
-            else
-                goto StartMiddle;
-        }
-        else
-            goto StartMiddle;
-
-        StartMiddle:
-        SetWindowTheme(m_hWnd, L"StartMiddle", NULL);
+        
+        if ((!isTaskbarHorizontal) || UseMiddleOrbSize(taskbarHeight))
+            SetWindowTheme(m_hWnd, L"StartMiddle", NULL);
+        else if (taskbarPos == ABE_TOP)
+            SetWindowTheme(m_hWnd, L"StartTop", NULL);
+        else if (taskbarPos == ABE_BOTTOM)
+            SetWindowTheme(m_hWnd, L"StartBottom", NULL);
+        
 
         /*
         https://stackoverflow.com/questions/45381719/using-setwindowtheme-and-pszsubidlist-parameter
@@ -366,6 +355,7 @@ public:
         HWND hWnd = m_hWnd;
         m_hWnd = NULL;
         SubclassWindow(hWnd);
+        //SetLayeredWindowAttributes(m_hWnd, RGB(0, 0, 0));
 
         SetWindowTheme(m_hWnd, L"Start", NULL);
 
@@ -384,16 +374,27 @@ public:
     {
         if (becomeRoundNow)
         {
+            if (m_ImageList != NULL)
+                ImageList_Destroy(m_ImageList);
             SendMessageW(BCM_SETIMAGELIST, 0, NULL);
+
             SetWindowText(L"");
             SetParent(nullptr);
+            //SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYERED);
         }
         else
         {
+            m_ImageList = ImageList_LoadImageW(hExplorerInstance,
+                                           MAKEINTRESOURCEW(IDB_START),
+                                           0, 0, 0,
+                                           IMAGE_BITMAP,
+                                           LR_LOADTRANSPARENT | LR_CREATEDIBSECTION);
             BUTTON_IMAGELIST bil = {m_ImageList, {1,1,1,1}, BUTTON_IMAGELIST_ALIGN_LEFT};
             SendMessageW(BCM_SETIMAGELIST, 0, (LPARAM) &bil);
+            
             SetWindowText(m_startCaption);
             SetParent(m_hwndParent);
+            //SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) & ~WS_EX_LAYERED);
         }
 
         m_floatingOrb = becomeRoundNow;
@@ -437,6 +438,47 @@ public:
             Initialize();
 
         return m_hWnd;
+    }
+
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (!m_floatingOrb)
+        {
+            bHandled = false;
+            return 0;
+        }
+
+        //DefWindowProcW(uMsg, wParam, lParam);
+        /*
+        RECT rc;
+        GetClientRect(&rc);
+
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(&ps);
+        
+        HTHEME theme = GetWindowTheme(m_hWnd);
+        //HDC compatDC = CreateCompatibleDC(hdc);
+        
+        RECT rect = { 0, 0, m_Size.cx, m_Size.cy };
+
+        DrawThemeBackground(theme, hdc, 0, 0, &rect, NULL);
+        */
+        POINT zero = { 0, 0 };
+        
+        BLENDFUNCTION blendFunc;
+        blendFunc.BlendOp = AC_SRC_OVER;
+        blendFunc.BlendFlags = 0;
+        blendFunc.SourceConstantAlpha = 255;
+        blendFunc.AlphaFormat = AC_SRC_ALPHA;
+        //UpdateLayeredWindow(m_hWnd, hdc, &zero, &m_Size, hdc, &zero, RGB(0, 0, 0), &blendFunc, ULW_ALPHA);
+        UpdateLayeredWindow(m_hWnd, NULL, &zero, &m_Size, NULL, &zero, RGB(0, 0, 0), &blendFunc, ULW_ALPHA);
+        /*
+        //DeleteDC(compatDC);
+        
+        EndPaint(&ps);
+        */
+        bHandled = true;
+        return 0;
     }
 
     HDWP FinalizeWindowPos(HDWP dwp, HWND hWndInsertAfter, POINT taskbarTopLeft, RECT rcClient, SIZE StartSize, DWORD taskbarPos)
@@ -520,6 +562,12 @@ public:
         );
     }
 
+    LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        UpdateSize();
+        return TRUE;
+    }
+
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         if (uMsg == WM_KEYUP && wParam != VK_SPACE)
@@ -538,6 +586,8 @@ public:
 
     BEGIN_MSG_MAP(CStartButton)
         MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
+        //MESSAGE_HANDLER(WM_THEMECHANGED, OnThemeChanged)
+        //MESSAGE_HANDLER(WM_PAINT, OnPaint)
     END_MSG_MAP()
 
 };
@@ -1928,9 +1978,9 @@ ChangePos:
                 return;
             }
         }
-        m_StartButton.UpdateAppearance(m_Position);
 
         Horizontal = IsPosHorizontal();
+        m_StartButton.UpdateAppearance(m_Position, Horizontal, rcClient.bottom - rcClient.top);
 
         /* We're about to resize/move the start button, the rebar control and
            the tray notification control */
@@ -2667,7 +2717,9 @@ ChangePos:
         {
             SetWindowStyle(m_hWnd, WS_THICKFRAME | WS_BORDER, WS_THICKFRAME | WS_BORDER);
         }
+        m_StartButton.UpdateSize();
         SetWindowPos(NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+        AlignControls(NULL);
         m_StartButton.EnsureZOrder();
         return TRUE;
     }
@@ -2762,6 +2814,7 @@ ChangePos:
 
         DrawSizerWithTheme((HRGN) wParam);
         DrawShowDesktopButton(); // We have to draw non-client area
+        m_StartButton.EnsureZOrder();
         return 0;
     }
 
