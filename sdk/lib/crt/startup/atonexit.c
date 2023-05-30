@@ -14,7 +14,7 @@
 #include <crtdefs.h>
 #include <limits.h>
 //#include <windows.h>
-
+#include <debug.h>
 #define _EXIT_LOCK1 8
 
   void __cdecl _lock (int _File);
@@ -114,7 +114,7 @@ static _onexit_table_t MSVCRT_atexit_table;
 
 int CDECL _register_onexit_function(_onexit_table_t *table, _onexit_t func)
 {
-  //  DPRINT1("Calling stub _register_onexit_function: This will probably fail\n");
+ //   DPRINT1("Calling stub _register_onexit_function: This will probably fail\n");
     if (!table)
          return -1;
 
@@ -169,7 +169,7 @@ int CDECL _register_onexit_function(_onexit_table_t *table, _onexit_t func)
 
 int CDECL _crt_atexit(void (__cdecl *func)(void))
 {
-  //  DPRINT1("Calling stub _crt_atexit: This will probably fail\n");
+     //DPRINT1("Calling stub _crt_atexit: This will probably fail\n");
     return atexit(func);
 }
 
@@ -178,6 +178,10 @@ int CDECL _crt_atexit(void (__cdecl *func)(void))
  */
 int CDECL _initialize_onexit_table(_onexit_table_t *table)
 {
+    if (MSVCRT_onexit_cs.SpinCount == 0)
+    {
+        InitializeCriticalSection(&MSVCRT_onexit_cs);
+    }
     //DPRINT1("Calling stub _initialize_onexit_table: This will probably fail\n");
     if (!table)
          return -1;
@@ -189,7 +193,7 @@ int CDECL _initialize_onexit_table(_onexit_table_t *table)
 
 int CDECL _execute_onexit_table(_onexit_table_t *table)
 {
-   // DPRINT1("Calling stub _execute_onexit_table: This will probably fail\n");
+    //DPRINT1("Calling stub _execute_onexit_table: This will probably fail\n");
     _onexit_table_t copy;
     _PVFV *func;
 
@@ -205,6 +209,7 @@ int CDECL _execute_onexit_table(_onexit_table_t *table)
     copy._first = table->_first;
     copy._last  = table->_last;
     copy._end   = table->_end;
+
     memset(table, 0, sizeof(*table));
     _initialize_onexit_table(table);
     LeaveCriticalSection(&MSVCRT_onexit_cs);
