@@ -358,6 +358,13 @@ typedef struct _ADAPTER_OBJECT {
    LIST_ENTRY AdapterList;
 } ADAPTER_OBJECT;
 
+typedef struct _MASTER_ADAPTER {
+    PADAPTER_OBJECT AdapterObject;
+    ULONG MaxMapRegisters;
+    ULONG InitialMapRegistersBufferLength;
+    PHYSICAL_ADDRESS InitialMapRegistersBuffer;
+} MASTER_ADAPTER, *PMASTER_ADAPTER;
+
 typedef struct _GROW_WORK_ITEM {
    WORK_QUEUE_ITEM WorkQueueItem;
    PADAPTER_OBJECT AdapterObject;
