@@ -48,9 +48,6 @@ HalpInitPhase1(VOID)
                                    PROFILE_LEVEL,
                                    HalpProfileInterrupt,
                                    Latched);
-
-        /* Initialize DMA. NT does this in Phase 0 */
-        HalpInitDma();
 }
 
 /* EOF */

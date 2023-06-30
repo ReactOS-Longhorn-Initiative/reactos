@@ -128,6 +128,10 @@ HalInitSystem(IN ULONG BootPhase,
         /* Setup I/O space */
         HalpDefaultIoSpace.Next = HalpAddressUsageList;
         HalpAddressUsageList = &HalpDefaultIoSpace;
+        if (HalpBusType == MACHINE_TYPE_EISA) {
+            HalpEisaIoSpace.Next = HalpAddressUsageList;
+            HalpAddressUsageList = &HalpEisaIoSpace;
+        }
 
         /* Setup busy waiting */
         HalpCalibrateStallExecution();
@@ -140,6 +144,8 @@ HalInitSystem(IN ULONG BootPhase,
          * so clear it here before interrupts are enabled
          */
         HalStopProfileInterrupt(ProfileTime);
+
+        HalpInitDma(LoaderBlock);
 
         /* Do some HAL-specific initialization */
         HalpInitPhase0(LoaderBlock);
