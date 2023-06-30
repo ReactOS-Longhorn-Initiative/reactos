@@ -63,8 +63,7 @@ HalpInitPhase0(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 VOID
 HalpInitPhase1(VOID)
 {
-    /* Initialize DMA. NT does this in Phase 0 */
-    HalpInitDma();
+
 }
 
 /* EOF */

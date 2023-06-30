@@ -113,6 +113,23 @@ ADDRESS_USAGE HalpDefaultIoSpace =
     }
 };
 
+ADDRESS_USAGE HalpEisaIoSpace =
+{
+    NULL, CmResourceTypePort, IDT_INTERNAL,
+    {
+        {0xD0,  0x10},
+        {0x400,  0x10},
+        {0x480,  0x10},
+        {0x4C2,  0x0E},
+        {0x4D4,  0x2C},
+        {0x461,  0x02},
+        {0x464,  0x02},
+        {0x4D0,  0x02},
+        {0xC84,  0x01},
+        {0,0},
+    }
+};
+
 /* FUNCTIONS ******************************************************************/
 
 #ifndef _MINIHAL_
