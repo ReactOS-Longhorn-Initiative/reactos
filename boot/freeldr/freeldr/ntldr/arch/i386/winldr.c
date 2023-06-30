@@ -283,6 +283,20 @@ MempUnmapPage(PFN_NUMBER Page)
     }
 }
 
+ULONG
+WinLdrDetectMachineType()
+{
+    /* MCA machines are not supported yet */
+    if (*(PULONG)0xfffd9 == 'ASIE') 
+    {
+        return MACHINE_TYPE_EISA;
+    }
+    else
+    {
+        return MACHINE_TYPE_ISA;
+    }
+}
+
 static
 VOID
 WinLdrpMapApic(VOID)
@@ -377,7 +391,7 @@ void WinLdrSetupMachineDependent(PLOADER_PARAMETER_BLOCK LoaderBlock)
     ULONG BlockSize, NumPages;
 
     LoaderBlock->u.I386.CommonDataArea = NULL; // Force No ABIOS support
-    LoaderBlock->u.I386.MachineType = MACHINE_TYPE_ISA;
+    LoaderBlock->u.I386.MachineType = WinLdrDetectMachineType();
 
     /* Allocate 2 pages for PCR: one for the boot processor PCR and one for KI_USER_SHARED_DATA */
     Pcr = (ULONG_PTR)MmAllocateMemoryWithType(2 * MM_PAGE_SIZE, LoaderStartupPcrPage);
