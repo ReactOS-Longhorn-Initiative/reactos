@@ -252,7 +252,7 @@ HalpCalibrateStallExecution(VOID);
 VOID HalpInitPciBus (VOID);
 
 /* dma.c */
-CODE_SEG("INIT") VOID HalpInitDma (VOID);
+CODE_SEG("INIT") VOID HalpInitDma (IN PLOADER_PARAMETER_BLOCK LoaderBlock);
 
 /* Non-generic initialization */
 VOID HalpInitPhase0 (PLOADER_PARAMETER_BLOCK LoaderBlock);
@@ -593,6 +593,7 @@ HalInitializeBios(
 extern BOOLEAN HalpNMIInProgress;
 
 extern ADDRESS_USAGE HalpDefaultIoSpace;
+extern ADDRESS_USAGE HalpEisaIoSpace;
 
 extern KSPIN_LOCK HalpSystemHardwareLock;
 
