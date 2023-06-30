@@ -161,9 +161,6 @@ HalpInitializeCmos(VOID)
 {
     /* Set default century offset byte */
     HalpCmosCenturyOffset = 50;
-
-    /* No support for EISA or MCA */
-    ASSERT(HalpBusType == MACHINE_TYPE_ISA);
 }
 
 /* PUBLIC FUNCTIONS **********************************************************/
