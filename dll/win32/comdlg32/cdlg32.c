@@ -153,7 +153,7 @@ DWORD WINAPI CommDlgExtendedError(void)
 	  return 0; /* we never set an error, so there isn't one */
 }
 
-#ifndef __REACTOS__ /* Win 7 */
+#if 1// __REACTOS__ /* Win 7 */
 
 /*************************************************************************
  * Implement the CommDlg32 class factory
