@@ -406,4 +406,18 @@ HKCR
             InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }
         }
     }
+    NoRemove CLSID
+    {
+        '{DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7}' = s 'File Open Dialog'
+        {
+            InprocServer32 = s '%SystemRoot%\System32\comdlg32.dll' { val ThreadingModel = s 'Apartment' }
+        }
+    }
+    NoRemove CLSID
+    {
+        '{C0B4E2F3-BA21-4773-8DBA-335EC946EB8B}' = s 'File Save Dialog'
+        {
+            InprocServer32 = s '%SystemRoot%\System32\comdlg32.dll' { val ThreadingModel = s 'Apartment' }
+        }
+    }
 }

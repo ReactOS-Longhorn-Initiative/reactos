@@ -11,6 +11,7 @@ list(APPEND SOURCE
     GetFileInformationByHandleEx.c
     GetTickCount64.c
     InitOnce.c
+    proc.c
     sync.c
     vista.c)
 
