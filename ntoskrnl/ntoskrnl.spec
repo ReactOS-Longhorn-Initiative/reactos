@@ -1095,6 +1095,7 @@
 @ stdcall RtlCreateSystemVolumeInformationFolder(ptr)
 @ stdcall RtlCreateUnicodeString(ptr wstr)
 @ stdcall RtlCustomCPToUnicodeN(ptr wstr long ptr ptr long)
+@ stdcall -stub -version=0x600+ RtlCmDecodeMemIoResource(ptr ptr)
 @ stdcall RtlDecompressBuffer(long ptr long ptr long ptr)
 @ stdcall RtlDecompressChunks(ptr long ptr long ptr long ptr)
 @ stdcall RtlDecompressFragment(long ptr long ptr long long ptr ptr)
