@@ -314,4 +314,26 @@ ExInitializePagedLookasideList(IN PPAGED_LOOKASIDE_LIST Lookaside,
                                 &ExpPagedLookasideListLock);
 }
 
+NTSTATUS
+NTAPI
+ExInitializeLookasideListEx(PLOOKASIDE_LIST_EX Lookaside,
+                            PALLOCATE_FUNCTION_EX Allocate,
+                            PFREE_FUNCTION_EX Free,
+                            POOL_TYPE PoolType,
+                            ULONG Flags,
+                            SIZE_T Size,
+                            ULONG Tag,
+                            USHORT Depth)
+{
+    UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
+
+VOID
+NTAPI
+ExDeleteLookasideListEx(PLOOKASIDE_LIST_EX Lookaside)
+{
+    UNIMPLEMENTED;
+}
+
 /* EOF */
