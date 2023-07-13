@@ -139,7 +139,7 @@ GetSecurityDescriptorRMControl(PSECURITY_DESCRIPTOR SecurityDescriptor,
 
 
 /*
- * @implemented
+ * @implemented (SECURITY DESCRIPTORS ARE BROKEN WITH WIN7+ APPS)
  */
 BOOL
 WINAPI
@@ -148,6 +148,8 @@ GetSecurityDescriptorSacl(PSECURITY_DESCRIPTOR pSecurityDescriptor,
                           PACL *pSacl,
                           LPBOOL lpbSaclDefaulted)
 {
+
+    #if 0
     BOOLEAN SaclPresent;
     BOOLEAN SaclDefaulted;
     NTSTATUS Status;
@@ -166,6 +168,15 @@ GetSecurityDescriptorSacl(PSECURITY_DESCRIPTOR pSecurityDescriptor,
     }
 
     return TRUE;
+    #endif
+    /*
+     * okay this is kinda weird you might think, but this is actually required for chrome
+     * After Chrome 50, the App started to call on this API to handle some security stuff
+     * and that entire line of garabge is just destroyed with vista+ ROS. THis is a work around
+     * TODO: FIXME please :(
+     */
+    SetLastError(RtlNtStatusToDosError(1));
+    return FALSE;
 }
 
 /*
