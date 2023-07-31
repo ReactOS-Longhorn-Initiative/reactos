@@ -50,6 +50,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif()
 
 set_module_type(classpnp kernelmodedriver)
-target_link_libraries(classpnp ntoskrnl_vista libcntpr ${PSEH_LIB})
+target_link_libraries(classpnp libcntpr ${PSEH_LIB})
 add_importlibs(classpnp ntoskrnl hal)
 add_cd_file(TARGET classpnp DESTINATION reactos/system32/drivers NO_CAB FOR all)
