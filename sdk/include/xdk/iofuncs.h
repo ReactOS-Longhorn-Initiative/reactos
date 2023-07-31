@@ -2608,6 +2608,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTKRNLVISTAAPI
 NTSTATUS
+NTAPI
 IoSetDeviceInterfacePropertyData(
   _In_ PUNICODE_STRING SymbolicLinkName,
   _In_ CONST DEVPROPKEY *PropertyKey,
@@ -2635,6 +2636,7 @@ $if (_NTDDK_)
 
 NTKRNLVISTAAPI
 VOID
+NTAPI
 IoSetMasterIrpStatus(
   _Inout_ PIRP MasterIrp,
   _In_ NTSTATUS Status);
