@@ -211,7 +211,7 @@ target_include_directories(wdf01000
         shared/irphandlers/pnp/km # pnpprivkm.hpp
     )
 
-target_link_libraries(wdf01000 aux_klib ntoskrnl_vista ${PSEH_LIB})
+target_link_libraries(wdf01000 aux_klib ${PSEH_LIB})
 add_importlibs(wdf01000 wdfldr ntoskrnl hal)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
