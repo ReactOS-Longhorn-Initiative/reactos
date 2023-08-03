@@ -7,6 +7,7 @@
 
 #include <ntdef.h>
 #include <ntifs.h>
+#include <debug.h>
 
 NTKRNLVISTAAPI
 NTSTATUS
@@ -18,7 +19,8 @@ PoRegisterPowerSettingCallback(
     _In_opt_ PVOID Context,
     _Outptr_opt_ PVOID *Handle)
 {
-    return STATUS_NOT_IMPLEMENTED;
+    UNIMPLEMENTED;
+    return STATUS_INSUFFICIENT_RESOURCES;
 }
 
 _IRQL_requires_max_(APC_LEVEL)
@@ -28,7 +30,8 @@ NTAPI
 PoUnregisterPowerSettingCallback(
     _Inout_ PVOID Handle)
 {
-    return STATUS_NOT_IMPLEMENTED;
+    UNIMPLEMENTED;
+    return STATUS_INVALID_PARAMETER;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -39,6 +42,9 @@ PoQueryWatchdogTime(
     _In_ PDEVICE_OBJECT Pdo,
     _Out_ PULONG SecondsRemaining)
 {
+    *SecondsRemaining = 0;
+
+    UNIMPLEMENTED;
     return FALSE;
 }
 
@@ -49,7 +55,7 @@ NTAPI
 PoSetSystemWake(
     _Inout_ struct _IRP *Irp)
 {
-
+    UNIMPLEMENTED;
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -59,5 +65,34 @@ NTAPI
 PoGetSystemWake(
     _In_ struct _IRP *Irp)
 {
+    UNIMPLEMENTED;
     return FALSE;
+}
+
+NTKERNELAPI
+VOID
+NTAPI
+PoSetDeviceBusyEx(
+    _Inout_ PULONG IdlePointer)
+{
+    UNIMPLEMENTED;
+    PoSetDeviceBusy(IdlePointer);
+}
+
+NTKRNLVISTAAPI
+VOID
+NTAPI
+PoStartDeviceBusy(
+    _Inout_ PULONG IdlePointer)
+{
+    UNIMPLEMENTED;
+}
+
+NTKERNELAPI
+VOID
+NTAPI
+PoEndDeviceBusy(
+    _Inout_ PULONG IdlePointer)
+{
+    UNIMPLEMENTED;
 }
