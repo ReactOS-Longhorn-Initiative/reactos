@@ -167,7 +167,7 @@ ObReferenceObjectByHandleWithTag(
   _Out_opt_ POBJECT_HANDLE_INFORMATION HandleInformation);
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-NTKERNELAPI
+NTKRNLVISTAAPI
 LONG_PTR
 FASTCALL
 ObfReferenceObjectWithTag(
@@ -186,7 +186,7 @@ ObReferenceObjectByPointerWithTag(
   _In_ ULONG Tag);
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-NTKERNELAPI
+NTKRNLVISTAAPI
 LONG_PTR
 FASTCALL
 ObfDereferenceObjectWithTag(

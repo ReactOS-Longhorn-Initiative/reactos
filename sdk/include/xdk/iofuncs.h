@@ -2435,6 +2435,14 @@ IoGetDevicePropertyData(
 
 $endif (_WDMDDK_)
 $if (_NTDDK_)
+
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoCreateArcName(
+  _In_ PDEVICE_OBJECT DeviceObject
+);
+
 NTKERNELAPI
 NTSTATUS
 NTAPI
@@ -2603,6 +2611,22 @@ $endif (_NTIFS_)
 
 #if (NTDDI_VERSION >= NTDDI_WIN8)
 
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoSetActivityIdIrp(
+  _In_ PIRP    Irp,
+  _In_opt_ LPCGUID Guid
+);
+
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoGetActivityIdIrp(
+  _In_ PIRP    Irp,
+  _In_opt_ LPCGUID Guid
+);
+
 $if (_WDMDDK_)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
@@ -2631,6 +2655,21 @@ IoGetDeviceInterfacePropertyData (
   _Out_writes_bytes_to_(Size, *RequiredSize) PVOID Data,
   _Out_ PULONG RequiredSize,
   _Out_ PDEVPROPTYPE Type);
+
+NTKRNLVISTAAPI
+VOID
+NTAPI
+IoReportInterruptActive(
+  _In_ PIO_REPORT_INTERRUPT_ACTIVE_STATE_PARAMETERS Parameters
+);
+
+NTKRNLVISTAAPI
+VOID
+NTAPI
+IoReportInterruptInactive(
+  _In_ PIO_REPORT_INTERRUPT_ACTIVE_STATE_PARAMETERS Parameters
+);
+
 $endif (_WDMDDK_)
 $if (_NTDDK_)
 
@@ -2641,6 +2680,13 @@ IoSetMasterIrpStatus(
   _Inout_ PIRP MasterIrp,
   _In_ NTSTATUS Status);
 $endif (_NTDDK_)
+
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoSynchronousCallDriver(
+  _In_ PDEVICE_OBJECT DeviceObject,
+  _In_ PIRP Irp);
 
 #endif /* (NTDDI_VERSION >= NTDDI_WIN8) */
 

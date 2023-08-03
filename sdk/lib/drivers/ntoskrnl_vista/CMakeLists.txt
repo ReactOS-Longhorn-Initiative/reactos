@@ -12,6 +12,7 @@ list(APPEND SOURCE
     po.c
     pofx.c
     ke.c
+    mm.c
     ${REACTOS_SOURCE_DIR}/sdk/lib/rtl/utf8.c)
 
 add_library(ntoskrnl_vista ${SOURCE})
