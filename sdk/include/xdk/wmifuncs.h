@@ -104,7 +104,7 @@ EtwProviderEnabled(
 _When_(ControlCode==EVENT_ACTIVITY_CTRL_CREATE_ID, _IRQL_requires_max_(HIGH_LEVEL))
 _When_(ControlCode!=EVENT_ACTIVITY_CTRL_CREATE_ID, _IRQL_requires_max_(APC_LEVEL))
 NTSTATUS
-NTKERNELAPI
+NTKRNLVISTAAPI
 NTAPI
 EtwActivityIdControl(
   _In_ ULONG ControlCode,

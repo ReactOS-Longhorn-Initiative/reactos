@@ -46,7 +46,7 @@
 #define MSVCRT_free free
 #define MSVCRT_memcpy_s memcpy_s
 #define MSVCRT_memmove_s memmove_s
-#define MSVCRT_strncpy_s strncpy_s
+/* #define MSVCRT_strncpy_s strncpy_s  */
 #define msvcrt_set_errno _dosmaperr
 
 /* MT */
