@@ -21,6 +21,7 @@ list(APPEND LIBCNTPR_STRING_SOURCE
     string/atol.c
     string/itoa.c
     string/itow.c
+    string/string.c
     string/strtoi64.c
     string/strtol.c
     string/strtoul.c
@@ -95,7 +96,6 @@ list(APPEND CRT_STRING_SOURCE
     string/strcoll.c
     string/strdup.c
     string/strerror.c
-    string/string.c
     string/strncoll.c
     string/strtod.c
     string/strtok.c

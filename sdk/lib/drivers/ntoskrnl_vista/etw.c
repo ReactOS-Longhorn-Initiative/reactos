@@ -7,6 +7,19 @@
 
 #include <ntdef.h>
 #include <ntifs.h>
+#include <debug.h>
+
+NTSTATUS
+NTKRNLVISTAAPI
+NTAPI
+EtwActivityIdControl(
+  _In_ ULONG ControlCode,
+  _Inout_ LPGUID ActivityId
+)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
 
 _IRQL_requires_max_(HIGH_LEVEL)
 NTSTATUS
@@ -19,6 +32,7 @@ EtwWrite(
     _In_ ULONG UserDataCount,
     _In_reads_opt_(UserDataCount) PEVENT_DATA_DESCRIPTOR UserData)
 {
+    UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -32,6 +46,7 @@ EtwRegister(
     _In_opt_ PVOID CallbackContext,
     _Out_ PREGHANDLE RegHandle)
 {
+    UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -42,5 +57,19 @@ NTAPI
 EtwUnregister(
     _In_ REGHANDLE RegHandle)
 {
+    UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
+}
+
+BOOLEAN
+NTKRNLVISTAAPI
+NTAPI
+EtwProviderEnabled(
+    _In_  REGHANDLE RegHandle,
+    _In_  UCHAR     Level,
+    _In_  ULONGLONG Keyword
+)
+{
+    UNIMPLEMENTED;
+    return FALSE;
 }
