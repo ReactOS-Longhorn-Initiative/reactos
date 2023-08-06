@@ -91,6 +91,7 @@ list(APPEND CRT_STRING_SOURCE
     string/_wcslwr_s.c
     string/_wsplitpath_s.c
     string/atof.c
+    string/btowc.c
     string/mbstowcs_s.c
     string/strcoll.c
     string/strdup.c
@@ -103,6 +104,7 @@ list(APPEND CRT_STRING_SOURCE
     string/strtoul.c
     string/strxfrm.c
     string/wcstombs_s.c
+    string/wctob.c
     string/wtof.c
 )
 

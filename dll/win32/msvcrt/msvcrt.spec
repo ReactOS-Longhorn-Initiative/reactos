@@ -1302,7 +1302,7 @@
 @ cdecl atol(str)
 @ cdecl bsearch(ptr ptr long long ptr)
 @ stub -version=0x600+ bsearch_s
-@ stub -version=0x600+ btowc
+@ cdecl -version=0x600+ btowc(long)
 @ cdecl calloc(long long)
 @ cdecl ceil(double)
 @ cdecl -arch=x86_64,arm ceilf(long)
@@ -1552,7 +1552,7 @@
 @ stub -version=0x600+ wcstombs_s
 @ cdecl wcstoul(wstr ptr long)
 @ cdecl wcsxfrm(ptr wstr long)
-@ stub -version=0x600+ wctob
+@ cdecl -version=0x600+ wctob(long)
 @ cdecl wctomb(ptr long)
 @ stub -version=0x600+ wctomb_s
 @ varargs wprintf(wstr)
