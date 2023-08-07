@@ -67,7 +67,6 @@
 #include <disk.h>
 #include <fs.h>
 #include <inifile.h>
-#include <kd.h>
 #include <keycodes.h>
 #include <linux.h>
 #include <custom.h>

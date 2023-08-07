@@ -42,8 +42,7 @@ list(APPEND FREELDR_BOOTLIB_SOURCE
     lib/cache/blocklist.c
     lib/cache/cache.c
     lib/comm/rs232.c
-    ../../../drivers/base/kdnet/kdnet.c
-    lib/kdstub.c
+    ## add KD support
     lib/fs/btrfs.c
     lib/fs/ext2.c
     lib/fs/fat.c
