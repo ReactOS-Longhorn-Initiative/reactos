@@ -708,9 +708,9 @@
 @ stdcall -version=0x351-0x502 HeapUsage(long long long long ptr)
 @ stdcall HeapValidate(long long ptr)
 @ stdcall HeapWalk(long ptr)
-@ stdcall -stub -version=0x600+ IdnToAscii(long wstr long ptr long)
-@ stdcall -stub -version=0x600+ IdnToNameprepUnicode(long wstr long ptr long)
-@ stdcall -stub -version=0x600+ IdnToUnicode(long wstr long ptr long)
+@ stdcall -stub -version=0x600+ IdnToAscii(long ptr long ptr long)
+@ stdcall -stub -version=0x600+ IdnToNameprepUnicode(long ptr long ptr long)
+@ stdcall -stub -version=0x600+ IdnToUnicode(long ptr long ptr long)
 @ stdcall InitAtomTable(long)
 @ stdcall -version=0x600+ InitOnceBeginInitialize(ptr long ptr ptr)
 @ stdcall -version=0x600+ InitOnceComplete(ptr long ptr)
@@ -830,7 +830,7 @@
 @ stub -version=0x600+ NlsUpdateLocale
 @ stub -version=0x600+ NlsUpdateSystemLocale
 @ stub -version=0x600+ NlsWriteEtwEvent
-@ stdcall -stub -version=0x600+ NormalizeString(long wstr long ptr long)
+@ stdcall -stub -version=0x600+ NormalizeString(long wstr long wstr long)
 @ stdcall -stub -version=0x600+ NotifyUILanguageChange(long wstr wstr long ptr)
 @ stdcall OpenConsoleW(wstr long long long)
 @ stdcall -version=0x500-0x502 OpenDataFile(long long)
