@@ -16,6 +16,8 @@
 #define NDEBUG
 #include <debug.h>
 
+VOID
+RtlpInitializeKeyedEvent(VOID);
 
 /* GLOBALS *******************************************************************/
 
@@ -1311,6 +1313,10 @@ LdrpInitializeTls(VOID)
         *(PLONG)TlsData->TlsDirectory.AddressOfIndex = LdrpNumberOfTlsEntries;
         TlsData->TlsDirectory.Characteristics = LdrpNumberOfTlsEntries++;
     }
+
+#if (DLL_EXPORT_VERSION >= 0x600)
+    RtlpInitializeKeyedEvent();
+#endif
 
     /* Done setting up TLS, allocate entries */
     return LdrpAllocateTls();
