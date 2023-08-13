@@ -639,6 +639,9 @@ RtlInitializeCriticalSectionEx(
         CritcalSectionDebugData->EntryCount = 0;
         CritcalSectionDebugData->CriticalSection = CriticalSection;
         CritcalSectionDebugData->Flags = 0;
+        CritcalSectionDebugData->CreatorBackTraceIndex = 0;
+        CritcalSectionDebugData->CreatorBackTraceIndexHigh = 0;
+        CritcalSectionDebugData->SpareWORD = 0;
         CriticalSection->DebugInfo = CritcalSectionDebugData;
 
         /*
