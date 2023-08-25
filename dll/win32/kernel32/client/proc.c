@@ -4809,4 +4809,339 @@ WinExec(LPCSTR lpCmdLine,
     return 33; /* Something bigger than 31 means success. */
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ /* I dont like this code seem IDA-ish ill use it for now but im not gonna commit it back to master */
+BOOL WINAPI GetProcessGroupAffinity(HANDLE hProcess, PUSHORT GroupCount, PUSHORT GroupArray)
+{
+   PROCESS_INFORMATION ProcessInfo;
+   NTSTATUS Status;
+   *GroupCount = 1;
+   if(!GroupCount)
+   {
+     SetLastError(ERROR_INSUFFICIENT_BUFFER);
+	 return FALSE;
+   }
+
+   Status = NtQueryInformationProcess(hProcess, ProcessBasicInformation, &ProcessInfo, sizeof(PROCESS_INFORMATION), NULL);
+   if(Status < 0)
+   {
+	 BaseSetLastNTError(Status);
+     return FALSE;
+   }
+
+   GroupArray[0] = 1;
+
+   return TRUE;
+
+}
+
+BOOL WINAPI
+SetThreadGroupAffinity(HANDLE hThread, const GROUP_AFFINITY *GroupAffinity, PGROUP_AFFINITY PreviousGroupAffinity)
+
+{
+		DWORD_PTR ProcessAffinityMask;
+		DWORD_PTR SystemAffinityMask;
+		DWORD Pid;
+		HANDLE hProcess;
+
+		if(PreviousGroupAffinity)
+		{
+			Pid = GetProcessIdOfThread(hThread);
+		    hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, Pid);
+			if(!hProcess)
+				return FALSE;
+
+			GetProcessAffinityMask(hProcess, &ProcessAffinityMask, &SystemAffinityMask);
+			PreviousGroupAffinity->Mask = ProcessAffinityMask;
+			CloseHandle(hProcess);
+		}
+
+		return SetThreadAffinityMask(hThread, GroupAffinity->Mask);
+}
+
+BOOL WINAPI
+GetThreadGroupAffinity(HANDLE hThread, PGROUP_AFFINITY GroupAffinity)
+
+{
+		DWORD_PTR ProcessAffinityMask;
+		DWORD_PTR SystemAffinityMask;
+		DWORD Pid;
+		HANDLE hProcess;
+
+			Pid = GetProcessIdOfThread(hThread);
+		    hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, Pid);
+			if(!hProcess)
+				return FALSE;
+
+			if(!GetProcessAffinityMask(hProcess, &ProcessAffinityMask, &SystemAffinityMask))
+				return FALSE;
+			GroupAffinity->Mask = ProcessAffinityMask;
+			GroupAffinity->Group = 0;
+                        CloseHandle(hProcess);
+
+		return TRUE;
+}
+
+BOOL WINAPI
+GetThreadIdealProcessorEx(HANDLE hThread, PPROCESSOR_NUMBER lpIdealProcessor)
+
+{
+		lpIdealProcessor->Number = SetThreadIdealProcessor(hThread, MAXIMUM_PROCESSORS);
+		lpIdealProcessor->Group = 0;
+
+		if(lpIdealProcessor->Number == -1)
+			return FALSE;
+		else
+			return TRUE;
+}
+
+BOOL WINAPI
+SetThreadIdealProcessorEx(HANDLE hThread, PPROCESSOR_NUMBER lpIdealProcessor,
+		PPROCESSOR_NUMBER lpPreviousIdealProcessor)
+{
+	lpPreviousIdealProcessor->Number = SetThreadIdealProcessor(hThread, lpIdealProcessor->Number);
+        lpPreviousIdealProcessor->Group = 0;
+	lpIdealProcessor->Group = 0;
+
+	if(lpPreviousIdealProcessor->Number == -1)
+		return FALSE;
+	else
+	return TRUE;
+}
+BOOL
+WINAPI
+GetLogicalProcessorInformation(OUT PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
+                               IN OUT PDWORD ReturnLength);
+BOOL WINAPI
+GetLogicalProcessorInformationEx(LOGICAL_PROCESSOR_RELATIONSHIP RelationshipType, PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX Buffer, PDWORD ReturnedLength)
+{
+ PSYSTEM_LOGICAL_PROCESSOR_INFORMATION BufferClassic;
+	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Ptr;
+	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX NewBuffer;
+	SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX Temp;
+	SYSTEM_INFO SysInfo;
+	DWORD ReturnedLengthClassic;
+	DWORD RequiredLength_All;
+	DWORD Offset;
+#ifdef _X86_
+	long ActiveProcessorMask;
+#else
+	__int64 ActiveProcessorMask;
+#endif
+	BOOL StructisCopied;
+	BOOL BufferTooSmall = FALSE;
+
+	if(!ReturnedLength || RelationshipType < 0 || (RelationshipType > 7 && RelationshipType != RelationAll))
+	{
+		RtlSetLastWin32Error(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+    if(Buffer == NULL)
+	{
+		BufferTooSmall = TRUE;
+	}
+
+    BufferClassic = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION)RtlAllocateHeap(NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap, 0, sizeof(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+	ReturnedLengthClassic = 0;
+	while(!GetLogicalProcessorInformation(BufferClassic, &ReturnedLengthClassic))
+	{
+		if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+		{
+		RtlFreeHeap(NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap, 0, BufferClassic);
+
+		BufferClassic = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION)RtlAllocateHeap(NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap, 0, ReturnedLengthClassic);
+		}
+		else
+        {
+		    return FALSE;
+        }
+
+	}
+
+	GetSystemInfo(&SysInfo);
+
+	ActiveProcessorMask = SysInfo.dwActiveProcessorMask;
+
+	Ptr = BufferClassic;
+
+	NewBuffer = Buffer;
+
+	Offset = 0;
+	RequiredLength_All = 0;
+	//NewOffset = 0;
+
+
+
+	while (Offset + sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= ReturnedLengthClassic)
+	{
+		StructisCopied = FALSE;
+		switch(Ptr->Relationship)
+		{
+			case RelationNumaNode:
+		     if(RelationshipType == RelationNumaNode || RelationshipType == RelationAll)
+		     {
+				 StructisCopied = TRUE;
+				 Temp.Relationship = RelationNumaNode;
+				 #ifdef _X86_
+				 Temp.Size = 76;
+				 RequiredLength_All += 76;
+			     #else
+				 Temp.Size = 80;
+				 RequiredLength_All += 80;
+				 #endif
+				 Temp.NumaNode.NodeNumber = Ptr->NumaNode.NodeNumber;
+				 Temp.NumaNode.GroupMask.Mask = (KAFFINITY) ActiveProcessorMask;
+				 Temp.NumaNode.GroupMask.Group = 0;
+				 if(RequiredLength_All > *ReturnedLength || BufferTooSmall)
+				 BufferTooSmall = TRUE;
+			     else
+				 *NewBuffer = Temp;
+			 }
+			 break;
+			 case RelationProcessorCore:
+			 case RelationProcessorPackage:
+			 if(RelationshipType == RelationProcessorCore || RelationshipType == RelationAll || RelationshipType == RelationProcessorPackage)
+			 {
+				 StructisCopied = TRUE;
+				 if(Ptr->Relationship == RelationProcessorCore)
+				 {
+                 Temp.Relationship = RelationProcessorCore;
+                 }
+                 else
+                 {
+				 Temp.Relationship = RelationProcessorPackage;
+                 }
+                 #ifdef _X86_
+				 Temp.Size = 76;
+				 RequiredLength_All += 76;
+			     #else
+				 Temp.Size = 80;
+				 RequiredLength_All += 80;
+				 #endif
+				 Temp.Processor.Flags = Ptr->ProcessorCore.Flags;
+				// Temp.Processor.EfficiencyClass = 0;
+				 //Temp.Processor.GroupCount = 1;
+				 Temp.Processor.GroupMask->Mask =(KAFFINITY) ActiveProcessorMask;
+				 Temp.Processor.GroupMask->Group = 0;
+				 if(RequiredLength_All > *ReturnedLength || BufferTooSmall)
+				 BufferTooSmall = TRUE;
+			     else
+				 *NewBuffer = Temp;
+			 }
+			 break;
+			 case RelationCache:
+			 if(RelationshipType == RelationCache || RelationshipType == RelationAll)
+			 {
+				 StructisCopied = TRUE;
+				 Temp.Relationship = RelationCache;
+				 Temp.Cache.Level = Ptr->Cache.Level;
+				 #ifdef _X86_
+				 Temp.Size = 76; //52
+				 RequiredLength_All += 76;
+				 #else
+				 Temp.Size = 80;
+				 RequiredLength_All += 80;
+                 #endif
+				 Temp.Cache.Associativity = Ptr->Cache.Associativity;
+				 Temp.Cache.LineSize = Ptr->Cache.LineSize;
+				 Temp.Cache.CacheSize = Ptr->Cache.Size;
+				 Temp.Cache.Type = Ptr->Cache.Type;
+				// Temp.Cache.GroupCount = 1;
+				 Temp.Cache.GroupMask.Mask = (KAFFINITY) ActiveProcessorMask;
+				 Temp.Cache.GroupMask.Group = 0;
+				 if(RequiredLength_All > *ReturnedLength || BufferTooSmall)
+				 BufferTooSmall = TRUE;
+			     else
+				 *NewBuffer = Temp;
+
+			 }
+             case RelationGroup:
+                break;
+             case RelationAll:
+                break;
+			 break;
+
+		}
+
+		Offset += sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+		//NewOffset = RequiredLength + Offset;
+       // to make sure it doesn't advance the SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pointer
+                              // if a SYSTEM_LOGICAL_PROCESSOR_INFORMATION struct contains irrelevant information
+		if (StructisCopied && !BufferTooSmall)
+		NewBuffer++;
+		Ptr++;
+	}
+	RtlFreeHeap(NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap, 0, BufferClassic);
+	if(RelationshipType == RelationGroup || RelationshipType == RelationAll)
+	{
+		Temp.Relationship = RelationGroup;
+		#ifdef _X86_
+		Temp.Size = 76;
+		RequiredLength_All += 76;
+	    #else
+		Temp.Size = 80;
+		RequiredLength_All += 80;
+		#endif
+		Temp.Group.MaximumGroupCount = 1;
+		Temp.Group.ActiveGroupCount = 1;
+		Temp.Group.GroupInfo->MaximumProcessorCount = SysInfo.dwNumberOfProcessors;
+		Temp.Group.GroupInfo->ActiveProcessorCount = SysInfo.dwNumberOfProcessors;
+		Temp.Group.GroupInfo->ActiveProcessorMask = (KAFFINITY) ActiveProcessorMask;
+		if(RequiredLength_All > *ReturnedLength || BufferTooSmall)
+		BufferTooSmall = TRUE;
+	    else
+		*NewBuffer = Temp;
+	}
+
+
+
+	  *ReturnedLength = RequiredLength_All;
+	   if(BufferTooSmall)
+	   {
+		   RtlSetLastWin32Error(ERROR_INSUFFICIENT_BUFFER);
+		   return FALSE;
+	   }
+
+	   return TRUE;
+
+
+
+}
+
+/* EOF */
+
 /* EOF */

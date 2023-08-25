@@ -988,4 +988,99 @@ UnregisterWaitEx(IN HANDLE WaitHandle,
     return TRUE;
 }
 
+/* returns directory handle to \\BaseNamedObjects */
+static HANDLE get_BaseNamedObjects_handle(void)
+{
+    static HANDLE handle = NULL;
+    static const WCHAR basenameW[] = {'\\','S','e','s','s','i','o','n','s','\\','%','u',
+                                      '\\','B','a','s','e','N','a','m','e','d','O','b','j','e','c','t','s',0};
+    WCHAR buffer[64];
+    UNICODE_STRING str;
+    OBJECT_ATTRIBUTES attr;
+
+    if (!handle)
+    {
+        HANDLE dir;
+
+        sprintfW( buffer, basenameW, NtCurrentTeb()->ProcessEnvironmentBlock->SessionId );
+        RtlInitUnicodeString( &str, buffer );
+        InitializeObjectAttributes(&attr, &str, 0, 0, NULL);
+        NtOpenDirectoryObject(&dir, DIRECTORY_CREATE_OBJECT|DIRECTORY_TRAVERSE,
+                              &attr);
+        if (InterlockedCompareExchangePointer( &handle, dir, 0 ) != 0)
+        {
+            /* someone beat us here... */
+            CloseHandle( dir );
+        }
+    }
+    return handle;
+}
+static void get_create_object_attributes( OBJECT_ATTRIBUTES *attr, UNICODE_STRING *nameW,
+                                          SECURITY_ATTRIBUTES *sa, const WCHAR *name )
+{
+    attr->Length                   = sizeof(*attr);
+    attr->RootDirectory            = 0;
+    attr->ObjectName               = NULL;
+    attr->Attributes               = OBJ_OPENIF | ((sa && sa->bInheritHandle) ? OBJ_INHERIT : 0);
+    attr->SecurityDescriptor       = sa ? sa->lpSecurityDescriptor : NULL;
+    attr->SecurityQualityOfService = NULL;
+    if (name)
+    {
+        RtlInitUnicodeString( nameW, name );
+        attr->ObjectName = nameW;
+        attr->RootDirectory = get_BaseNamedObjects_handle();
+    }
+}
+
+#define CREATE_EVENT_MANUAL_RESET   0x00000001
+#define CREATE_EVENT_INITIAL_SET    0x00000002
+
+/***********************************************************************
+ *           CreateEventExW    (KERNEL32.@)
+ */
+HANDLE WINAPI DECLSPEC_HOTPATCH CreateEventExW( SECURITY_ATTRIBUTES *sa, LPCWSTR name, DWORD flags, DWORD access )
+{
+    HANDLE ret = 0;
+    UNICODE_STRING nameW;
+    OBJECT_ATTRIBUTES attr;
+    NTSTATUS status;
+
+    /* one buggy program needs this
+     * ("Van Dale Groot woordenboek der Nederlandse taal")
+     */
+    if (sa && IsBadReadPtr(sa,sizeof(SECURITY_ATTRIBUTES)))
+    {
+        //ERR("Bad security attributes pointer %p\n",sa);
+        SetLastError( ERROR_INVALID_PARAMETER);
+        return 0;
+    }
+
+    get_create_object_attributes( &attr, &nameW, sa, name );
+
+    status = NtCreateEvent( &ret, access, &attr,
+                            (flags & CREATE_EVENT_MANUAL_RESET) ? NotificationEvent : SynchronizationEvent,
+                            (flags & CREATE_EVENT_INITIAL_SET) != 0 );
+    if (status == STATUS_OBJECT_NAME_EXISTS)
+        SetLastError( ERROR_ALREADY_EXISTS );
+    else
+        SetLastError( RtlNtStatusToDosError(status) );
+    return ret;
+}
+
+HANDLE WINAPI DECLSPEC_HOTPATCH CreateEventExA( SECURITY_ATTRIBUTES *sa, LPCSTR name, DWORD flags, DWORD access )
+{
+    WCHAR buffer[MAX_PATH];
+
+    if (!name) return CreateEventExW( sa, NULL, flags, access );
+
+    if (!MultiByteToWideChar( CP_ACP, 0, name, -1, buffer, MAX_PATH ))
+    {
+        SetLastError( ERROR_FILENAME_EXCED_RANGE );
+        return 0;
+    }
+    return CreateEventExW( sa, buffer, flags, access );
+}
+
+/* EOF */
+
 /* EOF */
