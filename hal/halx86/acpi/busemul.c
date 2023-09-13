@@ -21,19 +21,33 @@ VOID
 NTAPI
 HalpRegisterKdSupportFunctions(VOID)
 {
+#if 0
+    /* Those routines became universal for both ACPI and PCI devices in Win8+ */
+    KdEnumerateDebuggingDevices = HalpKdEnumerateDebuggingDevices;
+    KdSetupPciDeviceForDebugging = HalpKdSetupDeviceForDebugging;
+    KdReleasePciDeviceforDebugging = HalpKdReleaseDeviceForDebugging;
+    /* And those are used for debug devices on ACPI */
+    KdSetupIntegratedDeviceForDebugging = HalpKdSetupDeviceForDebugging;
+    KdReleaseIntegratedDeviceforDebugging = HalpKdReleaseDeviceForDebugging;
+#endif
+
     /* Register PCI Device Functions */
     KdSetupPciDeviceForDebugging = HalpSetupPciDeviceForDebugging;
     KdReleasePciDeviceforDebugging = HalpReleasePciDeviceForDebugging;
+    KdGetPciDataByOffset = HalpGetPciDataByOffset;
+    KdSetPciDataByOffset = HalpSetPciDataByOffset;
+
+    /* ROS specific */
+    KdSetupIntegratedDeviceForDebugging = HalpSetupIntegratedDeviceForDebugging;
+    KdReleaseIntegratedDeviceForDebugging = HalpReleaseIntegratedDeviceForDebugging;
+
+    /* hackish */
+    KdEnumerateDebuggingDevices = HalpKdEnumerateDebuggingDevices;
 
     /* Register memory functions */
 #ifndef _MINIHAL_
-#if (NTDDI_VERSION >= NTDDI_VISTA)
     KdMapPhysicalMemory64 = HalpMapPhysicalMemory64Vista;
     KdUnmapVirtualAddress = HalpUnmapVirtualAddressVista;
-#else
-    KdMapPhysicalMemory64 = HalpMapPhysicalMemory64;
-    KdUnmapVirtualAddress = HalpUnmapVirtualAddress;
-#endif
 #endif
 
     /* Register ACPI stub */

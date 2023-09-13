@@ -27,6 +27,7 @@ BOOLEAN PopAcpiPresent = FALSE;
 POP_POWER_ACTION PopAction;
 WORK_QUEUE_ITEM PopShutdownWorkItem;
 SYSTEM_POWER_CAPABILITIES PopCapabilities;
+ULONG (*FrLdrDbgPrint)(const char *Format, ...);
 
 /* PRIVATE FUNCTIONS *********************************************************/
 
@@ -587,6 +588,7 @@ PoSetHiberRange(IN PVOID HiberContext,
                 IN ULONG Length,
                 IN ULONG PageTag)
 {
+    FrLdrDbgPrint("%s: I got called and I might kill an OS now\n", __FUNCTION__);
     UNIMPLEMENTED;
     return;
 }

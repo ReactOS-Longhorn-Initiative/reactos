@@ -14,6 +14,9 @@
 #define NDEBUG
 #include <debug.h>
 
+/* Function pointer for early debug prints */
+ULONG (*FrLdrDbgPrint)(const char *Format, ...);
+
 /* UTILITY FUNCTIONS *********************************************************/
 
 /*
@@ -351,9 +354,11 @@ KdInitSystem(
     /* Set the Kernel Base in the Data Block */
     KdDebuggerDataBlock.KernBase = (ULONG_PTR)KdVersionBlock.KernBase;
 
+    FrLdrDbgPrint("Calling KdDebuggerInitialize0()\n");
     /* Initialize the debugger if requested */
     if (EnableKd && (NT_SUCCESS(KdDebuggerInitialize0(LoaderBlock))))
     {
+        FrLdrDbgPrint("Success\n");
         /* Now set our real KD routine */
         KiDebugRoutine = KdpTrap;
 
@@ -452,6 +457,7 @@ KdInitSystem(
     }
     else
     {
+        FrLdrDbgPrint("Failure\n");
         /* Disable debugger */
         KdDebuggerNotPresent = TRUE;
     }

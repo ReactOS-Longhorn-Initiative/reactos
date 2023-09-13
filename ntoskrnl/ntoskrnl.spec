@@ -582,6 +582,7 @@
 @ stdcall KdDisableDebugger()
 @ stdcall KdEnableDebugger()
 @ extern KdEnteredDebugger
+@ stdcall -version=0x600+ KdLogDbgPrint(ptr)
 @ stdcall KdPollBreakIn()
 @ stdcall KdPowerTransition(long)
 @ stdcall KdRefreshDebuggerNotPresent()

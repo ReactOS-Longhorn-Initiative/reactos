@@ -1,6 +1,7 @@
 /******************************************************************************
  *                          Kernel Debugger Types                             *
  ******************************************************************************/
+
 $if (_NTDDK_)
 typedef struct _DEBUG_DEVICE_ADDRESS {
   UCHAR Type;
@@ -29,7 +30,6 @@ typedef struct _DEBUG_MEMORY_REQUIREMENTS {
   BOOLEAN Aligned;
 } DEBUG_MEMORY_REQUIREMENTS, *PDEBUG_MEMORY_REQUIREMENTS;
 
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 typedef enum {
   KdNameSpacePCI,
   KdNameSpaceACPI,
@@ -37,7 +37,6 @@ typedef enum {
   KdNameSpaceNone,
   KdNameSpaceMax, /* Maximum namespace enumerator */
 } KD_NAMESPACE_ENUM, *PKD_NAMESPACE_ENUM;
-#endif
 
 #if (NTDDI_VERSION >= NTDDI_WIN10)
 typedef struct _DEBUG_TRANSPORT_DATA {
@@ -49,6 +48,13 @@ typedef struct _DEBUG_TRANSPORT_DATA {
 #endif
 } DEBUG_TRANSPORT_DATA, *PDEBUG_TRANSPORT_DATA;
 #endif
+
+typedef enum {
+    KdConfigureDeviceAndContinue,
+    KdSkipDeviceAndContinue,
+    KdConfigureDeviceAndStop,
+    KdSkipDeviceAndStop,
+} KD_CALLBACK_ACTION, *PKD_CALLBACK_ACTION;
 
 #define MAXIMUM_DEBUG_BARS 6
 
@@ -66,19 +72,13 @@ typedef struct _DEBUG_TRANSPORT_DATA {
 
 typedef struct _DEBUG_DEVICE_DESCRIPTOR {
   ULONG Bus;
-#if (NTDDI_VERSION >= NTDDI_VISTA) && (NTDDI_VERSION < NTDDI_WIN8)
-  USHORT Segment;
-#endif
   ULONG Slot;
-#if (NTDDI_VERSION >= NTDDI_WIN8)
   USHORT Segment;
-#endif
   USHORT VendorID;
   USHORT DeviceID;
   UCHAR BaseClass;
   UCHAR SubClass;
   UCHAR ProgIf;
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
   union {
 #endif
@@ -91,17 +91,13 @@ typedef struct _DEBUG_DEVICE_DESCRIPTOR {
     };
   };
 #endif
-#endif
   BOOLEAN Initialized;
-#if (NTDDI_VERSION >= NTDDI_VISTA)
   BOOLEAN Configured;
-#endif
   DEBUG_DEVICE_ADDRESS BaseAddress[MAXIMUM_DEBUG_BARS];
   DEBUG_MEMORY_REQUIREMENTS Memory;
 #if (NTDDI_VERSION >= NTDDI_WIN10_19H1)
   ULONG Dbg2TableIndex;
 #endif
-#if (NTDDI_VERSION >= NTDDI_WIN8)
   USHORT PortType;
   USHORT PortSubtype;
   PVOID OemData;
@@ -109,12 +105,16 @@ typedef struct _DEBUG_DEVICE_DESCRIPTOR {
   KD_NAMESPACE_ENUM NameSpace;
   PWCHAR NameSpacePath;
   ULONG NameSpacePathLength;
-#endif
 #if (NTDDI_VERSION >= NTDDI_WIN10)
   ULONG TransportType;
   DEBUG_TRANSPORT_DATA TransportData;
 #endif
 } DEBUG_DEVICE_DESCRIPTOR, *PDEBUG_DEVICE_DESCRIPTOR;
+
+typedef
+KD_CALLBACK_ACTION
+(NTAPI *PDEBUG_DEVICE_FOUND_FUNCTION) (
+    PDEBUG_DEVICE_DESCRIPTOR Device);
 
 typedef NTSTATUS
 (NTAPI *pKdSetupPciDeviceForDebugging)(
@@ -133,36 +133,24 @@ typedef PVOID
 typedef VOID
 (NTAPI *pKdCheckPowerButton)(VOID);
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
-typedef PVOID
-(NTAPI *pKdMapPhysicalMemory64)(
-  _In_ PHYSICAL_ADDRESS PhysicalAddress,
-  _In_ ULONG NumberPages,
-  _In_ BOOLEAN FlushCurrentTLB);
-
-typedef VOID
-(NTAPI *pKdUnmapVirtualAddress)(
-  _In_ PVOID VirtualAddress,
-  _In_ ULONG NumberPages,
-  _In_ BOOLEAN FlushCurrentTLB);
-#else
-typedef PVOID
-(NTAPI *pKdMapPhysicalMemory64)(
-  _In_ PHYSICAL_ADDRESS PhysicalAddress,
-  _In_ ULONG NumberPages);
-
-typedef VOID
-(NTAPI *pKdUnmapVirtualAddress)(
-  _In_ PVOID VirtualAddress,
-  _In_ ULONG NumberPages);
-#endif
-
 typedef
 NTSTATUS
-(*pKdEnumerateDebuggingDevices) (
+(NTAPI *pKdEnumerateDebuggingDevices) (
     _In_ PVOID LoaderBlock,
     _Inout_ PDEBUG_DEVICE_DESCRIPTOR Device,
     _In_ PDEBUG_DEVICE_FOUND_FUNCTION Callback);
+
+typedef PVOID
+(NTAPI *pKdMapPhysicalMemory64)(
+  _In_ PHYSICAL_ADDRESS PhysicalAddress,
+  _In_ ULONG NumberPages,
+  _In_ BOOLEAN FlushCurrentTLB);
+
+typedef VOID
+(NTAPI *pKdUnmapVirtualAddress)(
+  _In_ PVOID VirtualAddress,
+  _In_ ULONG NumberPages,
+  _In_ BOOLEAN FlushCurrentTLB);
 
 typedef ULONG
 (NTAPI *pKdGetPciDataByOffset)(
@@ -180,14 +168,12 @@ typedef ULONG
   _In_ ULONG Offset,
   _In_ ULONG Length);
 
-typedef
-NTSTATUS
-(*pKdSetupIntegratedDeviceForDebugging)(
+typedef NTSTATUS
+(NTAPI *pKdSetupIntegratedDeviceForDebugging)(
     _In_opt_ PVOID LoaderBlock,
     _Inout_ PDEBUG_DEVICE_DESCRIPTOR IntegratedDevice);
 
-typedef
-NTSTATUS
-(*pKdReleaseIntegratedDeviceForDebugging)(
-    _Inout_ PDEBUG_DEVICE_DESCRIPTOR IntegratedDevice);
+typedef NTSTATUS
+(NTAPI *pKdReleaseIntegratedDeviceForDebugging)(
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR  IntegratedDevice);
 $endif (_NTDDK_)

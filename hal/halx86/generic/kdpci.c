@@ -18,15 +18,16 @@
 
 /* GLOBALS ********************************************************************/
 
-#if defined(EARLY_DEBUG)
+
+//#if defined(EARLY_DEBUG)
 ULONG (*DPRINT0)(_In_ _Printf_format_string_ PCSTR Format, ...);
-#else
-#if defined(_MSC_VER)
-#define DPRINT0   __noop
-#else
-#define DPRINT0
-#endif
-#endif
+//#else
+//#if defined(_MSC_VER)
+//#define DPRINT0   __noop
+//#else
+//#define DPRINT0
+//#endif
+//#endif
 
 PCI_TYPE1_CFG_CYCLE_BITS HalpPciDebuggingDevice[2] = {0};
 
@@ -491,13 +492,13 @@ HalpSetupPciDeviceForDebugging(
     PHYSICAL_ADDRESS PhysicalAddress;
     PPCI_TYPE1_CFG_CYCLE_BITS DebuggingDevice;
 
-#if defined(EARLY_DEBUG)
+//#if defined(EARLY_DEBUG)
     if (LoaderBlock)
     {
         /* Define your own function or use the trick with FreeLoader */
         DPRINT0 = ((PLOADER_PARAMETER_BLOCK)LoaderBlock)->u.I386.CommonDataArea;
     }
-#endif
+//#endif
 
     DPRINT0("%s(%p, %p) called\n", __FUNCTION__, LoaderBlock, PciDevice);
 
@@ -570,9 +571,98 @@ HalpSetupPciDeviceForDebugging(
     PciDevice->Memory.Start = PhysicalAddress;
     if (!PhysicalAddress.QuadPart)
     {
+        DPRINT0("Insufficient resources!\n");
         return STATUS_INSUFFICIENT_RESOURCES;
     }
     PciDevice->Memory.VirtualAddress = HalpMapPhysicalMemory64(PhysicalAddress, PageCount);
-
+    DPRINT0("Return success!\n");
     return STATUS_SUCCESS;
+}
+
+CODE_SEG("INIT")
+ULONG
+NTAPI
+HalpGetPciDataByOffset(
+    _In_ ULONG BusNumber,
+    _In_ ULONG SlotNumber,
+    _Out_writes_bytes_all_(Length) PVOID Buffer,
+    _In_ ULONG Offset,
+    _In_ ULONG Length)
+{
+    DPRINT0("%s(%d, %d, %p, %d, %d) called\n", __FUNCTION__, BusNumber, SlotNumber, Buffer, Offset, Length);
+    PCI_SLOT_NUMBER PciSlot;
+    ULONG Return;
+
+    PciSlot.u.AsULONG = SlotNumber;
+    PciSlot.u.bits.DeviceNumber = 0;
+    PciSlot.u.bits.FunctionNumber = 0;
+    PciSlot.u.bits.Reserved = 0;
+    DPRINT0("Calling HalpPhase0GetPciDataByOffset\n");
+    Return = HalpPhase0GetPciDataByOffset(BusNumber, PciSlot, Buffer, Offset, Length);
+    DPRINT0("Called HalpPhase0GetPciDataByOffset! Returning %d\n", Return);
+    return Return;
+}
+
+CODE_SEG("INIT")
+ULONG
+NTAPI
+HalpSetPciDataByOffset(
+    _In_ ULONG BusNumber,
+    _In_ ULONG SlotNumber,
+    _Out_writes_bytes_all_(Length) PVOID Buffer,
+    _In_ ULONG Offset,
+    _In_ ULONG Length)
+{
+    DPRINT0("%s(%d, %d, %p, %d, %d) called\n", __FUNCTION__, BusNumber, SlotNumber, Buffer, Offset, Length);
+
+    PCI_SLOT_NUMBER PciSlot;
+    ULONG Return;
+
+    PciSlot.u.AsULONG = SlotNumber;
+    PciSlot.u.bits.DeviceNumber = 0;
+    PciSlot.u.bits.FunctionNumber = 0;
+    PciSlot.u.bits.Reserved = 0;
+    DPRINT0("Calling HalpPhase0SetPciDataByOffset\n");
+    Return = HalpPhase0SetPciDataByOffset(BusNumber, PciSlot, Buffer, Offset, Length);
+    DPRINT0("Called HalpPhase0SetPciDataByOffset! Returning %d\n", Return);
+    return Return;
+}
+
+CODE_SEG("INIT")
+NTSTATUS
+NTAPI
+HalpKdEnumerateDebuggingDevices(
+    _In_ PVOID LoaderBlock,
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR Device,
+    _In_ PDEBUG_DEVICE_FOUND_FUNCTION Callback
+)
+{
+    DPRINT0("%s(%p, %p, %p) called\n", __FUNCTION__, LoaderBlock, Device, Callback);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+CODE_SEG("INIT")
+NTSTATUS
+NTAPI
+HalpSetupIntegratedDeviceForDebugging(
+    _In_ PVOID LoaderBlock,
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR  IntegratedDevice
+)
+{
+    DPRINT0("%s(%p, %p) called\n", __FUNCTION__, LoaderBlock, IntegratedDevice);
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+CODE_SEG("INIT")
+NTSTATUS
+NTAPI
+HalpReleaseIntegratedDeviceForDebugging(
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR  IntegratedDevice
+)
+{
+    DPRINT0("%s(%p) called\n", __FUNCTION__, IntegratedDevice);
+
+    return STATUS_NOT_IMPLEMENTED;
 }

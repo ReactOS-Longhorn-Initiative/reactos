@@ -17,6 +17,9 @@
 #define NDEBUG
 #include <debug.h>
 
+/* Function pointer for early debug prints */
+ULONG (*FrLdrDbgPrint)(const char *Format, ...);
+
 /* GLOBALS *******************************************************************/
 
 LIST_ENTRY KeBugcheckCallbackListHead;
@@ -1412,6 +1415,7 @@ KeBugCheckEx(IN ULONG BugCheckCode,
              IN ULONG_PTR BugCheckParameter3,
              IN ULONG_PTR BugCheckParameter4)
 {
+    FrLdrDbgPrint("%s called!\n %p, %p, %p, %p, %p\n", __FUNCTION__, BugCheckCode, BugCheckParameter1, BugCheckParameter2, BugCheckParameter3, BugCheckParameter4);
     /* Call the internal API */
     KeBugCheckWithTf(BugCheckCode,
                      BugCheckParameter1,
@@ -1429,6 +1433,7 @@ VOID
 NTAPI
 KeBugCheck(ULONG BugCheckCode)
 {
+    FrLdrDbgPrint("__FUNCTION__ called! %p\n", BugCheckCode);
     /* Call the internal API */
     KeBugCheckWithTf(BugCheckCode, 0, 0, 0, 0, NULL);
 }

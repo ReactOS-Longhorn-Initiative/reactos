@@ -1274,10 +1274,12 @@ HalpRegisterKdSupportFunctions(VOID)
     /* Register PCI Device Functions */
     KdSetupPciDeviceForDebugging = HalpSetupPciDeviceForDebugging;
     KdReleasePciDeviceforDebugging = HalpReleasePciDeviceForDebugging;
+    KdGetPciDataByOffset = HalpGetPciDataByOffset;
+    KdSetPciDataByOffset = HalpSetPciDataByOffset;
 
     /* Register memory functions */
 #ifndef _MINIHAL_
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1
     KdMapPhysicalMemory64 = HalpMapPhysicalMemory64Vista;
     KdUnmapVirtualAddress = HalpUnmapVirtualAddressVista;
 #else

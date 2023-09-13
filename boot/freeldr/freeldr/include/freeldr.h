@@ -128,6 +128,8 @@
 #include <arch/mips/arcbios.h>
 #endif
 
+#define TARGET_VERSION _WIN32_WINNT_WIN8
+
 VOID __cdecl BootMain(IN PCCH CmdLine);
 
 #ifdef HAS_DEPRECATED_OPTIONS

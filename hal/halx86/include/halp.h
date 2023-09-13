@@ -281,6 +281,15 @@ HalpRegisterKdSupportFunctions(
 CODE_SEG("INIT")
 NTSTATUS
 NTAPI
+HalpKdEnumerateDebuggingDevices(
+    _In_ PVOID LoaderBlock,
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR Device,
+    _In_ PDEBUG_DEVICE_FOUND_FUNCTION Callback
+);
+
+CODE_SEG("INIT")
+NTSTATUS
+NTAPI
 HalpSetupPciDeviceForDebugging(
     IN PVOID LoaderBlock,
     IN OUT PDEBUG_DEVICE_DESCRIPTOR PciDevice
@@ -291,6 +300,43 @@ NTSTATUS
 NTAPI
 HalpReleasePciDeviceForDebugging(
     IN OUT PDEBUG_DEVICE_DESCRIPTOR PciDevice
+);
+
+CODE_SEG("INIT")
+ULONG
+NTAPI
+HalpGetPciDataByOffset(
+    _In_ ULONG BusNumber,
+    _In_ ULONG SlotNumber,
+    _Out_writes_bytes_all_(Length) PVOID Buffer,
+    _In_ ULONG Offset,
+    _In_ ULONG Length
+);
+
+CODE_SEG("INIT")
+ULONG
+NTAPI
+HalpSetPciDataByOffset(
+    _In_ ULONG BusNumber,
+    _In_ ULONG SlotNumber,
+    _Out_writes_bytes_all_(Length) PVOID Buffer,
+    _In_ ULONG Offset,
+    _In_ ULONG Length
+);
+
+CODE_SEG("INIT")
+NTSTATUS
+NTAPI
+HalpSetupIntegratedDeviceForDebugging(
+    _In_ PVOID LoaderBlock,
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR  IntegratedDevice
+);
+
+CODE_SEG("INIT")
+NTSTATUS
+NTAPI
+HalpReleaseIntegratedDeviceForDebugging(
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR  IntegratedDevice
 );
 
 //

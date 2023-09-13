@@ -178,7 +178,7 @@ VOID
 NTAPI
 xHalSetWakeAlarm(
     IN ULONGLONG AlartTime,
-    IN PTIME_FIELDS TimeFields
+    IN ULONGLONG TimeFields
 );
 
 BOOLEAN
