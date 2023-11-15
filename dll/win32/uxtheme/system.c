@@ -633,6 +633,60 @@ BOOL WINAPI IsThemeActive(void)
     return bActive;
 }
 
+#ifndef WINE_IsCompositionActive
+typedef HRESULT
+(WINAPI *_DwmIsCompositionEnabled)(
+    _Out_ BOOL *pfEnabled
+);
+static _DwmIsCompositionEnabled fnDwmIsCompositionEnabled;
+
+static
+BOOL
+TryLoadDwmIsCompositionEnabled()
+{
+    if (fnDwmIsCompositionEnabled)
+        return TRUE;
+
+    HINSTANCE hinstDwmApi = LoadLibraryW(L"dwmapi.dll");
+    if (!hinstDwmApi)
+    {
+        SetLastError(ERROR_DLL_NOT_FOUND);
+        return FALSE;
+    }
+
+    fnDwmIsCompositionEnabled = (_DwmIsCompositionEnabled)GetProcAddress(hinstDwmApi, "DwmIsCompositionEnabled");
+    if (!fnDwmIsCompositionEnabled)
+    {
+        SetLastError(ERROR_DLL_MIGHT_BE_INCOMPATIBLE);
+        return FALSE;
+    }
+    return TRUE;
+}
+#endif /* WINE_IsCompositionActive */
+/************************************************************
+*       IsCompositionActive   (UXTHEME.@)
+*/
+BOOL WINAPI IsCompositionActive(void)
+{
+#ifdef WINE_IsCompositionActive
+    FIXME(": stub\n");
+
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+
+    return FALSE;
+#else
+    BOOL bIsCompositionActive = FALSE;
+
+    if (!TryLoadDwmIsCompositionEnabled())
+        return FALSE;
+
+    if (SUCCEEDED(fnDwmIsCompositionEnabled(&bIsCompositionActive)))
+        return bIsCompositionActive;
+
+    return FALSE;
+#endif /* WINE_IsCompositionActive */
+}
+
 /***********************************************************************
  *      EnableTheming                                       (UXTHEME.@)
  *
@@ -830,6 +884,20 @@ HTHEME WINAPI OpenThemeDataFromFile(HTHEMEFILE hThemeFile, HWND hwnd, LPCWSTR ps
 }
 
 /***********************************************************************
+ *      OpenThemeDataForDpi                                 (UXTHEME.@)
+ */
+HTHEME
+WINAPI
+OpenThemeDataForDpi(
+    _In_ HWND hwnd,
+    _In_ LPCWSTR classlist,
+    _In_ UINT dpi)
+{
+    FIXME("dpi (%x) is currently ignored", dpi);
+    return OpenThemeDataInternal(g_ActiveThemeFile, hwnd, classlist, 0);
+}
+
+/***********************************************************************
  *      OpenThemeData                                       (UXTHEME.@)
  */
 HTHEME WINAPI OpenThemeData(HWND hwnd, LPCWSTR classlist)
@@ -886,6 +954,21 @@ HRESULT WINAPI SetWindowTheme(HWND hwnd, LPCWSTR pszSubAppName,
 
     UXTHEME_broadcast_theme_changed (hwnd, TRUE);
     return hr;
+}
+
+/***********************************************************************
+ *      SetWindowThemeAttribute                             (UXTHEME.@)
+ */
+HRESULT
+WINAPI
+SetWindowThemeAttribute(
+    _In_ HWND hwnd,
+    _In_ enum WINDOWTHEMEATTRIBUTETYPE type,
+    _In_ PVOID attribute,
+    _In_ DWORD size)
+{
+   FIXME("(%p,%d,%p,%ld): stub\n", hwnd, type, attribute, size);
+   return E_NOTIMPL;
 }
 
 /***********************************************************************

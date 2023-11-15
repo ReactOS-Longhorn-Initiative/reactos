@@ -1924,3 +1924,4 @@
 @ stdcall -version=0x601+ LdrSetDefaultDllDirectories(long)
 @ stdcall -version=0x601+ RtlQueryUnbiasedInterruptTime(ptr)
 @ stdcall -ret64 RtlGetSystemTimePrecise()
+@ stdcall -stub RtlQueryPerformanceCounter(ptr)
