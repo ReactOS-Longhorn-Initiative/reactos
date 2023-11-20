@@ -1848,6 +1848,7 @@ IntFreeDesktopHeap(IN OUT PDESKTOP Desktop)
 #endif
 }
 
+static BOOL needsDllExportVersionAppended = TRUE;
 BOOL FASTCALL
 IntPaintDesktop(HDC hDC)
 {
@@ -2180,6 +2181,28 @@ IntPaintDesktop(HDC hDC)
         {
             Status = STATUS_SUCCESS;
         }
+
+        if (needsDllExportVersionAppended)
+        {
+            static WCHAR wszExportVer[1024];
+            int index = 2;
+            int major = DLL_EXPORT_VERSION >> 8;
+            int minor = DLL_EXPORT_VERSION & 0x00ff;
+            
+            WCHAR wszDllExportFormat[] = L"Exporting NT %u.%u, %ls";
+            LPCWSTR pszPrevText = VerStrs[index].lpstr;
+            if (!pszPrevText)
+                pszPrevText = L"";
+            
+            if (swprintf(wszExportVer, wszDllExportFormat, major, minor, pszPrevText) > 0)
+            {
+                VerStrs[index].n = lstrlenW(wszExportVer);
+                VerStrs[index].lpstr = wszExportVer;
+            }
+            
+            needsDllExportVersionAppended = FALSE;
+        }
+
         if (NT_SUCCESS(Status) && *wszzVersion)
         {
             if (!InSafeMode)
