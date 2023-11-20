@@ -193,7 +193,13 @@ DrawThemeTextEx(
     _In_ const DTTOPTS *options
 );
 #endif
-#if (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
+
+#if (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) || defined(_UXTHEME_PCH_)
+/* In Windows these are Vista+ along with DrawThemeTextEx itself, but we
+ * use them within ReactOS's uxtheme itself to implement DrawThemeText
+ * as well, hence also defining them here if _UXTHEME_PCH_ is defined
+ */
+>>>>>>> 6c0104272d8 ([UXTHEME] Fix build for DLL export versions below Vista)
 #define DTT_TEXTCOLOR    0x00000001
 #define DTT_BORDERCOLOR  0x00000002
 #define DTT_SHADOWCOLOR  0x00000004
@@ -243,7 +249,9 @@ DrawThemeTextEx(
     _Inout_ LPRECT pRect,
     _In_ const DTTOPTS *options
 );
+#endif /* (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) || defined(_UXTHEME_PCH_) */
 
+#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
 typedef HANDLE HANIMATIONBUFFER;
 
 typedef enum _BP_ANIMATIONSTYLE
@@ -264,6 +272,7 @@ typedef struct _BP_ANIMATIONPARAMS
 
 enum WINDOWTHEMEATTRIBUTETYPE { WTA_NONCLIENT = 1 };
 
+#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
 #endif
 #ifdef __cplusplus
 }
