@@ -44,7 +44,7 @@ add_subdirectory(widl)
 add_subdirectory(wpp)
 add_subdirectory(xml2sdb)
 
-if ((ARCH STREQUAL "amd64") AND (TARGET_COMPILER_ID STREQUAL "GNU"))
+if ((ARCH STREQUAL "amd64") AND (TARGET_COMPILER_ID STREQUAL "GNU") AND (NOT WIN32))
     add_subdirectory(gcc_plugin_seh)
 endif()
 
