@@ -704,7 +704,7 @@ HalEnableSystemInterrupt(
     ReDirReg.Vector = Vector;
     ReDirReg.MessageType = APIC_MT_Fixed;
     ReDirReg.DestinationMode = APIC_DM_Physical;
-    ReDirReg.Destination = ApicRead(APIC_ID) >> 24;
+    ReDirReg.Destination = KeGetCurrentPrcb()->InitialApicId
     ReDirReg.TriggerMode = (InterruptMode == LevelSensitive) ?
         APIC_TGM_Level : APIC_TGM_Edge;
     ReDirReg.Polarity = (InterruptMode == LevelSensitive) ? 1 : 0;
