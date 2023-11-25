@@ -5887,7 +5887,8 @@ continue_read_drq:
                 wordCount = AtaReq->WordsLeft;
                 DataOverrun = TRUE;
             }
-
+            if (wordCount == 0)
+                wordCount = AtaReq->WordsLeft;
         } else {
 
             // Check if words left is at least 256.
