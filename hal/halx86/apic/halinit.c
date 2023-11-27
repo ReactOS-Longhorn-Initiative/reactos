@@ -17,6 +17,10 @@ VOID
 NTAPI
 ApicInitializeLocalApic(ULONG Cpu);
 
+VOID
+NTAPI
+ApicInitializeIOApic(VOID);
+
 /* FUNCTIONS ****************************************************************/
 
 VOID
@@ -40,6 +44,10 @@ HalpInitProcessor(
 
     /* Initialize the timer */
     //ApicInitializeTimer(ProcessorNumber);
+    if (ProcessorNumber != 0)
+    {
+        ApicInitializeIOApic();
+    }
 }
 
 VOID

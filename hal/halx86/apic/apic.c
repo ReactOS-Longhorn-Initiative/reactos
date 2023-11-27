@@ -473,6 +473,11 @@ ApicInitializeIOApic(VOID)
     Pte->Global = 1;
     _ReadWriteBarrier();
 
+    if (KeGetCurrentProcessorNumber() != 0)
+    {
+        return;
+    }
+
     /* Setup a redirection entry */
     ReDirReg.Vector = APIC_FREE_VECTOR;
     ReDirReg.MessageType = APIC_MT_Fixed;
