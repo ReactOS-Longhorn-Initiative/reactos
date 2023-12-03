@@ -23,8 +23,10 @@ list(APPEND INF_FILES
     ports.inf
     scsi.inf
     shortcuts.inf
+    uaspstor.inf
     unknown.inf
     usb.inf
+    usbhub3.inf
     usbport.inf
     usbxhci.inf
     volume.inf
