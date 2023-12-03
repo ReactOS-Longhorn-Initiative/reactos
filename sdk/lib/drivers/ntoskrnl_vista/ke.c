@@ -30,6 +30,15 @@ KeQueryActiveProcessorCount(OUT PKAFFINITY ActiveProcessors OPTIONAL)
 NTKRNLVISTAAPI
 ULONG
 NTAPI
+KeQueryMaximumProcessorCountEx(_In_ USHORT GroupNumber)
+{
+    UNIMPLEMENTED;
+	return 1;
+}
+
+NTKRNLVISTAAPI
+ULONG
+NTAPI
 KeQueryActiveProcessorCountEx(_In_ USHORT GroupNumber)
 {
     UNIMPLEMENTED;
