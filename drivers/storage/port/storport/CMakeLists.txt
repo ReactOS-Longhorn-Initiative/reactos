@@ -21,4 +21,4 @@ add_library(storport MODULE
 add_pch(storport precomp.h "${PCH_SKIP_SOURCE}")
 set_module_type(storport kernelmodedriver)
 add_importlibs(storport ntoskrnl hal)
-add_cd_file(TARGET storport DESTINATION reactos/system32/drivers NO_CAB FOR all)
+#add_cd_file(TARGET storport DESTINATION reactos/system32/drivers NO_CAB FOR all)
