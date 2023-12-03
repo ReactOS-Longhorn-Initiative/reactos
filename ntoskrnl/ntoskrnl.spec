@@ -686,6 +686,7 @@
 @ stdcall -version=0x600+ KeQueryHighestNodeNumber()
 @ stdcall -arch=i386,arm KeQueryInterruptTime()
 @ stdcall -version=0x600+ KeQueryLogicalProcessorRelationship(ptr ptr ptr ptr)
+@ stdcall -version=0x600+ KeQueryMaximumProcessorCountEx(long)
 ;@ cdecl -arch=x86_64 KeQueryMultiThreadProcessorSet
 @ stdcall -version=0x600+ KeQueryNodeActiveAffinity(long ptr ptr)
 ;@ cdecl -arch=x86_64 KeQueryPrcbAddress
@@ -815,6 +816,7 @@
 @ stdcall MmAllocateContiguousMemorySpecifyCache(long long long long long long long long)
 @ stdcall -version=0x600+ MmAllocateContiguousMemorySpecifyCacheNode(long long long long long long long long long)
 @ stdcall MmAllocateMappingAddress(long long)
+@ stdcall -version=0x600+ MmAllocateContiguousNodeMemory(long long long long long long)
 @ stdcall MmAllocateNonCachedMemory(long)
 @ stdcall MmAllocatePagesForMdl(ptr ptr ptr ptr ptr ptr ptr)
 @ stdcall MmAllocatePagesForMdlEx(long long long long long long long long long)
