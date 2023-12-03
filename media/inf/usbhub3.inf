@@ -1,0 +1,129 @@
+[Version]
+signature="$Windows NT$"
+Class=USB
+ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
+Provider=%ReactOS%
+DriverVer=10/19/1999,6.2.8250.0
+
+[SourceDisksNames]
+3426=windows cd
+
+[SourceDisksFiles]
+usbhub3.sys  = 3426
+
+[ControlFlags]
+BasicDriverOk=*
+ExcludeFromSelect = *
+
+[DestinationDirs]
+DefaultDestDir    = 12
+
+[Manufacturer]
+%Generic.Mfg%=Generic,NTamd64
+
+; - HUB3 Controllers -
+
+[Generic.NTamd64]
+%UsbHub3.RootHubDeviceDesc%=Generic.Install, USB\ROOT_HUB30
+%UsbHub3.Usb30HubDesc%=Generic.Install, USB\USB30_HUB
+%UsbHub3.Usb20HubDesc%=Generic.Install, USB\USB20_HUB
+
+[Generic.Install.NT]
+CopyFiles=Generic.CopyFiles
+AddPowerSetting=USB3.PO1, USB3.PO2
+FeatureScore=0
+
+[Generic.Install.NT.Services]
+AddService=USBHUB3, 2, Generic.AddService
+
+[Generic.AddService]
+DisplayName    = %UsbHub3.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START 
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\UsbHub3.sys
+LoadOrderGroup = Base
+AddReg         = Service_AddReg
+
+[Generic.Install.NT.WMI]
+; Set access permissions for UI WMI GUIDs
+WMIInterface = {4E623B20-CB14-11D1-B331-00A0C959BBD2},,WMIGuidSecurity_AllRights
+WMIInterface = {9bbbf831-a2f2-43b4-96d1-86944b5914b3},,WMIGuidSecurity_AllRights
+WMIInterface = {9C179357-DC7A-4f41-B66B-323B9DDCB5B1},,WMIGuidSecurity_AllReadAdminFul
+
+[Service_AddReg]
+HKR,               , BootFlags,  0x00010001, 16 ; CM_SERVICE_USB3_DISK_BOOT_LOAD
+HKR, Parameters\Wdf, LogPages,   0x00010001, 3 ; KMDF IFR size
+HKR, Parameters,     LogPages,   0x00010001, 3 ; Driver IFR size
+; Dummy usbhub serivce because we mimic windows 8 usbhub3 a little too well.
+HKLM, SYSTEM\CurrentControlSet\Services\usbhub,,0x00000010
+
+[Generic.CopyFiles]
+USBHUB3.SYS
+
+[USB3.PO1]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_3_LINK_POWER_MANAGEMENT_POLICY%, %USB3LPMPolicyName%, %USB3LPMPolicyDescription%, ,1
+Value= 0, %ValueOff%, %ValueOffDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueMinimumPowerSavings%, %ValueMinimumPowerSavingsDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+Value= 2, %ValueModeratePowerSavings%, %ValueModeratePowerSavingsDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x2
+Value= 3, %ValueMaximumPowerSavings%, %ValueMaximumPowerSavingsDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x3
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 2
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 2
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 2
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 2
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 2
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 2
+
+
+[USB3.PO2]
+SubGroup = %GUID_POWER_USB_SUBGROUP% 
+Setting = %GUID_POWER_HUB_SELECTIVE_SUSPEND_TIMEOUT%, %SelectiveSuspendTimeoutName%, %SelectiveSuspendTimeoutDescription%, ,1
+ValueRange = 1, 100000, 1, %Milisecond%
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 2000
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 2000
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 2000
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 2000
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 2000
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 2000
+
+;
+; --------------------------- Strings --------------------------
+;
+
+[Strings]
+;Non-Localizable
+ReactOS = "ReactOS Project"
+GUID_MAX_POWER_SAVINGS = "{a1841308-3541-4fab-bc81-f71556f20b4a}"
+GUID_TYPICAL_POWER_SAVINGS = "{381b4222-f694-41f0-9685-ff5bb260df2e}"
+GUID_MIN_POWER_SAVINGS = "{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}"
+AC = 0
+DC = 1
+FLG_ADDREG_TYPE_DWORD = 0x00010001
+GUID_POWER_USB_SUBGROUP= "{2A737441-1930-4402-8D77-B2BEBBA308A3}"
+GUID_POWER_USB_3_LINK_POWER_MANAGEMENT_POLICY= "{D4E98F31-5FFE-4ce1-BE31-1B38B384C009}"
+GUID_POWER_HUB_SELECTIVE_SUSPEND_TIMEOUT= "{0853A681-27C8-4100-A2FD-82013E970683}"
+
+;Localizable
+Generic.Mfg = "(Standard USB HUBs)"
+UsbHub3.RootHubDeviceDesc = "USB Root Hub (xHCI)"
+UsbHub3.Usb30HubDesc = "Generic SuperSpeed USB Hub"
+UsbHub3.Usb20HubDesc = "Generic USB Hub"
+UsbHub3.SVCDESC = "SuperSpeed Hub"
+
+USB3LPMPolicyName = "USB 3 Link Power Mangement"
+USB3LPMPolicyDescription = "Specifies the power management policy to use for USB 3 links when they are idle "
+ValueOff="Off"
+ValueOffDesc="Do not enable the U1 U2 states"
+ValueMinimumPowerSavings = "Minimum power savings"
+ValueModeratePowerSavings = "Moderate power savings"
+ValueMaximumPowerSavings = "Maximum power savings"
+ValueMinimumPowerSavingsDesc = "Enable the U1 U2 states but choose conservative timeout values to optimize for peformance"
+ValueModeratePowerSavingsDesc = "Enable the U1 U2 states and choose optimal timeout values to balance power and peformance"
+ValueMaximumPowerSavingsDesc = "Enable the U1 U2 states and choose aggressive timeout values to optimize for power"
+SelectiveSuspendTimeoutName = "Hub Selective Suspend Timeout"
+SelectiveSuspendTimeoutDescription = "This value will be used as idle timeouts for all USB hubs"
+Milisecond = "Milisecond"
+
