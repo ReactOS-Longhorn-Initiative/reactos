@@ -654,6 +654,7 @@
 @ stdcall KeInitializeQueue(ptr long)
 @ stdcall KeInitializeSemaphore(ptr long long)
 @ stdcall -arch=i386,arm KeInitializeSpinLock(ptr) _KeInitializeSpinLock
+@ stdcall -version=0x600+ KeInitializeSpinLock(ptr) _KeInitializeSpinLock
 @ stdcall KeInitializeThreadedDpc(ptr ptr ptr)
 @ stdcall KeInitializeTimer(ptr)
 @ stdcall KeInitializeTimerEx(ptr long)
