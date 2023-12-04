@@ -252,7 +252,8 @@ USBD_RegisterHcFilter(
     PDEVICE_OBJECT FilterDeviceObject
     )
 {
-    UNIMPLEMENTED;
+    DPRINT1("USBD_RegisterHcFilter: In windows 8 this seems todo nothing");
+    //UNIMPLEMENTED;
 }
 
 /*
@@ -685,4 +686,12 @@ USBD_GetPdoRegistryParameter(
         ZwClose(DevInstRegKey);
     }
     return Status;
+}
+
+ULONG
+NTAPI
+USBD_ValidateConfigurationDescriptor(PUSB_CONFIGURATION_DESCRIPTOR ConfigDesc, ULONG BufferLength, USHORT Level, PUCHAR *Offset, ULONG Tag)
+{
+    UNIMPLEMENTED;
+    return STATUS_INVALID_PARAMETER;
 }
