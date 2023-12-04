@@ -37,3 +37,12 @@
 @ stdcall SecSetPagingMode()
 @ stdcall UnsealMessage()
 @ stdcall VerifySignature(ptr ptr long ptr)
+
+; Bcrypt Hacks
+@ stdcall BCryptCloseAlgorithmProvider(ptr long)
+@ stdcall BCryptGetProperty(ptr wstr ptr long ptr long)
+@ stdcall BCryptHashData(ptr ptr long long)
+@ stdcall BCryptOpenAlgorithmProvider(ptr wstr wstr long)
+@ stdcall BCryptCreateHash(ptr ptr ptr long ptr long long)
+@ stdcall BCryptDestroyHash(ptr)
+@ stdcall BCryptFinishHash(ptr ptr long long)
