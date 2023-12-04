@@ -357,3 +357,59 @@ KsecDecryptMemory (
 
     return STATUS_SUCCESS;
 }
+
+/* OH GOD THESE ARE BROKEN TODO: ***********************************/
+#include <ntddk.h>
+#include <bcrypt.h>
+
+#include <debug.h>
+
+NTSTATUS
+NTAPI
+BCryptOpenAlgorithmProvider( BCRYPT_ALG_HANDLE *handle, LPCWSTR id, LPCWSTR implementation, ULONG flags )
+{
+    UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS WINAPI BCryptCloseAlgorithmProvider( BCRYPT_ALG_HANDLE handle, ULONG flags )
+{
+    UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS WINAPI BCryptGetProperty( BCRYPT_HANDLE handle, LPCWSTR prop, UCHAR *buffer, ULONG count, ULONG *res, ULONG flags )
+{
+        UNIMPLEMENTED;
+    return 0;
+}
+
+
+NTSTATUS WINAPI BCryptCreateHash( BCRYPT_ALG_HANDLE algorithm, BCRYPT_HASH_HANDLE *handle, UCHAR *object, ULONG objectlen,
+                                  UCHAR *secret, ULONG secretlen, ULONG flags )
+{
+        UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS WINAPI BCryptDestroyHash( BCRYPT_HASH_HANDLE handle )
+{
+
+    UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
+
+
+NTSTATUS WINAPI BCryptFinishHash( BCRYPT_HASH_HANDLE handle, UCHAR *output, ULONG size, ULONG flags )
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
+
+NTSTATUS WINAPI BCryptHashData( BCRYPT_HASH_HANDLE handle, UCHAR *input, ULONG size, ULONG flags )
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
