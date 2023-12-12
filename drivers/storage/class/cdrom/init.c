@@ -384,7 +384,7 @@ Return Value:
 
     }
 
-#if (NTDDI_VERSION >= NTDDI_WIN8)
+#if 0 //(NTDDI_VERSION >= NTDDI_WIN8)
     // 9. Set volume interface properties
     if (NT_SUCCESS(status))
     {
