@@ -148,7 +148,7 @@ KeQueryDpcWatchdogInformation(
     WatchdogInformation->DpcWatchdogCount = 0;
     WatchdogInformation->Reserved = 0;
 
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
     return STATUS_UNSUCCESSFUL;
 }
 
