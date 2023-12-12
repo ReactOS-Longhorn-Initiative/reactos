@@ -63,6 +63,7 @@
 @ stdcall -version=0x600+ EtwRegister(ptr ptr ptr ptr)
 @ stdcall -version=0x600+ EtwUnregister(int64)
 @ stdcall -version=0x600+ EtwWrite(int64 ptr ptr long ptr)
+@ stdcall -version=0x600+ EtwWriteTransfer(int64 ptr ptr ptr long ptr)
 @ stdcall -arch=x86_64 ExAcquireFastMutex(ptr)
 @ fastcall ExAcquireFastMutexUnsafe(ptr)
 @ stdcall ExAcquireResourceExclusiveLite(ptr long)
@@ -80,6 +81,9 @@
 @ stdcall ExAllocatePoolWithQuotaTag(long long long)
 @ stdcall ExAllocatePoolWithTag(long long long)
 @ stdcall ExAllocatePoolWithTagPriority(long long long long)
+@ stdcall -version=0x600+ ExAllocateTimer(ptr ptr long)
+@ stdcall -version=0x600+ ExCancelTimer(ptr ptr)
+@ stdcall -version=0x600+ ExDeleteTimer(ptr long long ptr)
 @ stdcall ExConvertExclusiveToSharedLite(ptr)
 @ stdcall ExCreateCallback(ptr ptr long long)
 @ stdcall ExDeleteNPagedLookasideList(ptr)
@@ -162,6 +166,7 @@
 @ fastcall ExRundownCompletedCacheAware(ptr) ExfRundownCompletedCacheAware
 @ extern ExSemaphoreObjectType
 @ stdcall ExSetResourceOwnerPointer(ptr ptr)
+@ stdcall -version=0x600+ ExSetTimer(ptr long long ptr)
 @ stdcall ExSetTimerResolution(long long)
 @ stdcall ExSizeOfRundownProtectionCacheAware()
 @ stdcall ExSystemExceptionFilter()
