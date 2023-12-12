@@ -1,5 +1,6 @@
 ; Matches Windows 8 RTM
-1 stdcall -arch=i386 USBD_CreateConfigurationRequestEx@8(ptr ptr) USBD_CreateConfigurationRequestEx
+;1 stdcall -arch=i386 USBD_CreateConfigurationRequestEx@8(ptr ptr) USBD_CreateConfigurationRequestEx
+1 stdcall USBD_CreateConfigurationRequestEx@8(ptr ptr) USBD_CreateConfigurationRequestEx
 @ stdcall -arch=i386 _USBD_ParseConfigurationDescriptorEx@28(ptr ptr long long long long long) USBD_ParseConfigurationDescriptorEx
 2 stdcall USBD_ParseConfigurationDescriptorEx(ptr ptr long long long long long)
 @ stdcall -arch=i386 _USBD_ParseDescriptors@16(ptr long ptr long) USBD_ParseDescriptors
@@ -10,7 +11,8 @@
 7 stdcall -stub USBD_AllocateHubNumber()
 8 stdcall USBD_CalculateUsbBandwidth(long long long)
 9 stdcall USBD_CreateConfigurationRequest(ptr ptr)
-10 stdcall -arch=i386 _USBD_CreateConfigurationRequestEx@8(ptr ptr)
+;10 stdcall -arch=i386 _USBD_CreateConfigurationRequestEx@8(ptr ptr)
+10 stdcall _USBD_CreateConfigurationRequestEx@8(ptr ptr)
 11 stdcall USBD_GetInterfaceLength(ptr ptr)
 12 stdcall USBD_GetPdoRegistryParameter(ptr ptr long ptr long)
 13 stdcall -stub USBD_GetRegistryKeyValue(ptr wstr long ptr long)
