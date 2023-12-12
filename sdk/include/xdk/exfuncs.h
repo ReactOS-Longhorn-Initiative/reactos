@@ -957,7 +957,7 @@ ExLocalTimeToSystemTime(
 #define EX_TIMER_UNLIMITED_TOLERANCE ((LONGLONG)-1)
 #define EX_TIMER_NOTIFICATION (1UL << 31)
 
-NTKERNELAPI
+NTKRNLVISTAAPI
 PEX_TIMER
 NTAPI
 ExAllocateTimer(
@@ -965,7 +965,7 @@ ExAllocateTimer(
   _In_opt_ PVOID CallbackContext,
   _In_ ULONG Attributes);
 
-NTKERNELAPI
+NTKRNLVISTAAPI
 BOOLEAN
 NTAPI
 ExSetTimer(
@@ -974,14 +974,14 @@ ExSetTimer(
   _In_ LONGLONG Period,
   _In_opt_ PEXT_SET_PARAMETERS Parameters);
 
-NTKERNELAPI
+NTKRNLVISTAAPI
 BOOLEAN
 NTAPI
 ExCancelTimer(
   _Inout_ PEX_TIMER Timer,
   _In_opt_ PEXT_CANCEL_PARAMETERS Parameters);
 
-NTKERNELAPI
+NTKRNLVISTAAPI
 BOOLEAN
 NTAPI
 ExDeleteTimer(
