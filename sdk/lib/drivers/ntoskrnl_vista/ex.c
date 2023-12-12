@@ -10,6 +10,7 @@ ExAllocateTimer(_In_opt_ PEXT_CALLBACK Callback,
                 _In_opt_ PVOID CallbackContext,
                 _In_ ULONG Attributes)
 {
+    UNIMPLEMENTED;
 	return NULL;
 }
 
@@ -19,6 +20,7 @@ NTAPI
 ExCancelTimer(_Inout_ PEX_TIMER Timer,
               _In_opt_ PEXT_CANCEL_PARAMETERS Parameters)
 {
+    UNIMPLEMENTED;
 	return TRUE;
 }
 
@@ -30,6 +32,7 @@ ExDeleteTimer(_In_ PEX_TIMER Timer,
               _In_ BOOLEAN Wait,
               _In_ PEXT_DELETE_PARAMETERS Parameters)
 {
+    UNIMPLEMENTED;
 	return Cancel;
 }
 
@@ -41,6 +44,7 @@ ExSetTimer(_In_ PEX_TIMER Timer,
            _In_ LONGLONG Period,
            _In_opt_ PEXT_SET_PARAMETERS Parameters)
 {
+    UNIMPLEMENTED;
 	return FALSE;
 }
 
