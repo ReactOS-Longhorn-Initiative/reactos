@@ -2311,7 +2311,7 @@ NtUserGetImeHotKey(DWORD dwHotKeyId,
                    LPUINT lpuModifiers,
                    LPUINT lpuVirtualKey,
                    LPHKL lphKL);
-
+#include <imm32_undoc.h>
 BOOL
 NTAPI
 NtUserGetImeInfoEx(
