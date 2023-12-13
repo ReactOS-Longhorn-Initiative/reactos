@@ -125,6 +125,9 @@ list(APPEND SOURCE
     unknwn.idl
     urlhist.idl
     urlmon.idl
+    uianimation.idl
+	uiautomationclient.idl
+	uiautomationcore.idl
     vmr9.idl
 #   vmrender.idl
     vsbackup.idl
