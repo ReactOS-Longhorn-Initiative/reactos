@@ -1317,3 +1317,39 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     }
     return TRUE;
 }
+
+DWORD
+WINAPI
+PowerSetActiveScheme(HKEY       UserRootPowerKey,
+                     const GUID *SchemeGuid)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
+DWORD 
+WINAPI
+PowerWriteDCValueIndex(
+  HKEY       RootPowerKey,
+  const GUID *SchemeGuid,
+  const GUID *SubGroupOfPowerSettingsGuid,
+  const GUID *PowerSettingGuid,
+  DWORD      DcValueIndex)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
+
+DWORD
+WINAPI
+PowerWriteACValueIndex(
+  HKEY       RootPowerKey,
+  const GUID *SchemeGuid,
+  const GUID *SubGroupOfPowerSettingsGuid,
+  const GUID *PowerSettingGuid,
+  DWORD      AcValueIndex)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
