@@ -21,3 +21,6 @@
 @ stdcall WriteProcessorPwrScheme (long ptr)
 @ stdcall WritePwrScheme (ptr str str ptr)
 @ stdcall ValidatePowerPolicies (ptr ptr)
+@ stdcall -version=0x600+ PowerSetActiveScheme(long ptr)
+@ stdcall -version=0x600+ PowerWriteACValueIndex(long ptr ptr ptr long)
+@ stdcall -version=0x600+ PowerWriteDCValueIndex(long ptr ptr ptr long)
