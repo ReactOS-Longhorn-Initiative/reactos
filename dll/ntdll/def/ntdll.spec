@@ -64,23 +64,24 @@
 @ stdcall -version=0x502 EtwControlTraceA(double str ptr long)
 @ stdcall -version=0x502 EtwControlTraceW(double wstr ptr long)
 @ stdcall -stub EtwCreateTraceInstanceId(ptr ptr)
-@ stub -version=0x600+ EtwDeliverDataBlock
-@ stdcall -version=0x502 EtwEnableTrace(long long long ptr double)
-@ stub -version=0x600+ EtwEnumerateProcessRegGuids
-@ stdcall -stub -version=0x502 EtwEnumerateTraceGuids(ptr long ptr)
-@ stub -version=0x600+ EtwEventActivityIdControl
-@ stub -version=0x600+ EtwEventEnabled
-@ stub -version=0x600+ EtwEventProviderEnabled
-@ stub -version=0x600+ EtwEventRegister
-@ stub -version=0x600+ EtwEventUnregister
-@ stub -version=0x600+ EtwEventWrite
-@ stub -version=0x600+ EtwEventWriteEndScenario
-@ stub -version=0x600+ EtwEventWriteFull
-@ stub -version=0x600+ EtwEventWriteStartScenario
-@ stub -version=0x600+ EtwEventWriteString
-@ stub -version=0x600+ EtwEventWriteTransfer
-@ stdcall -version=0x502 EtwFlushTraceA(double str ptr)
-@ stdcall -version=0x502 EtwFlushTraceW(double wstr ptr)
+@ stdcall -stub -version=0x600+ EtwDeliverDataBlock(long)
+@ stdcall -version=0x502+ EtwEnableTrace(long long long ptr double)
+@ stdcall -stub -version=0x600+ EtwEnumerateProcessRegGuids(ptr long ptr)
+@ stdcall -stub -version=0x502+ EtwEnumerateTraceGuids(ptr long ptr)
+@ stdcall -stub -version=0x600+ EtwEventActivityIdControl(long ptr)
+@ stdcall -stub -version=0x600+ EtwEventEnabled(int64 ptr)
+@ stdcall -stub -version=0x600+ EtwEventProviderEnabled(long long long)
+@ stdcall -stub -version=0x600+ EtwEventRegister(ptr ptr ptr ptr)
+@ stdcall -stub -version=0x600+ EtwRegister(ptr ptr ptr ptr)
+@ stdcall -stub -version=0x600+ EtwUnregister(int64)
+@ stdcall -stub -version=0x600+ EtwWrite(int64 ptr ptr long ptr)
+@ stdcall -stub -version=0x600+ EtwEventWriteEndScenario(long ptr long long)
+@ stdcall -stub -version=0x600+ EtwEventWriteFull(long long long long long long long)
+@ stdcall -stub -version=0x600+ EtwEventWriteStartScenario(long ptr long long)
+@ stdcall -stub -version=0x600+ EtwEventWriteString(long long long long)
+@ stdcall -stub -version=0x600+ EtwEventWriteTransfer(long ptr ptr ptr long long)
+@ stdcall -version=0x502+ EtwFlushTraceA(double str ptr)
+@ stdcall -version=0x502+ EtwFlushTraceW(double wstr ptr)
 @ stdcall EtwGetTraceEnableFlags(double)
 @ stdcall EtwGetTraceEnableLevel(double)
 @ stdcall EtwGetTraceLoggerHandle(ptr)
