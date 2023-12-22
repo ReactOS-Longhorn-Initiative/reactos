@@ -1,1 +1,1 @@
-@ stub SLGetWindowsInformationDWORD
+@ stdcall SLGetWindowsInformationDWORD(ptr ptr)

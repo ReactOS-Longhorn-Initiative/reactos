@@ -8,3 +8,12 @@
 #include "slc.h"
 //#define NDEBUG
 #include <debug.h>
+
+HRESULT WINAPI SLGetWindowsInformationDWORD(
+  PCWSTR pwszValueName,
+  DWORD  *pdwValue
+)
+{
+    *pdwValue = 0;
+    return 0;
+}

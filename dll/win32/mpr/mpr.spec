@@ -122,7 +122,7 @@
 @ stub WNetRestoreConnection2W
 @ stdcall WNetRestoreConnectionA(long str)
 @ stdcall WNetRestoreConnectionW(long wstr)
-# WNetRestoreSingleConnectionW # (ptr wstr long) # Not in WS03 yet?
+@ stdcall WNetRestoreSingleConnectionW(ptr wstr long)
 @ stdcall WNetSetConnectionA(str long ptr)
 @ stdcall WNetSetConnectionW(wstr long ptr)
 @ stub WNetSetLastErrorA # {long str str)
@@ -132,5 +132,3 @@
 @ stdcall WNetUseConnectionW(long ptr wstr wstr long wstr ptr ptr)
 @ stdcall WNetVerifyPasswordA(str ptr)
 @ stdcall WNetVerifyPasswordW(wstr ptr)
-
-@ stdcall WNetRestoreSingleConnectionW(ptr wstr long)

@@ -245,7 +245,7 @@ static BOOL SHDOCVW_LoadShell32(void)
 DWORD WINAPI WinList_Init(void)
 {
     FIXME("(), stub!\n");
-    return 0x0deadfeed;
+    return 0;
 }
 
 /***********************************************************************
