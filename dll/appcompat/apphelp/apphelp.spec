@@ -177,3 +177,4 @@
 @ stdcall ShimFlushCache(ptr ptr wstr long)
 @ stdcall SetPermLayerState(wstr wstr long long long)
 @ stdcall SdbRegisterDatabaseEx(wstr long ptr)
+@ stdcall -stub SdbQueryFlagMask(ptr)

@@ -1779,3 +1779,4 @@
 @ stdcall -arch=arm __rt_udiv64()
 @ stdcall -arch=arm __rt_srsh()
 @ stdcall IoSetMasterIrpStatus(ptr long)
+@ stdcall FsRtlAreVolumeStartupApplicationsComplete()

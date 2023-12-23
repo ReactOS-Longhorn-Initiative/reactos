@@ -1,9 +1,9 @@
 #100 ZoneMappingToRegKey
 #101 CoInternetIsExtensionsOff
-#102 CoInternetSetExtensionsOff
-#103 CoInternetExtensionAllowed
-#104 CoInternetCreateExtension
-#105 CoInternetExtensionCollectStats
+102 stub CoInternetSetExtensionsOff
+103 stub CoInternetExtensionAllowed
+104 stub CoInternetCreateExtension
+105 stub CoInternetExtensionCollectStats
 #106 CoInternetExtensionNeedsApproval
 #107 CoInternetApproveExtension
 108 stdcall -noname IsInternetESCEnabledLocal()

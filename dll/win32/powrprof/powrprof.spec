@@ -24,3 +24,5 @@
 @ stdcall -version=0x600+ PowerSetActiveScheme(long ptr)
 @ stdcall -version=0x600+ PowerWriteACValueIndex(long ptr ptr ptr long)
 @ stdcall -version=0x600+ PowerWriteDCValueIndex(long ptr ptr ptr long)
+@ stdcall -version=0x600+ PowerDeterminePlatformRole()
+@ stdcall -version=0x600+ PowerReadACValue(long ptr ptr ptr ptr ptr ptr)

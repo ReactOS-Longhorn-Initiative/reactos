@@ -6,6 +6,12 @@
 #include <winuser.h>
 
 
+BOOL WINAPI ChangeWindowMessageFilter( UINT message, DWORD flag )
+{
+  //  DbgPrint( "%x %08lx\n", message, flag );
+    return TRUE;
+}
+
 BOOL WINAPI ShutdownBlockReasonCreate(_In_ HWND    hWnd,
                                       _In_ LPCWSTR pwszReason)
 {

@@ -757,3 +757,8 @@
 741 stdcall wvsprintfW(ptr wstr ptr)
 @ stdcall -version=0x600+ RegisterPowerSettingNotification(ptr ptr long)
 @ stdcall -version=0x600+ UnregisterPowerSettingNotification(ptr)
+
+@ stdcall -version=0x600+ ChangeWindowMessageFilter(long long)
+@ stdcall -stub -version=0x600+ ShutdownBlockReasonDestroy(ptr)
+@ stub -version=0x600+ PaintMonitor
+@ stub IsWindowRedirectedForPrint

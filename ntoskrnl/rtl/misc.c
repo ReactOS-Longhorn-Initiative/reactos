@@ -252,3 +252,8 @@ NtQueryLicenseValue(PUNICODE_STRING Name,
 }
 
 /* EOF */
+
+BOOLEAN NTAPI FsRtlAreVolumeStartupApplicationsComplete()
+{
+    return 1;
+}

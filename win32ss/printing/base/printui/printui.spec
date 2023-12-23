@@ -21,3 +21,6 @@
 @ stub vPrinterPropPages
 @ stub vQueueCreate
 @ stub vServerPropPages
+@ stub PrintUIDownloadAndInstallLegacyDriver
+@ stub SetActiveDefaultMode
+@ stub ShowHelpLinkDialog
