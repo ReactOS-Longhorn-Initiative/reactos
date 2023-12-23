@@ -1256,7 +1256,7 @@
 @ cdecl _wspawnvp(long wstr ptr)
 @ cdecl _wspawnvpe(long wstr ptr ptr)
 @ cdecl _wsplitpath(wstr ptr ptr ptr ptr)
-@ stub -version=0x600+ _wsplitpath_s
+@ stdcall -stub -version=0x600+ _wsplitpath_s(ptr)
 @ cdecl _wstat(wstr ptr)
 @ cdecl _wstat64(wstr ptr)
 @ cdecl _wstati64(wstr ptr)

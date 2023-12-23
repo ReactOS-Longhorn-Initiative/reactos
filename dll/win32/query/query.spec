@@ -44,3 +44,4 @@
 @ stub _StartFWCiSvcWork@12
 @ stub _StopFWCiSvcWork@16
 @ stub SvcEntry_CiSvc
+@ stub LoadIFilterEx

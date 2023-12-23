@@ -132,6 +132,7 @@
 @ stdcall _PfSetLogBuffer@28()
 @ stdcall _PfTestPacket@20()
 @ stdcall _PfUnBindInterface@4()
+@ stdcall -stub -version=0x600+ ParseNetworkString(ptr long ptr ptr ptr)
 @ stdcall RestoreMediaSense(ptr ptr)
 @ stdcall SendARP(long long ptr ptr)
 @ stub SetAdapterIpAddress

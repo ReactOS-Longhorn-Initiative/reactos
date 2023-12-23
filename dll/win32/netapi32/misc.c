@@ -321,4 +321,21 @@ NetpNtStatusToApiStatus(
     return ApiStatus;
 }
 
+DWORD WINAPI DavGetHTTPFromUNCPath(
+    LPCWSTR UncPath,
+    LPWSTR  Url,
+    LPDWORD lpSize
+)
+{
+    return 0;
+}
+
+DWORD WINAPI DavGetUNCFromHTTPPath(
+    LPCWSTR Url,
+    LPWSTR  UncPath,
+    LPDWORD lpSiz
+)
+{
+    return 0;
+}
 /* EOF */

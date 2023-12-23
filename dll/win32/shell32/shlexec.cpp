@@ -2617,6 +2617,17 @@ SplitParams(LPCWSTR psz, LPWSTR pszArg0, size_t cchArg0)
     return pch;
 }
 
+HRESULT WINAPI SHEvaluateSystemCommandTemplate(
+  PCWSTR pszCmdTemplate,
+  PWSTR  *ppszApplication,
+  PWSTR  *ppszCommandLine,
+  PWSTR  *ppszParameters
+)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+
 HRESULT WINAPI ShellExecCmdLine(
     HWND hwnd,
     LPCWSTR pwszCommand,

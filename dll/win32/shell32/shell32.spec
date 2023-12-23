@@ -543,7 +543,7 @@
 @   stdcall -version=0x600+ SHCreateShellItemArray(ptr ptr long ptr ptr)
 @   stdcall -version=0x600+ SHCreateShellItemArrayFromIDLists(long ptr ptr)
 @   stdcall -version=0x600+ SHCreateShellItemArrayFromShellItem(ptr ptr ptr)
-@   stdcall -stub -version=0x600+ SHEvaluateSystemCommandTemplate(wstr wstr wstr wstr)
+@   stdcall -version=0x600+ SHEvaluateSystemCommandTemplate(wstr wstr wstr wstr)
 @   stdcall -version=0x600+ SHGetFolderPathEx(ptr long ptr wstr long)
 @   stdcall -version=0x600+ SHGetItemFromDataObject(ptr long ptr ptr)
 @   stdcall -version=0x600+ SHGetItemFromObject(ptr ptr ptr)

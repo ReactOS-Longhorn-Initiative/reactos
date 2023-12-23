@@ -338,3 +338,6 @@
 @ stub RxNetServerEnum
 @ stub RxNetUserPasswordSet
 @ stub RxRemoteApi
+@ stdcall -version=0x600+ DavGetUNCFromHTTPPath(wstr wstr long)
+@ stdcall -version=0x600+ DavGetHTTPFromUNCPath(wstr wstr long)
+@ stub DavFlushFile

@@ -223,3 +223,8 @@ RtlPrefetchMemoryNonTemporal(IN PVOID Source,
 #endif
 
 /* EOF */
+
+BOOLEAN NTAPI FsRtlAreVolumeStartupApplicationsComplete()
+{
+    return 1;
+}

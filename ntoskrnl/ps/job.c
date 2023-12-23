@@ -883,7 +883,9 @@ NtSetInformationJobObject (
             DPRINT1("Class JobObjectExtendedLimitInformation not implemented\n");
             Status = STATUS_SUCCESS;
             break;
-
+        case 2:
+            Status = STATUS_SUCCESS;
+            break;
         default:
             DPRINT1("Class %d not implemented\n", JobInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;

@@ -542,6 +542,7 @@
 @ stdcall RegSaveKeyExW(long str ptr long)
 @ stdcall RegSaveKeyW(long ptr ptr)
 @ stdcall RegSetKeySecurity(long long ptr)
+@ stdcall -version=0x600+ RegSetKeyValueW(long wstr wstr long ptr long)
 @ stdcall RegSetValueA(long str long ptr long)
 @ stdcall RegSetValueExA(long str long long ptr long)
 @ stdcall RegSetValueExW(long wstr long long ptr long)
@@ -569,15 +570,14 @@
 @ stdcall SaferGetPolicyInformation(long long long ptr ptr ptr)
 @ stdcall SaferIdentifyLevel(long ptr ptr ptr)
 @ stdcall SaferRecordEventLogEntry(ptr wstr ptr)
-@ stub SaferSetLevelInformation
-@ stub SaferSetPolicyInformation
-@ stub SaferiChangeRegistryScope
-@ stub SaferiCompareTokenLevels
-@ stub SaferiIsExecutableFileType
-@ stub SaferiPopulateDefaultsInRegistry
-@ stub SaferiRecordEventLogEntry
-@ stub SaferiReplaceProcessThreadTokens
-@ stub SaferiSearchMatchingHashRules
+@ stdcall -stub SaferSetLevelInformation() ;Wrong
+@ stdcall -stub SaferSetPolicyInformation() ;Wrong
+@ stdcall -stub SaferiChangeRegistryScope() ;Wrong
+@ stdcall -stub SaferiCompareTokenLevels() ;Wrong
+@ stdcall -stub SaferiPopulateDefaultsInRegistry() ;Wrong
+@ stdcall -stub SaferiRecordEventLogEntry() ;Wrong
+@ stdcall -stub SaferiReplaceProcessThreadTokens() ;Wrong
+@ stdcall -stub SaferiSearchMatchingHashRules() ;Wrong
 @ stdcall SetAclInformation(ptr ptr long long)
 @ stub SetEntriesInAccessListA
 @ stub SetEntriesInAccessListW
@@ -669,6 +669,7 @@
 @ stdcall TraceMessageVa() ntdll.EtwTraceMessageVa
 @ stdcall TreeResetNamedSecurityInfoA(str ptr ptr ptr ptr ptr ptr long ptr ptr ptr)
 @ stdcall TreeResetNamedSecurityInfoW(wstr long long ptr ptr ptr ptr long ptr long ptr)
+@ stdcall -stub -version=0x600+ TreeSetNamedSecurityInfoW(wstr long long ptr ptr ptr ptr long long ptr ptr)
 @ stub TrusteeAccessToObjectA
 @ stub TrusteeAccessToObjectW
 @ stub UninstallApplication
@@ -726,3 +727,9 @@
 @ stdcall -version=0x600+ RegLoadMUIStringA(ptr str str long ptr long str)
 @ stdcall -version=0x600+ RegDeleteTreeA(long str)
 @ stdcall -version=0x600+ RegDeleteTreeW(long wstr)
+
+@ stub -version=0x600+ CheckAppInitBlockedServiceIdentity
+@ stub UsePinForEncryptedFilesW
+@ stub SetUserFileEncryptionKeyEx
+
+@ stdcall -stub -version=0x600+ SaferiIsExecutableFileType(wstr long)

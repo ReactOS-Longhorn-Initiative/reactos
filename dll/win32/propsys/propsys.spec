@@ -1,26 +1,26 @@
   3 stub GetProxyDllInfo
 
-400 stub PROPSYS_400
-402 stub PROPSYS_402
-403 stub PROPSYS_403
-404 stub PROPSYS_404
-405 stub PROPSYS_405
-406 stub PROPSYS_406
-407 stub PROPSYS_407
-408 stub PROPSYS_408
-409 stub PROPSYS_409
-410 stub PROPSYS_410
-411 stub PROPSYS_411
-412 stub PROPSYS_412
-413 stub PROPSYS_413
-414 stub PROPSYS_414
-415 stub PROPSYS_415
-416 stub PROPSYS_416
-417 stub PROPSYS_417
-418 stub PROPSYS_418
-420 stub PROPSYS_420
-421 stub PROPSYS_421
-422 stub PROPSYS_422
+400 stdcall -stub PROPSYS_400()
+402 stdcall -stub PROPSYS_402()
+403 stdcall -stub PROPSYS_403()
+404 stdcall -stub PROPSYS_404()
+405 stdcall -stub PROPSYS_405()
+406 stdcall -stub PROPSYS_406()
+407 stdcall -stub PROPSYS_407()
+408 stdcall -stub PROPSYS_408()
+409 stdcall -stub PROPSYS_409()
+410 stdcall -stub PROPSYS_410()
+411 stdcall -stub PROPSYS_411()
+412 stdcall -stub PROPSYS_412()
+413 stdcall -stub PROPSYS_413()
+414 stdcall -stub PROPSYS_414()
+415 stdcall -stub PROPSYS_415()
+416 stdcall -stub PROPSYS_416()
+417 stdcall -stub PROPSYS_417()
+418 stdcall -stub PROPSYS_418()
+420 stdcall -stub PROPSYS_420()
+421 stdcall -stub PROPSYS_421()
+422 stdcall -stub PROPSYS_422()
 
 @ stub ClearPropVariantArray
 @ stub ClearVariantArray
@@ -78,7 +78,7 @@
 @ stub PSFormatPropertyValue
 @ stub PSGetItemPropertyHandler
 @ stub PSGetItemPropertyHandlerWithCreateObject
-@ stub PSGetNameFromPropertyKey
+@ stdcall -stub PSGetNameFromPropertyKey(ptr ptr)
 @ stub PSGetNamedPropertyFromPropertyStorage
 @ stdcall PSGetPropertyDescription(ptr ptr ptr)
 @ stub PSGetPropertyDescriptionByName
