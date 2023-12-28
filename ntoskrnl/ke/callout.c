@@ -125,7 +125,7 @@ KeFreeCalloutStack(
     BOOLEAN IsLargeStack;
 
     /* Check if the stack is a large stack */
-    StackSize = StackControl->StackBase - StackControl->ActualLimit & ~1;
+    StackSize = ((StackControl->StackBase - StackControl->ActualLimit) & ~1);
     IsLargeStack = StackSize > KERNEL_STACK_SIZE;
 
     /* Free the stack */

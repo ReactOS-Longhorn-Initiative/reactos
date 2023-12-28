@@ -2516,7 +2516,7 @@ SplitParams(LPCWSTR psz, LPWSTR pszArg0, size_t cchArg0)
 
     return pch;
 }
-
+EXTERN_C
 HRESULT WINAPI SHEvaluateSystemCommandTemplate(
   PCWSTR pszCmdTemplate,
   PWSTR  *ppszApplication,

@@ -616,7 +616,7 @@
 @ stdcall KeEnterGuardedRegion() _KeEnterGuardedRegion
 @ stdcall KeEnterKernelDebugger()
 @ stdcall -version=0x502 -arch=x86_64 KeExpandKernelStackAndCallout(ptr ptr ptr)
-@ stdcall -version=0x600+ KeExpandKernelStackAndCallout(ptr ptr ptr long ptr)
+@ stdcall -version=0x600+ KeExpandKernelStackAndCallout(ptr ptr long)
 @ stdcall -version=0x600+ KeExpandKernelStackAndCalloutEx(ptr ptr ptr long ptr)
 @ stdcall KeFindConfigurationEntry(ptr long long ptr)
 @ stdcall KeFindConfigurationNextEntry(ptr long long ptr ptr)
@@ -662,7 +662,7 @@
 @ stdcall KeInsertQueueApc(ptr ptr ptr long)
 @ stdcall KeInsertQueueDpc(ptr ptr ptr)
 @ stdcall KeInvalidateAllCaches()
-@ stdcall -version=0x600+ KeInvalidateRangeAllCaches(ptr long)
+@ fastcall -version=0x600+ KeInvalidateRangeAllCaches(ptr long)
 @ stdcall KeIpiGenericCall(ptr ptr)
 @ stdcall KeIsAttachedProcess()
 @ stdcall -arch=i386,arm KeIsExecutingDpc()

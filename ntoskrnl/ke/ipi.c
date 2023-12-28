@@ -27,6 +27,7 @@ KeInvalidateRangeAllCaches(
     UNIMPLEMENTED;
     __debugbreak();
 }
+
 #ifndef _M_AMD64
 
 VOID

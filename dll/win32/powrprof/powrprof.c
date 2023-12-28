@@ -1370,7 +1370,7 @@ PowerDeterminePlatformRole()
     return PlatformRoleDesktop;
 }
 
-DWORD PowerReadACValue(
+DWORD WINAPI PowerReadACValue(
   HKEY       RootPowerKey,
   const GUID *SchemeGuid,
   const GUID *SubGroupOfPowerSettingsGuid,
