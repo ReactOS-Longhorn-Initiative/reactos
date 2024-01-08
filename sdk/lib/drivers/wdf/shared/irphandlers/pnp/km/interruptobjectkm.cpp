@@ -180,6 +180,7 @@ FxInterrupt::DisconnectInternal(
 {
     IO_DISCONNECT_INTERRUPT_PARAMETERS params;
     PKINTERRUPT interruptObject;
+
     FxPkgPnp* fxPkgPnp;
 
     fxPkgPnp = m_Device->m_PkgPnp;
