@@ -127,6 +127,11 @@ typedef NTSTATUS
     _In_ WDFQUEUE Queue);
 
 // some other random stuff
+//TODO: WIP reversing
+typedef NTSTATUS
+(STDCALL *PFN_WDF_CLASS_LIBRARY_BIND_CLIENT)(
+    _In_ PWDF_CLASS_BIND_INFO WdfClassBindInfo,
+    _In_ void** WdfComponentGlobals);
 
 typedef PVOID PFN_WDF_CLASS_EXTENSIONIN_BIND;
 typedef PVOID PFN_WDF_CLASS_EXTENSIONIN_UNBIND;
