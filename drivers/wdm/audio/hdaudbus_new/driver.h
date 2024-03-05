@@ -49,6 +49,24 @@ extern "C" {
 
 #include "regfuncs.h"
 
+#undef _InterlockedAdd
+#define _InterlockedAdd _InlineInterlockedAdd
+FORCEINLINE
+LONG
+_InlineInterlockedAdd(
+    _Inout_ _Interlocked_operand_ volatile LONG *Target,
+    _In_ LONG Value)
+{
+    LONG Old, Prev, New;
+    for (Old = *Target; ; Old = Prev)
+    {
+        New = Old + Value;
+        Prev = _InterlockedCompareExchange(Target, New, Old);
+        if (Prev == Old)
+            return New;
+    }
+}
+
 HDAUDIO_BUS_INTERFACE HDA_BusInterface(PVOID Context);
 HDAUDIO_BUS_INTERFACE_V2 HDA_BusInterfaceV2(PVOID Context);
 HDAUDIO_BUS_INTERFACE_V3 HDA_BusInterfaceV3(PVOID Context);
@@ -83,7 +101,7 @@ static inline void udelay(LONG usec) {
 static ULONG SklHdAudBusDebugLevel = 100;
 static ULONG SklHdAudBusDebugCatagories = DBG_INIT || DBG_PNP || DBG_IOCTL;
 
-#if 0
+#if 1
 #define SklHdAudBusPrint(dbglevel, dbgcatagory, fmt, ...) {          \
     if (SklHdAudBusDebugLevel >= dbglevel &&                         \
         (SklHdAudBusDebugCatagories && dbgcatagory))                 \
