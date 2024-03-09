@@ -911,6 +911,37 @@ typedef struct _KTIMER {
   ULONG Period;
 } KTIMER, *PKTIMER, *RESTRICTED_POINTER PRKTIMER;
 
+typedef struct _KTIMER2
+{
+    struct _DISPATCHER_HEADER Header;
+    union
+    {
+        struct _RTL_BALANCED_NODE RbNodes[2];
+        struct _LIST_ENTRY ListEntry;
+    };
+    ULONGLONG DueTime;
+    ULONGLONG MaximumDueTime;
+    LONGLONG Period;
+    VOID (*Callback)(struct _KTIMER2* arg1, PVOID arg2);
+    PVOID CallbackContext;
+    VOID (*DisableCallback)(PVOID arg1);
+    PVOID DisableContext;
+    UCHAR AbsoluteSystemTime;
+    union
+    {
+        UCHAR TypeFlags;
+        struct
+        {
+            UCHAR Plain:1;
+            UCHAR IdleResilient:1;
+            UCHAR HighResolution:1;
+            UCHAR NoWake:1;
+            UCHAR NoWakeFinite:1;
+            UCHAR Unused:3;
+        };
+    };
+} KTIMER2, *PKTIMER2, *RESTRICTED_POINTER PRKTIMER2;
+
 typedef enum _LOCK_OPERATION {
   IoReadAccess,
   IoWriteAccess,
