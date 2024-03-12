@@ -316,6 +316,13 @@ CsrpCheckRequestThreads(VOID)
     return STATUS_SUCCESS;
 }
 
+VOID
+NTAPI
+CsrReplyToMessage(PPORT_MESSAGE Message)
+{
+  NtReplyWaitReceivePortEx(CsrApiPort, NULL, NULL, Message, 0);
+}
+
 /*++
  * @name CsrApiRequestThread
  *
