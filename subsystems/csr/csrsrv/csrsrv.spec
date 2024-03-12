@@ -33,3 +33,4 @@
 @ stdcall CsrUnlockThread(ptr)
 @ stdcall CsrValidateMessageBuffer(ptr ptr long long)
 @ stdcall CsrValidateMessageString(ptr ptr)
+@ stdcall CsrReplyToMessage(ptr)
