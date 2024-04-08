@@ -1,13 +1,21 @@
+
 [Version]
 signature="$Windows NT$"
 Class=USB
 ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
-Provider=%ReactOS%
-DriverVer=10/19/1999,6.2.8250.0
+Provider=%Msft%
+DriverVer=02/17/2012,6.2.8250.0
+
+[SourceDisksNames]
+3426=windows cd
 
 [SourceDisksFiles]
 usbxhci.sys  = 3426
 ucx01000.sys      = 3426
+
+[ControlFlags]
+BasicDriverOk = *
+ExcludeFromSelect = *
 
 [DestinationDirs]
 DefaultDestDir    = 12
@@ -16,7 +24,9 @@ USBXHCI.Copyfiles = 12
 [Manufacturer]
 %Generic.Mfg%=Generic,NTx86
 
-; xHCI Controllers
+;
+; ---------------------- xHCI Controllers ----------------------
+;
 
 [Generic.NTx86]
 %PCI\CC_0C0330.DeviceDesc%=Generic.Install,PCI\CC_0C0330
@@ -24,11 +34,24 @@ USBXHCI.Copyfiles = 12
 
 [Generic.Install.NT]
 CopyFiles=Generic.CopyFiles
+AddProperty=Generic.AddProperty
 ExcludeID=PCI\VEN_1B73&DEV_1000&CC_0C0330
 ExcludeID=PCI\VEN_1B73&DEV_1400&CC_0C0330
 
+;
+; FeatureScore values between 0x00-0x7F are reserved. Values 0x81-0xFE are for OEMs.
+;
+FeatureScore=80
+
 [Generic.Install.NT.HW]
+AddReg=Generic_AddReg.HW
 Include=machine.inf
+Needs=PciD3ColdSupported
+
+[Generic_AddReg.HW]
+HKR, Interrupt Management,, 0x00000010
+HKR, Interrupt Management\MessageSignaledInterruptProperties,, 0x00000010
+HKR, Interrupt Management\MessageSignaledInterruptProperties, MSISupported, 0x00010001, 1
 
 [Generic.Install.NT.Services]
 AddService=USBXHCI, 2, Generic.AddService
@@ -49,6 +72,10 @@ HKR,, BootFlags,  0x00010001, 16 ; CM_SERVICE_USB3_DISK_BOOT_LOAD
 UCX01000.SYS
 USBXHCI.SYS
 
+[Generic.AddProperty]
+; DEVPKEY_Device_DebuggerSafe, DEVPROP_TYPE_UINT32
+{a45c254e-df1c-4efd-8020-67d146a850e0},39,7,,1
+
 [UCX.AddService]
 DisplayName    = "USB Controller Extension"
 ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
@@ -62,11 +89,13 @@ AddReg         = UCX.AddService.AddReg
 HKLM,System\CurrentControlSet\Control\Wdf\Kmdf\Ucx\Versions\1\1,Service,,ucx01000
 HKR,, BootFlags,  0x00010001, 16 ;CM_SERVICE_USB3_DISK_BOOT_LOAD
 
-; Strings
+;
+; --------------------------- Strings --------------------------
+;
 
 [Strings]
-; Non-localizable
-ReactOS = "ReactOS Project"
+;Non-Localizable
+Msft = "Microsoft"
 
 ;Localizable
 Generic.Mfg = "Generic USB xHCI Host Controller"

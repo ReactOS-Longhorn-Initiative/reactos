@@ -1,9 +1,11 @@
+
+
 [Version]
 signature="$Windows NT$"
 Class=USB
 ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
-Provider=%ReactOS%
-DriverVer=10/19/1999,6.2.8250.0
+Provider=%Msft%
+DriverVer=02/17/2012,6.2.8250.0
 
 [SourceDisksNames]
 3426=windows cd
@@ -17,67 +19,238 @@ ExcludeFromSelect = *
 
 [DestinationDirs]
 DefaultDestDir    = 12
+USBHUB3.Copyfiles = 12
 
 [Manufacturer]
-%Generic.Mfg%=Generic,NTamd64
+%Generic.Mfg%=Generic,NTx86
 
-; - HUB3 Controllers -
+;
+; ---------------------- HUB3 Controllers ----------------------
+;
 
-[Generic.NTamd64]
+[Generic.NTx86]
 %UsbHub3.RootHubDeviceDesc%=Generic.Install, USB\ROOT_HUB30
 %UsbHub3.Usb30HubDesc%=Generic.Install, USB\USB30_HUB
 %UsbHub3.Usb20HubDesc%=Generic.Install, USB\USB20_HUB
 
 [Generic.Install.NT]
 CopyFiles=Generic.CopyFiles
-AddPowerSetting=USB3.PO1, USB3.PO2
+AddPowerSetting=USB3.PO1, USB3.PO2, USB3.PO3, USB3.PO4, USB3.PO5, USB3.PO6, USB3.PO7, USB3.PO8, USB3.PO9, USB3.PO10, USB3.PO11, USB3.PO12, USB3.PO13, USB3.PO14, USB3.PO15
 FeatureScore=0
+
+[Generic.Install.NT.HW]
+AddReg=Generic_AddReg
 
 [Generic.Install.NT.Services]
 AddService=USBHUB3, 2, Generic.AddService
+AddService=usbhub, 11F8, LegacyHub.AddService
 
 [Generic.AddService]
 DisplayName    = %UsbHub3.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
-StartType      = 3               ; SERVICE_DEMAND_START 
+StartType      = 0               ; SERVICE_DEMAND_START 
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
 ServiceBinary  = %12%\UsbHub3.sys
-LoadOrderGroup = Base
+LoadOrderGroup = System Bus Extender
 AddReg         = Service_AddReg
 
-[Generic.Install.NT.WMI]
-; Set access permissions for UI WMI GUIDs
-WMIInterface = {4E623B20-CB14-11D1-B331-00A0C959BBD2},,WMIGuidSecurity_AllRights
-WMIInterface = {9bbbf831-a2f2-43b4-96d1-86944b5914b3},,WMIGuidSecurity_AllRights
-WMIInterface = {9C179357-DC7A-4f41-B66B-323B9DDCB5B1},,WMIGuidSecurity_AllReadAdminFul
+[LegacyHub.AddService]
+DisplayName    = %LegacyHub.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 0                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\usbhub.sys
+LoadOrderGroup = Base
 
 [Service_AddReg]
 HKR,               , BootFlags,  0x00010001, 16 ; CM_SERVICE_USB3_DISK_BOOT_LOAD
 HKR, Parameters\Wdf, LogPages,   0x00010001, 3 ; KMDF IFR size
 HKR, Parameters,     LogPages,   0x00010001, 3 ; Driver IFR size
-; Dummy usbhub serivce because we mimic windows 8 usbhub3 a little too well.
-HKLM, SYSTEM\CurrentControlSet\Services\usbhub,,0x00000010
 
 [Generic.CopyFiles]
 USBHUB3.SYS
 
 [USB3.PO1]
 SubGroup = %GUID_POWER_USB_SUBGROUP%
-Setting = %GUID_POWER_USB_3_LINK_POWER_MANAGEMENT_POLICY%, %USB3LPMPolicyName%, %USB3LPMPolicyDescription%, ,1
-Value= 0, %ValueOff%, %ValueOffDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
-Value= 1, %ValueMinimumPowerSavings%, %ValueMinimumPowerSavingsDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
-Value= 2, %ValueModeratePowerSavings%, %ValueModeratePowerSavingsDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x2
-Value= 3, %ValueMaximumPowerSavings%, %ValueMaximumPowerSavingsDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x3
+Setting = %GUID_POWER_USB_U1_ENABLE_FOR_DEVICES%, %U1EnableForDevicesName%, %U1EnableForDevicesDescription%, ,1
+Value= 0, %ValueOffName%, %ValueOffDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueOnName%, %ValueOnDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 1
+
+[USB3.PO2]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U2_ENABLE_FOR_DEVICES%, %U2EnableForDevicesName%, %U2EnableForDevicesDescription%, ,1
+Value= 0, %ValueOffName%, %ValueOffDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueOnName%, %ValueOnDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 1
+
+[USB3.PO3]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U1_ENABLE_FOR_HUBS%, %U1EnableForHubsName%, %U1EnableForHubsDescription%, ,1
+Value= 0, %ValueOffName%, %ValueOffDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueOnName%, %ValueOnDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 1
+
+[USB3.PO4]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U2_ENABLE_FOR_HUBS%, %U2EnableForHubsName%, %U2EnableForHubsDescription%, ,1
+Value= 0, %ValueOffName%, %ValueOffDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueOnName%, %ValueOnDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 1
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 1
+
+[USB3.PO5]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U1_TIMEOUT_FOR_HUBS%, %U1TimeoutForHubsName%, %U1TimeoutForHubsDescription%, ,1
+Value= 0, %ValueAcceptAndInitiateName%, %ValueAcceptAndInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueAcceptButNotInitiateName%, %ValueAcceptButNotInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+Value= 2, %ValueRejectAndNotInitiateName%, %ValueRejectAndNotInitiateDesc%,  %FLG_ADDREG_TYPE_DWORD%, 0x2
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 0
+
+[USB3.PO6]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U2_TIMEOUT_FOR_HUBS%, %U2TimeoutForHubsName%, %U2TimeoutForHubsDescription%, ,1
+Value= 0, %ValueAcceptAndInitiateName%, %ValueAcceptAndInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueAcceptButNotInitiateName%, %ValueAcceptButNotInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+Value= 2, %ValueRejectAndNotInitiateName%, %ValueRejectAndNotInitiateDesc%,  %FLG_ADDREG_TYPE_DWORD%, 0x2
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 0
+
+[USB3.PO7]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U1_TIMEOUT_FOR_DEVICES%, %U1TimeoutForDevicesName%, %U1TimeoutForDevicesDescription%, ,1
+Value= 0, %ValueAcceptAndInitiateName%, %ValueAcceptAndInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueAcceptButNotInitiateName%, %ValueAcceptButNotInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+Value= 2, %ValueRejectAndNotInitiateName%, %ValueRejectAndNotInitiateDesc%,  %FLG_ADDREG_TYPE_DWORD%, 0x2
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 0
+
+[USB3.PO8]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_USB_U2_TIMEOUT_FOR_DEVICES%, %U2TimeoutForDevicesName%, %U2TimeoutForDevicesDescription%, ,1
+Value= 0, %ValueAcceptAndInitiateName%, %ValueAcceptAndInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x0
+Value= 1, %ValueAcceptButNotInitiateName%, %ValueAcceptButNotInitiateDesc%, %FLG_ADDREG_TYPE_DWORD%, 0x1
+Value= 2, %ValueRejectAndNotInitiateName%, %ValueRejectAndNotInitiateDesc%,  %FLG_ADDREG_TYPE_DWORD%, 0x2
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 0
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 0
+
+[USB3.PO9]
+SubGroup = %GUID_POWER_USB_SUBGROUP% 
+Setting = %GUID_POWER_CONTROL_U1_TIMEOUT%, %ControlU1TimeoutName%, %ControlU1TimeoutDescription%, ,1 
+ValueRange = 1, 10, 1, %Sel%
 
 Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 2
 Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 2
-Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 2
-Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 2
-Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 2
-Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 2
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 4
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 4
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 3
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 3
 
+[USB3.PO10]
+SubGroup = %GUID_POWER_USB_SUBGROUP% 
+Setting = %GUID_POWER_CONTROL_U2_TIMEOUT%, %ControlU2TimeoutName%, %ControlU2TimeoutDescription%, ,1
+ValueRange = 1, 10, 1, %Sel%
 
-[USB3.PO2]
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 2
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 2
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 4
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 4
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 3
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 3
+
+[USB3.PO11]
+SubGroup = %GUID_POWER_USB_SUBGROUP%
+Setting = %GUID_POWER_BULK_U1_TIMEOUT%, %BulkU1TimeoutName%, %BulkU1TimeoutDescription%, ,1
+ValueRange = 1, 10, 1, %Sel%
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 5
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 5
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 10
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 10
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 7
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 7
+
+[USB3.PO12]
+SubGroup = %GUID_POWER_USB_SUBGROUP% 
+Setting = %GUID_POWER_BULK_U2_TIMEOUT%, %BulkU2TimeoutName%, %BulkU2TimeoutDescription%, ,1
+ValueRange = 1, 10, 1, %Sel%
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 5
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 5
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 10
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 10
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 7
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 7
+
+[USB3.PO13]
+SubGroup = %GUID_POWER_USB_SUBGROUP% 
+Setting = %GUID_POWER_INTERRUPT_U1_TIMEOUT%, %InterruptU1TimeoutName%, %InterruptU1TimeoutDescription%, ,1
+ValueRange = 1, 10, 1, %Sel%
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 2
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 2
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 4
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 4
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 3
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 3
+
+[USB3.PO14]
+SubGroup = %GUID_POWER_USB_SUBGROUP% 
+Setting = %GUID_POWER_INTERRUPT_U2_TIMEOUT%, %InterruptU2TimeoutName%, %InterruptU2TimeoutDescription%, ,1
+ValueRange = 1, 10, 1, %Sel%
+
+Default = %GUID_MIN_POWER_SAVINGS%, %AC%, 2
+Default = %GUID_MIN_POWER_SAVINGS%, %DC%, 2
+Default = %GUID_MAX_POWER_SAVINGS%, %AC%, 4
+Default = %GUID_MAX_POWER_SAVINGS%, %DC%, 4
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %AC%, 3
+Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 3
+
+[USB3.PO15]
 SubGroup = %GUID_POWER_USB_SUBGROUP% 
 Setting = %GUID_POWER_HUB_SELECTIVE_SUSPEND_TIMEOUT%, %SelectiveSuspendTimeoutName%, %SelectiveSuspendTimeoutDescription%, ,1
 ValueRange = 1, 100000, 1, %Milisecond%
@@ -95,16 +268,29 @@ Default = %GUID_TYPICAL_POWER_SAVINGS%, %DC%, 2000
 
 [Strings]
 ;Non-Localizable
-ReactOS = "ReactOS Project"
-GUID_MAX_POWER_SAVINGS = "{a1841308-3541-4fab-bc81-f71556f20b4a}"
-GUID_TYPICAL_POWER_SAVINGS = "{381b4222-f694-41f0-9685-ff5bb260df2e}"
-GUID_MIN_POWER_SAVINGS = "{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}"
+Msft = "Microsoft"
+GUID_MAX_POWER_SAVINGS = {a1841308-3541-4fab-bc81-f71556f20b4a}
+GUID_TYPICAL_POWER_SAVINGS = {381b4222-f694-41f0-9685-ff5bb260df2e}
+GUID_MIN_POWER_SAVINGS = {8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}
 AC = 0
 DC = 1
 FLG_ADDREG_TYPE_DWORD = 0x00010001
-GUID_POWER_USB_SUBGROUP= "{2A737441-1930-4402-8D77-B2BEBBA308A3}"
-GUID_POWER_USB_3_LINK_POWER_MANAGEMENT_POLICY= "{D4E98F31-5FFE-4ce1-BE31-1B38B384C009}"
-GUID_POWER_HUB_SELECTIVE_SUSPEND_TIMEOUT= "{0853A681-27C8-4100-A2FD-82013E970683}"
+GUID_POWER_USB_SUBGROUP= {2A737441-1930-4402-8D77-B2BEBBA308A3}
+GUID_POWER_USB_U1_ENABLE_FOR_DEVICES= {FB093825-BF59-4fe6-8B6F-AFD6714C69E5}
+GUID_POWER_USB_U2_ENABLE_FOR_DEVICES= {903281EA-C859-47a9-8901-7A118C7BF5A7}
+GUID_POWER_USB_U1_ENABLE_FOR_HUBS= {C5F91E9D-0CED-43f2-905E-8F9D38E93339}
+GUID_POWER_USB_U2_ENABLE_FOR_HUBS= {34751A37-E607-452a-B9F7-D020FC5CD0DC}
+GUID_POWER_USB_U1_TIMEOUT_FOR_DEVICES= {A7B5D35E-C12C-4f36-A44F-00628F900388}
+GUID_POWER_USB_U2_TIMEOUT_FOR_DEVICES= {300C0440-EE77-4c1b-AF99-3A33F8A9CA5D}
+GUID_POWER_USB_U1_TIMEOUT_FOR_HUBS= {329423DD-222F-4b04-815B-08C1A6D89C8E}
+GUID_POWER_USB_U2_TIMEOUT_FOR_HUBS= {BBFBADAF-7520-491a-910D-4A2CEE72203F}
+GUID_POWER_CONTROL_U1_TIMEOUT= {316F5B91-9176-46b3-8FCA-C3B760B52CCC}
+GUID_POWER_CONTROL_U2_TIMEOUT= {F3F88BD5-9D36-4fbc-A8FB-8846D7CB0EF8}
+GUID_POWER_BULK_U1_TIMEOUT={59FB6E84-0365-46be-A455-E334FAD5BBA8}
+GUID_POWER_BULK_U2_TIMEOUT={9E7637A5-2E4D-4ccd-863E-656C1D75506F}
+GUID_POWER_INTERRUPT_U1_TIMEOUT={5731A51C-1EE5-4335-88ED-F5798CF9BD88}
+GUID_POWER_INTERRUPT_U2_TIMEOUT={24AAFF09-7421-4f16-9D5C-BD23378016C9}
+GUID_POWER_HUB_SELECTIVE_SUSPEND_TIMEOUT={0853A681-27C8-4100-A2FD-82013E970683}
 
 ;Localizable
 Generic.Mfg = "(Standard USB HUBs)"
@@ -113,17 +299,159 @@ UsbHub3.Usb30HubDesc = "Generic SuperSpeed USB Hub"
 UsbHub3.Usb20HubDesc = "Generic USB Hub"
 UsbHub3.SVCDESC = "SuperSpeed Hub"
 
-USB3LPMPolicyName = "USB 3 Link Power Mangement"
-USB3LPMPolicyDescription = "Specifies the power management policy to use for USB 3 links when they are idle "
-ValueOff="Off"
-ValueOffDesc="Do not enable the U1 U2 states"
-ValueMinimumPowerSavings = "Minimum power savings"
-ValueModeratePowerSavings = "Moderate power savings"
-ValueMaximumPowerSavings = "Maximum power savings"
-ValueMinimumPowerSavingsDesc = "Enable the U1 U2 states but choose conservative timeout values to optimize for peformance"
-ValueModeratePowerSavingsDesc = "Enable the U1 U2 states and choose optimal timeout values to balance power and peformance"
-ValueMaximumPowerSavingsDesc = "Enable the U1 U2 states and choose aggressive timeout values to optimize for power"
+U1EnableForDevicesName = "U1 Enabled For Devices"
+U1EnableForDevicesDescription = "Should the US Port of the device be allowed to initiate U1 transitions"
+U2EnableForDevicesName = "U2 Enabled For Devices"
+U2EnableForDevicesDescription = "Should the US Port of the device be allowed to initiate U2 transitions"
+U1EnableForHubsName = "U1 Enabled For Hubs"
+U1EnableForHubsDescription = "Should the US Port of the hub be allowed to initiate U1 transitions"
+U2EnableForHubsName = "U2 Enabled For Hubs"
+U2EnableForHubsDescription = "Should the US Port of the hub be allowed to initiate U2 transitions"
+U1TimeoutForDevicesName = "U1 Timeout For Devices"
+U1TimeoutForDevicesDescription= "Policy for setting timeout on the DS port to which the device is connected"
+U2TimeoutForDevicesName = "U2 Timeout For Devices"
+U2TimeoutForDevicesDescription= "Policy for setting timeout on the DS port to which the device is connected"
+U1TimeoutForHubsName = "U1 Timeout For Hubs"
+U1TimeoutForHubsDescription= "Policy for setting timeout on the DS port to which the hub is connected"
+U2TimeoutForHubsName = "U2 Timeout For Hubs"
+U2TimeoutForHubsDescription= "Policy for setting timeout on the DS port to which the hub is connected"
+ControlU1TimeoutName = "Control U1 Timeout"
+ControlU1TimeoutDescription = "This value times SEL will be used as U1 timeout for control endpoints"
+ControlU2TimeoutName = "Control U2 Timeout"
+ControlU2TimeoutDescription = "This value times SEL will be used as U2 timeout for control endpoints"
+BulkU1TimeoutName = "Bulk U1 Timeout"
+BulkU1TimeoutDescription = "This value times SEL will be used as U1 timeout for bulk endpoints"
+BulkU2TimeoutName = "Bulk U2 Timeout"
+BulkU2TimeoutDescription = "This value times SEL will be used as U2 timeout for bulk endpoints"
+InterruptU1TimeoutName = "Interrupt U1 Timeout"
+InterruptU1TimeoutDescription = "This value times SEL will be used as U1 timeout for non periodic interrupt endpoints"
+InterruptU2TimeoutName = "Interrupt U2 Timeout"
+InterruptU2TimeoutDescription = "This value times SEL will be used as U2 timeout for non periodic interrupt endpoints"
+Sel = "SEL"
+ValueOnName="Enabled"
+ValueOnDesc="Enable the link power management state"
+ValueOffName="Disabled"
+ValueOffDesc="Do not enable the link power management state"
 SelectiveSuspendTimeoutName = "Hub Selective Suspend Timeout"
 SelectiveSuspendTimeoutDescription = "This value will be used as idle timeouts for all USB hubs"
 Milisecond = "Milisecond"
+ValueAcceptAndInitiateName= "Accept and initiate"
+ValueAcceptAndInitiateDesc= "Set a timeout value that allows the DS port to intiate as well as accept link state transition"
+ValueAcceptButNotInitiateName= "Accept but not initiate"
+ValueAcceptButNotInitiateDesc= "Set a timeout value that allows the DS port to accept but not initiate link state transition"
+ValueRejectAndNotInitiateName= "Reject and not initiate"
+ValueRejectAndNotInitiateDesc= "Set a timeout value that does not allow DS port to accept or initiate link state transition"
+
+109 changes: 109 additions & 0 deletions 109
+media/inf/usbxhci.inf
+@@ -0,0 +1,109 @@
+
+;
+; usbxhci.inf
+;
+; Copyright (c) Microsoft Corporation. All rights reserved.
+;
+
+[Version]
+signature="$Windows NT$"
+Class=USB
+ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
+Provider=%Msft%
+DriverVer=02/17/2012,6.2.8250.0
+
+[SourceDisksNames]
+3426=windows cd
+
+[SourceDisksFiles]
+usbxhci.sys  = 3426
+ucx01000.sys      = 3426
+
+[ControlFlags]
+BasicDriverOk = *
+ExcludeFromSelect = *
+
+[DestinationDirs]
+DefaultDestDir    = 12
+USBXHCI.Copyfiles = 12
+
+[Manufacturer]
+%Generic.Mfg%=Generic,NTx86
+
+;
+; ---------------------- xHCI Controllers ----------------------
+;
+
+[Generic.NTx86]
+%PCI\CC_0C0330.DeviceDesc%=Generic.Install,PCI\CC_0C0330
+%ACPI\PNP0D10.DeviceDesc%=Generic.Install,ACPI\PNP0D10
+
+[Generic.Install.NT]
+CopyFiles=Generic.CopyFiles
+AddProperty=Generic.AddProperty
+ExcludeID=PCI\VEN_1B73&DEV_1000&CC_0C0330
+ExcludeID=PCI\VEN_1B73&DEV_1400&CC_0C0330
+
+;
+; FeatureScore values between 0x00-0x7F are reserved. Values 0x81-0xFE are for OEMs.
+;
+FeatureScore=80
+
+[Generic.Install.NT.HW]
+AddReg=Generic_AddReg.HW
+Include=machine.inf
+Needs=PciD3ColdSupported
+
+[Generic_AddReg.HW]
+HKR, Interrupt Management,, 0x00000010
+HKR, Interrupt Management\MessageSignaledInterruptProperties,, 0x00000010
+HKR, Interrupt Management\MessageSignaledInterruptProperties, MSISupported, 0x00010001, 1
+
+[Generic.Install.NT.Services]
+AddService=USBXHCI, 2, Generic.AddService
+AddService=UCX01000,,UCX.AddService
+
+[Generic.AddService]
+DisplayName   = %PCI\CC_0C0330.DeviceDesc%
+ServiceType   = 1
+StartType     = 0
+ErrorControl  = 1
+ServiceBinary = %12%\USBXHCI.SYS
+AddReg        = USBXHCI.AddReg
+
+[USBXHCI.AddReg]
+HKR,, BootFlags,  0x00010001, 16 ; CM_SERVICE_USB3_DISK_BOOT_LOAD
+
+[Generic.CopyFiles]
+UCX01000.SYS
+USBXHCI.SYS
+
+[Generic.AddProperty]
+; DEVPKEY_Device_DebuggerSafe, DEVPROP_TYPE_UINT32
+{a45c254e-df1c-4efd-8020-67d146a850e0},39,7,,1
+
+[UCX.AddService]
+DisplayName    = "USB Controller Extension"
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 0                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\ucx01000.sys
+LoadOrderGroup = Boot Bus Extender
+AddReg         = UCX.AddService.AddReg
+
+[UCX.AddService.AddReg]
+HKLM,System\CurrentControlSet\Control\Wdf\Kmdf\Ucx\Versions\1\1,Service,,ucx01000
+HKR,, BootFlags,  0x00010001, 16 ;CM_SERVICE_USB3_DISK_BOOT_LOAD
+
+;
+; --------------------------- Strings --------------------------
+;
+
+[Strings]
+;Non-Localizable
+Msft = "Microsoft"
+
+;Localizable
+Generic.Mfg = "Generic USB xHCI Host Controller"
+PCI\CC_0C0330.DeviceDesc="USB xHCI Compliant Host Controller"
+ACPI\PNP0D10.DeviceDesc="USB xHCI Compliant Host Controller"
 
