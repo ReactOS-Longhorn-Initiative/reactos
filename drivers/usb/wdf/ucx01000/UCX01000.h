@@ -18,3 +18,5 @@
 #include "wdf.h"
 #include <wdfldr.h>
 #include "specstrings.h"
+#include "../include/ucxclass.h"
+

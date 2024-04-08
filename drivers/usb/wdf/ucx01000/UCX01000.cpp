@@ -4,9 +4,15 @@
  * PURPOSE:         UCX01000 Startup
  * COPYRIGHT:       Copyright 2023 Justin Miller <justin.miller@reactos.org>
  */
-
+#define USB3MOMENT 1
 #include "UCX01000.h"
+extern "C"
+{
+ #include "../include/ucxclass.h"
+}
+
 #include <debug.h>
+
 NTSTATUS
 NTAPI
 UcxClassBindClient(_In_ PWDF_CLASS_BIND_INFO WdfClassBindInfo,
@@ -93,7 +99,7 @@ DriverEntry(
     PublicWdfDriverUcxContext = WdfObjectGetTypedContextWorker(driverObject,
                                       attributes.ContextTypeInfo);
 
-
+ 
     PWDFDEVICE_INIT   pWdfDeviceInit ;
     pWdfDeviceInit = WdfControlDeviceInitAllocate(driverObject, &SDDL_DEVOBJ_KERNEL_ONLY);
     if (!pWdfDeviceInit)
