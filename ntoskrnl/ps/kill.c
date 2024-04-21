@@ -785,6 +785,11 @@ PspExitThread(IN NTSTATUS ExitStatus)
         /* Check if the thread is still alive */
         if (!Thread->DeadThread)
         {
+#if (NTDDI_VERSION < NTDDI_LONGHORN)
+            /*
+             * See Geoff's comment on FreeStackOnTermination here.
+             * https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/pebteb/teb/index.htm
+             */
             /* Check if we need to free its stack */
             if (Teb->FreeStackOnTermination)
             {
@@ -798,7 +803,7 @@ PspExitThread(IN NTSTATUS ExitStatus)
                                     &Dummy,
                                     MEM_RELEASE);
             }
-
+#endif
             /* Free the debug handle */
             if (Teb->DbgSsReserved[1]) ObCloseHandle(Teb->DbgSsReserved[1],
                                                      UserMode);
