@@ -34,8 +34,8 @@ StorPortEtwEventDiagnostic
 #endif
 
 ULONG StorPortFreeTimer(
-  PVOID HwDeviceExtension,
-  PVOID TimerHandle
+    PVOID HwDeviceExtension,
+    PVOID TimerHandle
 )
 {
     UNIMPLEMENTED;
@@ -43,12 +43,12 @@ ULONG StorPortFreeTimer(
     return 0;
 }
 ULONG StorPortStateChangeDetected(
-  PVOID            HwDeviceExtension,
-  ULONG            ChangedEntity,
-  PSTOR_ADDRESS    Address,
-  ULONG            Attributes,
-  PHW_STATE_CHANGE HwStateChange,
-  PVOID            HwStateChangeContext
+    PVOID            HwDeviceExtension,
+    ULONG            ChangedEntity,
+    PSTOR_ADDRESS    Address,
+    ULONG            Attributes,
+    PHW_STATE_CHANGE HwStateChange,
+    PVOID            HwStateChangeContext
 )
 {
     UNIMPLEMENTED;
@@ -58,25 +58,21 @@ ULONG StorPortStateChangeDetected(
 
 
 ULONG StorPortInitializeTimer(
-  PVOID HwDeviceExtension,
-  PVOID *TimerHandle
+    PVOID HwDeviceExtension,
+    PVOID *TimerHandle
 )
 {
-    UNIMPLEMENTED;
-    __debugbreak();
-    return 0;
+    return StorPortExtendedFunction(ExtFunctionInitializeTimer, HwDeviceExtension, TimerHandle);
 }
 
 ULONG StorPortRequestTimer(
-  PVOID        HwDeviceExtension,
-  PVOID        TimerHandle,
-  PHW_TIMER_EX TimerCallback,
-  PVOID        CallbackContext,
-  ULONGLONG    TimerValue,
-  ULONGLONG    TolerableDelay
+    PVOID        HwDeviceExtension,
+    PVOID        TimerHandle,
+    PHW_TIMER_EX TimerCallback,
+    PVOID        CallbackContext,
+    ULONGLONG    TimerValue,
+    ULONGLONG    TolerableDelay
 )
 {
-    UNIMPLEMENTED;
-    __debugbreak();
-    return 0;
+    return StorPortExtendedFunction(ExtFunctionRequestTimer, HwDeviceExtension, TimerHandle, TimerCallback, CallbackContext, TimerValue, TolerableDelay);
 }
