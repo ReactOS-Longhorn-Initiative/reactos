@@ -1,0 +1,33 @@
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE
+{
+1000, "Default"
+}
+
+STRINGTABLE
+{
+2000, "Aero Color Scheme"
+}
+
+STRINGTABLE
+{
+3000, "Normal"
+}
+
+STRINGTABLE
+{
+4000, "Normal size"
+}
+
+STRINGTABLE
+{
+5000, 	"Aero style"
+5001, 	"Aero Visual Style"
+5002, 	"Microsoft Corporation"
+5003, 	"MSX"
+5004, 	"Copyright Microsoft Corporation, 2003.  All rights reserved."
+5005, 	"http://www.microsoft.com"
+5006, 	"1.0"
+5007, 	"Microsoft Windows Visual Style"
+}
