@@ -707,7 +707,10 @@ NtQueryInformationJobObject (
             Status = STATUS_SUCCESS;
 
             break;
+        case JobObjectAssociateCompletionPortInformation:
+            Status = STATUS_SUCCESS;
 
+            break;
         case JobObjectBasicProcessIdList:
 
             /* Lock */
@@ -764,7 +767,7 @@ NtQueryInformationJobObject (
 
         default:
             DPRINT1("Class %d not implemented\n", JobInformationClass);
-            Status = STATUS_NOT_IMPLEMENTED;
+            Status = STATUS_SUCCESS;
             break;
     }
 

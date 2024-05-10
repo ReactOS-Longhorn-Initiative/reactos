@@ -16,6 +16,7 @@
 @ stdcall CM_Add_Res_Des(ptr ptr long ptr long long)
 @ stdcall CM_Add_Res_Des_Ex(ptr ptr long ptr long long ptr)
 @ stdcall CM_Connect_MachineA(str ptr)
+@ stdcall -stub SetupDiGetDevicePropertyW(ptr)
 @ stdcall CM_Connect_MachineW(wstr ptr)
 @ stdcall CM_Create_DevNodeA(ptr str long long)
 @ stdcall CM_Create_DevNodeW(ptr wstr long long)

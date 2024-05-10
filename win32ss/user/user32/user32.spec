@@ -100,9 +100,15 @@
 99 stdcall CreateWindowStationA(str long long ptr)
 100 stdcall CreateWindowStationW(wstr long long ptr)
 101 stdcall CsrBroadcastSystemMessageExW(long ptr long long long ptr)
+@ stdcall AddClipboardFormatListener(ptr)
+@ stdcall RemoveClipboardFormatListener(ptr)
 102 stdcall CtxInitUser32()
 # DbgWin32HeapFail
+@ stdcall RegisterSuspendResumeNotification(ptr long)
+@ stdcall UnregisterSuspendResumeNotification(ptr)
 # DbgWin32HeapStat
+@ stdcall -stub SetCoalescableTimer(ptr)
+@ stdcall -stub SystemParametersInfoForDpi(long long ptr long long)
 105 stdcall DdeAbandonTransaction(long long long)
 106 stdcall DdeAccessData(long ptr)
 107 stdcall DdeAddData(long ptr long long)
@@ -766,3 +772,18 @@
 @ stdcall -stub -version=0x600+ ShutdownBlockReasonDestroy(ptr)
 @ stub -version=0x600+ PaintMonitor
 @ stub IsWindowRedirectedForPrint
+
+@ stdcall -stub GetPointerPenInfoHistory()
+@ stdcall -stub GetPointerType()
+@ stdcall -stub GetPointerInfo()
+
+@ stdcall -stub ChangeWindowMessageFilterEx(ptr)
+@ stdcall -stub CloseTouchInputHandle(ptr)
+@ stdcall -stub GetTouchInputHandle(ptr)
+@ stdcall -stub IsTouchWindow(ptr)
+@ stdcall -stub RegisterTouchWindow(ptr)
+@ stdcall -stub UnregisterTouchWindow(ptr)
+@ stdcall -stub GetTouchInputInfo(ptr)
+@ stdcall -stub GetDisplayConfigBufferSizes()
+@ stdcall -stub QueryDisplayConfig()
+@ stdcall -stub DisplayConfigGetDeviceInfo()

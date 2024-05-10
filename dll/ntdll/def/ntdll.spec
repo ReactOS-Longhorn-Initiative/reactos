@@ -45,6 +45,8 @@
 @ stdcall -stub -version=0x600+ CsrVerifyRegion(ptr long)
 @ stdcall DbgBreakPoint()
 @ varargs DbgPrint(str)
+@ stdcall -stub WinSqmAddToStreamEx(ptr)
+@ stdcall -stub WinSqmCommonDatapointSetDWORD(ptr)
 @ varargs DbgPrintEx(long long str)
 @ varargs DbgPrintReturnControlC(str)
 @ stdcall DbgPrompt(ptr ptr long)

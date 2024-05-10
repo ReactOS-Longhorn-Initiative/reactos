@@ -12,7 +12,21 @@ WINE_DEFAULT_DEBUG_CHANNEL(ddeml);
 
 BOOL FASTCALL DdeAddPair(HGLOBAL ClientMem, HGLOBAL ServerMem);
 HGLOBAL FASTCALL DdeGetPair(HGLOBAL ServerMem);
+typedef  PVOID           HPOWERNOTIFY;
+typedef  HPOWERNOTIFY   *PHPOWERNOTIFY;
 
+ HPOWERNOTIFY WINAPI RegisterSuspendResumeNotification(
+	IN	HANDLE	hRecipient,
+	IN	DWORD	Flags)
+{
+	return NULL;
+}
+
+BOOL WINAPI UnregisterSuspendResumeNotification(
+	IN OUT	HPOWERNOTIFY	Handle)
+{
+	return FALSE;
+}
 
 /* description of the data fields that need to be packed along with a sent message */
 struct packed_message

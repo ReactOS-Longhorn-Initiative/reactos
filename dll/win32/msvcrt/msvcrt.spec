@@ -360,6 +360,8 @@
 @ extern _acmdln
 @ stdcall -arch=i386 _adj_fdiv_m16i(long)
 @ stdcall -arch=i386 _adj_fdiv_m32(long)
+@ cdecl -stub _fdclass();
+@ cdecl -stub trunc();
 @ stdcall -arch=i386 _adj_fdiv_m32i(long)
 @ stdcall -arch=i386 _adj_fdiv_m64(double)
 @ cdecl -arch=i386 _adj_fdiv_r()
@@ -370,6 +372,7 @@
 @ cdecl -arch=i386 _adj_fpatan()
 @ cdecl -arch=i386 _adj_fprem()
 @ cdecl -arch=i386 _adj_fprem1()
+@ cdecl -stub log2()
 @ cdecl -arch=i386 _adj_fptan()
 @ extern -arch=i386 _adjust_fdiv
 @ extern _aexit_rtn
@@ -410,6 +413,7 @@
 @ cdecl _chdir(str)
 @ cdecl _chdrive(long)
 @ cdecl _chgsign(double)
+@ cdecl -stub _dclass(ptr)
 @ cdecl -arch=x86_64,arm _chgsignf(long)
 @ cdecl -arch=i386 -norelay _chkesp()
 @ cdecl _chmod(str long)
@@ -425,7 +429,9 @@
 @ cdecl _controlfp(long long)
 @ cdecl -version=0x600+ _controlfp_s(ptr long long)
 @ cdecl _copysign( double double )
+@ cdecl copysign( double double) _copysign
 @ cdecl -arch=x86_64,arm _copysignf(long long)
+@ cdecl -arch=x86_64,arm copysignf(long long) _copysignf
 @ varargs _cprintf(str)
 @ stub -version=0x600+ _cprintf_l
 @ stub -version=0x600+ _cprintf_p
@@ -471,8 +477,8 @@
 @ extern -arch=i386,x86_64 _environ
 @ cdecl _eof(long)
 @ cdecl _errno()
-@ cdecl -arch=i386 _except_handler2(ptr ptr ptr ptr)
-@ cdecl -arch=i386 _except_handler3(ptr ptr ptr ptr)
+@ cdecl _except_handler2(ptr ptr ptr ptr)
+@ cdecl _except_handler3(ptr ptr ptr ptr)
 @ cdecl -arch=i386 -version=0x600+ _except_handler4_common(ptr ptr ptr ptr ptr ptr)
 @ varargs _execl(str str)
 @ varargs _execle(str str)
@@ -597,6 +603,7 @@
 @ cdecl -arch=x86_64 -version=0x502 _heapused(ptr ptr)
 @ cdecl _heapwalk(ptr)
 @ cdecl _hypot(double double)
+@ cdecl hypot(double double) _hypot
 @ cdecl -arch=x86_64,arm _hypotf(long long)
 @ cdecl _i64toa(long long ptr long)
 @ cdecl -version=0x600+ _i64toa_s(int64 ptr long long)
@@ -941,10 +948,11 @@
 @ cdecl -version=0x600+ _set_doserrno(long)
 @ cdecl -version=0x600+ _set_errno(long)
 @ cdecl _set_error_mode(long)
-@ stub -version=0x600+ _set_fileinfo
-@ stub -version=0x600+ _set_fmode
-@ stub -version=0x600+ _set_output_format
+@ cdecl -stub -version=0x600+ _set_fileinfo()
+@ cdecl -stub -version=0x600+ _set_fmode()
+@ cdecl -stub -version=0x600+ _set_output_format()
 @ cdecl _set_sbh_threshold(long)
+@ cdecl -stub _ldclass()
 @ cdecl _seterrormode(long)
 @ cdecl -norelay _setjmp(ptr)
 @ cdecl -arch=i386 -norelay _setjmp3(ptr long)
@@ -1079,61 +1087,60 @@
 @ cdecl _utime(str ptr)
 @ stub -version=0x600+ _utime32
 @ cdecl _utime64(str ptr)
-@ stub -version=0x600+ _vcprintf
-@ stub -version=0x600+ _vcprintf_l
-@ stub -version=0x600+ _vcprintf_p
-@ stub -version=0x600+ _vcprintf_p_l
-@ stub -version=0x600+ _vcprintf_s
-@ stub -version=0x600+ _vcprintf_s_l
-@ stub -version=0x600+ _vcwprintf
-@ stub -version=0x600+ _vcwprintf_l
-@ stub -version=0x600+ _vcwprintf_p
-@ stub -version=0x600+ _vcwprintf_p_l
-@ stub -version=0x600+ _vcwprintf_s
-@ stub -version=0x600+ _vcwprintf_s_l
-@ stub -version=0x600+ _vfprintf_l
-@ stub -version=0x600+ _vfprintf_p
-@ stub -version=0x600+ _vfprintf_p_l
-@ stub -version=0x600+ _vfprintf_s_l
-@ stub -version=0x600+ _vfwprintf_l
-@ stub -version=0x600+ _vfwprintf_p
-@ stub -version=0x600+ _vfwprintf_p_l
-@ stub -version=0x600+ _vfwprintf_s_l
-@ stub -version=0x600+ _vprintf_l
-@ stub -version=0x600+ _vprintf_p
-@ stub -version=0x600+ _vprintf_p_l
-@ stub -version=0x600+ _vprintf_s_l
+@ cdecl -stub -version=0x600+ _vcprintf()
+@ cdecl -stub -version=0x600+ _vcprintf_l()
+@ cdecl -stub -version=0x600+ _vcprintf_p()
+@ cdecl -stub -version=0x600+ _vcprintf_p_l()
+@ cdecl -stub -version=0x600+ _vcprintf_s()
+@ cdecl -stub -version=0x600+ _vcprintf_s_l()
+@ cdecl -stub -version=0x600+ _vcwprintf()
+@ cdecl -stub -version=0x600+ _vcwprintf_l()
+@ cdecl -stub -version=0x600+ _vcwprintf_p()
+@ cdecl -stub -version=0x600+ _vcwprintf_p_l()
+@ cdecl -stub -version=0x600+ _vcwprintf_s()
+@ cdecl -stub -version=0x600+ _vcwprintf_s_l()
+@ cdecl -stub -version=0x600+ _vfprintf_l()
+@ cdecl -stub -version=0x600+ _vfprintf_p()
+@ cdecl -stub -version=0x600+ _vfprintf_p_l()
+@ cdecl -stub -version=0x600+ _vfprintf_s_l()
+@ cdecl -stub -version=0x600+ _vfwprintf_l()
+@ cdecl -stub -version=0x600+ _vfwprintf_p()
+@ cdecl -stub -version=0x600+ _vfwprintf_p_l()
+@ cdecl -stub -version=0x600+ _vfwprintf_s_l()
+@ cdecl -stub -version=0x600+ _vprintf_l()
+@ cdecl -stub -version=0x600+ _vprintf_p()
+@ cdecl -stub -version=0x600+ _vprintf_p_l()
+@ cdecl -stub -version=0x600+ _vprintf_s_l()
 @ cdecl _vscprintf(str ptr)
-@ stub -version=0x600+ _vscprintf_l
-@ stub -version=0x600+ _vscprintf_p_l
+@ cdecl -stub -version=0x600+ _vscprintf_l()
+@ cdecl -stub -version=0x600+ _vscprintf_p_l()
 @ cdecl _vscwprintf(wstr ptr)
-@ stub -version=0x600+ _vscwprintf_l
-@ stub -version=0x600+ _vscwprintf_p_l
+@ cdecl -stub -version=0x600+ _vscwprintf_l()
+@ cdecl -stub -version=0x600+ _vscwprintf_p_l()
 @ cdecl _vsnprintf(ptr long str ptr)
-@ stub -version=0x600+ _vsnprintf_c
-@ stub -version=0x600+ _vsnprintf_c_l
-@ stub -version=0x600+ _vsnprintf_l
-@ stub -version=0x600+ _vsnprintf_s
-@ stub -version=0x600+ _vsnprintf_s_l
+@ cdecl -stub -version=0x600+ _vsnprintf_c()
+@ cdecl -stub -version=0x600+ _vsnprintf_c_l()
+@ cdecl -stub -version=0x600+ _vsnprintf_l()
+@ cdecl -stub -version=0x600+ _vsnprintf_s()
+@ cdecl -stub -version=0x600+ _vsnprintf_s_l()
 @ cdecl _vsnwprintf(ptr long wstr ptr)
-@ stub -version=0x600+ _vsnwprintf_l
-@ stub -version=0x600+ _vsnwprintf_s
-@ stub -version=0x600+ _vsnwprintf_s_l
-@ stub -version=0x600+ _vsprintf_l
-@ stub -version=0x600+ _vsprintf_p
-@ stub -version=0x600+ _vsprintf_p_l
-@ stub -version=0x600+ _vsprintf_s_l
-@ cdecl -version=0x400-0x502 -impsym _vswprintf() vswprintf # Compatibility for pre NT6
-@ stub -version=0x600+ _vswprintf
-@ stub -version=0x600+ _vswprintf_c
-@ stub -version=0x600+ _vswprintf_c_l
-@ stub -version=0x600+ _vswprintf_l
-@ stub -version=0x600+ _vswprintf_p_l
-@ stub -version=0x600+ _vswprintf_s_l
-@ stub -version=0x600+ _vwprintf_l
-@ stub -version=0x600+ _vwprintf_p
-@ stub -version=0x600+ _vwprintf_p_l
-@ stub -version=0x600+ _vwprintf_s_l
+@ cdecl -stub -version=0x600+ _vsnwprintf_l()
+@ cdecl -stub -version=0x600+ _vsnwprintf_s()
+@ cdecl -stub -version=0x600+ _vsnwprintf_s_l()
+@ cdecl -stub -version=0x600+ _vsprintf_l()
+@ cdecl -stub -version=0x600+ _vsprintf_p()
+@ cdecl -stub -version=0x600+ _vsprintf_p_l()
+@ cdecl -stub -version=0x600+ _vsprintf_s_l()
+@ cdecl -stub -version=0x600+ _vswprintf()
+@ cdecl -stub -version=0x600+ _vswprintf_c()
+@ cdecl -stub -version=0x600+ _vswprintf_c_l()
+@ cdecl -stub -version=0x600+ _vswprintf_l()
+@ cdecl -stub -version=0x600+ _vswprintf_p_l()
+@ cdecl -stub -version=0x600+ _vswprintf_s_l()
+@ cdecl -stub -version=0x600+ _vwprintf_l()
+@ cdecl -stub -version=0x600+ _vwprintf_p()
+@ cdecl -stub -version=0x600+ _vwprintf_p_l()
+@ cdecl -stub -version=0x600+ _vwprintf_s_l()
 @ cdecl _waccess(wstr long)
 @ cdecl -version=0x600+ _waccess_s(wstr long)
 @ cdecl _wasctime(ptr)
@@ -1215,7 +1222,7 @@
 @ cdecl _wgetcwd(wstr long)
 @ cdecl _wgetdcwd(long wstr long)
 @ cdecl _wgetenv(wstr)
-@ stub -version=0x600+ _wgetenv_s
+@ cdecl -stub -version=0x600+ _wgetenv_s()
 @ extern _winmajor
 @ extern _winminor
 @ stub -version=0x600+ _winput_s
@@ -1452,7 +1459,10 @@
 @ cdecl sinh(double)
 @ cdecl -arch=x86_64,arm sinhf(long)
 @ varargs sprintf(ptr str)
-@ stub -version=0x600+ sprintf_s
+@ cdecl -stub erf(ptr)
+@ cdecl -stub erfc(ptr)
+@ cdecl -stub round(ptr)
+@ stdcall -stub -version=0x600+ sprintf_s()
 @ cdecl sqrt(double)
 @ cdecl -arch=x86_64,arm sqrtf(long)
 @ cdecl srand(long)
@@ -1515,7 +1525,7 @@
 @ stub -version=0x600+ vprintf_s
 @ cdecl -version=0x600+ vsnprintf(ptr long str ptr)
 @ cdecl vsprintf(ptr str ptr)
-@ stub -version=0x600+ vsprintf_s
+@ stdcall -stub -version=0x600+ vsprintf_s()
 @ cdecl vswprintf(ptr wstr ptr)
 @ stub -version=0x600+ vswprintf_s
 @ cdecl vwprintf(wstr ptr)

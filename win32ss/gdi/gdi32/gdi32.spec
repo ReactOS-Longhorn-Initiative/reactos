@@ -608,6 +608,6 @@
 608 stdcall bMakePathNameW(wstr wstr wstr long)
 609 stdcall cGetTTFFromFOT(long long long long long long long)
 610 stdcall gdiPlaySpoolStream(long long long long long long)
-
 @ stdcall -stub GetFontFileInfo(ptr)
 @ stdcall -stub GetFontRealizationInfo(ptr)
+@ stdcall -stub GetFontFileData(ptr)

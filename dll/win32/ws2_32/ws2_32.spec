@@ -32,6 +32,7 @@
 @ stdcall WSAGetServiceClassNameByClassIdA(ptr ptr ptr)
 @ stdcall WSAGetServiceClassNameByClassIdW(ptr ptr ptr)
 @ stdcall WSAHtonl(long long ptr)
+@ stdcall WSAPoll(ptr long long)
 @ stdcall WSAHtons(long long ptr)
 @ stdcall WSAInstallServiceClassA(ptr)
 @ stdcall WSAInstallServiceClassW(ptr)

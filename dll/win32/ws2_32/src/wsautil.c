@@ -12,6 +12,22 @@
 
 /* FUNCTIONS *****************************************************************/
 
+typedef struct pollfd {
+
+    SOCKET  fd;
+    SHORT   events;
+    SHORT   revents;
+
+} WSAPOLLFD, *PWSAPOLLFD, FAR *LPWSAPOLLFD;
+int WSAAPI WSAPoll(
+     LPWSAPOLLFD fdArray,
+     ULONG       fds,
+     INT         timeout
+)
+{
+    return 0;
+}
+
 HKEY
 WSAAPI
 WsOpenRegistryRoot(VOID)

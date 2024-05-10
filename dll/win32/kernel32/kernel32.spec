@@ -18,6 +18,7 @@
 @ stdcall -stub -version=0x600+ AllocateUserPhysicalPagesNuma(ptr ptr ptr long)
 @ stdcall -version=0x600+ ApplicationRecoveryFinished(long)
 @ stdcall -version=0x600+ ApplicationRecoveryInProgress(ptr)
+@ stdcall GetCurrentPackageId(ptr ptr)
 @ stdcall AreFileApisANSI()
 @ stdcall AssignProcessToJobObject(ptr ptr)
 @ stdcall AttachConsole(long)
@@ -720,9 +721,10 @@
 @ stdcall InitializeCriticalSection(ptr)
 @ stdcall InitializeCriticalSectionAndSpinCount(ptr long)
 @ stdcall -version=0x600+ InitializeCriticalSectionEx(ptr long long)
-@ stdcall -stub -version=0x600+ InitializeProcThreadAttributeList(ptr long long ptr)
+@ stdcall -version=0x600+ InitializeProcThreadAttributeList(ptr long long ptr)
 @ stdcall InitializeSListHead(ptr) ntdll.RtlInitializeSListHead
 @ stdcall -version=0x600+ InitializeSRWLock(ptr) ntdll.RtlInitializeSRWLock
+@ stdcall -stub QueryUnbiasedInterruptTime(ptr)
 @ stdcall -arch=i386 -ret64 InterlockedCompareExchange64(ptr double double) ntdll.RtlInterlockedCompareExchange64
 @ stdcall -arch=i386 InterlockedCompareExchange(ptr long long)
 @ stdcall -arch=i386 InterlockedDecrement(ptr)
@@ -1047,6 +1049,7 @@
 @ stdcall SetFirmwareEnvironmentVariableW(wstr wstr ptr long)
 @ stdcall -i386 SetHandleContext(long long)
 @ stdcall SetHandleCount(long)
+@ stdcall -stub ResolveLocaleName()
 @ stdcall SetHandleInformation(long long long)
 @ stdcall SetInformationJobObject(long long ptr long)
 @ stdcall SetLastConsoleEventActive() ; missing in XP SP3
@@ -1172,7 +1175,11 @@
 @ stdcall VirtualUnlock(ptr long)
 @ stdcall WTSGetActiveConsoleSessionId()
 @ stdcall WaitCommEvent(long ptr ptr)
+@ stdcall -stub PathCchSkipRoot(ptr)
 @ stdcall WaitForDebugEvent(ptr long)
+@ stdcall -stub WakeByAddressSingle()
+@ stdcall -stub WakeByAddressAll()
+@ stdcall -stub WakeOnAddress()
 @ stdcall WaitForMultipleObjects(long ptr long long)
 @ stdcall WaitForMultipleObjectsEx(long ptr long long long)
 @ stdcall WaitForSingleObject(long long)
@@ -1200,11 +1207,15 @@
 @ stdcall WideCharToMultiByte(long long wstr long ptr long ptr ptr)
 @ stdcall WinExec(str long)
 @ stdcall Wow64DisableWow64FsRedirection(ptr)
+@ stdcall -stub GetCurrentPackageFullName(ptr wstr)
 @ stdcall Wow64EnableWow64FsRedirection(long)
 @ stdcall -stub -version=0x600+ Wow64GetThreadContext(ptr ptr)
 @ stdcall Wow64RevertWow64FsRedirection(ptr)
-@ stdcall -stub -version=0x600+ Wow64SetThreadContext(ptr ptr)
-@ stdcall -stub -version=0x600+ Wow64SuspendThread(ptr)
+@ stub -version=0x600+ Wow64SetThreadContext
+@ stdcall -stub WaitOnAddress(ptr)
+@ stdcall -stub GetProcessInformation(ptr ptr ptr long)
+@ stdcall -stub SetProcessInformation(ptr ptr ptr long)
+@ stub -version=0x600+ Wow64SuspendThread
 @ stdcall WriteConsoleA(long ptr long ptr ptr)
 @ stdcall WriteConsoleInputA(long ptr long ptr)
 @ stdcall WriteConsoleInputVDMA(long long long long)

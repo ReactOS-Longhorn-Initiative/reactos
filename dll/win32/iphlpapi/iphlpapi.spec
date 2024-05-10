@@ -156,3 +156,17 @@
 @ stub do_echo_rep
 @ stub do_echo_req
 @ stub register_icmp
+
+@ stdcall -stub NotifyRouteChange2()
+@ stdcall -stub CancelMibChangeNotify2(ptr)
+@ stdcall -stub GetIpForwardTable2(long ptr)
+@ stdcall -stub if_nametoindex(wstr)
+@ stdcall -stub ConvertInterfaceIndexToLuid(ptr)
+@ stdcall -stub -version=0x600+ inet_ntop(long ptr str long)
+@ stdcall -stub -version=0x600+ InetNtopW(long ptr wstr long)
+@ stdcall -stub -version=0x600+ inet_pton(long str ptr)
+@ stdcall -stub -version=0x600+ InetPtonW(long wstr ptr)
+@ stdcall -stub ConvertInterfaceLuidToIndex(ptr)
+@ stdcall -stub ConvertInterfaceLuidToNameW(ptr)
+@ stdcall -stub ConvertInterfaceNameToLuidW(ptr)
+@ stdcall -stub ConvertInterfaceLuidToGuid()

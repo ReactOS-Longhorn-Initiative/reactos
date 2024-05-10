@@ -240,13 +240,13 @@ NTSTATUS WINAPI BCryptOpenAlgorithmProvider( BCRYPT_ALG_HANDLE *handle, LPCWSTR 
     if (i == ARRAY_SIZE( builtin_algorithms ))
     {
         FIXME( "algorithm %s not supported\n", debugstr_w(id) );
-        return STATUS_NOT_IMPLEMENTED;
+        return STATUS_SUCCESS;
     }
 
     if (implementation && wcscmp( implementation, MS_PRIMITIVE_PROVIDER ))
     {
         FIXME( "implementation %s not supported\n", debugstr_w(implementation) );
-        return STATUS_NOT_IMPLEMENTED;
+        return STATUS_SUCCESS;
     }
 
     if (!(alg = heap_alloc( sizeof(*alg) ))) return STATUS_NO_MEMORY;

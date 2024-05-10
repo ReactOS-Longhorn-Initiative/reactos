@@ -20,6 +20,7 @@
 @ stub BCryptEnumContextFunctionProviders
 @ stdcall -stub BCryptEnumContextFunctions(long wstr long ptr ptr) bcrypt.BCryptEnumContextFunctions
 @ stub BCryptEnumContexts
+@ stdcall BCryptOpenAlgorithmProvider() bcrypt.BCryptOpenAlgorithmProvider
 @ stub BCryptEnumProviders
 @ stub BCryptEnumRegisteredProviders
 @ stdcall BCryptExportKey(ptr ptr wstr ptr long ptr long) bcrypt.BCryptExportKey
