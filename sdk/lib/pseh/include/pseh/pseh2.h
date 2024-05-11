@@ -23,7 +23,8 @@
 #ifndef KJK_PSEH2_H_
 #define KJK_PSEH2_H_
 
-#if defined(_USE_NATIVE_SEH) || (defined(_MSC_VER) && !(defined(__clang__) && defined(_M_AMD64)))
+// Clang-cl x64 uses dummy PSEH, because the native implementation is broken and crashes clang.
+#if defined(_USE_NATIVE_SEH) || defined(_MSC_VER)
 
 #define _SEH2_TRY __try
 #define _SEH2_FINALLY __finally
@@ -85,6 +86,14 @@ _Pragma("GCC diagnostic pop")
 #define _SEH2_YIELD(STMT_) STMT_
 #define _SEH2_LEAVE goto __seh2_scope_end__;
 #define _SEH2_VOLATILE volatile
+
+#define __try _SEH2_TRY
+#define __except _SEH2_EXCEPT
+#define __finally _SEH2_FINALLY
+#define __endtry _SEH2_END
+#define __leave _SEH2_LEAVE
+#define _exception_code() 0
+#define _exception_info() ((void*)0)
 
 #elif defined(_USE_PSEH3)
 

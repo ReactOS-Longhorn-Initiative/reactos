@@ -95,14 +95,14 @@ __INTRIN_INLINE void _ReadWriteBarrier(void)
 #define _ReadBarrier _ReadWriteBarrier
 #define _WriteBarrier _ReadWriteBarrier
 
-#if !HAS_BUILTIN(_mm_mfence)
+#if !HAS_BUILTIN(_mm_mfence) && !defined(__clang__)
 __INTRIN_INLINE void _mm_mfence(void)
 {
 	__asm__ __volatile__("mfence" : : : "memory");
 }
 #endif
 
-#if !HAS_BUILTIN(_mm_lfence)
+#if !HAS_BUILTIN(_mm_lfence)&& !defined(__clang__)
 __INTRIN_INLINE void _mm_lfence(void)
 {
 	_ReadBarrier();
@@ -1641,15 +1641,19 @@ __INTRIN_INLINE unsigned long __cdecl _outpd(unsigned short Port, unsigned long 
 
 /*** System information ***/
 
+#if !HAS_BUILTIN(__cpuid) // && !defined(__clang__)
 __INTRIN_INLINE void __cpuid(int CPUInfo[4], int InfoType)
 {
 	__asm__ __volatile__("cpuid" : "=a" (CPUInfo[0]), "=b" (CPUInfo[1]), "=c" (CPUInfo[2]), "=d" (CPUInfo[3]) : "a" (InfoType));
 }
+#endif
 
+#if !HAS_BUILTIN(__cpuidex) // && !defined(__clang__)
 __INTRIN_INLINE void __cpuidex(int CPUInfo[4], int InfoType, int ECXValue)
 {
 	__asm__ __volatile__("cpuid" : "=a" (CPUInfo[0]), "=b" (CPUInfo[1]), "=c" (CPUInfo[2]), "=d" (CPUInfo[3]) : "a" (InfoType), "c" (ECXValue));
 }
+#endif
 
 #if !HAS_BUILTIN(__rdtsc)
 __INTRIN_INLINE unsigned long long __rdtsc(void)

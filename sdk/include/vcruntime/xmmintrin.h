@@ -67,7 +67,7 @@ typedef union _DECLSPEC_INTRIN_TYPE _CRT_ALIGN(16) __m128
 #else
 #define __ATTRIBUTE_SSE__ __attribute__((__target__("sse")))
 #endif
-#define __INTRIN_INLINE_SSE __INTRIN_INLINE __ATTRIBUTE_SSE__ 
+#define __INTRIN_INLINE_SSE __INTRIN_INLINE __ATTRIBUTE_SSE__
 
 #endif /* _MSC_VER */
 
@@ -234,7 +234,9 @@ __m64 _m_psadbw(__m64 a, __m64 b);
 void _mm_stream_pi(__m64* p, __m64 a);
 #endif
 void _mm_stream_ps(float* p, __m128 a);
+#ifndef __clang__
 void _mm_sfence(void);
+#endif
 #ifdef _M_AMD64
 __int64 _mm_cvtss_si64(__m128 a);
 __int64 _mm_cvttss_si64(__m128 a);
@@ -531,14 +533,14 @@ do {                                              \
 
 /* Use inline functions on GCC/Clang */
 
-#if !HAS_BUILTIN(_mm_getcsr)
+#if !HAS_BUILTIN(_mm_getcsr) && !defined(__clang__)
 __INTRIN_INLINE_SSE unsigned int _mm_getcsr(void)
 {
     return __builtin_ia32_stmxcsr();
 }
 #endif
 
-#if !HAS_BUILTIN(_mm_setcsr)
+#if !HAS_BUILTIN(_mm_setcsr) && !defined(__clang__)
 __INTRIN_INLINE_SSE void _mm_setcsr(unsigned int a)
 {
     __builtin_ia32_ldmxcsr(a);
@@ -1136,7 +1138,7 @@ __INTRIN_INLINE_SSE void _mm_stream_ps(float *__p, __m128 __a)
 #endif
 }
 
-#if !HAS_BUILTIN(_mm_sfence)
+#if !HAS_BUILTIN(_mm_sfence) && !defined(__clang__)
 __INTRIN_INLINE_SSE void _mm_sfence(void)
 {
     __builtin_ia32_sfence();
