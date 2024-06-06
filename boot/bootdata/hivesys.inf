@@ -2186,6 +2186,16 @@ HKLM,"SYSTEM\CurrentControlSet\Services\DcomLaunch\Parameters","ServiceDll",0x00
 ;HKLM,"SYSTEM\CurrentControlSet\Services\sndblst","Start",0x00010001,0x00000003
 ;HKLM,"SYSTEM\CurrentControlSet\Services\sndblst","Type",0x00010001,0x00000001
 
+; LDDM dxgkrnl
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","DisplayName",0x00000000,"LDDM Graphics Subsystem"
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","Description",0x00000000,"Controls Vista+ Display Drivers"
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","ErrorControl",0x00010001,0x00000000
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","Group",0x00000000,"Video Init"
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","ImagePath",0x00020000,"system32\drivers\dxgkrnl.sys"
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","Start",0x00010001,0x00000003
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","Type",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\DXGKrnl","Tag",0x00010001,0x00000001
+
 ; Virtual FAT filesystem driver
 HKLM,"SYSTEM\CurrentControlSet\Services\fastfat","ErrorControl",0x00010001,0x00000001
 HKLM,"SYSTEM\CurrentControlSet\Services\fastfat","Group",0x00000000,"Boot File System"

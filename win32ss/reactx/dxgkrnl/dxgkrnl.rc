@@ -1,0 +1,5 @@
+#define REACTOS_VERSION_DLL
+#define REACTOS_STR_FILE_DESCRIPTION  "ReactX Graphics Kernel"
+#define REACTOS_STR_INTERNAL_NAME     "dxgkrnl"
+#define REACTOS_STR_ORIGINAL_FILENAME "dxgkrnl.sys"
+#include <reactos/version.rc>
