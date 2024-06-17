@@ -15,10 +15,10 @@
 
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 //
-// Windows NT 6.0.6000.16386
+// Windows NT 6.0.6001.18000
 //
-#define VER_PRODUCTBUILD                    6000
-#define VER_PRODUCTBUILD_QFE                16386
+#define VER_PRODUCTBUILD                    6001
+#define VER_PRODUCTBUILD_QFE                18000
 
 #define VER_PRODUCTMAJORVERSION             6
 #define VER_PRODUCTMINORVERSION             0
