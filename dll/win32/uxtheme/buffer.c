@@ -21,6 +21,7 @@
 #include "uxthemep.h"
 #include <wine/heap.h>
 
+#if (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
 struct paintbuffer
 {
     HDC targetdc;
@@ -286,3 +287,4 @@ HRESULT WINAPI EndBufferedAnimation(HANIMATIONBUFFER hbpAnimation, BOOL fUpdateT
 
     return E_NOTIMPL;
 }
+#endif /* (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) */

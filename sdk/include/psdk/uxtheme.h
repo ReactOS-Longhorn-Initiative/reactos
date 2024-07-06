@@ -15,7 +15,7 @@ extern "C" {
 #define DTBG_COMPUTINGREGION        0x00000010
 #define DTBG_MIRRORDC               0x00000020
 #define DTT_GRAYED                  0x00000001
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if defined(_UXTHEME_PCH_) || (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 #define DTT_TEXTCOLOR    0x00000001
 #define DTT_BORDERCOLOR  0x00000002
 #define DTT_SHADOWCOLOR  0x00000004
@@ -31,7 +31,7 @@ extern "C" {
 #define DTT_CALLBACK     0x00001000
 #define DTT_COMPOSITED   0x00002000
 #define DTT_VALIDBITS    0x00003fff
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* defined(_UXTHEME_PCH_) || (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 #define ETDT_DISABLE                0x00000001
 #define ETDT_ENABLE                 0x00000002
 #define ETDT_USETABTEXTURE          0x00000004
@@ -56,10 +56,12 @@ extern "C" {
 
 typedef HANDLE HPAINTBUFFER;
 typedef HANDLE HTHEME;
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 typedef HANDLE HANIMATIONBUFFER;
+#endif /* (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
+#if defined(_UXTHEME_PCH_) || (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 typedef int (WINAPI *DTT_CALLBACK_PROC)(HDC,LPWSTR,int,RECT*,UINT,LPARAM);
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* defined(_UXTHEME_PCH_) || (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 
 typedef enum _BP_BUFFERFORMAT
 {
@@ -91,7 +93,7 @@ typedef enum THEMESIZE {
     TS_DRAW
 } THEMESIZE;
 
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 typedef enum _BP_ANIMATIONSTYLE
 {
     BPAS_NONE,
@@ -104,7 +106,7 @@ enum WINDOWTHEMEATTRIBUTETYPE
 {
     WTA_NONCLIENT = 1
 };
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 
 typedef struct _DTBGOPTS {
     DWORD dwSize;
@@ -126,7 +128,7 @@ typedef struct _MARGINS {
     int cyBottomHeight;
 } MARGINS, *PMARGINS;
 
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if defined(_UXTHEME_PCH_) || (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 typedef struct _DTTOPTS {
     DWORD dwSize;
     DWORD dwFlags;
@@ -144,7 +146,9 @@ typedef struct _DTTOPTS {
     DTT_CALLBACK_PROC pfnDrawTextCallback;
     LPARAM lParam;
 } DTTOPTS, *PDTTOPTS;
+#endif /* defined(_UXTHEME_PCH_) || (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 typedef struct _BP_ANIMATIONPARAMS
 {
     DWORD cbSize;
@@ -152,7 +156,7 @@ typedef struct _BP_ANIMATIONPARAMS
     BP_ANIMATIONSTYLE style;
     DWORD dwDuration;
 } BP_ANIMATIONPARAMS, *PBP_ANIMATIONPARAMS;
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 
 HRESULT WINAPI CloseThemeData(HTHEME);
 HRESULT WINAPI DrawThemeBackground(HTHEME,HDC,int,int,const RECT*,const RECT*);
@@ -161,7 +165,7 @@ HRESULT WINAPI DrawThemeEdge(HTHEME,HDC,int,int,const RECT*,UINT,UINT,RECT*);
 HRESULT WINAPI DrawThemeIcon(HTHEME,HDC,int,int,const RECT*,HIMAGELIST,int);
 HRESULT WINAPI DrawThemeParentBackground(HWND,HDC,RECT*);
 HRESULT WINAPI DrawThemeText(HTHEME,HDC,int,int,LPCWSTR,int,DWORD,DWORD,const RECT*);
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 HRESULT
 WINAPI
 DrawThemeTextEx(
@@ -175,7 +179,7 @@ DrawThemeTextEx(
     _Inout_ LPRECT pRect,
     _In_ const DTTOPTS *options
 );
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 HRESULT WINAPI EnableThemeDialogTexture(HWND,DWORD);
 HRESULT WINAPI EnableTheming(BOOL);
 HRESULT WINAPI GetCurrentThemeName(LPWSTR,int,LPWSTR,int,LPWSTR,int);
@@ -218,7 +222,7 @@ HTHEME WINAPI OpenThemeData(HWND,LPCWSTR);
 HTHEME WINAPI OpenThemeDataEx(HWND,LPCWSTR,DWORD);
 void WINAPI SetThemeAppProperties(DWORD);
 HRESULT WINAPI SetWindowTheme(HWND,LPCWSTR,LPCWSTR);
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 HRESULT WINAPI BufferedPaintInit(VOID);
 HRESULT WINAPI BufferedPaintUnInit(VOID);
 HPAINTBUFFER WINAPI BeginBufferedPaint(HDC, const RECT *, BP_BUFFERFORMAT,
@@ -239,7 +243,7 @@ HANIMATIONBUFFER WINAPI BeginBufferedAnimation(HWND, HDC, const RECT *,
 BOOL WINAPI BufferedPaintRenderAnimation(HWND, HDC);
 HRESULT WINAPI BufferedPaintStopAllAnimations(HWND);
 HRESULT WINAPI EndBufferedAnimation(HANIMATIONBUFFER, BOOL);
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* (_WIN32_WINNT >= _WIN32_WINNT_VISTA) */
 #endif
 
 #ifdef __cplusplus
