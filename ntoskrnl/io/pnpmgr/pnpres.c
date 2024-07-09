@@ -706,9 +706,7 @@ ByeBye:
                       sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR));
     }
 
-    // Hacked, because after fixing resource list parsing
-    // we actually detect resource conflicts
-    return Silent ? Result : FALSE; // Result;
+    return Result;
 }
 
 static
