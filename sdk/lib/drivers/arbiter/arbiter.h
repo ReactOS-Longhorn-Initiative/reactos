@@ -2,7 +2,7 @@
  * PROJECT:     ReactOS Kernel&Driver SDK
  * LICENSE:     GPL-2.0-or-later (https://spdx.org/licenses/GPL-2.0-or-later)
  * PURPOSE:     Hardware Resources Arbiter Library
- * COPYRIGHT:   Copyright 2020 Vadim Galyant <vgal@rambler.ru>
+ * COPYRIGHT:   Copyright 2020-2022 Vadim Galyant <vgal@rambler.ru>
  */
 
 #pragma once
@@ -11,43 +11,49 @@
 #define TAG_ARBITER        'MbrA'
 #define TAG_ARB_ALLOCATION 'AbrA'
 #define TAG_ARB_RANGE      'RbrA'
+#define TAG_ARB_ORDERING   'LbrA'
+
+#define IO_REG_KEY_ARBITERS L"\\REGISTRY\\MACHINE\\SYSTEM\\CURRENTCONTROLSET\\CONTROL\\ARBITERS"
+
+#define ARB_ORDERING_LIST_DEFAULT_COUNT  16
+#define ARB_ORDERING_LIST_ADD_COUNT      8
 
 typedef struct _ARBITER_ORDERING
 {
-    UINT64 Start;
-    UINT64 End;
+    ULONGLONG Start;
+    ULONGLONG End;
 } ARBITER_ORDERING, *PARBITER_ORDERING;
 
 typedef struct _ARBITER_ORDERING_LIST
 {
-    UINT16 Count;
-    UINT16 Maximum;
+    USHORT Count;
+    USHORT Maximum;
     PARBITER_ORDERING Orderings;
 } ARBITER_ORDERING_LIST, *PARBITER_ORDERING_LIST;
 
 typedef struct _ARBITER_ALTERNATIVE
 {
-    UINT64 Minimum;
-    UINT64 Maximum;
-    UINT32 Length;
-    UINT32 Alignment;
-    INT32 Priority;
-    UINT32 Flags;
+    ULONGLONG Minimum;
+    ULONGLONG Maximum;
+    ULONG Length;
+    ULONG Alignment;
+    LONG Priority;
+    ULONG Flags;
     PIO_RESOURCE_DESCRIPTOR Descriptor;
-    UINT32 Reserved[3];
+    ULONG Reserved[3];
 } ARBITER_ALTERNATIVE, *PARBITER_ALTERNATIVE;
 
 typedef struct _ARBITER_ALLOCATION_STATE
 {
-    UINT64 Start;
-    UINT64 End;
-    UINT64 CurrentMinimum;
-    UINT64 CurrentMaximum;
+    ULONGLONG Start;
+    ULONGLONG End;
+    ULONGLONG CurrentMinimum;
+    ULONGLONG CurrentMaximum;
     PARBITER_LIST_ENTRY Entry;
     PARBITER_ALTERNATIVE CurrentAlternative;
-    UINT32 AlternativeCount;
+    ULONG AlternativeCount;
     PARBITER_ALTERNATIVE Alternatives;
-    UINT16 Flags;
+    USHORT Flags;
     UCHAR RangeAttributes;
     UCHAR RangeAvailableAttributes;
     ULONG_PTR WorkSpace;
@@ -58,27 +64,27 @@ typedef struct _ARBITER_INSTANCE *PARBITER_INSTANCE;
 typedef NTSTATUS
 (NTAPI * PARB_UNPACK_REQUIREMENT)(
     _In_ PIO_RESOURCE_DESCRIPTOR IoDescriptor,
-    _Out_ PUINT64 OutMinimumAddress,
-    _Out_ PUINT64 OutMaximumAddress,
-    _Out_ PUINT32 OutLength,
-    _Out_ PUINT32 OutAlignment
+    _Out_ PULONGLONG OutMinimumAddress,
+    _Out_ PULONGLONG OutMaximumAddress,
+    _Out_ PULONG OutLength,
+    _Out_ PULONG OutAlignment
 );
 
 typedef NTSTATUS
 (NTAPI * PARB_PACK_RESOURCE)(
     _In_ PIO_RESOURCE_DESCRIPTOR IoDescriptor,
-    _In_ UINT64 Start,
+    _In_ ULONGLONG Start,
     _Out_ PCM_PARTIAL_RESOURCE_DESCRIPTOR CmDescriptor
 );
 
 typedef NTSTATUS
 (NTAPI * PARB_UNPACK_RESOURCE)(
     _In_ PCM_PARTIAL_RESOURCE_DESCRIPTOR CmDescriptor,
-    _Out_ PUINT64 Start,
-    _Out_ PUINT32 OutLength
+    _Out_ PULONGLONG Start,
+    _Out_ PULONG OutLength
 );
 
-typedef INT32
+typedef LONG
 (NTAPI * PARB_SCORE_REQUIREMENT)(
     _In_ PIO_RESOURCE_DESCRIPTOR IoDescriptor
 );
@@ -120,7 +126,11 @@ typedef NTSTATUS
 /*  Not correct yet, FIXME! */
 typedef NTSTATUS
 (NTAPI * PARB_QUERY_CONFLICT)(
-    _In_ PARBITER_INSTANCE Arbiter
+    _In_ PARBITER_INSTANCE Arbiter,
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _In_ PIO_RESOURCE_DESCRIPTOR ConflictingResource,
+    _Out_ ULONG* OutConflictCount,
+    _Out_ PARBITER_CONFLICT_INFO* OutConflicts
 );
 
 /*  Not correct yet, FIXME! */
@@ -129,10 +139,10 @@ typedef NTSTATUS
     _In_ PARBITER_INSTANCE Arbiter
 );
 
-/*  Not correct yet, FIXME! */
 typedef NTSTATUS
 (NTAPI * PARB_START_ARBITER)(
-    _In_ PARBITER_INSTANCE Arbiter
+    _In_ PARBITER_INSTANCE Arbiter,
+    _In_ PCM_RESOURCE_LIST CmResource
 );
 
 typedef NTSTATUS
@@ -171,15 +181,15 @@ typedef VOID
     _Inout_ PARBITER_ALLOCATION_STATE ArbState
 );
 
-/*  Not correct yet, FIXME! */
 typedef NTSTATUS
 (NTAPI * PARB_OVERRIDE_CONFLICT)(
-    _In_ PARBITER_INSTANCE Arbiter
+    _In_ PARBITER_INSTANCE Arbiter,
+    _Inout_ PARBITER_ALLOCATION_STATE ArbState
 );
 
 typedef struct _ARBITER_INSTANCE
 {
-    UINT32 Signature;
+    ULONG Signature;
     PKEVENT MutexEvent;
     PCWSTR Name;
     CM_RESOURCE_TYPE ResourceType;
@@ -187,9 +197,9 @@ typedef struct _ARBITER_INSTANCE
     PRTL_RANGE_LIST PossibleAllocation;
     ARBITER_ORDERING_LIST OrderingList;
     ARBITER_ORDERING_LIST ReservedList;
-    INT32 ReferenceCount;
+    LONG ReferenceCount;
     PARBITER_INTERFACE Interface;
-    UINT32 AllocationStackMaxSize;
+    ULONG AllocationStackMaxSize;
     PARBITER_ALLOCATION_STATE AllocationStack;
     PARB_UNPACK_REQUIREMENT UnpackRequirement;
     PARB_PACK_RESOURCE PackResource;
@@ -203,14 +213,14 @@ typedef struct _ARBITER_INSTANCE
     PARB_QUERY_ARBITRATE QueryArbitrate; // Not used yet
     PARB_QUERY_CONFLICT QueryConflict; // Not used yet
     PARB_ADD_RESERVED AddReserved; // Not used yet
-    PARB_START_ARBITER StartArbiter; // Not used yet
+    PARB_START_ARBITER StartArbiter;
     PARB_PREPROCESS_ENTRY PreprocessEntry;
     PARB_ALLOCATE_ENTRY AllocateEntry;
     PARB_GET_NEXT_ALLOCATION_RANGE GetNextAllocationRange;
     PARB_FIND_SUITABLE_RANGE FindSuitableRange;
     PARB_ADD_ALLOCATION AddAllocation;
     PARB_BACKTRACK_ALLOCATION BacktrackAllocation;
-    PARB_OVERRIDE_CONFLICT OverrideConflict; // Not used yet
+    PARB_OVERRIDE_CONFLICT OverrideConflict;
     BOOLEAN TransactionInProgress;
     PVOID Extension;
     PDEVICE_OBJECT BusDeviceObject;
@@ -224,7 +234,6 @@ typedef NTSTATUS
     _In_ PIO_RESOURCE_DESCRIPTOR IoDescriptor
 );
 
-CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
 ArbInitializeArbiterInstance(
@@ -235,3 +244,90 @@ ArbInitializeArbiterInstance(
     _In_ PCWSTR OrderName,
     _In_ PARB_TRANSLATE_ORDERING TranslateOrderingFunction
 );
+
+NTSTATUS
+NTAPI
+ArbArbiterHandler(
+    _In_ PVOID Context,
+    _In_ ARBITER_ACTION Action,
+    _Out_ PARBITER_PARAMETERS Params
+);
+
+BOOLEAN
+NTAPI
+ArbFindSuitableRange(
+    _In_ PARBITER_INSTANCE Arbiter,
+    _Inout_ PARBITER_ALLOCATION_STATE ArbState
+);
+
+NTSTATUS
+NTAPI
+ArbBootAllocation(
+    _In_ PARBITER_INSTANCE Arbiter,
+    _In_ PLIST_ENTRY ArbitrationList
+);
+
+NTSTATUS
+NTAPI
+ArbTestAllocation(
+    _In_ PARBITER_INSTANCE Arbiter,
+    _In_ PLIST_ENTRY ArbitrationList
+);
+
+BOOLEAN
+NTAPI
+ArbGetNextAllocationRange(
+    _In_ PARBITER_INSTANCE Arbiter,
+    _Inout_ PARBITER_ALLOCATION_STATE ArbState
+);
+
+VOID
+NTAPI
+ArbFreeOrderingList(
+    _Out_ PARBITER_ORDERING_LIST OrderList
+);
+
+NTSTATUS
+NTAPI
+ArbInitializeOrderingList(
+    _Out_ PARBITER_ORDERING_LIST OrderList
+);
+
+NTSTATUS
+NTAPI
+ArbCopyOrderingList(
+    _Out_ ARBITER_ORDERING_LIST* OutList,
+    _In_ PARBITER_ORDERING_LIST SourceList
+);
+
+NTSTATUS
+NTAPI
+ArbAddOrdering(
+    _Out_ PARBITER_ORDERING_LIST OrderList,
+    _In_ ULONGLONG MinimumAddress,
+    _In_ ULONGLONG MaximumAddress
+);
+
+NTSTATUS
+NTAPI
+ArbPruneOrdering(
+    _Out_ PARBITER_ORDERING_LIST OrderList,
+    _In_ ULONGLONG MinimumAddress,
+    _In_ ULONGLONG MaximumAddress
+);
+
+VOID
+NTAPI
+ArbAddAllocation(
+    _In_ PARBITER_INSTANCE Arbiter,
+    _Inout_ PARBITER_ALLOCATION_STATE ArbState
+);
+
+VOID
+NTAPI
+ArbBacktrackAllocation(
+    _In_ PARBITER_INSTANCE Arbiter,
+    _Inout_ PARBITER_ALLOCATION_STATE ArbState
+);
+
+/* EOF */
