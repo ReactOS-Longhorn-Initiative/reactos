@@ -161,50 +161,41 @@ extern POBJECT_TYPE NTSYSAPI IoDriverObjectType;
 #define DOE_SIO_DEFERRED                        0x100
 #define DOE_SIO_NO_CANCEL                       0x200
 
-//
-// Device Node Flags
-//
+/* Device Node Flags */
+#define DNF_MADEUP                              (0x00000001) // The device was created and is owned by the PnP Manager. It was not created by a bus driver. 
+#define DNF_DUPLICATE                           (0x00000002) // The device node is a duplicate of another enumerated device node. 
+#define DNF_HAL_NODE                            (0x00000004) // The device node is the root node created by the hardware abstraction layer (HAL). 
+#define DNF_REENUMERATE                         (0x00000008) // The device needs to be re-enumerated. 
+#define DNF_ENUMERATED                          (0x00000010) // The PDO for the device was exposed by its parent. 
+#define DNF_IDS_QUERIED                         (0x00000020) // The operating system should send IRP_MN_QUERY_ID requests to the device driver. 
+#define DNF_HAS_BOOT_CONFIG                     (0x00000040) // The device has resources assigned by the BIOS. The device is considered pseudo-started and needs to participate in rebalancing. 
+#define DNF_BOOT_CONFIG_RESERVED                (0x00000080) // The boot resources of the device are reserved. 
+#define DNF_NO_RESOURCE_REQUIRED                (0x00000100) // The device does not require resources. 
+#define DNF_RESOURCE_REQUIREMENTS_NEED_FILTERED (0x00000200) // The device's resource requirements list is a filtered list. 
+#define DNF_RESOURCE_REQUIREMENTS_CHANGED       (0x00000400) // The device's resource requirements list has changed. 
+#define DNF_NON_STOPPED_REBALANCE               (0x00000800) // The device can be restarted with new resources without being stopped. 
+#define DNF_LEGACY_DRIVER                       (0x00001000) // The device's controlling driver is a non-PnP driver. 
+#define DNF_HAS_PROBLEM                         (0x00002000) // The device has a problem and will be removed. 
+#define DNF_HAS_PRIVATE_PROBLEM                 (0x00004000) // The device reported PNP_DEVICE_FAILED without also reporting PNP_DEVICE_RESOURCE_REQUIREMENTS_CHANGED. 
+#define DNF_HARDWARE_VERIFICATION               (0x00008000) // The device node has hardware verification. 
+#define DNF_DEVICE_GONE                         (0x00010000) // The device's PDO is no longer returned in an IRP_QUERY_RELATIONS request. 
+#define DNF_LEGACY_RESOURCE_DEVICENODE          (0x00020000) // The device node was created for legacy resource allocation. 
+#define DNF_NEEDS_REBALANCE                     (0x00040000) // The device node has triggered rebalancing. 
+#define DNF_LOCKED_FOR_EJECT                    (0x00080000) // The device is being ejected or is related to a device that is being ejected. 
+#define DNF_DRIVER_BLOCKED                      (0x00100000) // One or more of the drivers for the device node have been blocked from loading. 
+#define DNF_CHILD_WITH_INVALID_ID               (0x00200000) // One or more children of the device node have invalid IDs. 
+#define DNF_ASYNC_START_NOT_SUPPORTED           (0x00400000) // The device does not support asynchronous starts. 
+#define DNF_ASYNC_ENUMERATION_NOT_SUPPORTED     (0x00800000) // The device does not support asynchronous enumeration. 
+#define DNF_LOCKED_FOR_REBALANCE                (0x01000000) // The device is locked for rebalancing. 
+#define DNF_UNINSTALLED                         (0x02000000) // An IRP_MN_QUERY_REMOVE_DEVICE request is in progress for the device. 
+#define DNF_NO_LOWER_DEVICE_FILTERS             (0x04000000) // There is no Registry entry of the lower-device-filters type for the device. 
+#define DNF_NO_LOWER_CLASS_FILTERS              (0x08000000) // There is no Registry entry of the lower-class-filters type for the device. 
+#define DNF_NO_SERVICE                          (0x10000000) // There is no Registry entry of the service the for the device. 
+#define DNF_NO_UPPER_DEVICE_FILTERS             (0x20000000) // There is no Registry entry of the upper-device-filters type for the device. 
+#define DNF_NO_UPPER_CLASS_FILTERS              (0x40000000) // There is no Registry entry of the upper-class-filters type for the device. 
+#define DNF_WAITING_FOR_FDO                     (0x80000000) // Enumeration of the device is waiting until the driver attaches its FDO. 
 
-// this set of flags is relevant for w2k3 and newer
-// w2k has a completely different set of flags
-#define DNF_MADEUP                              0x00000001
-#define DNF_DUPLICATE                           0x00000002
-#define DNF_HAL_NODE                            0x00000004
-#define DNF_REENUMERATE                         0x00000008
-#define DNF_ENUMERATED                          0x00000010
-#define DNF_IDS_QUERIED                         0x00000020
-#define DNF_HAS_BOOT_CONFIG                     0x00000040
-#define DNF_BOOT_CONFIG_RESERVED                0x00000080
-#define DNF_NO_RESOURCE_REQUIRED                0x00000100
-#define DNF_RESOURCE_REQUIREMENTS_NEED_FILTERED 0x00000200
-#define DNF_RESOURCE_REQUIREMENTS_CHANGED       0x00000400
-#define DNF_NON_STOPPED_REBALANCE               0x00000800
-#define DNF_LEGACY_DRIVER                       0x00001000
-#define DNF_HAS_PROBLEM                         0x00002000
-#define DNF_HAS_PRIVATE_PROBLEM                 0x00004000
-#define DNF_HARDWARE_VERIFICATION               0x00008000
-#define DNF_DEVICE_GONE                         0x00010000
-#define DNF_LEGACY_RESOURCE_DEVICENODE          0x00020000
-#define DNF_NEEDS_REBALANCE                     0x00040000
-#define DNF_LOCKED_FOR_EJECT                    0x00080000
-#define DNF_DRIVER_BLOCKED                      0x00100000
-#define DNF_CHILD_WITH_INVALID_ID               0x00200000
-
-// these flags were added in Vista or later
-#define DNF_ASYNC_START_NOT_SUPPORTED           0x00400000
-#define DNF_ASYNC_ENUMERATION_NOT_SUPPORTED     0x00800000
-#define DNF_LOCKED_FOR_REBALANCE                0x01000000
-#define DNF_UNINSTALLED                         0x02000000
-#define DNF_NO_LOWER_DEVICE_FILTERS             0x04000000
-#define DNF_NO_LOWER_CLASS_FILTERS              0x08000000
-#define DNF_NO_SERVICE                          0x10000000
-#define DNF_NO_UPPER_DEVICE_FILTERS             0x20000000
-#define DNF_NO_UPPER_CLASS_FILTERS              0x40000000
-#define DNF_WAITING_FOR_FDO                     0x80000000
-
-//
-// Device Node User Flags
-//
+/* Device Node User Flags */
 #define DNUF_WILL_BE_REMOVED                    0x0001
 #define DNUF_DONT_SHOW_IN_UI                    0x0002
 #define DNUF_NEED_RESTART                       0x0004
@@ -641,11 +632,6 @@ typedef struct _FILE_COMPLETION_INFORMATION
     PVOID Key;
 } FILE_COMPLETION_INFORMATION, *PFILE_COMPLETION_INFORMATION;
 
-typedef struct _FILE_IO_COMPLETION_NOTIFICATION_INFORMATION
-{
-    ULONG Flags;
-} FILE_IO_COMPLETION_NOTIFICATION_INFORMATION, *PFILE_IO_COMPLETION_NOTIFICATION_INFORMATION;
-
 typedef struct _FILE_LINK_INFORMATION
 {
     BOOLEAN ReplaceIfExists;
@@ -866,23 +852,21 @@ typedef struct _IO_CLIENT_EXTENSION
     PVOID ClientIdentificationAddress;
 } IO_CLIENT_EXTENSION, *PIO_CLIENT_EXTENSION;
 
-#define DEVNODE_HISTORY_SIZE 20
-
-//
-// Device Node
-//
+/* Device Node */
 typedef struct _DEVICE_NODE
 {
-    struct _DEVICE_NODE *Sibling;
-    struct _DEVICE_NODE *Child;
-    struct _DEVICE_NODE *Parent;
-    struct _DEVICE_NODE *LastChild;
+    struct _DEVICE_NODE* Sibling;
+    struct _DEVICE_NODE* Child;
+    struct _DEVICE_NODE* Parent;
+    struct _DEVICE_NODE* LastChild;
     ULONG Level;
-    struct _PO_DEVICE_NOTIFY *Notify;
+    struct _PO_DEVICE_NOTIFY* Notify;
+  #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     PO_IRP_MANAGER PoIrpManager;
+  #endif
     PNP_DEVNODE_STATE State;
     PNP_DEVNODE_STATE PreviousState;
-    PNP_DEVNODE_STATE StateHistory[DEVNODE_HISTORY_SIZE];
+    PNP_DEVNODE_STATE StateHistory[20];
     ULONG StateHistoryEntry;
     NTSTATUS CompletionStatus;
     PIRP PendingIrp;
@@ -912,33 +896,41 @@ typedef struct _DEVICE_NODE
     USHORT QueryArbiterMask;
     union
     {
-        struct _DEVICE_NODE *LegacyDeviceNode;
+        struct _DEVICE_NODE* LegacyDeviceNode;
         PDEVICE_RELATIONS PendingDeviceRelations;
+      #if (NTDDI_VERSION >= NTDDI_LONGHORN)
+        PVOID Information;
+      #endif
     } OverUsed1;
     union
     {
-        struct _DEVICE_NODE *NextResourceDeviceNode;
+        struct _DEVICE_NODE* NextResourceDeviceNode;
     } OverUsed2;
     PCM_RESOURCE_LIST BootResources;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+  #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     PCM_RESOURCE_LIST BootResourcesTranslated;
-#endif
+  #endif
     ULONG CapabilityFlags;
     struct
     {
         PROFILE_STATUS DockStatus;
         LIST_ENTRY ListEntry;
-        WCHAR *SerialNumber;
+        WCHAR* SerialNumber;
     } DockInfo;
     ULONG DisableableDepends;
     LIST_ENTRY PendedSetInterfaceState;
     LIST_ENTRY LegacyBusListEntry;
     ULONG DriverUnloadRetryCount;
-    struct _DEVICE_NODE *PreviousParent;
+    struct _DEVICE_NODE* PreviousParent;
     ULONG DeletedChildren;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+  #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     ULONG NumaNodeIndex;
-#endif
+  #endif
+  #if DBG
+    NTSTATUS DebugStatus;
+    PVOID PrevCmResource;
+    PVOID DbgParam2;
+  #endif
 } DEVICE_NODE, *PDEVICE_NODE;
 
 //
@@ -1047,7 +1039,7 @@ typedef struct _EFI_DRIVER_ENTRY
 #ifdef NTOS_MODE_USER
 
 //
-// APC Callback for NtReadFile, NtWriteFile
+// APC Callback for NtCreateFile
 //
 typedef VOID
 (NTAPI *PIO_APC_ROUTINE)(

@@ -12,6 +12,8 @@
 /* INCLUDES *******************************************************************/
 
 #include <ntoskrnl.h>
+#include "../pnpio.h"
+
 #define NDEBUG
 #include <debug.h>
 
@@ -56,14 +58,12 @@ IopDeleteDevice(IN PVOID ObjectBody)
     PAGED_CODE();
 
     /* Cleanup and free the device node */
-    if (DeviceNode)
-        IopFreeDeviceNode(DeviceNode);
+    IopDestroyDeviceNode(DeviceNode);
 
     /* Dereference the driver object, referenced in IoCreateDevice */
     if (DeviceObject->DriverObject)
         ObDereferenceObject(DeviceObject->DriverObject);
 }
-
 
 PDEVICE_OBJECT
 NTAPI
@@ -650,8 +650,9 @@ IopStartNextPacketByKeyEx(IN PDEVICE_OBJECT DeviceObject,
 
 NTSTATUS
 NTAPI
-IopGetRelatedTargetDevice(IN PFILE_OBJECT FileObject,
-                          OUT PDEVICE_NODE *DeviceNode)
+IopGetRelatedTargetDevice(
+    _In_ PFILE_OBJECT FileObject,
+    _Out_ PDEVICE_NODE* DeviceNode)
 {
     NTSTATUS Status;
     IO_STACK_LOCATION Stack = {0};
@@ -662,31 +663,79 @@ IopGetRelatedTargetDevice(IN PFILE_OBJECT FileObject,
 
     /* Get DeviceObject related to given FileObject */
     DeviceObject = IoGetRelatedDeviceObject(FileObject);
-    if (!DeviceObject) return STATUS_NO_SUCH_DEVICE;
+    if (!DeviceObject)
+    {
+        DPRINT1("return STATUS_NO_SUCH_DEVICE\n");
+        return STATUS_NO_SUCH_DEVICE;
+    }
 
     /* Define input parameters */
     Stack.MajorFunction = IRP_MJ_PNP;
     Stack.MinorFunction = IRP_MN_QUERY_DEVICE_RELATIONS;
     Stack.Parameters.QueryDeviceRelations.Type = TargetDeviceRelation;
     Stack.FileObject = FileObject;
+    Stack.DeviceObject = DeviceObject;
 
     /* Call the driver to query all relations (IRP_MJ_PNP) */
-    Status = IopSynchronousCall(DeviceObject,
-                                &Stack,
-                                (PVOID)&DeviceRelations);
-    if (!NT_SUCCESS(Status)) return Status;
+    Status = IopSynchronousCall(DeviceObject, &Stack, (PVOID)&DeviceRelations);
+    if (!NT_SUCCESS(Status))
+    {
+#if DBG
+        PDEVICE_NODE deviceNode = IopGetDeviceNode(DeviceObject);
 
-    /* Make sure it's not NULL and contains only one object */
-    ASSERT(DeviceRelations);
+        DPRINT1("IopGetRelatedTargetDevice: TargetDeviceRelation\n");
+        DPRINT1("Device %p, Driver %p\n", DeviceObject, DeviceObject->DriverObject);
+
+        if (DeviceObject->DriverObject->DriverExtension->ServiceKeyName.Buffer)
+        {
+            DPRINT1("Service %wZ\n", &DeviceObject->DriverObject->DriverExtension->ServiceKeyName);
+        }
+
+        if (deviceNode)
+        {
+            DPRINT1("IopGetRelatedTargetDevice: Node %p\n", deviceNode);
+            DPRINT1("ServiceName %wZ\n", &deviceNode->ServiceName);
+            DPRINT1("InstancePath %wZ\n", &deviceNode->InstancePath);
+        }
+
+        //ASSERT(FALSE); // IoDbgBreakPointEx();
+        DPRINT1("IopGetRelatedTargetDevice: ret %X\n", Status);
+#endif
+        return Status;
+    }
+
+#if DBG
+    if (!DeviceRelations)
+    {
+        PDEVICE_NODE deviceNode = IopGetDeviceNode(DeviceObject);
+
+        DPRINT1("IopGetRelatedTargetDevice: TargetDeviceRelation\n");
+        DPRINT1("Device %p, Driver %p\n", DeviceObject, DeviceObject->DriverObject);
+
+        if (DeviceObject->DriverObject->DriverExtension->ServiceKeyName.Buffer)
+        {
+            DPRINT1("Service %wZ\n", &DeviceObject->DriverObject->DriverExtension->ServiceKeyName);
+        }
+
+        if (deviceNode)
+        {
+            DPRINT1("IopGetRelatedTargetDevice: [%p] Service '%wZ', Instance '%wZ'\n", deviceNode, &deviceNode->ServiceName, &deviceNode->InstancePath);
+        }
+
+        ASSERT(DeviceRelations);
+    }
+
     ASSERT(DeviceRelations->Count == 1);
+#endif
 
-    /* Finally get the device node */
     *DeviceNode = IopGetDeviceNode(DeviceRelations->Objects[0]);
-    if (!*DeviceNode) Status = STATUS_NO_SUCH_DEVICE;
+    if (!*DeviceNode)
+    {
+        DPRINT1("IopGetRelatedTargetDevice: return STATUS_NO_SUCH_DEVICE\n");
+        Status = STATUS_NO_SUCH_DEVICE;
+    }
 
-    /* Free the DEVICE_RELATIONS structure, it's not needed anymore */
     ExFreePool(DeviceRelations);
-
     return Status;
 }
 

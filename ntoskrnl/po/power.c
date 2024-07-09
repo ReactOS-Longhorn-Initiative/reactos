@@ -331,6 +331,8 @@ NTSTATUS
 NTAPI
 PopSetSystemPowerState(SYSTEM_POWER_STATE PowerState, POWER_ACTION PowerAction)
 {
+#if 0
+HACK:
     PDEVICE_OBJECT DeviceObject;
     PDEVICE_OBJECT Fdo;
     NTSTATUS Status;
@@ -389,6 +391,8 @@ PopSetSystemPowerState(SYSTEM_POWER_STATE PowerState, POWER_ACTION PowerAction)
     }
 
     return Status;
+#endif
+return 0;
 }
 
 CODE_SEG("INIT")

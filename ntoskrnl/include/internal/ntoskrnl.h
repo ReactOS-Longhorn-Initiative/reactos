@@ -79,6 +79,13 @@
 #include "arch/intrin_i.h"
 #include <arbiter.h>
 
+#define ICI_SQ_SAME(Type, Alignment, Flags)                                    \
+  { Type, Type, Alignment, Alignment, Flags }
+
+#define ICI_SQ(TypeQuery, TypeSet, AlignmentQuery, AlignmentSet, Flags)        \
+  { TypeQuery, TypeSet, AlignmentQuery, AlignmentSet, Flags }
+
+
 /*
  * Use IsPointerOffset to test whether a pointer should be interpreted as an offset
  * or as a pointer

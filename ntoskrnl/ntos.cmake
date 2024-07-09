@@ -150,14 +150,15 @@ list(APPEND SOURCE
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/iomgr/util.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/iomgr/volume.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/arbiters.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/devaction.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/devnode.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/plugplay.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpdma.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpdel.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpenum.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpevent.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpinit.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpirp.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpmap.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpmgr.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpnode.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpnotify.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpreport.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/io/pnpmgr/pnpres.c

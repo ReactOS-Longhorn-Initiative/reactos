@@ -1260,6 +1260,7 @@ IofCallDriver(IN PDEVICE_OBJECT DeviceObject,
 {
     PDRIVER_OBJECT DriverObject;
     PIO_STACK_LOCATION StackPtr;
+    NTSTATUS Status;
 
     /* Make sure this is a valid IRP */
     ASSERT(Irp->Type == IO_TYPE_IRP);
@@ -1272,7 +1273,9 @@ IofCallDriver(IN PDEVICE_OBJECT DeviceObject,
     if (Irp->CurrentLocation <= 0)
     {
         /* This IRP ran out of stack, bugcheck */
-        KeBugCheckEx(NO_MORE_IRP_STACK_LOCATIONS, (ULONG_PTR)Irp, 0, 0, 0);
+        DPRINT1("IofCallDriver: KeBugCheckEx(NO_MORE_IRP_STACK_LOCATIONS)\n");
+        DPRINT1("IofCallDriver: Irp %p, CurrentLocation %p\n", Irp, Irp->CurrentLocation);
+        ASSERT(FALSE);/*IoDbgBreakPointEx();*/KeBugCheckEx(NO_MORE_IRP_STACK_LOCATIONS, (ULONG_PTR)Irp, 0, 0, 0);
     }
 
     /* Now update the stack location */
@@ -1283,8 +1286,29 @@ IofCallDriver(IN PDEVICE_OBJECT DeviceObject,
     StackPtr->DeviceObject = DeviceObject;
 
     /* Call it */
-    return DriverObject->MajorFunction[StackPtr->MajorFunction](DeviceObject,
-                                                                Irp);
+
+#if 0//DBG
+if (StackPtr->MajorFunction == IRP_MJ_DEVICE_CONTROL)
+{
+    DPRINT1("IofCallDriver: (%p, %p) Maj %X, Code %08X\n", DeviceObject, Irp, StackPtr->MajorFunction, StackPtr->Parameters.DeviceIoControl.IoControlCode);
+}
+else if (StackPtr->MajorFunction == IRP_MJ_PNP || StackPtr->MinorFunction)
+{
+    DPRINT1("IofCallDriver: (%p, %p) Maj %X, Min %X\n", DeviceObject, Irp, StackPtr->MajorFunction, StackPtr->MinorFunction);
+}
+else
+{
+    DPRINT1("IofCallDriver: (%p, %p) Maj %X\n", DeviceObject, Irp, StackPtr->MajorFunction);
+}
+#endif
+
+    Status = DriverObject->MajorFunction[StackPtr->MajorFunction](DeviceObject, Irp);
+
+#if 0//DBG
+    DPRINT1("IofCallDriver: [%p] ret Status %X\n", DeviceObject, Status);
+#endif
+
+    return Status;
 }
 
 FORCEINLINE
@@ -1629,7 +1653,7 @@ IoForwardIrpSynchronously(IN PDEVICE_OBJECT DeviceObject,
     NTSTATUS Status;
 
     /* Check if next stack location is available */
-    if (Irp->CurrentLocation > Irp->StackCount || Irp->CurrentLocation <= 1)
+    if (Irp->CurrentLocation < Irp->StackCount)
     {
         /* No more stack location */
         return FALSE;

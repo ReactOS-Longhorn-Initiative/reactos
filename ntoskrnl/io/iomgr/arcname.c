@@ -24,14 +24,16 @@ PCHAR IoLoaderArcBootDeviceName;
 CODE_SEG("INIT")
 NTSTATUS
 NTAPI
-IopCreateArcNamesCd(IN PLOADER_PARAMETER_BLOCK LoaderBlock);
+IopCreateArcNamesCd(IN PLOADER_PARAMETER_BLOCK LoaderBlock
+);
 
 CODE_SEG("INIT")
 NTSTATUS
 NTAPI
 IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                       IN BOOLEAN SingleDisk,
-                      OUT PBOOLEAN FoundBoot);
+                      IN PBOOLEAN FoundBoot
+);
 
 CODE_SEG("INIT")
 NTSTATUS
@@ -48,22 +50,18 @@ IopCreateArcNames(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     ANSI_STRING ArcSystemString, ArcString, LanmanRedirector, LoaderPathNameA;
 
     /* Check if we only have one disk on the machine */
-    SingleDisk = (ArcDiskInfo->DiskSignatureListHead.Flink->Flink ==
-                 &ArcDiskInfo->DiskSignatureListHead);
+    SingleDisk = ArcDiskInfo->DiskSignatureListHead.Flink->Flink ==
+                 (&ArcDiskInfo->DiskSignatureListHead);
 
     /* Create the global HAL partition name */
     sprintf(Buffer, "\\ArcName\\%s", LoaderBlock->ArcHalDeviceName);
     RtlInitAnsiString(&ArcString, Buffer);
-    Status = RtlAnsiStringToUnicodeString(&IoArcHalDeviceName, &ArcString, TRUE);
-    if (!NT_SUCCESS(Status))
-        return Status;
+    RtlAnsiStringToUnicodeString(&IoArcHalDeviceName, &ArcString, TRUE);
 
     /* Create the global system partition name */
     sprintf(Buffer, "\\ArcName\\%s", LoaderBlock->ArcBootDeviceName);
     RtlInitAnsiString(&ArcString, Buffer);
-    Status = RtlAnsiStringToUnicodeString(&IoArcBootDeviceName, &ArcString, TRUE);
-    if (!NT_SUCCESS(Status))
-        return Status;
+    RtlAnsiStringToUnicodeString(&IoArcBootDeviceName, &ArcString, TRUE);
 
     /* Allocate memory for the string */
     Length = strlen(LoaderBlock->ArcBootDeviceName) + sizeof(ANSI_NULL);
@@ -138,7 +136,7 @@ IopCreateArcNames(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 
     /* Loop every disk and try to find boot disk */
     Status = IopCreateArcNamesDisk(LoaderBlock, SingleDisk, &FoundBoot);
-    /* If it succeeded but we didn't find boot device, try to browse Cds */
+    /* If it succeed but we didn't find boot device, try to browse Cds */
     if (NT_SUCCESS(Status) && !FoundBoot)
     {
         Status = IopCreateArcNamesCd(LoaderBlock);
@@ -180,7 +178,7 @@ IopCreateArcNamesCd(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
      * that have been successfully handled by MountMgr driver
      * and that already own their device name. This is the "new" way
      * to handle them, that came with NT5.
-     * Currently, Windows 2003 provides an ARC names creation based
+     * Currently, Windows 2003 provides an arc names creation based
      * on both enabled drives and not enabled drives (lack from
      * the driver).
      * Given the current ReactOS state, that's good for us.
@@ -278,7 +276,7 @@ IopCreateArcNamesCd(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
                                                 NULL,
                                                 0,
                                                 &DeviceNumber,
-                                                sizeof(DeviceNumber),
+                                                sizeof(STORAGE_DEVICE_NUMBER),
                                                 FALSE,
                                                 &Event,
                                                 &IoStatusBlock);
@@ -359,7 +357,7 @@ IopCreateArcNamesCd(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
                 Status = IoStatusBlock.Status;
             }
 
-            /* If reading succeeded, compute checksum by adding data, 2048 bytes checksum */
+            /* Reading succeed, compute checksum by adding data, 2048 bytes checksum */
             if (NT_SUCCESS(Status))
             {
                 for (i = 0; i < 2048 / sizeof(ULONG); i++)
@@ -415,7 +413,7 @@ NTSTATUS
 NTAPI
 IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                       IN BOOLEAN SingleDisk,
-                      OUT PBOOLEAN FoundBoot)
+                      IN PBOOLEAN FoundBoot)
 {
     PIRP Irp;
     PVOID Data;
@@ -482,8 +480,6 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
     /* Start browsing disks */
     for (DiskNumber = 0; DiskNumber < DiskCount; DiskNumber++)
     {
-        ASSERT(DriveLayout == NULL);
-
         /* Check if we have an enabled disk */
         if (lSymbolicLinkList && *lSymbolicLinkList != UNICODE_NULL)
         {
@@ -505,7 +501,7 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                                                     NULL,
                                                     0,
                                                     &DeviceNumber,
-                                                    sizeof(DeviceNumber),
+                                                    sizeof(STORAGE_DEVICE_NUMBER),
                                                     FALSE,
                                                     &Event,
                                                     &IoStatusBlock);
@@ -526,7 +522,7 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                     Status = IoStatusBlock.Status;
                 }
 
-                /* If we didn't get the appropriate data, just skip that disk */
+                /* If we didn't get the appriopriate data, just skip that disk */
                 if (!NT_SUCCESS(Status))
                 {
                    ObDereferenceObject(FileObject);
@@ -587,7 +583,7 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                                             NULL,
                                             0,
                                             &DiskGeometry,
-                                            sizeof(DiskGeometry),
+                                            sizeof(DISK_GEOMETRY),
                                             FALSE,
                                             &Event,
                                             &IoStatusBlock);
@@ -648,7 +644,7 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
             goto Cleanup;
         }
 
-        /* Read the first sector for computing checksum */
+        /* Read a sector for computing checksum */
         Irp = IoBuildSynchronousFsdRequest(IRP_MJ_READ,
                                            DeviceObject,
                                            PartitionBuffer,
@@ -658,7 +654,6 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                                            &IoStatusBlock);
         if (!Irp)
         {
-            ExFreePoolWithTag(PartitionBuffer, TAG_IO);
             ObDereferenceObject(FileObject);
             Status = STATUS_INSUFFICIENT_RESOURCES;
             goto Cleanup;
@@ -672,26 +667,20 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
             KeWaitForSingleObject(&Event, Executive, KernelMode, FALSE, NULL);
             Status = IoStatusBlock.Status;
         }
-
-        /* If reading succeeded, calculate checksum by adding data */
-        if (NT_SUCCESS(Status))
-        {
-            for (i = 0, CheckSum = 0; i < 512 / sizeof(ULONG); i++)
-            {
-                CheckSum += PartitionBuffer[i];
-            }
-        }
-
-        /* Release now unnecessary resources */
-        ExFreePoolWithTag(PartitionBuffer, TAG_IO);
-        ObDereferenceObject(FileObject);
-
-        /* If we failed, release drive layout before going to next disk */
         if (!NT_SUCCESS(Status))
         {
             ExFreePool(DriveLayout);
-            DriveLayout = NULL;
+            ExFreePoolWithTag(PartitionBuffer, TAG_IO);
+            ObDereferenceObject(FileObject);
             continue;
+        }
+
+        ObDereferenceObject(FileObject);
+
+        /* Calculate checksum, that's an easy computation, just adds read data */
+        for (i = 0, CheckSum = 0; i < 512 / sizeof(ULONG) ; i++)
+        {
+            CheckSum += PartitionBuffer[i];
         }
 
         /* Browse each ARC disk */
@@ -703,20 +692,19 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                                                  ARC_DISK_SIGNATURE,
                                                  ListEntry);
 
-            /*
-             * If this is the only MBR disk in the ARC list and detected
-             * in the device tree, just go ahead and create the ArcName link.
-             * Otherwise, check whether the signatures and checksums match
-             * before creating the ArcName link.
+            /* If they matches, ie
+             * - There's only one disk for both BIOS and detected/enabled
+             * - Signatures are matching
+             * - Checksums are matching
+             * - This is MBR
              */
-            if ((SingleDisk && (DiskCount == 1) &&
-                 (DriveLayout->PartitionStyle == PARTITION_STYLE_MBR)) ||
+            if (((SingleDisk && DiskCount == 1) ||
                 (IopVerifyDiskSignature(DriveLayout, ArcDiskSignature, &Signature) &&
-                 (ArcDiskSignature->CheckSum + CheckSum == 0)))
+                 (ArcDiskSignature->CheckSum + CheckSum == 0))) &&
+                (DriveLayout->PartitionStyle == PARTITION_STYLE_MBR))
             {
                 /* Create device name */
-                sprintf(Buffer, "\\Device\\Harddisk%lu\\Partition0",
-                        (DeviceNumber.DeviceNumber != ULONG_MAX) ? DeviceNumber.DeviceNumber : DiskNumber);
+                sprintf(Buffer, "\\Device\\Harddisk%lu\\Partition0", (DeviceNumber.DeviceNumber != ULONG_MAX) ? DeviceNumber.DeviceNumber : DiskNumber);
                 RtlInitAnsiString(&DeviceStringA, Buffer);
                 Status = RtlAnsiStringToUnicodeString(&DeviceStringW, &DeviceStringA, TRUE);
                 if (!NT_SUCCESS(Status))
@@ -737,16 +725,15 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
                 /* Link both */
                 IoAssignArcName(&ArcNameStringW, &DeviceStringW);
 
-                /* And release strings */
+                /* And release resources */
                 RtlFreeUnicodeString(&ArcNameStringW);
                 RtlFreeUnicodeString(&DeviceStringW);
 
-                /* Now, browse each partition */
+                /* Now, browse for every partition */
                 for (i = 1; i <= DriveLayout->PartitionCount; i++)
                 {
                     /* Create device name */
-                    sprintf(Buffer, "\\Device\\Harddisk%lu\\Partition%lu",
-                            (DeviceNumber.DeviceNumber != ULONG_MAX) ? DeviceNumber.DeviceNumber : DiskNumber, i);
+                    sprintf(Buffer, "\\Device\\Harddisk%lu\\Partition%lu", (DeviceNumber.DeviceNumber != ULONG_MAX) ? DeviceNumber.DeviceNumber : DiskNumber, i);
                     RtlInitAnsiString(&DeviceStringA, Buffer);
                     Status = RtlAnsiStringToUnicodeString(&DeviceStringW, &DeviceStringA, TRUE);
                     if (!NT_SUCCESS(Status))
@@ -802,35 +789,42 @@ IopCreateArcNamesDisk(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
             }
             else
             {
-                /* Debugging feedback: Warn in case there's a valid partition,
-                 * a matching signature, BUT a non-matching checksum: this can
-                 * be the sign of a duplicate signature, or even worse a virus
-                 * played with the partition table. */
-                if (ArcDiskSignature->ValidPartitionTable &&
-                    (ArcDiskSignature->Signature == Signature) &&
-                    (ArcDiskSignature->CheckSum + CheckSum != 0))
-                {
-                    DPRINT("Be careful, you have a duplicate disk signature, or a virus altered your MBR!\n");
-                }
+                /* In case there's a valid partition, a matching signature,
+                   BUT a none matching checksum, or there's a duplicate
+                   signature, or even worse a virus played with partition
+                   table */
+                if (ArcDiskSignature->Signature == Signature &&
+                    (ArcDiskSignature->CheckSum + CheckSum != 0) &&
+                    ArcDiskSignature->ValidPartitionTable)
+                 {
+                     DPRINT("Be careful, or you have a duplicate disk signature, or a virus altered your MBR!\n");
+                 }
             }
         }
 
-        /* Finally, release drive layout */
+        /* Release memory before jumping to next item */
         ExFreePool(DriveLayout);
         DriveLayout = NULL;
+        ExFreePoolWithTag(PartitionBuffer, TAG_IO);
+        PartitionBuffer = NULL;
     }
 
     Status = STATUS_SUCCESS;
 
 Cleanup:
+    if (SymbolicLinkList)
+    {
+        ExFreePool(SymbolicLinkList);
+    }
+
     if (DriveLayout)
     {
         ExFreePool(DriveLayout);
     }
 
-    if (SymbolicLinkList)
+    if (PartitionBuffer)
     {
-        ExFreePool(SymbolicLinkList);
+        ExFreePoolWithTag(PartitionBuffer, TAG_IO);
     }
 
     return Status;
@@ -946,42 +940,52 @@ IopReassignSystemRoot(IN PLOADER_PARAMETER_BLOCK LoaderBlock,
 }
 
 BOOLEAN
-IopVerifyDiskSignature(
-    _In_ PDRIVE_LAYOUT_INFORMATION_EX DriveLayout,
-    _In_ PARC_DISK_SIGNATURE ArcDiskSignature,
-    _Out_ PULONG Signature)
+NTAPI
+IopVerifyDiskSignature(IN PDRIVE_LAYOUT_INFORMATION_EX DriveLayout,
+                       IN PARC_DISK_SIGNATURE ArcDiskSignature,
+                       OUT PULONG Signature)
 {
-    /* Fail if the partition table is invalid */
+    /* First condition: having a valid partition table */
     if (!ArcDiskSignature->ValidPartitionTable)
+    {
         return FALSE;
+    }
 
-    /* If the partition style is MBR */
+    /* If that partition table is the MBR */
     if (DriveLayout->PartitionStyle == PARTITION_STYLE_MBR)
     {
-        /* Check the MBR signature */
+        /* Then check MBR signature */
         if (DriveLayout->Mbr.Signature == ArcDiskSignature->Signature)
         {
             /* And return it */
             if (Signature)
+            {
                 *Signature = DriveLayout->Mbr.Signature;
+            }
+
             return TRUE;
         }
     }
-    /* If the partition style is GPT */
+    /* If that partition table is the GPT */
     else if (DriveLayout->PartitionStyle == PARTITION_STYLE_GPT)
     {
-        /* Verify whether the signature is GPT and compare the GUID */
+        /* Check we are using GPT and compare GUID */
         if (ArcDiskSignature->IsGpt &&
-            IsEqualGUID((PGUID)&ArcDiskSignature->GptSignature, &DriveLayout->Gpt.DiskId))
+            (((PULONG)ArcDiskSignature->GptSignature)[0] == DriveLayout->Gpt.DiskId.Data1 &&
+             ((PUSHORT)ArcDiskSignature->GptSignature)[2] == DriveLayout->Gpt.DiskId.Data2 &&
+             ((PUSHORT)ArcDiskSignature->GptSignature)[3] == DriveLayout->Gpt.DiskId.Data3 &&
+             ((PULONGLONG)ArcDiskSignature->GptSignature)[1] == ((PULONGLONG)DriveLayout->Gpt.DiskId.Data4)[0]))
         {
-            /* There is no signature to return, just zero it */
+            /* There's no signature to give, so we just zero output */
             if (Signature)
+            {
                 *Signature = 0;
+            }
             return TRUE;
         }
     }
 
-    /* If we get there, something went wrong, so fail */
+    /* If we fall here, it means that something went wrong, so return that */
     return FALSE;
 }
 

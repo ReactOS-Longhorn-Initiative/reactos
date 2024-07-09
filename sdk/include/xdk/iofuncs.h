@@ -1140,7 +1140,6 @@ IoRegisterDeviceInterface(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-CODE_SEG("PAGE")
 NTKERNELAPI
 NTSTATUS
 NTAPI
@@ -1292,7 +1291,6 @@ IoStopTimer(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 __drv_freesMem(Pool)
-CODE_SEG("PAGE")
 NTKERNELAPI
 NTSTATUS
 NTAPI
@@ -1492,7 +1490,7 @@ IoQueryDeviceDescription(
   _In_opt_ PCONFIGURATION_TYPE PeripheralType,
   _In_opt_ PULONG PeripheralNumber,
   _In_ PIO_QUERY_DEVICE_ROUTINE CalloutRoutine,
-  _In_opt_ PVOID Context);
+  _Inout_opt_ PVOID Context);
 
 _IRQL_requires_max_(APC_LEVEL)
 NTKERNELAPI
@@ -2406,7 +2404,7 @@ IoRequestDeviceEjectEx(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
-NTKRNLVISTAAPI
+NTKERNELAPI
 NTSTATUS
 NTAPI
 IoSetDevicePropertyData(

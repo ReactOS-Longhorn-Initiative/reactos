@@ -7,6 +7,7 @@ extern "C" {
 #define REGSTR_KEY_CLASS TEXT("Class")
 #define REGSTR_KEY_CONFIG TEXT("Config")
 #define REGSTR_KEY_ENUM TEXT("Enum")
+#define REGSTR_KEY_ROOT TEXT("Root")
 #define REGSTR_KEY_ROOTENUM TEXT("Root")
 #define REGSTR_KEY_BIOSENUM TEXT("BIOS")
 #define REGSTR_KEY_PCMCIAENUM TEXT("PCMCIA")

@@ -857,7 +857,7 @@ IopParseDevice(IN PVOID ParseObject,
             }
 
             /* Clear the file object */
-            RtlZeroMemory(FileObject, ObjectSize);
+            RtlZeroMemory(FileObject, sizeof(FILE_OBJECT));
 
             /* Check if this is Synch I/O */
             if (OpenPacket->CreateOptions &
@@ -917,7 +917,6 @@ IopParseDevice(IN PVOID ParseObject,
                 /* Make sure the file object knows it has an extension */
                 FileObject->Flags |= FO_FILE_OBJECT_HAS_EXTENSION;
 
-                /* Initialize file object extension */
                 FileObjectExtension = (PFILE_OBJECT_EXTENSION)(FileObject + 1);
                 FileObject->FileObjectExtension = FileObjectExtension;
 
@@ -3430,6 +3429,11 @@ IoCheckShareAccess(IN ACCESS_MASK DesiredAccess,
         SharedWrite = (DesiredShareAccess & FILE_SHARE_WRITE) != 0;
         SharedDelete = (DesiredShareAccess & FILE_SHARE_DELETE) != 0;
 
+        /* Set them */
+        FileObject->SharedRead = SharedRead;
+        FileObject->SharedWrite = SharedWrite;
+        FileObject->SharedDelete = SharedDelete;
+
         /* Check if the shared access is violated */
         if ((ReadAccess &&
              (ShareAccess->SharedRead < ShareAccess->OpenCount)) ||
@@ -3444,11 +3448,6 @@ IoCheckShareAccess(IN ACCESS_MASK DesiredAccess,
             /* Sharing violation, fail */
             return STATUS_SHARING_VIOLATION;
         }
-
-        /* Set them */
-        FileObject->SharedRead = SharedRead;
-        FileObject->SharedWrite = SharedWrite;
-        FileObject->SharedDelete = SharedDelete;
 
         /* It's not, check if caller wants us to update it */
         if (Update)

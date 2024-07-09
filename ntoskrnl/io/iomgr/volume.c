@@ -12,8 +12,15 @@
 /* INCLUDES *****************************************************************/
 
 #include <ntoskrnl.h>
+#include "../pnpio.h"
+
 #define NDEBUG
 #include <debug.h>
+
+#if defined (ALLOC_PRAGMA)
+#pragma alloc_text(INIT, IoInitFileSystemImplementation)
+#pragma alloc_text(INIT, IoInitVpbImplementation)
+#endif
 
 /* GLOBALS ******************************************************************/
 
@@ -25,15 +32,16 @@ ULONG IopFsRegistrationOps;
 
 /* PRIVATE FUNCTIONS *********************************************************/
 
-/*
- * @halfplemented
- */
+/* @halfplemented */
 VOID
 NTAPI
-IopDecrementDeviceObjectRef(IN PDEVICE_OBJECT DeviceObject,
-                            IN BOOLEAN UnloadIfUnused)
+IopDecrementDeviceObjectRef(
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _In_ BOOLEAN UnloadIfUnused,
+    _In_ BOOLEAN IsDelayedWorker)
 {
     KIRQL OldIrql;
+    ULONG Flags;
 
     /* Acquire lock */
     OldIrql = KeAcquireQueuedSpinLock(LockQueueIoDatabaseLock);
@@ -49,23 +57,23 @@ IopDecrementDeviceObjectRef(IN PDEVICE_OBJECT DeviceObject,
     KeReleaseQueuedSpinLock(LockQueueIoDatabaseLock, OldIrql);
 
     /* Here, DO is not referenced any longer, check if we have to unload it */
-    if (UnloadIfUnused || IoGetDevObjExtension(DeviceObject)->ExtensionFlags &
-                          (DOE_UNLOAD_PENDING | DOE_DELETE_PENDING | DOE_REMOVE_PENDING))
+    Flags = (DOE_UNLOAD_PENDING | DOE_DELETE_PENDING | DOE_REMOVE_PENDING);
+
+    if (UnloadIfUnused || (IoGetDevObjExtension(DeviceObject)->ExtensionFlags & Flags))
     {
         /* Unload the driver */
+        DPRINT("IopDecrementDeviceObjectRef: FIXME IopCompleteUnloadOrDelete()\n");
         IopUnloadDevice(DeviceObject);
+        //IopCompleteUnloadOrDelete(DeviceObject, IsDelayedWorker, OldIrql);
     }
 }
 
-/*
- * @implemented
- */
 VOID
 NTAPI
 IopDecrementDeviceObjectHandleCount(IN PDEVICE_OBJECT DeviceObject)
 {
     /* Just decrease reference count */
-    IopDecrementDeviceObjectRef(DeviceObject, FALSE);
+    IopDecrementDeviceObjectRef(DeviceObject, FALSE, FALSE);
 }
 
 /*
@@ -305,13 +313,11 @@ IopNotifyFileSystemChange(IN PDEVICE_OBJECT DeviceObject,
     }
 }
 
-/*
- * @implemented
- */
 ULONG
 FASTCALL
-IopInterlockedIncrementUlong(IN KSPIN_LOCK_QUEUE_NUMBER Queue,
-                             IN PULONG Ulong)
+IopInterlockedIncrementUlong(
+    _In_ KSPIN_LOCK_QUEUE_NUMBER Queue,
+    _Inout_ PULONG Ulong)
 {
     KIRQL Irql;
     ULONG OldValue;
@@ -396,7 +402,7 @@ IopShutdownBaseFileSystems(IN PLIST_ENTRY ListHead)
         /* Reset the event */
         KeClearEvent(&Event);
 
-        IopDecrementDeviceObjectRef(DeviceObject, FALSE);
+        IopDecrementDeviceObjectRef(DeviceObject, FALSE, TRUE);
         ObDereferenceObject(DeviceObject);
     }
 }
@@ -451,7 +457,7 @@ IopLoadFileSystemDriver(IN PDEVICE_OBJECT DeviceObject)
     }
 
     /* Dereference DO - FsRec? - Comment out call, since it breaks up 2nd stage boot, needs more research. */
-//  IopDecrementDeviceObjectRef(AttachedDeviceObject, TRUE);
+//  IopDecrementDeviceObjectRef(AttachedDeviceObject, TRUE, TRUE);
 }
 
 /*
@@ -637,11 +643,14 @@ IopMountVolume(IN PDEVICE_OBJECT DeviceObject,
             /* Check if mounting was successful */
             if (NT_SUCCESS(Status))
             {
+                BOOLEAN IsVpbRawMount;
+
+                IsVpbRawMount = (DeviceObject->Vpb->Flags & VPB_RAW_MOUNT)
+                                                         == VPB_RAW_MOUNT;
                 /* Mount the VPB */
                 *Vpb = IopMountInitializeVpb(DeviceObject,
                                              AttachedDeviceObject,
-                                             (DeviceObject->Vpb->Flags &
-                                              VPB_RAW_MOUNT));
+                                             IsVpbRawMount);
             }
             else
             {
@@ -1429,6 +1438,150 @@ ReleaseMemory:
 
 DereferenceFO:
     ObDereferenceObject(FileObject);
+
+    return Status;
+}
+
+NTSTATUS
+NTAPI
+IopInvalidateVolumesForDevice(
+    _In_ PDEVICE_OBJECT DeviceObject)
+{
+    PDEVICE_OBJECT FileDeviceObject;
+    PIO_STACK_LOCATION IoStack;
+    IO_STATUS_BLOCK IoStatus;
+    PFILE_OBJECT FileObject;
+    PLIST_ENTRY FileSystemQueueHead;
+    PLIST_ENTRY Entry;
+    PKTHREAD Thread;
+    KEVENT Event;
+    HANDLE Handle;
+    PIRP Irp;
+    NTSTATUS status;
+    NTSTATUS Status = STATUS_SUCCESS;
+  
+    DPRINT1("IopInvalidateVolumesForDevice: DeviceObject %p\n", DeviceObject);
+    PAGED_CODE();
+
+    for (; DeviceObject; DeviceObject = DeviceObject->AttachedDevice)
+    {
+        if (!DeviceObject->Vpb)
+            continue;
+
+        KeWaitForSingleObject(&DeviceObject->DeviceLock, Executive, KernelMode, FALSE, NULL);
+
+        Handle = NULL;
+        FileObject = NULL;
+
+        _SEH2_TRY
+        {
+            FileObject = (PFILE_OBJECT)IoCreateStreamFileObjectLite(NULL, DeviceObject);
+            FileObject->Vpb = DeviceObject->Vpb;
+
+            Status = ObOpenObjectByPointer(FileObject, OBJ_KERNEL_HANDLE, NULL, 0, IoFileObjectType, KernelMode, &Handle);
+
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            Status = _SEH2_GetExceptionCode();
+        }
+        _SEH2_END;
+
+        if (!NT_SUCCESS(Status))
+        {
+            goto Next;
+        }
+
+        Thread = KeGetCurrentThread ();
+        KeEnterCriticalRegionThread(Thread);
+        ExAcquireResourceSharedLite(&IopDatabaseResource, TRUE);
+
+        if (DeviceObject->DeviceType == FILE_DEVICE_DISK || DeviceObject->DeviceType == FILE_DEVICE_VIRTUAL_DISK)
+        {
+            FileSystemQueueHead = &IopDiskFileSystemQueueHead;
+        }
+        else if (DeviceObject->DeviceType == FILE_DEVICE_CD_ROM)
+        {
+            FileSystemQueueHead = &IopCdRomFileSystemQueueHead;
+        }
+        else
+        {
+            FileSystemQueueHead = &IopTapeFileSystemQueueHead;
+        }
+
+        KeInitializeEvent(&Event, NotificationEvent, FALSE);
+
+        status = STATUS_SUCCESS;
+
+        for (Entry = FileSystemQueueHead->Flink; Entry != FileSystemQueueHead; Entry = Entry->Flink)
+        {
+            if (Entry->Flink == FileSystemQueueHead)
+                break;
+
+            FileDeviceObject  = CONTAINING_RECORD(Entry, DEVICE_OBJECT, Queue.ListEntry);
+
+            for (;
+                 FileDeviceObject->AttachedDevice;
+                 FileDeviceObject = FileDeviceObject->AttachedDevice)
+            {
+                ;
+            }
+
+            KeClearEvent(&Event);
+
+            Irp = IoBuildDeviceIoControlRequest(FSCTL_INVALIDATE_VOLUMES,
+                                                FileDeviceObject,
+                                                &Handle,
+                                                sizeof(HANDLE),
+                                                NULL,
+                                                0,
+                                                FALSE,
+                                                &Event,
+                                                &IoStatus);
+            if (!Irp)
+            {
+                DPRINT1("IopInvalidateVolumesForDevice: STATUS_INSUFFICIENT_RESOURCES\n");
+                status = STATUS_INSUFFICIENT_RESOURCES;
+                break;
+            }
+
+            IoStack = IoGetNextIrpStackLocation(Irp);
+            IoStack->MajorFunction = IRP_MJ_FILE_SYSTEM_CONTROL;
+
+            Status = IoCallDriver(FileDeviceObject, Irp);
+
+            if (Status == STATUS_PENDING)
+            {
+                KeWaitForSingleObject(&Event, Executive, KernelMode, FALSE, NULL);
+                Status = IoStatus.Status;
+            }
+            else
+            {
+                IoStatus.Status = Status;
+                IoStatus.Information = 0;
+            }
+
+            if (Status == STATUS_INVALID_DEVICE_REQUEST || Status == STATUS_NOT_IMPLEMENTED)
+                Status = STATUS_SUCCESS;
+
+            if (NT_SUCCESS(status) && !NT_SUCCESS(Status))
+                status = Status;
+        }
+
+        ExReleaseResourceLite(&IopDatabaseResource);
+        KeLeaveCriticalRegionThread(Thread);
+
+        if (!FileObject)
+            goto Next;
+
+        ObDereferenceObject(FileObject);
+
+        if (Handle)
+            ZwClose(Handle);
+
+Next:
+        KeSetEvent(&DeviceObject->DeviceLock, IO_NO_INCREMENT, FALSE);
+    }
 
     return Status;
 }

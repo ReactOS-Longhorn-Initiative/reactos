@@ -1,51 +1,42 @@
 /*
- * PROJECT:     ReactOS Kernel
- * LICENSE:     GPL-2.0-or-later (https://spdx.org/licenses/GPL-2.0-or-later)
- * PURPOSE:     Hardware resource management
- * COPYRIGHT:   Copyright 1998 David Welch <welch@mcmail.com>
- *              Copyright 2001 Eric Kohl <eric.kohl@reactos.org>
- *              Copyright 2004-2013 Alex Ionescu <alex.ionescu@reactos.org>
- *              Copyright 2010 Cameron Gutman <cameron.gutman@reactos.org>
- *              Copyright 2010 Pierre Schweitzer <pierre@reactos.org>
+ * COPYRIGHT:       See COPYING in the top level directory
+ * PROJECT:         ReactOS kernel
+ * FILE:            ntoskrnl/io/iomgr/iorsrce.c
+ * PURPOSE:         Hardware resource managment
+ *
+ * PROGRAMMERS:     David Welch (welch@mcmail.com)
+ *                  Alex Ionescu (alex@relsoft.net)
+ *                  Pierre Schweitzer (pierre.schweitzer@reactos.org)
  */
 
 /* INCLUDES *****************************************************************/
 
 #include <ntoskrnl.h>
-#define NDEBUG
+#include "../pnpio.h"
+
+//#define NDEBUG
 #include <debug.h>
 
-#ifndef NDEBUG
-    #define IORSRCTRACE(...)    DbgPrint(__VA_ARGS__)
-#else
-    #if defined(_MSC_VER)
-    #define IORSRCTRACE     __noop
-    #else
-    #define IORSRCTRACE(...)    do { if(0) { DbgPrint(__VA_ARGS__); } } while(0)
-    #endif
-#endif
-
 /* GLOBALS *******************************************************************/
+
+extern PCM_RESOURCE_LIST IopInitHalResources;
 
 static CONFIGURATION_INFORMATION
 _SystemConfigurationInformation = { 0, 0, 0, 0, 0, 0, 0, FALSE, FALSE, 0, 0 };
 
-/* API parameters to pass to IopQueryBusDescription() */
-typedef struct _IO_QUERY
-{
-    PINTERFACE_TYPE BusType;
-    PULONG BusNumber;
-    PCONFIGURATION_TYPE ControllerType;
-    PULONG ControllerNumber;
-    PCONFIGURATION_TYPE PeripheralType;
-    PULONG PeripheralNumber;
-    PIO_QUERY_DEVICE_ROUTINE CalloutRoutine;
-    PVOID Context;
+/* API Parameters to Pass in IopQueryBusDescription */
+typedef struct IO_QUERY {
+    PINTERFACE_TYPE  BusType;
+    PULONG  BusNumber;
+    PCONFIGURATION_TYPE  ControllerType;
+    PULONG  ControllerNumber;
+    PCONFIGURATION_TYPE  PeripheralType;
+    PULONG  PeripheralNumber;
+    PIO_QUERY_DEVICE_ROUTINE  CalloutRoutine;
+    PVOID  Context;
 } IO_QUERY, *PIO_QUERY;
 
-/* Strings corresponding to CONFIGURATION_TYPE */
-PCWSTR ArcTypes[MaximumType + 1] =
-{
+PWSTR ArcTypes[42] = {
     L"System",
     L"CentralProcessor",
     L"FloatingPointProcessor",
@@ -90,776 +81,626 @@ PCWSTR ArcTypes[MaximumType + 1] =
     L"Undefined"
 };
 
-/* Strings corresponding to IO_QUERY_DEVICE_DATA_FORMAT */
-PCWSTR IoDeviceInfoNames[IoQueryDeviceMaxData] =
-{
-    L"Identifier",
-    L"Configuration Data",
-    L"Component Information"
-};
-
 /* PRIVATE FUNCTIONS **********************************************************/
 
-/**
- * @brief
- * Reads and returns Hardware information from the appropriate hardware
- * registry key. Helper stub of IopQueryBusDescription().
+/*
+ * IopQueryDeviceDescription
  *
- * @param[in]   Query
- * What the parent function wants.
+ * FUNCTION:
+ *     Reads and returns Hardware information from the appropriate hardware
+ *     registry key. Helper sub of IopQueryBusDescription.
  *
- * @param[in]   RootKey
- * Which key to look in.
+ * ARGUMENTS:
+ *     Query          - What the parent function wants.
+ *     RootKey        - Which key to look in
+ *     RootKeyHandle  - Handle to the key
+ *     Bus            - Bus Number.
+ *     BusInformation - The Configuration Information Sent
  *
- * @param[in]   RootKeyHandle
- * Handle to the key.
- *
- * @param[in]   Bus
- * The bus number.
- *
- * @param[in]   BusInformation
- * The configuration information being sent.
- *
- * @return  A status code.
- **/
-static NTSTATUS
+ * RETURNS:
+ *      Status
+ */
+
+NTSTATUS NTAPI
 IopQueryDeviceDescription(
-    _In_ PIO_QUERY Query,
-    _In_ UNICODE_STRING RootKey,
-    _In_ HANDLE RootKeyHandle,
-    _In_ ULONG Bus,
-    _In_ PKEY_VALUE_FULL_INFORMATION* BusInformation)
+   PIO_QUERY Query,
+   UNICODE_STRING RootKey,
+   HANDLE RootKeyHandle,
+   ULONG Bus,
+   PKEY_VALUE_FULL_INFORMATION *BusInformation)
 {
-    NTSTATUS Status = STATUS_SUCCESS;
+   NTSTATUS Status = STATUS_SUCCESS;
 
-    /* Controller data */
-    UNICODE_STRING ControllerString;
-    UNICODE_STRING ControllerRootRegName = RootKey;
-    UNICODE_STRING ControllerRegName;
-    HANDLE ControllerKeyHandle;
-    PKEY_FULL_INFORMATION ControllerFullInformation = NULL;
-    PKEY_VALUE_FULL_INFORMATION ControllerInformation[IoQueryDeviceMaxData] =
-        {NULL, NULL, NULL};
-    ULONG ControllerNumber;
-    ULONG ControllerLoop;
-    ULONG MaximumControllerNumber;
+   /* Controller Stuff */
+   UNICODE_STRING ControllerString;
+   UNICODE_STRING ControllerRootRegName = RootKey;
+   UNICODE_STRING ControllerRegName;
+   HANDLE ControllerKeyHandle;
+   PKEY_FULL_INFORMATION ControllerFullInformation = NULL;
+   PKEY_VALUE_FULL_INFORMATION ControllerInformation[3] = {NULL, NULL, NULL};
+   ULONG ControllerNumber;
+   ULONG ControllerLoop;
+   ULONG MaximumControllerNumber;
 
-    /* Peripheral data */
-    UNICODE_STRING PeripheralString;
-    HANDLE PeripheralKeyHandle;
-    PKEY_FULL_INFORMATION PeripheralFullInformation;
-    PKEY_VALUE_FULL_INFORMATION PeripheralInformation[IoQueryDeviceMaxData] =
-        {NULL, NULL, NULL};
-    ULONG PeripheralNumber;
-    ULONG PeripheralLoop;
-    ULONG MaximumPeripheralNumber;
+   /* Peripheral Stuff */
+   UNICODE_STRING PeripheralString;
+   HANDLE PeripheralKeyHandle;
+   PKEY_FULL_INFORMATION PeripheralFullInformation;
+   PKEY_VALUE_FULL_INFORMATION PeripheralInformation[3] = {NULL, NULL, NULL};
+   ULONG PeripheralNumber;
+   ULONG PeripheralLoop;
+   ULONG MaximumPeripheralNumber;
 
-    /* Global Registry data */
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    ULONG LenFullInformation;
-    ULONG LenKeyFullInformation;
-    UNICODE_STRING TempString;
-    WCHAR TempBuffer[14];
+   /* Global Registry Stuff */
+   OBJECT_ATTRIBUTES ObjectAttributes;
+   ULONG LenFullInformation;
+   ULONG LenKeyFullInformation;
+   UNICODE_STRING TempString;
+   WCHAR TempBuffer[14];
+   PWSTR Strings[3] = {
+      L"Identifier",
+      L"Configuration Data",
+      L"Component Information"
+   };
 
-    IORSRCTRACE("\nIopQueryDeviceDescription(Query: 0x%p)\n"
-                "    RootKey: '%wZ'\n"
-                "    RootKeyHandle: 0x%p\n"
-                "    Bus: %lu\n",
-                Query,
-                &RootKey, RootKeyHandle,
-                Bus);
+   /* Temporary String */
+   TempString.MaximumLength = sizeof(TempBuffer);
+   TempString.Length = 0;
+   TempString.Buffer = TempBuffer;
 
-    /* Temporary string */
-    RtlInitEmptyUnicodeString(&TempString, TempBuffer, sizeof(TempBuffer));
+   /* Add Controller Name to String */
+   RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
+   RtlAppendUnicodeToString(&ControllerRootRegName, ArcTypes[*Query->ControllerType]);
 
-    /* Append controller name to string */
-    RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
-    RtlAppendUnicodeToString(&ControllerRootRegName, ArcTypes[*Query->ControllerType]);
+   /* Set the Controller Number if specified */
+   if (Query->ControllerNumber && *(Query->ControllerNumber))
+   {
+      ControllerNumber = *Query->ControllerNumber;
+      MaximumControllerNumber = ControllerNumber + 1;
+   } else {
+      /* Find out how many Controller Numbers there are */
+      InitializeObjectAttributes(
+         &ObjectAttributes,
+         &ControllerRootRegName,
+         OBJ_CASE_INSENSITIVE,
+         NULL,
+         NULL);
 
-    /* Set the controller number if specified */
-    if (Query->ControllerNumber)
-    {
-        ControllerNumber = *(Query->ControllerNumber);
-        MaximumControllerNumber = ControllerNumber + 1;
-        IORSRCTRACE("    Getting controller #%lu\n", ControllerNumber);
-    }
-    else
-    {
-        IORSRCTRACE("    Enumerating controllers in '%wZ'...\n", &ControllerRootRegName);
+      Status = ZwOpenKey(&ControllerKeyHandle, KEY_READ, &ObjectAttributes);
+      if (NT_SUCCESS(Status))
+      {
+         /* How much buffer space */
+         ZwQueryKey(ControllerKeyHandle, KeyFullInformation, NULL, 0, &LenFullInformation);
 
-        /* Find out how many controllers there are */
-        InitializeObjectAttributes(&ObjectAttributes,
-                                   &ControllerRootRegName,
-                                   OBJ_CASE_INSENSITIVE,
-                                   NULL,
-                                   NULL);
+         /* Allocate it */
+         ControllerFullInformation = ExAllocatePoolWithTag(PagedPool, LenFullInformation, TAG_IO_RESOURCE);
 
-        Status = ZwOpenKey(&ControllerKeyHandle, KEY_READ, &ObjectAttributes);
+         /* Get the Information */
+         Status = ZwQueryKey(ControllerKeyHandle, KeyFullInformation, ControllerFullInformation, LenFullInformation, &LenFullInformation);
+         ZwClose(ControllerKeyHandle);
+         ControllerKeyHandle = NULL;
+      }
 
-        if (NT_SUCCESS(Status))
-        {
-            /* Retrieve the necessary buffer space */
-            ZwQueryKey(ControllerKeyHandle,
-                       KeyFullInformation,
-                       NULL, 0,
-                       &LenFullInformation);
+      /* No controller was found, go back to function. */
+      if (!NT_SUCCESS(Status))
+      {
+         if (ControllerFullInformation != NULL)
+            ExFreePoolWithTag(ControllerFullInformation, TAG_IO_RESOURCE);
+         return Status;
+      }
+
+      /* Find out Controller Numbers */
+      ControllerNumber = 0;
+      MaximumControllerNumber = ControllerFullInformation->SubKeys;
+
+      /* Free Memory */
+      ExFreePoolWithTag(ControllerFullInformation, TAG_IO_RESOURCE);
+      ControllerFullInformation = NULL;
+   }
+
+   /* Save String */
+   ControllerRegName = ControllerRootRegName;
+
+   /* Loop through controllers */
+   for (; ControllerNumber < MaximumControllerNumber; ControllerNumber++)
+   {
+      /* Load String */
+      ControllerRootRegName = ControllerRegName;
+
+      /* Controller Number to Registry String */
+      Status = RtlIntegerToUnicodeString(ControllerNumber, 10, &TempString);
+
+      /* Create String */
+      Status |= RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
+      Status |= RtlAppendUnicodeStringToString(&ControllerRootRegName, &TempString);
+
+      /* Something messed up */
+      if (!NT_SUCCESS(Status)) break;
+
+      /* Open the Registry Key */
+      InitializeObjectAttributes(
+         &ObjectAttributes,
+         &ControllerRootRegName,
+         OBJ_CASE_INSENSITIVE,
+         NULL,
+         NULL);
+
+      Status = ZwOpenKey(&ControllerKeyHandle, KEY_READ, &ObjectAttributes);
+
+      /* Read the Configuration Data... */
+      if (NT_SUCCESS(Status))
+      {
+         for (ControllerLoop = 0; ControllerLoop < 3; ControllerLoop++)
+         {
+            /* Identifier String First */
+            RtlInitUnicodeString(&ControllerString, Strings[ControllerLoop]);
+
+            /* How much buffer space */
+            Status = ZwQueryValueKey(ControllerKeyHandle, &ControllerString, KeyValueFullInformation, NULL, 0, &LenKeyFullInformation);
+
+            if (!NT_SUCCESS(Status) && Status != STATUS_BUFFER_TOO_SMALL && Status != STATUS_BUFFER_OVERFLOW)
+               continue;
 
             /* Allocate it */
-            ControllerFullInformation = ExAllocatePoolWithTag(PagedPool, LenFullInformation, TAG_IO_RESOURCE);
-            if (!ControllerFullInformation)
+            ControllerInformation[ControllerLoop] = ExAllocatePoolWithTag(PagedPool, LenKeyFullInformation, TAG_IO_RESOURCE);
+
+            /* Get the Information */
+            Status = ZwQueryValueKey(ControllerKeyHandle, &ControllerString, KeyValueFullInformation, ControllerInformation[ControllerLoop], LenKeyFullInformation, &LenKeyFullInformation);
+         }
+
+         /* Clean Up */
+         ZwClose(ControllerKeyHandle);
+         ControllerKeyHandle = NULL;
+      }
+
+      /* Something messed up */
+      if (!NT_SUCCESS(Status))
+         goto EndLoop;
+
+      /* We now have Bus *AND* Controller Information.. is it enough? */
+      if (!Query->PeripheralType || !(*Query->PeripheralType))
+      {
+         Status = Query->CalloutRoutine(
+            Query->Context,
+            &ControllerRootRegName,
+            *Query->BusType,
+            Bus,
+            BusInformation,
+            *Query->ControllerType,
+            ControllerNumber,
+            ControllerInformation,
+            0,
+            0,
+            NULL);
+         goto EndLoop;
+      }
+
+      /* Not enough...caller also wants peripheral name */
+      Status = RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
+      Status |= RtlAppendUnicodeToString(&ControllerRootRegName, ArcTypes[*Query->PeripheralType]);
+
+      /* Something messed up */
+      if (!NT_SUCCESS(Status)) goto EndLoop;
+
+      /* Set the Peripheral Number if specified */
+      if (Query->PeripheralNumber && *Query->PeripheralNumber)
+      {
+         PeripheralNumber = *Query->PeripheralNumber;
+         MaximumPeripheralNumber = PeripheralNumber + 1;
+      } else {
+         /* Find out how many Peripheral Numbers there are */
+         InitializeObjectAttributes(
+            &ObjectAttributes,
+            &ControllerRootRegName,
+            OBJ_CASE_INSENSITIVE,
+            NULL,
+            NULL);
+
+         Status = ZwOpenKey(&PeripheralKeyHandle, KEY_READ, &ObjectAttributes);
+
+         if (NT_SUCCESS(Status))
+         {
+            /* How much buffer space */
+            ZwQueryKey(PeripheralKeyHandle, KeyFullInformation, NULL, 0, &LenFullInformation);
+
+            /* Allocate it */
+            PeripheralFullInformation = ExAllocatePoolWithTag(PagedPool, LenFullInformation, TAG_IO_RESOURCE);
+
+            /* Get the Information */
+            Status = ZwQueryKey(PeripheralKeyHandle, KeyFullInformation, PeripheralFullInformation, LenFullInformation, &LenFullInformation);
+            ZwClose(PeripheralKeyHandle);
+            PeripheralKeyHandle = NULL;
+         }
+
+         /* No controller was found, go back to function but clean up first */
+         if (!NT_SUCCESS(Status))
+         {
+            Status = STATUS_SUCCESS;
+            goto EndLoop;
+         }
+
+         /* Find out Peripheral Number */
+         PeripheralNumber = 0;
+         MaximumPeripheralNumber = PeripheralFullInformation->SubKeys;
+
+         /* Free Memory */
+         ExFreePoolWithTag(PeripheralFullInformation, TAG_IO_RESOURCE);
+         PeripheralFullInformation = NULL;
+      }
+
+      /* Save Name */
+      ControllerRegName = ControllerRootRegName;
+
+      /* Loop through Peripherals */
+      for (; PeripheralNumber < MaximumPeripheralNumber; PeripheralNumber++)
+      {
+         /* Restore Name */
+         ControllerRootRegName = ControllerRegName;
+
+         /* Peripheral Number to Registry String */
+         Status = RtlIntegerToUnicodeString(PeripheralNumber, 10, &TempString);
+
+         /* Create String */
+         Status |= RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
+         Status |= RtlAppendUnicodeStringToString(&ControllerRootRegName, &TempString);
+
+         /* Something messed up */
+         if (!NT_SUCCESS(Status)) break;
+
+         /* Open the Registry Key */
+         InitializeObjectAttributes(
+            &ObjectAttributes,
+            &ControllerRootRegName,
+            OBJ_CASE_INSENSITIVE,
+            NULL,
+            NULL);
+
+         Status = ZwOpenKey(&PeripheralKeyHandle, KEY_READ, &ObjectAttributes);
+
+         if (NT_SUCCESS(Status))
+         {
+            for (PeripheralLoop = 0; PeripheralLoop < 3; PeripheralLoop++)
             {
-                ZwClose(ControllerKeyHandle);
-                return STATUS_INSUFFICIENT_RESOURCES;
+               /* Identifier String First */
+               RtlInitUnicodeString(&PeripheralString, Strings[PeripheralLoop]);
+
+               /* How much buffer space */
+               Status = ZwQueryValueKey(PeripheralKeyHandle, &PeripheralString, KeyValueFullInformation, NULL, 0, &LenKeyFullInformation);
+
+               if (!NT_SUCCESS(Status) && Status != STATUS_BUFFER_TOO_SMALL && Status != STATUS_BUFFER_OVERFLOW)
+               {
+                 PeripheralInformation[PeripheralLoop] = NULL;
+                 continue;
+               }
+
+               /* Allocate it */
+               PeripheralInformation[PeripheralLoop] = ExAllocatePoolWithTag(PagedPool, LenKeyFullInformation, TAG_IO_RESOURCE);
+
+               /* Get the Information */
+               Status = ZwQueryValueKey(PeripheralKeyHandle, &PeripheralString, KeyValueFullInformation, PeripheralInformation[PeripheralLoop], LenKeyFullInformation, &LenKeyFullInformation);
             }
 
-            /* Get the information */
-            Status = ZwQueryKey(ControllerKeyHandle,
-                                KeyFullInformation,
-                                ControllerFullInformation,
-                                LenFullInformation,
-                                &LenFullInformation);
-            ZwClose(ControllerKeyHandle);
-            ControllerKeyHandle = NULL;
-        }
+            /* Clean Up */
+            ZwClose(PeripheralKeyHandle);
+            PeripheralKeyHandle = NULL;
 
-        /* No controller was found, bail out */
-        if (!NT_SUCCESS(Status))
-        {
-            if (ControllerFullInformation)
-                ExFreePoolWithTag(ControllerFullInformation, TAG_IO_RESOURCE);
-            return Status;
-        }
-
-        /* Find out the controllers */
-        ControllerNumber = 0;
-        MaximumControllerNumber = ControllerFullInformation->SubKeys;
-
-        /* Cleanup */
-        ExFreePoolWithTag(ControllerFullInformation, TAG_IO_RESOURCE);
-        ControllerFullInformation = NULL;
-    }
-
-    /* Save string */
-    ControllerRegName = ControllerRootRegName;
-
-    /* Loop through controllers */
-    for (; ControllerNumber < MaximumControllerNumber; ControllerNumber++)
-    {
-        /* Load string */
-        ControllerRootRegName = ControllerRegName;
-
-        /* Convert controller number to registry string */
-        Status = RtlIntegerToUnicodeString(ControllerNumber, 10, &TempString);
-
-        /* Create string */
-        Status |= RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
-        Status |= RtlAppendUnicodeStringToString(&ControllerRootRegName, &TempString);
-
-        /* Something messed up */
-        if (!NT_SUCCESS(Status))
-            break;
-
-        IORSRCTRACE("    Retrieving controller '%wZ'\n", &ControllerRootRegName);
-
-        /* Open the registry key */
-        InitializeObjectAttributes(&ObjectAttributes,
-                                   &ControllerRootRegName,
-                                   OBJ_CASE_INSENSITIVE,
-                                   NULL,
-                                   NULL);
-
-        Status = ZwOpenKey(&ControllerKeyHandle, KEY_READ, &ObjectAttributes);
-
-        /* Read the configuration data */
-        if (NT_SUCCESS(Status))
-        {
-            for (ControllerLoop = 0; ControllerLoop < RTL_NUMBER_OF(IoDeviceInfoNames); ControllerLoop++)
-            {
-                /* Identifier string first */
-                RtlInitUnicodeString(&ControllerString, IoDeviceInfoNames[ControllerLoop]);
-
-                /* Retrieve the necessary buffer space */
-                Status = ZwQueryValueKey(ControllerKeyHandle,
-                                         &ControllerString,
-                                         KeyValueFullInformation,
-                                         NULL, 0,
-                                         &LenKeyFullInformation);
-
-                if (!NT_SUCCESS(Status) &&
-                    (Status != STATUS_BUFFER_TOO_SMALL) &&
-                    (Status != STATUS_BUFFER_OVERFLOW))
-                {
-                    ControllerInformation[ControllerLoop] = NULL;
-                    continue;
-                }
-
-                /* Allocate it */
-                ControllerInformation[ControllerLoop] = ExAllocatePoolWithTag(PagedPool, LenKeyFullInformation, TAG_IO_RESOURCE);
-                if (!ControllerInformation[ControllerLoop])
-                {
-                    Status = STATUS_INSUFFICIENT_RESOURCES;
-                    break;
-                }
-
-                /* Get the information */
-                Status = ZwQueryValueKey(ControllerKeyHandle,
-                                         &ControllerString,
-                                         KeyValueFullInformation,
-                                         ControllerInformation[ControllerLoop],
-                                         LenKeyFullInformation,
-                                         &LenKeyFullInformation);
-            }
-
-            /* Cleanup */
-            ZwClose(ControllerKeyHandle);
-            ControllerKeyHandle = NULL;
-        }
-
-        /* Something messed up */
-        if (!NT_SUCCESS(Status))
-            goto EndLoop;
-
-        /* We now have bus *AND* controller information, is it enough? */
-        if (!Query->PeripheralType || !(*Query->PeripheralType))
-        {
-            IORSRCTRACE("    --> Bus #%lu Controller #%lu Callout: '%wZ'\n",
-                        Bus, ControllerNumber, &ControllerRootRegName);
-
-            Status = Query->CalloutRoutine(Query->Context,
-                                           &ControllerRootRegName,
-                                           *Query->BusType,
-                                           Bus,
-                                           BusInformation,
-                                           *Query->ControllerType,
-                                           ControllerNumber,
-                                           ControllerInformation,
-                                           0,
-                                           0,
-                                           NULL);
-            goto EndLoop;
-        }
-
-        /* Not enough: the caller also wants peripheral name */
-        Status = RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
-        Status |= RtlAppendUnicodeToString(&ControllerRootRegName, ArcTypes[*Query->PeripheralType]);
-
-        /* Something messed up */
-        if (!NT_SUCCESS(Status))
-            goto EndLoop;
-
-        /* Set the peripheral number if specified */
-        if (Query->PeripheralNumber)
-        {
-            PeripheralNumber = *(Query->PeripheralNumber);
-            MaximumPeripheralNumber = PeripheralNumber + 1;
-            IORSRCTRACE("    Getting peripheral #%lu\n", PeripheralNumber);
-        }
-        else
-        {
-            IORSRCTRACE("    Enumerating peripherals in '%wZ'...\n", &ControllerRootRegName);
-
-            /* Find out how many peripherals there are */
-            InitializeObjectAttributes(&ObjectAttributes,
-                                       &ControllerRootRegName,
-                                       OBJ_CASE_INSENSITIVE,
-                                       NULL,
-                                       NULL);
-
-            Status = ZwOpenKey(&PeripheralKeyHandle, KEY_READ, &ObjectAttributes);
-
+            /* We now have everything the caller could possibly want */
             if (NT_SUCCESS(Status))
             {
-                /* Retrieve the necessary buffer space */
-                ZwQueryKey(PeripheralKeyHandle,
-                           KeyFullInformation,
-                           NULL, 0,
-                           &LenFullInformation);
-
-                /* Allocate it */
-                PeripheralFullInformation = ExAllocatePoolWithTag(PagedPool, LenFullInformation, TAG_IO_RESOURCE);
-                if (!PeripheralFullInformation)
-                {
-                    ZwClose(PeripheralKeyHandle);
-                    Status = STATUS_INSUFFICIENT_RESOURCES;
-                    goto EndLoop;
-                }
-
-                /* Get the information */
-                Status = ZwQueryKey(PeripheralKeyHandle,
-                                    KeyFullInformation,
-                                    PeripheralFullInformation,
-                                    LenFullInformation,
-                                    &LenFullInformation);
-                ZwClose(PeripheralKeyHandle);
-                PeripheralKeyHandle = NULL;
-            }
-
-            /* No controller was found, cleanup and bail out */
-            if (!NT_SUCCESS(Status))
-            {
-                Status = STATUS_SUCCESS;
-                goto EndLoop;
-            }
-
-            /* Find out peripheral number */
-            PeripheralNumber = 0;
-            MaximumPeripheralNumber = PeripheralFullInformation->SubKeys;
-
-            /* Cleanup */
-            ExFreePoolWithTag(PeripheralFullInformation, TAG_IO_RESOURCE);
-            PeripheralFullInformation = NULL;
-        }
-
-        /* Save name */
-        ControllerRegName = ControllerRootRegName;
-
-        /* Loop through peripherals */
-        for (; PeripheralNumber < MaximumPeripheralNumber; PeripheralNumber++)
-        {
-            /* Restore name */
-            ControllerRootRegName = ControllerRegName;
-
-            /* Convert peripheral number to registry string */
-            Status = RtlIntegerToUnicodeString(PeripheralNumber, 10, &TempString);
-
-            /* Create string */
-            Status |= RtlAppendUnicodeToString(&ControllerRootRegName, L"\\");
-            Status |= RtlAppendUnicodeStringToString(&ControllerRootRegName, &TempString);
-
-            /* Something messed up */
-            if (!NT_SUCCESS(Status))
-                break;
-
-            IORSRCTRACE("    Retrieving peripheral '%wZ'\n", &ControllerRootRegName);
-
-            /* Open the registry key */
-            InitializeObjectAttributes(&ObjectAttributes,
-                                       &ControllerRootRegName,
-                                       OBJ_CASE_INSENSITIVE,
-                                       NULL,
-                                       NULL);
-
-            Status = ZwOpenKey(&PeripheralKeyHandle, KEY_READ, &ObjectAttributes);
-
-            if (NT_SUCCESS(Status))
-            {
-                for (PeripheralLoop = 0; PeripheralLoop < RTL_NUMBER_OF(IoDeviceInfoNames); PeripheralLoop++)
-                {
-                    /* Identifier string first */
-                    RtlInitUnicodeString(&PeripheralString, IoDeviceInfoNames[PeripheralLoop]);
-
-                    /* Retrieve the necessary buffer space */
-                    Status = ZwQueryValueKey(PeripheralKeyHandle,
-                                             &PeripheralString,
-                                             KeyValueFullInformation,
-                                             NULL, 0,
-                                             &LenKeyFullInformation);
-
-                    if (!NT_SUCCESS(Status) &&
-                        (Status != STATUS_BUFFER_TOO_SMALL) &&
-                        (Status != STATUS_BUFFER_OVERFLOW))
-                    {
-                        PeripheralInformation[PeripheralLoop] = NULL;
-                        continue;
-                    }
-
-                    /* Allocate it */
-                    PeripheralInformation[PeripheralLoop] = ExAllocatePoolWithTag(PagedPool, LenKeyFullInformation, TAG_IO_RESOURCE);
-                    if (!PeripheralInformation[PeripheralLoop])
-                    {
-                        Status = STATUS_INSUFFICIENT_RESOURCES;
-                        break;
-                    }
-
-                    /* Get the information */
-                    Status = ZwQueryValueKey(PeripheralKeyHandle,
-                                             &PeripheralString,
-                                             KeyValueFullInformation,
-                                             PeripheralInformation[PeripheralLoop],
-                                             LenKeyFullInformation,
-                                             &LenKeyFullInformation);
-                }
-
-                /* Cleanup */
-                ZwClose(PeripheralKeyHandle);
-                PeripheralKeyHandle = NULL;
-
-                /* We now have everything the caller could possibly want */
-                if (NT_SUCCESS(Status))
-                {
-                    IORSRCTRACE("    --> Bus #%lu Controller #%lu Peripheral #%lu Callout: '%wZ'\n",
-                                Bus, ControllerNumber, PeripheralNumber, &ControllerRootRegName);
-
-                    Status = Query->CalloutRoutine(Query->Context,
-                                                   &ControllerRootRegName,
-                                                   *Query->BusType,
-                                                   Bus,
-                                                   BusInformation,
-                                                   *Query->ControllerType,
-                                                   ControllerNumber,
-                                                   ControllerInformation,
-                                                   *Query->PeripheralType,
-                                                   PeripheralNumber,
-                                                   PeripheralInformation);
-                }
-
-                /* Free the allocated memory */
-                for (PeripheralLoop = 0; PeripheralLoop < RTL_NUMBER_OF(IoDeviceInfoNames); PeripheralLoop++)
-                {
-                    if (PeripheralInformation[PeripheralLoop])
-                    {
-                        ExFreePoolWithTag(PeripheralInformation[PeripheralLoop], TAG_IO_RESOURCE);
-                        PeripheralInformation[PeripheralLoop] = NULL;
-                    }
-                }
-
-                /* Something messed up */
-                if (!NT_SUCCESS(Status))
-                    break;
-            }
-        }
-
-EndLoop:
-        /* Free the allocated memory */
-        for (ControllerLoop = 0; ControllerLoop < RTL_NUMBER_OF(IoDeviceInfoNames); ControllerLoop++)
-        {
-            if (ControllerInformation[ControllerLoop])
-            {
-                ExFreePoolWithTag(ControllerInformation[ControllerLoop], TAG_IO_RESOURCE);
-                ControllerInformation[ControllerLoop] = NULL;
-            }
-        }
-
-        /* Something messed up */
-        if (!NT_SUCCESS(Status))
-            break;
-    }
-
-    return Status;
-}
-
-/**
- * @brief
- * Reads and returns Hardware information from the appropriate hardware
- * registry key. Helper stub of IoQueryDeviceDescription(). Has two modes
- * of operation, either looking for root bus types or for sub-bus
- * information.
- *
- * @param[in]   Query
- * What the parent function wants.
- *
- * @param[in]   RootKey
- * Which key to look in.
- *
- * @param[in]   RootKeyHandle
- * Handle to the key.
- *
- * @param[in,out]   Bus
- * Pointer to the current bus number.
- *
- * @param[in]   KeyIsRoot
- * Whether we are looking for root bus types or information under them.
- *
- * @return  A status code.
- **/
-static NTSTATUS
-IopQueryBusDescription(
-    _In_ PIO_QUERY Query,
-    _In_ UNICODE_STRING RootKey,
-    _In_ HANDLE RootKeyHandle,
-    _Inout_ PULONG Bus,
-    _In_ BOOLEAN KeyIsRoot)
-{
-    NTSTATUS Status;
-    ULONG BusLoop;
-    UNICODE_STRING SubRootRegName;
-    UNICODE_STRING BusString;
-    UNICODE_STRING SubBusString;
-    ULONG LenBasicInformation = 0;
-    ULONG LenFullInformation;
-    ULONG LenKeyFullInformation;
-    ULONG LenKey;
-    HANDLE SubRootKeyHandle;
-    PKEY_FULL_INFORMATION FullInformation;
-    PKEY_BASIC_INFORMATION BasicInformation = NULL;
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    PKEY_VALUE_FULL_INFORMATION BusInformation[IoQueryDeviceMaxData] =
-        {NULL, NULL, NULL};
-
-    IORSRCTRACE("\nIopQueryBusDescription(Query: 0x%p)\n"
-                "    RootKey: '%wZ'\n"
-                "    RootKeyHandle: 0x%p\n"
-                "    KeyIsRoot: %s\n"
-                "    Bus: 0x%p (%lu)\n",
-                Query,
-                &RootKey, RootKeyHandle,
-                KeyIsRoot ? "TRUE" : "FALSE",
-                Bus, Bus ? *Bus : -1);
-
-    /* Retrieve the necessary buffer space */
-    Status = ZwQueryKey(RootKeyHandle,
-                        KeyFullInformation,
-                        NULL, 0,
-                        &LenFullInformation);
-
-    if (!NT_SUCCESS(Status) &&
-        (Status != STATUS_BUFFER_TOO_SMALL) &&
-        (Status != STATUS_BUFFER_OVERFLOW))
-    {
-        return Status;
-    }
-
-    /* Allocate it */
-    FullInformation = ExAllocatePoolWithTag(PagedPool, LenFullInformation, TAG_IO_RESOURCE);
-    if (!FullInformation)
-        return STATUS_INSUFFICIENT_RESOURCES;
-
-    /* Get the information */
-    Status = ZwQueryKey(RootKeyHandle,
-                        KeyFullInformation,
-                        FullInformation,
-                        LenFullInformation,
-                        &LenFullInformation);
-    if (NT_SUCCESS(Status))
-    {
-        /* Buffer needed for all the keys under this one */
-        LenBasicInformation = FullInformation->MaxNameLen + sizeof(KEY_BASIC_INFORMATION);
-
-        /* Allocate it */
-        BasicInformation = ExAllocatePoolWithTag(PagedPool, LenBasicInformation, TAG_IO_RESOURCE);
-        if (!BasicInformation)
-        {
-            ExFreePoolWithTag(FullInformation, TAG_IO_RESOURCE);
-            return STATUS_INSUFFICIENT_RESOURCES;
-        }
-    }
-
-    /* Deallocate the old buffer */
-    ExFreePoolWithTag(FullInformation, TAG_IO_RESOURCE);
-
-    /* Try to find a bus */
-    for (BusLoop = 0; NT_SUCCESS(Status); BusLoop++)
-    {
-        /* Bus parameter was passed and number was matched */
-        if (Query->BusNumber && (*(Query->BusNumber) == *Bus))
-            break;
-
-        /* Enumerate the Key */
-        Status = ZwEnumerateKey(RootKeyHandle,
-                                BusLoop,
-                                KeyBasicInformation,
-                                BasicInformation,
-                                LenBasicInformation,
-                                &LenKey);
-
-        /* Stop if everything was enumerated */
-        if (!NT_SUCCESS(Status))
-            break;
-
-        IORSRCTRACE("    Seen: '%.*ws'\n", BasicInformation->NameLength/sizeof(WCHAR), BasicInformation->Name);
-
-        /* What bus are we going to go down? (only check if this is a root key) */
-        if (KeyIsRoot)
-        {
-            if (wcsncmp(BasicInformation->Name, L"MultifunctionAdapter", BasicInformation->NameLength / sizeof(WCHAR)) &&
-                wcsncmp(BasicInformation->Name, L"EisaAdapter", BasicInformation->NameLength / sizeof(WCHAR)) &&
-                wcsncmp(BasicInformation->Name, L"TcAdapter", BasicInformation->NameLength / sizeof(WCHAR)))
-            {
-                /* Nothing found, check next */
-                continue;
-            }
-        }
-
-        /* Enumerate the bus */
-        BusString.Buffer = BasicInformation->Name;
-        BusString.Length = (USHORT)BasicInformation->NameLength;
-        BusString.MaximumLength = (USHORT)BasicInformation->NameLength;
-
-        /* Open a handle to the root registry key */
-        InitializeObjectAttributes(&ObjectAttributes,
-                                   &BusString,
-                                   OBJ_CASE_INSENSITIVE,
-                                   RootKeyHandle,
-                                   NULL);
-
-        Status = ZwOpenKey(&SubRootKeyHandle, KEY_READ, &ObjectAttributes);
-
-        /* Go on if we failed */
-        if (!NT_SUCCESS(Status))
-            continue;
-
-        /* Key opened, create the path */
-        SubRootRegName = RootKey;
-        RtlAppendUnicodeToString(&SubRootRegName, L"\\");
-        RtlAppendUnicodeStringToString(&SubRootRegName, &BusString);
-
-        IORSRCTRACE("    SubRootRegName: '%wZ'\n", &SubRootRegName);
-
-        if (!KeyIsRoot)
-        {
-            /* Parsing a sub-bus key */
-            ULONG SubBusLoop;
-            for (SubBusLoop = 0; SubBusLoop < RTL_NUMBER_OF(IoDeviceInfoNames); SubBusLoop++)
-            {
-                /* Identifier string first */
-                RtlInitUnicodeString(&SubBusString, IoDeviceInfoNames[SubBusLoop]);
-
-                IORSRCTRACE("    Getting bus value: '%wZ'\n", &SubBusString);
-
-                /* Retrieve the necessary buffer space */
-                ZwQueryValueKey(SubRootKeyHandle,
-                                &SubBusString,
-                                KeyValueFullInformation,
-                                NULL, 0,
-                                &LenKeyFullInformation);
-
-                /* Allocate it */
-                BusInformation[SubBusLoop] = ExAllocatePoolWithTag(PagedPool, LenKeyFullInformation, TAG_IO_RESOURCE);
-                if (!BusInformation[SubBusLoop])
-                {
-                    Status = STATUS_INSUFFICIENT_RESOURCES;
-                    break;
-                }
-
-                /* Get the information */
-                Status = ZwQueryValueKey(SubRootKeyHandle,
-                                         &SubBusString,
-                                         KeyValueFullInformation,
-                                         BusInformation[SubBusLoop],
-                                         LenKeyFullInformation,
-                                         &LenKeyFullInformation);
-            }
-
-            if (NT_SUCCESS(Status))
-            {
-                PKEY_VALUE_FULL_INFORMATION BusConfigData =
-                    BusInformation[IoQueryDeviceConfigurationData];
-
-                /* Do we have something? */
-                if (BusConfigData != NULL &&
-                    BusConfigData->DataLength != 0 &&
-                    /* Does it match what we want? */
-                    (((PCM_FULL_RESOURCE_DESCRIPTOR)((ULONG_PTR)BusConfigData +
-                        BusConfigData->DataOffset))->InterfaceType == *(Query->BusType)))
-                {
-                    /* Found a bus */
-                    (*Bus)++;
-
-                    /* Is it the bus we wanted? */
-                    if (Query->BusNumber == NULL || *(Query->BusNumber) == *Bus)
-                    {
-                        if (Query->ControllerType == NULL)
-                        {
-                            IORSRCTRACE("    --> Bus #%lu Callout: '%wZ'\n", *Bus, &SubRootRegName);
-
-                            /* We don't want controller information: call the callback */
-                            Status = Query->CalloutRoutine(Query->Context,
-                                                           &SubRootRegName,
-                                                           *(Query->BusType),
-                                                           *Bus,
-                                                           BusInformation,
-                                                           0,
-                                                           0,
-                                                           NULL,
-                                                           0,
-                                                           0,
-                                                           NULL);
-                        }
-                        else
-                        {
-                            IORSRCTRACE("    --> Getting device on Bus #%lu : '%wZ'\n", *Bus, &SubRootRegName);
-
-                            /* We want controller information: get it */
-                            Status = IopQueryDeviceDescription(Query,
-                                                               SubRootRegName,
-                                                               RootKeyHandle,
-                                                               *Bus,
-                                                               (PKEY_VALUE_FULL_INFORMATION*)BusInformation);
-                        }
-                    }
-                }
+               Status = Query->CalloutRoutine(
+                  Query->Context,
+                  &ControllerRootRegName,
+                  *Query->BusType,
+                  Bus,
+                  BusInformation,
+                  *Query->ControllerType,
+                  ControllerNumber,
+                  ControllerInformation,
+                  *Query->PeripheralType,
+                  PeripheralNumber,
+                  PeripheralInformation);
             }
 
             /* Free the allocated memory */
-            for (SubBusLoop = 0; SubBusLoop < RTL_NUMBER_OF(IoDeviceInfoNames); SubBusLoop++)
+            for (PeripheralLoop = 0; PeripheralLoop < 3; PeripheralLoop++)
             {
-                if (BusInformation[SubBusLoop])
-                {
-                    ExFreePoolWithTag(BusInformation[SubBusLoop], TAG_IO_RESOURCE);
-                    BusInformation[SubBusLoop] = NULL;
-                }
+               if (PeripheralInformation[PeripheralLoop])
+               {
+                  ExFreePoolWithTag(PeripheralInformation[PeripheralLoop], TAG_IO_RESOURCE);
+                  PeripheralInformation[PeripheralLoop] = NULL;
+               }
             }
 
-            /* Exit the loop if we found the bus */
-            if (Query->BusNumber && (*(Query->BusNumber) == *Bus))
+            /* Something Messed up */
+            if (!NT_SUCCESS(Status)) break;
+         }
+      }
+
+EndLoop:
+      /* Free the allocated memory */
+      for (ControllerLoop = 0; ControllerLoop < 3; ControllerLoop++)
+      {
+         if (ControllerInformation[ControllerLoop])
+         {
+            ExFreePoolWithTag(ControllerInformation[ControllerLoop], TAG_IO_RESOURCE);
+            ControllerInformation[ControllerLoop] = NULL;
+         }
+      }
+
+      /* Something Messed up */
+      if (!NT_SUCCESS(Status)) break;
+   }
+
+   return Status;
+}
+
+/*
+ * IopQueryBusDescription
+ *
+ * FUNCTION:
+ *      Reads and returns Hardware information from the appropriate hardware
+ *      registry key. Helper sub of IoQueryDeviceDescription. Has two modes
+ *      of operation, either looking for Root Bus Types or for sub-Bus
+ *      information.
+ *
+ * ARGUMENTS:
+ *      Query         - What the parent function wants.
+ *      RootKey	      - Which key to look in
+ *      RootKeyHandle - Handle to the key
+ *      Bus           - Bus Number.
+ *      KeyIsRoot     - Whether we are looking for Root Bus Types or
+ *                      information under them.
+ *
+ * RETURNS:
+ *      Status
+ */
+
+NTSTATUS NTAPI
+IopQueryBusDescription(
+   PIO_QUERY Query,
+   UNICODE_STRING RootKey,
+   HANDLE RootKeyHandle,
+   PULONG Bus,
+   BOOLEAN KeyIsRoot)
+{
+   NTSTATUS Status;
+   ULONG BusLoop;
+   UNICODE_STRING SubRootRegName;
+   UNICODE_STRING BusString;
+   UNICODE_STRING SubBusString;
+   ULONG LenBasicInformation = 0;
+   ULONG LenFullInformation;
+   ULONG LenKeyFullInformation;
+   ULONG LenKey;
+   HANDLE SubRootKeyHandle;
+   PKEY_FULL_INFORMATION FullInformation;
+   PKEY_BASIC_INFORMATION BasicInformation = NULL;
+   OBJECT_ATTRIBUTES ObjectAttributes;
+   PKEY_VALUE_FULL_INFORMATION BusInformation[3] = {NULL, NULL, NULL};
+
+   /* How much buffer space */
+   Status = ZwQueryKey(RootKeyHandle, KeyFullInformation, NULL, 0, &LenFullInformation);
+
+   if (!NT_SUCCESS(Status) && Status != STATUS_BUFFER_TOO_SMALL && Status != STATUS_BUFFER_OVERFLOW)
+      return Status;
+
+   /* Allocate it */
+   FullInformation = ExAllocatePoolWithTag(PagedPool, LenFullInformation, TAG_IO_RESOURCE);
+
+   if (!FullInformation)
+     return STATUS_NO_MEMORY;
+
+   /* Get the Information */
+   Status = ZwQueryKey(RootKeyHandle, KeyFullInformation, FullInformation, LenFullInformation, &LenFullInformation);
+
+   /* Everything was fine */
+   if (NT_SUCCESS(Status))
+   {
+      /* Buffer needed for all the keys under this one */
+      LenBasicInformation = FullInformation->MaxNameLen + sizeof(KEY_BASIC_INFORMATION);
+
+      /* Allocate it */
+      BasicInformation = ExAllocatePoolWithTag(PagedPool, LenBasicInformation, TAG_IO_RESOURCE);
+   }
+
+   /* Deallocate the old Buffer */
+   ExFreePoolWithTag(FullInformation, TAG_IO_RESOURCE);
+
+   /* Try to find a Bus */
+   for (BusLoop = 0; NT_SUCCESS(Status); BusLoop++)
+   {
+      /* Bus parameter was passed and number was matched */
+      if ((Query->BusNumber) && (*(Query->BusNumber)) == *Bus) break;
+
+      /* Enumerate the Key */
+      Status = ZwEnumerateKey(
+         RootKeyHandle,
+         BusLoop,
+         KeyBasicInformation,
+         BasicInformation,
+         LenBasicInformation,
+         &LenKey);
+
+      /* Everything enumerated */
+      if (!NT_SUCCESS(Status)) break;
+
+      /* What Bus are we going to go down? (only check if this is a Root Key) */
+      if (KeyIsRoot)
+      {
+         if (wcsncmp(BasicInformation->Name, L"MultifunctionAdapter", BasicInformation->NameLength / 2) &&
+             wcsncmp(BasicInformation->Name, L"EisaAdapter", BasicInformation->NameLength / 2) &&
+             wcsncmp(BasicInformation->Name, L"TcAdapter", BasicInformation->NameLength / 2))
+         {
+            /* Nothing found, check next */
+            continue;
+         }
+      }
+
+      /* Enumerate the Bus. */
+      BusString.Buffer = BasicInformation->Name;
+      BusString.Length = (USHORT)BasicInformation->NameLength;
+      BusString.MaximumLength = (USHORT)BasicInformation->NameLength;
+
+      /* Open a handle to the Root Registry Key */
+      InitializeObjectAttributes(
+         &ObjectAttributes,
+         &BusString,
+         OBJ_CASE_INSENSITIVE,
+         RootKeyHandle,
+         NULL);
+
+      Status = ZwOpenKey(&SubRootKeyHandle, KEY_READ, &ObjectAttributes);
+
+      /* Go on if we can't */
+      if (!NT_SUCCESS(Status)) continue;
+
+      /* Key opened. Create the path */
+      SubRootRegName = RootKey;
+      RtlAppendUnicodeToString(&SubRootRegName, L"\\");
+      RtlAppendUnicodeStringToString(&SubRootRegName, &BusString);
+
+      if (!KeyIsRoot)
+      {
+         /* Parsing a SubBus-key */
+         int SubBusLoop;
+         PWSTR Strings[3] = {
+            L"Identifier",
+            L"Configuration Data",
+            L"Component Information"};
+
+         for (SubBusLoop = 0; SubBusLoop < 3; SubBusLoop++)
+         {
+            /* Identifier String First */
+            RtlInitUnicodeString(&SubBusString, Strings[SubBusLoop]);
+
+            /* How much buffer space */
+            ZwQueryValueKey(SubRootKeyHandle, &SubBusString, KeyValueFullInformation, NULL, 0, &LenKeyFullInformation);
+
+            /* Allocate it */
+            BusInformation[SubBusLoop] = ExAllocatePoolWithTag(PagedPool, LenKeyFullInformation, TAG_IO_RESOURCE);
+
+            /* Get the Information */
+            Status = ZwQueryValueKey(SubRootKeyHandle, &SubBusString, KeyValueFullInformation, BusInformation[SubBusLoop], LenKeyFullInformation, &LenKeyFullInformation);
+         }
+
+         if (NT_SUCCESS(Status))
+         {
+            /* Do we have something */
+            if (BusInformation[1] != NULL &&
+                BusInformation[1]->DataLength != 0 &&
+                /* Does it match what we want? */
+                (((PCM_FULL_RESOURCE_DESCRIPTOR)((ULONG_PTR)BusInformation[1] + BusInformation[1]->DataOffset))->InterfaceType == *(Query->BusType)))
             {
-                ZwClose(SubRootKeyHandle);
-                SubRootKeyHandle = NULL;
-                continue;
+               /* Found a bus */
+               (*Bus)++;
+
+               /* Is it the bus we wanted */
+               if (Query->BusNumber == NULL || *(Query->BusNumber) == *Bus)
+               {
+                  /* If we don't want Controller Information, we're done... call the callback */
+                  if (Query->ControllerType == NULL)
+                  {
+                     Status = Query->CalloutRoutine(
+                        Query->Context,
+                        &SubRootRegName,
+                        *(Query->BusType),
+                        *Bus,
+                        BusInformation,
+                        0,
+                        0,
+                        NULL,
+                        0,
+                        0,
+                        NULL);
+                  } else {
+                     /* We want Controller Info...get it */
+                     Status = IopQueryDeviceDescription(Query, SubRootRegName, RootKeyHandle, *Bus, (PKEY_VALUE_FULL_INFORMATION*)BusInformation);
+                  }
+               }
             }
-        }
+         }
 
-        /* Enumerate the buses below us recursively if we haven't found the bus yet */
-        Status = IopQueryBusDescription(Query, SubRootRegName, SubRootKeyHandle, Bus, !KeyIsRoot);
+         /* Free the allocated memory */
+         for (SubBusLoop = 0; SubBusLoop < 3; SubBusLoop++)
+         {
+            if (BusInformation[SubBusLoop])
+            {
+               ExFreePoolWithTag(BusInformation[SubBusLoop], TAG_IO_RESOURCE);
+               BusInformation[SubBusLoop] = NULL;
+            }
+         }
 
-        /* Everything enumerated */
-        if (Status == STATUS_NO_MORE_ENTRIES)
-            Status = STATUS_SUCCESS;
+         /* Exit the Loop if we found the bus */
+         if (Query->BusNumber != NULL && *(Query->BusNumber) == *Bus)
+         {
+            ZwClose(SubRootKeyHandle);
+            SubRootKeyHandle = NULL;
+            continue;
+         }
+      }
 
-        ZwClose(SubRootKeyHandle);
-        SubRootKeyHandle = NULL;
-    }
+      /* Enumerate the buses below us recursively if we haven't found the bus yet */
+      Status = IopQueryBusDescription(Query, SubRootRegName, SubRootKeyHandle, Bus, !KeyIsRoot);
 
-    /* Free the last remaining allocated memory */
-    if (BasicInformation)
-        ExFreePoolWithTag(BasicInformation, TAG_IO_RESOURCE);
+      /* Everything enumerated */
+      if (Status == STATUS_NO_MORE_ENTRIES) Status = STATUS_SUCCESS;
 
-    return Status;
+      ZwClose(SubRootKeyHandle);
+      SubRootKeyHandle = NULL;
+   }
+
+   /* Free the last remaining Allocated Memory */
+   if (BasicInformation)
+      ExFreePoolWithTag(BasicInformation, TAG_IO_RESOURCE);
+
+   return Status;
 }
 
 NTSTATUS
-IopFetchConfigurationInformation(
-    _Out_ PWSTR* SymbolicLinkList,
-    _In_ GUID Guid,
-    _In_ ULONG ExpectedInterfaces,
-    _Out_ PULONG Interfaces)
+NTAPI
+IopFetchConfigurationInformation(OUT PWSTR * SymbolicLinkList,
+                                 IN GUID Guid,
+                                 IN ULONG ExpectedInterfaces,
+                                 IN PULONG Interfaces)
 {
     NTSTATUS Status;
-    ULONG interfaces = 0;
-    PWSTR symbolicLinkList;
+    ULONG IntInterfaces = 0;
+    PWSTR IntSymbolicLinkList;
 
     /* Get the associated enabled interfaces with the given GUID */
     Status = IoGetDeviceInterfaces(&Guid, NULL, 0, SymbolicLinkList);
     if (!NT_SUCCESS(Status))
     {
         /* Zero output and leave */
-        if (SymbolicLinkList)
-            *SymbolicLinkList = NULL;
+        if (SymbolicLinkList != 0)
+        {
+            *SymbolicLinkList = 0;
+        }
 
         return STATUS_UNSUCCESSFUL;
     }
 
-    symbolicLinkList = *SymbolicLinkList;
+    IntSymbolicLinkList = *SymbolicLinkList;
 
     /* Count the number of enabled interfaces by counting the number of symbolic links */
-    while (*symbolicLinkList != UNICODE_NULL)
+    while (*IntSymbolicLinkList != UNICODE_NULL)
     {
-        interfaces++;
-        symbolicLinkList += (wcslen(symbolicLinkList) + 1);
+        IntInterfaces++;
+        IntSymbolicLinkList += wcslen(IntSymbolicLinkList) + (sizeof(UNICODE_NULL) / sizeof(WCHAR));
     }
 
     /* Matching result will define the result */
-    Status = (interfaces >= ExpectedInterfaces) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
+    Status = (IntInterfaces >= ExpectedInterfaces) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
     /* Finally, give back to the caller the number of found interfaces */
-    *Interfaces = interfaces;
+    *Interfaces = IntInterfaces;
 
     return Status;
 }
 
 VOID
-IopStoreSystemPartitionInformation(
-    _In_ PUNICODE_STRING NtSystemPartitionDeviceName,
-    _In_ PUNICODE_STRING OsLoaderPathName)
+NTAPI
+IopStoreSystemPartitionInformation(IN PUNICODE_STRING NtSystemPartitionDeviceName,
+                                   IN PUNICODE_STRING OsLoaderPathName)
 {
     NTSTATUS Status;
     UNICODE_STRING LinkTarget, KeyName;
@@ -890,13 +731,16 @@ IopStoreSystemPartitionInformation(
         return;
     }
 
-    /* Prepare the string that will receive where symbolic link points to.
-     * We will zero the end of the string after having received it */
-    RtlInitEmptyUnicodeString(&LinkTarget, LinkTargetBuffer,
-                              sizeof(LinkTargetBuffer) - sizeof(UNICODE_NULL));
+    /* Prepare the string that will receive where symbolic link points to */
+    LinkTarget.Length = 0;
+    /* We will zero the end of the string after having received it */
+    LinkTarget.MaximumLength = sizeof(LinkTargetBuffer) - sizeof(UNICODE_NULL);
+    LinkTarget.Buffer = LinkTargetBuffer;
 
     /* Query target */
-    Status = ZwQuerySymbolicLinkObject(LinkHandle, &LinkTarget, NULL);
+    Status = ZwQuerySymbolicLinkObject(LinkHandle,
+                                       &LinkTarget,
+                                       NULL);
 
     /* We are done with symbolic link */
     ObCloseHandle(LinkHandle, KernelMode);
@@ -940,7 +784,7 @@ IopStoreSystemPartitionInformation(
         return;
     }
 
-    /* Prepare first data writing */
+    /* Prepare first data writing... */
     RtlInitUnicodeString(&KeyName, L"SystemPartition");
 
     /* Write SystemPartition value which is the target of the symbolic link */
@@ -955,7 +799,7 @@ IopStoreSystemPartitionInformation(
         DPRINT("Failed writing SystemPartition value, Status=%lx\n", Status);
     }
 
-    /* Prepare for second data writing */
+    /* Prepare for second data writing... */
     RtlInitUnicodeString(&KeyName, L"OsLoaderPath");
 
     /* Remove trailing slash if any (one slash only excepted) */
@@ -984,70 +828,485 @@ IopStoreSystemPartitionInformation(
 
 /* PUBLIC FUNCTIONS ***********************************************************/
 
-/**
- * @brief
- * Returns a pointer to the I/O manager's global configuration
- * information structure.
- *
- * This structure contains the current values for how many physical storage
- * media, SCSI HBA, serial, and parallel devices have device objects created
- * to represent them by drivers as they are loaded.
- **/
-PCONFIGURATION_INFORMATION
-NTAPI
+/*
+ * @implemented
+ */
+PCONFIGURATION_INFORMATION NTAPI
 IoGetConfigurationInformation(VOID)
 {
-    return &_SystemConfigurationInformation;
+  return(&_SystemConfigurationInformation);
 }
 
-/**
+/*
  * @halfplemented
- *
- * @brief
- * Reports hardware resources in the \Registry\Machine\Hardware\ResourceMap
- * tree, so that a subsequently loaded driver cannot attempt to use the
- * same resources.
- *
- * @param[in]   DriverClassName
- * The driver class under which the resource information should be stored.
- *
- * @param[in]   DriverObject
- * The driver object that was provided to the DriverEntry routine.
- *
- * @param[in]   DriverList
- * Resources claimed for the all the driver's devices, rather than per-device.
- *
- * @param[in]   DriverListSize
- * Size in bytes of the DriverList.
- *
- * @param[in]   DeviceObject
- * The device object for which resources should be claimed.
- *
- * @param[in]   DeviceList
- * List of resources that should be claimed for the device.
- *
- * @param[in]   DeviceListSize
- * Size of the per-device resource list in bytes.
- *
- * @param[in]   OverrideConflict
- * TRUE if the resources should be claimed even if a conflict is found.
- *
- * @param[out]  ConflictDetected
- * Points to a variable that receives TRUE if a conflict is detected
- * with another driver.
- **/
-NTSTATUS
-NTAPI
-IoReportResourceUsage(
-    _In_opt_ PUNICODE_STRING DriverClassName,
-    _In_ PDRIVER_OBJECT DriverObject,
-    _In_reads_bytes_opt_(DriverListSize) PCM_RESOURCE_LIST DriverList,
-    _In_opt_ ULONG DriverListSize,
-    _In_opt_ PDEVICE_OBJECT DeviceObject,
-    _In_reads_bytes_opt_(DeviceListSize) PCM_RESOURCE_LIST DeviceList,
-    _In_opt_ ULONG DeviceListSize,
-    _In_ BOOLEAN OverrideConflict,
-    _Out_ PBOOLEAN ConflictDetected)
+ */
+static
+BOOLEAN
+IopCheckResourceDescriptor(
+    IN PCM_PARTIAL_RESOURCE_DESCRIPTOR ResDesc,
+    IN PCM_RESOURCE_LIST ResourceList,
+    IN BOOLEAN Silent,
+    OUT OPTIONAL PCM_PARTIAL_RESOURCE_DESCRIPTOR ConflictingDescriptor)
+{
+   ULONG i, ii;
+   BOOLEAN Result = FALSE;
+
+   for (i = 0; i < ResourceList->Count; i++)
+   {
+      PCM_PARTIAL_RESOURCE_LIST ResList = &ResourceList->List[i].PartialResourceList;
+      for (ii = 0; ii < ResList->Count; ii++)
+      {
+         PCM_PARTIAL_RESOURCE_DESCRIPTOR ResDesc2 = &ResList->PartialDescriptors[ii];
+
+         /* We don't care about shared resources */
+         if (ResDesc->ShareDisposition == CmResourceShareShared &&
+             ResDesc2->ShareDisposition == CmResourceShareShared)
+             continue;
+
+         /* Make sure we're comparing the same types */
+         if (ResDesc->Type != ResDesc2->Type)
+             continue;
+
+         switch (ResDesc->Type)
+         {
+             case CmResourceTypeMemory:
+                 if (((ULONGLONG)ResDesc->u.Memory.Start.QuadPart < (ULONGLONG)ResDesc2->u.Memory.Start.QuadPart &&
+                      (ULONGLONG)ResDesc->u.Memory.Start.QuadPart + ResDesc->u.Memory.Length >
+                      (ULONGLONG)ResDesc2->u.Memory.Start.QuadPart) || ((ULONGLONG)ResDesc2->u.Memory.Start.QuadPart <
+                      (ULONGLONG)ResDesc->u.Memory.Start.QuadPart && (ULONGLONG)ResDesc2->u.Memory.Start.QuadPart +
+                      ResDesc2->u.Memory.Length > (ULONGLONG)ResDesc->u.Memory.Start.QuadPart))
+                 {
+                      if (!Silent)
+                      {
+                          DPRINT1("Resource conflict: Memory (0x%I64x to 0x%I64x vs. 0x%I64x to 0x%I64x)\n",
+                                  ResDesc->u.Memory.Start.QuadPart, ResDesc->u.Memory.Start.QuadPart +
+                                  ResDesc->u.Memory.Length, ResDesc2->u.Memory.Start.QuadPart,
+                                  ResDesc2->u.Memory.Start.QuadPart + ResDesc2->u.Memory.Length);
+                      }
+
+                      Result = TRUE;
+
+                      goto ByeBye;
+                 }
+                 break;
+
+             case CmResourceTypePort:
+                 if (((ULONGLONG)ResDesc->u.Port.Start.QuadPart < (ULONGLONG)ResDesc2->u.Port.Start.QuadPart &&
+                      (ULONGLONG)ResDesc->u.Port.Start.QuadPart + ResDesc->u.Port.Length >
+                      (ULONGLONG)ResDesc2->u.Port.Start.QuadPart) || ((ULONGLONG)ResDesc2->u.Port.Start.QuadPart <
+                      (ULONGLONG)ResDesc->u.Port.Start.QuadPart && (ULONGLONG)ResDesc2->u.Port.Start.QuadPart +
+                      ResDesc2->u.Port.Length > (ULONGLONG)ResDesc->u.Port.Start.QuadPart))
+                 {
+                      if (!Silent)
+                      {
+                          DPRINT1("Resource conflict: Port (0x%I64x to 0x%I64x vs. 0x%I64x to 0x%I64x)\n",
+                                  ResDesc->u.Port.Start.QuadPart, ResDesc->u.Port.Start.QuadPart +
+                                  ResDesc->u.Port.Length, ResDesc2->u.Port.Start.QuadPart,
+                                  ResDesc2->u.Port.Start.QuadPart + ResDesc2->u.Port.Length);
+                      }
+
+                      Result = TRUE;
+
+                      goto ByeBye;
+                 }
+                 break;
+
+             case CmResourceTypeInterrupt:
+                 if (ResDesc->u.Interrupt.Vector == ResDesc2->u.Interrupt.Vector)
+                 {
+                      if (!Silent)
+                      {
+                          DPRINT1("Resource conflict: IRQ (0x%x 0x%x vs. 0x%x 0x%x)\n",
+                                  ResDesc->u.Interrupt.Vector, ResDesc->u.Interrupt.Level,
+                                  ResDesc2->u.Interrupt.Vector, ResDesc2->u.Interrupt.Level);
+                      }
+
+                      Result = TRUE;
+
+                      goto ByeBye;
+                 }
+                 break;
+
+             case CmResourceTypeBusNumber:
+                 if ((ResDesc->u.BusNumber.Start < ResDesc2->u.BusNumber.Start &&
+                      ResDesc->u.BusNumber.Start + ResDesc->u.BusNumber.Length >
+                      ResDesc2->u.BusNumber.Start) || (ResDesc2->u.BusNumber.Start <
+                      ResDesc->u.BusNumber.Start && ResDesc2->u.BusNumber.Start +
+                      ResDesc2->u.BusNumber.Length > ResDesc->u.BusNumber.Start))
+                 {
+                      if (!Silent)
+                      {
+                          DPRINT1("Resource conflict: Bus number (0x%x to 0x%x vs. 0x%x to 0x%x)\n",
+                                  ResDesc->u.BusNumber.Start, ResDesc->u.BusNumber.Start +
+                                  ResDesc->u.BusNumber.Length, ResDesc2->u.BusNumber.Start,
+                                  ResDesc2->u.BusNumber.Start + ResDesc2->u.BusNumber.Length);
+                      }
+
+                      Result = TRUE;
+
+                      goto ByeBye;
+                 }
+                 break;
+
+             case CmResourceTypeDma:
+                 if (ResDesc->u.Dma.Channel == ResDesc2->u.Dma.Channel)
+                 {
+                     if (!Silent)
+                     {
+                         DPRINT1("Resource conflict: Dma (0x%x 0x%x vs. 0x%x 0x%x)\n",
+                                 ResDesc->u.Dma.Channel, ResDesc->u.Dma.Port,
+                                 ResDesc2->u.Dma.Channel, ResDesc2->u.Dma.Port);
+                     }
+
+                     Result = TRUE;
+
+                     goto ByeBye;
+                 }
+                 break;
+         }
+      }
+   }
+
+ByeBye:
+
+   if (Result && ConflictingDescriptor)
+   {
+       RtlCopyMemory(ConflictingDescriptor,
+                     ResDesc,
+                     sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR));
+   }
+
+   return Result;
+}
+
+static
+BOOLEAN
+IopCheckForResourceConflict(
+    IN PCM_RESOURCE_LIST ResourceList1,
+    IN PCM_RESOURCE_LIST ResourceList2,
+    IN BOOLEAN Silent,
+    OUT OPTIONAL PCM_PARTIAL_RESOURCE_DESCRIPTOR ConflictingDescriptor)
+{
+   ULONG i, ii;
+   BOOLEAN Result = FALSE;
+
+   for (i = 0; i < ResourceList1->Count; i++)
+   {
+      PCM_PARTIAL_RESOURCE_LIST ResList = &ResourceList1->List[i].PartialResourceList;
+      for (ii = 0; ii < ResList->Count; ii++)
+      {
+         PCM_PARTIAL_RESOURCE_DESCRIPTOR ResDesc = &ResList->PartialDescriptors[ii];
+
+         Result = IopCheckResourceDescriptor(ResDesc,
+                                             ResourceList2,
+                                             Silent,
+                                             ConflictingDescriptor);
+         if (Result) goto ByeBye;
+      }
+   }
+
+ByeBye:
+
+   return Result;
+}
+
+NTSTATUS NTAPI
+IopDetectResourceConflict(
+    IN PCM_RESOURCE_LIST ResourceList,
+    IN BOOLEAN Silent,
+    OUT OPTIONAL PCM_PARTIAL_RESOURCE_DESCRIPTOR ConflictingDescriptor)
+{
+    UNICODE_STRING ResourceMapName = RTL_CONSTANT_STRING(IO_REG_KEY_RESOURCEMAP);
+    UNICODE_STRING KeyName;
+    PKEY_VALUE_PARTIAL_INFORMATION KeyValueInformation;
+    PKEY_VALUE_BASIC_INFORMATION KeyNameInformation;
+    PKEY_BASIC_INFORMATION KeyInformation;
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    HANDLE ResourceMapKey = NULL;
+    HANDLE ChildKey2 = NULL;
+    HANDLE ChildKey3 = NULL;
+    ULONG KeyValueInformationLength;
+    ULONG KeyNameInformationLength;
+    ULONG KeyInformationLength;
+    ULONG RequiredLength;
+    ULONG ChildKeyIndex1 = 0;
+    ULONG ChildKeyIndex2 = 0;
+    ULONG ChildKeyIndex3 = 0;
+    NTSTATUS Status;
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               &ResourceMapName,
+                               OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                               NULL,
+                               NULL);
+
+    Status = ZwOpenKey(&ResourceMapKey,
+                       KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE,
+                       &ObjectAttributes);
+
+    if (!NT_SUCCESS(Status)) {
+       /* The key is missing which means we are the first device */
+       return STATUS_SUCCESS;
+    }
+
+    while (TRUE)
+    {
+        Status = ZwEnumerateKey(ResourceMapKey,
+                                ChildKeyIndex1,
+                                KeyBasicInformation,
+                                NULL,
+                                0,
+                                &RequiredLength);
+
+        if (Status == STATUS_NO_MORE_ENTRIES) {
+            break;
+        }
+        else if (Status == STATUS_BUFFER_OVERFLOW || Status == STATUS_BUFFER_TOO_SMALL)
+        {
+            KeyInformationLength = RequiredLength;
+            KeyInformation = ExAllocatePoolWithTag(PagedPool,
+                                                   KeyInformationLength,
+                                                   TAG_IO);
+            if (!KeyInformation) {
+                Status = STATUS_INSUFFICIENT_RESOURCES;
+                goto cleanup;
+            }
+
+            Status = ZwEnumerateKey(ResourceMapKey,
+                                    ChildKeyIndex1,
+                                    KeyBasicInformation,
+                                    KeyInformation,
+                                    KeyInformationLength,
+                                    &RequiredLength);
+        }
+        else {
+           goto cleanup;
+        }
+
+        ChildKeyIndex1++;
+
+        if (!NT_SUCCESS(Status)) {
+            ExFreePoolWithTag(KeyInformation, TAG_IO);
+            goto cleanup;
+        }
+
+        KeyName.Buffer = KeyInformation->Name;
+        KeyName.MaximumLength = KeyName.Length = (USHORT)KeyInformation->NameLength;
+
+        InitializeObjectAttributes(&ObjectAttributes,
+                                   &KeyName,
+                                   OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                                   ResourceMapKey,
+                                   NULL);
+
+        Status = ZwOpenKey(&ChildKey2,
+                           KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE,
+                           &ObjectAttributes);
+
+        ExFreePoolWithTag(KeyInformation, TAG_IO);
+        if (!NT_SUCCESS(Status)) {
+            goto cleanup;
+        }
+
+        while (TRUE)
+        {
+            Status = ZwEnumerateKey(ChildKey2,
+                                    ChildKeyIndex2,
+                                    KeyBasicInformation,
+                                    NULL,
+                                    0,
+                                    &RequiredLength);
+
+            if (Status == STATUS_NO_MORE_ENTRIES){
+                break;
+            }
+            else if (Status == STATUS_BUFFER_TOO_SMALL)
+            {
+                KeyInformationLength = RequiredLength;
+
+                KeyInformation = ExAllocatePoolWithTag(PagedPool, KeyInformationLength, TAG_IO);
+                if (!KeyInformation) {
+                    Status = STATUS_INSUFFICIENT_RESOURCES;
+                    goto cleanup;
+                }
+
+                Status = ZwEnumerateKey(ChildKey2,
+                                        ChildKeyIndex2,
+                                        KeyBasicInformation,
+                                        KeyInformation,
+                                        KeyInformationLength,
+                                        &RequiredLength);
+            }
+            else {
+                goto cleanup;
+            }
+
+            ChildKeyIndex2++;
+
+            if (!NT_SUCCESS(Status)) {
+                ExFreePoolWithTag(KeyInformation, TAG_IO);
+                goto cleanup;
+            }
+
+            KeyName.Buffer = KeyInformation->Name;
+            KeyName.MaximumLength = KeyName.Length = (USHORT)KeyInformation->NameLength;
+
+            InitializeObjectAttributes(&ObjectAttributes,
+                                       &KeyName,
+                                       OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                                       ChildKey2,
+                                       NULL);
+
+            Status = ZwOpenKey(&ChildKey3, KEY_QUERY_VALUE, &ObjectAttributes);
+            ExFreePoolWithTag(KeyInformation, TAG_IO);
+            if (!NT_SUCCESS(Status)) {
+                goto cleanup;
+            }
+
+            while (TRUE)
+            {
+                Status = ZwEnumerateValueKey(ChildKey3,
+                                             ChildKeyIndex3,
+                                             KeyValuePartialInformation,
+                                             NULL,
+                                             0,
+                                             &RequiredLength);
+
+                if (Status == STATUS_NO_MORE_ENTRIES) {
+                    break;
+                }
+                else if (Status == STATUS_BUFFER_TOO_SMALL)
+                {
+                    KeyValueInformationLength = RequiredLength;
+
+                    KeyValueInformation = ExAllocatePoolWithTag(PagedPool, KeyValueInformationLength, TAG_IO);
+                    if (!KeyValueInformation) {
+                        Status = STATUS_INSUFFICIENT_RESOURCES;
+                        goto cleanup;
+                    }
+
+                    Status = ZwEnumerateValueKey(ChildKey3,
+                                                 ChildKeyIndex3,
+                                                 KeyValuePartialInformation,
+                                                 KeyValueInformation,
+                                                 KeyValueInformationLength,
+                                                 &RequiredLength);
+                }
+                else
+                    goto cleanup;
+                if (!NT_SUCCESS(Status))
+                {
+                    ExFreePoolWithTag(KeyValueInformation, TAG_IO);
+                    goto cleanup;
+                }
+                Status = ZwEnumerateValueKey(ChildKey3,
+                                             ChildKeyIndex3,
+                                             KeyValueBasicInformation,
+                                             NULL,
+                                             0,
+                                             &RequiredLength);
+                if (Status == STATUS_BUFFER_TOO_SMALL)
+                {
+                    KeyNameInformationLength = RequiredLength;
+                    KeyNameInformation = ExAllocatePoolWithTag(PagedPool,
+                                                               KeyNameInformationLength + sizeof(WCHAR),
+                                                               TAG_IO);
+                    if (!KeyNameInformation)
+                    {
+                        Status = STATUS_INSUFFICIENT_RESOURCES;
+                        goto cleanup;
+                    }
+                    Status = ZwEnumerateValueKey(ChildKey3,
+                                                 ChildKeyIndex3,
+                                                 KeyValueBasicInformation,
+                                                 KeyNameInformation,
+                                                 KeyNameInformationLength,
+                                                 &RequiredLength);
+                }
+                else
+                    goto cleanup;
+                ChildKeyIndex3++;
+                if (!NT_SUCCESS(Status))
+                {
+                    ExFreePoolWithTag(KeyNameInformation, TAG_IO);
+                    goto cleanup;
+                }
+                KeyNameInformation->Name[KeyNameInformation->NameLength / sizeof(WCHAR)] = UNICODE_NULL;
+                /* Skip translated entries */
+                if (wcsstr(KeyNameInformation->Name, L".Translated"))
+                {
+                    ExFreePoolWithTag(KeyNameInformation, TAG_IO);
+                    ExFreePoolWithTag(KeyValueInformation, TAG_IO);
+                    continue;
+                }
+                ExFreePoolWithTag(KeyNameInformation, TAG_IO);
+                if (IopCheckForResourceConflict(ResourceList,
+                                                (PCM_RESOURCE_LIST)KeyValueInformation->Data,
+                                                Silent,
+                                                ConflictingDescriptor))
+                {
+                    ExFreePoolWithTag(KeyValueInformation, TAG_IO);
+                    Status = STATUS_CONFLICTING_ADDRESSES;
+                    goto cleanup;
+                }
+                ExFreePoolWithTag(KeyValueInformation, TAG_IO);
+            }
+        }
+    }
+
+cleanup:
+
+    if (ResourceMapKey != NULL) {
+        ObCloseHandle(ResourceMapKey, KernelMode);
+    }
+    if (ChildKey2 != NULL) {
+        ObCloseHandle(ChildKey2, KernelMode);
+    }
+    if (ChildKey3 != NULL) {
+        ObCloseHandle(ChildKey3, KernelMode);
+    }
+    if (Status == STATUS_NO_MORE_ENTRIES) {
+        Status = STATUS_SUCCESS;
+    }
+
+    return Status;
+}
+
+/*
+ * @halfplemented
+ */
+NTSTATUS NTAPI
+IoReportResourceUsage(PUNICODE_STRING DriverClassName,
+		      PDRIVER_OBJECT DriverObject,
+		      PCM_RESOURCE_LIST DriverList,
+		      ULONG DriverListSize,
+		      PDEVICE_OBJECT DeviceObject,
+		      PCM_RESOURCE_LIST DeviceList,
+		      ULONG DeviceListSize,
+		      BOOLEAN OverrideConflict,
+		      PBOOLEAN ConflictDetected)
+     /*
+      * FUNCTION: Reports hardware resources in the
+      * \Registry\Machine\Hardware\ResourceMap tree, so that a subsequently
+      * loaded driver cannot attempt to use the same resources.
+      * ARGUMENTS:
+      *       DriverClassName - The class of driver under which the resource
+      *       information should be stored.
+      *       DriverObject - The driver object that was input to the
+      *       DriverEntry.
+      *       DriverList - Resources that claimed for the driver rather than
+      *       per-device.
+      *       DriverListSize - Size in bytes of the DriverList.
+      *       DeviceObject - The device object for which resources should be
+      *       claimed.
+      *       DeviceList - List of resources which should be claimed for the
+      *       device.
+      *       DeviceListSize - Size of the per-device resource list in bytes.
+      *       OverrideConflict - True if the resources should be cliamed
+      *       even if a conflict is found.
+      *       ConflictDetected - Points to a variable that receives TRUE if
+      *       a conflict is detected with another driver.
+      */
 {
     NTSTATUS Status;
     PCM_RESOURCE_LIST ResourceList;
@@ -1089,74 +1348,33 @@ IoReportResourceUsage(
     return STATUS_SUCCESS;
 }
 
-static NTSTATUS
-IopLegacyResourceAllocation(
-    _In_ ARBITER_REQUEST_SOURCE AllocationType,
-    _In_ PDRIVER_OBJECT DriverObject,
-    _In_opt_ PDEVICE_OBJECT DeviceObject,
-    _In_opt_ PIO_RESOURCE_REQUIREMENTS_LIST ResourceRequirements,
-    _Inout_ PCM_RESOURCE_LIST* AllocatedResources)
-{
-    NTSTATUS Status;
-
-    DPRINT1("IopLegacyResourceAllocation is halfplemented!\n");
-
-    if (!ResourceRequirements)
-    {
-        /* We can get there by calling IoAssignResources() with RequestedResources = NULL.
-         * TODO: not sure what we should do, but we shouldn't crash.
-         */
-        UNIMPLEMENTED;
-        return STATUS_NOT_IMPLEMENTED;
-    }
-
-    Status = IopFixupResourceListWithRequirements(ResourceRequirements,
-                                                  AllocatedResources);
-    if (!NT_SUCCESS(Status))
-    {
-        if (Status == STATUS_CONFLICTING_ADDRESSES)
-        {
-            DPRINT1("Denying an attempt to claim resources currently in use by another device!\n");
-        }
-
-        return Status;
-    }
-
-    /* TODO: Claim resources in registry */
-    return STATUS_SUCCESS;
-}
-
 /*
  * @implemented
  */
 NTSTATUS
 NTAPI
-IoAssignResources(
-    _In_ PUNICODE_STRING RegistryPath,
-    _In_opt_ PUNICODE_STRING DriverClassName,
-    _In_ PDRIVER_OBJECT DriverObject,
-    _In_opt_ PDEVICE_OBJECT DeviceObject,
-    _In_opt_ PIO_RESOURCE_REQUIREMENTS_LIST RequestedResources,
-    _Inout_ PCM_RESOURCE_LIST* AllocatedResources)
+IoAssignResources(IN PUNICODE_STRING RegistryPath,
+                  IN PUNICODE_STRING DriverClassName,
+                  IN PDRIVER_OBJECT DriverObject,
+                  IN PDEVICE_OBJECT DeviceObject,
+                  IN PIO_RESOURCE_REQUIREMENTS_LIST RequestedResources,
+                  IN OUT PCM_RESOURCE_LIST* AllocatedResources)
 {
     PDEVICE_NODE DeviceNode;
-
-    UNREFERENCED_PARAMETER(RegistryPath);
-    UNREFERENCED_PARAMETER(DriverClassName);
 
     /* Do we have a DO? */
     if (DeviceObject)
     {
         /* Get its device node */
         DeviceNode = IopGetDeviceNode(DeviceObject);
-        if (DeviceNode && !(DeviceNode->Flags & DNF_LEGACY_RESOURCE_DEVICENODE))
+        if ((DeviceNode) && !(DeviceNode->Flags & DNF_LEGACY_RESOURCE_DEVICENODE))
         {
             /* New drivers should not call this API */
             KeBugCheckEx(PNP_DETECTED_FATAL_ERROR,
-                         0x2,
+                         0,
+                         0,
                          (ULONG_PTR)DeviceObject,
-                         (ULONG_PTR)DriverObject,
-                         0);
+                         (ULONG_PTR)DriverObject);
         }
     }
 
@@ -1172,8 +1390,7 @@ IoAssignResources(
     }
 
     /* Initialize output if given */
-    if (AllocatedResources)
-        *AllocatedResources = NULL;
+    if (AllocatedResources) *AllocatedResources = NULL;
 
     /* Call internal helper function */
     return IopLegacyResourceAllocation(ArbiterRequestLegacyAssigned,
@@ -1183,230 +1400,312 @@ IoAssignResources(
                                        AllocatedResources);
 }
 
-/**
- * @brief
- * Reads and returns Hardware information from the appropriate
- * hardware registry key.
+/*
+ * FUNCTION:
+ *     Reads and returns Hardware information from the appropriate hardware registry key.
  *
- * @param[in]   BusType
- * Specifies the bus type, for example: MCA, ISA, EISA, etc.
+ * ARGUMENTS:
+ *     BusType          - MCA, ISA, EISA...specifies the Bus Type
+ *     BusNumber	- Which bus of above should be queried
+ *     ControllerType	- Specifices the Controller Type
+ *     ControllerNumber	- Which of the controllers to query.
+ *     CalloutRoutine	- Which function to call for each valid query.
+ *     Context          - Value to pass to the callback.
  *
- * @param[in]   BusNumber
- * The number of the specified bus type to query.
+ * RETURNS:
+ *     Status
  *
- * @param[in]   ControllerType
- * Specifies the controller type
- *
- * @param[in]   ControllerNumber
- * The number of the specified controller type to query.
- *
- * @param[in]   CalloutRoutine
- * A user-provided callback function to call for each valid query.
- *
- * @param[in]   Context
- * A callback-specific context value.
- *
- * @return  A status code.
- **/
-NTSTATUS
-NTAPI
-IoQueryDeviceDescription(
-    _In_opt_ PINTERFACE_TYPE BusType,
-    _In_opt_ PULONG BusNumber,
-    _In_opt_ PCONFIGURATION_TYPE ControllerType,
-    _In_opt_ PULONG ControllerNumber,
-    _In_opt_ PCONFIGURATION_TYPE PeripheralType,
-    _In_opt_ PULONG PeripheralNumber,
-    _In_ PIO_QUERY_DEVICE_ROUTINE CalloutRoutine,
-    _In_opt_ PVOID Context)
+ * STATUS:
+ *     @implemented
+ */
+
+NTSTATUS NTAPI
+IoQueryDeviceDescription(PINTERFACE_TYPE BusType OPTIONAL,
+			 PULONG BusNumber OPTIONAL,
+			 PCONFIGURATION_TYPE ControllerType OPTIONAL,
+			 PULONG ControllerNumber OPTIONAL,
+			 PCONFIGURATION_TYPE PeripheralType OPTIONAL,
+			 PULONG PeripheralNumber OPTIONAL,
+			 PIO_QUERY_DEVICE_ROUTINE CalloutRoutine,
+			 PVOID Context)
 {
-    NTSTATUS Status;
-    ULONG BusLoopNumber = -1; /* Root Bus */
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    UNICODE_STRING RootRegKey;
-    HANDLE RootRegHandle;
-    IO_QUERY Query;
+   NTSTATUS Status;
+   ULONG BusLoopNumber = -1; /* Root Bus */
+   OBJECT_ATTRIBUTES ObjectAttributes;
+   UNICODE_STRING RootRegKey;
+   HANDLE RootRegHandle;
+   IO_QUERY Query;
 
-    IORSRCTRACE("\nIoQueryDeviceDescription()\n"
-                "    BusType:          0x%p (%lu)\n"
-                "    BusNumber:        0x%p (%lu)\n"
-                "    ControllerType:   0x%p (%lu)\n"
-                "    ControllerNumber: 0x%p (%lu)\n"
-                "    PeripheralType:   0x%p (%lu)\n"
-                "    PeripheralNumber: 0x%p (%lu)\n"
-                "    CalloutRoutine:   0x%p\n"
-                "    Context:          0x%p\n"
-                "--> Query: 0x%p\n",
-                BusType, BusType ? *BusType : -1,
-                BusNumber, BusNumber ? *BusNumber : -1,
-                ControllerType, ControllerType ? *ControllerType : -1,
-                ControllerNumber, ControllerNumber ? *ControllerNumber : -1,
-                PeripheralType, PeripheralType ? *PeripheralType : -1,
-                PeripheralNumber, PeripheralNumber ? *PeripheralNumber : -1,
-                CalloutRoutine, Context,
-                &Query);
+   /* Set up the String */
+   RootRegKey.Length = 0;
+   RootRegKey.MaximumLength = 2048;
+   RootRegKey.Buffer = ExAllocatePoolWithTag(PagedPool, RootRegKey.MaximumLength, TAG_IO_RESOURCE);
+   RtlAppendUnicodeToString(&RootRegKey, L"\\REGISTRY\\MACHINE\\HARDWARE\\DESCRIPTION\\SYSTEM");
 
-    if (!BusType)
-        return STATUS_NOT_IMPLEMENTED;
+   /* Open a handle to the Root Registry Key */
+   InitializeObjectAttributes(
+      &ObjectAttributes,
+      &RootRegKey,
+      OBJ_CASE_INSENSITIVE,
+      NULL,
+      NULL);
 
-    /* Set up the string */
-    RootRegKey.Length = 0;
-    RootRegKey.MaximumLength = 2048;
-    RootRegKey.Buffer = ExAllocatePoolWithTag(PagedPool, RootRegKey.MaximumLength, TAG_IO_RESOURCE);
-    if (!RootRegKey.Buffer)
-        return STATUS_INSUFFICIENT_RESOURCES;
+   Status = ZwOpenKey(&RootRegHandle, KEY_READ, &ObjectAttributes);
 
-    RtlAppendUnicodeToString(&RootRegKey, L"\\REGISTRY\\MACHINE\\HARDWARE\\DESCRIPTION\\SYSTEM");
+   if (NT_SUCCESS(Status))
+   {
+      /* Use a helper function to loop though this key and get the info */
+      Query.BusType = BusType;
+      Query.BusNumber = BusNumber;
+      Query.ControllerType = ControllerType;
+      Query.ControllerNumber = ControllerNumber;
+      Query.PeripheralType = PeripheralType;
+      Query.PeripheralNumber = PeripheralNumber;
+      Query.CalloutRoutine = CalloutRoutine;
+      Query.Context = Context;
+      Status = IopQueryBusDescription(&Query, RootRegKey, RootRegHandle, &BusLoopNumber, TRUE);
 
-    /* Open a handle to the Root Registry Key */
-    InitializeObjectAttributes(&ObjectAttributes,
-                               &RootRegKey,
-                               OBJ_CASE_INSENSITIVE,
-                               NULL,
-                               NULL);
+      /* Close registry */
+      ZwClose(RootRegHandle);
+   }
 
-    Status = ZwOpenKey(&RootRegHandle, KEY_READ, &ObjectAttributes);
+   /* Free Memory */
+   ExFreePoolWithTag(RootRegKey.Buffer, TAG_IO_RESOURCE);
 
-    if (NT_SUCCESS(Status))
-    {
-        /* Use a helper function to loop though this key and get the information */
-        Query.BusType = BusType;
-        Query.BusNumber = BusNumber;
-        Query.ControllerType = ControllerType;
-        Query.ControllerNumber = ControllerNumber;
-        Query.PeripheralType = PeripheralType;
-        Query.PeripheralNumber = PeripheralNumber;
-        Query.CalloutRoutine = CalloutRoutine;
-        Query.Context = Context;
-        Status = IopQueryBusDescription(&Query,
-                                        RootRegKey,
-                                        RootRegHandle,
-                                        &BusLoopNumber,
-                                        TRUE);
-
-        /* Close registry key */
-        ZwClose(RootRegHandle);
-    }
-
-    /* Cleanup */
-    ExFreePoolWithTag(RootRegKey.Buffer, TAG_IO_RESOURCE);
-
-    return Status;
+   return Status;
 }
 
-/**
- * @brief
- * Reports hardware resources of the HAL in the
- * \Registry\Machine\Hardware\ResourceMap tree.
- *
- * @param[in]   HalName
- * Descriptive name of the HAL.
- *
- * @param[in]   RawResourceList
- * List of raw (bus specific) resources which should be claimed
- * for the HAL.
- *
- * @param[in]   TranslatedResourceList
- * List of translated (system wide) resources which should be claimed
- * for the HAL.
- *
- * @param[in]   ResourceListSize
- * Size in bytes of the raw and translated resource lists.
- * Both lists have the same size.
- *
- * @return  A status code.
- **/
 NTSTATUS
 NTAPI
-IoReportHalResourceUsage(
-    _In_ PUNICODE_STRING HalName,
-    _In_ PCM_RESOURCE_LIST RawResourceList,
-    _In_ PCM_RESOURCE_LIST TranslatedResourceList,
-    _In_ ULONG ResourceListSize)
+HeadlessTerminalAddResources(
+    _In_ PCM_RESOURCE_LIST List,
+    _In_ ULONG ListSize,
+    _In_ BOOLEAN IsTranslated,
+    _Out_ PCM_RESOURCE_LIST *OutList,
+    _Out_ PULONG OutSize)
 {
-    NTSTATUS Status;
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    UNICODE_STRING Name;
-    ULONG Disposition;
-    HANDLE ResourceMapKey;
-    HANDLE HalKey;
-    HANDLE DescriptionKey;
+    PCM_RESOURCE_LIST CmResource;
+    PHYSICAL_ADDRESS TerminalPortAddress;
+    PCM_FULL_RESOURCE_DESCRIPTOR CmFullDesc;
+    PHYSICAL_ADDRESS TranslatedAddress;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR CmDescriptor;
 
-    /* Open/Create 'RESOURCEMAP' key */
-    RtlInitUnicodeString(&Name, L"\\Registry\\Machine\\HARDWARE\\RESOURCEMAP");
-    InitializeObjectAttributes(&ObjectAttributes,
-                               &Name,
-                               OBJ_CASE_INSENSITIVE | OBJ_OPENIF,
+    DPRINT("HeadlessTerminalAddResources: List - %p, ListSize - %X, IsTranslated - %X\n",
+           List, ListSize, IsTranslated);
+
+    if (!HeadlessGlobals || HeadlessGlobals->IsNonLegacyDevice)
+    {
+        *OutList = NULL;
+        *OutSize = 0;
+        return STATUS_SUCCESS;
+    }
+
+    *OutSize = ListSize + sizeof(CM_FULL_RESOURCE_DESCRIPTOR);
+
+    CmResource = ExAllocatePoolWithTag(PagedPool,
+                                       ListSize + sizeof(CM_FULL_RESOURCE_DESCRIPTOR),
+                                       'sldH');
+    *OutList = CmResource;
+
+    if (!CmResource)
+    {
+        ASSERT(FALSE);
+        *OutSize = 0;
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlCopyMemory(CmResource, List, ListSize);
+
+    TerminalPortAddress.QuadPart = (ULONG_PTR)HeadlessGlobals->TerminalPortAddress;
+
+    if (IsTranslated)
+    {
+        ULONG AddressSpace = 1;
+
+        HalTranslateBusAddress(Internal,
                                0,
-                               NULL);
-    Status = ZwCreateKey(&ResourceMapKey,
-                         KEY_ALL_ACCESS,
-                         &ObjectAttributes,
-                         0,
-                         NULL,
-                         REG_OPTION_VOLATILE,
-                         &Disposition);
-    if (!NT_SUCCESS(Status))
-        return Status;
+                               TerminalPortAddress,
+                               &AddressSpace,
+                               &TranslatedAddress);
+    }
+    else
+    {
+        TranslatedAddress = TerminalPortAddress;
+    }
 
-    /* Open/Create 'Hardware Abstraction Layer' key */
-    RtlInitUnicodeString(&Name, L"Hardware Abstraction Layer");
-    InitializeObjectAttributes(&ObjectAttributes,
-                               &Name,
-                               OBJ_CASE_INSENSITIVE | OBJ_OPENIF,
-                               ResourceMapKey,
-                               NULL);
-    Status = ZwCreateKey(&HalKey,
-                         KEY_ALL_ACCESS,
-                         &ObjectAttributes,
-                         0,
-                         NULL,
-                         REG_OPTION_VOLATILE,
-                         &Disposition);
-    ZwClose(ResourceMapKey);
-    if (!NT_SUCCESS(Status))
-        return Status;
+    (*OutList)->Count++;
 
-    /* Create 'HalName' key */
-    InitializeObjectAttributes(&ObjectAttributes,
-                               HalName,
-                               OBJ_CASE_INSENSITIVE,
-                               HalKey,
-                               NULL);
-    Status = ZwCreateKey(&DescriptionKey,
-                         KEY_ALL_ACCESS,
-                         &ObjectAttributes,
-                         0,
-                         NULL,
-                         REG_OPTION_VOLATILE,
-                         &Disposition);
-    ZwClose(HalKey);
-    if (!NT_SUCCESS(Status))
-        return Status;
+    CmFullDesc = (PCM_FULL_RESOURCE_DESCRIPTOR)((ULONG_PTR)(*OutList) + ListSize);
 
-    /* Add '.Raw' value */
-    RtlInitUnicodeString(&Name, L".Raw");
-    Status = ZwSetValueKey(DescriptionKey,
-                           &Name,
-                           0,
-                           REG_RESOURCE_LIST,
-                           RawResourceList,
-                           ResourceListSize);
+    CmFullDesc->BusNumber = 0;
+    CmFullDesc->InterfaceType = Isa;
+
+    CmFullDesc->PartialResourceList.Count = 1;
+    CmFullDesc->PartialResourceList.Revision = 0;
+    CmFullDesc->PartialResourceList.Version = 0;
+
+    CmDescriptor = &CmFullDesc->PartialResourceList.PartialDescriptors[0];
+
+    CmDescriptor->Type = CmResourceTypePort;
+    CmDescriptor->ShareDisposition = CmResourceShareDriverExclusive;
+    CmDescriptor->Flags = CM_RESOURCE_PORT_IO;
+    CmDescriptor->u.Port.Start.QuadPart = TranslatedAddress.QuadPart;
+    CmDescriptor->u.Port.Length = 8;
+
+    return STATUS_SUCCESS;
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS NTAPI
+IoReportHalResourceUsage(
+    _In_ PUNICODE_STRING HalDescription,
+    _In_ PCM_RESOURCE_LIST RawList,
+    _In_ PCM_RESOURCE_LIST TranslatedList,
+    _In_ ULONG ListSize)
+/*
+ * FUNCTION:
+ *      Reports hardware resources of the HAL in the
+ *      \Registry\Machine\Hardware\ResourceMap tree.
+ * ARGUMENTS:
+ *      HalDescription: Descriptive name of the HAL.
+ *      RawList: List of raw (bus specific) resources which should be
+ *               claimed for the HAL.
+ *      TranslatedList: List of translated (system wide) resources which
+ *                      should be claimed for the HAL.
+ *      ListSize: Size in bytes of the raw and translated resource lists.
+ *                Both lists have the same size.
+ * RETURNS:
+ *      Status.
+ */
+{
+    PCM_RESOURCE_LIST HeadlessRawList;
+    PCM_RESOURCE_LIST HeadlessTranslatedList;
+    PCM_RESOURCE_LIST CmInitHalResource;
+    UNICODE_STRING HalKeyName;
+    UNICODE_STRING ValueName;
+    HANDLE ResourceMapHandle;
+    ULONG HeadlessListSize;
+    NTSTATUS Status;
+    UNICODE_STRING ResourceMapName = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\HARDWARE\\RESOURCEMAP");
+
+    PAGED_CODE();
+    DPRINT("IoReportHalResourceUsage: HalDescription - %wZ, ListSize - %X\n",
+           HalDescription, ListSize);
+
+    RtlInitUnicodeString(&HalKeyName, L"Hardware Abstraction Layer");
+    Status = IopCreateRegistryKeyEx(&ResourceMapHandle,
+                                    0,
+                                    &ResourceMapName,
+                                    KEY_READ | KEY_WRITE,
+                                    REG_OPTION_VOLATILE,
+                                    NULL);
+
     if (!NT_SUCCESS(Status))
     {
-        ZwClose(DescriptionKey);
+        ASSERT(FALSE);
         return Status;
     }
 
-    /* Add '.Translated' value */
-    RtlInitUnicodeString(&Name, L".Translated");
-    Status = ZwSetValueKey(DescriptionKey,
-                           &Name,
-                           0,
-                           REG_RESOURCE_LIST,
-                           TranslatedResourceList,
-                           ResourceListSize);
-    ZwClose(DescriptionKey);
+    Status = HeadlessTerminalAddResources(RawList,
+                                          ListSize,
+                                          FALSE,
+                                          &HeadlessRawList,
+                                          &HeadlessListSize);
+
+    if (!NT_SUCCESS(Status))
+    {
+        ASSERT(FALSE);
+        goto Exit;
+    }
+
+    if (HeadlessRawList)
+    {
+        PipDumpCmResourceList(HeadlessRawList, 1);
+        RawList = HeadlessRawList;
+        ListSize = HeadlessListSize;
+    }
+
+    RtlInitUnicodeString(&ValueName, L".Raw");
+    Status = IopWriteResourceList(ResourceMapHandle,
+                                  &HalKeyName,
+                                  HalDescription,
+                                  &ValueName,
+                                  RawList,
+                                  ListSize);
+
+    if (!NT_SUCCESS(Status))
+    {
+        ASSERT(FALSE);
+        goto Exit;
+    }
+
+    RtlInitUnicodeString(&ValueName, L".Translated");
+    Status = HeadlessTerminalAddResources(TranslatedList,
+                                          ListSize,
+                                          TRUE,
+                                          &HeadlessTranslatedList,
+                                          &HeadlessListSize);
+
+    if (!NT_SUCCESS(Status))
+    {
+        ASSERT(FALSE);
+        goto Exit;
+    }
+
+    if (HeadlessTranslatedList)
+    {
+        PipDumpCmResourceList(HeadlessRawList, 1);
+        TranslatedList = HeadlessTranslatedList;
+        ListSize = HeadlessListSize;
+    }
+
+    Status = IopWriteResourceList(ResourceMapHandle,
+                                  &HalKeyName,
+                                  HalDescription,
+                                  &ValueName,
+                                  TranslatedList,
+                                  ListSize);
+
+    if (!NT_SUCCESS(Status))
+    {
+        ASSERT(FALSE);
+    }
+
+    if (HeadlessTranslatedList)
+    {
+        ExFreePoolWithTag(HeadlessTranslatedList, 'sldH');
+    }
+
+Exit:
+    ZwClose(ResourceMapHandle);
+
+    if (!NT_SUCCESS(Status))
+    {
+        if (HeadlessRawList)
+        {
+            ExFreePoolWithTag(HeadlessRawList, 'sldH');
+        }
+
+        return Status;
+    }
+
+    if (HeadlessRawList)
+    {
+        IopInitHalResources = HeadlessRawList;
+        return Status;
+    }
+
+    CmInitHalResource = ExAllocatePoolWithTag(PagedPool, ListSize, '  pP');
+    IopInitHalResources = CmInitHalResource;
+
+    if (!CmInitHalResource)
+    {
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlCopyMemory(CmInitHalResource, RawList, ListSize);
 
     return Status;
 }

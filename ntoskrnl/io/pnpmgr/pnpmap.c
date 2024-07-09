@@ -1,726 +1,1117 @@
 /*
- * PROJECT:     ReactOS Kernel
- * LICENSE:     GPL-2.0-or-later (https://spdx.org/licenses/GPL-2.0-or-later)
- * PURPOSE:     PnP manager Firmware Mapper functions
- * COPYRIGHT:   Copyright 2006-2007 Hervé Poussineau <hpoussin@reactos.org>
- *              Copyright 2008-2011 Cameron Gutman <cameron.gutman@reactos.org>
+ * PROJECT:         ReactOS Kernel
+ * COPYRIGHT:       GPL - See COPYING in the top level directory
+ * FILE:            ntoskrnl/io/pnpmgr/pnpreport.c
+ * PURPOSE:         PNP Mapper Functions
+ * PROGRAMMERS:     
  */
 
 /* INCLUDES ******************************************************************/
 
 #include <ntoskrnl.h>
+#include "../pnpio.h"
+
 #define NDEBUG
 #include <debug.h>
 
-/* TYPES *********************************************************************/
+/* GLOBALS *******************************************************************/
+
+extern ULONG KeI386MachineType;
+
+/* TYPES *******************************************************************/
 
 typedef struct _PNP_MAPPER_DEVICE_ID
-{
-    PCWSTR TypeName;
-    PWSTR PnPId;
-} PNP_MAPPER_DEVICE_ID, *PPNP_MAPPER_DEVICE_ID;
+{ 
+    PWCHAR TypeName;
+    PWCHAR PnPId;
+} PNP_MAPPER_DEVICE_ID, *PPNP_MAPPER_DEVICE_ID; 
 
-typedef struct _PNP_DETECT_IDENTIFIER_MAP
-{
-    PCWSTR DetectId;
-    PWSTR PnPId;
-    PPNP_MAPPER_DEVICE_ID PeripheralMap;
-    ULONG Counter;
-} PNP_DETECT_IDENTIFIER_MAP;
+typedef struct _PNP_MAPPER_INFORMATION
+{ 
+    struct _PNP_MAPPER_INFORMATION * NextInfo;
+    INTERFACE_TYPE BusType;
+    ULONG BusNumber;
+    CONFIGURATION_TYPE ControllerType;
+    ULONG ControllerNumber;
+    CONFIGURATION_TYPE PeripheralType;
+    ULONG PeripheralNumber;
+    ULONG CmFullDescriptorSize;
+    PVOID CmFullDescriptor;
+    ULONG IdentifierSize;
+    ULONG IdentifierType;
+    PVOID Identifier;
+    PWCHAR PnPId;
+    BOOLEAN IsCreatedNewKey;
+    UCHAR Padded[3];
+} PNP_MAPPER_INFORMATION, *PPNP_MAPPER_INFORMATION; 
+
+typedef struct _PNP_MAPPER_DEVICE_EXTENSION
+{ 
+    PPNP_MAPPER_INFORMATION  MapperInfo;
+} PNP_MAPPER_DEVICE_EXTENSION, *PPNP_MAPPER_DEVICE_EXTENSION; 
 
 /* DATA **********************************************************************/
 
-static UNICODE_STRING IdentifierU = RTL_CONSTANT_STRING(L"Identifier");
-static UNICODE_STRING HardwareIDU = RTL_CONSTANT_STRING(L"HardwareID");
-static UNICODE_STRING ConfigurationDataU = RTL_CONSTANT_STRING(L"Configuration Data");
-static UNICODE_STRING BootConfigU = RTL_CONSTANT_STRING(L"BootConfig");
-static UNICODE_STRING LogConfU = RTL_CONSTANT_STRING(L"LogConf");
+PNP_MAPPER_DEVICE_EXTENSION MapperDeviceExtension;
 
-/* FIXME: Trailing \0 in structures below are hacks, should be removed.
- * Hardware identifiers also can be mapped using "LegacyXlate" sections
- * of driver INF files. */
-
-DATA_SEG("INITDATA")
 static
-PNP_MAPPER_DEVICE_ID KeyboardMap[] =
+CONFIGURATION_TYPE TypeArray[] =
 {
-    { L"XT_83KEY", L"*PNP0300\0" },
-    { L"PCAT_86KEY", L"*PNP0301\0" },
-    { L"PCXT_84KEY", L"*PNP0302\0" },
-    { L"XT_84KEY", L"*PNP0302\0" },
-    { L"101-KEY", L"*PNP0303\0" },
-    { L"OLI_83KEY", L"*PNP0304\0" },
-    { L"ATT_301", L"*PNP0304\0" },
-    { L"OLI_102KEY", L"*PNP0305\0" },
-    { L"OLI_86KEY", L"*PNP0306\0" },
-    { L"OLI_A101_102KEY", L"*PNP0309\0" },
-    { L"ATT_302", L"*PNP030a\0" },
-    { L"PCAT_ENHANCED", L"*PNP030b\0" },
-    { L"PC98_106KEY", L"*nEC1300\0" },
-    { L"PC98_LaptopKEY", L"*nEC1300\0" },
-    { L"PC98_N106KEY", L"*PNP0303\0" },
-    { NULL, NULL }
+    PointerController,
+    KeyboardController,
+    ParallelController,
+    DiskController,
+    FloppyDiskPeripheral,
+    SerialController // shoul be last !
 };
 
-DATA_SEG("INITDATA")
 static
 PNP_MAPPER_DEVICE_ID PointerMap[] =
 {
-    { L"PS2 MOUSE", L"*PNP0F0E\0" },
-    { L"SERIAL MOUSE", L"*PNP0F0C\0" },
-    { L"MICROSOFT PS2 MOUSE", L"*PNP0F03\0" },
-    { L"LOGITECH PS2 MOUSE", L"*PNP0F12\0" },
-    { L"MICROSOFT INPORT MOUSE", L"*PNP0F02\0" },
-    { L"MICROSOFT SERIAL MOUSE", L"*PNP0F01\0" },
-    { L"MICROSOFT BALLPOINT SERIAL MOUSE", L"*PNP0F09\0" },
-    { L"LOGITECH SERIAL MOUSE", L"*PNP0F08\0" },
-    { L"MICROSOFT BUS MOUSE", L"*PNP0F00\0" },
-    { L"NEC PC-9800 BUS MOUSE", L"*nEC1F00\0" },
+    { L"PS2 MOUSE", L"*PNP0F0E" },
+    { L"SERIAL MOUSE", L"*PNP0F0C" },
+    { L"MICROSOFT PS2 MOUSE", L"*PNP0F03" },
+    { L"LOGITECH PS2 MOUSE", L"*PNP0F12" },
+    { L"MICROSOFT INPORT MOUSE", L"*PNP0F02" },
+    { L"MICROSOFT SERIAL MOUSE", L"*PNP0F01" },
+    { L"MICROSOFT BALLPOINT SERIAL MOUSE", L"*PNP0F09" },
+    { L"LOGITECH SERIAL MOUSE", L"*PNP0F08" },
+    { L"MICROSOFT BUS MOUSE", L"*PNP0F00" },
+    { L"NEC PC-9800 BUS MOUSE", L"*nEC1F00" },
     { NULL, NULL }
 };
 
-DATA_SEG("INITDATA")
 static
-PNP_DETECT_IDENTIFIER_MAP PnPMap[] =
+PNP_MAPPER_DEVICE_ID KeyboardMap[] =
 {
-    { L"SerialController", L"*PNP0501\0", NULL, 0 },
-    //{ L"KeyboardController", L"*PNP0303\0", NULL, 0 },
-    //{ L"PointerController", L"*PNP0F13\0", NULL, 0 },
-    { L"KeyboardPeripheral", NULL, KeyboardMap, 0 },
-    { L"PointerPeripheral", NULL, PointerMap, 0 },
-    { L"ParallelController", L"*PNP0400\0", NULL, 0 },
-    { L"FloppyDiskPeripheral", L"*PNP0700\0", NULL, 0 },
-    { NULL, NULL, NULL, 0 }
+    { L"XT_83KEY", L"*PNP0300" },
+    { L"PCAT_86KEY", L"*PNP0301" },
+    { L"PCXT_84KEY", L"*PNP0302" },
+    { L"XT_84KEY", L"*PNP0302" },
+    { L"101-KEY", L"*PNP0303" },
+    { L"OLI_83KEY", L"*PNP0304" },
+    { L"ATT_301", L"*PNP0304" },
+    { L"OLI_102KEY", L"*PNP0305" },
+    { L"OLI_86KEY", L"*PNP0306" },
+    { L"OLI_A101_102KEY", L"*PNP0309" },
+    { L"ATT_302", L"*PNP030a" },
+    { L"PCAT_ENHANCED", L"*PNP030b" },
+    { L"PC98_106KEY", L"*nEC1300" },
+    { L"PC98_LaptopKEY", L"*nEC1300" },
+    { L"PC98_N106KEY", L"*PNP0303" },
+    { NULL, NULL }
 };
 
-/* FUNCTIONS *****************************************************************/
+/* PRIVATE FUNCTIONS *********************************************************/
 
-static
-CODE_SEG("INIT")
-PWSTR
-IopMapPeripheralId(
-    _In_ PCUNICODE_STRING Value,
-    _In_ PPNP_MAPPER_DEVICE_ID DeviceList)
+VOID
+NTAPI
+MapperFreeList(VOID)
 {
-    ULONG i;
-    UNICODE_STRING CmpId;
+    PPNP_MAPPER_INFORMATION MapperInfo;
+    PPNP_MAPPER_INFORMATION NextInfo;
 
-    for (i = 0; DeviceList[i].TypeName; i++)
+    for (MapperInfo = MapperDeviceExtension.MapperInfo;
+         MapperInfo;
+         MapperInfo = NextInfo)
     {
-        RtlInitUnicodeString(&CmpId, DeviceList[i].TypeName);
+        if (MapperInfo->CmFullDescriptor)
+            ExFreePoolWithTag(MapperInfo->CmFullDescriptor, 'rpaM');
 
-        if (RtlCompareUnicodeString(Value, &CmpId, FALSE) == 0)
-            break;
+        if (MapperInfo->Identifier)
+            ExFreePoolWithTag(MapperInfo->Identifier, 'rpaM');
+
+        NextInfo = MapperInfo->NextInfo;
+        ExFreePoolWithTag(MapperInfo, 'rpaM');
     }
-
-    return DeviceList[i].PnPId;
 }
 
-static
-CODE_SEG("INIT")
-PWSTR
-IopMapDetectedDeviceId(
-    _In_ PUNICODE_STRING DetectId,
-    _In_ PUNICODE_STRING Value,
-    _Out_ PULONG DeviceIndex)
+PPNP_MAPPER_DEVICE_ID
+NTAPI
+MapperFindIdentMatch(
+    _In_ PPNP_MAPPER_DEVICE_ID MapperId,
+    _In_ PWSTR TypeString)
 {
-    ULONG i;
-    UNICODE_STRING CmpId;
+    PPNP_MAPPER_DEVICE_ID Id;
 
-    if (!DetectId)
-        return NULL;
-
-    for (i = 0; PnPMap[i].DetectId; i++)
+    for (Id = MapperId; ; ++Id)
     {
-        RtlInitUnicodeString(&CmpId, PnPMap[i].DetectId);
-
-        if (RtlCompareUnicodeString(DetectId, &CmpId, FALSE) == 0)
+        if (!Id->TypeName)
         {
-            *DeviceIndex = PnPMap[i].Counter++;
+            return NULL;
+        }
 
-            if (PnPMap[i].PeripheralMap)
-                return IopMapPeripheralId(Value, PnPMap[i].PeripheralMap);
+        if (!wcscmp(TypeString, Id->TypeName))
+        {
             break;
         }
     }
 
-    return PnPMap[i].PnPId;
+    return Id;
 }
 
-static
-CODE_SEG("INIT")
-NTSTATUS
-IopEnumerateDetectedDevices(
-    _In_ HANDLE hBaseKey,
-    _In_opt_ PUNICODE_STRING RelativePath,
-    _In_ HANDLE hRootKey,
-    _In_ BOOLEAN EnumerateSubKeys,
-    _In_opt_ PCM_FULL_RESOURCE_DESCRIPTOR BootResources,
-    _In_opt_ ULONG BootResourcesLength,
-    _In_ PCM_FULL_RESOURCE_DESCRIPTOR ParentBootResources,
-    _In_ ULONG ParentBootResourcesLength)
+PWSTR
+NTAPI
+MapperTranslatePnPId(
+    _In_ CONFIGURATION_TYPE ControllerType,
+    _In_ PKEY_VALUE_FULL_INFORMATION PeripheralValueInfo)
 {
-    HANDLE hDevicesKey = NULL;
-    ULONG KeyIndex = 0;
-    PKEY_BASIC_INFORMATION pDeviceInformation = NULL;
-    ULONG DeviceInfoLength = sizeof(KEY_BASIC_INFORMATION) + 50 * sizeof(WCHAR);
-    NTSTATUS Status;
+    PPNP_MAPPER_DEVICE_ID KeyboardId;
+    PPNP_MAPPER_DEVICE_ID PointerId;
+    PWCHAR Identifier = NULL;
 
-    if (!BootResources && RelativePath)
+    if (PeripheralValueInfo)
     {
-        Status = IopOpenRegistryKeyEx(&hDevicesKey, hBaseKey, RelativePath, KEY_ENUMERATE_SUB_KEYS);
+        Identifier = (PWCHAR)((ULONG_PTR)PeripheralValueInfo +
+                              PeripheralValueInfo->DataOffset);
 
-        if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwOpenKey() failed with status 0x%08lx\n", Status);
-            goto cleanup;
-        }
-    }
-    else
-        hDevicesKey = hBaseKey;
-
-    pDeviceInformation = ExAllocatePool(PagedPool, DeviceInfoLength);
-    if (!pDeviceInformation)
-    {
-        DPRINT("ExAllocatePool() failed\n");
-        Status = STATUS_NO_MEMORY;
-        goto cleanup;
+        DPRINT("MapperTranslatePnPId: Identifier - %S\n", Identifier);
     }
 
-    while (TRUE)
+    switch (ControllerType)
     {
-        OBJECT_ATTRIBUTES ObjectAttributes;
-        HANDLE hDeviceKey = NULL;
-        HANDLE hLevel1Key, hLevel2Key = NULL, hLogConf;
-        UNICODE_STRING Level2NameU;
-        WCHAR Level2Name[5];
-        PKEY_VALUE_PARTIAL_INFORMATION pValueInformation = NULL;
-        ULONG ValueInfoLength = sizeof(KEY_VALUE_PARTIAL_INFORMATION) + 50 * sizeof(WCHAR);
-        UNICODE_STRING DeviceName, ValueName;
-        ULONG RequiredSize;
+        case DiskController:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "DiskController", DiskController, "*PNP0700");
+            return L"*PNP0700";
 
-        UNICODE_STRING HardwareIdKey;
-        PWSTR pHardwareId;
-        ULONG DeviceIndex = 0;
+        case SerialController:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "SerialController", SerialController, "*PNP0501");
+            return L"*PNP0501";
 
-        Status = ZwEnumerateKey(hDevicesKey,
-                                KeyIndex,
-                                KeyBasicInformation,
-                                pDeviceInformation,
-                                DeviceInfoLength,
-                                &RequiredSize);
+        case ParallelController:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "ParallelController", ParallelController, "*PNP0400");
+            return L"*PNP0400";
 
-        if (Status == STATUS_NO_MORE_ENTRIES)
-            break;
-        else if (Status == STATUS_BUFFER_OVERFLOW || Status == STATUS_BUFFER_TOO_SMALL)
-        {
-            ExFreePool(pDeviceInformation);
-            DeviceInfoLength = RequiredSize;
-            pDeviceInformation = ExAllocatePool(PagedPool, DeviceInfoLength);
+        case PointerController:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "PointerController", PointerController, "*PNP0F0E");
+            return L"*PNP0F0E";
 
-            if (!pDeviceInformation)
+        case KeyboardController:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "KeyboardController", KeyboardController, "*PNP0300");
+            return L"*PNP0300";
+
+        case DiskPeripheral:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "DiskPeripheral", DiskPeripheral, "NULL");
+            return NULL;
+
+        case FloppyDiskPeripheral:
+            DPRINT("MapperTranslatePnPId: %s (%d) - %s\n",
+                   "FloppyDiskPeripheral", FloppyDiskPeripheral, "*PNP0700");
+            return L"*PNP0700";
+
+        case PointerPeripheral:
+            if (!Identifier)
             {
-                DPRINT("ExAllocatePool() failed\n");
-                Status = STATUS_NO_MEMORY;
-                goto cleanup;
+                DPRINT("MapperTranslatePnPId: Identifier == NULL\n");
+                return NULL;
             }
 
-            Status = ZwEnumerateKey(hDevicesKey,
-                                    KeyIndex,
-                                    KeyBasicInformation,
-                                    pDeviceInformation,
-                                    DeviceInfoLength,
-                                    &RequiredSize);
+            PointerId = MapperFindIdentMatch(PointerMap, Identifier);
+
+            if (!PointerId)
+            {
+                DPRINT("MapperTranslatePnPId: No PointerId for %S\n",
+                       Identifier);
+                return NULL;
+            }
+
+            DPRINT("MapperTranslatePnPId: PointerId->PnPId - %S\n",
+                   PointerId->PnPId);
+            return PointerId->PnPId;
+
+        case KeyboardPeripheral:
+            if (!Identifier)
+            {
+                DPRINT("MapperTranslatePnPId: Identifier == NULL\n");
+                return NULL;
+            }
+
+            KeyboardId = MapperFindIdentMatch(KeyboardMap, Identifier);
+
+            if (!KeyboardId)
+            {
+                DPRINT("MapperTranslatePnPId: No KeyboardId for %S\n",
+                       Identifier);
+                return NULL;
+            }
+
+            DPRINT("MapperTranslatePnPId: KeyboardId->PnPId - %S\n",
+                   KeyboardId->PnPId);
+            return KeyboardId->PnPId;
+
+        default:
+            DPRINT("MapperTranslatePnPId: Unknown ControllerType - %X\n",
+                   ControllerType);
+            return NULL;
+    }
+}
+
+NTSTATUS
+NTAPI
+MapperPeripheralCallback(
+    _In_ PVOID Context,
+    _In_ PUNICODE_STRING PathName,
+    _In_ INTERFACE_TYPE BusType,
+    _In_ ULONG BusNumber,
+    _In_ PKEY_VALUE_FULL_INFORMATION * BusInformation,
+    _In_ CONFIGURATION_TYPE ControllerType,
+    _In_ ULONG ControllerNumber,
+    _In_ PKEY_VALUE_FULL_INFORMATION * ControllerInformation,
+    _In_ CONFIGURATION_TYPE PeripheralType,
+    _In_ ULONG PeripheralNumber,
+    _In_ PKEY_VALUE_FULL_INFORMATION * PeripheralInformation)
+{
+    PPNP_MAPPER_INFORMATION MapperInfo = Context;
+    PKEY_VALUE_FULL_INFORMATION IdentInfo;
+    SIZE_T IdentInfoLength;
+    PWCHAR Identifier;
+
+    DPRINT("MapperPeripheralCallback: PathName - %S\n", PathName->Buffer);
+
+    if (!ControllerInformation)
+    {
+        DPRINT("MapperPeripheralCallback: ControllerInformation == NULL\n");
+    }
+
+    if (!PeripheralInformation)
+    {
+        DPRINT("MapperPeripheralCallback: PeripheralInformation == NULL\n");
+        return STATUS_SUCCESS;
+    }
+
+    IdentInfo = PeripheralInformation[0];
+
+    if (!IdentInfo)
+    {
+        DPRINT("MapperPeripheralCallback: IdentInfo == NULL\n");
+        goto Exit;
+    }
+
+    MapperInfo->PnPId = MapperTranslatePnPId(PeripheralType,
+                                             PeripheralInformation[0]);
+    if (!MapperInfo->PnPId)
+    {
+        DPRINT("MapperPeripheralCallback: MapperInfo->PnPId == NULL\n");
+        goto Exit;
+    }
+
+    IdentInfoLength = IdentInfo->DataLength;
+
+    if (IdentInfoLength <= sizeof(WCHAR) || IdentInfo->Type != REG_SZ)
+    {
+        DPRINT("MapperPeripheralCallback: IdentInfoLength - %S, IdentInfo->Type - %X\n",
+               IdentInfoLength, IdentInfo->Type);
+        goto Exit;
+    }
+
+    Identifier = (PWCHAR)((ULONG_PTR)IdentInfo + IdentInfo->DataOffset);
+
+    if (*Identifier == UNICODE_NULL)
+    {
+        DPRINT("MapperPeripheralCallback: *IdentInfo == NULL\n");
+        goto Exit;
+    }
+
+    if (MapperInfo->Identifier)
+    {
+        ExFreePoolWithTag(MapperInfo->Identifier, 'rpaM');
+    }
+
+    MapperInfo->Identifier = ExAllocatePoolWithTag(NonPagedPool,
+                                                   IdentInfoLength,
+                                                   'rpaM');
+    if (!Identifier)
+    {
+        DPRINT1("MapperPeripheralCallback: STATUS_INSUFFICIENT_RESOURCES\n");
+        goto Exit;
+    }
+
+    MapperInfo->IdentifierType = IdentInfo->Type;
+    MapperInfo->IdentifierSize = IdentInfoLength;
+
+    RtlCopyMemory(MapperInfo->Identifier, Identifier, IdentInfoLength);
+
+Exit:
+
+    MapperInfo->PeripheralType = PeripheralType;
+    MapperInfo->PeripheralNumber = PeripheralNumber;
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS
+NTAPI
+MapperCallback(
+    _In_ PVOID Context,
+    _In_ PUNICODE_STRING PathName,
+    _In_ INTERFACE_TYPE BusType,
+    _In_ ULONG BusNumber,
+    _In_ PKEY_VALUE_FULL_INFORMATION * BusInformation,
+    _In_ CONFIGURATION_TYPE ControllerType,
+    _In_ ULONG ControllerNumber,
+    _In_ PKEY_VALUE_FULL_INFORMATION * ControllerInformation,
+    _In_ CONFIGURATION_TYPE PeripheralType,
+    _In_ ULONG PeripheralNumber,
+    _In_ PKEY_VALUE_FULL_INFORMATION * PeripheralInformation)
+{
+    PPNP_MAPPER_DEVICE_EXTENSION MapperContext = Context;
+    PKEY_VALUE_FULL_INFORMATION DataInfo;
+    PKEY_VALUE_FULL_INFORMATION IdentInfo;
+    PPNP_MAPPER_INFORMATION MapperInfo;
+    CONFIGURATION_TYPE peripheralType;
+    PCM_FULL_RESOURCE_DESCRIPTOR CmFullDescriptor;
+    PCM_FULL_RESOURCE_DESCRIPTOR cmFullDescriptor;
+    PWCHAR Identifier;
+    SIZE_T DataInfoLength;
+    SIZE_T IdentInfoLength;
+
+    DPRINT("MapperCallback: PathName - %wZ, ControllerType - %X\n",
+           PathName, ControllerType);
+
+    DataInfo = ControllerInformation[1];
+    if (!DataInfo)
+    {
+        DPRINT("MapperCallback: DataInfo == NULL\n");
+        return STATUS_SUCCESS;
+    }
+
+    DataInfoLength = DataInfo->DataLength;
+    if (!DataInfoLength)
+    {
+        DPRINT("MapperCallback: DataInfoLength == 0\n");
+        return STATUS_SUCCESS;
+    }
+
+    MapperInfo = ExAllocatePoolWithTag(NonPagedPool,
+                                       sizeof(PNP_MAPPER_INFORMATION),
+                                       'rpaM');
+    if (!MapperInfo)
+    {
+        DPRINT1("MapperCallback: STATUS_INSUFFICIENT_RESOURCES\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(MapperInfo, sizeof(PNP_MAPPER_INFORMATION));
+
+    MapperInfo->ControllerType = ControllerType;
+    MapperInfo->ControllerNumber = ControllerNumber;
+
+    MapperInfo->BusNumber = BusNumber;
+    MapperInfo->BusType = BusType;
+
+    CmFullDescriptor = ExAllocatePoolWithTag(NonPagedPool,
+                                             DataInfoLength,
+                                             'rpaM');
+    if (!CmFullDescriptor)
+    {
+        DPRINT1("MapperCallback: STATUS_INSUFFICIENT_RESOURCES\n");
+        ExFreePoolWithTag(MapperInfo, 'rpaM');
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    cmFullDescriptor = (PCM_FULL_RESOURCE_DESCRIPTOR)
+                       ((ULONG_PTR)DataInfo + DataInfo->DataOffset);
+
+    RtlCopyMemory(CmFullDescriptor, cmFullDescriptor, DataInfoLength);
+
+    MapperInfo->CmFullDescriptor = CmFullDescriptor;
+    MapperInfo->CmFullDescriptorSize = DataInfoLength;
+
+    IdentInfo = ControllerInformation[0];
+
+    if (IdentInfo)
+    {
+        IdentInfoLength = IdentInfo->DataLength;
+
+        if (IdentInfoLength)
+        {
+            Identifier = (PWCHAR)((ULONG_PTR)IdentInfo + IdentInfo->DataOffset);
+
+            if (ControllerType == ParallelController)
+            {
+                DPRINT("MapperCallback: FIXME ControllerType - ParallelController\n");
+                ASSERT(FALSE);
+            }
+            else
+            {
+                if (IdentInfoLength)
+                {
+                    MapperInfo->Identifier = ExAllocatePoolWithTag(NonPagedPool,
+                                                                   IdentInfoLength,
+                                                                   'rpaM');
+                    if (MapperInfo->Identifier)
+                    {
+                        MapperInfo->IdentifierType = IdentInfo->Type;
+                        MapperInfo->IdentifierSize = IdentInfoLength;
+
+                        RtlCopyMemory(MapperInfo->Identifier,
+                                      Identifier,
+                                      IdentInfoLength);
+                    }
+                    else
+                    {
+                        DPRINT1("MapperCallback: STATUS_INSUFFICIENT_RESOURCES\n");
+                    }
+                }
+            }
         }
+    }
+
+    switch (ControllerType)
+    {
+        case DiskController:
+            peripheralType = FloppyDiskPeripheral;
+            break;
+
+        case SerialController:
+        case ParallelController:
+            peripheralType = ArcSystem;
+            break;
+
+        case PointerController:
+            peripheralType = PointerPeripheral;
+            break;
+
+        case KeyboardController:
+            peripheralType = KeyboardPeripheral;
+            break;
+
+        default:
+            peripheralType = ArcSystem;
+            break;
+    }
+
+    DPRINT("MapperCallback: PathName - %S, Ident[0] - %X, Data[1] - %X, Information[2] - %X\n",
+           PathName->Buffer,
+           ControllerInformation[0],
+           ControllerInformation[1],
+           ControllerInformation[2]);
+
+    if (peripheralType != ArcSystem)
+    {
+        DPRINT("MapperCallback: peripheralType - %d\n", peripheralType);
+
+        IoQueryDeviceDescription(&BusType,
+                                 &BusNumber,
+                                 &ControllerType,
+                                 &ControllerNumber,
+                                 &peripheralType,
+                                 0,
+                                 MapperPeripheralCallback,
+                                 MapperInfo);
+    }
+
+    if (!MapperInfo->PnPId && !MapperInfo->PeripheralType)
+    {
+        MapperInfo->PnPId = MapperTranslatePnPId(ControllerType, NULL);
+
+        if (!MapperInfo->PnPId)
+        {
+            DPRINT("MapperCallback: No PnPId for %S !\n", PathName->Buffer);
+        }
+    }
+
+    DPRINT("MapperCallback: Constructed name - %d_%d_%d_%d_%d_%d\n",
+           MapperInfo->BusType,
+           MapperInfo->BusNumber,
+           MapperInfo->ControllerType,
+           MapperInfo->ControllerNumber,
+           MapperInfo->PeripheralType,
+           MapperInfo->PeripheralNumber);
+
+    if (MapperInfo->PnPId)
+    {
+        MapperInfo->NextInfo = MapperContext->MapperInfo;
+        MapperContext->MapperInfo = MapperInfo;
+    }
+    else
+    {
+        ExFreePoolWithTag(CmFullDescriptor, 'rpaM');
+
+        if (MapperInfo->Identifier)
+        {
+            ExFreePoolWithTag(MapperInfo->Identifier, 'rpaM');
+        }
+
+        ExFreePoolWithTag(MapperInfo, 'rpaM');
+    }
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS
+NTAPI
+MapperProcessFirmwareTree(
+    _In_ BOOLEAN IsDisableMapper)
+{
+    CONFIGURATION_TYPE ControllerType;
+    INTERFACE_TYPE Interface;
+    ULONG Index;
+    ULONG ArraySize; 
+    NTSTATUS Status;
+
+    PAGED_CODE();
+    DPRINT("MapperProcessFirmwareTree: IsDisableMapper %X\n", IsDisableMapper);
+
+    ArraySize = (*(&TypeArray + 1) - TypeArray);
+
+    for (Interface = Internal;
+         Interface < MaximumInterfaceType;
+         Interface++)
+    {
+        if (IsDisableMapper)
+            /* Only SerialController */
+            Index = (ArraySize - 1);
+        else
+            Index = 0;
+
+        for (; Index < ArraySize; Index++)
+        {
+            ControllerType = TypeArray[Index];
+
+            Status = IoQueryDeviceDescription(&Interface,
+                                              NULL,
+                                              &ControllerType,
+                                              NULL,
+                                              NULL,
+                                              NULL,
+                                              MapperCallback,
+                                              &MapperDeviceExtension);
+        }
+    }
+
+    return Status;
+}
+
+PCM_RESOURCE_LIST
+NTAPI
+MapperAdjustResourceList(
+    _In_ PCM_RESOURCE_LIST CmResource,
+    _In_ PWCHAR PnPId,
+    _Inout_ PULONG OutListSize)
+{
+    PCM_RESOURCE_LIST NewCmResource;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR CmDescriptor;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR BadCmDescriptor;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR NewCmDescriptor;
+    ULONG ix;
+
+    DPRINT("MapperAdjustResourceList: CmResource %p, PnPId '%S'\n", CmResource, PnPId);
+
+    if (KeI386MachineType == MACHINE_TYPE_EISA)
+    {
+        DPRINT1("MapperAdjustResourceList: FIXME. KeI386MachineType == MACHINE_TYPE_EISA\n");
+        ASSERT(FALSE);
+    }
+
+    if (wcscmp(PnPId, L"*PNP0700") != 0) // Floppy Id
+        return CmResource;
+
+    DPRINT("MapperAdjustResourceList: Floppy\n");
+
+    if (CmResource->Count != 1)
+    {
+        DPRINT1("MapperAdjustResourceList: CmResource->Count %X\n", CmResource->Count);
+        return CmResource;
+    }
+
+    CmDescriptor = CmResource->List[0].PartialResourceList.PartialDescriptors;
+    BadCmDescriptor = NULL;
+
+    if (CmResource->List[0].PartialResourceList.Count == 0)
+    {
+        DPRINT1("MapperAdjustResourceList: CmResource->List[0].PartialResourceList.Count = 0\n");
+        return CmResource;
+    }
+
+    for (ix = 0; ix < CmResource->List[0].PartialResourceList.Count; ix++)
+    {
+        if (CmDescriptor->Type == CmResourceTypePort &&
+            CmDescriptor->u.Port.Length == 8)
+        {
+            if (BadCmDescriptor)
+            {
+                BadCmDescriptor = NULL;
+                break;
+            }
+            else
+            {
+                BadCmDescriptor = CmDescriptor;
+            }
+        }
+
+        CmDescriptor++;
+    }
+
+    if (!BadCmDescriptor)
+        return CmResource;
+
+    DPRINT("MapperAdjustResourceList: BadCmDescriptor %p, Port.Length %X\n", BadCmDescriptor, BadCmDescriptor->u.Port.Length);
+
+    BadCmDescriptor->u.Port.Length = 6;
+
+    NewCmResource = ExAllocatePoolWithTag(NonPagedPool, (*OutListSize + sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR)), 'rpaM');
+    if (!NewCmResource)
+    {
+        DPRINT1("MapperAdjustResourceList: STATUS_INSUFFICIENT_RESOURCES\n");
+        return CmResource;
+    }
+
+    RtlCopyMemory(NewCmResource, CmResource, *OutListSize);
+
+    NewCmDescriptor = &NewCmResource->List[0].PartialResourceList.PartialDescriptors[0] +
+                      NewCmResource->List[0].PartialResourceList.Count;
+
+    RtlMoveMemory(NewCmDescriptor, BadCmDescriptor, sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR));
+
+    NewCmDescriptor->u.Port.Start.QuadPart += 7;
+    NewCmDescriptor->u.Port.Length = 1;
+
+    NewCmResource->List[0].PartialResourceList.Count++;
+    *OutListSize += sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR);
+
+    ExFreePoolWithTag(CmResource, 'rpaM');
+
+    return NewCmResource;
+}
+
+VOID
+NTAPI
+MapperMarkKey(
+    _In_ HANDLE KeyHandle,
+    _In_ PUNICODE_STRING KeyName,
+    _In_ PPNP_MAPPER_INFORMATION MapperInfo)
+{
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    PCM_RESOURCE_LIST CmResource;
+    PCM_RESOURCE_LIST CmBootConfigList;
+    UNICODE_STRING ValueName;
+    ULONG KeyNameLength;
+    PWCHAR BufferEnd;
+    ULONG Disposition;
+    ULONG Data;
+    ULONG Length;
+    NTSTATUS Status;
+
+    DPRINT("MapperMarkKey: KeyName '%wZ'\n", KeyName);
+
+    KeyNameLength = KeyName->Length;
+
+    Data = 1;
+    RtlInitUnicodeString(&ValueName, L"FirmwareIdentified");
+
+    ZwSetValueKey(KeyHandle, &ValueName, 0, REG_DWORD, &Data, sizeof(ULONG));
+
+    BufferEnd = &KeyName->Buffer[KeyName->Length / sizeof(WCHAR) + 1];
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               KeyName,
+                               (OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE),
+                               NULL,
+                               NULL);
+
+    RtlAppendUnicodeToString(KeyName, L"\\Control");
+
+    Status = ZwCreateKey(&KeyHandle,
+                         KEY_READ | KEY_WRITE,
+                         &ObjectAttributes,
+                         0,
+                         NULL,
+                         REG_OPTION_VOLATILE,
+                         &Disposition);
+
+    if (NT_SUCCESS(Status))
+    {
+        Data = 1;
+        RtlInitUnicodeString(&ValueName, L"FirmwareMember");
+        ZwSetValueKey(KeyHandle, &ValueName, 0, REG_DWORD, &Data, sizeof(ULONG));
+        ZwClose(KeyHandle);
+    }
+    else
+    {
+        DPRINT("MapperMarkKey: Status %X\n", Status);
+    }
+
+    if (!MapperInfo->CmFullDescriptor)
+        goto Exit;
+
+    KeyName->Length = KeyNameLength;
+    *BufferEnd = UNICODE_NULL;
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               KeyName,
+                               (OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE),
+                               NULL,
+                               NULL);
+
+    RtlAppendUnicodeToString(KeyName, L"\\LogConf");
+
+    Status = ZwCreateKey(&KeyHandle,
+                         KEY_READ | KEY_WRITE,
+                         &ObjectAttributes,
+                         0,
+                         NULL,
+                         REG_OPTION_VOLATILE,
+                         &Disposition);
+
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT("MapperMarkKey: Status %X\n", Status);
+        goto Exit;
+    }
+
+    Length = MapperInfo->CmFullDescriptorSize +
+             (sizeof(CM_RESOURCE_LIST) - sizeof(CM_FULL_RESOURCE_DESCRIPTOR));
+
+    CmResource = ExAllocatePoolWithTag(NonPagedPool, Length, 'rpaM');
+
+    if (!CmResource)
+    {
+        DPRINT1("MapperMarkKey: STATUS_INSUFFICIENT_RESOURCES\n");
+        ZwClose(KeyHandle);
+        goto Exit;
+    }
+
+    CmResource->Count = 1;
+
+    RtlCopyMemory(CmResource->List, MapperInfo->CmFullDescriptor, MapperInfo->CmFullDescriptorSize);
+
+    CmBootConfigList = MapperAdjustResourceList(CmResource, MapperInfo->PnPId, &Length);
+
+    RtlInitUnicodeString(&ValueName, L"BootConfig");
+    ZwSetValueKey(KeyHandle, &ValueName, 0, REG_RESOURCE_LIST, CmBootConfigList, Length);
+
+    ExFreePoolWithTag(CmBootConfigList, 'rpaM');
+    ZwClose(KeyHandle);
+
+Exit:
+    KeyName->Length = KeyNameLength;
+    *BufferEnd = UNICODE_NULL;
+}
+
+#define PNP_MAPPER_SEED_BUFFER_SIZE 0x400
+
+VOID
+NTAPI
+MapperSeedKey(
+    _In_ HANDLE Handle,
+    _In_ PUNICODE_STRING KeyName,
+    _In_ PPNP_MAPPER_INFORMATION MapperInfo,
+    _In_ BOOLEAN IsDisableMapper)
+{
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    CONFIGURATION_TYPE ControllerType;
+    UNICODE_STRING ValueName;
+    PWCHAR Buffer;
+    PWCHAR BufferEnd;
+    HANDLE KeyHandle;
+    ULONG Disposition;
+    ULONG IdentifierSize;
+    ULONG Data;
+    NTSTATUS Status;
+    USHORT KeyNameLength;
+
+    DPRINT("MapperSeedKey: KeyName '%wZ'\n", KeyName);
+
+    Buffer = ExAllocatePoolWithTag(NonPagedPool, PNP_MAPPER_SEED_BUFFER_SIZE, 'rpaM');
+    if (!Buffer)
+    {
+        DPRINT1("MapperSeedKey: STATUS_INSUFFICIENT_RESOURCES\n");
+        return;
+    }
+
+    RtlZeroMemory(Buffer, PNP_MAPPER_SEED_BUFFER_SIZE);
+
+    KeyNameLength = KeyName->Length;
+    
+    BufferEnd = (PWCHAR)((ULONG_PTR)KeyName->Buffer + KeyName->Length);
+    *BufferEnd = UNICODE_NULL;
+
+    RtlAppendUnicodeToString(KeyName, L"\\Control");
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               KeyName,
+                               (OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE),
+                               NULL,
+                               NULL);
+
+    Status = ZwCreateKey(&KeyHandle,
+                         (KEY_READ | KEY_WRITE),
+                         &ObjectAttributes,
+                         0,
+                         NULL,
+                         REG_SZ,
+                         &Disposition);
+
+    if (NT_SUCCESS(Status))
+    {
+        ZwClose(KeyHandle);
+    }
+    else
+    {
+        DPRINT("MapperSeedKey: Status %X\n", Status);
+    }
+
+    KeyName->Length = KeyNameLength;
+
+    RtlAppendUnicodeToString(KeyName, L"\\LogConf");
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               KeyName,
+                               (OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE),
+                               NULL,
+                               NULL);
+
+    Status = ZwCreateKey(&KeyHandle,
+                         (KEY_READ | KEY_WRITE),
+                         &ObjectAttributes,
+                         0,
+                         NULL,
+                         REG_NONE,
+                         &Disposition);
+
+    if (NT_SUCCESS(Status))
+    {
+        ZwClose(KeyHandle);
+    }
+    else
+    {
+        DPRINT("MapperSeedKey: Status %X\n", Status);
+    }
+
+    KeyName->Length = KeyNameLength;
+
+    ControllerType = MapperInfo->ControllerType;
+
+    if ((ControllerType == SerialController &&
+         ControllerType == ParallelController) ||
+        MapperInfo->Identifier != NULL)
+    {
+        Status = IopOpenDeviceParametersSubkey(&KeyHandle, NULL, KeyName, (KEY_READ | KEY_WRITE));
+
+        if (NT_SUCCESS(Status))
+        {
+            Status = STATUS_SUCCESS;
+        }
+        else
+        {
+            DPRINT("MapperSeedKey: Status %X\n", Status);
+            Status = STATUS_UNSUCCESSFUL;
+        }
+    }
+
+    IdentifierSize = (wcslen(MapperInfo->PnPId) + 2) * sizeof(WCHAR);
+
+    if (MapperInfo->BusType == Eisa)
+    {
+        ASSERT(FALSE);
+    }
+    else
+    {
+        RtlCopyMemory(Buffer, MapperInfo->PnPId, (IdentifierSize - sizeof(WCHAR)));
+        Buffer[IdentifierSize / sizeof(WCHAR) - 1] = UNICODE_NULL;
+    }
+
+    RtlInitUnicodeString(&ValueName, L"HardwareID");
+    ZwSetValueKey(Handle,
+                  &ValueName,
+                  0,
+                  REG_MULTI_SZ,
+                  Buffer,
+                  IdentifierSize);
+
+    if (MapperInfo->PeripheralType == KeyboardPeripheral)
+    {
+        ULONG Len = sizeof(L"PS2_KEYBOARD");
+        RtlMoveMemory(Buffer, L"PS2_KEYBOARD", Len);
+        IdentifierSize = (Len + sizeof(WCHAR));
+    }
+    else if (MapperInfo->PeripheralType == PointerPeripheral &&
+             (!wcscmp(MapperInfo->PnPId, L"*PNP0F0E") ||
+              !wcscmp(MapperInfo->PnPId, L"*PNP0F03") ||
+              !wcscmp(MapperInfo->PnPId, L"*PNP0F12")))
+    {
+        ULONG Len = sizeof(L"PS2_MOUSE");
+        RtlMoveMemory(Buffer, L"PS2_MOUSE", Len);
+        IdentifierSize = (Len + sizeof(WCHAR));
+    }
+    else
+    {
+        goto Next;
+    }
+
+    Buffer[IdentifierSize / sizeof(WCHAR)] = UNICODE_NULL;
+    IdentifierSize += sizeof(WCHAR);
+
+    RtlInitUnicodeString(&ValueName, L"CompatibleIDs");
+    ZwSetValueKey(Handle, &ValueName, 0, REG_MULTI_SZ, Buffer, IdentifierSize);
+
+Next:
+
+    Data = 1;
+    RtlInitUnicodeString(&ValueName, L"FirmwareIdentified");
+    ZwSetValueKey(Handle, &ValueName, 0, REG_DWORD, &Data, sizeof(ULONG));
+
+    RtlMoveMemory(Buffer, MapperInfo->Identifier, MapperInfo->IdentifierSize);
+
+    RtlInitUnicodeString(&ValueName, L"DeviceDesc");
+    ZwSetValueKey(Handle, &ValueName, 0, REG_SZ, Buffer, MapperInfo->IdentifierSize);
+
+    if (IsDisableMapper)
+    {
+        Data = 1;
+        RtlInitUnicodeString(&ValueName, L"Phantom");
+        ZwSetValueKey(Handle, &ValueName, 0, REG_DWORD, &Data, sizeof(ULONG));
+    }
+
+    ExFreePoolWithTag(Buffer, 'rpaM');
+}
+
+#define PNP_MAPPER_REGISTRY_BUFFER_SIZE 0x800
+#define PNP_MAPPER_INSTANCE_BUFFER_SIZE 0x200
+
+VOID
+NTAPI
+MapperConstructRootEnumTree(
+    _In_ BOOLEAN IsDisableMapper)
+{
+    PPNP_MAPPER_INFORMATION MapperInfo;
+    PKEY_VALUE_FULL_INFORMATION KeyInfo;
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    UNICODE_STRING ValueName;
+    UNICODE_STRING KeyName;
+    HANDLE KeyHandle;
+    PWCHAR RegistryBuffer;
+    PWSTR InstanceBuffer;
+    ULONG Disposition;
+    NTSTATUS Status;
+
+    PAGED_CODE();
+    DPRINT("MapperConstructRootEnumTree: IsDisableMapper %X\n", IsDisableMapper);
+
+    RegistryBuffer = ExAllocatePoolWithTag(NonPagedPool, PNP_MAPPER_REGISTRY_BUFFER_SIZE, 'rpaM');
+    if (!RegistryBuffer)
+    {
+        DPRINT1("MapperConstructRootEnumTree: STATUS_INSUFFICIENT_RESOURCES\n");
+        MapperFreeList();
+        return;
+    }
+
+    InstanceBuffer = ExAllocatePoolWithTag(NonPagedPool, PNP_MAPPER_INSTANCE_BUFFER_SIZE, 'rpaM');
+    if (!InstanceBuffer)
+    {
+        DPRINT1("MapperConstructRootEnumTree: STATUS_INSUFFICIENT_RESOURCES\n");
+        MapperFreeList();
+        ExFreePoolWithTag(RegistryBuffer, 'rpaM');
+        return;
+    }
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               &KeyName,
+                               (OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE),
+                               NULL,
+                               NULL);
+
+    for (MapperInfo = MapperDeviceExtension.MapperInfo;
+         MapperInfo;
+         MapperInfo = MapperInfo->NextInfo)
+    {
+        KeyName.Length = 0;
+        KeyName.MaximumLength = PNP_MAPPER_REGISTRY_BUFFER_SIZE;
+        KeyName.Buffer = RegistryBuffer;
+
+        RtlZeroMemory(RegistryBuffer, PNP_MAPPER_REGISTRY_BUFFER_SIZE);
+
+        RtlAppendUnicodeToString(&KeyName, L"\\Registry\\Machine\\System\\CurrentControlSet\\Enum\\Root\\");
+        RtlAppendUnicodeToString(&KeyName, MapperInfo->PnPId);
+
+        Status = ZwCreateKey(&KeyHandle,
+                             (KEY_READ | KEY_WRITE),
+                             &ObjectAttributes,
+                             0,
+                             NULL,
+                             REG_OPTION_NON_VOLATILE,
+                             &Disposition);
 
         if (!NT_SUCCESS(Status))
         {
-            DPRINT("ZwEnumerateKey() failed with status 0x%08lx\n", Status);
-            goto cleanup;
-        }
-        KeyIndex++;
-
-        /* Open device key */
-        DeviceName.Length = DeviceName.MaximumLength = (USHORT)pDeviceInformation->NameLength;
-        DeviceName.Buffer = pDeviceInformation->Name;
-
-        if (BootResources)
-        {
-            Status = IopEnumerateDetectedDevices(
-                hDevicesKey,
-                &DeviceName,
-                hRootKey,
-                TRUE,
-                NULL,
-                0,
-                BootResources,
-                BootResourcesLength);
-
-            if (!NT_SUCCESS(Status))
-                goto cleanup;
-
+            DPRINT("MapperConstructRootEnumTree: Status %X\n", Status);
             continue;
         }
 
-        pValueInformation = ExAllocatePool(PagedPool, ValueInfoLength);
-        if (!pValueInformation)
-        {
-            DPRINT("ExAllocatePool() failed\n");
-            Status = STATUS_NO_MEMORY;
-            goto cleanup;
-        }
+        ZwClose(KeyHandle);
 
-        Status = IopOpenRegistryKeyEx(&hDeviceKey, hDevicesKey, &DeviceName,
-            KEY_QUERY_VALUE + (EnumerateSubKeys ? KEY_ENUMERATE_SUB_KEYS : 0));
+        RtlZeroMemory(InstanceBuffer, PNP_MAPPER_INSTANCE_BUFFER_SIZE);
 
-        if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwOpenKey() failed with status 0x%08lx\n", Status);
-            goto cleanup;
-        }
+        RtlStringCbPrintfW(InstanceBuffer,
+                           PNP_MAPPER_INSTANCE_BUFFER_SIZE,
+                           L"\\%d_%d_%d_%d_%d_%d",
+                           MapperInfo->BusType,
+                           MapperInfo->BusNumber,
+                           MapperInfo->ControllerType,
+                           MapperInfo->ControllerNumber,
+                           MapperInfo->PeripheralType,
+                           MapperInfo->PeripheralNumber);
 
-        /* Read boot resources, and add then to parent ones */
-        Status = ZwQueryValueKey(hDeviceKey,
-                                 &ConfigurationDataU,
-                                 KeyValuePartialInformation,
-                                 pValueInformation,
-                                 ValueInfoLength,
-                                 &RequiredSize);
+        RtlAppendUnicodeToString(&KeyName, InstanceBuffer);
 
-        if (Status == STATUS_BUFFER_OVERFLOW || Status == STATUS_BUFFER_TOO_SMALL)
-        {
-            ExFreePool(pValueInformation);
-            ValueInfoLength = RequiredSize;
-            pValueInformation = ExAllocatePool(PagedPool, ValueInfoLength);
-
-            if (!pValueInformation)
-            {
-                DPRINT("ExAllocatePool() failed\n");
-                ZwDeleteKey(hLevel2Key);
-                Status = STATUS_NO_MEMORY;
-                goto cleanup;
-            }
-
-            Status = ZwQueryValueKey(hDeviceKey,
-                                     &ConfigurationDataU,
-                                     KeyValuePartialInformation,
-                                     pValueInformation,
-                                     ValueInfoLength,
-                                     &RequiredSize);
-        }
-
-        if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
-        {
-            BootResources = ParentBootResources;
-            BootResourcesLength = ParentBootResourcesLength;
-        }
-        else if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwQueryValueKey() failed with status 0x%08lx\n", Status);
-            goto nextdevice;
-        }
-        else if (pValueInformation->Type != REG_FULL_RESOURCE_DESCRIPTOR)
-        {
-            DPRINT("Wrong registry type: got 0x%lx, expected 0x%lx\n", pValueInformation->Type, REG_FULL_RESOURCE_DESCRIPTOR);
-            goto nextdevice;
-        }
-        else
-        {
-            static const ULONG Header = FIELD_OFFSET(CM_FULL_RESOURCE_DESCRIPTOR, PartialResourceList.PartialDescriptors);
-
-            /* Concatenate current resources and parent ones */
-            if (ParentBootResourcesLength == 0)
-                BootResourcesLength = pValueInformation->DataLength;
-            else
-                BootResourcesLength = ParentBootResourcesLength
-                    + pValueInformation->DataLength
-                    - Header;
-
-            BootResources = ExAllocatePool(PagedPool, BootResourcesLength);
-            if (!BootResources)
-            {
-                DPRINT("ExAllocatePool() failed\n");
-                goto nextdevice;
-            }
-
-            if (ParentBootResourcesLength < sizeof(CM_FULL_RESOURCE_DESCRIPTOR))
-            {
-                RtlCopyMemory(BootResources, pValueInformation->Data, pValueInformation->DataLength);
-            }
-            else if (ParentBootResources->PartialResourceList.PartialDescriptors[ParentBootResources->PartialResourceList.Count - 1].Type == CmResourceTypeDeviceSpecific)
-            {
-                RtlCopyMemory(BootResources, pValueInformation->Data, pValueInformation->DataLength);
-                RtlCopyMemory(
-                    (PVOID)((ULONG_PTR)BootResources + pValueInformation->DataLength),
-                    (PVOID)((ULONG_PTR)ParentBootResources + Header),
-                    ParentBootResourcesLength - Header);
-                BootResources->PartialResourceList.Count += ParentBootResources->PartialResourceList.Count;
-            }
-            else
-            {
-                RtlCopyMemory(BootResources, pValueInformation->Data, Header);
-                RtlCopyMemory(
-                    (PVOID)((ULONG_PTR)BootResources + Header),
-                    (PVOID)((ULONG_PTR)ParentBootResources + Header),
-                    ParentBootResourcesLength - Header);
-                RtlCopyMemory(
-                    (PVOID)((ULONG_PTR)BootResources + ParentBootResourcesLength),
-                    pValueInformation->Data + Header,
-                    pValueInformation->DataLength - Header);
-                BootResources->PartialResourceList.Count += ParentBootResources->PartialResourceList.Count;
-            }
-        }
-
-        if (EnumerateSubKeys)
-        {
-            Status = IopEnumerateDetectedDevices(
-                hDeviceKey,
-                RelativePath,
-                hRootKey,
-                TRUE,
-                BootResources,
-                BootResourcesLength,
-                ParentBootResources,
-                ParentBootResourcesLength);
-
-            if (!NT_SUCCESS(Status))
-                goto cleanup;
-        }
-
-        /* Read identifier */
-        Status = ZwQueryValueKey(hDeviceKey,
-                                 &IdentifierU,
-                                 KeyValuePartialInformation,
-                                 pValueInformation,
-                                 ValueInfoLength,
-                                 &RequiredSize);
-
-        if (Status == STATUS_BUFFER_OVERFLOW || Status == STATUS_BUFFER_TOO_SMALL)
-        {
-            ExFreePool(pValueInformation);
-            ValueInfoLength = RequiredSize;
-            pValueInformation = ExAllocatePool(PagedPool, ValueInfoLength);
-
-            if (!pValueInformation)
-            {
-                DPRINT("ExAllocatePool() failed\n");
-                Status = STATUS_NO_MEMORY;
-                goto cleanup;
-            }
-
-            Status = ZwQueryValueKey(hDeviceKey,
-                                     &IdentifierU,
-                                     KeyValuePartialInformation,
-                                     pValueInformation,
-                                     ValueInfoLength,
-                                     &RequiredSize);
-        }
+        Status = ZwCreateKey(&KeyHandle,
+                             (KEY_READ | KEY_WRITE),
+                             &ObjectAttributes,
+                             0,
+                             NULL,
+                             REG_OPTION_NON_VOLATILE,
+                             &Disposition);
 
         if (!NT_SUCCESS(Status))
         {
-            if (Status != STATUS_OBJECT_NAME_NOT_FOUND)
+            DPRINT("MapperConstructRootEnumTree: Status %X\n", Status);
+            continue;
+        }
+
+        if (Disposition != REG_CREATED_NEW_KEY)
+        {
+            Status = IopGetRegistryValue(KeyHandle, L"Migrated", &KeyInfo);
+
+            if (NT_SUCCESS(Status))
             {
-                DPRINT("ZwQueryValueKey() failed with status 0x%08lx\n", Status);
-                goto nextdevice;
-            }
-            ValueName.Length = ValueName.MaximumLength = 0;
-        }
-        else if (pValueInformation->Type != REG_SZ)
-        {
-            DPRINT("Wrong registry type: got 0x%lx, expected 0x%lx\n", pValueInformation->Type, REG_SZ);
-            goto nextdevice;
-        }
-        else
-        {
-            /* Assign hardware id to this device */
-            ValueName.Length = ValueName.MaximumLength = (USHORT)pValueInformation->DataLength;
-            ValueName.Buffer = (PWCHAR)pValueInformation->Data;
-            if (ValueName.Length >= sizeof(WCHAR) && ValueName.Buffer[ValueName.Length / sizeof(WCHAR) - 1] == UNICODE_NULL)
-                ValueName.Length -= sizeof(WCHAR);
-        }
-
-        pHardwareId = IopMapDetectedDeviceId(RelativePath, &ValueName, &DeviceIndex);
-        if (!pHardwareId)
-        {
-            /* Unknown key path */
-            DPRINT("Unknown key path '%wZ' value '%wZ'\n", RelativePath, &ValueName);
-            goto nextdevice;
-        }
-
-        /* Prepare hardware id key (hardware id value without final \0) */
-        HardwareIdKey.Length = (USHORT)wcslen(pHardwareId) * sizeof(WCHAR);
-        HardwareIdKey.MaximumLength = HardwareIdKey.Length + sizeof(UNICODE_NULL) * 2;
-        HardwareIdKey.Buffer = pHardwareId;
-
-        /* Add the detected device to Root key */
-        InitializeObjectAttributes(&ObjectAttributes, &HardwareIdKey, OBJ_KERNEL_HANDLE, hRootKey, NULL);
-
-        Status = ZwCreateKey(
-            &hLevel1Key,
-            KEY_CREATE_SUB_KEY,
-            &ObjectAttributes,
-            0,
-            NULL,
-            REG_OPTION_NON_VOLATILE,
-            NULL);
-
-        if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwCreateKey() failed with status 0x%08lx\n", Status);
-            goto nextdevice;
-        }
-
-        swprintf(Level2Name, L"%04lu", DeviceIndex);
-        RtlInitUnicodeString(&Level2NameU, Level2Name);
-        InitializeObjectAttributes(&ObjectAttributes, &Level2NameU, OBJ_KERNEL_HANDLE, hLevel1Key, NULL);
-
-        Status = ZwCreateKey(
-            &hLevel2Key,
-            KEY_SET_VALUE | KEY_CREATE_SUB_KEY,
-            &ObjectAttributes,
-            0,
-            NULL,
-            REG_OPTION_NON_VOLATILE,
-            NULL);
-
-        ZwClose(hLevel1Key);
-        if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwCreateKey() failed with status 0x%08lx\n", Status);
-            goto nextdevice;
-        }
-
-        DPRINT("Found %wZ #%lu (%wZ)\n", &ValueName, DeviceIndex, &HardwareIdKey);
-        Status = ZwSetValueKey(hLevel2Key, &HardwareIDU, 0, REG_MULTI_SZ, HardwareIdKey.Buffer, HardwareIdKey.MaximumLength);
-
-        if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwSetValueKey() failed with status 0x%08lx\n", Status);
-            ZwDeleteKey(hLevel2Key);
-            goto nextdevice;
-        }
-
-        /* Create 'LogConf' subkey */
-        InitializeObjectAttributes(&ObjectAttributes, &LogConfU, OBJ_KERNEL_HANDLE, hLevel2Key, NULL);
-
-        Status = ZwCreateKey(
-            &hLogConf,
-            KEY_SET_VALUE,
-            &ObjectAttributes,
-            0,
-            NULL,
-            REG_OPTION_VOLATILE,
-            NULL);
-
-        if (!NT_SUCCESS(Status))
-        {
-            DPRINT("ZwCreateKey() failed with status 0x%08lx\n", Status);
-            ZwDeleteKey(hLevel2Key);
-            goto nextdevice;
-        }
-
-        if (BootResourcesLength >= sizeof(CM_FULL_RESOURCE_DESCRIPTOR))
-        {
-            PUCHAR CmResourceList;
-            ULONG ListCount;
-
-            CmResourceList = ExAllocatePool(PagedPool, BootResourcesLength + sizeof(ULONG));
-            if (!CmResourceList)
-            {
-                ZwClose(hLogConf);
-                ZwDeleteKey(hLevel2Key);
-                goto nextdevice;
-            }
-
-            /* Add the list count (1st member of CM_RESOURCE_LIST) */
-            ListCount = 1;
-            RtlCopyMemory(CmResourceList,
-                          &ListCount,
-                          sizeof(ULONG));
-
-            /* Now add the actual list (2nd member of CM_RESOURCE_LIST) */
-            RtlCopyMemory(CmResourceList + sizeof(ULONG),
-                          BootResources,
-                          BootResourcesLength);
-
-            /* Save boot resources to 'LogConf\BootConfig' */
-            Status = ZwSetValueKey(hLogConf,
-                                   &BootConfigU,
-                                   0,
-                                   REG_RESOURCE_LIST,
-                                   CmResourceList,
-                                   BootResourcesLength + sizeof(ULONG));
-
-            ExFreePool(CmResourceList);
-
-            if (!NT_SUCCESS(Status))
-            {
-                DPRINT("ZwSetValueKey() failed with status 0x%08lx\n", Status);
-                ZwClose(hLogConf);
-                ZwDeleteKey(hLevel2Key);
-                goto nextdevice;
-            }
-        }
-        ZwClose(hLogConf);
-
-nextdevice:
-        if (BootResources && BootResources != ParentBootResources)
-        {
-            ExFreePool(BootResources);
-            BootResources = NULL;
-        }
-        if (hLevel2Key)
-        {
-            ZwClose(hLevel2Key);
-            hLevel2Key = NULL;
-        }
-        if (hDeviceKey)
-        {
-            ZwClose(hDeviceKey);
-            hDeviceKey = NULL;
-        }
-        if (pValueInformation)
-            ExFreePool(pValueInformation);
-    }
-
-    Status = STATUS_SUCCESS;
-
-cleanup:
-    if (hDevicesKey && hDevicesKey != hBaseKey)
-        ZwClose(hDevicesKey);
-    if (pDeviceInformation)
-        ExFreePool(pDeviceInformation);
-
-    return Status;
-}
-
-static
-CODE_SEG("INIT")
-BOOLEAN
-IopIsFirmwareMapperDisabled(VOID)
-{
-    UNICODE_STRING KeyPathU = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SYSTEM\\CURRENTCONTROLSET\\Control\\Pnp");
-    UNICODE_STRING KeyNameU = RTL_CONSTANT_STRING(L"DisableFirmwareMapper");
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    HANDLE hPnpKey;
-    PKEY_VALUE_PARTIAL_INFORMATION KeyInformation;
-    ULONG DesiredLength, Length;
-    ULONG KeyValue = 0;
-    NTSTATUS Status;
-
-    InitializeObjectAttributes(&ObjectAttributes, &KeyPathU, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, NULL, NULL);
-    Status = ZwOpenKey(&hPnpKey, KEY_QUERY_VALUE, &ObjectAttributes);
-    if (NT_SUCCESS(Status))
-    {
-        Status = ZwQueryValueKey(hPnpKey,
-                                 &KeyNameU,
-                                 KeyValuePartialInformation,
-                                 NULL,
-                                 0,
-                                 &DesiredLength);
-        if ((Status == STATUS_BUFFER_TOO_SMALL) ||
-            (Status == STATUS_BUFFER_OVERFLOW))
-        {
-            Length = DesiredLength;
-            KeyInformation = ExAllocatePool(PagedPool, Length);
-            if (KeyInformation)
-            {
-                Status = ZwQueryValueKey(hPnpKey,
-                                         &KeyNameU,
-                                         KeyValuePartialInformation,
-                                         KeyInformation,
-                                         Length,
-                                         &DesiredLength);
-                if (NT_SUCCESS(Status) && KeyInformation->DataLength == sizeof(ULONG))
+                if (KeyInfo->Type == REG_DWORD &&
+                    KeyInfo->DataLength == sizeof(ULONG))
                 {
-                    KeyValue = (ULONG)(*KeyInformation->Data);
-                }
-                else
-                {
-                    DPRINT1("ZwQueryValueKey(%wZ%wZ) failed\n", &KeyPathU, &KeyNameU);
+                    if (*(PULONG)((ULONG_PTR)KeyInfo + KeyInfo->DataOffset) != 0)
+                    {
+                        Disposition = REG_CREATED_NEW_KEY;
+                    }
                 }
 
-                ExFreePool(KeyInformation);
+                ExFreePoolWithTag(KeyInfo, 'uspP');
+
+                RtlInitUnicodeString(&ValueName, L"Migrated");
+                ZwDeleteValueKey(KeyHandle, &ValueName);
             }
             else
             {
-                DPRINT1("Failed to allocate memory for registry query\n");
+                DPRINT("MapperConstructRootEnumTree: Status %X\n", Status);
             }
         }
-        else
+
+        if (Disposition == REG_CREATED_NEW_KEY)
         {
-            DPRINT1("ZwQueryValueKey(%wZ%wZ) failed with status 0x%08lx\n", &KeyPathU, &KeyNameU, Status);
+            MapperInfo->IsCreatedNewKey = TRUE;
+            MapperSeedKey(KeyHandle, &KeyName, MapperInfo, IsDisableMapper);
         }
 
-        ZwClose(hPnpKey);
-    }
-    else
-    {
-        DPRINT1("ZwOpenKey(%wZ) failed with status 0x%08lx\n", &KeyPathU, Status);
+        MapperMarkKey(KeyHandle, &KeyName, MapperInfo);
+        ZwClose(KeyHandle);
     }
 
-    DPRINT("Firmware mapper is %s\n", KeyValue != 0 ? "disabled" : "enabled");
-
-    return (KeyValue != 0) ? TRUE : FALSE;
+    ExFreePoolWithTag(InstanceBuffer, 'rpaM');
 }
 
-CODE_SEG("INIT")
-NTSTATUS
-NTAPI
-IopUpdateRootKey(VOID)
-{
-    UNICODE_STRING EnumU = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Enum");
-    UNICODE_STRING RootPathU = RTL_CONSTANT_STRING(L"Root");
-    UNICODE_STRING MultiKeyPathU = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\HARDWARE\\DESCRIPTION\\System\\MultifunctionAdapter");
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    HANDLE hEnum, hRoot;
-    NTSTATUS Status;
-
-    InitializeObjectAttributes(&ObjectAttributes, &EnumU, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, NULL, NULL);
-    Status = ZwCreateKey(&hEnum, KEY_CREATE_SUB_KEY, &ObjectAttributes, 0, NULL, REG_OPTION_NON_VOLATILE, NULL);
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT1("ZwCreateKey() failed with status 0x%08lx\n", Status);
-        return Status;
-    }
-
-    InitializeObjectAttributes(&ObjectAttributes, &RootPathU, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, hEnum, NULL);
-    Status = ZwCreateKey(&hRoot, KEY_CREATE_SUB_KEY, &ObjectAttributes, 0, NULL, REG_OPTION_NON_VOLATILE, NULL);
-    ZwClose(hEnum);
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT1("ZwOpenKey() failed with status 0x%08lx\n", Status);
-        return Status;
-    }
-
-    if (!IopIsFirmwareMapperDisabled())
-    {
-        Status = IopOpenRegistryKeyEx(&hEnum, NULL, &MultiKeyPathU, KEY_ENUMERATE_SUB_KEYS);
-        if (!NT_SUCCESS(Status))
-        {
-            /* Nothing to do, don't return with an error status */
-            DPRINT("ZwOpenKey() failed with status 0x%08lx\n", Status);
-            ZwClose(hRoot);
-            return STATUS_SUCCESS;
-        }
-        Status = IopEnumerateDetectedDevices(
-            hEnum,
-            NULL,
-            hRoot,
-            TRUE,
-            NULL,
-            0,
-            NULL,
-            0);
-        ZwClose(hEnum);
-    }
-    else
-    {
-        /* Enumeration is disabled */
-        Status = STATUS_SUCCESS;
-    }
-
-    ZwClose(hRoot);
-
-    return Status;
-}
+/* EOF */

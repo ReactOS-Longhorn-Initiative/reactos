@@ -262,6 +262,7 @@ typedef enum _PLUGPLAY_EVENT_CATEGORY
     PowerEvent,
     VetoEvent,
     BlockedDriverEvent,
+    InvalidIDEvent,
     MaxPlugEventCategory
 } PLUGPLAY_EVENT_CATEGORY;
 
@@ -550,6 +551,13 @@ typedef struct _PLUGPLAY_CONTROL_RETRIEVE_DOCK_DATA
     ULONG DeviceInstanceLength;
     PWSTR DeviceInstance;
 } PLUGPLAY_CONTROL_RETRIEVE_DOCK_DATA, *PPLUGPLAY_CONTROL_RETRIEVE_DOCK_DATA;
+
+// Class 0x14
+typedef struct _PLUGPLAY_CONTROL_RESET_DEVICE_DATA
+{
+    UNICODE_STRING DeviceInstance;
+} PLUGPLAY_CONTROL_RESET_DEVICE_DATA, *PPLUGPLAY_CONTROL_RESET_DEVICE_DATA;
+
 
 //
 // Plug and Play Bus Type Definition

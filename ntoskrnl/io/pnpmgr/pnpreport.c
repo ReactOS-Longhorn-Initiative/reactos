@@ -10,8 +10,14 @@
 /* INCLUDES ******************************************************************/
 
 #include <ntoskrnl.h>
+#include "../pnpio.h"
+
 #define NDEBUG
 #include <debug.h>
+
+/* GLOBALS *******************************************************************/
+
+extern ERESOURCE PpRegistryDeviceResource;
 
 /* TYPES *******************************************************************/
 
@@ -23,10 +29,6 @@ typedef struct _INTERNAL_WORK_QUEUE_ITEM
     PVOID Context;
     PTARGET_DEVICE_CUSTOM_NOTIFICATION NotificationStructure;
 } INTERNAL_WORK_QUEUE_ITEM, *PINTERNAL_WORK_QUEUE_ITEM;
-
-NTSTATUS
-IopSetDeviceInstanceData(HANDLE InstanceKey,
-                         PDEVICE_NODE DeviceNode);
 
 NTSTATUS
 PpSetCustomTargetEvent(IN PDEVICE_OBJECT DeviceObject,
@@ -117,271 +119,1062 @@ PpSetCustomTargetEvent(IN PDEVICE_OBJECT DeviceObject,
                        IN PVOID Context OPTIONAL,
                        IN PTARGET_DEVICE_CUSTOM_NOTIFICATION NotificationStructure)
 {
-    ASSERT(NotificationStructure != NULL);
-    ASSERT(DeviceObject != NULL);
+    UNIMPLEMENTED;
+    ASSERT(FALSE);//IoDbgBreakPointEx();
+    return STATUS_NOT_IMPLEMENTED;
+}
 
-    if (SyncEvent)
+NTSTATUS
+NTAPI
+PpCreateLegacyDeviceIds(
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _In_ PUNICODE_STRING ServiceName,
+    _In_ PCM_RESOURCE_LIST ResourceList)
+{
+    PIOPNP_DEVICE_EXTENSION DeviceExtension;
+    INTERFACE_TYPE InterfaceType;
+    PWCHAR BusName;
+    WCHAR Buffer[200];
+    size_t Remaining = sizeof(Buffer);
+    PWCHAR EndBuffer;
+    PWCHAR Id = NULL;
+    ULONG Length;
+
+    DPRINT("PpCreateLegacyDeviceIds: DeviceObject - %p, ServiceName - %wZ\n",
+           DeviceObject, ServiceName);
+
+    if (ResourceList)
     {
-        ASSERT(SyncStatus);
-        *SyncStatus = STATUS_PENDING;
+        InterfaceType = ResourceList->List[0].InterfaceType;
+
+        if (InterfaceType > MaximumInterfaceType ||
+            InterfaceType < InterfaceTypeUndefined)
+        {
+            InterfaceType = MaximumInterfaceType;
+        }
+    }
+    else
+    {
+        InterfaceType = Internal;
     }
 
-    /* That call is totally wrong but notifications handler must be fixed first */
-    PiNotifyTargetDeviceChange(&GUID_PNP_CUSTOM_NOTIFICATION, DeviceObject, NotificationStructure);
+    BusName = IopGetBusName(InterfaceType);
+    DPRINT("PpCreateLegacyDeviceIds: InterfaceType - %S\n", BusName);
 
-    if (SyncEvent)
+    RtlZeroMemory(Buffer, sizeof(Buffer));
+    RtlStringCbPrintfExW(Buffer,
+                         Remaining,
+                         &EndBuffer,
+                         &Remaining,
+                         0,
+                         L"%ws%ws\\%wZ",
+                         L"DETECTED",
+                         BusName,
+                         ServiceName);
+    DPRINT("PpCreateLegacyDeviceIds: Buffer - %S\n", Buffer);
+
+    EndBuffer++;
+    Remaining -= sizeof(UNICODE_NULL);
+
+    RtlStringCbPrintfExW(EndBuffer,
+                         Remaining,
+                         NULL,
+                         &Remaining,
+                         0,
+                         L"%ws\\%wZ",
+                         L"DETECTED",
+                         ServiceName);
+    DPRINT("PpCreateLegacyDeviceIds: EndBuffer - %S\n", EndBuffer);
+
+    Length = sizeof(Buffer) - (Remaining - 2 * sizeof(UNICODE_NULL));
+
+    Id = ExAllocatePoolWithTag(PagedPool, Length, 'oipP');
+    if (!Id)
     {
-        KeSetEvent(SyncEvent, IO_NO_INCREMENT, FALSE);
-        *SyncStatus = STATUS_SUCCESS;
+        DPRINT("PpCreateLegacyDeviceIds: error\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
     }
+
+    RtlCopyMemory(Id, Buffer, Length);
+
+    DeviceExtension = DeviceObject->DeviceExtension;
+    DeviceExtension->CompatibleIdList = Id;
+    DeviceExtension->CompatibleIdListSize = Length;
 
     return STATUS_SUCCESS;
 }
 
-/* PUBLIC FUNCTIONS **********************************************************/
-
-/*
- * @implemented
- */
 NTSTATUS
 NTAPI
-IoReportDetectedDevice(
-    _In_ PDRIVER_OBJECT DriverObject,
-    _In_ INTERFACE_TYPE LegacyBusType,
-    _In_ ULONG BusNumber,
-    _In_ ULONG SlotNumber,
-    _In_opt_ PCM_RESOURCE_LIST ResourceList,
-    _In_opt_ PIO_RESOURCE_REQUIREMENTS_LIST ResourceRequirements,
-    _In_ BOOLEAN ResourceAssigned,
-    _Inout_ PDEVICE_OBJECT *DeviceObject)
+IoReportResourceUsageInternal(_In_ ARBITER_REQUEST_SOURCE AllocationType,
+                              _In_ PUNICODE_STRING DriverClassName,
+                              _In_ PDRIVER_OBJECT DriverObject,
+                              _In_ PCM_RESOURCE_LIST DriverList,
+                              _In_ ULONG DriverListSize,
+                              _In_ PDEVICE_OBJECT DeviceObject,
+                              _In_ PCM_RESOURCE_LIST DeviceList,
+                              _In_ ULONG DeviceListSize,
+                              _In_ BOOLEAN OverrideConflict,
+                              _Out_ PBOOLEAN OutConflictDetected)
 {
-    UNICODE_STRING Control = RTL_CONSTANT_STRING(L"Control");
-    UNICODE_STRING DeviceReportedName = RTL_CONSTANT_STRING(L"DeviceReported");
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    PDEVICE_NODE DeviceNode;
-    PDEVICE_OBJECT Pdo;
+    UNIMPLEMENTED;
+    ASSERT(FALSE);//IoDbgBreakPointEx();
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+IopDuplicateDetection(_In_ INTERFACE_TYPE LegacyBusType,
+                      _In_ ULONG BusNumber,
+                      _In_ ULONG SlotNumber,
+                      _Out_ PDEVICE_NODE * OutDeviceNode)
+{
+    PLEGACY_DEVICE_DETECTION_INTERFACE LegacyDetectInterface;
+    PDEVICE_OBJECT PhysicalDeviceObject;
+    PDEVICE_NODE LegacyNode;
     NTSTATUS Status;
-    HANDLE InstanceKey, ControlKey;
-    UNICODE_STRING ValueName, ServiceLongName, ServiceName;
-    WCHAR HardwareId[256];
-    PWCHAR IfString;
-    ULONG IdLength;
-    ULONG LegacyValue;
-    ULONG DeviceReported = 1;
 
-    DPRINT("IoReportDetectedDevice (DeviceObject %p, *DeviceObject %p)\n",
-           DeviceObject, DeviceObject ? *DeviceObject : NULL);
+    DPRINT("IopDuplicateDetection: LegacyBusType %X BusNumber %X SlotNumber %X\n", LegacyBusType, BusNumber, SlotNumber);
 
-    ServiceLongName = DriverObject->DriverExtension->ServiceKeyName;
-    ServiceName = ServiceLongName;
+    *OutDeviceNode = NULL;
 
-    /* If the interface type is unknown, treat it as internal */
-    if (LegacyBusType == InterfaceTypeUndefined)
-        LegacyBusType = Internal;
-
-    /* Get the string equivalent of the interface type */
-    IfString = IopGetInterfaceTypeString(LegacyBusType);
-
-    /* If NULL is returned then it's a bad type */
-    if (!IfString)
-        return STATUS_INVALID_PARAMETER;
-
-    /*
-     * Drivers that have been created via a direct IoCreateDriver() call
-     * have their ServiceKeyName set to \Driver\DriverName. We need to
-     * strip everything up to the last path separator and keep what remains.
-     */
-    if (DriverObject->Flags & DRVO_BUILTIN_DRIVER)
+    LegacyNode = IopFindLegacyBusDeviceNode(LegacyBusType, BusNumber);
+    if (!LegacyNode)
     {
-        /*
-         * Find the last path separator.
-         * NOTE: Since ServiceName is not necessarily NULL-terminated,
-         * we cannot use wcsrchr().
-         */
-        if (ServiceName.Buffer && ServiceName.Length >= sizeof(WCHAR))
-        {
-            ValueName.Length = 1;
-            ValueName.Buffer = ServiceName.Buffer + (ServiceName.Length / sizeof(WCHAR)) - 1;
-
-            while ((ValueName.Buffer > ServiceName.Buffer) && (*ValueName.Buffer != L'\\'))
-            {
-                --ValueName.Buffer;
-                ++ValueName.Length;
-            }
-            if (*ValueName.Buffer == L'\\')
-            {
-                ++ValueName.Buffer;
-                --ValueName.Length;
-            }
-            ValueName.Length *= sizeof(WCHAR);
-
-            /* Shorten the string */
-            ServiceName.MaximumLength -= (ServiceName.Length - ValueName.Length);
-            ServiceName.Length = ValueName.Length;
-            ServiceName.Buffer = ValueName.Buffer;
-        }
+        DPRINT1("IopDuplicateDetection: STATUS_INVALID_DEVICE_REQUEST\n");
+        return STATUS_INVALID_DEVICE_REQUEST;
     }
 
-    /* We use the caller's PDO if they supplied one */
-    UNICODE_STRING instancePath = {0};
-    if (DeviceObject && *DeviceObject)
+    Status = IopQueryResourceHandlerInterface(IOP_RES_HANDLER_TYPE_LEGACY,
+                                              LegacyNode->PhysicalDeviceObject,
+                                              0,
+                                              (PVOID *)&LegacyDetectInterface);
+    if (!NT_SUCCESS(Status))
     {
-        Pdo = *DeviceObject;
+        DPRINT1("IopDuplicateDetection: STATUS_INVALID_DEVICE_REQUEST\n");
+        return STATUS_INVALID_DEVICE_REQUEST;
+    }
+
+    if (!LegacyDetectInterface)
+    {
+        DPRINT1("IopDuplicateDetection: STATUS_INVALID_DEVICE_REQUEST\n");
+        return STATUS_INVALID_DEVICE_REQUEST;
+    }
+
+    Status = LegacyDetectInterface->LegacyDeviceDetection(LegacyDetectInterface->Context,
+                                                          LegacyBusType,
+                                                          BusNumber,
+                                                          SlotNumber,
+                                                          &PhysicalDeviceObject);
+    if (NT_SUCCESS(Status) && PhysicalDeviceObject)
+    {
+        *OutDeviceNode = IopGetDeviceNode(PhysicalDeviceObject);
+        Status = STATUS_SUCCESS;
     }
     else
     {
-        /* Create the PDO */
-        Status = PnpRootCreateDevice(&ServiceName, &Pdo, &instancePath);
-        if (!NT_SUCCESS(Status))
+        DPRINT1("IopDuplicateDetection: STATUS_INVALID_DEVICE_REQUEST\n");
+        Status = STATUS_INVALID_DEVICE_REQUEST;
+    }
+
+    LegacyDetectInterface->InterfaceDereference(LegacyDetectInterface->Context);
+    ExFreePool(LegacyDetectInterface);
+
+    return Status;
+}
+
+static
+BOOLEAN
+PipIsDuplicatedDevices(
+    _In_ PCM_RESOURCE_LIST CmResource1,
+    _In_ PCM_RESOURCE_LIST CmResource2)
+{
+    UNIMPLEMENTED;
+    ASSERT(FALSE);//IoDbgBreakPointEx();
+    return FALSE;
+}
+
+static
+BOOLEAN
+IopIsReportedAlready(
+    _In_ HANDLE handle,
+    _In_ PCUNICODE_STRING ServiceKeyName,
+    _In_ PCM_RESOURCE_LIST InCmResource,
+    _Out_ PBOOLEAN OutMatchingKey)
+{
+    UNICODE_STRING DeviceReportedName = RTL_CONSTANT_STRING(L"DeviceReported");
+    UNICODE_STRING LogConfName = RTL_CONSTANT_STRING(L"LogConf");
+    UNICODE_STRING ControlName = RTL_CONSTANT_STRING(L"Control");
+    UNICODE_STRING KeyValueName;
+    PKEY_VALUE_FULL_INFORMATION DeviceReportedInfo = NULL;
+    PKEY_VALUE_FULL_INFORMATION BootConfigInfo = NULL;
+    PKEY_VALUE_FULL_INFORMATION ServiceInfo = NULL;
+    PCM_RESOURCE_LIST BootCmResource = NULL;
+    HANDLE KeyHandle = NULL;
+    HANDLE Handle;
+    ULONG Data;
+    NTSTATUS Status;
+    USHORT Size;
+    BOOLEAN Result = FALSE;
+
+    PAGED_CODE();
+    DPRINT("IopIsReportedAlready: Service '%wZ', InCmResource %p\n", ServiceKeyName, InCmResource);
+
+    *OutMatchingKey = FALSE;
+
+    Status = IopGetRegistryValue(handle, L"Service", &ServiceInfo);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+        goto OpenControlKey;
+    }
+
+    if (ServiceInfo->Type != REG_SZ)
+    {
+        DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+        goto OpenControlKey;
+    }
+
+    if (!ServiceInfo->DataLength)
+    {
+        DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+        goto OpenControlKey;
+    }
+
+    Size = (USHORT)ServiceInfo->DataLength;
+
+    KeyValueName.Length = Size;
+    KeyValueName.MaximumLength = Size;
+    KeyValueName.Buffer = (PWSTR)((ULONG_PTR)ServiceInfo + ServiceInfo->DataOffset);
+
+    if (KeyValueName.Buffer[(Size / sizeof(WCHAR)) - 1] == 0)
+        KeyValueName.Length = (Size - sizeof(WCHAR));
+
+    if (!RtlEqualUnicodeString(ServiceKeyName, &KeyValueName, TRUE))
+        goto OpenControlKey;
+
+    Status = IopOpenRegistryKeyEx(&Handle, handle, &LogConfName, KEY_READ);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+
+        if (!InCmResource)
+            *OutMatchingKey = TRUE;
+
+        goto OpenControlKey;
+    }
+
+    Status = IopGetRegistryValue(Handle, L"BootConfig", &BootConfigInfo);
+    ZwClose(Handle);
+
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+
+        if (!InCmResource)
+            *OutMatchingKey = TRUE;
+
+        goto OpenControlKey;
+    }
+
+    if (BootConfigInfo->Type == REG_RESOURCE_LIST && BootConfigInfo->DataLength)
+    {
+        BootCmResource = (PCM_RESOURCE_LIST)((ULONG_PTR)BootConfigInfo + BootConfigInfo->DataOffset);
+
+        if (InCmResource && BootCmResource)
         {
-            DPRINT("PnpRootCreateDevice() failed (Status 0x%08lx)\n", Status);
-            return Status;
+            if (PipIsDuplicatedDevices(InCmResource, BootCmResource))
+                *OutMatchingKey = TRUE;
         }
     }
 
-    /* Create the device node for the new PDO */
-    DeviceNode = PipAllocateDeviceNode(Pdo);
-    if (!DeviceNode)
+    if (!InCmResource && !BootCmResource)
+        *OutMatchingKey = TRUE;
+
+OpenControlKey:
+
+    Status = IopOpenRegistryKeyEx(&KeyHandle, handle, &ControlName, KEY_ALL_ACCESS);
+    if (!NT_SUCCESS(Status))
     {
-        DPRINT("PipAllocateDeviceNode() failed\n");
+        DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+        goto Exit;
+    }
+
+    Status = IopGetRegistryValue(KeyHandle, L"DeviceReported", &DeviceReportedInfo);
+    if (NT_SUCCESS(Status))
+        goto Exit;
+
+    if (*OutMatchingKey != TRUE)
+        goto Exit;
+
+     Result = TRUE;
+
+     Data = 1;
+     Status = ZwSetValueKey(KeyHandle, &DeviceReportedName, 0, REG_DWORD, &Data, sizeof(Data));
+     if (!NT_SUCCESS(Status))
+     {
+         DPRINT1("IopIsReportedAlready: Status %X\n", Status);
+         Result = FALSE;
+     }
+
+Exit:
+
+    if (KeyHandle)
+        ZwClose(KeyHandle);
+
+    if (DeviceReportedInfo)
+        ExFreePool(DeviceReportedInfo);
+
+    if (BootConfigInfo)
+        ExFreePool(BootConfigInfo);
+
+    if (ServiceInfo)
+        ExFreePool(ServiceInfo);
+
+    return Result;
+}
+
+/* PUBLIC FUNCTIONS **********************************************************/
+
+NTSTATUS
+NTAPI
+IoReportDetectedDevice(IN PDRIVER_OBJECT DriverObject,
+                       IN INTERFACE_TYPE LegacyBusType,
+                       IN ULONG BusNumber,
+                       IN ULONG SlotNumber,
+                       IN PCM_RESOURCE_LIST ResourceList,
+                       IN PIO_RESOURCE_REQUIREMENTS_LIST ResourceRequirements OPTIONAL,
+                       IN BOOLEAN ResourceAssigned,
+                       IN OUT PDEVICE_OBJECT* DeviceObject OPTIONAL)
+{
+    UNICODE_STRING EnumKeyName = RTL_CONSTANT_STRING(IO_REG_KEY_ENUM);
+    UNICODE_STRING NoResourceAtInitTimeName = RTL_CONSTANT_STRING(L"NoResourceAtInitTime");
+    UNICODE_STRING BasicConfigVectorName = RTL_CONSTANT_STRING(L"BasicConfigVector");
+    UNICODE_STRING DeviceReportedName = RTL_CONSTANT_STRING(L"DeviceReported");
+    UNICODE_STRING ConfigFlagsName = RTL_CONSTANT_STRING(L"ConfigFlags");
+    UNICODE_STRING BootConfigName = RTL_CONSTANT_STRING(L"BootConfig");
+    UNICODE_STRING PnP_Manager = RTL_CONSTANT_STRING(L"PnP Manager");
+    UNICODE_STRING MigratedName = RTL_CONSTANT_STRING(L"Migrated");
+    UNICODE_STRING LogConfName = RTL_CONSTANT_STRING(L"LogConf");
+    UNICODE_STRING ControlName = RTL_CONSTANT_STRING(L"Control");
+    UNICODE_STRING ServiceName = RTL_CONSTANT_STRING(L"Service");
+    UNICODE_STRING LegacyName = RTL_CONSTANT_STRING(L"Legacy");
+    UNICODE_STRING EnumSubKeyName;
+    UNICODE_STRING InstancePath;
+    UNICODE_STRING DriverName;
+    PUNICODE_STRING LegacyServiceName;
+    PUNICODE_STRING ServiceKeyName;
+    WCHAR Buffer[MAX_DEVICE_ID_LEN];
+    PWCHAR EndBuffer;
+    PWCHAR EndServiceName;
+    PWSTR ServiceKeyString;
+    PWSTR NameStr;
+    PDEVICE_OBJECT Pdo;
+    PDEVICE_NODE DeviceNode;
+    HANDLE EnumKeyHandle;
+    HANDLE KeyHandle;
+    HANDLE Handle;
+    HANDLE ControlKeyHandle;
+    SIZE_T ResourceListSize = 0;
+    ULONG Disposition;
+    ULONG Data;
+    ULONG Length;
+    BOOLEAN IsNeedCleanup = FALSE;
+    NTSTATUS Status;
+
+    PAGED_CODE();
+    DPRINT("IoReportDetectedDevice: Device %X, *Device %X\n", DeviceObject, (DeviceObject ? *DeviceObject : NULL));
+
+    if (*DeviceObject)
+    {
+        Pdo = *DeviceObject;
+        DeviceNode = IopGetDeviceNode(Pdo);
+
+        if (!DeviceNode) {
+            DPRINT1("STATUS_NO_SUCH_DEVICE DeviceNode %X\n", DeviceNode);
+            return STATUS_NO_SUCH_DEVICE;
+        }
+
+        KeEnterCriticalRegion();
+        ExAcquireResourceSharedLite(&PpRegistryDeviceResource, 1);
+
+        Status = PnpDeviceObjectToDeviceInstance(*DeviceObject, &KeyHandle, KEY_ALL_ACCESS);
+        DPRINT("IoReportDetectedDevice: KeyHandle %X\n", KeyHandle);
+
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+            ExReleaseResourceLite(&PpRegistryDeviceResource);
+            KeLeaveCriticalRegion();
+            return Status;
+        }
+
+        if (ResourceAssigned)
+        {
+            Data = 1;
+            ZwSetValueKey(KeyHandle, &NoResourceAtInitTimeName, 0, REG_DWORD, &Data, 4);
+        }
+
+        Status = IopCreateRegistryKeyEx(&Handle,
+                                        KeyHandle,
+                                        &LogConfName,
+                                        KEY_ALL_ACCESS,
+                                        REG_OPTION_NON_VOLATILE,
+                                        NULL);
+        ZwClose(KeyHandle);
+
+        if (NT_SUCCESS(Status))
+        {
+            if (ResourceList)
+            {
+                ResourceListSize = PnpDetermineResourceListSize(ResourceList);
+                ZwSetValueKey(Handle, &BootConfigName, 0, REG_RESOURCE_LIST, ResourceList, ResourceListSize);
+            }
+
+            if (ResourceRequirements)
+            {
+                ZwSetValueKey(Handle,
+                              &BasicConfigVectorName,
+                              0,
+                              REG_RESOURCE_REQUIREMENTS_LIST,
+                              ResourceRequirements,
+                              ResourceRequirements->ListSize);
+            }
+
+            ZwClose(Handle);
+        }
+
+        ExReleaseResourceLite(&PpRegistryDeviceResource);
+        KeLeaveCriticalRegion();
+
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+            return Status;
+        }
+
+        DPRINT("IoReportDetectedDevice: Status %X\n", Status);
+        goto ResourcesAssign;
+    }
+
+    *DeviceObject = NULL;
+    ServiceKeyName = &DriverObject->DriverExtension->ServiceKeyName;
+    DPRINT("IoReportDetectedDevice: ServiceKey %wZ\n", ServiceKeyName);
+
+    if (DriverObject->Flags & DRVO_BUILTIN_DRIVER)
+    {
+        EndServiceName = &ServiceKeyName->Buffer[(ServiceKeyName->Length / sizeof(WCHAR)) - 1];
+        DriverName.Length = 0;
+
+        while (*EndServiceName != '\\')
+        {
+            if (EndServiceName == ServiceKeyName->Buffer)
+            {
+                DPRINT("IoReportDetectedDevice: error\n");
+                return STATUS_UNSUCCESSFUL;
+            }
+
+            EndServiceName--;
+            DriverName.Length += sizeof(WCHAR);
+        }
+
+        if (EndServiceName == ServiceKeyName->Buffer)
+        {
+            DPRINT1("IoReportDetectedDevice: error\n");
+            return STATUS_UNSUCCESSFUL;
+        }
+
+        DriverName.Buffer = (EndServiceName + 1);
+        DriverName.MaximumLength = DriverName.Length + sizeof(WCHAR);
+    }
+    else
+    {
+        Status = IopDuplicateDetection(LegacyBusType, BusNumber, SlotNumber, &DeviceNode);
+        if (NT_SUCCESS(Status) && DeviceNode)
+        {
+            Pdo = DeviceNode->PhysicalDeviceObject;
+
+            if (PipAreDriversLoaded(DeviceNode))
+            {
+                ObDereferenceObject(Pdo);
+                return STATUS_NO_SUCH_DEVICE;
+            }
+
+            if (DeviceNode->Flags & (DNF_HAS_PROBLEM + DNF_HAS_PRIVATE_PROBLEM))
+            {
+                if (DeviceNode->Problem != CM_PROB_NOT_CONFIGURED &&
+                    DeviceNode->Problem != CM_PROB_REINSTALL &&
+                    DeviceNode->Problem != CM_PROB_FAILED_INSTALL)
+                {
+                    ObDereferenceObject(Pdo);
+                    return STATUS_NO_SUCH_DEVICE;
+                }
+            }
+
+            DeviceNode->Flags &= ~DNF_HAS_PROBLEM;
+            DeviceNode->Problem = 0;
+
+            IopDeleteLegacyKey(DriverObject);
+            goto ResourcesAssign;
+        }
+        else
+        {
+            DPRINT("Status %X DeviceNode %X\n", Status, DeviceNode);
+            DriverName.Buffer = NULL;
+        }
+    }
+
+    Status = IoCreateDevice(IopRootDriverObject,
+                            sizeof(IOPNP_DEVICE_EXTENSION),
+                            NULL,
+                            FILE_DEVICE_CONTROLLER,
+                            FILE_AUTOGENERATED_DEVICE_NAME,
+                            FALSE,
+                            &Pdo);
+    DPRINT("IoReportDetectedDevice: Pdo %X\n", Pdo);
+
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+        return Status;
+    }
+
+    Pdo->Flags |= DO_BUS_ENUMERATED_DEVICE;
+    DeviceNode = PipAllocateDeviceNode(Pdo);
+
+    if (/*Status == STATUS_SYSTEM_HIVE_TOO_LARGE  ||*/ !DeviceNode)
+    {
+        DPRINT("IoReportDetectedDevice: error\n");
+        IoDeleteDevice(Pdo);
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
-    // The string comes from PnpRootCreateDevice, so it can be used right away
-    DeviceNode->InstancePath = instancePath;
+    if (!(DriverObject->Flags & DRVO_BUILTIN_DRIVER))
+    {
+        IopDeleteLegacyKey(DriverObject);
+        LegacyServiceName = &DriverObject->DriverExtension->ServiceKeyName;
+    }
+    else
+    {
+        LegacyServiceName = &DriverName;
+    }
 
-    /* Open a handle to the instance path key */
-    Status = IopCreateDeviceKeyPath(&DeviceNode->InstancePath, REG_OPTION_NON_VOLATILE, &InstanceKey);
+    DPRINT("IoReportDetectedDevice: LegacyServiceName %wZ\n", LegacyServiceName);
+
+    Status = PpCreateLegacyDeviceIds(Pdo, LegacyServiceName, ResourceList);
     if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+        ASSERT(FALSE); // IoDbgBreakPointEx();// IoDeleteDevice(*DeviceObject);
         return Status;
-
-    /* Save the driver name */
-    RtlInitUnicodeString(&ValueName, L"Service");
-    Status = ZwSetValueKey(InstanceKey, &ValueName, 0, REG_SZ, ServiceLongName.Buffer, ServiceLongName.Length + sizeof(UNICODE_NULL));
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT("Failed to write the Service name value: 0x%x\n", Status);
     }
 
-    /* Report as non-legacy driver */
-    RtlInitUnicodeString(&ValueName, L"Legacy");
-    LegacyValue = 0;
-    Status = ZwSetValueKey(InstanceKey, &ValueName, 0, REG_DWORD, &LegacyValue, sizeof(LegacyValue));
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT("Failed to write the Legacy value: 0x%x\n", Status);
-    }
-    Status = ZwSetValueKey(InstanceKey, &DeviceReportedName, 0, REG_DWORD, &DeviceReported, sizeof(DeviceReported));
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT("Failed to write the DeviceReported value: 0x%x\n", Status);
-    }
+    if (DriverObject->Flags & DRVO_BUILTIN_DRIVER)
+        NameStr = DriverName.Buffer;
+    else
+        NameStr = ServiceKeyName->Buffer;
 
-    /* Set DeviceReported=1 in Control subkey */
-    InitializeObjectAttributes(&ObjectAttributes,
-                               &Control,
-                               OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
-                               InstanceKey,
-                               NULL);
-    Status = ZwCreateKey(&ControlKey,
-                         KEY_SET_VALUE,
-                         &ObjectAttributes,
-                         0,
+    DPRINT("IoReportDetectedDevice: NameStr %S\n", NameStr);
+
+    RtlZeroMemory(Buffer, sizeof(Buffer));
+
+    RtlStringCbPrintfExW(Buffer,
+                         sizeof(Buffer) / sizeof(WCHAR),
+                         &EndBuffer,
                          NULL,
-                         REG_OPTION_VOLATILE,
-                         NULL);
-    if (NT_SUCCESS(Status))
-    {
-        Status = ZwSetValueKey(ControlKey,
-                               &DeviceReportedName,
-                               0,
-                               REG_DWORD,
-                               &DeviceReported,
-                               sizeof(DeviceReported));
-        ZwClose(ControlKey);
-    }
+                         0,
+                         L"Root\\%ws", // ROOT
+                         NameStr);
+    DPRINT("IoReportDetectedDevice: Buffer %S\n", Buffer);
+
+    Length = (ULONG_PTR)EndBuffer - (ULONG_PTR)Buffer;
+    ASSERT(Length <= (sizeof(Buffer) - sizeof(L"Root\\")));
+
+    InstancePath.MaximumLength = sizeof(Buffer);
+    InstancePath.Length = Length;
+    InstancePath.Buffer = Buffer;
+
+    DPRINT("Instance %wZ\n", &InstancePath);
+
+    KeEnterCriticalRegion();
+    ExAcquireResourceSharedLite(&PpRegistryDeviceResource, TRUE);
+
+    Status = IopOpenRegistryKeyEx(&EnumKeyHandle, 0, &EnumKeyName, KEY_ALL_ACCESS);
     if (!NT_SUCCESS(Status))
     {
-        DPRINT1("Failed to set ReportedDevice=1 for device %wZ (status 0x%08lx)\n", &instancePath, Status);
-    }
-
-    /* Add DETECTEDInterfaceType\DriverName */
-    IdLength = 0;
-    IdLength += swprintf(&HardwareId[IdLength],
-                         L"DETECTED%ls\\%wZ",
-                         IfString,
-                         &ServiceName);
-    IdLength++;
-
-    /* Add DETECTED\DriverName */
-    IdLength += swprintf(&HardwareId[IdLength],
-                         L"DETECTED\\%wZ",
-                         &ServiceName);
-    IdLength++;
-
-    /* Terminate the string with another null */
-    HardwareId[IdLength++] = UNICODE_NULL;
-
-    /* Store the value for CompatibleIDs */
-    RtlInitUnicodeString(&ValueName, L"CompatibleIDs");
-    Status = ZwSetValueKey(InstanceKey, &ValueName, 0, REG_MULTI_SZ, HardwareId, IdLength * sizeof(WCHAR));
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT("Failed to write the compatible IDs: 0x%x\n", Status);
-        ZwClose(InstanceKey);
+        DPRINT("IoReportDetectedDevice: Status %X\n", Status);
+        ExReleaseResourceLite(&PpRegistryDeviceResource);
+        KeLeaveCriticalRegion();
+        ASSERT(FALSE); // IoDbgBreakPointEx();// IoDeleteDevice(*DeviceObject);
         return Status;
     }
 
-    // Set the device's DeviceDesc and LocationInformation fields
-    PiSetDevNodeText(DeviceNode, InstanceKey);
+    Status = IopCreateRegistryKeyEx(&Handle,
+                                    EnumKeyHandle,
+                                    &InstancePath,
+                                    KEY_ALL_ACCESS,
+                                    REG_OPTION_NON_VOLATILE,
+                                    &Disposition);
+    DPRINT("IoReportDetectedDevice: Disposition %X\n", Disposition);
 
-    /* Assign the resources to the device node */
-    DeviceNode->BootResources = ResourceList;
-    DeviceNode->ResourceRequirements = ResourceRequirements;
-
-    /* Set appropriate flags */
-    if (DeviceNode->BootResources)
-        IopDeviceNodeSetFlag(DeviceNode, DNF_HAS_BOOT_CONFIG);
-
-    if (!DeviceNode->ResourceRequirements && !DeviceNode->BootResources)
-        IopDeviceNodeSetFlag(DeviceNode, DNF_NO_RESOURCE_REQUIRED);
-
-    /* Write the resource information to the registry */
-    IopSetDeviceInstanceData(InstanceKey, DeviceNode);
-
-    /* If the caller didn't get the resources assigned for us, do it now */
-    if (!ResourceAssigned)
+    if (!NT_SUCCESS(Status))
     {
-        Status = IopAssignDeviceResources(DeviceNode);
+        DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+        ZwClose(EnumKeyHandle);
+        ExReleaseResourceLite(&PpRegistryDeviceResource);
+        KeLeaveCriticalRegion();
+        ASSERT(FALSE); // IoDbgBreakPointEx();// IoDeleteDevice(*DeviceObject);
+        return Status;
+    }
 
-        /* See if we failed */
+    InstancePath.Buffer[InstancePath.Length / sizeof(WCHAR)] = '\\';
+    InstancePath.Length += sizeof(WCHAR);
+    Length += sizeof(WCHAR);
+
+    DPRINT("Instance %wZ\n", &InstancePath);
+
+    if (Disposition != REG_CREATED_NEW_KEY)
+    {
+        BOOLEAN MatchingKey = FALSE;
+        UNICODE_STRING KeyName;
+        PWCHAR endBuffer;
+        ULONG size;
+        LONG len;
+        ULONG ix;
+
+        for (ix = 0; ; ix++)
+        {
+            InstancePath.Length = Length;
+            RtlStringCchPrintfExW(Buffer + (Length / sizeof(WCHAR)),
+                                  (400 - Length) / sizeof(WCHAR),
+                                  &endBuffer,
+                                  0,
+                                  0,
+                                  L"%04u",
+                                  ix);
+            DPRINT("IoReportDetectedDevice: Buffer '%S'\n", Buffer);
+
+            len = &endBuffer[-InstancePath.Length / sizeof(WCHAR)] - Buffer;
+
+            if (len != -1)
+                size = (len * sizeof(WCHAR));
+            else
+                size = (400 - InstancePath.Length);
+
+            KeyName.MaximumLength = 400 - InstancePath.Length;
+            KeyName.Buffer = (PWCHAR)((ULONG_PTR)Buffer + InstancePath.Length);
+            KeyName.Length = size;
+            DPRINT("IoReportDetectedDevice: KeyName '%wZ'\n", &KeyName);
+
+            InstancePath.Length += size;
+
+            Status = IopCreateRegistryKeyEx(&KeyHandle,
+                                            Handle,
+                                            &KeyName,
+                                            KEY_ALL_ACCESS,
+                                            REG_OPTION_NON_VOLATILE,
+                                            &Disposition);
+            if (!NT_SUCCESS(Status))
+            {
+                ZwClose(Handle);
+                ZwClose(EnumKeyHandle);
+                ExReleaseResourceLite(&PpRegistryDeviceResource);
+                KeLeaveCriticalRegion();
+                ASSERT(FALSE); // IoDbgBreakPointEx();// IoDeleteDevice(*DeviceObject);
+                return Status;
+            }
+
+            if (Disposition != 1)
+            {
+                PKEY_VALUE_FULL_INFORMATION FullKeyValue = NULL;
+                BOOLEAN IsMigrated = FALSE;
+                NTSTATUS status;
+
+                status = IopGetRegistryValue(KeyHandle, L"Migrated", &FullKeyValue);
+                if (NT_SUCCESS(status))
+                {
+                    if (FullKeyValue->Type == 4 &&
+                        FullKeyValue->DataLength == sizeof(ULONG) &&
+                        *(PULONG)((ULONG_PTR)FullKeyValue + FullKeyValue->DataOffset))
+                    {
+                        IsMigrated = TRUE;
+                    }
+
+                    ExFreePoolWithTag(FullKeyValue, 0);
+
+                    DPRINT("IoReportDetectedDevice: Delete <Migrated> value key\n");
+                    ZwDeleteValueKey(KeyHandle, &MigratedName);
+                }
+
+                if (IopIsReportedAlready(KeyHandle, ServiceKeyName, ResourceList, &MatchingKey))
+                {
+                    DPRINT1("IoReportDetectedDevice: IsReportedAlready - TRUE\n");
+                    break;
+                }
+
+                DPRINT("MatchingKey %X, IsMigrated %X\n", MatchingKey, IsMigrated);
+
+                if (!MatchingKey || !IsMigrated)
+                {
+                    ZwClose(KeyHandle);
+                    continue;
+                }
+
+                Disposition = 1;
+            }
+
+            ZwClose(Handle);
+            ASSERT(Disposition == REG_CREATED_NEW_KEY);
+            goto Label0;
+        }
+
+        ASSERT(MatchingKey == TRUE);
+
+        Status = IopCreateRegistryKeyEx(&Handle,
+                                        KeyHandle,
+                                        &LogConfName,
+                                        KEY_ALL_ACCESS,
+                                        REG_OPTION_NON_VOLATILE,
+                                        NULL);
+        DPRINT("IoReportDetectedDevice: Status %X\n", Status);
+
+        if (NT_SUCCESS(Status))
+        {
+            if (ResourceList)
+            {
+                ULONG NumberOfBytes;
+                NumberOfBytes = PnpDetermineResourceListSize(ResourceList);
+                ZwSetValueKey(Handle, &BootConfigName, 0, 8, ResourceList, NumberOfBytes);
+                DPRINT1("CmResource %X Size %X\n", ResourceList, NumberOfBytes);
+                PipDumpCmResourceList(ResourceList, 1);
+                ASSERT(FALSE); // IoDbgBreakPointEx();
+            }
+
+            if (ResourceRequirements)
+            {
+                ZwSetValueKey(Handle, &BasicConfigVectorName, 0, 10, ResourceRequirements, ResourceRequirements->ListSize);
+                DPRINT1("IoResource %X Size %X\n", ResourceRequirements, ResourceRequirements->ListSize);
+                PipDumpResourceRequirementsList(ResourceRequirements, 1);
+                ASSERT(FALSE); // IoDbgBreakPointEx();
+            }
+
+            ZwClose(Handle);
+        }
+
+        ExReleaseResourceLite(&PpRegistryDeviceResource);
+        KeLeaveCriticalRegion();
+
+        IoDeleteDevice(Pdo);
+        ZwClose(Handle);
+
+        Pdo = IopDeviceObjectFromDeviceInstance(&InstancePath);
+        DPRINT("IoReportDetectedDevice: Pdo %X\n", Pdo);
+
+        ZwClose(KeyHandle);
+        ZwClose(EnumKeyHandle);
+
+        if (Pdo == NULL)
+        {
+            DPRINT1("IoReportDetectedDevice: ASSERT\n");
+            ASSERT(Pdo);
+            ASSERT(FALSE); // IoDbgBreakPointEx();
+            return STATUS_UNSUCCESSFUL;
+        }
+
+        DeviceNode = IopGetDeviceNode(Pdo);
+
+        if (PipAreDriversLoaded(DeviceNode))
+        {
+            ASSERT(FALSE); // IoDbgBreakPointEx();
+            ObDereferenceObject(Pdo);
+            return STATUS_NO_SUCH_DEVICE;
+        }
+
+        if ((DeviceNode->Flags & (DNF_HAS_PROBLEM | DNF_HAS_PRIVATE_PROBLEM)) &&
+            DeviceNode->Problem != CM_PROB_NOT_CONFIGURED &&
+            DeviceNode->Problem != CM_PROB_REINSTALL &&
+            DeviceNode->Problem != CM_PROB_FAILED_INSTALL)
+        {
+            ASSERT(FALSE); // IoDbgBreakPointEx();
+            ObDereferenceObject(Pdo);
+            return STATUS_NO_SUCH_DEVICE;
+        }
+
+        goto ResourcesAssign;
+    }
+    else
+    {
+        RtlStringCbPrintfExW(Buffer + (InstancePath.Length / sizeof(WCHAR)),
+                             sizeof(Buffer) - InstancePath.Length,
+                             &EndBuffer,
+                             NULL,
+                             0,
+                             L"%04u",
+                             0);
+
+        RtlInitUnicodeString(&EnumSubKeyName, Buffer + (InstancePath.Length / sizeof(WCHAR)));
+        InstancePath.Length = (ULONG)(EndBuffer - Buffer) * sizeof(WCHAR);
+
+        DPRINT("IoReportDetectedDevice: EnumSubKeyName %wZ\n", &EnumSubKeyName);
+
+        Status = IopCreateRegistryKeyEx(&KeyHandle,
+                                        Handle,
+                                        &EnumSubKeyName,
+                                        KEY_ALL_ACCESS,
+                                        REG_OPTION_NON_VOLATILE,
+                                        &Disposition);
+        DPRINT("IoReportDetectedDevice: Disposition %d\n", Disposition);
+
+        ZwClose(Handle);
+
         if (!NT_SUCCESS(Status))
         {
-            DPRINT("Assigning resources failed: 0x%x\n", Status);
-            ZwClose(InstanceKey);
+            DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+            ZwClose(EnumKeyHandle);
+            ExReleaseResourceLite(&PpRegistryDeviceResource);
+            KeLeaveCriticalRegion();
+            ASSERT(FALSE); // IoDbgBreakPointEx();// IoDeleteDevice(*DeviceObject);
             return Status;
         }
+
+        ASSERT(Disposition == REG_CREATED_NEW_KEY);
+
+Label0:
+        IsNeedCleanup = TRUE;
+
+        if (ResourceAssigned)
+        {
+            Data = 1;
+            ZwSetValueKey(KeyHandle, &NoResourceAtInitTimeName, 0, REG_DWORD, &Data, 4);
+        }
+
+        Handle = NULL;
+        Status = IopCreateRegistryKeyEx(&Handle,
+                                        KeyHandle,
+                                        &LogConfName,
+                                        KEY_ALL_ACCESS,
+                                        REG_OPTION_NON_VOLATILE,
+                                        NULL);
+        ASSERT(Status == STATUS_SUCCESS);
+
+        if (NT_SUCCESS(Status))
+        {
+            if (ResourceList)
+            {
+                ResourceListSize = PnpDetermineResourceListSize(ResourceList);
+                ZwSetValueKey(Handle, &BootConfigName, 0, REG_RESOURCE_LIST, ResourceList, ResourceListSize);
+            }
+
+            if (ResourceRequirements)
+            {
+                ZwSetValueKey(Handle,
+                              &BasicConfigVectorName,
+                              0,
+                              REG_RESOURCE_REQUIREMENTS_LIST,
+                              ResourceRequirements,
+                              ResourceRequirements->ListSize);
+            }
+        }
+
+        Data = 0x400;
+        ZwSetValueKey(KeyHandle, &ConfigFlagsName, 0, REG_DWORD, &Data, 4);
+
+        Data = 0;
+        ZwSetValueKey(KeyHandle, &LegacyName, 0, REG_DWORD, &Data, 4);
+
+        ControlKeyHandle = NULL;
+        IopCreateRegistryKeyEx(&ControlKeyHandle,
+                               KeyHandle,
+                               &ControlName,
+                               KEY_ALL_ACCESS,
+                               REG_OPTION_VOLATILE,
+                               NULL);
+        ASSERT(Status == STATUS_SUCCESS);
+
+        Data = 1;
+        ZwSetValueKey(ControlKeyHandle, &DeviceReportedName, 0, REG_DWORD, &Data, 4);
+        Status = ZwSetValueKey(KeyHandle, &DeviceReportedName, 0, REG_DWORD, &Data, 4);
+
+        ZwClose(EnumKeyHandle);
+
+        ServiceKeyString = ExAllocatePoolWithTag(PagedPool, ServiceKeyName->Length + sizeof(WCHAR), '  pP');
+        if (!ServiceKeyString) {
+            DPRINT1("Allocate failed\n");
+            ExReleaseResourceLite(&PpRegistryDeviceResource);
+            KeLeaveCriticalRegion();
+            goto ErrorExit;
+        }
+
+        RtlMoveMemory(ServiceKeyString, ServiceKeyName->Buffer, ServiceKeyName->Length);
+        ServiceKeyString[ServiceKeyName->Length / sizeof(WCHAR)] = UNICODE_NULL;
+
+        ZwSetValueKey(KeyHandle,
+                      &ServiceName,
+                      0,
+                      REG_SZ,
+                      ServiceKeyString,
+                      (ServiceKeyName->Length + sizeof(WCHAR)));
+
+        if (DriverObject->Flags & DRVO_BUILTIN_DRIVER)
+        {
+            //DeviceNode->ServiceName = *ServiceKeyName;
+            //RtlCopyUnicodeString(&DeviceNode->ServiceName, ServiceKeyName);
+            DeviceNode->ServiceName.Length = ServiceKeyName->Length;
+            DeviceNode->ServiceName.MaximumLength = ServiceKeyName->MaximumLength;
+            DeviceNode->ServiceName.Buffer = ServiceKeyName->Buffer;
+            DPRINT("ServiceKey %wZ\n", &DeviceNode->ServiceName);
+        }
+        else
+        {
+            ExFreePoolWithTag(ServiceKeyString, 0);
+        }
+
+        ExReleaseResourceLite(&PpRegistryDeviceResource);
+        KeLeaveCriticalRegion();
+
+        if (!(DriverObject->Flags & DRVO_BUILTIN_DRIVER))
+            PpDeviceRegistration(&InstancePath, 1, &DeviceNode->ServiceName);
+
+        Status = PnpConcatenateUnicodeStrings(&DeviceNode->InstancePath, &InstancePath, NULL);
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT("IoReportDetectedDevice: Status %X\n", Status);
+            DeviceNode->InstancePath.Length = 0;
+            DeviceNode->InstancePath.MaximumLength = 0;
+            DPRINT("IoReportDetectedDevice: error\n");
+            ASSERT(FALSE); // IoDbgBreakPointEx();// IoDeleteDevice(Pdo);
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+        DPRINT("Instance '%wZ'\n", &DeviceNode->InstancePath);
+
+        DeviceNode->Flags = (DNF_MADEUP + DNF_ENUMERATED);
+        PipSetDevNodeState(DeviceNode, DeviceNodeInitialized, NULL);
+        PpDevNodeInsertIntoTree(IopRootDeviceNode, DeviceNode);
+
+        Status = IopMapDeviceObjectToDeviceInstance(Pdo, &DeviceNode->InstancePath);
+        ASSERT(Status == STATUS_SUCCESS);
+        ObReferenceObject(Pdo);
+
+        //IopNotifySetupDeviceArrival(Pdo, 0, 0);
+
+   /* Report the device's enumeration to umpnpmgr */
+    IopQueueTargetDeviceEvent(&GUID_DEVICE_ENUMERATED, &DeviceNode->InstancePath);
+    /* Report the device's arrival to umpnpmgr */
+    IopQueueTargetDeviceEvent(&GUID_DEVICE_ARRIVAL, &DeviceNode->InstancePath);
+    DPRINT1("Reported device '%wZ'\n", &DeviceNode->InstancePath);
+
+ResourcesAssign:
+
+        DPRINT("ResourcesAssign: Status %X\n", Status);
+
+        if (ResourceAssigned)
+        {
+            DeviceNode->Flags |= DNF_NO_RESOURCE_REQUIRED;
+
+            if (ResourceList)
+            {
+                ResourceListSize = PnpDetermineResourceListSize(ResourceList);
+                IopWriteAllocatedResourcesToRegistry(DeviceNode, ResourceList, ResourceListSize);
+            }
+        }
+        else if (ResourceList &&
+                 ResourceList->Count &&
+                 ResourceList->List[0].PartialResourceList.Count)
+        {
+            PCM_RESOURCE_LIST IntCmResource;
+            BOOLEAN ConflictDetected;
+
+            DPRINT1("IoReportDetectedDevice: ResourceAssigned is FALSE\n");
+
+            if (!ResourceListSize)
+                ResourceListSize = PnpDetermineResourceListSize(ResourceList);
+
+            IntCmResource = ExAllocatePoolWithTag(PagedPool, ResourceListSize, 'oipP');
+            if (!IntCmResource)
+            {
+                DPRINT1("IoReportDetectedDevice: STATUS_INSUFFICIENT_RESOURCES\n");
+                Status = STATUS_INSUFFICIENT_RESOURCES;
+                PipSetDevNodeProblem(DeviceNode, CM_PROB_OUT_OF_MEMORY);
+                goto ErrorExit;
+            }
+
+            RtlCopyMemory(IntCmResource, ResourceList, ResourceListSize);
+
+            Status = IoReportResourceUsageInternal(ArbiterRequestLegacyReported,
+                                                   &PnP_Manager,
+                                                   Pdo->DriverObject,
+                                                   NULL,
+                                                   0,
+                                                   DeviceNode->PhysicalDeviceObject,
+                                                   IntCmResource,
+                                                   ResourceListSize,
+                                                   FALSE,
+                                                   &ConflictDetected);
+            ExFreePoolWithTag(IntCmResource, 0);
+
+            if (!NT_SUCCESS(Status) || ConflictDetected)
+            {
+                DPRINT1("IoReportDetectedDevice: STATUS_CONFLICTING_ADDRESSES\n");
+                Status = STATUS_CONFLICTING_ADDRESSES;
+                PipSetDevNodeProblem(DeviceNode, CM_PROB_NORMAL_CONFLICT);
+            }
+        }
+        else
+        {
+            if (DriverObject)
+                ASSERT(ResourceRequirements == NULL);
+
+            DeviceNode->Flags |= DNF_NO_RESOURCE_REQUIRED;
+        }
+
+        if (NT_SUCCESS(Status))
+        {
+            IopDoDeferredSetInterfaceState(DeviceNode);
+            PipSetDevNodeState(DeviceNode, DeviceNodeStartPostWork, NULL);
+
+            *DeviceObject = Pdo;
+
+            if (IsNeedCleanup)
+            {
+                if (ControlKeyHandle)
+                    ZwClose(ControlKeyHandle);
+
+                if (Handle)
+                    ZwClose(Handle);
+
+                ZwClose(KeyHandle);
+            }
+
+            PipRequestDeviceAction(Pdo, PipEnumDeviceOnly, 0, 0, NULL, NULL);
+            return Status;
+        }
+        else
+        {
+            DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+            ASSERT(FALSE); // IoDbgBreakPointEx();
+        }
+
+ErrorExit:
+
+        IopReleaseDeviceResources(DeviceNode, FALSE);
+
+        if (IsNeedCleanup)
+        {
+            IoDeleteDevice(Pdo);
+
+            if (ControlKeyHandle)
+                ZwDeleteKey(ControlKeyHandle);
+
+            if (Handle)
+                ZwDeleteKey(Handle);
+
+            if (KeyHandle)
+                ZwDeleteKey(KeyHandle);
+        }
+
+        DPRINT1("IoReportDetectedDevice: Status %X\n", Status);
+        ASSERT(FALSE); // IoDbgBreakPointEx();
     }
-
-    /* Close the instance key handle */
-    ZwClose(InstanceKey);
-
-    /* Register the given DO with PnP root if required */
-    if (DeviceObject && *DeviceObject)
-        PnpRootRegisterDevice(*DeviceObject);
-
-    PiInsertDevNode(DeviceNode, IopRootDeviceNode);
-    DeviceNode->Flags |= DNF_MADEUP | DNF_ENUMERATED;
-
-    // we still need to query IDs, send events and reenumerate this node
-    PiSetDevNodeState(DeviceNode, DeviceNodeStartPostWork);
-
-    DPRINT("Reported device: %S (%wZ)\n", HardwareId, &DeviceNode->InstancePath);
-
-    PiQueueDeviceAction(Pdo, PiActionEnumDeviceTree, NULL, NULL);
-
-    /* Return the PDO */
-    if (DeviceObject) *DeviceObject = Pdo;
 
     return STATUS_SUCCESS;
 }
@@ -414,7 +1207,7 @@ IoReportResourceForDetection(IN PDRIVER_OBJECT DriverObject,
         ResourceList = DriverList;
 
     /* Look for a resource conflict */
-    Status = IopDetectResourceConflict(ResourceList, TRUE, NULL);
+    Status = IopDetectResourceConflict(ResourceList, FALSE, NULL);
     if (Status == STATUS_CONFLICTING_ADDRESSES)
     {
         /* Oh noes */

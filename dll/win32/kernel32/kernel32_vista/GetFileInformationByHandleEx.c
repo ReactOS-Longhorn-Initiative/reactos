@@ -11,7 +11,16 @@
 #define FIXME DPRINT1
 
 /* Taken from Wine kernel32/file.c */
-
+#define FileIdExtdDirectoryInformation (enum _FILE_INFORMATION_CLASS)60
+#define FileIdInformation (enum _FILE_INFORMATION_CLASS)59
+#define FileHardLinkFullIdInformation (enum _FILE_INFORMATION_CLASS)62
+#define FileDispositionInformationEx (enum _FILE_INFORMATION_CLASS)64
+#define FileRenameInformationEx (enum _FILE_INFORMATION_CLASS)65
+#define FileStatInformation (enum _FILE_INFORMATION_CLASS)68
+#define FileStatLxInformation (enum _FILE_INFORMATION_CLASS)70
+#define FileCaseSensitiveInformation (enum _FILE_INFORMATION_CLASS)71
+#define FileLinkInformationEx (enum _FILE_INFORMATION_CLASS)72
+#define FileStorageReserveIdInformation (enum _FILE_INFORMATION_CLASS)74
 /***********************************************************************
  *	GetFileInformationByHandleEx   (kernelbase.@)
  */

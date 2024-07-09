@@ -14,11 +14,9 @@ $if (_WDMDDK_)
 #define CONNECT_FULLY_SPECIFIED_GROUP   0x4
 #define CONNECT_CURRENT_VERSION         0x4
 
-#define POOL_QUOTA_FAIL_INSTEAD_OF_RAISE    0x8
-#define POOL_RAISE_IF_ALLOCATION_FAILURE    0x10
-#define POOL_COLD_ALLOCATION                0x100
-#define POOL_NX_ALLOCATION                  0x200
-#define POOL_ZERO_ALLOCATION                0x400
+#define POOL_COLD_ALLOCATION                256
+#define POOL_QUOTA_FAIL_INSTEAD_OF_RAISE    8
+#define POOL_RAISE_IF_ALLOCATION_FAILURE    16
 
 #define IO_TYPE_ADAPTER                 1
 #define IO_TYPE_CONTROLLER              2
@@ -105,10 +103,10 @@ $if (_WDMDDK_ || _DEVIOCTL_)
 #define FILE_DEVICE_SERENUM               0x00000037
 #define FILE_DEVICE_TERMSRV               0x00000038
 #define FILE_DEVICE_KSEC                  0x00000039
-#define FILE_DEVICE_FIPS                  0x0000003a
-#define FILE_DEVICE_INFINIBAND            0x0000003b
-#define FILE_DEVICE_VMBUS                 0x0000003e
-#define FILE_DEVICE_CRYPT_PROVIDER        0x0000003f
+#define FILE_DEVICE_FIPS                  0x0000003A
+#define FILE_DEVICE_INFINIBAND            0x0000003B
+#define FILE_DEVICE_VMBUS                 0x0000003E
+#define FILE_DEVICE_CRYPT_PROVIDER        0x0000003F
 #define FILE_DEVICE_WPD                   0x00000040
 #define FILE_DEVICE_BLUETOOTH             0x00000041
 #define FILE_DEVICE_MT_COMPOSITE          0x00000042
@@ -2220,6 +2218,8 @@ typedef struct _DRIVER_EXTENSION {
   PDRIVER_ADD_DEVICE AddDevice;
   ULONG Count;
   UNICODE_STRING ServiceKeyName;
+  struct _IO_CLIENT_EXTENSION* ClientDriverExtension;
+  struct _FS_FILTER_CALLBACKS* FsFilterCallbacks;
 } DRIVER_EXTENSION, *PDRIVER_EXTENSION;
 
 #define DRVO_UNLOAD_INVOKED               0x00000001
@@ -2826,12 +2826,11 @@ typedef enum _IO_PAGING_PRIORITY {
 
 _Function_class_(IO_COMPLETION_ROUTINE)
 _IRQL_requires_same_
-_IRQL_requires_max_(DISPATCH_LEVEL)
 typedef NTSTATUS
 (NTAPI IO_COMPLETION_ROUTINE)(
   _In_ struct _DEVICE_OBJECT *DeviceObject,
   _In_ struct _IRP *Irp,
-  _In_reads_opt_(_Inexpressible_("varies")) PVOID Context);
+  _In_opt_ PVOID Context);
 typedef IO_COMPLETION_ROUTINE *PIO_COMPLETION_ROUTINE;
 
 _Function_class_(IO_DPC_ROUTINE)
@@ -4471,6 +4470,7 @@ typedef struct _CONTROLLER_OBJECT {
 #define DRVO_INITIALIZED                0x00000010
 #define DRVO_BOOTREINIT_REGISTERED      0x00000020
 #define DRVO_LEGACY_RESOURCES           0x00000040
+#define DRVO_FILESYSTEM_DRIVER          0x00000080
 
 typedef struct _CONFIGURATION_INFORMATION {
   ULONG DiskCount;
@@ -5330,8 +5330,8 @@ typedef struct _PCI_BUS_INTERFACE_STANDARD {
   PCI_READ_WRITE_CONFIG WriteConfig;
   PCI_PIN_TO_LINE PinToLine;
   PCI_LINE_TO_PIN LineToPin;
-  PCI_ROOT_BUS_CAPABILITY RootBusCapability;
-  PCI_EXPRESS_WAKE_CONTROL ExpressWakeControl;
+  //PCI_ROOT_BUS_CAPABILITY RootBusCapability;
+  //PCI_EXPRESS_WAKE_CONTROL ExpressWakeControl;
 } PCI_BUS_INTERFACE_STANDARD, *PPCI_BUS_INTERFACE_STANDARD;
 
 #define PCI_BUS_INTERFACE_STANDARD_VERSION 1

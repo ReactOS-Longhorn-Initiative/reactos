@@ -10,11 +10,13 @@
 /* INCLUDES ****************************************************************/
 
 #include <ntoskrnl.h>
-#define NDEBUG
+#include "../pnpio.h"
+
+//#define NDEBUG
 #include <debug.h>
 
 ULONG IopTraceLevel = 0;
-BOOLEAN PnpSystemInit = FALSE;
+extern KEVENT PiEnumerationLock;
 
 VOID
 NTAPI
@@ -45,6 +47,8 @@ LARGE_INTEGER IoOtherTransferCount = {{0, 0}};
 KSPIN_LOCK IoStatisticsLock = 0;
 ULONG IopNumTriageDumpDataBlocks;
 PVOID IopTriageDumpDataBlocks[64];
+BOOLEAN IsWithoutGroupOrderIndex = FALSE;
+extern BOOLEAN PnPBootDriversInitialized;
 
 GENERIC_MAPPING IopFileMapping = {
     FILE_GENERIC_READ,
@@ -59,12 +63,14 @@ extern POBJECT_TYPE IoAdapterObjectType;
 extern ERESOURCE IopDatabaseResource;
 ERESOURCE IopSecurityResource;
 extern ERESOURCE IopDriverLoadResource;
+extern KGUARDED_MUTEX PnpNotifyListLock;
 extern LIST_ENTRY IopDiskFileSystemQueueHead;
 extern LIST_ENTRY IopCdRomFileSystemQueueHead;
 extern LIST_ENTRY IopTapeFileSystemQueueHead;
 extern LIST_ENTRY IopNetworkFileSystemQueueHead;
 extern LIST_ENTRY DriverBootReinitListHead;
 extern LIST_ENTRY DriverReinitListHead;
+extern LIST_ENTRY PnpNotifyListHead;
 extern LIST_ENTRY IopFsNotifyChangeQueueHead;
 extern LIST_ENTRY IopErrorLogListHead;
 extern LIST_ENTRY IopTimerQueueHead;
@@ -76,9 +82,6 @@ extern KSPIN_LOCK DriverBootReinitListLock;
 extern KSPIN_LOCK IopLogListLock;
 extern KSPIN_LOCK IopTimerLock;
 
-extern PDEVICE_OBJECT IopErrorLogObject;
-extern BOOLEAN PnPBootDriversInitialized;
-
 GENERAL_LOOKASIDE IoLargeIrpLookaside;
 GENERAL_LOOKASIDE IoSmallIrpLookaside;
 GENERAL_LOOKASIDE IopMdlLookasideList;
@@ -86,10 +89,14 @@ extern GENERAL_LOOKASIDE IoCompletionPacketLookaside;
 
 PLOADER_PARAMETER_BLOCK IopLoaderBlock;
 
+#if defined (ALLOC_PRAGMA)
+#pragma alloc_text(INIT, IoInitSystem)
+#endif
+
 /* INIT FUNCTIONS ************************************************************/
 
-CODE_SEG("INIT")
 VOID
+CODE_SEG("INIT")
 NTAPI
 IopInitLookasideLists(VOID)
 {
@@ -235,8 +242,8 @@ IopInitLookasideLists(VOID)
     }
 }
 
-CODE_SEG("INIT")
 BOOLEAN
+CODE_SEG("INIT")
 NTAPI
 IopCreateObjectTypes(VOID)
 {
@@ -324,8 +331,8 @@ IopCreateObjectTypes(VOID)
     return TRUE;
 }
 
-CODE_SEG("INIT")
 BOOLEAN
+CODE_SEG("INIT")
 NTAPI
 IopCreateRootDirectories(VOID)
 {
@@ -389,78 +396,8 @@ IopCreateRootDirectories(VOID)
     return TRUE;
 }
 
-CODE_SEG("INIT")
 BOOLEAN
-NTAPI
-IopMarkBootPartition(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
-{
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    STRING DeviceString;
-    CHAR Buffer[256];
-    UNICODE_STRING DeviceName;
-    NTSTATUS Status;
-    HANDLE FileHandle;
-    IO_STATUS_BLOCK IoStatusBlock;
-    PFILE_OBJECT FileObject;
-
-    /* Build the ARC device name */
-    sprintf(Buffer, "\\ArcName\\%s", LoaderBlock->ArcBootDeviceName);
-    RtlInitAnsiString(&DeviceString, Buffer);
-    Status = RtlAnsiStringToUnicodeString(&DeviceName, &DeviceString, TRUE);
-    if (!NT_SUCCESS(Status)) return FALSE;
-
-    /* Open it */
-    InitializeObjectAttributes(&ObjectAttributes,
-                               &DeviceName,
-                               OBJ_CASE_INSENSITIVE,
-                               NULL,
-                               NULL);
-    Status = ZwOpenFile(&FileHandle,
-                        FILE_READ_ATTRIBUTES,
-                        &ObjectAttributes,
-                        &IoStatusBlock,
-                        0,
-                        FILE_NON_DIRECTORY_FILE);
-    if (!NT_SUCCESS(Status))
-    {
-        /* Fail */
-        KeBugCheckEx(INACCESSIBLE_BOOT_DEVICE,
-                     (ULONG_PTR)&DeviceName,
-                     Status,
-                     0,
-                     0);
-    }
-
-    /* Get the DO */
-    Status = ObReferenceObjectByHandle(FileHandle,
-                                       0,
-                                       IoFileObjectType,
-                                       KernelMode,
-                                       (PVOID *)&FileObject,
-                                       NULL);
-    if (!NT_SUCCESS(Status))
-    {
-        /* Fail */
-        RtlFreeUnicodeString(&DeviceName);
-        return FALSE;
-    }
-
-    /* Mark it as the boot partition */
-    FileObject->DeviceObject->Flags |= DO_SYSTEM_BOOT_PARTITION;
-
-    /* Save a copy of the DO for the I/O Error Logger */
-    ObReferenceObject(FileObject->DeviceObject);
-    IopErrorLogObject = FileObject->DeviceObject;
-
-    /* Cleanup and return success */
-    RtlFreeUnicodeString(&DeviceName);
-    NtClose(FileHandle);
-    ObDereferenceObject(FileObject);
-    return TRUE;
-}
-
 CODE_SEG("INIT")
-BOOLEAN
 NTAPI
 IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 {
@@ -479,12 +416,14 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     ExInitializeResourceLite(&IopDatabaseResource);
     ExInitializeResourceLite(&IopSecurityResource);
     ExInitializeResourceLite(&IopDriverLoadResource);
+    KeInitializeGuardedMutex(&PnpNotifyListLock);
     InitializeListHead(&IopDiskFileSystemQueueHead);
     InitializeListHead(&IopCdRomFileSystemQueueHead);
     InitializeListHead(&IopTapeFileSystemQueueHead);
     InitializeListHead(&IopNetworkFileSystemQueueHead);
     InitializeListHead(&DriverBootReinitListHead);
     InitializeListHead(&DriverReinitListHead);
+    InitializeListHead(&PnpNotifyListHead);
     InitializeListHead(&ShutdownListHead);
     InitializeListHead(&LastChanceShutdownListHead);
     InitializeListHead(&IopFsNotifyChangeQueueHead);
@@ -494,9 +433,6 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     KeInitializeSpinLock(&DriverBootReinitListLock);
     KeInitializeSpinLock(&ShutdownListLock);
     KeInitializeSpinLock(&IopLogListLock);
-
-    /* Initialize PnP notifications */
-    PiInitializeNotifications();
 
     /* Initialize the reserve IRP */
     if (!IopInitializeReserveIrp(&IopReserveIrpAllocator))
@@ -532,7 +468,8 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     }
 
     /* Initialize PnP manager */
-    IopInitializePlugPlayServices();
+    DPRINT("IoInitSystem: IopInitializePlugPlayServices(0)\n");
+    IopInitializePlugPlayServices(LoaderBlock, 0);
 
     /* Initialize SHIM engine */
     ApphelpCacheInitialize();
@@ -541,61 +478,43 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     WmiInitialize();
 
     /* Initialize HAL Root Bus Driver */
+    DPRINT("IoInitSystem: HalInitPnpDriver()\n");
     HalInitPnpDriver();
-
-    /* Reenumerate what HAL has added (synchronously)
-     * This function call should eventually become a 2nd stage of the PnP initialization */
-    PiQueueDeviceAction(IopRootDeviceNode->PhysicalDeviceObject,
-                        PiActionEnumRootDevices,
-                        NULL,
-                        NULL);
+    DPRINT("IoInitSystem: IopMarkHalDeviceNode()\n");
+    IopMarkHalDeviceNode();
 
     /* Make loader block available for the whole kernel */
     IopLoaderBlock = LoaderBlock;
 
+    /* Initialize PnP manager */
+    DPRINT("IoInitSystem: IopInitializePlugPlayServices(1)\n");
+    IopInitializePlugPlayServices(LoaderBlock, 1);
+
     /* Load boot start drivers */
-    IopInitializeBootDrivers();
-
-    /* Call back drivers that asked for */
-    IopReinitializeBootDrivers();
-
-    /* Check if this was a ramdisk boot */
-    if (!_strnicmp(LoaderBlock->ArcBootDeviceName, "ramdisk(0)", 10))
-    {
-        /* Initialize the ramdisk driver */
-        IopStartRamdisk(LoaderBlock);
-    }
+    DPRINT("IoInitSystem: IopInitializeBootDrivers()\n");
+    IopInitializeBootDrivers(LoaderBlock);
 
     /* No one should need loader block any longer */
     IopLoaderBlock = NULL;
 
-    /* Create ARC names for boot devices */
-    Status = IopCreateArcNames(LoaderBlock);
-    if (!NT_SUCCESS(Status))
-    {
-        DPRINT1("IopCreateArcNames failed: %lx\n", Status);
-        return FALSE;
-    }
+#ifndef _WINKD_
+    /* Read KDB Data */
+    KdbInit();
 
-    /* Mark the system boot partition */
-    if (!IopMarkBootPartition(LoaderBlock))
-    {
-        DPRINT1("IopMarkBootPartition failed!\n");
-        return FALSE;
-    }
-
-    /* The disk subsystem is initialized here and the SystemRoot is set too.
-     * We can finally load other drivers from the boot volume. */
-    PnPBootDriversInitialized = TRUE;
+    /* I/O is now setup for disk access, so phase 3 */
+    KdInitSystem(3, LoaderBlock);
+#endif
 
     /* Load system start drivers */
+    DPRINT("IoInitSystem: IopInitializeSystemDrivers()\n");
     IopInitializeSystemDrivers();
-    PnpSystemInit = TRUE;
 
     /* Reinitialize drivers that requested it */
+    DPRINT("IoInitSystem: Reinitialize drivers\n");
     IopReinitializeDrivers();
 
     /* Convert SystemRoot from ARC to NT path */
+    DPRINT("IoInitSystem: Convert SystemRoot from ARC to NT path\n");
     Status = IopReassignSystemRoot(LoaderBlock, &NtBootPath);
     if (!NT_SUCCESS(Status))
     {
@@ -619,6 +538,7 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     }
 
     /* Assign drive letters */
+    DPRINT("IoInitSystem: Assign drive letters\n");
     IoAssignDriveLetters(LoaderBlock,
                          &NtBootPath,
                          (PUCHAR)RootString.Buffer,
@@ -632,7 +552,8 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
         return FALSE;
     }
 
-    /* Load the System DLL and its entrypoints */
+    /* Load the System DLL and its Entrypoints */
+    DPRINT("IoInitSystem: Load the System DLL and its Entrypoints\n");
     Status = PsLocateSystemDll();
     if (!NT_SUCCESS(Status))
     {
@@ -641,6 +562,7 @@ IoInitSystem(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     }
 
     /* Return success */
+    DPRINT("IoInitSystem: return TRUE\n");
     return TRUE;
 }
 
