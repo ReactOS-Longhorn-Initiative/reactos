@@ -45,6 +45,11 @@ PWCHAR HalHardwareIdString = L"acpipic_up";
 PWCHAR HalName = L"ACPI Compatible Eisa/Isa HAL";
 
 /* PRIVATE FUNCTIONS **********************************************************/
+NTSTATUS
+NTAPI
+HaliInitPowerManagement(
+    _In_ PPM_DISPATCH_TABLE PmDriverDispatchTable,
+    _Out_ PPM_DISPATCH_TABLE* PmHalDispatchTable);
 
 PDESCRIPTION_HEADER
 NTAPI
@@ -768,8 +773,8 @@ HalpAcpiTableCacheInit(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 
 VOID
 NTAPI
-HaliAcpiTimerInit(IN ULONG TimerPort,
-                  IN ULONG TimerValExt)
+HaliAcpiTimerInit(    _In_ PULONG TimerPort,
+                   _In_ BOOLEAN TimerValExt)
 {
     PAGED_CODE();
 
@@ -777,7 +782,7 @@ HaliAcpiTimerInit(IN ULONG TimerPort,
     if (!TimerPort)
     {
         /* Get the data from the FADT */
-        TimerPort = HalpFixedAcpiDescTable.pm_tmr_blk_io_port;
+        //*TimerPort = HalpFixedAcpiDescTable.pm_tmr_blk_io_port;
         TimerValExt = HalpFixedAcpiDescTable.flags & ACPI_TMR_VAL_EXT;
         DPRINT1("ACPI Timer at: %lXh (EXT: %lu)\n", TimerPort, TimerValExt);
     }
@@ -902,6 +907,8 @@ HalpSetupAcpiPhase0(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
         }
         DbgPrint("\n");
     }
+
+    HalInitPowerManagement = HaliInitPowerManagement;
 
     /* Return success */
     return STATUS_SUCCESS;
