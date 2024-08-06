@@ -27,7 +27,7 @@ extern PVOID HalpAPEntry32;
 extern PVOID HalpAPEntry16End;
 extern HALP_APIC_INFO_TABLE HalpApicInfoTable;
 
-ULONG HalpStartedProcessorCount = 1;
+ULONG HalpStartedProcessorCount = 0;
 
 #ifndef Add2Ptr
 #define Add2Ptr(P,I) ((PVOID)((PUCHAR)(P) + (I)))
@@ -82,6 +82,8 @@ HalpSetupTemporaryMappings(
     return (ULONG)PhysicalAddress.QuadPart;
 }
 
+extern PPROCESSOR_IDENTITY HalpProcessorIdentity;
+
 BOOLEAN
 NTAPI
 HalStartNextProcessor(
@@ -91,6 +93,11 @@ HalStartNextProcessor(
     if (HalpStartedProcessorCount == HalpApicInfoTable.ProcessorCount)
         return FALSE;
 
+    if (HalpProcessorIdentity[HalpStartedProcessorCount].BSPCheck == TRUE)
+    {
+        // SKIP the BSP
+        HalpStartedProcessorCount++;
+    }
     // Initalize the temporary page table
     // TODO: clean it up after an AP boots successfully
     ULONG initialCr3 = HalpSetupTemporaryMappings(ProcessorState);

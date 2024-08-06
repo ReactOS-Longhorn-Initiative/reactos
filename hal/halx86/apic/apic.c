@@ -24,6 +24,12 @@
 
 /* GLOBALS ********************************************************************/
 
+ULONG
+HalpReturnBSPID()
+{
+    return ApicRead(APIC_ID);
+}
+
 ULONG ApicVersion;
 UCHAR HalpVectorToIndex[256];
 

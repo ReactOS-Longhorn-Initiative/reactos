@@ -42,12 +42,13 @@ HALP_APIC_INFO_TABLE HalpApicInfoTable;
 // Bits 2-31 are reserved.
 
 static PROCESSOR_IDENTITY HalpStaticProcessorIdentity[MAXIMUM_PROCESSORS];
-const PPROCESSOR_IDENTITY HalpProcessorIdentity = HalpStaticProcessorIdentity;
+PPROCESSOR_IDENTITY HalpProcessorIdentity; 
 
 #if 0
 extern ULONG HalpPicVectorRedirect[16];
 #endif
-
+ULONG
+HalpReturnBSPID();
 /* FUNCTIONS ******************************************************************/
 
 // Note: HalpParseApicTables() is called early, so its DPRINT*() do nothing.
@@ -58,7 +59,7 @@ HalpParseApicTables(
     ACPI_TABLE_MADT *MadtTable;
     ACPI_SUBTABLE_HEADER *AcpiHeader;
     ULONG_PTR TableEnd;
-
+    HalpProcessorIdentity = HalpStaticProcessorIdentity;
     MadtTable = HalAcpiGetTable(LoaderBlock, APIC_SIGNATURE);
     if (!MadtTable)
     {
@@ -152,7 +153,11 @@ HalpParseApicTables(
                 HalpProcessorIdentity[HalpApicInfoTable.ProcessorCount].ProcessorId =
                     LocalApic->ProcessorId;
                 HalpProcessorIdentity[HalpApicInfoTable.ProcessorCount].LapicId = LocalApic->Id;
-
+                if (LocalApic->Id == HalpReturnBSPID())
+                {
+                    HalpProcessorIdentity[HalpApicInfoTable.ProcessorCount].BSPCheck = TRUE;
+                    HalpProcessorIdentity[HalpApicInfoTable.ProcessorCount].ProcessorStarted = TRUE;
+                }
                 HalpApicInfoTable.ProcessorCount++;
 
                 break;

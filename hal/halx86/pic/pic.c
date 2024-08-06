@@ -18,6 +18,11 @@ HalpEndSoftwareInterrupt(IN KIRQL OldIrql,
                          IN PKTRAP_FRAME TrapFrame);
 
 /* GLOBALS ********************************************************************/
+ULONG
+HalpReturnBSPID()
+{
+    return 0;
+}
 
 #ifndef _MINIHAL_
 /*
