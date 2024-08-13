@@ -49,7 +49,7 @@ NTAPI
 IopInitializeArbiters(VOID)
 {
     NTSTATUS Status;
-
+    DPRINT1("IopInitializeArbiters: Called\n");
     Status = IopPortInitialize();
     if (!NT_SUCCESS(Status))
     {
