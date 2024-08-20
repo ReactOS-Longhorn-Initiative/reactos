@@ -147,6 +147,217 @@ HalpAddDevice(IN PDRIVER_OBJECT DriverObject,
     return Status;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOID
+NTAPI
+HalTranslatorDereference(
+    _In_ PVOID Context)
+{
+    ;
+}
+
+
+
+NTSTATUS
+NTAPI 
+HalIrqTranslateResourceRequirementsRoot(
+    _Inout_opt_ PVOID Context,
+    _In_ PIO_RESOURCE_DESCRIPTOR InIoDesc,
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _Out_ PULONG OutIoDescCount,
+    _Out_ PIO_RESOURCE_DESCRIPTOR* OutIoDesc)
+{
+    PIO_RESOURCE_DESCRIPTOR IoDesc;
+    BUS_HANDLER BusHandler;
+    ULONG Vector;
+    KAFFINITY Affinity;
+    KIRQL Irql;
+    BOOLEAN Result = TRUE;
+
+    DPRINT("HalIrqTranslateResourceRequirementsRoot: [In] Min %X, Max %X\n",
+           InIoDesc->u.Interrupt.MinimumVector, InIoDesc->u.Interrupt.MaximumVector);
+
+    PAGED_CODE();
+    ASSERT(InIoDesc->Type == CmResourceTypeInterrupt);
+
+
+    RtlCopyMemory(&BusHandler, &HalpFakePciBusHandler, sizeof(BusHandler));
+    BusHandler.InterfaceType = Isa;
+    BusHandler.ParentHandler = &BusHandler;
+
+    IoDesc = ExAllocatePoolWithTag(PagedPool, sizeof(IO_RESOURCE_DESCRIPTOR), TAG_HAL);
+    *OutIoDesc = IoDesc;
+    if (!IoDesc)
+    {
+        DPRINT1("HalIrqTranslateResourceRequirementsRoot: STATUS_INSUFFICIENT_RESOURCES\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    *OutIoDescCount = 1;
+    RtlCopyMemory(*OutIoDesc, InIoDesc, sizeof(IO_RESOURCE_DESCRIPTOR));
+
+    Vector = HalpGetRootInterruptVector(
+                                          InIoDesc->u.Interrupt.MinimumVector,
+                                          InIoDesc->u.Interrupt.MinimumVector,
+                                          &Irql,
+                                          &Affinity);
+    if (!Vector)
+        Result = FALSE;
+
+    (*OutIoDesc)->u.Interrupt.MinimumVector = Vector;
+
+    Vector = HalpGetRootInterruptVector(
+                                          InIoDesc->u.Interrupt.MaximumVector,
+                                          InIoDesc->u.Interrupt.MaximumVector,
+                                          &Irql,
+                                          &Affinity);
+    if (!Vector)
+        Result = FALSE;
+
+    (*OutIoDesc)->u.Interrupt.MaximumVector = Vector;
+
+    DPRINT("HalIrqTranslateResourceRequirementsRoot: [Out] Min %X, Max %X\n",
+           (*OutIoDesc)->u.Interrupt.MinimumVector, (*OutIoDesc)->u.Interrupt.MaximumVector);
+
+    if (Result)
+        return STATUS_TRANSLATION_COMPLETE;
+
+    DPRINT1("HalIrqTranslateResourceRequirementsRoot: Result is FALSE\n");
+    ASSERT(FALSE);
+
+    ExFreePoolWithTag(*OutIoDesc, TAG_HAL);
+    *OutIoDescCount = 0;
+
+    return STATUS_TRANSLATION_COMPLETE;
+}
+
+
+NTSTATUS
+NTAPI
+HalIrqTranslateResourcesRoot(
+   _Inout_opt_ PVOID Context,
+   _In_ PCM_PARTIAL_RESOURCE_DESCRIPTOR Source,
+   _In_ RESOURCE_TRANSLATION_DIRECTION Direction,
+   _In_opt_ ULONG AlternativesCount,
+   _In_opt_ IO_RESOURCE_DESCRIPTOR Alternatives[],
+   _In_ PDEVICE_OBJECT PhysicalDeviceObject,
+   _Out_ PCM_PARTIAL_RESOURCE_DESCRIPTOR Target)
+{
+    BUS_HANDLER BusHandler;
+    ULONG SystemVector;
+   // ULONG Level;
+    KIRQL Irql;
+    KAFFINITY Affinity;
+
+    DPRINT("HalIrqTranslateResourcesRoot: %X, %X\n", Source->u.Interrupt.Vector, Source->u.Interrupt.Level);
+
+    PAGED_CODE();
+    ASSERT(Source->Type == CmResourceTypeInterrupt);
+
+    if (Direction == TranslateChildToParent)
+    {
+        RtlCopyMemory(&BusHandler, &HalpFakePciBusHandler, sizeof(BusHandler));
+        RtlCopyMemory(Target, Source, sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR));
+
+        BusHandler.ParentHandler = &BusHandler;
+        BusHandler.InterfaceType = Isa;
+
+        SystemVector = HalpGetRootInterruptVector(Source->u.Interrupt.Level,
+                                                  Source->u.Interrupt.Vector,
+                                                  &Irql,
+                                                  &Affinity);
+        if (!SystemVector)
+        {
+            DPRINT1("HalIrqTranslateResourcesRoot: SystemVector is 0\n");
+            ASSERT(FALSE); // HalpDbgBreakPointEx();
+            return STATUS_UNSUCCESSFUL;
+        }
+
+        Target->u.Interrupt.Affinity = Affinity;
+        Target->u.Interrupt.Vector = SystemVector;
+        Target->u.Interrupt.Level = Irql;
+
+        DPRINT("HalIrqTranslateResourcesRoot: %X, %X\n", SystemVector, Irql);
+
+        return STATUS_TRANSLATION_COMPLETE;
+    }
+
+    if (Direction != TranslateParentToChild)
+    {
+        DPRINT1("HalIrqTranslateResourcesRoot: Direction %X\n", Direction);
+        ASSERT(FALSE); // HalpDbgBreakPointEx();
+        return STATUS_INVALID_PARAMETER;
+    }
+#if 0
+    RtlCopyMemory(Target, Source, sizeof(CM_PARTIAL_RESOURCE_DESCRIPTOR));
+
+    Level = HalpInti2BusInterruptLevel(HalpVectorToINTI[Source->u.Interrupt.Vector]);
+
+    Target->u.Interrupt.Affinity = 0xFFFFFFFF;
+    Target->u.Interrupt.Vector = Level;
+    Target->u.Interrupt.Level = Level;
+#endif
+    __debugbreak();
+    // DPRINT("HalIrqTranslateResourcesRoot: Vector %X, Level %X\n", Level, Level);
+
+    return STATUS_SUCCESS;
+}
+
+
+
 NTSTATUS
 NTAPI
 HalpQueryInterface(IN PDEVICE_OBJECT DeviceObject,
@@ -157,24 +368,49 @@ HalpQueryInterface(IN PDEVICE_OBJECT DeviceObject,
                    IN PINTERFACE Interface,
                    OUT PULONG Length)
 {
-    if (IsEqualIID(InterfaceType, &GUID_ACPI_REGS_INTERFACE_STANDARD))
+    PTRANSLATOR_INTERFACE TranslatorInterface = (PTRANSLATOR_INTERFACE)Interface;
+    UNICODE_STRING  GuidString;
+    NTSTATUS Status;
+
+    DPRINT("HalpQueryInterface: [%p] Size %X, Data %X\n", DeviceObject, InterfaceBufferSize, InterfaceSpecificData);
+
+    Status = RtlStringFromGUID(InterfaceType, &GuidString);
+    ASSERT(NT_SUCCESS(Status));
+
+    DPRINT("HalpQueryInterface: Guid '%wZ', Version %X, Interface %p\n", &GuidString, Version, Interface);
+
+    if (RtlCompareMemory(&GUID_TRANSLATOR_INTERFACE_STANDARD, InterfaceType, sizeof(GUID)) != sizeof(GUID))
     {
-        DPRINT1("HalpQueryInterface(GUID_ACPI_REGS_INTERFACE_STANDARD) is UNIMPLEMENTED\n");
+        DPRINT("HalpQueryInterface: STATUS_NOT_SUPPORTED\n");
+        return STATUS_NOT_SUPPORTED;
     }
-    else if (IsEqualIID(InterfaceType, &GUID_ACPI_PORT_RANGES_INTERFACE_STANDARD))
+
+    if (InterfaceBufferSize < sizeof(TRANSLATOR_INTERFACE))
     {
-        DPRINT1("HalpQueryInterface(GUID_ACPI_PORT_RANGES_INTERFACE_STANDARD) is UNIMPLEMENTED\n");
+        DPRINT("Return STATUS_BUFFER_TOO_SMALL\n");
+        *Length = sizeof(TRANSLATOR_INTERFACE);
+        return STATUS_BUFFER_TOO_SMALL;
     }
-    else
+
+    if (InterfaceSpecificData != ULongToPtr(2))
     {
-        DPRINT1("HalpQueryInterface({%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}) is UNIMPLEMENTED\n",
-                InterfaceType->Data1, InterfaceType->Data2, InterfaceType->Data3,
-                InterfaceType->Data4[0], InterfaceType->Data4[1],
-                InterfaceType->Data4[2], InterfaceType->Data4[3],
-                InterfaceType->Data4[4], InterfaceType->Data4[5],
-                InterfaceType->Data4[6], InterfaceType->Data4[7]);
+        DPRINT("InterfaceSpecificData != ULongToPtr(2)\n");
+        return STATUS_NOT_SUPPORTED;
     }
-    return STATUS_NOT_SUPPORTED;
+
+    TranslatorInterface->Version = 0;
+    TranslatorInterface->Size = sizeof(TRANSLATOR_INTERFACE);
+    TranslatorInterface->Context = DeviceObject;
+
+    TranslatorInterface->InterfaceReference = HalTranslatorDereference;
+    TranslatorInterface->InterfaceDereference = HalTranslatorDereference;
+
+    TranslatorInterface->TranslateResources = HalIrqTranslateResourcesRoot;
+    TranslatorInterface->TranslateResourceRequirements = HalIrqTranslateResourceRequirementsRoot;
+
+    *Length = sizeof(TRANSLATOR_INTERFACE);
+
+    return STATUS_SUCCESS;
 }
 
 NTSTATUS

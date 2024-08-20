@@ -82,4 +82,4 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/drivers/)
         add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/drivers/${item} DESTINATION reactos/system32/drivers NO_CAB NAME_ON_CD ${item} FOR all)
     endforeach(item)
 endif()
-#
+##
