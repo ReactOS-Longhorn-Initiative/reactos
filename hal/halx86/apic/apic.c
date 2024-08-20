@@ -22,6 +22,7 @@
 #define APIC_LAZY_IRQL
 #endif
 
+extern ULONG HalpPicVectorRedirect[];
 /* GLOBALS ********************************************************************/
 
 ULONG
@@ -505,7 +506,8 @@ ApicInitializeIOApic(VOID)
     }
 
     /* Enable the timer interrupt (but keep it masked) */
-    ReDirReg.Vector = APIC_CLOCK_VECTOR;
+    //We're using HalpPicVectorRedirect, as this SHOULDNT happen... but can
+    ReDirReg.Vector = HalpPicVectorRedirect[APIC_CLOCK_INDEX];
     ReDirReg.MessageType = APIC_MT_Fixed;
     ReDirReg.DestinationMode = APIC_DM_Physical;
     ReDirReg.TriggerMode = APIC_TGM_Edge;
@@ -533,7 +535,7 @@ HalpInitializePICs(IN BOOLEAN EnableInterrupts)
     /* Manually reserve some vectors */
     HalpVectorToIndex[APC_VECTOR] = APIC_RESERVED_VECTOR;
     HalpVectorToIndex[DISPATCH_VECTOR] = APIC_RESERVED_VECTOR;
-    HalpVectorToIndex[APIC_CLOCK_VECTOR] = 8;
+    HalpVectorToIndex[APIC_CLOCK_VECTOR] = 8; // IRQ 8
     HalpVectorToIndex[CLOCK_IPI_VECTOR] = APIC_RESERVED_VECTOR;
     HalpVectorToIndex[APIC_SPURIOUS_VECTOR] = APIC_RESERVED_VECTOR;
 

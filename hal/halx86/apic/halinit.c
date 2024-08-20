@@ -42,6 +42,8 @@ HalpInitProcessor(
     //ApicInitializeTimer(ProcessorNumber);
 }
 
+extern HALP_APIC_INFO_TABLE HalpApicInfoTable;
+
 VOID
 HalpInitPhase0(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 {
@@ -50,7 +52,7 @@ HalpInitPhase0(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
             (HalpBuildType & PRCB_BUILD_DEBUG) ? "DBG" : "REL");
 
     HalpPrintApicTables();
-
+    DPRINT1("IOAPIC COunt %X\n",HalpApicInfoTable.IOAPICCount);
     /* Enable clock interrupt handler */
     HalpEnableInterruptHandler(IDT_INTERNAL,
                                0,

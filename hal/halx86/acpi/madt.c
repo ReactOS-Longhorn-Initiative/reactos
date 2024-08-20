@@ -44,7 +44,7 @@ HALP_APIC_INFO_TABLE HalpApicInfoTable;
 static PROCESSOR_IDENTITY HalpStaticProcessorIdentity[MAXIMUM_PROCESSORS];
 PPROCESSOR_IDENTITY HalpProcessorIdentity; 
 
-#if 0
+#if 1
 extern ULONG HalpPicVectorRedirect[16];
 #endif
 ULONG
@@ -211,9 +211,12 @@ HalpParseApicTables(
                     return;
                 }
 
-#if 1
-                // TODO: Implement it.
-#else // TODO: Is that correct?
+                /*
+                 * THese values represent the concept of PIC IRQs versus APIC IRQs in x86.
+                 * The interrupt override takes the source IRQ and gives you the all true REAL IRQ.
+                 * This due to x86 being a backwards compatibility mess and systems having to support the dual PIC system. (Gross)
+                 */
+
                 if (InterruptOverride->SourceIrq > _countof(HalpPicVectorRedirect))
                 {
                     DPRINT01("Invalid SourceIrq: %p, %u\n",
@@ -224,8 +227,6 @@ HalpParseApicTables(
                 // Note: GlobalIrq is not validated in any way (yet).
                 HalpPicVectorRedirect[InterruptOverride->SourceIrq] = InterruptOverride->GlobalIrq;
                 // TODO: What about 'InterruptOverride->IntiFlags'?
-#endif
-
                 break;
             }
             default:

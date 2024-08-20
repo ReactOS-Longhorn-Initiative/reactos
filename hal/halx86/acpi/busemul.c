@@ -230,6 +230,9 @@ HalGetBusDataByOffset(IN BUS_DATA_TYPE BusDataType,
 /*
  * @implemented
  */
+#define HAL_PIC_VECTORS  16
+
+extern ULONG HalpPicVectorRedirect[];
 ULONG
 NTAPI
 HalGetInterruptVector(IN INTERFACE_TYPE InterfaceType,
@@ -239,9 +242,39 @@ HalGetInterruptVector(IN INTERFACE_TYPE InterfaceType,
                       OUT PKIRQL Irql,
                       OUT PKAFFINITY Affinity)
 {
+
+    ULONG Vector;
+    ULONG Level;
+
+    if (InterfaceType == Isa)
+    {
+        if (BusInterruptVector >= HAL_PIC_VECTORS)
+        {
+            DPRINT1("HalGetInterruptVector: BusInterruptVector %X\n", BusInterruptVector);
+            ASSERT(BusInterruptVector < HAL_PIC_VECTORS); // DbgBreakPoint();
+        }
+
+        Vector = HalpPicVectorRedirect[BusInterruptVector];
+        Level = HalpPicVectorRedirect[BusInterruptLevel];
+    }
+    else
+    {
+        Vector = BusInterruptVector;
+        Level = BusInterruptLevel;
+    }
+
+    if (Level > 0x1F || Vector > 0x1F)
+    {
+
+        //TODO: This is a hack, we have memory corruption due to Level and vector not having a override
+        // for EVERY entry
+        Level = BusInterruptLevel;
+        Vector = BusInterruptVector;
+    }
+
     /* Call the system bus translator */
-    return HalpGetRootInterruptVector(BusInterruptLevel,
-                                      BusInterruptVector,
+    return HalpGetRootInterruptVector(Level,
+                                      Vector,
                                       Irql,
                                       Affinity);
 }
