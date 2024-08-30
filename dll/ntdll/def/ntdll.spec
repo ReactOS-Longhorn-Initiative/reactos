@@ -69,7 +69,7 @@
 @ stub -version=0x600+ EtwEnumerateProcessRegGuids
 @ stdcall -stub -version=0x502 EtwEnumerateTraceGuids(ptr long ptr)
 @ stub -version=0x600+ EtwEventActivityIdControl
-@ stub -version=0x600+ EtwEventEnabled
+@ stdcall -version=0x600+ EtwEventEnabled(ptr ptr)
 @ stub -version=0x600+ EtwEventProviderEnabled
 @ stub -version=0x600+ EtwEventRegister
 @ stub -version=0x600+ EtwEventUnregister
@@ -1071,7 +1071,7 @@
 @ stub -version=0x600+ RtlQueryCriticalSectionOwner
 @ stdcall RtlQueryDepthSList(ptr)
 @ stub -version=0x600+ RtlQueryDynamicTimeZoneInformation
-@ stub -version=0x600+ RtlQueryElevationFlags
+@ stdcall -version=0x600+ RtlQueryElevationFlags(ptr)
 @ stub -version=0x600+ RtlQueryEnvironmentVariable
 @ stdcall RtlQueryEnvironmentVariable_U(ptr ptr ptr)
 @ stdcall RtlQueryHeapInformation(long long ptr long ptr)

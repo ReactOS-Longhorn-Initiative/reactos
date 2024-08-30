@@ -1224,13 +1224,10 @@ typedef struct _ETHREAD
            ULONG OwnsSystemWorkingSetShared:1;
            ULONG OwnsSessionWorkingSetExclusive:1;
            ULONG OwnsSessionWorkingSetShared:1;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
            ULONG SuppressSymbolLoad:1;
            ULONG Spare1:3;
            ULONG PriorityRegionActive:4;
-#else
            ULONG ApcNeeded:1;
-#endif
         };
         ULONG SameThreadApcFlags;
     };

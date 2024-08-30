@@ -36,6 +36,7 @@ add_executable(ntoskrnl
     ${NTOSKRNL_SOURCE}
     ${PCH_SKIP_SOURCE}
     ntoskrnl.rc
+    ${CMAKE_CURRENT_BINARY_DIR}/ntoskrnl_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/ntoskrnl.def)
 set_module_type(ntoskrnl kernel)
 

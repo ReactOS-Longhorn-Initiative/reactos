@@ -12,6 +12,9 @@
 
 #include <rtl.h>
 
+#include <evntprov.h>
+#include <setypes.h>
+
 #define NDEBUG
 #include <debug.h>
 
@@ -509,4 +512,52 @@ RtlRosGetAppcompatVersion(VOID)
 
     /* Calculate OS version from PEB fields */
     return (Peb->OSMajorVersion << 8) | Peb->OSMinorVersion;
+}
+
+BOOLEAN
+NTAPI
+EtwEventEnabled(REGHANDLE RegHandle,
+                PCEVENT_DESCRIPTOR EventDescriptor)
+{
+    UNIMPLEMENTED;
+    return FALSE;
+}
+
+NTSTATUS
+NTAPI
+EtwRegister(LPCGUID ProviderId,
+            PVOID EnableCallback, // PETWENABLECALLBACK
+            PVOID CallbackContext,
+            PREGHANDLE RegHandle)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+EtwUnregister(REGHANDLE RegHandle)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+EtwWrite(REGHANDLE RegHandle,
+         PCEVENT_DESCRIPTOR EventDescriptor,
+         LPCGUID ActivityId,
+         ULONG UserDataCount,
+         PEVENT_DATA_DESCRIPTOR UserData)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+RtlQueryElevationFlags(DWORD* pFlags)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
 }

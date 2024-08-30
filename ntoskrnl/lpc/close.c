@@ -459,4 +459,44 @@ LpcpDeletePort(IN PVOID ObjectBody)
     LPCTRACE(LPC_CLOSE_DEBUG, "Port: %p deleted\n", Port);
 }
 
+NTSTATUS
+NTAPI
+NtAlpcCancelMessage(_In_ HANDLE PortHandle,
+                    _In_ ULONG Flags,
+                    _In_ PVOID MessageContext) // PALPC_CONTEXT_ATTR
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcDeletePortSection(_In_ HANDLE PortHandle,
+                        _Reserved_ ULONG Flags,
+                        _In_ PVOID SectionHandle) // ALPC_HANDLE
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcDeleteSectionView(_In_ HANDLE PortHandle,
+                        _Reserved_ ULONG Flags,
+                        _In_ PVOID ViewBase)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+NtAlpcDeleteSecurityContext(_In_ HANDLE PortHandle,
+                            _Reserved_ ULONG Flags,
+                            _In_ PVOID ContextHandle) // ALPC_HANDLE
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
+
 /* EOF */

@@ -1459,3 +1459,13 @@ KeTerminateThread(IN KPRIORITY Increment)
     KiReleaseDispatcherLockFromSynchLevel();
     KiSwapThread(Thread, KeGetCurrentPrcb());
 }
+
+NTSTATUS
+NTAPI
+KeExpandKernelStackAndCallout(_In_ PEXPAND_STACK_CALLOUT Callout,
+                              _In_opt_ PVOID Parameter,
+                              _In_ SIZE_T Size)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_IMPLEMENTED;
+}
