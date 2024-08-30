@@ -1,0 +1,72 @@
+ 
+;
+;  Copyright 2003 Microsoft Corporation, All rights reserved.
+;
+; uaspstor.inf - Install Microsoft UAS host driver
+;
+
+[Version]
+Signature="$Windows NT$"
+Class=SCSIAdapter
+ClassGUID={4D36E97B-E325-11CE-BFC1-08002BE10318}
+Provider=%MSFT%
+DriverVer=06/21/2006,6.2.8250.0
+
+[SourceDisksNames]
+3426=windows cd
+
+[SourceDisksFiles]
+uaspstor.sys        = 3426
+
+[Manufacturer]
+%Generic.Mfg%=Generic,NTx86
+
+[Generic]
+%Generic.DeviceDesc%=UASPort_Install_Control, USB\Class_08&SubClass_06&Prot_62
+
+[Generic.NTx86]         
+%Generic.DeviceDesc%=UASPort_Install_Control, USB\Class_08&SubClass_06&Prot_62
+
+[DestinationDirs]
+UASPort_DriverCopy=12             ; system32\drivers
+
+; =================== iScsiPort ================================
+
+[UASPort_Install_Control]         
+CopyFiles=UASPort_DriverCopy
+AddReg=UASPort_DriverAddReg
+
+[UASPort_Install_Control.HW]
+AddReg=UASPort_DeviceAddReg
+
+[UASPort_Install_Control.Services]        
+AddService=UASPStor,2,UASPort_DriverInstallSection
+
+[UASPort_DriverCopy]          
+uaspstor.sys,,,0x100
+
+[UASPort_DriverAddReg]
+
+[UASPort_DriverInstallSection]
+DisplayName=%UASPortName%
+ServiceType    = 1      ;SERVICE_KERNEL_DRIVER
+StartType      = 0      ;SERVICE_DEMAND_START
+ErrorControl   = 1      ;SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\uaspstor.sys
+AddReg         = UASPort_ServiceAddReg
+
+[UASPort_ServiceAddReg]
+HKR,Parameters,BusType,0x00010001,0x0000007
+HKR,,BootFlags,0x00010003,0x00000014	;CM_SERVICE_USB3_DISK_BOOT_LOAD | CM_SERVICE_USB_DISK_BOOT_LOAD
+
+[UASPort_DeviceAddReg]
+HKR,StorPort,EnableIdlePowerManagement,0x00010001,1
+
+[Strings]
+;Localizable
+MSFT="Microsoft"
+UASPortName="USB Attached SCSI (UAS) Driver"
+Generic.Mfg     = "USB Attached SCSI (UAS) Compatible Device"
+Generic.DeviceDesc = "USB Attached SCSI (UAS) Mass Storage Device"
+
+
