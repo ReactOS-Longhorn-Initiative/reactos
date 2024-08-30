@@ -19,11 +19,9 @@ ExcludeFromSelect = *
 DefaultDestDir    = 12
 
 [Manufacturer]
-%Generic.Mfg%=Generic,NTamd64
+%Generic.Mfg%=Generic
 
-; - HUB3 Controllers -
-
-[Generic.NTamd64]
+[Generic]
 %UsbHub3.RootHubDeviceDesc%=Generic.Install, USB\ROOT_HUB30
 %UsbHub3.Usb30HubDesc%=Generic.Install, USB\USB30_HUB
 %UsbHub3.Usb20HubDesc%=Generic.Install, USB\USB20_HUB
