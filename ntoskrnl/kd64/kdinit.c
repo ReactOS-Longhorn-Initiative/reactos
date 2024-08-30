@@ -359,6 +359,10 @@ KdInitSystem(
     if (EnableKd && (NT_SUCCESS(KdDebuggerInitialize0(LoaderBlock))))
     {
         FrLdrDbgPrint("Success\n");
+        for(;;)
+        {
+            
+        }
         /* Now set our real KD routine */
         KiDebugRoutine = KdpTrap;
 

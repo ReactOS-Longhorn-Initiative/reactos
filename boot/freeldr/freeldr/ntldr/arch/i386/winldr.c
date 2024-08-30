@@ -390,9 +390,9 @@ void WinLdrSetupMachineDependent(PLOADER_PARAMETER_BLOCK LoaderBlock)
     ULONG_PTR Tss = 0;
     ULONG BlockSize, NumPages;
 
-    LoaderBlock->u.I386.CommonDataArea = NULL; // Force No ABIOS support
+    LoaderBlock->u.I386.CommonDataArea = (PVOID)DbgPrint; // Force No ABIOS support
     LoaderBlock->u.I386.MachineType = WinLdrDetectMachineType();
-
+        DbgPrint("Loading LoaderBlock\n");
     /* Allocate 2 pages for PCR: one for the boot processor PCR and one for KI_USER_SHARED_DATA */
     Pcr = (ULONG_PTR)MmAllocateMemoryWithType(2 * MM_PAGE_SIZE, LoaderStartupPcrPage);
     PcrBasePage = Pcr >> MM_PAGE_SHIFT;

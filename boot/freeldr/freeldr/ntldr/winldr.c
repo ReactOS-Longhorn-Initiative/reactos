@@ -1262,10 +1262,10 @@ LoadAndBootWindowsCommon(
 
     /* Save final value of LoaderPagesSpanned */
     LoaderBlock->Extension->LoaderPagesSpanned = LoaderPagesSpanned;
-
-    TRACE("Hello from paged mode, KiSystemStartup %p, LoaderBlockVA %p!\n",
+         DbgPrint("Loading LoaderBlock\n");
+    DbgPrint("Hello from paged mode, KiSystemStartup %p, LoaderBlockVA %p!\n",
           KiSystemStartup, LoaderBlockVA);
-
+    
     /* Zero KI_USER_SHARED_DATA page */
     RtlZeroMemory((PVOID)KI_USER_SHARED_DATA, MM_PAGE_SIZE);
 
@@ -1274,7 +1274,7 @@ LoadAndBootWindowsCommon(
 #ifndef _M_AMD64
     WinLdrpDumpArcDisks(LoaderBlockVA);
 #endif
-
+    DbgPrint("Passuing to kjernel\n");
     /* Pass control */
     (*KiSystemStartup)(LoaderBlockVA);
 

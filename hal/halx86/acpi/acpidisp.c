@@ -40,18 +40,22 @@ NTAPI
 HaliSetWakeEnable(
     _In_ BOOLEAN Enable)
 {
-    UNIMPLEMENTED;
-    ASSERT(FALSE);// HalpDbgBreakPointEx();
+    for(;;)
+    {
+
+    }
 }
 
 VOID
 NTAPI
 HaliSetWakeAlarm(
     _In_ ULONGLONG AlartTime,
-    _In_ PTIME_FIELDS WakeTimeFields)
+    _In_ ULONGLONG WakeTimeFields)
 {
-    UNIMPLEMENTED;
-    ASSERT(FALSE);// HalpDbgBreakPointEx();
+    for(;;)
+    {
+        
+    }
 }
 
 /* halfplemented */
@@ -92,8 +96,8 @@ ULONG
 NTAPI
 HaliAcpiQueryFlags(VOID)
 {
-    UNIMPLEMENTED;
-    ASSERT(FALSE);// HalpDbgBreakPointEx();
+   // UNIMPLEMENTED;
+   // ASSERT(FALSE);// HalpDbgBreakPointEx();
     return 0;
 }
 
@@ -101,8 +105,8 @@ UCHAR
 NTAPI
 HalpAcpiPicStateIntact(VOID)
 {
-    UNIMPLEMENTED;
-    ASSERT(FALSE);// HalpDbgBreakPointEx();
+   // UNIMPLEMENTED;
+   // ASSERT(FALSE);// HalpDbgBreakPointEx();
     return 0;
 }
 
@@ -110,8 +114,8 @@ VOID
 NTAPI
 HalpRestoreInterruptControllerState(VOID)
 {
-    UNIMPLEMENTED;
-    ASSERT(FALSE);// HalpDbgBreakPointEx();
+   // UNIMPLEMENTED;
+   // ASSERT(FALSE);// HalpDbgBreakPointEx();
 }
 
 VOID

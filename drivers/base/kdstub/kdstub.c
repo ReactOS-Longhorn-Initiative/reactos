@@ -11,11 +11,28 @@
 
 NTSTATUS
 NTAPI
+KdGetRxPacket (
+    _In_ PVOID Adapter,
+    _Out_ PULONG Handle,
+    _Out_ PVOID *Packet,
+    _Out_ PULONG Length
+
+)
+{
+
+}
+
+NTSTATUS
+NTAPI
 KdInitializeLibrary(
     _In_ PKDNET_EXTENSIBILITY_IMPORTS ImportTable,
     _In_opt_ PCHAR LoaderOptions,
     _Inout_ PDEBUG_DEVICE_DESCRIPTOR Device)
 {
+    for(;;)
+    {
+
+    }
     return STATUS_NOT_IMPLEMENTED;
 }
 

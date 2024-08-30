@@ -718,7 +718,7 @@ KiMarkPageAsReadOnly(
     /* Flush the TLB entry */
     __invlpg(Address);
 }
-
+ULONG (*FrLdrDbgPrint)(const char *Format, ...);
 CODE_SEG("INIT")
 DECLSPEC_NORETURN
 VOID
@@ -735,6 +735,9 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     PKIPCR Pcr;
     KIRQL DummyIrql;
 
+    /* HACK */
+    FrLdrDbgPrint = LoaderBlock->u.I386.CommonDataArea;
+    FrLdrDbgPrint("Hello from KiSystemStartup!!!\n");
     /* Boot cycles timestamp */
     BootCycles = __rdtsc();
 
