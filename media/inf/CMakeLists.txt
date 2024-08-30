@@ -9,6 +9,7 @@ list(APPEND INF_FILES
     fdc.inf
     flpydisk.inf
     hal.inf
+    hdaudio.inf
     hdc.inf
     input.inf
     keyboard.inf
