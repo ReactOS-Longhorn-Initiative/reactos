@@ -164,6 +164,7 @@ KeStallExecutionProcessor(ULONG MicroSeconds)
 
     /* Loop until time is elapsed */
     while (__rdtsc() < EndTime);
+    
 }
 
 VOID

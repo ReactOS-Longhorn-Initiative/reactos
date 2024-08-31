@@ -215,9 +215,10 @@ $if (_NTDDK_)
 
 #define PAUSE_PROCESSOR YieldProcessor();
 
-#define KERNEL_STACK_SIZE                   12288
+
+#define KERNEL_STACK_SIZE                   16384
 #define KERNEL_LARGE_STACK_SIZE             61440
-#define KERNEL_LARGE_STACK_COMMIT           12288
+#define KERNEL_LARGE_STACK_COMMIT           16384
 
 #define SIZE_OF_80387_REGISTERS   80
 

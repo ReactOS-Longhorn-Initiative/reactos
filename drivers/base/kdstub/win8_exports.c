@@ -52,6 +52,16 @@ KdStubDbgPrint(const char *Format, ...)
     return 0;
 }
 /* ***********************************************************************/
+
+#include "rt/pch.h"
+
+VOID
+KdSetHibernateRange (
+    VOID
+    )
+{
+    KdStubDbgPrint("KdReleaseRxPacket\n");
+}
 VOID
 NTAPI
 KdReleaseRxPacket(
@@ -85,9 +95,16 @@ NTAPI
 KdInitializeController(
     PVOID Adapter)
 {
+    NTSTATUS Status = 0;
+    KdStubDbgPrint("KdInitializeController: Enrty %X\n", Status);
+    Status = RealtekInitializeController(Adapter);
+    KdStubDbgPrint("KdInitializeController: Status %X\n", Status);
+    for(int i = 0; i < 1000000000000000; i++){}
+    for(;;)
+    {
 
-      KdStubDbgPrint("KdInitializeController\n");
-    return 0;
+    }
+    return Status;
 }
 
 NTSTATUS
@@ -133,6 +150,8 @@ KdGetRxPacket(
     return 0;
 }
 
+KDNET_EXTENSIBILITY_IMPORTS* KdNetExtensibilityImports;
+
 NTSTATUS
 NTAPI
 KdInitializeLibrary(
@@ -140,7 +159,9 @@ KdInitializeLibrary(
     _In_opt_ PCHAR LoaderOptions,
     _Inout_ PDEBUG_DEVICE_DESCRIPTOR Device)
 {
-    KdStubDbgPrint("testing Kd\n");
-    return 0;
-}
+    KdNetExtensibilityImports = ImportTable;
 
+    Device->Memory.Length = RealtekGetHardwareContextSize(Device);
+
+    return STATUS_SUCCESS;
+}

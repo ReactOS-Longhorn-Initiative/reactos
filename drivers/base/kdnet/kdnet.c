@@ -19,6 +19,69 @@ ULONG CurrentPacketId = INITIAL_PACKET_ID | SYNC_PACKET_ID;
 ULONG RemotePacketId  = INITIAL_PACKET_ID;
 PKDNET_EXTENSIBILITY_EXPORTS KdNetExtensibilityExports = NULL;
 
+
+VOID
+KdSetHibernateRange (
+    VOID
+    );
+
+VOID
+NTAPI
+KdReleaseRxPacket(
+    PVOID Adapter,
+    ULONG Handle);
+
+NTSTATUS
+NTAPI
+KdSendTxPacket(
+    PVOID Adapter,
+    ULONG Handle,
+    ULONG Length);
+
+VOID
+NTAPI
+KdShutdownController(
+    PVOID Adapter);
+
+NTSTATUS
+NTAPI
+KdInitializeController(
+    PVOID Adapter);
+
+NTSTATUS
+NTAPI
+KdGetTxPacket(
+    PVOID Adapter,
+    PULONG Handle);
+ULONG
+NTAPI
+KdGetPacketLength(
+    PVOID Adapter,
+    ULONG Handle);
+
+PVOID
+NTAPI
+KdGetPacketAddress(
+    PVOID Adapter,
+    ULONG Handle);
+
+NTSTATUS
+NTAPI
+KdGetRxPacket(
+    _In_ PVOID Adapter,
+    _Out_ PULONG Handle,
+    _Out_ PVOID *Packet,
+    _Out_ PULONG Length);
+
+NTSTATUS
+NTAPI
+KdInitializeLibrary(
+    _In_ PKDNET_EXTENSIBILITY_IMPORTS ImportTable,
+    _In_opt_ PCHAR LoaderOptions,
+    _Inout_ PDEBUG_DEVICE_DESCRIPTOR Device);
+
+
+
 /******************************************************************************
  * \name KdpCalculateChecksum
  * \brief Calculates the checksum for the packet data.
@@ -189,24 +252,62 @@ KdD3Transition(VOID)
     return STATUS_SUCCESS;
 }
 
+#include <ndk/halfuncs.h>
+NTSTATUS mKdNetErrorStatus;
+PUCHAR* mKdNetErrorString;
+UINT32 mKdNetHardwareID;
+PVOID DeviceContextBuffer;
+
+VOID
+NTAPI
+KeStallExecutionProcessorCooler(ULONG MicroSeconds)
+{
+    KeStallExecutionProcessor(1000);
+  
+}
 NTSTATUS
 NTAPI
 KdDebuggerInitialize0(IN PLOADER_PARAMETER_BLOCK LoaderBlock OPTIONAL)
 {
-    return STATUS_SUCCESS;
-}
+   KDNET_EXTENSIBILITY_IMPORTS ImportTable = {0};
+    DEBUG_DEVICE_DESCRIPTOR DeviceDesc = {0};
+    NTSTATUS Status;
+    ImportTable.FunctionCount = 30;
+    ImportTable.GetPciDataByOffset = KdGetPciDataByOffset;
+    ImportTable.SetPciDataByOffset = KdSetPciDataByOffset;
+    ImportTable.GetPhysicalAddress = MmGetPhysicalAddress;
+    ImportTable.StallExecutionProcessor = KeStallExecutionProcessor;
+    ImportTable.ReadRegisterUChar = READ_REGISTER_UCHAR;
+    ImportTable.ReadRegisterUShort = READ_REGISTER_USHORT;
+    ImportTable.ReadRegisterULong = READ_REGISTER_ULONG;
+   // ImportTable.ReadRegisterULong64 = READ_REGISTER_BUFFER_ULONG; //TODO: hack for 32bit
+    ImportTable.WriteRegisterUChar = WRITE_REGISTER_UCHAR;
+    ImportTable.WriteRegisterUShort = WRITE_REGISTER_USHORT;
+    ImportTable.WriteRegisterULong = WRITE_REGISTER_ULONG;
+ //   ImportTable.WriteRegisterULong64 = WRITE_REGISTER_ULONG;//TODO: hack for 32bit
+    ImportTable.ReadPortUChar = READ_PORT_UCHAR;
+    ImportTable.ReadPortUShort = READ_PORT_USHORT;
+    ImportTable.ReadPortULong = READ_PORT_ULONG;
+  //  ImportTable.ReadPortULong64 =  
+    ImportTable.WritePortUChar = WRITE_PORT_UCHAR;
+    ImportTable.WritePortUShort = WRITE_PORT_USHORT;
+    ImportTable.WritePortULong = WRITE_PORT_ULONG;
+  //  ImportTable.WritePortULong64 = ;
+   // ImportTable.SetHiberRange
+    ImportTable.KdNetErrorStatus = &mKdNetErrorStatus;
+    ImportTable.KdNetErrorString = &mKdNetErrorString;
+    ImportTable.KdNetHardwareID = &mKdNetHardwareID;
+    Status = KdInitializeLibrary(&ImportTable, LoaderBlock ? LoaderBlock->LoadOptions : NULL, &DeviceDesc);
+    return Status;
+} 
+
 
 NTSTATUS
 NTAPI
 KdDebuggerInitialize1(IN PLOADER_PARAMETER_BLOCK LoaderBlock OPTIONAL)
 {
-    KDNET_EXTENSIBILITY_IMPORTS ImportTable = {0};
-    NTSTATUS Status;
-
-    Status = KdInitializeLibrary(&ImportTable, LoaderBlock ? LoaderBlock->LoadOptions : NULL, NULL);
-    if (NT_SUCCESS(Status))
-        KdNetExtensibilityExports = ImportTable.Exports;
-    return Status;
+        KdInitializeController(DeviceContextBuffer);
+        return 0;
 }
 
 

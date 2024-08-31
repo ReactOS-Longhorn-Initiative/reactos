@@ -6,4 +6,5 @@
 @ stdcall KdInitializeLibrary(ptr ptr ptr)
 @ stdcall KdReleaseRxPacket(ptr long)
 @ stdcall KdSendTxPacket(ptr long long)
+@ stdcall KdSetHibernateRange()
 @ stdcall KdShutdownController(ptr)

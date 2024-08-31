@@ -2,7 +2,8 @@ spec2def(kdstub.dll kdstub.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
     kdstub.c
-    win8_exports.c)
+     rt/kdrealtek.c
+     win8_exports.c)
 
 add_library(kdstub MODULE
     ${SOURCE}

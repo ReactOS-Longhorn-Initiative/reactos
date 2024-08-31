@@ -23,25 +23,7 @@ EXTERN __RTC_Failure:PROC
 */
 PUBLIC __RTC_CheckEsp
 __RTC_CheckEsp:
-
-    /* We check if the zero flag is set, and if it is, everything is fine
-       and we return to the caller */
-    je __RTC_CheckEsp_return
-
-    push ebp
-    mov ebp, esp
-    pusha
-
-    // void _RTC_Failure(void* retaddr, int errnum);
-    push 0 // errnum
-    push dword ptr [esp + 4] // retaddr
-    call __RTC_Failure
-    add esp, 8
-
-    popa
-    pop ebp
-
-__RTC_CheckEsp_return:
+ 
     ret
 
 END

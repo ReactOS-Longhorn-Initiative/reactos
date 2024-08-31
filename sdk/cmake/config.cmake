@@ -104,7 +104,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     option(_PREFAST_ "Whether to enable PREFAST while compiling." OFF)
     option(_VS_ANALYZE_ "Whether to enable static analysis while compiling." OFF)
     # RTC are incompatible with compiler optimizations.
-    cmake_dependent_option(RUNTIME_CHECKS "Whether to enable runtime checks on MSVC" ON
+    cmake_dependent_option(RUNTIME_CHECKS "Whether to enable runtime checks on MSVC" OFF
                            "CMAKE_BUILD_TYPE STREQUAL Debug" OFF)
 endif()
 

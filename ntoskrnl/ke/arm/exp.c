@@ -226,13 +226,7 @@ KiDispatchException(IN PEXCEPTION_RECORD ExceptionRecord,
             /* Exception was handled */
             goto Handled;
         }
-
-        /* Third strike; you're out */
-        KeBugCheckEx(KMODE_EXCEPTION_NOT_HANDLED,
-                     ExceptionRecord->ExceptionCode,
-                     (ULONG_PTR)ExceptionRecord->ExceptionAddress,
-                     (ULONG_PTR)TrapFrame,
-                     0);
+ 
     }
     else
     {
