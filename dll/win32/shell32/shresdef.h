@@ -917,3 +917,5 @@
 #define IDR_COPYTOMENU          159
 #define IDR_MOVETOMENU          160
 #define IDR_COPYASPATHMENU      161
+#define IDR_SHELLLIBRARY        162
+#define IDR_USEREVENTTIMER      163
