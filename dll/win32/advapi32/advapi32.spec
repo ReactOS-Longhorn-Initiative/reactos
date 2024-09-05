@@ -500,6 +500,7 @@
 @ stdcall RegDeleteKeyExW(long wstr long long)
 @ stdcall RegDeleteKeyValueW(long wstr long)
 @ stdcall RegDeleteKeyW(long wstr)
+@ stdcall -stub EnableTraceEx(ptr)
 @ stdcall RegDeleteValueA(long str)
 @ stdcall RegDeleteValueW(long wstr)
 @ stdcall RegDisablePredefinedCache()

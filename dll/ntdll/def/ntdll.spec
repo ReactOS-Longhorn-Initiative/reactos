@@ -819,7 +819,7 @@
 @ stdcall RtlEraseUnicodeString(ptr)
 @ stub -version=0x600+ RtlExitUserProcess
 @ stdcall RtlExitUserThread(long)
-@ stub -version=0x600+ RtlExpandEnvironmentStrings
+@ stdcall -version=0x600+ RtlExpandEnvironmentStrings(long long long ptr long long )
 @ stdcall RtlExpandEnvironmentStrings_U(ptr ptr ptr ptr)
 @ stdcall -version=0x502 RtlExtendHeap(ptr long ptr ptr)
 @ stub -version=0x600+ RtlExtendMemoryBlockLookaside
@@ -1356,16 +1356,17 @@
 @ stdcall -version=0x600+ TpWaitForWait(ptr long)
 @ stdcall -version=0x600+ TpWaitForWork(ptr long)
 @ stdcall -ret64 VerSetConditionMask(double long long)
-@ stub -version=0x600+ WerCheckEventEscalation
-@ stub -version=0x600+ WerReportSQMEvent
-@ stub -version=0x600+ WerReportWatsonEvent
-@ stub -version=0x600+ WinSqmAddToStream
-@ stub -version=0x600+ WinSqmEndSession
-@ stub -version=0x600+ WinSqmEventEnabled
-@ stub -version=0x600+ WinSqmEventWrite
-@ stub -version=0x600+ WinSqmIsOptedIn
-@ stub -version=0x600+ WinSqmSetString
-@ stub -version=0x600+ WinSqmStartSession
+@ stdcall -stub -version=0x600+ WerCheckEventEscalation(ptr)
+@ stdcall -stub -version=0x600+ WerReportSQMEvent(ptr)
+@ stdcall -stub -version=0x600+ WerReportWatsonEvent(ptr)
+@ stdcall -stub -version=0x600+ WinSqmAddToStream(ptr)
+@ stdcall -stub -version=0x600+ WinSqmEndSession(ptr)
+@ stdcall -version=0x600+ WinSqmEventEnabled(long ptr)
+@ stdcall -stub -version=0x600+ WinSqmEventWrite(ptr)
+@ stdcall -stub -version=0x600+ WinSqmIsOptedIn(ptr)
+@ stdcall -stub -version=0x600+ WinSqmSetString(ptr)
+@ stdcall -stub -version=0x600+ WinSqmStartSession(ptr)
+@ stdcall -stub WinSqmSetDWORD(ptr)
 @ stdcall ZwAcceptConnectPort(ptr long ptr long long ptr)
 @ stdcall ZwAccessCheck(ptr long long ptr ptr ptr ptr ptr)
 @ stdcall ZwAccessCheckAndAuditAlarm(ptr long ptr ptr ptr long ptr long ptr ptr ptr)
@@ -1794,6 +1795,7 @@
 @ cdecl -arch=x86_64 _local_unwind()
 @ cdecl _ltoa(long ptr long)
 @ cdecl _ltow(long ptr long)
+@ cdecl -stub -version=0x600+ strcat_s(ptr long str)
 @ cdecl _memccpy(ptr ptr long long)
 @ cdecl _memicmp(str str long)
 @ cdecl -arch=x86_64,arm _setjmp(ptr ptr)
@@ -1801,6 +1803,7 @@
 @ varargs _snprintf(ptr long str)
 @ varargs _snwprintf(ptr long wstr)
 @ cdecl _splitpath(str ptr ptr ptr ptr)
+@ cdecl -stub -version=0x600+ strcpy_s(ptr long str)
 @ cdecl _strcmpi(str str) _stricmp
 @ cdecl _stricmp(str str)
 @ cdecl _strlwr(str)
@@ -1921,3 +1924,6 @@
 @ stdcall -stub EtwEventUnregister()
 @ stdcall -stub EtwEventWrite()
 @ stdcall -stub WinSqmIncrementDWORD()
+
+@ cdecl -version=0x600+ wcsncpy_s(ptr long wstr long)
+@ cdecl -version=0x600+ wcscat_s(wstr long wstr)

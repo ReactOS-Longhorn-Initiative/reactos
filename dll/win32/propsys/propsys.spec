@@ -19,8 +19,9 @@
 417 stdcall -stub PROPSYS_417()
 418 stdcall -stub PROPSYS_418()
 420 stdcall -stub PROPSYS_420()
-421 stdcall -stub PROPSYS_421()
+421 stdcall PSStrFormatByteSizeW(int64 ptr long)
 422 stdcall -stub PROPSYS_422()
+429 stdcall -stub PSStrFormatByteSizeEx()
 
 @ stub ClearPropVariantArray
 @ stub ClearVariantArray
@@ -86,8 +87,8 @@
 @ stub PSGetPropertyFromPropertyStorage
 @ stdcall PSGetPropertyKeyFromName(wstr ptr)
 @ stdcall PSGetPropertySystem(ptr ptr)
-@ stub PSGetPropertyValue
-@ stub PSLookupPropertyHandlerCLSID
+@ stdcall -stub PSGetPropertyValue()
+@ stdcall -stub PSLookupPropertyHandlerCLSID()
 @ stdcall PSPropertyKeyFromString(wstr ptr)
 @ stdcall PSRefreshPropertySchema()
 @ stdcall PSRegisterPropertySchema(wstr)
@@ -208,3 +209,39 @@
 @ stub VariantToUInt64Array
 @ stub VariantToUInt64ArrayAlloc
 @ stub VariantToUInt64WithDefault
+
+
+
+@ stdcall -stub PSPropertyBag_Delete(ptr)
+@ stdcall -stub PSPropertyBag_ReadBOOL(ptr)
+@ stdcall -stub PSPropertyBag_ReadBSTR(ptr)
+@ stdcall -stub PSPropertyBag_ReadDWORD(ptr)
+@ stdcall -stub PSPropertyBag_ReadGUID(ptr)
+@ stdcall -stub PSPropertyBag_ReadInt(ptr)
+@ stdcall -stub PSPropertyBag_ReadLONG(ptr)
+@ stdcall -stub PSPropertyBag_ReadPOINTL(ptr)
+@ stdcall -stub PSPropertyBag_ReadPOINTS(ptr)
+@ stdcall -stub PSPropertyBag_ReadPropertyKey(ptr)
+@ stdcall -stub PSPropertyBag_ReadRECTL(ptr)
+@ stdcall -stub PSPropertyBag_ReadSHORT(ptr)
+@ stdcall -stub PSPropertyBag_ReadStr(ptr)
+@ stdcall -stub PSPropertyBag_ReadStrAlloc(ptr)
+@ stdcall -stub PSPropertyBag_ReadStream(ptr)
+@ stdcall -stub PSPropertyBag_ReadType(ptr)
+@ stdcall -stub PSPropertyBag_ReadULONGLONG(ptr)
+@ stdcall -stub PSPropertyBag_ReadUnknown(ptr)
+@ stdcall -stub PSPropertyBag_WriteBOOL(ptr)
+@ stdcall -stub PSPropertyBag_WriteBSTR(ptr)
+@ stdcall -stub PSPropertyBag_WriteDWORD(ptr)
+@ stdcall -stub PSPropertyBag_WriteGUID(ptr)
+@ stdcall -stub PSPropertyBag_WriteInt(ptr)
+@ stdcall -stub PSPropertyBag_WriteLONG(ptr)
+@ stdcall -stub PSPropertyBag_WritePOINTL(ptr)
+@ stdcall -stub PSPropertyBag_WritePOINTS(ptr)
+@ stdcall -stub PSPropertyBag_WritePropertyKey(ptr)
+@ stdcall -stub PSPropertyBag_WriteRECTL(ptr)
+@ stdcall -stub PSPropertyBag_WriteSHORT(ptr)
+@ stdcall -stub PSPropertyBag_WriteStr(ptr)
+@ stdcall -stub PSPropertyBag_WriteStream(ptr)
+@ stdcall -stub PSPropertyBag_WriteULONGLONG(ptr)
+@ stdcall -stub PSPropertyBag_WriteUnknown(ptr)

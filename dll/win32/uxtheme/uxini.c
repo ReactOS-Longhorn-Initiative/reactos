@@ -289,3 +289,34 @@ BOOL UXINI_FindValue(PUXINI_FILE uf, LPCWSTR lpName, LPCWSTR *lpValue, DWORD *dw
     }
     return FALSE;
 }
+
+
+BOOL WINAPI
+UpdatePanningFeedback(
+  HWND hwnd,
+  LONG lTotalOverpanOffsetX,
+  LONG lTotalOverpanOffsetY,
+  BOOL fInInertia
+)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+
+BOOL WINAPI BeginPanningFeedback(
+    HWND hwnd
+)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+
+
+BOOL WINAPI EndPanningFeedback(
+    HWND hwnd,
+    BOOL fAnimateBack
+)
+{
+    UNIMPLEMENTED;
+    return 1;
+}

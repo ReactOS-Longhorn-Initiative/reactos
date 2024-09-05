@@ -611,3 +611,4 @@
 @ stdcall -stub GetFontFileInfo(ptr)
 @ stdcall -stub GetFontRealizationInfo(ptr)
 @ stdcall -stub GetFontFileData(ptr)
+@ stdcall -stub CreateBitmapFromDxSurface()

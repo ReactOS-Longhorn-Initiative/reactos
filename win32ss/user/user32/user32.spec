@@ -777,7 +777,7 @@
 @ stdcall -stub GetPointerType()
 @ stdcall -stub GetPointerInfo()
 
-@ stdcall -stub ChangeWindowMessageFilterEx(ptr)
+
 @ stdcall -stub CloseTouchInputHandle(ptr)
 @ stdcall -stub GetTouchInputHandle(ptr)
 @ stdcall -stub IsTouchWindow(ptr)
@@ -787,3 +787,11 @@
 @ stdcall -stub GetDisplayConfigBufferSizes()
 @ stdcall -stub QueryDisplayConfig()
 @ stdcall -stub DisplayConfigGetDeviceInfo()
+2000 stdcall -stub ooga(ptr)
+@ stdcall -stub CloseGestureInfoHandle(ptr)
+@ stdcall -stub SetGestureInfo(ptr)
+@ stdcall -stub GetGestureInfo(long ptr)
+@ stdcall -stub GetGestureConfig(ptr long long ptr ptr long)
+@ stdcall SetGestureConfig(ptr long long ptr long)
+@ stdcall -stub SetWindowCompositionAttribute(ptr)
+@ stdcall -stub CalculatePopupWindowPosition(ptr)

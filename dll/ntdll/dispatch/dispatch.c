@@ -17,7 +17,6 @@
 typedef NTSTATUS (NTAPI *USER_CALL)(PVOID Argument, ULONG ArgumentLength);
 
 /* FUNCTIONS ****************************************************************/
-
 /*
  * @implemented
  */

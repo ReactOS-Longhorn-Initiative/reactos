@@ -104,6 +104,21 @@ extern BOOLEAN RtlpUse16ByteSLists;
 
 /* FUNCTIONS *****************************************************************/
 
+NTSTATUS
+NTAPI
+WinSqmEventEnabled(int a1, PVOID a2)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
+NTSTATUS
+NTAPI
+RtlExpandEnvironmentStrings(int a1, int a2, int a3, void *a4, int a5, int a6)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
 /*
  * @implemented
  */

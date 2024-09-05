@@ -860,3 +860,5 @@
 858 stdcall wvnsprintfW(ptr long wstr ptr)
 
 @ stdcall -stub PathMatchSpecExW()
+
+@ stdcall -stub StrFormatByteSizeEx(ptr)

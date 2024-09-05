@@ -25,6 +25,7 @@
 @ stdcall CoDisableCallCancellation(ptr)
 @ stdcall -stub -version=0x600+ CoDisconnectContext(long)
 @ stdcall CoDisconnectObject(ptr long)
+@ stdcall CoGetApartmentType(ptr ptr)
 @ stdcall CoDosDateTimeToFileTime(long long ptr) kernel32.DosDateTimeToFileTime
 @ stdcall CoEnableCallCancellation(ptr)
 @ stdcall CoFileTimeNow(ptr)

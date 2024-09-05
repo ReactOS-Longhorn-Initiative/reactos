@@ -108,3 +108,22 @@ GetDpiForWindow(
     UNREFERENCED_PARAMETER(hWnd);
     return GetDpiForSystem();
 }
+
+
+
+
+
+
+
+
+
+BOOL WINAPI SetGestureConfig(
+     HWND           hwnd,
+     DWORD          dwReserved,
+     UINT           cIDs,
+     PVOID  pGestureConfig,
+     UINT           cbSize
+)
+{
+    return FALSE;
+}

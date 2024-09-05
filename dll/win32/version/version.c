@@ -254,6 +254,15 @@ static BOOL find_ne_resource( HFILE lzfd, DWORD *resLen, DWORD *resOff )
     return TRUE;
 }
 
+BOOL WINAPI GetFileVersionInfoByHandle(
+   HANDLE                       hFile,
+   LPBY_HANDLE_FILE_INFORMATION lpFileInformation
+)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
 /***********************************************************************
  *           find_pe_resource         [internal]
  */

@@ -1075,7 +1075,7 @@
 @ cdecl _ultoa(long ptr long)
 @ stub -version=0x600+ _ultoa_s
 @ cdecl _ultow(long ptr long)
-@ stub -version=0x600+ _ultow_s
+@ cdecl -stub -version=0x600+ _ultow_s(ptr)
 @ cdecl _umask(long)
 @ stub -version=0x600+ _umask_s
 @ cdecl _ungetch(long)

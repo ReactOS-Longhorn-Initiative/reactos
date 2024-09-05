@@ -1284,3 +1284,27 @@
 
 
 @ stdcall -stub RegGetValueW(long wstr wstr long ptr ptr ptr)
+@ stdcall -stub PowerClearRequest(ptr)
+@ stdcall -stub PowerSetRequest(ptr)
+@ stdcall -stub PowerCreateRequest(ptr)
+@ stdcall -stub RegQueryInfoKeyW(ptr wstr)
+@ stdcall LoadStringW(long long ptr long)
+@ stdcall -stub LoadStringA(long long ptr long)
+@ stdcall -stub OpenThreadToken(long long long ptr)
+
+
+@ stdcall -stub RegDeleteKeyExA(ptr)
+@ stdcall -stub RegDeleteValueA(ptr)
+@ stdcall -stub RegDeleteKeyA(ptr)
+@ stdcall -stub RegSetValueExA(ptr)
+@ stdcall -stub RegQueryInfoKeyA(ptr)
+@ stdcall -stub RegQueryValueExA(ptr)
+@ stdcall -stub RegSetValueExW(ptr)
+@ stdcall -stub RegDeleteKeyExW(ptr)
+@ stdcall -stub RegEnumValueW(ptr)
+@ stdcall -stub RegDeleteValueW(ptr)
+@ stdcall -stub RegOpenKeyExA(ptr)
+@ stdcall -stub RegQueryValueExW(ptr)
+@ stdcall -stub RegOpenCurrentUser(ptr)
+@ stdcall -stub RegCloseKey(ptr)
+@ stdcall -stub RegOpenKeyExW(ptr)

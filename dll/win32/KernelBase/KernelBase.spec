@@ -85,7 +85,7 @@
 @ stdcall -version=0x601+ CreatePrivateObjectSecurityEx() kernel32.CreatePrivateObjectSecurityEx
 ;@ stdcall -version=0x601+ CreatePrivateObjectSecurityWithMultipleInheritance()
 @ stdcall -version=0x601+ CreateRemoteThread() kernel32.CreateRemoteThread
-@ stdcall -version=0x601+ CreateRemoteThreadEx() kernel32.CreateRemoteThreadEx
+@ stdcall -stub -version=0x601+ CreateRemoteThreadEx() ;kernel32.CreateRemoteThreadEx
 @ stdcall -version=0x601+ CreateRestrictedToken() kernel32.CreateRestrictedToken
 @ stdcall -version=0x601+ CreateSemaphoreExW() kernel32.CreateSemaphoreExW
 @ stdcall -version=0x601+ CreateThread() kernel32.CreateThread
@@ -187,7 +187,7 @@
 @ stdcall -version=0x601+ GetACP() kernel32.GetACP
 @ stdcall -version=0x601+ GetAce() ADVAPI32.GetAce
 @ stdcall -version=0x601+ GetAclInformation() ADVAPI32.GetAclInformation
-@ stdcall -version=0x601+ GetCPFileNameFromRegistry() kernel32.GetCPFileNameFromRegistry
+@ stdcall -stub -version=0x601+ GetCPFileNameFromRegistry(); kernel32.GetCPFileNameFromRegistry
 @ stub -version=0x601+ GetCPHashNode	 
 @ stdcall -version=0x601+ GetCPInfo() kernel32.GetCPInfo
 @ stdcall -version=0x601+ GetCPInfoExW() kernel32.GetCPInfoExW 
@@ -240,7 +240,7 @@
 @ stdcall -version=0x601+ GetFullPathNameA() kernel32.GetFullPathNameA
 @ stdcall -version=0x601+ GetFullPathNameW() kernel32.GetFullPathNameW
 @ stdcall -version=0x601+ GetHandleInformation() kernel32.GetHandleInformation
-@ stdcall -version=0x601+ GetKernelObjectSecurity() kernel32.GetKernelObjectSecurity
+@ stdcall -version=0x601+ GetKernelObjectSecurity() advapi32.GetKernelObjectSecurity
 @ stdcall -version=0x601+ GetLastError() kernel32.GetLastError
 @ stdcall -version=0x601+ GetLengthSid() ADVAPI32.GetLengthSid
 @ stdcall -version=0x601+ GetLocalTime() kernel32.GetLocalTime
@@ -422,8 +422,8 @@
 @ stdcall -version=0x601+ LoadResource() kernel32.LoadResource
 @ stub -version=0x601+ LoadStringA() ;user32.LoadStringA
 @ stdcall -version=0x601+ LoadStringBaseExW() kernel32.LoadStringBaseExW
-@ stub -version=0x601+ LoadStringByReference	 
-@ stub -version=0x601+ LoadStringW ;user32.LoadStringW	;also exported from USER32 in versions not yet enumerated
+@ stdcall -stub -version=0x601+ LoadStringByReference(long wstr wstr wstr long wstr ptr)	 
+@ stdcall -version=0x601+ LoadStringW() kernel32.LoadStringW ;user32.LoadStringW	;also exported from USER32 in versions not yet enumerated
 @ stdcall -version=0x601+ LocalAlloc() kernel32.LocalAlloc
 @ stdcall -version=0x601+ LocalFileTimeToFileTime() kernel32.LocalFileTimeToFileTime
 @ stdcall -version=0x601+ LocalFree() kernel32.LocalFree
@@ -468,6 +468,9 @@
 @ stdcall -version=0x601+ OpenProcessToken() ADVAPI32.OpenProcessToken
 @ stub -version=0x601+ OpenRegKey	 
 @ stdcall -version=0x601+ OpenSemaphoreW() kernel32.OpenSemaphoreW
+@ stdcall OpenThread() kernel32.OpenThread
+@ stdcall SetThreadPriority() kernel32.SetThreadPriority
+@ stdcall SetThreadPriorityBoost() kernel32.SetThreadPriorityBoost
 @ stdcall -version=0x601+ OpenThreadToken() ADVAPI32.OpenThreadToken
 @ stdcall -version=0x601+ OpenWaitableTimerW() kernel32.OpenWaitableTimerW
 @ stdcall -version=0x601+ OutputDebugStringA() kernel32.OutputDebugStringA
@@ -490,6 +493,7 @@
 @ stdcall -version=0x601+ ReadFile() kernel32.ReadFile
 @ stdcall -version=0x601+ ReadFileEx() kernel32.ReadFileEx
 @ stdcall -version=0x601+ ReadFileScatter() kernel32.ReadFileScatter
+@ stdcall SetThreadToken() advapi32.SetThreadToken
 @ stdcall -version=0x601+ ReadProcessMemory() kernel32.ReadProcessMemory
 @ stdcall -version=0x601+ RegisterWaitForSingleObjectEx() kernel32.RegisterWaitForSingleObjectEx
 @ stdcall -version=0x601+ ReleaseMutex() kernel32.ReleaseMutex
@@ -503,7 +507,7 @@
 @ stdcall -version=0x601+ ResetEvent() kernel32.ResetEvent
 @ stdcall -stub -version=0x601+ ResolveLocaleName()
 @ stdcall -version=0x601+ ResumeThread() kernel32.ResumeThread
-@ stdcall -version=0x601+ RevertToSelf() kernel32.RevertToSelf
+@ stdcall -version=0x601+ RevertToSelf() advapi32.RevertToSelf
 @ stdcall -version=0x601+ SearchPathW() kernel32.SearchPathW
 @ stdcall -version=0x601+ SetAclInformation() ADVAPI32.SetAclInformation
 @ stdcall -version=0x601+ SetCalendarInfoW() kernel32.SetCalendarInfoW
@@ -526,8 +530,8 @@
 @ stdcall -version=0x601+ TlsGetValue() kernel32.TlsGetValue
 @ stdcall -version=0x601+ TlsSetValue() kernel32.TlsSetValue
 @ stdcall -version=0x601+ TransactNamedPipe() kernel32.TransactNamedPipe
-@ stdcall -version=0x601+ TryAcquireSRWLockExclusive() ntdll.RtlTryAcquireSRWLockExclusive
-@ stdcall -version=0x601+ TryAcquireSRWLockShared() ntdll.RtlTryAcquireSRWLockShared
+@ stdcall -stub -version=0x601+ TryAcquireSRWLockExclusive() ;ntdll.RtlTryAcquireSRWLockExclusive
+@ stdcall -stub -version=0x601+ TryAcquireSRWLockShared() ;ntdll.RtlTryAcquireSRWLockShared
 @ stdcall -version=0x601+ TryEnterCriticalSection() ntdll.RtlTryEnterCriticalSection
 @ stdcall -version=0x601+ TrySubmitThreadpoolCallback() kernel32.TrySubmitThreadpoolCallback
 @ stdcall -version=0x601+ TzSpecificLocalTimeToSystemTime() kernel32.TzSpecificLocalTimeToSystemTime
@@ -642,10 +646,11 @@
 @ stdcall -stub -version=0x602+ CreateMemoryResourceNotification	()
 @ stdcall -stub -version=0x602+ CreatePrivateNamespaceW	()
 @ stdcall -stub -version=0x602+ CreateProcessA	()
+@ stdcall CreateProcessAsUserW() advapi32.CreateProcessAsUserW
 ;@stdcall - stub -version=0x602+ CreateProcessAsUserW	()
 @ stdcall -stub -version=0x602+ CreateProcessInternalA	()
 @ stdcall -stub -version=0x602+ CreateProcessInternalW	()
-@ stdcall -stub -version=0x602+ CreateProcessW	()
+@ stdcall    CreateProcessW	() kernel32.CreateProcessW
 @ stdcall -stub -version=0x602+ CreateSymbolicLinkW	()
 @ stdcall -stub -version=0x602+ CtrlRoutine	()
 @ stdcall -stub -version=0x602+ DeactivateActCtx	()
@@ -1633,3 +1638,20 @@
 @ stdcall -version=0xA00+ WaitForMultipleObjects() kernel32.WaitForMultipleObjects
 @ stdcall -version=0xA00+ WerGetFlags() kernel32.WerGetFlags
 @ stdcall -version=0xA00+ WerSetFlags() kernel32.WerSetFlags
+
+@ stdcall SetSecurityDescriptorDacl() advapi32.SetSecurityDescriptorDacl
+@ stdcall SetSecurityDescriptorOwner() advapi32.SetSecurityDescriptorOwner
+@ stdcall SetFileSecurityW() advapi32.SetFileSecurityW
+@ stdcall SetTokenInformation() advapi32.SetTokenInformation
+
+
+
+; HACKS
+@ stub LookupAccountSidLocalW
+@ stub LookupAccountNameLocalW
+
+
+@ stdcall ConvertStringSidToSidW() advapi32.ConvertStringSidToSidW
+@ stdcall ConvertStringSecurityDescriptorToSecurityDescriptorW() advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW
+@ stdcall ConvertSecurityDescriptorToStringSecurityDescriptorW() advapi32.ConvertSecurityDescriptorToStringSecurityDescriptorW
+@ stdcall ConvertSidToStringSidW() advapi32.ConvertSidToStringSidW

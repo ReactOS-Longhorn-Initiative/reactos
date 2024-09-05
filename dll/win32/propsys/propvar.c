@@ -914,3 +914,14 @@ INT WINAPI PropVariantCompareEx(REFPROPVARIANT propvar1, REFPROPVARIANT propvar2
 
     return res;
 }
+
+PWSTR
+WINAPI
+PSStrFormatByteSizeW(_In_ INT64 TODO, 
+                     _Out_ PWSTR Input, 
+                     _In_ ULONG Size)
+{
+    UNIMPLEMENTED;
+    *Input = 0;
+    return NULL;
+}

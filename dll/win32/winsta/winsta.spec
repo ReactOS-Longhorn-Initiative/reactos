@@ -123,3 +123,5 @@
 @ stdcall _WinStationUpdateUserConfig(ptr)
 @ stdcall _WinStationWaitForConnect()
 
+
+@ stdcall WinStationFreePropertyValue()

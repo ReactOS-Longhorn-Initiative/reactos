@@ -14,7 +14,12 @@ WINSTAAPI WinStationFreeMemory(PVOID A)
     FIXME("WinStationFreeMemory %p not freed!\n",A);
 }
 
-
+VOID
+WINSTAAPI 
+WinStationFreePropertyValue()
+{
+    
+}
 VOID
 WINSTAAPI WinStationAutoReconnect(PVOID A)
 {
