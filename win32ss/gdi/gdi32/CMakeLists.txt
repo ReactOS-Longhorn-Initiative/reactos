@@ -48,6 +48,7 @@ list(APPEND SOURCE
 add_library(gdi32 MODULE
     ${SOURCE}
     gdi32.rc
+    ${CMAKE_CURRENT_BINARY_DIR}/gdi32_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/gdi32.def)
 
 set_module_type(gdi32 win32dll UNICODE ENTRYPOINT DllMain 12)

@@ -498,6 +498,7 @@
 @ stdcall RegDeleteKeyA(long str)
 @ stdcall RegDeleteKeyExA(long str long long)
 @ stdcall RegDeleteKeyExW(long wstr long long)
+@ stdcall RegDeleteKeyValueW(long wstr long)
 @ stdcall RegDeleteKeyW(long wstr)
 @ stdcall RegDeleteValueA(long str)
 @ stdcall RegDeleteValueW(long wstr)
