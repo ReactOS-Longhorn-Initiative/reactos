@@ -858,3 +858,5 @@
 856 varargs wnsprintfW(ptr long wstr)
 857 stdcall wvnsprintfA(ptr long str ptr)
 858 stdcall wvnsprintfW(ptr long wstr ptr)
+
+@ stdcall -stub PathMatchSpecExW()

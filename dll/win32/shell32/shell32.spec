@@ -562,3 +562,9 @@
 @   stdcall -version=0x600+ Shell_GetCachedImageIndexA(str long long)
 @   stdcall -version=0x600+ Shell_GetCachedImageIndexW(wstr long long) Shell_GetCachedImageIndexAW
 @   stdcall -stub -version=0x601+ Shell_NotifyIconGetRect(ptr ptr)
+
+@ stdcall SHAddDefaultPropertiesByExt(wstr ptr)
+
+778 stdcall -stub AssocGetPropListForExt (ptr long ptr ptr)
+761 stdcall -stub SHChangeNotifyDeregisterWindow(ptr)
+903 stdcall -stub AddToRecentDocs(ptr wstr wstr wstr wstr wstr wstr wstr long long long)

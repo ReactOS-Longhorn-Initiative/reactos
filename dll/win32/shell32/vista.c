@@ -216,3 +216,11 @@ cleanup:
 
     return result;
 }
+
+#include <debug.h>
+HRESULT WINAPI
+SHAddDefaultPropertiesByExt(PCWSTR pszExt, VOID *pPropStore)
+{
+    __debugbreak();
+    return 0;
+}
