@@ -1756,6 +1756,16 @@ DWORD WINAPI WNetEnumResourceW( HANDLE hEnum, LPDWORD lpcCount,
     return ret;
 }
 
+DWORD
+WINAPI
+WNetRestoreSingleConnectionW(HWND hwndParent, LPCWSTR lpDevice, BOOL fUseUI)
+{
+    FIXME( "(%p, %s), stub\n", hwndParent, debugstr_w(lpDevice) );
+
+    SetLastError(WN_NO_NETWORK);
+    return WN_NO_NETWORK;
+}
+
 /*********************************************************************
  * WNetCloseEnum [MPR.@]
  */
