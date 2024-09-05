@@ -12,7 +12,8 @@ if(DLL_EXPORT_VERSION GREATER_EQUAL 0x601)
 
     add_typelib(comdlg32_classes.idl)
 
-    list(APPEND SOURCE itemdlg.c)
+    list(APPEND SOURCE itemdlg.c
+                       ${CMAKE_CURRENT_BINARY_DIR}/comdlg32_classes.tlb)
 endif()
 
 list(APPEND SOURCE
@@ -31,7 +32,6 @@ list(APPEND SOURCE
 add_library(comdlg32 MODULE
     ${SOURCE}
     rsrc.rc
-    ${CMAKE_CURRENT_BINARY_DIR}/comdlg32_classes.tlb
     ${CMAKE_CURRENT_BINARY_DIR}/comdlg32.def)
 
 set_module_type(comdlg32 win32dll)
