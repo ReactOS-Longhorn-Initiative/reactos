@@ -9,6 +9,9 @@ spec2def(comdlg32.dll comdlg32.spec ADD_IMPORTLIB)
 
 # ItemDlg is Win7+
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x601)
+
+    add_typelib(comdlg32_classes.idl)
+
     list(APPEND SOURCE itemdlg.c)
 endif()
 
@@ -28,6 +31,7 @@ list(APPEND SOURCE
 add_library(comdlg32 MODULE
     ${SOURCE}
     rsrc.rc
+    ${CMAKE_CURRENT_BINARY_DIR}/comdlg32_classes.tlb
     ${CMAKE_CURRENT_BINARY_DIR}/comdlg32.def)
 
 set_module_type(comdlg32 win32dll)
