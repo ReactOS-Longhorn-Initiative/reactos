@@ -39,7 +39,7 @@ WINE_DEFAULT_DEBUG_CHANNEL(bcrypt);
 
 static HINSTANCE instance;
 
-static const struct key_funcs *key_funcs;
+static struct key_funcs *key_funcs;
 
 NTSTATUS WINAPI BCryptAddContextFunction(ULONG table, LPCWSTR context, ULONG iface, LPCWSTR function, ULONG pos)
 {
