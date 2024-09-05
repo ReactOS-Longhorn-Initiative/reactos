@@ -24,6 +24,8 @@
 #include "cdlg.h"
 #include "filedlgbrowser.h"
 
+1 WINE_REGISTRY comdlg32_classes.rgs
+
 /*
  * Everything that does not depend on language,
  * like textless bitmaps etc, go into the
