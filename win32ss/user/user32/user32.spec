@@ -758,4 +758,5 @@
 740 stdcall wvsprintfA(ptr str ptr)
 741 stdcall wvsprintfW(ptr wstr ptr)
 
-@ stdcall -stub ChangeWindowMessageFilterEx()
+@ stdcall ChangeWindowMessageFilterEx(ptr long long ptr)
+@ stdcall ChangeWindowMessageFilter(long long)

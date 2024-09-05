@@ -23,6 +23,27 @@
 #include <winuser.h>
 
 
+BOOL WINAPI ChangeWindowMessageFilterEx(
+   HWND                hwnd,
+   UINT                message,
+   DWORD               action,
+   PVOID pChangeFilterStruct
+)
+{
+    UNIMPLEMENTED;
+    return 1;
+}
+BOOL
+WINAPI
+ChangeWindowMessageFilter(
+    UINT  message,
+    DWORD dwFlag
+)
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+
 BOOL WINAPI ShutdownBlockReasonCreate(_In_ HWND    hWnd,
                                       _In_ LPCWSTR pwszReason)
 {
