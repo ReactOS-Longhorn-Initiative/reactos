@@ -43,7 +43,7 @@ IntFreeDesktopHeap(IN PDESKTOP pdesk);
 #ifdef _WIN64
 DWORD gdwDesktopSectionSize = 20 * 1024; // 20 MB (Windows 7 style)
 #else
-DWORD gdwDesktopSectionSize = 3 * 1024; // 3 MB (Windows 2003 style)
+DWORD gdwDesktopSectionSize = 12 * 1024; // 3 MB (Windows 7 style)
 #endif
 DWORD gdwNOIOSectionSize    = 128;
 DWORD gdwWinlogonSectionSize = 128;
