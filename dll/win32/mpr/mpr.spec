@@ -132,3 +132,5 @@
 @ stdcall WNetUseConnectionW(long ptr wstr wstr long wstr ptr ptr)
 @ stdcall WNetVerifyPasswordA(str ptr)
 @ stdcall WNetVerifyPasswordW(wstr ptr)
+
+@ stdcall WNetRestoreSingleConnectionW(ptr wstr long)
