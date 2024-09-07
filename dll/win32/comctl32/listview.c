@@ -11493,6 +11493,11 @@ static LRESULT LISTVIEW_SetVersion(LISTVIEW_INFO *infoPtr, DWORD iVersion)
   return iOldVersion;
 }
 
+#define LVM_QUERYINTERFACE (LVM_FIRST + 189)  
+ListView_QueryInterface(LPARAM lParam);
+
+
+
 /***
  * DESCRIPTION:
  * Window procedure of the listview control.
@@ -11780,6 +11785,10 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   case LVM_SETIMAGELIST:
     return (LRESULT)LISTVIEW_SetImageList(infoPtr, (INT)wParam, (HIMAGELIST)lParam);
 
+  case LVM_QUERYINTERFACE:
+    ListView_QueryInterface(lParam);
+    return 0;
+    break;
   /* case LVM_SETINFOTIP: */
 
   /* case LVM_SETINSERTMARK: */
@@ -12021,7 +12030,7 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void LISTVIEW_Register(void)
 {
     WNDCLASSW wndClass;
-
+    TRACE("List View REgister\n");
     ZeroMemory(&wndClass, sizeof(WNDCLASSW));
     wndClass.style = CS_GLOBALCLASS | CS_DBLCLKS;
     wndClass.lpfnWndProc = LISTVIEW_WindowProc;

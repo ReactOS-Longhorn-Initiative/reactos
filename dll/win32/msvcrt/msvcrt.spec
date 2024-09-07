@@ -379,7 +379,7 @@
 @ cdecl _aligned_free(ptr)
 @ stub -version=0x600+ _aligned_free_dbg
 @ cdecl _aligned_malloc(long long)
-@ stub -version=0x600+ _aligned_malloc_dbg
+@ cdecl -stub -version=0x600+ _aligned_malloc_dbg()
 @ cdecl _aligned_offset_malloc(long long long)
 @ stub -version=0x600+ _aligned_offset_malloc_dbg
 @ cdecl _aligned_offset_realloc(ptr long long long)
@@ -736,8 +736,8 @@
 @ cdecl _ltow(long ptr long)
 @ cdecl -version=0x600+ _ltow_s(long ptr long long)
 @ cdecl _makepath(ptr str str str str)
-@ stub -version=0x600+ _makepath_s
-@ stub -version=0x600+ _malloc_dbg
+@ cdecl -stub -version=0x600+ _makepath_s()
+@ cdecl -stub -version=0x600+ _malloc_dbg()
 @ cdecl _mbbtombc(long)
 @ stub -version=0x600+ _mbbtombc_l
 @ cdecl _mbbtype(long long)
@@ -977,9 +977,9 @@
 @ stub -version=0x600+ _snwprintf_s
 @ stub -version=0x600+ _snwprintf_s_l
 @ varargs _snwscanf(wstr long wstr)
-@ stub -version=0x600+ _snwscanf_l
-@ stub -version=0x600+ _snwscanf_s
-@ stub -version=0x600+ _snwscanf_s_l
+@ cdecl -stub -version=0x600+ _snwscanf_l()
+@ cdecl -stub -version=0x600+ _snwscanf_s()
+@ cdecl -stub -version=0x600+ _snwscanf_s_l()
 @ varargs _sopen(str long long)
 @ cdecl -version=0x600+ _sopen_s(ptr str long long long)
 @ varargs _spawnl(long str str)
@@ -1527,7 +1527,7 @@
 @ cdecl vsprintf(ptr str ptr)
 @ stdcall -stub -version=0x600+ vsprintf_s()
 @ cdecl vswprintf(ptr wstr ptr)
-@ stub -version=0x600+ vswprintf_s
+@ cdecl -stub -version=0x600+ vswprintf_s(ptr)
 @ cdecl vwprintf(wstr ptr)
 @ stub -version=0x600+ vwprintf_s
 @ cdecl -version=0x600+ wcrtomb(ptr long ptr)

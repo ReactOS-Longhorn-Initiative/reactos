@@ -294,6 +294,13 @@ User32CallDDEPostFromKernel(PVOID Arguments, ULONG ArgumentLength)
   return ZwCallbackReturn(Arguments, ArgumentLength, Status);
 }
 
+BOOL WINAPI PaintMonitor(HMONITOR monnitor, HDC hdc, RECT rcDst)
+{
+    UNIMPLEMENTED;
+    return 1;
+	//return PaintDesktop(hdc);	
+}
+
 //
 //  DDE Get/Peek kernel callback.
 //

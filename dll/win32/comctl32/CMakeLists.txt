@@ -51,6 +51,7 @@ list(APPEND SOURCE
     theming.c
     toolbar.c
     tooltips.c
+    IListView.c
     trackbar.c
     treeview.c
     updown.c)

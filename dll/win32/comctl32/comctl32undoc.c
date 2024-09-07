@@ -1182,3 +1182,23 @@ LRESULT WINAPI SendNotifyEx (HWND hwndTo, HWND hwndFrom, UINT uCode,
 
     return DoNotify (&notify, uCode, lpHdr);
 }
+
+
+/**************************************************************************
+ * PremultiplyAlphaChannel [COMCTL32.392]
+ */
+HBITMAP WINAPI PremultiplyAlphaChannel(HBITMAP hBmpIn, int unknown)
+{
+    UNREFERENCED_PARAMETER(unknown);
+    TRACE("PremultiplyAlphaChannel(%p,%i)\n", hBmpIn, unknown);
+
+    if (!hBmpIn)
+        return NULL;
+
+    return CopyImage(
+        hBmpIn
+        , IMAGE_BITMAP
+        , 0, 0
+        , LR_CREATEDIBSECTION
+    );
+}

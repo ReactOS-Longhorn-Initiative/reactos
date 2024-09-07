@@ -352,7 +352,7 @@ NtUserUpdateLayeredWindow(
 {
    UPDATELAYEREDWINDOWINFO info;
    POINT Dst, Src; 
-   SIZE Size;
+   SIZE Size = {0};
    RECT Dirty;
    BLENDFUNCTION blend = { AC_SRC_OVER, 0, 255, 0 };
    PWND pWnd;
@@ -365,7 +365,8 @@ NtUserUpdateLayeredWindow(
    {
       goto Exit;
    }
-
+   if (!psize)
+      goto Exit;
    _SEH2_TRY
    {
       if (pptDst)
@@ -379,7 +380,7 @@ NtUserUpdateLayeredWindow(
          Src = *pptSrc;
       }
       ProbeForRead(psize, sizeof(SIZE), 1);
-      Size = *psize;
+      //Size = *psize;
       if (pblend)
       {
          ProbeForRead(pblend, sizeof(BLENDFUNCTION), 1);

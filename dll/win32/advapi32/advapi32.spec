@@ -735,3 +735,4 @@
 @ stub SetUserFileEncryptionKeyEx
 
 @ stdcall -stub -version=0x600+ SaferiIsExecutableFileType(wstr long)
+@ stdcall -version=0x600+ RegCopyTreeW(ptr wstr ptr)

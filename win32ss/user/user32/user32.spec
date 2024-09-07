@@ -770,7 +770,7 @@
 @ stdcall -stub -version=0x600+ UnregisterPowerSettingNotification(ptr)
  
 @ stdcall -stub -version=0x600+ ShutdownBlockReasonDestroy(ptr)
-@ stub -version=0x600+ PaintMonitor
+@ stdcall -version=0x600+ PaintMonitor(ptr)
 @ stub IsWindowRedirectedForPrint
 
 @ stdcall -stub GetPointerPenInfoHistory()

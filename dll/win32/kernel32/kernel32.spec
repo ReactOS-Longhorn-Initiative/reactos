@@ -1198,12 +1198,12 @@
 @ stdcall -stub -version=0x600+ WerSetFlags(long)
 @ stdcall -stub -version=0x600+ WerUnregisterFile(wstr)
 @ stdcall -stub -version=0x600+ WerUnregisterMemoryBlock(ptr)
-@ stub -version=0x600+ WerpCleanupMessageMapping
-@ stub -version=0x600+ WerpInitiateRemoteRecovery
-@ stub -version=0x600+ WerpNotifyLoadStringResource
-@ stub -version=0x600+ WerpNotifyLoadStringResourceEx
-@ stub -version=0x600+ WerpNotifyUseStringResource
-@ stub -version=0x600+ WerpStringLookup
+@ stdcall -stub -version=0x600+ WerpCleanupMessageMapping(ptr)
+@ stdcall -stub -version=0x600+ WerpInitiateRemoteRecovery(ptr)
+@ stdcall -stub -version=0x600+ WerpNotifyLoadStringResource(ptr)
+@ stdcall -stub -version=0x600+ WerpNotifyLoadStringResourceEx(ptr)
+@ stdcall -stub -version=0x600+ WerpNotifyUseStringResource(ptr)
+@ stdcall -stub -version=0x600+ WerpStringLookup(ptr)
 @ stdcall WideCharToMultiByte(long long wstr long ptr long ptr ptr)
 @ stdcall WinExec(str long)
 @ stdcall Wow64DisableWow64FsRedirection(ptr)

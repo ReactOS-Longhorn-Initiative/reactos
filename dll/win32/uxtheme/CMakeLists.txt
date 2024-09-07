@@ -22,6 +22,7 @@ list(APPEND SOURCE
     system.c
     themehooks.c
     uxini.c
+    themeserver.c
     uxthemep.h
     ${CMAKE_CURRENT_BINARY_DIR}/uxtheme_stubs.c)
 
