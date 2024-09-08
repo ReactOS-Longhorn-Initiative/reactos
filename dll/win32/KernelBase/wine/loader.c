@@ -28,7 +28,9 @@
 #include "winbase.h"
 #include "winnls.h"
 #include "winternl.h"
+#ifndef __REACTOS__
 #include "ddk/ntddk.h"
+#endif
 #include "kernelbase.h"
 #include "wine/list.h"
 #include "wine/asm.h"
@@ -60,6 +62,7 @@ static CRITICAL_SECTION exclusive_datafile_list_section = { &critsect_debug, -1,
  * Modules
  ***********************************************************************/
 
+#ifndef __REACTOS__ // Let use the reactos implementation of this
 
 /******************************************************************
  *      get_proc_address
@@ -492,12 +495,19 @@ FARPROC WINAPI DECLSPEC_HOTPATCH GetProcAddress( HMODULE module, LPCSTR function
 
 #endif /* __x86_64__ */
 
+#endif
 
 /***********************************************************************
  *	IsApiSetImplemented   (kernelbase.@)
  */
 BOOL WINAPI IsApiSetImplemented( LPCSTR name )
 {
+#ifdef __REACTOS__
+    return TRUE;
+    /*
+     * ReactOS always has API sets on.
+     */
+#else
     UNICODE_STRING str;
     NTSTATUS status;
     BOOLEAN in_schema, present;
@@ -506,8 +516,10 @@ BOOL WINAPI IsApiSetImplemented( LPCSTR name )
     status = ApiSetQueryApiSetPresenceEx( &str, &in_schema, &present );
     RtlFreeUnicodeString( &str );
     return !status && present;
+#endif
 }
 
+#ifndef __REACTOS__
 
 /***********************************************************************
  *	LoadLibraryA   (kernelbase.@)
@@ -566,6 +578,7 @@ HMODULE WINAPI DECLSPEC_HOTPATCH LoadLibraryExW( LPCWSTR name, HANDLE file, DWOR
     return module;
 }
 
+#endif
 
 /***********************************************************************
  *      LoadPackagedLibrary    (kernelbase.@)
