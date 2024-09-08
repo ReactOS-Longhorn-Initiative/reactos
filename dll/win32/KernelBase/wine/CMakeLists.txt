@@ -21,5 +21,5 @@ list(APPEND SOURCE_STATIC
     volume.c)
 
 add_library(kernelbase_static ${SOURCE_STATIC})
-target_link_libraries(kernelbase_static ${PSEH_LIB})
+target_link_libraries(kernelbase_static win32_registry ${PSEH_LIB})
 add_dependencies(kernelbase_static psdk)

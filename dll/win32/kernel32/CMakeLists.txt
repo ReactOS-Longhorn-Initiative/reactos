@@ -132,7 +132,7 @@ set_subsystem(kernel32 console)
 
 target_link_libraries(kernel32 kernel32_vista_static kernel32_shared wine chkstk ${PSEH_LIB})
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
-    target_link_libraries(kernel32 kernelbase_static)
+    target_link_libraries(kernel32 win32_registry kernelbase_static)
 endif()
 add_importlibs(kernel32 ntdll)
 add_pch(kernel32 k32.h SOURCE)
