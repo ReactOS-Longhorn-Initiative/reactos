@@ -13,6 +13,8 @@ add_definitions(-D_WIN32_WINNT=0x601 -DWINVER=0x601)
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 
 list(APPEND SOURCE_STATIC
+    #console.c #looks like ReactOS console.c is nothing like wine.
+    #debug.c //TODO:
     loader.c
     version.c
     volume.c)

@@ -49,6 +49,8 @@ static PTOP_LEVEL_EXCEPTION_FILTER top_filter;
 
 void *dummy = RtlUnwind;  /* force importing RtlUnwind from ntdll */
 
+#ifndef __REACTOS__
+
 /***********************************************************************
  *           CheckRemoteDebuggerPresent   (kernelbase.@)
  */
@@ -429,6 +431,7 @@ LPTOP_LEVEL_EXCEPTION_FILTER WINAPI DECLSPEC_HOTPATCH SetUnhandledExceptionFilte
     return InterlockedExchangePointer( (void **)&top_filter, filter );
 }
 
+#endif
 
 /*******************************************************************
  *         format_exception_msg
@@ -576,13 +579,21 @@ static BOOL start_debugger( EXCEPTION_POINTERS *epointers, HANDLE event )
     {
         size_t format_size = lstrlenW( format ) + 2*20;
         cmdline = HeapAlloc( GetProcessHeap(), 0, format_size * sizeof(WCHAR) );
+#ifdef __REACTOS__
+        swprintf( cmdline, format, GetCurrentProcessId(), HandleToLong(event) );
+#else
         swprintf( cmdline, format_size, format, GetCurrentProcessId(), HandleToLong(event) );
+#endif
         HeapFree( GetProcessHeap(), 0, format );
     }
     else
     {
         cmdline = HeapAlloc( GetProcessHeap(), 0, 80 * sizeof(WCHAR) );
+#ifdef __REACTOS__
+        swprintf( cmdline, L"winedbg --auto %ld %ld", GetCurrentProcessId(), HandleToLong(event) );
+#else
         swprintf( cmdline, 80, L"winedbg --auto %ld %ld", GetCurrentProcessId(), HandleToLong(event) );
+#endif
     }
 
     if (!autostart)
