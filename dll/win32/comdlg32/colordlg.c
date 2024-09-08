@@ -1053,15 +1053,11 @@ static LRESULT CC_WMCommand(CCPRIV *lpp, WPARAM wParam, LPARAM lParam, WORD noti
         case COLOR_LUM:
 	       if (notifyCode == EN_UPDATE && !lpp->updating)
 			 {
-<<<<<<< HEAD
 #ifdef __REACTOS__
 			   i = CC_CheckDigitsInEdit(lpp, hwndCtl , LOWORD(wParam) == IDC_COLOR_EDIT_H ? 239 : 240);
 #else
 			   i = CC_CheckDigitsInEdit(hwndCtl , LOWORD(wParam) == IDC_COLOR_EDIT_H ? 239 : 240);
 #endif
-=======
-			   i = CC_CheckDigitsInEdit(hwndCtl , LOWORD(wParam) == COLOR_HUE ? 239 : 240);
->>>>>>> c0d5012bef3 ([WINESYNC] Sync comdlg32 to Wine 9.8)
 			   xx = 0;
 			   switch (LOWORD(wParam))
 			   {
