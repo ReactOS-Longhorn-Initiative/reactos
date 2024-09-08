@@ -155,58 +155,6 @@ GetApplicationRestart(IN HANDLE hProcess,
     return E_FAIL;
 }
 
-
-/*
- * @unimplemented
- */
-VOID
-WINAPI
-ApplicationRecoveryFinished(IN BOOL bSuccess)
-{
-    UNIMPLEMENTED;
-}
-
-
-/*
- * @unimplemented
- */
-HRESULT
-WINAPI
-ApplicationRecoveryInProgress(OUT PBOOL pbCancelled)
-{
-    UNIMPLEMENTED;
-    return E_FAIL;
-}
-
-
-/*
- * @unimplemented
- */
-HRESULT
-WINAPI
-RegisterApplicationRecoveryCallback(IN APPLICATION_RECOVERY_CALLBACK pRecoveryCallback,
-                                    IN PVOID pvParameter  OPTIONAL,
-                                    DWORD dwPingInterval,
-                                    DWORD dwFlags)
-{
-    UNIMPLEMENTED;
-    return E_FAIL;
-}
-
-
-/*
- * @unimplemented
- */
-HRESULT
-WINAPI
-RegisterApplicationRestart(IN PCWSTR pwzCommandline  OPTIONAL,
-                           IN DWORD dwFlags)
-{
-    UNIMPLEMENTED;
-    return E_FAIL;
-}
-
-
 /*
  * @implemented
  */

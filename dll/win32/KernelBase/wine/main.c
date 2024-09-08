@@ -40,6 +40,26 @@ BOOL is_wow64 = FALSE;
 /***********************************************************************
  *           DllMain
  */
+BOOL WINAPI DllMain_KernelBaseStatic( HINSTANCE hinst, DWORD reason, LPVOID reserved )
+{
+    if (reason == DLL_PROCESS_ATTACH)
+    {
+        DisableThreadLibraryCalls( hinst );
+        IsWow64Process( GetCurrentProcess(), &is_wow64 );
+        init_global_data();
+        init_locale( hinst );
+        init_startup_info( NtCurrentTeb()->Peb->ProcessParameters );
+#ifndef __REACTOS__
+        init_console();
+#endif
+    }
+    return TRUE;
+}
+
+#ifndef __REACTOS__
+/***********************************************************************
+ *           DllMain
+ */
 BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
 {
     if (reason == DLL_PROCESS_ATTACH)
@@ -49,37 +69,14 @@ BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
         init_global_data();
         init_locale( hinst );
         init_startup_info( NtCurrentTeb()->Peb->ProcessParameters );
+#ifndef __REACTOS__
         init_console();
+#endif
     }
     return TRUE;
 }
+#endif
 
-
-/***********************************************************************
- *           MulDiv   (kernelbase.@)
- */
-INT WINAPI MulDiv( INT a, INT b, INT c )
-{
-    LONGLONG ret;
-
-    if (!c) return -1;
-
-    /* We want to deal with a positive divisor to simplify the logic. */
-    if (c < 0)
-    {
-        a = -a;
-        c = -c;
-    }
-
-    /* If the result is positive, we "add" to round. else, we subtract to round. */
-    if ((a < 0 && b < 0) || (a >= 0 && b >= 0))
-        ret = (((LONGLONG)a * b) + (c / 2)) / c;
-    else
-        ret = (((LONGLONG)a * b) - (c / 2)) / c;
-
-    if (ret > 2147483647 || ret < -2147483647) return -1;
-    return ret;
-}
 
 /***********************************************************************
  *          AppPolicyGetMediaFoundationCodecLoading (KERNELBASE.@)

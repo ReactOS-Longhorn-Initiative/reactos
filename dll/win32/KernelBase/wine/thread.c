@@ -53,7 +53,7 @@ static DWORD rtlmode_to_win32mode( DWORD rtlmode )
     return win32mode;
 }
 
-
+#ifndef __REACTOS__
 /***************************************************************************
  *           CreateRemoteThread   (kernelbase.@)
  */
@@ -133,7 +133,6 @@ void WINAPI DECLSPEC_HOTPATCH GetCurrentThreadStackLimits( ULONG_PTR *low, ULONG
     *low = (ULONG_PTR)NtCurrentTeb()->DeallocationStack;
     *high = (ULONG_PTR)NtCurrentTeb()->Tib.StackBase;
 }
-
 
 /***********************************************************************
  *           GetCurrentThread   (kernelbase.@)
@@ -242,7 +241,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetThreadId( HANDLE thread )
         return 0;
     return HandleToULong( tbi.ClientId.UniqueThread );
 }
-
+#endif
 
 /***********************************************************************
  *           GetThreadIdealProcessorEx   (kernelbase.@)
@@ -567,7 +566,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadPriorityBoost( HANDLE thread, BOOL disabl
     return set_ntstatus( NtSetInformationThread( thread, ThreadPriorityBoost, &disable, sizeof(disable) ));
 }
 
-
+#ifndef __REACTOS__
 /**********************************************************************
  *           SetThreadStackGuarantee   (kernelbase.@)
  */
@@ -588,7 +587,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadStackGuarantee( ULONG *size )
     if (new_size > prev_size) NtCurrentTeb()->GuaranteedStackBytes = (new_size + 4095) & ~4095;
     return TRUE;
 }
-
+#endif
 
 /**********************************************************************
  *	SetThreadUILanguage   (kernelbase.@)
@@ -620,7 +619,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadInformation( HANDLE thread, THREAD_INFORM
     }
 }
 
-
+#ifndef __REACTOS__
 /**********************************************************************
  *           SuspendThread   (kernelbase.@)
  */
@@ -761,6 +760,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH TlsSetValue( DWORD index, LPVOID value )
     return TRUE;
 }
 
+#endif
 
 /***********************************************************************
  *           Wow64GetThreadContext   (kernelbase.@)
@@ -795,7 +795,7 @@ BOOL WINAPI Wow64SetThreadContext( HANDLE handle, const WOW64_CONTEXT *context)
 /***********************************************************************
  * Fibers
  ***********************************************************************/
-
+#ifndef __REACTOS__
 
 struct fiber_actctx
 {
@@ -1103,7 +1103,6 @@ LPVOID WINAPI /* DECLSPEC_HOTPATCH */ ConvertThreadToFiber( LPVOID param )
     return ConvertThreadToFiberEx( param, 0 );
 }
 
-
 /***********************************************************************
  *           ConvertThreadToFiberEx   (kernelbase.@)
  */
@@ -1233,7 +1232,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH FlsSetValue( DWORD index, PVOID data )
 {
     return set_ntstatus( RtlFlsSetValue( index, data ));
 }
-
+#endif
 
 /***********************************************************************
  * Thread pool

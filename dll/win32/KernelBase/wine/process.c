@@ -26,7 +26,11 @@
 #include "windef.h"
 #include "winbase.h"
 #include "winnls.h"
+#ifdef __REACTOS__
+#include <wincon.h>
+#else
 #include "wincontypes.h"
+#endif
 #include "winternl.h"
 
 #include "kernelbase.h"
@@ -250,6 +254,8 @@ struct _PROC_THREAD_ATTRIBUTE_LIST
     DWORD_PTR unk;
     struct proc_thread_attr attrs[1];
 };
+
+#ifndef __REACTOS__
 
 /***********************************************************************
  *           create_nt_process
@@ -704,6 +710,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreateProcessW( const WCHAR *app_name, WCHAR *cmd_
                                    inherit, flags, env, cur_dir, startup_info, info, NULL );
 }
 
+#endif
 
 /**********************************************************************
  *           SetProcessInformation   (kernelbase.@)

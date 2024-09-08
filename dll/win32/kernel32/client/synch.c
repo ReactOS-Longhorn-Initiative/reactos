@@ -988,4 +988,34 @@ UnregisterWaitEx(IN HANDLE WaitHandle,
     return TRUE;
 }
 
+static const struct _KUSER_SHARED_DATA *user_shared_data = (struct _KUSER_SHARED_DATA *)USER_SHARED_DATA;
+//TODO:
+/******************************************************************************
+ *           QueryInterruptTime  (kernelbase.@)
+ */
+void WINAPI DECLSPEC_HOTPATCH QueryInterruptTime( ULONGLONG *time )
+{
+    ULONG high, low;
+
+    do
+    {
+        high = user_shared_data->InterruptTime.High1Time;
+        low = user_shared_data->InterruptTime.LowPart;
+    }
+    while (high != user_shared_data->InterruptTime.High2Time);
+    *time = (ULONGLONG)high << 32 | low;
+}
+
+
+/******************************************************************************
+ *           QueryInterruptTimePrecise  (kernelbase.@)
+ */
+void WINAPI DECLSPEC_HOTPATCH QueryInterruptTimePrecise( ULONGLONG *time )
+{
+    static int once;
+    if (!once++) DPRINT1( "(%p) semi-stub\n", time );
+
+    QueryInterruptTime( time );
+}
+
 /* EOF */

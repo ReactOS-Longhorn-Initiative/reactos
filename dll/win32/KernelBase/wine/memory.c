@@ -22,6 +22,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+
+
+
+#define NTOS_MODE_USER
+#include <ndk/cmfuncs.h>
+#include <ndk/exfuncs.h>
+#include <ndk/iofuncs.h>
+#include <ndk/iotypes.h>
+#include <ndk/kdtypes.h>
+#include <ndk/kefuncs.h>
+#include <ndk/ldrfuncs.h>
+#include <ndk/mmfuncs.h>
+#include <ndk/obfuncs.h>
+#include <ndk/psfuncs.h>
+#include <ndk/rtlfuncs.h>
+#include <ndk/setypes.h>
+#include <ndk/umfuncs.h>
+
 #include <sys/types.h>
 
 #include "ntstatus.h"
@@ -29,9 +47,10 @@
 #include "windef.h"
 #include "winbase.h"
 #include "winnls.h"
-#include "winternl.h"
-#include "winerror.h"
+#ifdef __REACTOS__
+#else
 #include "ddk/wdm.h"
+#endif
 
 #include "kernelbase.h"
 #include "wine/exception.h"
@@ -96,7 +115,7 @@ static void send_cross_process_notification( CROSS_PROCESS_WORK_LIST *list, UINT
 static const SIZE_T page_mask = 0xfff;
 #define ROUND_ADDR(addr) ((void *)((UINT_PTR)(addr) & ~page_mask))
 #define ROUND_SIZE(addr,size) (((SIZE_T)(size) + ((UINT_PTR)(addr) & page_mask) + page_mask) & ~page_mask)
-
+#ifndef __REACTOS__
 /***********************************************************************
  *             DiscardVirtualMemory   (kernelbase.@)
  */
@@ -137,7 +156,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH FlushInstructionCache( HANDLE process, LPCVOID add
     return set_ntstatus( NtFlushInstructionCache( process, addr, size ));
 }
 
-
+#endif
 /***********************************************************************
  *          GetLargePageMinimum   (kernelbase.@)
  */
@@ -193,7 +212,7 @@ static void fill_system_info( SYSTEM_INFO *si, const SYSTEM_BASIC_INFORMATION *b
     }
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *          GetNativeSystemInfo   (kernelbase.@)
  */
@@ -310,7 +329,7 @@ LPVOID WINAPI DECLSPEC_HOTPATCH MapViewOfFileEx( HANDLE handle, DWORD access, DW
     }
     return addr;
 }
-
+#endif
 
 /***********************************************************************
  *             MapViewOfFileFromApp   (kernelbase.@)

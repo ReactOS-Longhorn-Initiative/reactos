@@ -31,8 +31,13 @@
 #include "winnls.h"
 #include "winternl.h"
 #include "winioctl.h"
+#ifdef __REACTOS__
+#define SystemProcessorIdleCycleTimeInformation 83
+#define DIRECTORY_TRAVERSE                0x0002
+#define DIRECTORY_CREATE_OBJECT           0x0004
+#else
 #include "ddk/wdm.h"
-
+#endif
 #include "kernelbase.h"
 #include "wine/asm.h"
 #include "wine/exception.h"
@@ -71,9 +76,13 @@ NTSTATUS WINAPI BaseGetNamedObjectDirectory( HANDLE *dir )
     if (!handle)
     {
         HANDLE dir;
-
+#ifdef __REACTOS__
+        swprintf( buffer, L"\\Sessions\\%u\\BaseNamedObjects",
+                  NtCurrentTeb()->Peb->SessionId );
+#else
         swprintf( buffer, ARRAY_SIZE(buffer), L"\\Sessions\\%u\\BaseNamedObjects",
                   NtCurrentTeb()->Peb->SessionId );
+#endif
         RtlInitUnicodeString( &str, buffer );
         InitializeObjectAttributes(&attr, &str, 0, 0, NULL);
         status = NtOpenDirectoryObject( &dir, DIRECTORY_CREATE_OBJECT|DIRECTORY_TRAVERSE, &attr );
@@ -175,7 +184,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetSystemTimes( FILETIME *idle, FILETIME *kernel, 
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /******************************************************************************
  *           GetTickCount   (kernelbase.@)
  */
@@ -202,7 +211,6 @@ ULONGLONG WINAPI DECLSPEC_HOTPATCH GetTickCount64(void)
     /* note: we ignore TickCountMultiplier */
     return (ULONGLONG)high << 32 | low;
 }
-
 
 /******************************************************************************
  *           QueryInterruptTime  (kernelbase.@)
@@ -231,7 +239,7 @@ void WINAPI DECLSPEC_HOTPATCH QueryInterruptTimePrecise( ULONGLONG *time )
 
     QueryInterruptTime( time );
 }
-
+#endif
 
 /***********************************************************************
  *           QueryUnbiasedInterruptTimePrecise  (kernelbase.@)
@@ -276,6 +284,7 @@ BOOL WINAPI QueryIdleProcessorCycleTimeEx( USHORT group_id, ULONG *size, ULONG64
  ***********************************************************************/
 
 
+#ifndef __REACTOS__
 static HANDLE normalize_std_handle( HANDLE handle )
 {
     if ((handle == (HANDLE)STD_INPUT_HANDLE) ||
@@ -414,7 +423,6 @@ DWORD WINAPI DECLSPEC_HOTPATCH WaitForMultipleObjectsEx( DWORD count, const HAND
     return status;
 }
 
-
 /******************************************************************************
  *           WaitForDebugEvent   (kernelbase.@)
  */
@@ -453,12 +461,15 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEvent( DEBUG_EVENT *event, DWORD timeo
         }
     }
 }
-
+#endif
 /******************************************************************************
  *           WaitForDebugEventEx   (kernelbase.@)
  */
 BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEventEx( DEBUG_EVENT *event, DWORD timeout )
 {
+#ifdef __REACTOS__
+    return WaitForDebugEvent(event,timeout);
+#else
     NTSTATUS status;
     LARGE_INTEGER time;
     DBGUI_WAIT_STATE_CHANGE state;
@@ -480,6 +491,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEventEx( DEBUG_EVENT *event, DWORD tim
             return set_ntstatus( status );
         }
     }
+#endif
 }
 
 
@@ -488,6 +500,10 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEventEx( DEBUG_EVENT *event, DWORD tim
  */
 BOOL WINAPI DECLSPEC_HOTPATCH WaitOnAddress( volatile void *addr, void *cmp, SIZE_T size, DWORD timeout )
 {
+#ifdef __REACTOS__
+    //TODO:
+    return 0;
+#else
     LARGE_INTEGER to;
 
     if (timeout != INFINITE)
@@ -496,6 +512,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitOnAddress( volatile void *addr, void *cmp, SIZ
         return set_ntstatus( RtlWaitOnAddress( (const void *)addr, cmp, size, &to ));
     }
     return set_ntstatus( RtlWaitOnAddress( (const void *)addr, cmp, size, NULL ));
+#endif
 }
 
 
@@ -959,7 +976,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH DeleteTimerQueueTimer( HANDLE queue, HANDLE timer,
  * Critical sections
  ***********************************************************************/
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           InitializeCriticalSectionAndSpinCount   (kernelbase.@)
  */
@@ -978,12 +995,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH InitializeCriticalSectionEx( CRITICAL_SECTION *cri
     if (ret) RtlRaiseStatus( ret );
     return !ret;
 }
-
+#endif
 
 /***********************************************************************
  * File mappings
  ***********************************************************************/
-
+#ifndef __REACTOS__
 /***********************************************************************
  *             CreateFileMappingW   (kernelbase.@)
  */
@@ -1050,6 +1067,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateFileMappingW( HANDLE file, LPSECURITY_ATTR
     return ret;
 }
 
+#endif
 
 /***********************************************************************
  *             CreateFileMappingFromApp   (kernelbase.@)
@@ -1059,7 +1077,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateFileMappingFromApp( HANDLE file, LPSECURIT
 {
     return CreateFileMappingW( file, sa, protect, size << 32, size, name );
 }
-
+#ifndef __REACTOS__
 /***********************************************************************
  *             OpenFileMappingW   (kernelbase.@)
  */
@@ -1083,7 +1101,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH OpenFileMappingW( DWORD access, BOOL inherit, LP
     return ret;
 }
 
-
+#endif
 /***********************************************************************
  *             OpenFileMappingFromApp   (kernelbase.@)
  */
@@ -1106,7 +1124,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH OpenFileMappingFromApp( ULONG access, BOOL inher
  * Condition variables
  ***********************************************************************/
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           SleepConditionVariableCS   (kernelbase.@)
  */
@@ -1202,7 +1220,9 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetQueuedCompletionStatus( HANDLE port, LPDWORD co
     else SetLastError( RtlNtStatusToDosError(status) );
     return FALSE;
 }
-
+#endif
+#ifndef __REACTOS__
+//TODO:
 /******************************************************************************
  *              GetQueuedCompletionStatusEx   (kernelbase.@)
  */
@@ -1224,7 +1244,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetQueuedCompletionStatusEx( HANDLE port, OVERLAPP
     else SetLastError( RtlNtStatusToDosError(ret) );
     return FALSE;
 }
-
+#endif
 
 /******************************************************************************
  *		PostQueuedCompletionStatus   (kernelbase.@)
@@ -1410,8 +1430,13 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreatePipe( HANDLE *read_pipe, HANDLE *write_pipe,
     /* generate a unique pipe name (system wide) */
     for (;;)
     {
+#ifdef __REACTOS__
+        swprintf( name, L"\\??\\pipe\\Win32.Pipes.%08lu.%08u",
+                  GetCurrentProcessId(), ++index );
+#else
         swprintf( name, ARRAY_SIZE(name), L"\\??\\pipe\\Win32.Pipes.%08lu.%08u",
                   GetCurrentProcessId(), ++index );
+#endif
         RtlInitUnicodeString( &nt_name, name );
         if (!NtCreateNamedPipeFile( read_pipe, GENERIC_READ | FILE_WRITE_ATTRIBUTES | SYNCHRONIZE,
                                     &attr, &iosb, FILE_SHARE_WRITE, FILE_OPEN_IF,
@@ -1674,7 +1699,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitNamedPipeW( LPCWSTR name, DWORD timeout )
     return set_ntstatus( status );
 }
 
-
+#ifndef __REACTOS__
 
 /***********************************************************************
  * Interlocked functions
@@ -1763,3 +1788,5 @@ __ASM_STDCALL_FUNC(InterlockedDecrement, 4,
                   "ret $4")
 
 #endif  /* __i386__ */
+
+#endif

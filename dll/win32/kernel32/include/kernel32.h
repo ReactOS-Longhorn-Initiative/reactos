@@ -11,7 +11,7 @@
 #define comm                    205
 #define profile                 206
 #define nls                     207
-
+#define wine                    208
 
 #if DBG
 #define DEBUG_CHANNEL(ch) static ULONG gDebugChannel = ch;

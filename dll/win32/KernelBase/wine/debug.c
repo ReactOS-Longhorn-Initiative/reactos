@@ -48,7 +48,7 @@ typedef INT (WINAPI *MessageBoxW_funcptr)(HWND,LPCWSTR,LPCWSTR,UINT);
 static PTOP_LEVEL_EXCEPTION_FILTER top_filter;
 
 void *dummy = RtlUnwind;  /* force importing RtlUnwind from ntdll */
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           CheckRemoteDebuggerPresent   (kernelbase.@)
  */
@@ -768,6 +768,7 @@ LONG WINAPI UnhandledExceptionFilter( EXCEPTION_POINTERS *epointers )
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+#endif
 
 /***********************************************************************
  *         WerGetFlags   (kernelbase.@)
@@ -849,6 +850,7 @@ HRESULT WINAPI /* DECLSPEC_HOTPATCH */ WerUnregisterRuntimeExceptionModule( cons
     return S_OK;
 }
 
+#ifndef __REACTOS__
 
 /***********************************************************************
  * psapi functions
@@ -1718,6 +1720,7 @@ BOOL WINAPI QueryWorkingSetEx( HANDLE process, void *buffer, DWORD size )
                                                buffer, size, NULL ));
 }
 
+#endif
 
 /******************************************************************
  *         QueryFullProcessImageNameA   (kernelbase.@)
