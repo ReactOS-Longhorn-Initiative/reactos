@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Alexandre Julliard
+ * Copyright (C) 2023 Paul Gofman for CodeWeavers
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,28 +16,27 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#ifndef _APISETLIBLOADER_
-#define _APISETLIBLOADER_
+#ifndef __IORINGAPI_H_
+#define __IORINGAPI_H_
+
+#include <ntioring_x.h>
+
+struct IORING_CAPABILITIES
+{
+    IORING_VERSION       MaxVersion;
+    UINT32               MaxSubmissionQueueSize;
+    UINT32               MaxCompletionQueueSize;
+    IORING_FEATURE_FLAGS FeatureFlags;
+};
+typedef struct IORING_CAPABILITIES IORING_CAPABILITIES;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void *DLL_DIRECTORY_COOKIE, **PDLL_DIRECTORY_COOKIE;
+HRESULT WINAPI QueryIoRingCapabilities(IORING_CAPABILITIES *caps);
 
-#ifdef __REACTOS__
-DLL_DIRECTORY_COOKIE WINAPI AddDllDirectory(const WCHAR *);
-BOOL WINAPI RemoveDllDirectory(DLL_DIRECTORY_COOKIE);
-BOOL WINAPI SetDefaultDllDirectories(DWORD);
-INT WINAPI FindStringOrdinal(DWORD, const WCHAR *, INT, const WCHAR *, INT, BOOL);
-#else
-WINBASEAPI DLL_DIRECTORY_COOKIE WINAPI AddDllDirectory(const WCHAR *);
-WINBASEAPI BOOL WINAPI RemoveDllDirectory(DLL_DIRECTORY_COOKIE);
-WINBASEAPI BOOL WINAPI SetDefaultDllDirectories(DWORD);
-WINBASEAPI INT WINAPI FindStringOrdinal(DWORD, const WCHAR *, INT, const WCHAR *, INT, BOOL);
-#endif
 #ifdef __cplusplus
 }
 #endif
-
-#endif  /* _APISETLIBLOADER_ */
+#endif
