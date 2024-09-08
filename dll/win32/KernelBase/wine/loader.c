@@ -28,7 +28,6 @@
 #include "winbase.h"
 #include "winnls.h"
 #include "winternl.h"
-#include "ddk/ntddk.h"
 #include "kernelbase.h"
 #include "wine/list.h"
 #include "wine/asm.h"
@@ -500,6 +499,13 @@ FARPROC WINAPI DECLSPEC_HOTPATCH GetProcAddress( HMODULE module, LPCSTR function
  */
 BOOL WINAPI IsApiSetImplemented( LPCSTR name )
 {
+#ifdef __REACTOS__
+    return TRUE;
+    /*
+     * Below is a perfectly good implementation of this function, however ReactOS always has APISETs technically
+     * the functionality to detect them here isn't how it works in ROS.
+     */
+#else
     UNICODE_STRING str;
     NTSTATUS status;
     BOOLEAN in_schema, present;
@@ -508,6 +514,7 @@ BOOL WINAPI IsApiSetImplemented( LPCSTR name )
     status = ApiSetQueryApiSetPresenceEx( &str, &in_schema, &present );
     RtlFreeUnicodeString( &str );
     return !status && present;
+#endif
 }
 
 #ifndef __REACTOS__
