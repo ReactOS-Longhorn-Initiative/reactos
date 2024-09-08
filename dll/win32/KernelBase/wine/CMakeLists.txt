@@ -14,6 +14,7 @@ include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 
 list(APPEND SOURCE_STATIC
     loader.c
+    version.c
     volume.c)
 
 add_library(kernelbase_static ${SOURCE_STATIC})
