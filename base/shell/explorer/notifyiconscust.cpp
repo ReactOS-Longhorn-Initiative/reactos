@@ -140,7 +140,7 @@ VOID ResetBehaviors(HWND hwnd)
         }
     }
     
-    toolbar->Toogle(FALSE);
+    toolbar->SetIsExpanded(FALSE);
 }
 
 VOID InitializeListView(HWND hwnd)

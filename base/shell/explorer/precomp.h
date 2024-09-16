@@ -420,7 +420,7 @@ public:
     VOID ResizeImagelist();
     bool SendNotifyCallback(InternalIconData* notifyItem, UINT uMsg);
     VOID SetBehavior(int iItem, int iBehavior);
-    VOID Toogle(BOOL expand);
+    VOID SetIsExpanded(BOOL expand);
     VOID RefreshToolbarMetrics(BOOL bForceRefresh);
 private:
     LRESULT OnCtxMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
