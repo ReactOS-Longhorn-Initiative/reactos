@@ -29,30 +29,50 @@ static const WCHAR szTrayNotifyWndClass[] = L"TrayNotifyWnd";
 #define CLOCK_TEXT_HACK             4
 
 /*
- * TrayNotifyWnd
+ * Tray overflow toggle button
  */
-
 
 class CTrayToggleButton
     : public CWindowImpl<CTrayToggleButton>
 {
     SIZE m_Size;
-    BOOL expanded;
+    BOOL isExpanded;
     BOOL isHorizontal;
+    BOOL m_bHovering;
+    BOOL m_bPressed;
     CNotifyToolbar* toolbar;
+    HICON m_expandIcon;
+    HICON m_collapseIcon;
+    HTHEME m_hTheme;
 
 public:
     CTrayToggleButton()
+        : m_Size({ 19, 20 })
+        , isExpanded(FALSE)
+        , isHorizontal(TRUE)
+        , m_bHovering(FALSE)
+        , m_bPressed(FALSE)
+        , toolbar(NULL)
+        , m_expandIcon(NULL)
+        , m_collapseIcon(NULL)
+        , m_hTheme(NULL)
     {
-        m_Size.cx = 19;
-        m_Size.cy = 20;
-        expanded = FALSE;
-        isHorizontal = TRUE;
+        //m_Size.cx = 19;
+        //m_Size.cy = 20;
+        //isExpanded = FALSE;
+        //isHorizontal = TRUE;
     }
 
     virtual ~CTrayToggleButton()
     {
 
+    }
+
+    VOID Toggle()
+    {
+        isExpanded = !isExpanded;
+        if (toolbar)
+            toolbar->SetIsExpanded(isExpanded);
     }
 
     SIZE GetSize()
@@ -118,27 +138,219 @@ public:
             Initialize();
 
         toolbar = CSysPagerWnd_GetTrayToolbar(pager);
+
+        ExtractIconExW(L"explorer.exe", -IDI_ARROWLEFT, NULL, &m_expandIcon, 1);
+        ExtractIconExW(L"explorer.exe", -IDI_ARROWRIGHT, NULL, &m_collapseIcon, 1);
         
         return m_hWnd;
     }
 
 	VOID UpdateTheme()
     {
-        SetWindowTheme(m_hWnd, !expanded 
-            ? (isHorizontal ? L"TrayNotifyHoriz" : L"TrayNotifyVert") 
-            : (isHorizontal ? L"TrayNotifyHorizOpen" : L"TrayNotifyVertOpen"), 
-            NULL);
+        SetWindowTheme(m_hWnd, isExpanded 
+                ? (isHorizontal ? L"TrayNotifyHorizOpen" : L"TrayNotifyVertOpen")
+                : (isHorizontal ? L"TrayNotifyHoriz" : L"TrayNotifyVert")
+            , NULL);
+        //m_hTheme = OpenThemeData(m_hWnd, L"Button");
     }
 
     LRESULT OnLButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-    {   
-        expanded = !expanded;
-        
+    {
+        LRESULT ret = DefWindowProc(uMsg, wParam, lParam);
+        m_bPressed = true;
+        return ret;
+    }
+    
+    
+    LRESULT OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LRESULT ret = DefWindowProc(uMsg, wParam, lParam);
+        if (m_bPressed)
+        {
+            Toggle();
+            m_bPressed = false;
+        }
+        return ret;
+    }
+
+    //LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    LRESULT OnSettingChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
         UpdateTheme();
-        toolbar->Toogle(expanded);
-        
         return 0;
     }
+
+    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        //LRESULT ret = TRUE;
+        if (IsThemeActive())
+            return DefWindowProc(uMsg, wParam, lParam);
+        return TRUE;
+    }
+
+#ifdef NO
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (IsThemeActive())
+            return DefWindowProc(uMsg, wParam, lParam);
+        //LRESULT ret = DefWindowProc(uMsg, wParam, lParam);
+        
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(&ps);
+        /*
+        if (IsThemeActive() && m_hTheme)
+        {
+            int part = TP_BUTTON;
+            int state = PBS_NORMAL;
+            if (m_bPressed)
+
+            ::DrawThemeBackground(theme, hdc, part, state, lpRc, lpRc);
+        }
+        */
+        DrawIconEx(hdc, 0, 0,
+                    isExpanded ? m_collapseIcon : m_expandIcon
+                    , 0, 0, 0, NULL, DI_NORMAL);
+        
+        EndPaint(&ps);
+
+        return 0;
+    }
+#else
+    VOID OnClassicDraw(HDC hdc, LPRECT prc)
+    {
+        RECT rc = { prc->left, prc->top, prc->right, prc->bottom };
+        LPRECT lpRc = &rc;
+        HBRUSH hbrBackground = NULL;
+
+        
+        hbrBackground = ::GetSysColorBrush(COLOR_3DFACE);
+        ::FillRect(hdc, lpRc, hbrBackground);
+
+        if (m_bPressed || m_bHovering)
+        {
+            UINT edge = m_bPressed ? BDR_SUNKENOUTER : BDR_RAISEDINNER;
+            DrawEdge(hdc, lpRc, edge, BF_RECT);
+        }
+
+        
+        /* Prepare to draw icon */
+
+        // Determine X-position of icon's top-left corner
+        int iconX = rc.left;
+        iconX += (rc.right - iconX) / 2;
+        iconX -= 8; //m_szIcon.cx / 2;
+
+        // Determine Y-position of icon's top-left corner
+        int iconY = rc.top;
+        iconY += (rc.bottom - iconY) / 2;
+        iconY -= 8; //m_szIcon.cy / 2;
+
+        // Ok now actually draw the icon itself
+        HICON icon = isExpanded ? m_collapseIcon : m_expandIcon;
+        if (icon)
+        {
+            DrawIconEx(hdc, iconX, iconY,
+                    icon, 0, 0,
+                    0, hbrBackground, DI_NORMAL);
+        }
+    }
+
+    LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (IsThemeActive())
+            return DefWindowProc(uMsg, wParam, lParam);
+        RECT rc;
+        GetClientRect(&rc);
+
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(&ps);
+        OnClassicDraw(hdc, &rc);
+        EndPaint(&ps);
+
+        return 0;
+    }
+
+    LRESULT OnPrintClient(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (IsThemeActive())
+            return DefWindowProc(uMsg, wParam, lParam);
+        if ((lParam & PRF_CHECKVISIBLE) && !IsWindowVisible())
+            return 0;
+
+        RECT rc;
+        GetClientRect(&rc);
+
+        HDC hdc = (HDC)wParam;
+        OnClassicDraw(hdc, &rc);
+
+        return 0;
+    }
+
+#endif
+    LRESULT OnNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        LPNMHDR header = (LPNMHDR)lParam;
+        auto code = header->code;
+        /*if (code == NM_HOVER)
+            m_bHovering = true; */
+        if (code == BCN_HOTITEMCHANGE)
+        {
+            NMBCHOTITEM* hoveredItem = reinterpret_cast<NMBCHOTITEM*>(lParam);
+            if (header->hwndFrom == m_hWnd)
+                m_bHovering = hoveredItem->dwFlags & HICF_ENTERING;
+        }
+        return DefWindowProc(uMsg, wParam, lParam);
+    }
+
+#define TRAY_TOGGLE_BUTTON_TIMER_ID 998
+#define TRAY_TOGGLE_BUTTON_TIMER_INTERVAL 200
+    LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (m_bHovering)
+            return 0;
+
+        m_bHovering = TRUE;
+        Invalidate(TRUE);
+
+        SetTimer(TRAY_TOGGLE_BUTTON_TIMER_ID, TRAY_TOGGLE_BUTTON_TIMER_INTERVAL, NULL);
+
+        return 0;
+    }
+    
+    BOOL PtInButton(LPPOINT ppt) const
+    {
+        if (!ppt || !IsWindow())
+            return FALSE;
+
+        RECT rc;
+        GetWindowRect(&rc);
+        INT cxEdge = ::GetSystemMetrics(SM_CXEDGE), cyEdge = ::GetSystemMetrics(SM_CYEDGE);
+        ::InflateRect(&rc, max(cxEdge, 1), max(cyEdge, 1));
+
+        return isHorizontal
+            ? (ppt->x > rc.left)
+            : (ppt->y > rc.top);
+    }
+
+    LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
+        if (wParam != TRAY_TOGGLE_BUTTON_TIMER_ID || !m_bHovering)
+            return 0;
+
+        POINT pt;
+        ::GetCursorPos(&pt);
+        if (!PtInButton(&pt)) // The end of hovering?
+        {
+            m_bHovering = FALSE;
+            KillTimer(TRAY_TOGGLE_BUTTON_TIMER_ID);
+            Invalidate(TRUE);
+
+            //::PostMessage(m_hWndTaskbar, WM_NCPAINT, 0, 0);
+        }
+
+        return 0;
+    }
+    
     
     VOID SetHorizontal(BOOL horizontal)
     {
@@ -149,9 +361,20 @@ public:
 
     BEGIN_MSG_MAP(CTrayToggleButton)
         MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonDown)
+        MESSAGE_HANDLER(WM_LBUTTONUP, OnLButtonUp)
+        //MESSAGE_HANDLER(WM_THEMECHANGED, OnThemeChanged)
+        MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChanged)
+        //MESSAGE_HANDLER(WM_NOTIFY, OnNotify)
+        MESSAGE_HANDLER(WM_PAINT, OnPaint)
+        MESSAGE_HANDLER(WM_MOUSEMOVE, OnMouseMove)
+        MESSAGE_HANDLER(WM_TIMER, OnTimer)
     END_MSG_MAP()
 
 };
+
+/*
+ * TrayNotifyWnd
+ */
 
 class CTrayNotifyWnd :
     public CComCoClass<CTrayNotifyWnd>,
@@ -162,8 +385,8 @@ class CTrayNotifyWnd :
     CComPtr<IUnknown> m_clock;
     CTrayShowDesktopButton m_ShowDesktopButton;
     CComPtr<IUnknown> m_pager;
-
 	CTrayToggleButton m_ToggleButton;
+
     HWND m_hwndClock;
     HWND m_hwndShowDesktop;
     HWND m_hwndPager;
@@ -216,9 +439,10 @@ public:
         {
             SetWindowExStyle(m_hWnd, WS_EX_STATICEDGE, WS_EX_STATICEDGE);
 
-            ContentMargin.cxLeftWidth = 2;
+            bool useClassicThemeToggleButtonMargins = (!IsThemeActive()) && m_ToggleButton && m_ToggleButton.IsWindowVisible();
+            ContentMargin.cxLeftWidth = (useClassicThemeToggleButtonMargins && IsHorizontal) ? 21 : 2;
             ContentMargin.cxRightWidth = 2;
-            ContentMargin.cyTopHeight = 2;
+            ContentMargin.cyTopHeight = (useClassicThemeToggleButtonMargins && !IsHorizontal) ? 22 : 2;
             ContentMargin.cyBottomHeight = 2;
         }
 

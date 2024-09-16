@@ -1289,7 +1289,7 @@ void CNotifyToolbar::SetBehavior(int iItem, int iBehavior)
     Realign();
 }
 
-void CNotifyToolbar::Toogle(BOOL expand)
+void CNotifyToolbar::SetIsExpanded(BOOL expand)
 {
     expanded = expand;
     
