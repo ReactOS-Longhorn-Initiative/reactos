@@ -1921,7 +1921,7 @@ HKCU,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",,0x00000012
 
 HKCU,"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies",,0x00000012
 HKCU,"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer",,0x00000012
-HKCU,"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer","NoSimpleStartMenu",0x00010003,1
+HKCU,"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer","NoSimpleStartMenu",0x00010003,0
 
 HKCU,"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",,0x00000012
 HKCU,"SOFTWARE\Microsoft\Windows\CurrentVersion\Telephony",,0x00000012
