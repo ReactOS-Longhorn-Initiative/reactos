@@ -23,4 +23,4 @@ set_source_files_properties(reactive.rc PROPERTIES OBJECT_DEPENDS "${_converted_
 add_library(reactive.msstyles MODULE reactive.rc)
 set_module_type(reactive.msstyles module)
 set_target_properties(reactive.msstyles PROPERTIES SUFFIX "")
-add_cd_file(TARGET reactive.msstyles DESTINATION reactos/Resources/Themes/Reactive FOR all)
+#add_cd_file(TARGET reactive.msstyles DESTINATION reactos/Resources/Themes/Reactive FOR all)
