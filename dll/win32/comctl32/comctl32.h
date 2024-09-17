@@ -164,7 +164,7 @@ typedef struct
    INT            visibleItems;
 } HEADCOMBO, *LPHEADCOMBO;
 
-extern BOOL COMBO_FlipListbox(HEADCOMBO *lphc, BOOL ok, BOOL bRedrawButton) DECLSPEC_HIDDEN;
+extern BOOL COMBO_FlipListbox(HEADCOMBO *lphc, BOOL ok, BOOL bRedrawButton);
 
 typedef struct
 {
