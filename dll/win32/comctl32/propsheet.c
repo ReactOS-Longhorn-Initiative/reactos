@@ -275,10 +275,8 @@ static INT PROPSHEET_FindPageByResId(const PropSheetInfo * psInfo, LRESULT resId
 
    for (i = 0; i < psInfo->nPages; i++)
    {
-      LPCPROPSHEETPAGEA lppsp = (LPCPROPSHEETPAGEA)psInfo->proppage[i].hpage;
-
       /* Fixme: if resource ID is a string shall we use strcmp ??? */
-      if (lppsp->u.pszTemplate == (LPVOID)resId)
+      if (psInfo->proppage[i].hpage->psp.u.pszTemplate == (LPVOID)resId)
          break;
    }
 
@@ -1519,7 +1517,6 @@ static BOOL PROPSHEET_ShowPage(HWND hwndDlg, int index, PropSheetInfo * psInfo)
   HWND hwndTabCtrl;
   HWND hwndLineHeader;
   HWND control;
-  LPCPROPSHEETPAGEW ppshpage;
 
   TRACE("active_page %d, index %d\n", psInfo->active_page, index);
   if (index == psInfo->active_page)
@@ -1561,9 +1558,9 @@ static BOOL PROPSHEET_ShowPage(HWND hwndDlg, int index, PropSheetInfo * psInfo)
   if (psInfo->ppshheader.dwFlags & (PSH_WIZARD97_OLD | PSH_WIZARD97_NEW) )
   {
       hwndLineHeader = GetDlgItem(hwndDlg, IDC_SUNKEN_LINEHEADER);
-      ppshpage = (LPCPROPSHEETPAGEW)psInfo->proppage[index].hpage;
       
-      if ((ppshpage->dwFlags & PSP_HIDEHEADER) || (!(psInfo->ppshheader.dwFlags & PSH_HEADER)) )
+      if ((psInfo->proppage[index].hpage->psp.dwFlags & PSP_HIDEHEADER) ||
+              (!(psInfo->ppshheader.dwFlags & PSH_HEADER)) )
 	  ShowWindow(hwndLineHeader, SW_HIDE);
       else
 	  ShowWindow(hwndLineHeader, SW_SHOW);
@@ -2406,9 +2403,9 @@ static BOOL PROPSHEET_RemovePage(HWND hwndDlg,
     psInfo->active_page--;
 
   /* Unsubclass the page dialog window */
-  if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD) &&
+  if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
      (psInfo->ppshheader.dwFlags & PSH_WATERMARK) &&
-     ((PROPSHEETPAGEW*)psInfo->proppage[index].hpage)->dwFlags & PSP_HIDEHEADER))
+     (psInfo->proppage[index].hpage->psp.dwFlags & PSP_HIDEHEADER))
   {
      RemoveWindowSubclass(psInfo->proppage[index].hwndPage,
                           PROPSHEET_WizardSubclassProc, 1);
@@ -2420,9 +2417,7 @@ static BOOL PROPSHEET_RemovePage(HWND hwndDlg,
   /* Free page resources */
   if(psInfo->proppage[index].hpage)
   {
-     PROPSHEETPAGEW* psp = (PROPSHEETPAGEW*)psInfo->proppage[index].hpage;
-
-     if (psp->dwFlags & PSP_USETITLE)
+     if (psInfo->proppage[index].hpage->psp.dwFlags & PSP_USETITLE)
         Free ((LPVOID)psInfo->proppage[index].pszText);
 
      DestroyPropertySheetPage(psInfo->proppage[index].hpage);
@@ -2539,7 +2534,7 @@ static void PROPSHEET_SetHeaderTitleW(HWND hwndDlg, UINT page_index, const WCHAR
     if (page_index >= psInfo->nPages)
         return;
 
-    page = (PROPSHEETPAGEW *)psInfo->proppage[page_index].hpage;
+    page = &psInfo->proppage[page_index].hpage->psp;
 
     if (!IS_INTRESOURCE(page->pszHeaderTitle))
         Free((void *)page->pszHeaderTitle);
@@ -2575,7 +2570,7 @@ static void PROPSHEET_SetHeaderSubTitleW(HWND hwndDlg, UINT page_index, const WC
     if (page_index >= psInfo->nPages)
         return;
 
-    page = (PROPSHEETPAGEW *)psInfo->proppage[page_index].hpage;
+    page = &psInfo->proppage[page_index].hpage->psp;
 
     if (!IS_INTRESOURCE(page->pszHeaderSubTitle))
         Free((void *)page->pszHeaderSubTitle);
@@ -2663,12 +2658,10 @@ static LRESULT PROPSHEET_IndexToPage(HWND hwndDlg, int iPageIndex)
 static LRESULT PROPSHEET_IdToIndex(HWND hwndDlg, int iPageId)
 {
     int index;
-    LPCPROPSHEETPAGEW psp;
     PropSheetInfo * psInfo = GetPropW(hwndDlg, PropSheetInfoStr);
     TRACE("(%p, %d)\n", hwndDlg, iPageId);
     for (index = 0; index < psInfo->nPages; index++) {
-        psp = (LPCPROPSHEETPAGEW)psInfo->proppage[index].hpage;
-        if (psp->u.pszTemplate == MAKEINTRESOURCEW(iPageId))
+        if (psInfo->proppage[index].hpage->psp.u.pszTemplate == MAKEINTRESOURCEW(iPageId))
             return index;
     }
 
@@ -2687,7 +2680,7 @@ static LRESULT PROPSHEET_IndexToId(HWND hwndDlg, int iPageIndex)
         WARN("%d out of range.\n", iPageIndex);
 	return 0;
     }
-    psp = (LPCPROPSHEETPAGEW)psInfo->proppage[iPageIndex].hpage;
+    psp = &psInfo->proppage[iPageIndex].hpage->psp;
     if (psp->dwFlags & PSP_DLGINDIRECT || !IS_INTRESOURCE(psp->u.pszTemplate)) {
         return 0;
     }
@@ -2747,7 +2740,7 @@ static void PROPSHEET_CleanUp(HWND hwndDlg)
 
   for (i = 0; i < psInfo->nPages; i++)
   {
-     PROPSHEETPAGEA* psp = (PROPSHEETPAGEA*)psInfo->proppage[i].hpage;
+     PROPSHEETPAGEW* psp = &psInfo->proppage[i].hpage->psp;
 
      /* Unsubclass the page dialog window */
      if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
@@ -3320,7 +3313,7 @@ static LRESULT PROPSHEET_Paint(HWND hwnd, HDC hdcParam)
     if (psInfo->active_page < 0)
         ppshpage = NULL;
     else
-        ppshpage = (LPCPROPSHEETPAGEW)psInfo->proppage[psInfo->active_page].hpage;
+        ppshpage = &psInfo->proppage[psInfo->active_page].hpage->psp;
 
     if ( (ppshpage && !(ppshpage->dwFlags & PSP_HIDEHEADER)) &&
 	 (psInfo->ppshheader.dwFlags & (PSH_WIZARD97_OLD | PSH_WIZARD97_NEW)) &&
