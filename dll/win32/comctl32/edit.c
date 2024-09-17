@@ -2118,9 +2118,6 @@ static INT EDIT_PaintText(EDITSTATE *es, HDC dc, INT x, INT y, INT line, INT col
 {
 	COLORREF BkColor;
 	COLORREF TextColor;
-	LOGFONTW underline_font;
-	HFONT hUnderline = 0;
-	HFONT old_font = 0;
 	INT ret;
 	INT li;
 	INT BkMode;
@@ -4727,7 +4724,6 @@ static LRESULT CALLBACK EDIT_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
     EDITSTATE *es = (EDITSTATE *)GetWindowLongPtrW(hwnd, 0);
     LRESULT result = 0;
     RECT *rect;
-    POINT pt;
 
     TRACE("hwnd %p, msg %#x, wparam %Ix, lparam %Ix\n", hwnd, msg, wParam, lParam);
 
