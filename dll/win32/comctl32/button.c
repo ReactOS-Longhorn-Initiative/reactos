@@ -652,7 +652,7 @@ static LRESULT CALLBACK BUTTON_WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 
     case WM_NCDESTROY:
-        SetWindowLongPtrW( hWnd, 0, 0 );
+       SetWindowLongPtrW( hWnd, 0, 0 );
         heap_free(infoPtr->note);
         heap_free(infoPtr);
         break;
