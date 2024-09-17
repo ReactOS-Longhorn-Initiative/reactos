@@ -2762,10 +2762,13 @@ static void PROPSHEET_CleanUp(HWND hwndDlg)
      if(psInfo->proppage[i].hwndPage)
         DestroyWindow(psInfo->proppage[i].hwndPage);
 
-     if (flags & PSP_USETITLE)
-        Free ((LPVOID)psInfo->proppage[i].pszText);
+     if(psp)
+     {
+        if (psp->dwFlags & PSP_USETITLE)
+           Free ((LPVOID)psInfo->proppage[i].pszText);
 
-     DestroyPropertySheetPage(psInfo->proppage[i].hpage);
+        DestroyPropertySheetPage(psInfo->proppage[i].hpage);
+     }
   }
 
   DeleteObject(psInfo->hFont);
@@ -3303,7 +3306,7 @@ static LRESULT PROPSHEET_Paint(HWND hwnd, HDC hdcParam)
     int offsety = 0;
     HBRUSH hbr;
     RECT r, rzone;
-    HPROPSHEETPAGE hpsp;
+    LPCPROPSHEETPAGEW ppshpage;
     WCHAR szBuffer[256];
     int nLength;
 
