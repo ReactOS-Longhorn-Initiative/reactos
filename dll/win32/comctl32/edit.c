@@ -25,7 +25,7 @@
  *   - EDITBALLOONTIP structure
  *   - EM_HIDEBALLOONTIP/Edit_HideBalloonTip
  *   - EM_SHOWBALLOONTIP/Edit_ShowBalloonTip
- *   - EM_GETIMESTATUS, EM_SETIMESTATUS
+ *   - EM_GETIMESTATUS
  *   - EN_ALIGN_LTR_EC
  *   - EN_ALIGN_RTL_EC
  *   - ES_OEMCONVERT
@@ -44,6 +44,7 @@
 #ifdef __REACTOS__
     #include <immdev.h>
     #include <imm32_undoc.h>
+	#define EMSIS_COMPOSITIONSTRING 1
 #endif
 #include "usp10.h"
 #include "commctrl.h"
@@ -153,6 +154,7 @@ typedef struct
 	UINT composition_len;   /* length of composition, 0 == no composition */
 	int composition_start;  /* the character position for the composition */
 #endif
+ 	UINT ime_status;        /* IME status flag */
 	/*
 	 * Uniscribe Data
 	 */
@@ -4930,6 +4932,13 @@ static LRESULT CALLBACK EDIT_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
     case EM_GETCUEBANNER:
         result = EDIT_EM_GetCueBanner(es, (WCHAR *)wParam, (DWORD)lParam);
+        break;
+
+    case EM_SETIMESTATUS:
+        if (wParam == EMSIS_COMPOSITIONSTRING)
+            es->ime_status = lParam & 0xFFFF;
+
+        result = 1;
         break;
 
     /* End of the EM_ messages which were in numerical order; what order
