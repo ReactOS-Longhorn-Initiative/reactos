@@ -138,13 +138,11 @@ typedef struct
 #define BUTTON_SPACINGX         3
 #define BUTTON_SPACINGY         3
 #define FLAT_BTN_SPACINGX       8
-#define DEFAULT_MIN_TAB_WIDTH   54
 #define DEFAULT_PADDING_X       6
 #define EXTRA_ICON_PADDING      3
+#define MIN_CHAR_LENGTH         6
 
 #define TAB_GetInfoPtr(hwnd) ((TAB_INFO *)GetWindowLongPtrW(hwnd,0))
-
-#define GET_DEFAULT_MIN_TAB_WIDTH(infoPtr) (DEFAULT_MIN_TAB_WIDTH - (DEFAULT_PADDING_X - (infoPtr)->uHItemPadding) * 2)
 
 /******************************************************************************
  * Hot-tracking timer constants
@@ -1114,8 +1112,10 @@ static void TAB_SetupScrolling(
  * It also uses the current font to determine the height of the tab row and
  * it checks if all the tabs fit in the client area of the window. If they
  * don't, a scrolling control is added.
+ *
+ * Returns the default minimum tab width
  */
-static void TAB_SetItemBounds (TAB_INFO *infoPtr)
+static INT TAB_SetItemBounds (TAB_INFO *infoPtr)
 {
   TEXTMETRICW fontMetrics;
   UINT        curItem;
@@ -1128,6 +1128,8 @@ static void TAB_SetItemBounds (TAB_INFO *infoPtr)
   RECT*       rcItem;
   INT         iIndex;
   INT         icon_width = 0;
+  INT         default_min_tab_width;
+  TEXTMETRICW text_metrics;
 
   /*
    * We need to get text information so we need a DC and we need to select
@@ -1157,6 +1159,9 @@ static void TAB_SetItemBounds (TAB_INFO *infoPtr)
   /* Now use hPadding and vPadding */
   infoPtr->uHItemPadding = infoPtr->uHItemPadding_s;
   infoPtr->uVItemPadding = infoPtr->uVItemPadding_s;
+
+  GetTextMetricsW(hdc, &text_metrics);
+  default_min_tab_width = text_metrics.tmAveCharWidth * MIN_CHAR_LENGTH + infoPtr->uHItemPadding * 2;
   
   /* The leftmost item will be "0" aligned */
   curItemLeftPos = 0;
@@ -1223,13 +1228,13 @@ static void TAB_SetItemBounds (TAB_INFO *infoPtr)
     {
       /* If no text use minimum tab width including padding. */
       if (infoPtr->tabMinWidth < 0)
-        curr->rect.right = curr->rect.left + GET_DEFAULT_MIN_TAB_WIDTH(infoPtr);
+        curr->rect.right = curr->rect.left + default_min_tab_width;
       else
       {
         curr->rect.right = curr->rect.left + infoPtr->tabMinWidth;
 
         /* Add extra padding if icon is present */
-        if (infoPtr->himl && infoPtr->tabMinWidth > 0 && infoPtr->tabMinWidth < DEFAULT_MIN_TAB_WIDTH
+        if (infoPtr->himl && infoPtr->tabMinWidth > 0 && infoPtr->tabMinWidth < MIN_CHAR_LENGTH * text_metrics.tmAveCharWidth + DEFAULT_PADDING_X * 2
             && infoPtr->uHItemPadding > 1)
           curr->rect.right += EXTRA_ICON_PADDING * (infoPtr->uHItemPadding-1);
       }
@@ -1245,7 +1250,7 @@ static void TAB_SetItemBounds (TAB_INFO *infoPtr)
       tabwidth = size.cx + icon_width + 2 * infoPtr->uHItemPadding;
 
       if (infoPtr->tabMinWidth < 0)
-        tabwidth = max(tabwidth, GET_DEFAULT_MIN_TAB_WIDTH(infoPtr));
+        tabwidth = max(tabwidth, default_min_tab_width);
       else
         tabwidth = max(tabwidth, infoPtr->tabMinWidth);
 
@@ -1474,6 +1479,8 @@ static void TAB_SetItemBounds (TAB_INFO *infoPtr)
   /* Cleanup */
   SelectObject (hdc, hOldFont);
   ReleaseDC (infoPtr->hwnd, hdc);
+
+  return default_min_tab_width;
 }
 
 
@@ -2730,17 +2737,14 @@ TAB_SetItemSize (TAB_INFO *infoPtr, INT cx, INT cy)
 
 static inline LRESULT TAB_SetMinTabWidth (TAB_INFO *infoPtr, INT cx)
 {
-  INT oldcx = 0;
+  INT default_min_tab_width;
+  INT prevMinWidth = infoPtr->tabMinWidth;
+  infoPtr->tabMinWidth = cx;
 
   TRACE("(%p,%d)\n", infoPtr, cx);
 
-  if (infoPtr->tabMinWidth < 0)
-    oldcx = DEFAULT_MIN_TAB_WIDTH;
-  else
-    oldcx = infoPtr->tabMinWidth;
-  infoPtr->tabMinWidth = cx;
-  TAB_SetItemBounds(infoPtr);
-  return oldcx;
+  default_min_tab_width = TAB_SetItemBounds(infoPtr);
+  return (prevMinWidth < 0) ? default_min_tab_width : prevMinWidth;
 }
 
 static inline LRESULT 
