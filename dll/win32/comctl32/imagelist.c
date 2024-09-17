@@ -23,7 +23,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  *
  *  TODO:
- *    - Add support for ILD_PRESERVEALPHA, ILD_SCALE, ILD_DPISCALE
+ *    - Add support for ILD_SCALE, ILD_DPISCALE
  *    - Add support for ILS_GLOW, ILS_SHADOW
  *    - Thread-safe locking
  */
@@ -1277,16 +1277,22 @@ static BOOL alpha_blend_image( HIMAGELIST himl, HDC srce_dc, HDC srce_dcMask, HD
 #else
 static BOOL alpha_blend_image( HIMAGELIST himl, HDC dest_dc, int dest_x, int dest_y,
 #endif
-                               int src_x, int src_y, int cx, int cy, BLENDFUNCTION func,
-                               UINT style, COLORREF blend_col, BOOL has_alpha, BOOL grayscale )
+                               int src_x, int src_y, int cx, int cy, UINT style, UINT state,
+                               DWORD frame, COLORREF blend_col, BOOL has_alpha )
 {
     BOOL ret = FALSE;
     HDC hdc;
     HBITMAP bmp = 0, mask = 0;
     BITMAPINFO *info;
+    BLENDFUNCTION func;
     void *bits, *mask_bits;
     unsigned int *ptr;
     int i, j;
+
+    func.BlendOp = AC_SRC_OVER;
+    func.BlendFlags = 0;
+    func.SourceConstantAlpha = 255;
+    func.AlphaFormat = AC_SRC_ALPHA;
 
     if (!(hdc = CreateCompatibleDC( 0 ))) return FALSE;
     if (!(info = heap_alloc( FIELD_OFFSET( BITMAPINFO, bmiColors[256] )))) goto done;
@@ -1341,7 +1347,12 @@ static BOOL alpha_blend_image( HIMAGELIST himl, HDC dest_dc, int dest_x, int des
         }
     }
 
-    if (grayscale)
+
+    if (state & ILS_ALPHA)
+    {
+        func.SourceConstantAlpha = (BYTE)frame;
+    }
+    else if (state & ILS_SATURATE)
     {
         for (i = 0, ptr = bits; i < cx * cy; i++, ptr++)
         {
@@ -1351,6 +1362,12 @@ static BOOL alpha_blend_image( HIMAGELIST himl, HDC dest_dc, int dest_x, int des
             if (has_alpha) gray = gray * (*ptr >> 24) / 255;
             *ptr = (*ptr & 0xff000000)| (gray << 16) | (gray << 8) | gray;
         }
+    }
+    else if (style & ILD_PRESERVEALPHA)
+    {
+        HBRUSH old_brush = SelectObject( dest_dc, GetStockObject(BLACK_BRUSH) );
+        PatBlt( dest_dc, dest_x, dest_y, cx, cy, PATCOPY );
+        SelectObject( dest_dc, old_brush );
     }
 
     if (has_alpha)  /* we already have an alpha channel in this case */
@@ -1618,7 +1635,6 @@ ImageList_DrawIndirect (IMAGELISTDRAWPARAMS *pimldp)
     if (!bMask && (has_alpha || (fState & ILS_ALPHA)))
     {
         COLORREF colour, blend_col = CLR_NONE;
-        BLENDFUNCTION func;
 
         if (bBlend)
         {
@@ -1627,19 +1643,14 @@ ImageList_DrawIndirect (IMAGELISTDRAWPARAMS *pimldp)
             else if (blend_col == CLR_NONE) blend_col = GetTextColor( pimldp->hdcDst );
         }
 
-        func.BlendOp = AC_SRC_OVER;
-        func.BlendFlags = 0;
-        func.SourceConstantAlpha = (fState & ILS_ALPHA) ? pimldp->Frame : 255;
-        func.AlphaFormat = AC_SRC_ALPHA;
-
         if (bIsTransparent)
         {
 #ifdef __REACTOS__
-            bResult = alpha_blend_image( himl, hImageListDC, hMaskListDC, pimldp->hdcDst, pimldp->x, pimldp->y,
+            bResult = alpha_blend_image( himl, hImageListDC, hMaskListDC, pimldp->hdcDst, pimldp->x, pimldp->y, pt.x, pt.y, cx, cy,
 #else
-            bResult = alpha_blend_image( himl, pimldp->hdcDst, pimldp->x, pimldp->y,
+            bResult = alpha_blend_image( himl, pimldp->hdcDst, pimldp->x, pimldp->y, pt.x, pt.y, cx, cy,
 #endif
-                                         pt.x, pt.y, cx, cy, func, fStyle, blend_col, has_alpha, fState & ILS_SATURATE );
+                                        fStyle, fState, pimldp->Frame, blend_col, has_alpha );
             goto end;
         }
         colour = pimldp->rgbBk;
@@ -1649,9 +1660,10 @@ ImageList_DrawIndirect (IMAGELISTDRAWPARAMS *pimldp)
         hOldBrush = SelectObject (hImageDC, CreateSolidBrush (colour));
         PatBlt( hImageDC, 0, 0, cx, cy, PATCOPY );
 #ifdef __REACTOS__
-        alpha_blend_image( himl, hImageListDC, hMaskListDC, hImageDC, 0, 0, pt.x, pt.y, cx, cy, func, fStyle, blend_col, has_alpha, fState & ILS_SATURATE );
+        alpha_blend_image( himl, hImageListDC, hMaskListDC, hImageDC, 0, 0, pt.x, pt.y, cx, cy, fStyle, fState, pimldp->Frame, blend_col, has_alpha );
 #else
-        alpha_blend_image( himl, hImageDC, 0, 0, pt.x, pt.y, cx, cy, func, fStyle, blend_col, has_alpha, fState & ILS_SATURATE );
+        alpha_blend_image( himl, hImageDC, 0, 0, pt.x, pt.y, cx, cy, fStyle, fState,
+                           pimldp->Frame, blend_col, has_alpha );
 #endif
         DeleteObject (SelectObject (hImageDC, hOldBrush));
         bResult = BitBlt( pimldp->hdcDst, pimldp->x,  pimldp->y, cx, cy, hImageDC, 0, 0, SRCCOPY );
@@ -1749,7 +1761,6 @@ ImageList_DrawIndirect (IMAGELISTDRAWPARAMS *pimldp)
     if (fState & ILS_GLOW) FIXME("ILS_GLOW: unimplemented!\n");
     if (fState & ILS_SHADOW) FIXME("ILS_SHADOW: unimplemented!\n");
 
-    if (fStyle & ILD_PRESERVEALPHA) FIXME("ILD_PRESERVEALPHA: unimplemented!\n");
     if (fStyle & ILD_SCALE) FIXME("ILD_SCALE: unimplemented!\n");
     if (fStyle & ILD_DPISCALE) FIXME("ILD_DPISCALE: unimplemented!\n");
 
