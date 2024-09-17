@@ -47,18 +47,18 @@ list(APPEND SOURCE
     string.c
     syslink.c
     tab.c
-    taskdialog.c
     theme_scrollbar.c
     theming.c
     toolbar.c
     tooltips.c
     trackbar.c
-    treeview.c
     undoc_scroll.c
     updown.c
     winterminal.cpp)
 
 list(APPEND PCH_SKIP_SOURCE
+    taskdialog.c
+    treeview.c
     stubs.c)
 
 add_library(comctl32 MODULE

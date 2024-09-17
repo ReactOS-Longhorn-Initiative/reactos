@@ -2118,6 +2118,9 @@ static INT EDIT_PaintText(EDITSTATE *es, HDC dc, INT x, INT y, INT line, INT col
 {
 	COLORREF BkColor;
 	COLORREF TextColor;
+	LOGFONTW underline_font;
+	HFONT hUnderline = 0;
+	HFONT old_font = 0;
 	INT ret;
 	INT li;
 	INT BkMode;
