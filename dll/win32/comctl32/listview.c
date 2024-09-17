@@ -1063,30 +1063,30 @@ static inline DWORD notify_customdraw (const LISTVIEW_INFO *infoPtr, DWORD dwDra
     return result;
 }
 
-static void prepaint_setup (const LISTVIEW_INFO *infoPtr, HDC hdc, NMLVCUSTOMDRAW *lpnmlvcd, BOOL SubItem)
+static void prepaint_setup (const LISTVIEW_INFO *infoPtr, HDC hdc, const NMLVCUSTOMDRAW *cd, BOOL SubItem)
 {
     COLORREF backcolor, textcolor;
+
+    backcolor = cd->clrTextBk;
+    textcolor = cd->clrText;
 
     /* apparently, for selected items, we have to override the returned values */
     if (!SubItem || (infoPtr->dwLvExStyle & LVS_EX_FULLROWSELECT))
     {
-        if (lpnmlvcd->nmcd.uItemState & CDIS_SELECTED)
+        if (cd->nmcd.uItemState & CDIS_SELECTED)
         {
             if (infoPtr->bFocus)
             {
-                lpnmlvcd->clrTextBk = comctl32_color.clrHighlight;
-                lpnmlvcd->clrText   = comctl32_color.clrHighlightText;
+                backcolor = comctl32_color.clrHighlight;
+                textcolor = comctl32_color.clrHighlightText;
             }
             else if (infoPtr->dwStyle & LVS_SHOWSELALWAYS)
             {
-                lpnmlvcd->clrTextBk = comctl32_color.clr3dFace;
-                lpnmlvcd->clrText   = comctl32_color.clrBtnText;
+                backcolor = comctl32_color.clr3dFace;
+                textcolor = comctl32_color.clrBtnText;
             }
         }
     }
-
-    backcolor = lpnmlvcd->clrTextBk;
-    textcolor = lpnmlvcd->clrText;
 
     if (backcolor == CLR_DEFAULT)
         backcolor = comctl32_color.clrWindow;
