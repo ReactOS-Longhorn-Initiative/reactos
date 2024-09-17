@@ -1467,8 +1467,7 @@ static BOOL PROPSHEET_CreatePage(HWND hwndParent,
 #ifdef __REACTOS__
     if (psInfo->ppshheader.u4.hbmWatermark)
 #endif
-      SetWindowSubclass(hwndPage, PROPSHEET_WizardSubclassProc, 1,
-                        (DWORD_PTR)ppshpage);
+    SetWindowSubclass(hwndPage, PROPSHEET_WizardSubclassProc, 1, 0);
   }
   if (!(psInfo->ppshheader.dwFlags & INTRNL_ANY_WIZARD))
       EnableThemeDialogTexture (hwndPage, ETDT_ENABLETAB);
