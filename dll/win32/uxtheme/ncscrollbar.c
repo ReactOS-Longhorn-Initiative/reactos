@@ -12,6 +12,12 @@
 #include "uxthemep.h"
 
 #include <assert.h>
+#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#undef SetSystemTimer
+#define SetSystemTimer SetTimer
+#undef KillSystemTimer
+#define KillSystemTimer KillTimer
+#endif
 
 static void ScreenToWindow( HWND hWnd, POINT* pt)
 {
