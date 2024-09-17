@@ -100,7 +100,6 @@ typedef struct tagPropPageInfo
   BOOL isDirty;
   LPCWSTR pszText;
   BOOL hasHelp;
-  BOOL useCallback;
   BOOL hasIcon;
 } PropPageInfo;
 
@@ -193,6 +192,15 @@ static WCHAR *heap_strdupAtoW(const char *str)
     return ret;
 }
 
+static void HPSP_call_callback(HPROPSHEETPAGE hpsp, UINT msg)
+{
+    if (!(hpsp->psp.dwFlags & PSP_USECALLBACK) || !hpsp->psp.pfnCallback ||
+            (msg == PSPCB_ADDREF && hpsp->psp.dwSize <= PROPSHEETPAGEA_V1_SIZE))
+        return;
+
+    hpsp->psp.pfnCallback(0, msg, &hpsp->callback_psp);
+}
+
 #define add_flag(a) if (dwFlags & a) {strcat(string, #a );strcat(string," ");}
 /******************************************************************************
  *            PROPSHEET_UnImplementedFlags
@@ -226,7 +234,7 @@ static VOID PROPSHEET_UnImplementedFlags(DWORD dwFlags)
  * Retrieve rect from tab control and map into the dialog for SetWindowPos
  */
 static void PROPSHEET_GetPageRect(const PropSheetInfo * psInfo, HWND hwndDlg,
-                                  RECT *rc, HPROPSHEETPAGE hpsp)
+                                  RECT *rc, LPCPROPSHEETPAGEW ppshpage)
 {
     if (psInfo->ppshheader.dwFlags & INTRNL_ANY_WIZARD) {     
         HWND hwndChild;
@@ -234,7 +242,7 @@ static void PROPSHEET_GetPageRect(const PropSheetInfo * psInfo, HWND hwndDlg,
 
         if (((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
              (psInfo->ppshheader.dwFlags & PSH_HEADER) &&
-             !(hpsp->psp.dwFlags & PSP_HIDEHEADER)) ||
+             !(ppshpage->dwFlags & PSP_HIDEHEADER)) ||
             (psInfo->ppshheader.dwFlags & PSH_WIZARD))
         {
             rc->left = rc->top = WIZARD_PADDING;
@@ -249,7 +257,7 @@ static void PROPSHEET_GetPageRect(const PropSheetInfo * psInfo, HWND hwndDlg,
 
         if ((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
             (psInfo->ppshheader.dwFlags & PSH_HEADER) &&
-            !(hpsp->psp.dwFlags & PSP_HIDEHEADER))
+            !(ppshpage->dwFlags & PSP_HIDEHEADER))
         {
             hwndChild = GetDlgItem(hwndDlg, IDC_SUNKEN_LINEHEADER);
             GetClientRect(hwndChild, &r);
@@ -275,8 +283,10 @@ static INT PROPSHEET_FindPageByResId(const PropSheetInfo * psInfo, LRESULT resId
 
    for (i = 0; i < psInfo->nPages; i++)
    {
+      LPCPROPSHEETPAGEA lppsp = (LPCPROPSHEETPAGEA)psInfo->proppage[i].hpage;
+
       /* Fixme: if resource ID is a string shall we use strcmp ??? */
-      if (psInfo->proppage[i].hpage->psp.u.pszTemplate == (LPVOID)resId)
+      if (lppsp->u.pszTemplate == (LPVOID)resId)
          break;
    }
 
@@ -1517,6 +1527,7 @@ static BOOL PROPSHEET_ShowPage(HWND hwndDlg, int index, PropSheetInfo * psInfo)
   HWND hwndTabCtrl;
   HWND hwndLineHeader;
   HWND control;
+  LPCPROPSHEETPAGEW ppshpage;
 
   TRACE("active_page %d, index %d\n", psInfo->active_page, index);
   if (index == psInfo->active_page)
@@ -1558,9 +1569,9 @@ static BOOL PROPSHEET_ShowPage(HWND hwndDlg, int index, PropSheetInfo * psInfo)
   if (psInfo->ppshheader.dwFlags & (PSH_WIZARD97_OLD | PSH_WIZARD97_NEW) )
   {
       hwndLineHeader = GetDlgItem(hwndDlg, IDC_SUNKEN_LINEHEADER);
+      ppshpage = (LPCPROPSHEETPAGEW)psInfo->proppage[index].hpage;
       
-      if ((psInfo->proppage[index].hpage->psp.dwFlags & PSP_HIDEHEADER) ||
-              (!(psInfo->ppshheader.dwFlags & PSH_HEADER)) )
+      if ((ppshpage->dwFlags & PSP_HIDEHEADER) || (!(psInfo->ppshheader.dwFlags & PSH_HEADER)) )
 	  ShowWindow(hwndLineHeader, SW_HIDE);
       else
 	  ShowWindow(hwndLineHeader, SW_SHOW);
@@ -1999,6 +2010,7 @@ static BOOL PROPSHEET_SetCurSel(HWND hwndDlg,
     int result;
     PSHNOTIFY psn;
     RECT rc;
+    LPCPROPSHEETPAGEW ppshpage = (LPCPROPSHEETPAGEW)psInfo->proppage[index].hpage;
 
     if (hwndTabControl)
 	SendMessageW(hwndTabControl, TCM_SETCURSEL, index, 0);
@@ -2031,7 +2043,7 @@ static BOOL PROPSHEET_SetCurSel(HWND hwndDlg,
      * wizards).
      * NOTE: The resizing happens every time the page is selected and
      * not only when it's created (some applications depend on it). */
-    PROPSHEET_GetPageRect(psInfo, hwndDlg, &rc, psInfo->proppage[index].hpage);
+    PROPSHEET_GetPageRect(psInfo, hwndDlg, &rc, ppshpage);
     TRACE("setting page %p, rc (%s) w=%ld, h=%ld\n",
           psInfo->proppage[index].hwndPage, wine_dbgstr_rect(&rc),
           rc.right - rc.left, rc.bottom - rc.top);
@@ -2403,9 +2415,9 @@ static BOOL PROPSHEET_RemovePage(HWND hwndDlg,
     psInfo->active_page--;
 
   /* Unsubclass the page dialog window */
-  if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
+  if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD) &&
      (psInfo->ppshheader.dwFlags & PSH_WATERMARK) &&
-     (psInfo->proppage[index].hpage->psp.dwFlags & PSP_HIDEHEADER))
+     ((PROPSHEETPAGEW*)psInfo->proppage[index].hpage)->dwFlags & PSP_HIDEHEADER))
   {
      RemoveWindowSubclass(psInfo->proppage[index].hwndPage,
                           PROPSHEET_WizardSubclassProc, 1);
@@ -2417,7 +2429,9 @@ static BOOL PROPSHEET_RemovePage(HWND hwndDlg,
   /* Free page resources */
   if(psInfo->proppage[index].hpage)
   {
-     if (psInfo->proppage[index].hpage->psp.dwFlags & PSP_USETITLE)
+     PROPSHEETPAGEW* psp = (PROPSHEETPAGEW*)psInfo->proppage[index].hpage;
+
+     if (psp->dwFlags & PSP_USETITLE)
         Free ((LPVOID)psInfo->proppage[index].pszText);
 
      DestroyPropertySheetPage(psInfo->proppage[index].hpage);
@@ -2534,7 +2548,7 @@ static void PROPSHEET_SetHeaderTitleW(HWND hwndDlg, UINT page_index, const WCHAR
     if (page_index >= psInfo->nPages)
         return;
 
-    page = &psInfo->proppage[page_index].hpage->psp;
+    page = (PROPSHEETPAGEW *)psInfo->proppage[page_index].hpage;
 
     if (!IS_INTRESOURCE(page->pszHeaderTitle))
         Free((void *)page->pszHeaderTitle);
@@ -2570,7 +2584,7 @@ static void PROPSHEET_SetHeaderSubTitleW(HWND hwndDlg, UINT page_index, const WC
     if (page_index >= psInfo->nPages)
         return;
 
-    page = &psInfo->proppage[page_index].hpage->psp;
+    page = (PROPSHEETPAGEW *)psInfo->proppage[page_index].hpage;
 
     if (!IS_INTRESOURCE(page->pszHeaderSubTitle))
         Free((void *)page->pszHeaderSubTitle);
@@ -2658,10 +2672,12 @@ static LRESULT PROPSHEET_IndexToPage(HWND hwndDlg, int iPageIndex)
 static LRESULT PROPSHEET_IdToIndex(HWND hwndDlg, int iPageId)
 {
     int index;
+    LPCPROPSHEETPAGEW psp;
     PropSheetInfo * psInfo = GetPropW(hwndDlg, PropSheetInfoStr);
     TRACE("(%p, %d)\n", hwndDlg, iPageId);
     for (index = 0; index < psInfo->nPages; index++) {
-        if (psInfo->proppage[index].hpage->psp.u.pszTemplate == MAKEINTRESOURCEW(iPageId))
+        psp = (LPCPROPSHEETPAGEW)psInfo->proppage[index].hpage;
+        if (psp->u.pszTemplate == MAKEINTRESOURCEW(iPageId))
             return index;
     }
 
@@ -2680,7 +2696,7 @@ static LRESULT PROPSHEET_IndexToId(HWND hwndDlg, int iPageIndex)
         WARN("%d out of range.\n", iPageIndex);
 	return 0;
     }
-    psp = &psInfo->proppage[iPageIndex].hpage->psp;
+    psp = (LPCPROPSHEETPAGEW)psInfo->proppage[iPageIndex].hpage;
     if (psp->dwFlags & PSP_DLGINDIRECT || !IS_INTRESOURCE(psp->u.pszTemplate)) {
         return 0;
     }
@@ -2740,7 +2756,7 @@ static void PROPSHEET_CleanUp(HWND hwndDlg)
 
   for (i = 0; i < psInfo->nPages; i++)
   {
-     PROPSHEETPAGEW* psp = &psInfo->proppage[i].hpage->psp;
+     PROPSHEETPAGEA* psp = (PROPSHEETPAGEA*)psInfo->proppage[i].hpage;
 
      /* Unsubclass the page dialog window */
      if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
@@ -3313,7 +3329,7 @@ static LRESULT PROPSHEET_Paint(HWND hwnd, HDC hdcParam)
     if (psInfo->active_page < 0)
         ppshpage = NULL;
     else
-        ppshpage = &psInfo->proppage[psInfo->active_page].hpage->psp;
+        ppshpage = (LPCPROPSHEETPAGEW)psInfo->proppage[psInfo->active_page].hpage;
 
     if ( (ppshpage && !(ppshpage->dwFlags & PSP_HIDEHEADER)) &&
 	 (psInfo->ppshheader.dwFlags & (PSH_WIZARD97_OLD | PSH_WIZARD97_NEW)) &&
