@@ -100,6 +100,7 @@ typedef struct tagPropPageInfo
   BOOL isDirty;
   LPCWSTR pszText;
   BOOL hasHelp;
+  BOOL useCallback;
   BOOL hasIcon;
 } PropPageInfo;
 
@@ -190,15 +191,6 @@ static WCHAR *heap_strdupAtoW(const char *str)
     MultiByteToWideChar(CP_ACP, 0, str, -1, ret, len);
 
     return ret;
-}
-
-static void HPSP_call_callback(HPROPSHEETPAGE hpsp, UINT msg)
-{
-    if (!(hpsp->psp.dwFlags & PSP_USECALLBACK) || !hpsp->psp.pfnCallback ||
-            (msg == PSPCB_ADDREF && hpsp->psp.dwSize <= PROPSHEETPAGEA_V1_SIZE))
-        return;
-
-    hpsp->psp.pfnCallback(0, msg, &hpsp->callback_psp);
 }
 
 #define add_flag(a) if (dwFlags & a) {strcat(string, #a );strcat(string," ");}
@@ -2770,13 +2762,10 @@ static void PROPSHEET_CleanUp(HWND hwndDlg)
      if(psInfo->proppage[i].hwndPage)
         DestroyWindow(psInfo->proppage[i].hwndPage);
 
-     if(psp)
-     {
-        if (psp->dwFlags & PSP_USETITLE)
-           Free ((LPVOID)psInfo->proppage[i].pszText);
+     if (flags & PSP_USETITLE)
+        Free ((LPVOID)psInfo->proppage[i].pszText);
 
-        DestroyPropertySheetPage(psInfo->proppage[i].hpage);
-     }
+     DestroyPropertySheetPage(psInfo->proppage[i].hpage);
   }
 
   DeleteObject(psInfo->hFont);
@@ -3314,7 +3303,7 @@ static LRESULT PROPSHEET_Paint(HWND hwnd, HDC hdcParam)
     int offsety = 0;
     HBRUSH hbr;
     RECT r, rzone;
-    LPCPROPSHEETPAGEW ppshpage;
+    HPROPSHEETPAGE hpsp;
     WCHAR szBuffer[256];
     int nLength;
 
