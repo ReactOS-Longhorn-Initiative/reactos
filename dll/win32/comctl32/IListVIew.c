@@ -164,4 +164,5 @@ HRESULT
 ListView_QueryInterface(LPARAM lParam)
 {
     __debugbreak();
+    return 0;
 }
