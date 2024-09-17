@@ -5217,9 +5217,11 @@ static LRESULT CALLBACK EDIT_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
     case WM_IME_COMPOSITION:
         EDIT_ImeComposition(hwnd, lParam, es);
-#ifdef __REACTOS__
-        result = DefWindowProcW(hwnd, msg, wParam, lParam);
-#endif
+        if (lParam & GCS_RESULTSTR && !(es->ime_status & EIMES_GETCOMPSTRATONCE))
+        {
+            DefWindowProcW(hwnd, msg, wParam, lParam);
+            break;
+        }
         break;
 
     case WM_IME_ENDCOMPOSITION:
