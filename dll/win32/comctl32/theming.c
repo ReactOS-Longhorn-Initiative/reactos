@@ -42,7 +42,7 @@ extern LRESULT CALLBACK THEMING_ScrollbarSubclassProc (HWND, UINT, WPARAM, LPARA
                                                        ULONG_PTR) DECLSPEC_HIDDEN;
 
 #ifndef __REACTOS__
-static const WCHAR dialogClass[] = {'#','3','2','7','7','0',0};
+static const WCHAR dialogClass[] = L"#32770";
 #endif
 
 static const struct ThemingSubclass
@@ -109,10 +109,6 @@ void THEMING_Initialize (void)
 #endif
 {
     unsigned int i;
-    static const WCHAR subclassPropName[] = 
-        { 'C','C','3','2','T','h','e','m','i','n','g','S','u','b','C','l',0 };
-    static const WCHAR refDataPropName[] = 
-        { 'C','C','3','2','T','h','e','m','i','n','g','D','a','t','a',0 };
 #ifdef __REACTOS__ /* r73803 */
     ULONG_PTR ulCookie;
     BOOL ret, bActivated;
@@ -120,8 +116,8 @@ void THEMING_Initialize (void)
     if (!IsThemeActive()) return;
 #endif
 
-    atSubclassProp = GlobalAddAtomW (subclassPropName);
-    atRefDataProp = GlobalAddAtomW (refDataPropName);
+    atSubclassProp = GlobalAddAtomW (L"CC32ThemingSubCl");
+    atRefDataProp = GlobalAddAtomW (L"CC32ThemingData");
 
     for (i = 0; i < NUM_SUBCLASSES; i++)
     {
