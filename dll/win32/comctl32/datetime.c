@@ -1321,8 +1321,11 @@ static LRESULT DATETIME_NCPaint (HWND hwnd, HRGN region)
     LONG exStyle;
     RECT r;
     HDC dc;
-
+#ifdef __REACTOS__
+    theme = OpenThemeData(NULL, WC_EDITW);
+#else
     theme = OpenThemeDataForDpi(NULL, WC_EDITW, GetDpiForWindow(hwnd));
+#endif
     if (!theme)
         return DefWindowProcW(hwnd, WM_NCPAINT, (WPARAM)region, 0);
 
