@@ -1058,8 +1058,7 @@ static void CBRollUp( LPHEADCOMBO lphc, BOOL ok, BOOL bButton )
 	   }
 
 	   if( bButton && !(lphc->wState & CBF_NOREDRAW) )
-	       RedrawWindow( hWnd, &rect, 0, RDW_INVALIDATE |
-			       RDW_ERASE | RDW_UPDATENOW | RDW_NOCHILDREN );
+           RedrawWindow( lphc->self, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_UPDATENOW );;
 	   CB_NOTIFY( lphc, CBN_CLOSEUP );
        }
    }
