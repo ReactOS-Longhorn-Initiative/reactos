@@ -173,13 +173,6 @@ PROPSHEET_DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 WINE_DEFAULT_DEBUG_CHANNEL(propsheet);
 
-static char *heap_strdupA(const char *str)
-{
-    int len = strlen(str) + 1;
-    char *ret = Alloc(len);
-    return strcpy(ret, str);
-}
-
 static WCHAR *heap_strdupW(const WCHAR *str)
 {
     int len = lstrlenW(str) + 1;
@@ -2950,6 +2943,42 @@ INT_PTR WINAPI PropertySheetW(LPCPROPSHEETHEADERW lppsh)
 
   return PROPSHEET_PropertySheet(psInfo, TRUE);
 }
+
+static LPWSTR load_string( HINSTANCE instance, LPCWSTR str )
+{
+    LPWSTR ret;
+
+    if (IS_INTRESOURCE(str))
+    {
+        HRSRC hrsrc;
+        HGLOBAL hmem;
+        WCHAR *ptr;
+        WORD i, id = LOWORD(str);
+        UINT len;
+
+        if (!(hrsrc = FindResourceW( instance, MAKEINTRESOURCEW((id >> 4) + 1), (LPWSTR)RT_STRING )))
+            return NULL;
+        if (!(hmem = LoadResource( instance, hrsrc ))) return NULL;
+        if (!(ptr = LockResource( hmem ))) return NULL;
+        for (i = id & 0x0f; i > 0; i--) ptr += *ptr + 1;
+        len = *ptr;
+        if (!len) return NULL;
+        ret = Alloc( (len + 1) * sizeof(WCHAR) );
+        if (ret)
+        {
+            memcpy( ret, ptr + 1, len * sizeof(WCHAR) );
+            ret[len] = 0;
+        }
+    }
+    else
+    {
+        int len = (lstrlenW(str) + 1) * sizeof(WCHAR);
+        ret = Alloc( len );
+        if (ret) memcpy( ret, str, len );
+    }
+    return ret;
+}
+
 
 /******************************************************************************
  *            CreatePropertySheetPage    (COMCTL32.@)
