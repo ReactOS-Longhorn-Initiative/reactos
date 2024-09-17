@@ -7598,6 +7598,17 @@ static INT LISTVIEW_GetNextItem(const LISTVIEW_INFO *infoPtr, INT nItem, UINT uF
     return -1;
 }
 
+static BOOL LISTVIEW_GetNextItemIndex(const LISTVIEW_INFO *infoPtr, LVITEMINDEX *index, UINT flags)
+{
+    /* FIXME: specified item group is ignored */
+
+    if (!index)
+        return FALSE;
+
+    index->iItem = LISTVIEW_GetNextItem(infoPtr, index->iItem, flags);
+    return index->iItem != -1;
+}
+
 /* LISTVIEW_GetNumberOfWorkAreas */
 
 /***
@@ -11613,6 +11624,9 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   case LVM_GETNEXTITEM:
     return LISTVIEW_GetNextItem(infoPtr, (INT)wParam, LOWORD(lParam));
+
+  case LVM_GETNEXTITEMINDEX:
+    return LISTVIEW_GetNextItemIndex(infoPtr, (LVITEMINDEX *)wParam, lParam);
 
   case LVM_GETNUMBEROFWORKAREAS:
     FIXME("LVM_GETNUMBEROFWORKAREAS: unimplemented\n");
