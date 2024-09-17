@@ -44,6 +44,7 @@
     #include <immdev.h>
     #include <imm32_undoc.h>
 	#define EMSIS_COMPOSITIONSTRING 1
+	#define EIMES_GETCOMPSTRATONCE         0x0001
 #endif
 #include "usp10.h"
 #include "commctrl.h"
@@ -3479,7 +3480,7 @@ static LRESULT EDIT_WM_KeyDown(EDITSTATE *es, INT key)
  */
 static LRESULT EDIT_WM_KillFocus(HTHEME theme, EDITSTATE *es)
 {
-    UINT flags = RDW_INVALIDATE | RDW_UPDATENOW;
+	UINT flags = RDW_INVALIDATE;
     HWND hwndSelf = es->hwndSelf;
 
     es->flags &= ~EF_FOCUSED;
