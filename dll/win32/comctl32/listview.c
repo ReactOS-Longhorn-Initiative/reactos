@@ -11400,6 +11400,7 @@ static INT LISTVIEW_StyleChanged(LISTVIEW_INFO *infoPtr, WPARAM wStyleType,
                                  const STYLESTRUCT *lpss)
 {
     UINT uNewView, uOldView;
+    BOOL repaint = FALSE;
     UINT style;
 
     TRACE("styletype %Ix, styleOld %#lx, styleNew %#lx\n",
@@ -11423,6 +11424,8 @@ static INT LISTVIEW_StyleChanged(LISTVIEW_INFO *infoPtr, WPARAM wStyleType,
     if (uNewView != uOldView)
     {
     	HIMAGELIST himl;
+
+        repaint = TRUE;
 
         /* LVM_SETVIEW doesn't change window style bits within LVS_TYPEMASK,
            changing style updates current view only when view bits change. */
@@ -11484,6 +11487,9 @@ static INT LISTVIEW_StyleChanged(LISTVIEW_INFO *infoPtr, WPARAM wStyleType,
 
     /* add scrollbars if needed */
     LISTVIEW_UpdateScroll(infoPtr);
+
+    if (repaint)
+        LISTVIEW_InvalidateList(infoPtr);
 
     return 0;
 }
