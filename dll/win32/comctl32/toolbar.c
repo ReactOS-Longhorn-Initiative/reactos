@@ -5598,6 +5598,7 @@ TOOLBAR_Create (HWND hwnd, const CREATESTRUCTW *lpcs)
 #else
     OpenThemeData (hwnd, themeClass);
 #endif
+    InvalidateRect (hwnd, NULL, TRUE);
 
     TOOLBAR_CheckStyle (infoPtr);
 

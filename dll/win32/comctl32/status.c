@@ -1133,6 +1133,7 @@ static LRESULT theme_changed (const STATUS_INFO* infoPtr)
     HTHEME theme = GetWindowTheme (infoPtr->Self);
     CloseThemeData (theme);
     OpenThemeData (infoPtr->Self, themeClass);
+    InvalidateRect (infoPtr->Self, NULL, TRUE);
     return 0;
 }
 

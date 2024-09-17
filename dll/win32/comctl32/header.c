@@ -2118,7 +2118,7 @@ static LRESULT HEADER_ThemeChanged(const HEADER_INFO *infoPtr)
     HTHEME theme = GetWindowTheme(infoPtr->hwndSelf);
     CloseThemeData(theme);
     OpenThemeData(infoPtr->hwndSelf, themeClass);
-    InvalidateRect(infoPtr->hwndSelf, NULL, FALSE);
+    InvalidateRect(infoPtr->hwndSelf, NULL, TRUE);
     return 0;
 }
 
