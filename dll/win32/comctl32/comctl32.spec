@@ -79,6 +79,7 @@
 80 stdcall ImageList_SetImageCount(ptr long)
 81 stdcall ImageList_SetOverlayImage(ptr long long)
 82 stdcall ImageList_Write(ptr ptr)
+@ stdcall ImageList_WriteEx(ptr long ptr)
 @ stdcall ImageList_CoCreateInstance(long ptr long ptr)
 83 stdcall InitCommonControlsEx(ptr)
 84 stdcall InitMUILanguage(long)
