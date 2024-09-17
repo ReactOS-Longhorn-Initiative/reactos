@@ -301,8 +301,7 @@ static const char * const band_maskname[] = {
     "RBBIM_CHEVRONSTATE",  /*    0x00002000 */
     NULL };
 
-
-static const WCHAR themeClass[] = { 'R','e','b','a','r',0 };
+static const WCHAR themeClass[] = L"Rebar";
 
 static CHAR *
 REBAR_FmtStyle(char *buffer, UINT style)
@@ -1022,7 +1021,6 @@ REBAR_ForceResize (REBAR_INFO *infoPtr)
 static VOID
 REBAR_MoveChildWindows (const REBAR_INFO *infoPtr, UINT start, UINT endplus)
 {
-    static const WCHAR strComboBox[] = { 'C','o','m','b','o','B','o','x',0 };
     REBAR_BAND *lpBand;
     WCHAR szClassName[40];
     UINT i;
@@ -1059,7 +1057,7 @@ REBAR_MoveChildWindows (const REBAR_INFO *infoPtr, UINT start, UINT endplus)
             }
 
 	    GetClassNameW (lpBand->hwndChild, szClassName, ARRAY_SIZE(szClassName));
-	    if (!lstrcmpW (szClassName, strComboBox) ||
+	    if (!lstrcmpW (szClassName, WC_COMBOBOXW) ||
 		!lstrcmpW (szClassName, WC_COMBOBOXEXW)) {
 		INT nEditHeight, yPos;
 		RECT rc;
