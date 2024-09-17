@@ -145,6 +145,7 @@ typedef struct
     INT      iListGap;        /* default gap between text and image for toolbar with list style */
     HFONT    hDefaultFont;
     HFONT    hFont;           /* text font */
+    HTHEME   hTheme;          /* theme */
     HIMAGELIST himlInt;       /* image list created internally */
     PIMLENTRY *himlDef;       /* default image list array */
     INT       cimlDef;        /* default image list array count */
@@ -868,7 +869,7 @@ TOOLBAR_DrawImage(const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, INT left, I
     }
     else if (tbcd->nmcd.uItemState & CDIS_CHECKED ||
       ((tbcd->nmcd.uItemState & CDIS_HOT) 
-      && ((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf))))
+      && ((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme)))
     {
         /* if hot, attempt to draw with hot image list, if fails, 
            use default image list */
@@ -1013,7 +1014,7 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
     INT oldBkMode;
     DWORD dwItemCustDraw;
     DWORD dwItemCDFlag;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
+    HTHEME theme = infoPtr->hTheme;
 
     rc = btnPtr->rect;
     rcArrow = rc;
@@ -1170,8 +1171,7 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
         ((tbcd.nmcd.uItemState & CDIS_CHECKED) || (tbcd.nmcd.uItemState & CDIS_INDETERMINATE)))
         TOOLBAR_DrawPattern (&rc, &tbcd);
 
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && (tbcd.nmcd.uItemState & CDIS_HOT))
+    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || theme) && (tbcd.nmcd.uItemState & CDIS_HOT))
     {
         if ( dwItemCDFlag & TBCDRF_HILITEHOTTRACK )
         {
@@ -3700,7 +3700,7 @@ TOOLBAR_GetHotImageList (const TOOLBAR_INFO *infoPtr, WPARAM wParam)
 static LRESULT
 TOOLBAR_GetHotItem (const TOOLBAR_INFO *infoPtr)
 {
-    if (!((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)))
+    if (!((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme))
 	return -1;
 
     if (infoPtr->nHotItem < 0)
@@ -5642,8 +5642,8 @@ TOOLBAR_Destroy (TOOLBAR_INFO *infoPtr)
 
     /* delete default font */
     DeleteObject (infoPtr->hDefaultFont);
-        
-    CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
+
+    CloseThemeData (infoPtr->hTheme);
 
     /* free toolbar info data */
     SetWindowLongPtrW (infoPtr->hwndSelf, 0, 0);
@@ -5659,7 +5659,6 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     NMTBCUSTOMDRAW tbcd;
     INT ret = FALSE;
     DWORD ntfret;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     DWORD dwEraseCustDraw = 0;
 
     /* the app has told us not to redraw the toolbar */
@@ -5689,7 +5688,7 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     /* If the toolbar is "transparent" then pass the WM_ERASEBKGND up
      * to my parent for processing.
      */
-    if (theme || (infoPtr->dwStyle & TBSTYLE_TRANSPARENT)) {
+    if (infoPtr->hTheme || (infoPtr->dwStyle & TBSTYLE_TRANSPARENT)) {
 	POINT pt, ptorig;
 	HDC hdc = (HDC)wParam;
 	HWND parent;
@@ -6245,7 +6244,7 @@ TOOLBAR_MouseMove (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     if ((infoPtr->dwStyle & TBSTYLE_TOOLTIPS) && (infoPtr->hwndToolTip == NULL))
         TOOLBAR_TooltipCreateControl(infoPtr);
     
-    if ((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) {
+    if ((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme) {
         /* fill in the TRACKMOUSEEVENT struct */
         trackinfo.cbSize = sizeof(TRACKMOUSEEVENT);
         trackinfo.dwFlags = TME_QUERY;
@@ -6273,8 +6272,7 @@ TOOLBAR_MouseMove (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 
     nHit = TOOLBAR_InternalHitTest (infoPtr, &pt, &button);
 
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && (!infoPtr->bAnchor || button))
+    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme) && (!infoPtr->bAnchor || button))
         TOOLBAR_SetHotItemEx(infoPtr, button ? nHit : TOOLBAR_NOWHERE, HICF_MOUSE);
 
     if (infoPtr->nOldHit != nHit)
