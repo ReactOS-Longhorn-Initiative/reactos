@@ -1368,7 +1368,7 @@ BOOL WINAPI GetWindowSubclass (HWND hWnd, SUBCLASSPROC pfnSubclass,
    /* See if we have been called for this window */
    stack = GetPropW (hWnd, COMCTL32_wSubclass);
    if (!stack)
-      return FALSE;
+      goto done;
 
    proc = stack->SubclassProcs;
    while (proc) {
@@ -1381,6 +1381,9 @@ BOOL WINAPI GetWindowSubclass (HWND hWnd, SUBCLASSPROC pfnSubclass,
       proc = proc->next;
    }
 
+done:
+   if (pdwRef)
+      *pdwRef = 0;
    return FALSE;
 }
 
