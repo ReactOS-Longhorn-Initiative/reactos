@@ -783,7 +783,11 @@ static BOOL ANIMATE_Stop(ANIMATE_INFO *infoPtr)
     return TRUE;
 }
 
-
+#ifdef __REACTOS__
+BOOL WINAPI InitializeCriticalSectionEx(OUT LPCRITICAL_SECTION lpCriticalSection,
+                                        IN DWORD dwSpinCount,
+                                        IN DWORD flags);
+#endif
 static BOOL ANIMATE_Create(HWND hWnd, const CREATESTRUCTW *lpcs)
 {
     ANIMATE_INFO *infoPtr;

@@ -55,6 +55,7 @@ typedef struct
     HWND	Self;
     HWND	Notify;
     BOOL	Enabled;
+    HFONT       hFont;
     IPPART_INFO	Part[4];
 } IPADDRESS_INFO;
 
@@ -277,6 +278,8 @@ static LRESULT IPADDRESS_Destroy (IPADDRESS_INFO *infoPtr)
         SetWindowLongPtrW (part->EditHwnd, GWLP_WNDPROC, (DWORD_PTR)part->OrigProc);
     }
 
+    if (infoPtr->hFont)
+        DeleteObject (infoPtr->hFont);
     SetWindowLongPtrW (infoPtr->Self, 0, 0);
     theme = GetWindowTheme (infoPtr->Self);
     CloseThemeData (theme);
@@ -664,6 +667,9 @@ IPADDRESS_WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             IPADDRESS_SetFocusToField (infoPtr, 0);
             break;
 #endif
+        case WM_SETFONT:
+            infoPtr->hFont = (HFONT)wParam;
+            return 0;
 
 	default:
 	    if ((uMsg >= WM_USER) && (uMsg < WM_APP) && !COMCTL32_IsReflectedMessage(uMsg))

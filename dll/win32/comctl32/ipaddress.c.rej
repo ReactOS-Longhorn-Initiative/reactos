@@ -1,0 +1,12 @@
+diff a/dll/win32/comctl32/ipaddress.c b/dll/win32/comctl32/ipaddress.c	(rejected hunks)
+@@ -651,6 +654,10 @@ IPADDRESS_WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+             IPADDRESS_SetFocusToField (infoPtr, 0);
+             break;
+ 
++        case WM_SETFONT:
++            infoPtr->hFont = (HFONT)wParam;
++            return 0;
++
+ 	default:
+ 	    if ((uMsg >= WM_USER) && (uMsg < WM_APP) && !COMCTL32_IsReflectedMessage(uMsg))
+ 		ERR("unknown msg %04x, wp %Ix, lp %Ix\n", uMsg, wParam, lParam);
