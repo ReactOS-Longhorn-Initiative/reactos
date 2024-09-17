@@ -1344,7 +1344,7 @@ static void PROPSHEET_UnChanged(HWND hwndDlg, HWND hwndCleanPage);
 static BOOL PROPSHEET_CreatePage(HWND hwndParent,
                                 int index,
                                 const PropSheetInfo * psInfo,
-                                LPCPROPSHEETPAGEW ppshpage)
+                                HPROPSHEETPAGE hpsp)
 {
   const DLGTEMPLATE* pTemplate;
   HWND hwndPage;
@@ -1353,30 +1353,30 @@ static BOOL PROPSHEET_CreatePage(HWND hwndParent,
 
   TRACE("index %d\n", index);
 
-  if (ppshpage == NULL)
+  if (hpsp == NULL)
   {
     return FALSE;
   }
 
-  if (ppshpage->dwFlags & PSP_DLGINDIRECT)
+  if (hpsp->psp.dwFlags & PSP_DLGINDIRECT)
     {
-      pTemplate = ppshpage->u.pResource;
+      pTemplate = hpsp->psp.u.pResource;
       resSize = GetTemplateSize(pTemplate);
     }
-  else if(ppshpage->dwFlags & PSP_INTERNAL_UNICODE)
+  else if(hpsp->psp.dwFlags & PSP_INTERNAL_UNICODE)
   {
     HRSRC hResource;
     HANDLE hTemplate;
 
-    hResource = FindResourceW(ppshpage->hInstance,
-                                    ppshpage->u.pszTemplate,
+    hResource = FindResourceW(hpsp->psp.hInstance,
+                                    hpsp->psp.u.pszTemplate,
                                     (LPWSTR)RT_DIALOG);
     if(!hResource)
 	return FALSE;
 
-    resSize = SizeofResource(ppshpage->hInstance, hResource);
+    resSize = SizeofResource(hpsp->psp.hInstance, hResource);
 
-    hTemplate = LoadResource(ppshpage->hInstance, hResource);
+    hTemplate = LoadResource(hpsp->psp.hInstance, hResource);
     if(!hTemplate)
 	return FALSE;
 
@@ -1390,15 +1390,15 @@ static BOOL PROPSHEET_CreatePage(HWND hwndParent,
     HRSRC hResource;
     HANDLE hTemplate;
 
-    hResource = FindResourceA(ppshpage->hInstance,
-                                    (LPCSTR)ppshpage->u.pszTemplate,
+    hResource = FindResourceA(hpsp->psp.hInstance,
+                                    (LPCSTR)hpsp->psp.u.pszTemplate,
                                     (LPSTR)RT_DIALOG);
     if(!hResource)
 	return FALSE;
 
-    resSize = SizeofResource(ppshpage->hInstance, hResource);
+    resSize = SizeofResource(hpsp->psp.hInstance, hResource);
 
-    hTemplate = LoadResource(ppshpage->hInstance, hResource);
+    hTemplate = LoadResource(hpsp->psp.hInstance, hResource);
     if(!hTemplate)
 	return FALSE;
 
@@ -1442,21 +1442,20 @@ static BOOL PROPSHEET_CreatePage(HWND hwndParent,
   }
 
   if (psInfo->proppage[index].useCallback)
-    (*(ppshpage->pfnCallback))(0, PSPCB_CREATE,
-                               (LPPROPSHEETPAGEW)ppshpage);
+    (*(hpsp->psp.pfnCallback))(0, PSPCB_CREATE, &hpsp->psp);
 
-  if(ppshpage->dwFlags & PSP_INTERNAL_UNICODE)
-     hwndPage = CreateDialogIndirectParamW(ppshpage->hInstance,
+  if(hpsp->psp.dwFlags & PSP_INTERNAL_UNICODE)
+     hwndPage = CreateDialogIndirectParamW(hpsp->psp.hInstance,
 					pTemplateCopy,
 					hwndParent,
-					ppshpage->pfnDlgProc,
-					(LPARAM)ppshpage);
+					hpsp->psp.pfnDlgProc,
+					(LPARAM)&hpsp->psp);
   else
-     hwndPage = CreateDialogIndirectParamA(ppshpage->hInstance,
+     hwndPage = CreateDialogIndirectParamA(hpsp->psp.hInstance,
 					pTemplateCopy,
 					hwndParent,
-					ppshpage->pfnDlgProc,
-					(LPARAM)ppshpage);
+					hpsp->psp.pfnDlgProc,
+					(LPARAM)&hpsp->psp);
   /* Free a no more needed copy */
   Free(pTemplateCopy);
 
@@ -1468,7 +1467,7 @@ static BOOL PROPSHEET_CreatePage(HWND hwndParent,
   /* Subclass exterior wizard pages */
   if((psInfo->ppshheader.dwFlags & (PSH_WIZARD97_NEW | PSH_WIZARD97_OLD)) &&
      (psInfo->ppshheader.dwFlags & PSH_WATERMARK) &&
-     (ppshpage->dwFlags & PSP_HIDEHEADER))
+     (hpsp->psp.dwFlags & PSP_HIDEHEADER))
   {
 #ifdef __REACTOS__
     if (psInfo->ppshheader.u4.hbmWatermark)
@@ -1534,10 +1533,9 @@ static BOOL PROPSHEET_ShowPage(HWND hwndDlg, int index, PropSheetInfo * psInfo)
       return TRUE;
   }
 
-  ppshpage = (LPCPROPSHEETPAGEW)psInfo->proppage[index].hpage;
   if (psInfo->proppage[index].hwndPage == 0)
   {
-     PROPSHEET_CreatePage(hwndDlg, index, psInfo, ppshpage);
+     PROPSHEET_CreatePage(hwndDlg, index, psInfo, psInfo->proppage[index].hpage);
   }
 
   if (psInfo->ppshheader.dwFlags & INTRNL_ANY_WIZARD)
@@ -2018,7 +2016,7 @@ static BOOL PROPSHEET_SetCurSel(HWND hwndDlg,
     psn.lParam       = 0;
 
     if (!psInfo->proppage[index].hwndPage) {
-      if(!PROPSHEET_CreatePage(hwndDlg, index, psInfo, ppshpage)) {
+      if(!PROPSHEET_CreatePage(hwndDlg, index, psInfo, psInfo->proppage[index].hpage)) {
         PROPSHEET_RemovePage(hwndDlg, index, NULL);
 
         if (!psInfo->isModeless)
@@ -2256,7 +2254,6 @@ static BOOL PROPSHEET_InsertPage(HWND hwndDlg, HPROPSHEETPAGE hpageInsertAfter, 
   PropSheetInfo *psInfo = GetPropW(hwndDlg, PropSheetInfoStr);
   PropPageInfo *ppi, *prev_ppi = psInfo->proppage;
   HWND hwndTabControl = GetDlgItem(hwndDlg, IDC_TABCONTROL);
-  LPCPROPSHEETPAGEW ppsp = (LPCPROPSHEETPAGEW)hpage;
   TCITEMW item;
   int index;
 
@@ -2301,10 +2298,10 @@ static BOOL PROPSHEET_InsertPage(HWND hwndDlg, HPROPSHEETPAGE hpageInsertAfter, 
 
   psInfo->proppage[index].hpage = hpage;
 
-  if (ppsp->dwFlags & PSP_PREMATURE)
+  if (hpage->psp.dwFlags & PSP_PREMATURE)
   {
      /* Create the page but don't show it */
-     if (!PROPSHEET_CreatePage(hwndDlg, index, psInfo, ppsp))
+     if (!PROPSHEET_CreatePage(hwndDlg, index, psInfo, hpage))
      {
         psInfo->proppage = prev_ppi;
         Free(ppi);
