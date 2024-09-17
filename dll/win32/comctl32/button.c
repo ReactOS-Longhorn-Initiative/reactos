@@ -67,7 +67,6 @@
 #include "uxtheme.h"
 #include "vssym32.h"
 #include "wine/debug.h"
-#include "wine/heap.h"
 
 #include "comctl32.h"
 
@@ -233,7 +232,7 @@ static inline void paint_button( BUTTON_INFO *infoPtr, LONG style, UINT action )
 static inline WCHAR *get_button_text( const BUTTON_INFO *infoPtr )
 {
     INT len = GetWindowTextLengthW( infoPtr->hwnd );
-    WCHAR *buffer = heap_alloc( (len + 1) * sizeof(WCHAR) );
+    WCHAR *buffer = malloc( (len + 1) * sizeof(WCHAR) );
     if (buffer)
         GetWindowTextW( infoPtr->hwnd, buffer, len + 1 );
     return buffer;
@@ -262,7 +261,7 @@ HRGN set_control_clipping( HDC hdc, const RECT *rect )
 static WCHAR *heap_strndupW(const WCHAR *src, size_t length)
 {
     size_t size = (length + 1) * sizeof(WCHAR);
-    WCHAR *dst = heap_alloc(size);
+    WCHAR *dst = malloc(size);
     if (dst) memcpy(dst, src, size);
     return dst;
 }
@@ -1053,7 +1052,7 @@ static LRESULT CALLBACK BUTTON_WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
             return FALSE;
         }
 
-        heap_free(infoPtr->note);
+        free(infoPtr->note);
         if (note)
         {
             infoPtr->note_length = lstrlenW(note);
@@ -1063,7 +1062,7 @@ static LRESULT CALLBACK BUTTON_WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         if (!note || !infoPtr->note)
         {
             infoPtr->note_length = 0;
-            infoPtr->note = heap_alloc_zero(sizeof(WCHAR));
+            infoPtr->note = calloc(1, sizeof(WCHAR));
         }
 
         SetLastError(NO_ERROR);
