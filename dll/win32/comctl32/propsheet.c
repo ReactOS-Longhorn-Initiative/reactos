@@ -66,8 +66,6 @@
 
 #include "wine/debug.h"
 
-#define HPROPSHEETPAGE_MAGIC 0x5A9234E3
-
 /******************************************************************************
  * Data structures
  */
@@ -142,8 +140,6 @@ typedef struct
  */
 
 static const WCHAR PropSheetInfoStr[] = L"PropertySheetInfo";
-
-#define PSP_INTERNAL_UNICODE 0x80000000
 
 #define MAX_CAPTION_LENGTH 255
 #define MAX_TABTEXT_LENGTH 255
@@ -2279,14 +2275,6 @@ static BOOL PROPSHEET_InsertPage(HWND hwndDlg, HPROPSHEETPAGE hpageInsertAfter, 
   if (!ppi)
       return FALSE;
 
-  if (hpage && hpage->magic != HPROPSHEETPAGE_MAGIC)
-  {
-      if (psInfo->unicode)
-          hpage = CreatePropertySheetPageW((const PROPSHEETPAGEW *)hpage);
-      else
-          hpage = CreatePropertySheetPageA((const PROPSHEETPAGEA *)hpage);
-  }
-
   /*
    * Fill in a new PropPageInfo entry.
    */
@@ -2893,18 +2881,7 @@ INT_PTR WINAPI PropertySheetA(LPCPROPSHEETHEADERA lppsh)
   for (n = i = 0; i < lppsh->nPages; i++, n++)
   {
     if (!psInfo->usePropPage)
-    {
-        if (psInfo->ppshheader.u3.phpage[i] &&
-                psInfo->ppshheader.u3.phpage[i]->magic == HPROPSHEETPAGE_MAGIC)
-        {
-            psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
-        }
-        else
-        {
-            psInfo->proppage[n].hpage = CreatePropertySheetPageA(
-                    (const PROPSHEETPAGEA *)psInfo->ppshheader.u3.phpage[i]);
-        }
-    }
+      psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
     else
     {
        psInfo->proppage[n].hpage = CreatePropertySheetPageA((LPCPROPSHEETPAGEA)pByte);
@@ -2945,18 +2922,7 @@ INT_PTR WINAPI PropertySheetW(LPCPROPSHEETHEADERW lppsh)
   for (n = i = 0; i < lppsh->nPages; i++, n++)
   {
     if (!psInfo->usePropPage)
-    {
-        if (psInfo->ppshheader.u3.phpage[i] &&
-                psInfo->ppshheader.u3.phpage[i]->magic == HPROPSHEETPAGE_MAGIC)
-        {
-            psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
-        }
-        else
-        {
-            psInfo->proppage[n].hpage = CreatePropertySheetPageW(
-                    (const PROPSHEETPAGEW *)psInfo->ppshheader.u3.phpage[i]);
-        }
-    }
+      psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
     else
     {
        psInfo->proppage[n].hpage = CreatePropertySheetPageW((LPCPROPSHEETPAGEW)pByte);
