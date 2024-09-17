@@ -193,6 +193,24 @@ static WCHAR *heap_strdupAtoW(const char *str)
     return ret;
 }
 
+static HWND HPSP_create_page(HPROPSHEETPAGE hpsp, DLGTEMPLATE *template, HWND parent)
+{
+    HWND hwnd;
+
+    if(hpsp->psp.dwFlags & PSP_INTERNAL_UNICODE)
+    {
+        hwnd = CreateDialogIndirectParamW(hpsp->psp.hInstance, template,
+                parent, hpsp->psp.pfnDlgProc, (LPARAM)&hpsp->psp);
+    }
+    else
+    {
+        hwnd = CreateDialogIndirectParamA(hpsp->psp.hInstance, template,
+                parent, hpsp->psp.pfnDlgProc, (LPARAM)&hpsp->psp);
+    }
+
+    return hwnd;
+}
+
 #define add_flag(a) if (dwFlags & a) {strcat(string, #a );strcat(string," ");}
 /******************************************************************************
  *            PROPSHEET_UnImplementedFlags
