@@ -658,6 +658,9 @@ static LRESULT CALLBACK BUTTON_WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         break;
 
     case WM_CREATE:
+    {
+        HWND parent;
+
         if (btn_type >= MAX_BTN_TYPE)
             return -1; /* abort */
 
@@ -669,7 +672,12 @@ static LRESULT CALLBACK BUTTON_WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         }
         infoPtr->state = BST_UNCHECKED;
         OpenThemeData( hWnd, WC_BUTTONW );
+
+        parent = GetParent( hWnd );
+        if (parent)
+            EnableThemeDialogTexture( parent, ETDT_ENABLE );
         return 0;
+    }
 
     case WM_DESTROY:
         theme = GetWindowTheme( hWnd );
