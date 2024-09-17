@@ -145,7 +145,7 @@ static LRESULT IPADDRESS_Draw (const IPADDRESS_INFO *infoPtr, HDC hdc)
 
     GetClientRect (infoPtr->Self, &rect);
 
-    theme = OpenThemeData(infoPtr->Self, WC_EDITW);
+    theme = GetWindowTheme (infoPtr->Self);
 
     if (theme) {
         DWORD dwStyle = GetWindowLongW (infoPtr->Self, GWL_STYLE);
@@ -200,9 +200,6 @@ static LRESULT IPADDRESS_Draw (const IPADDRESS_INFO *infoPtr, HDC hdc)
         else
             DrawTextW(hdc, L".", 1, &rect, DT_SINGLELINE | DT_CENTER | DT_BOTTOM);
     }
-
-    if (theme)
-        CloseThemeData(theme);
 
     return 0;
 }
@@ -263,6 +260,7 @@ static LRESULT IPADDRESS_Create (HWND hwnd, const CREATESTRUCTA *lpCreate)
     }
 
     IPADDRESS_UpdateText (infoPtr);
+    OpenThemeData (infoPtr->Self, WC_EDITW);
 
     return 0;
 }
@@ -270,6 +268,7 @@ static LRESULT IPADDRESS_Create (HWND hwnd, const CREATESTRUCTA *lpCreate)
 
 static LRESULT IPADDRESS_Destroy (IPADDRESS_INFO *infoPtr)
 {
+    HTHEME theme;
     int i;
 
     TRACE("\n");
@@ -280,6 +279,8 @@ static LRESULT IPADDRESS_Destroy (IPADDRESS_INFO *infoPtr)
     }
 
     SetWindowLongPtrW (infoPtr->Self, 0, 0);
+    theme = GetWindowTheme (infoPtr->Self);
+    CloseThemeData (theme);
     heap_free (infoPtr);
     return 0;
 }
@@ -464,6 +465,13 @@ static BOOL IPADDRESS_GotoNextField (const IPADDRESS_INFO *infoPtr, int cur, int
     return FALSE;
 }
 
+static LRESULT IPADDRESS_ThemeChanged (const IPADDRESS_INFO *infoPtr)
+{
+    HTHEME theme = GetWindowTheme (infoPtr->Self);
+    CloseThemeData (theme);
+    theme = OpenThemeData (theme, WC_EDITW);
+    return 0;
+}
 
 /*
  * period: move and select the text in the next field to the right if
@@ -630,6 +638,9 @@ IPADDRESS_WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_SYSCOLORCHANGE:
             COMCTL32_RefreshSysColors();
             return 0;
+
+        case WM_THEMECHANGED:
+            return IPADDRESS_ThemeChanged (infoPtr);
 
         case IPM_CLEARADDRESS:
             return IPADDRESS_ClearAddress (infoPtr);
