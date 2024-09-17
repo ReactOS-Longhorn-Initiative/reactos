@@ -10720,8 +10720,8 @@ static LRESULT LISTVIEW_NCPaint(const LISTVIEW_INFO *infoPtr, HRGN region)
 {
     LONG exstyle = GetWindowLongW (infoPtr->hwndSelf, GWL_EXSTYLE);
     HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
+    RECT r, window_rect;
     HDC dc;
-    RECT r;
     HRGN cliprgn;
     int cxEdge = GetSystemMetrics (SM_CXEDGE),
         cyEdge = GetSystemMetrics (SM_CYEDGE);
