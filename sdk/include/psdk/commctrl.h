@@ -55,6 +55,12 @@ extern "C" {
     DWORD dwSize;
     DWORD dwICC;
   } INITCOMMONCONTROLSEX,*LPINITCOMMONCONTROLSEX;
+
+typedef struct tagLVITEMINDEX
+{
+    int iItem;
+    int iGroup;
+} LVITEMINDEX, *PLVITEMINDEX;
 #define ICC_LISTVIEW_CLASSES 0x1
 #define ICC_TREEVIEW_CLASSES 0x2
 #define ICC_BAR_CLASSES 0x4
@@ -298,6 +304,7 @@ extern "C" {
 #define CDIS_MARKED 0x80
 #define CDIS_INDETERMINATE 0x100
 #define CDIS_SHOWKEYBOARDCUES 0x200
+#define LVM_GETNEXTITEMINDEX    (LVM_FIRST + 211)
 
   typedef struct tagNMCUSTOMDRAWINFO {
     NMHDR hdr;

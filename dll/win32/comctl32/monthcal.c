@@ -674,7 +674,7 @@ MONTHCAL_GetMonthRange(const MONTHCAL_INFO *infoPtr, DWORD flag, SYSTEMTIME *st)
 {
   INT range;
 
-  TRACE("flag=%d, st=%p\n", flag, st);
+  TRACE("flags %#lx, st %p\n", flag, st);
 
   switch (flag) {
   case GMR_VISIBLE:
@@ -712,7 +712,7 @@ MONTHCAL_GetMonthRange(const MONTHCAL_INFO *infoPtr, DWORD flag, SYSTEMTIME *st)
       break;
   }
   default:
-      WARN("Unknown flag value, got %d\n", flag);
+      WARN("Unknown flag value, got %ld\n", flag);
       range = 0;
   }
 
@@ -1299,7 +1299,7 @@ MONTHCAL_SetColor(MONTHCAL_INFO *infoPtr, UINT index, COLORREF color)
   enum CachedBrush type;
   COLORREF prev;
 
-  TRACE("%p, %d: color %08x\n", infoPtr, index, color);
+  TRACE("%p, %d: color %#lx\n", infoPtr, index, color);
 
   if (index > MCSC_TRAILINGTEXT) return -1;
 
@@ -2074,8 +2074,7 @@ static LRESULT CALLBACK EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 {
     MONTHCAL_INFO *infoPtr = (MONTHCAL_INFO *)GetWindowLongPtrW(GetParent(hwnd), 0);
 
-    TRACE("(hwnd=%p, uMsg=%x, wParam=%lx, lParam=%lx)\n",
-	  hwnd, uMsg, wParam, lParam);
+    TRACE("hwnd %p, uMsg %x, wParam %Ix, lParam %Ix\n", hwnd, uMsg, wParam, lParam);
 
     switch (uMsg)
     {
@@ -2163,7 +2162,7 @@ MONTHCAL_LButtonDown(MONTHCAL_INFO *infoPtr, LPARAM lParam)
 
   hit = MONTHCAL_HitTest(infoPtr, &ht);
 
-  TRACE("%x at %s\n", hit, wine_dbgstr_point(&ht.pt));
+  TRACE("%lx at %s\n", hit, wine_dbgstr_point(&ht.pt));
 
   switch(hit)
   {
@@ -2323,7 +2322,7 @@ MONTHCAL_LButtonUp(MONTHCAL_INFO *infoPtr, LPARAM lParam)
 static LRESULT
 MONTHCAL_Timer(MONTHCAL_INFO *infoPtr, WPARAM id)
 {
-  TRACE("%ld\n", id);
+  TRACE("%Id\n", id);
 
   switch(id) {
   case MC_PREVNEXTMONTHTIMER:
@@ -2346,7 +2345,7 @@ MONTHCAL_Timer(MONTHCAL_INFO *infoPtr, WPARAM id)
     return 0;
   }
   default:
-    ERR("got unknown timer %ld\n", id);
+    ERR("got unknown timer %Id\n", id);
     break;
   }
 
@@ -2452,7 +2451,7 @@ MONTHCAL_EraseBkgnd(const MONTHCAL_INFO *infoPtr, HDC hdc)
 static LRESULT
 MONTHCAL_PrintClient(MONTHCAL_INFO *infoPtr, HDC hdc, DWORD options)
 {
-  FIXME("Partial Stub: (hdc=%p options=0x%08x)\n", hdc, options);
+  FIXME("Partial Stub: (hdc %p options %#lx)\n", hdc, options);
 
   if ((options & PRF_CHECKVISIBLE) && !IsWindowVisible(infoPtr->hwndSelf))
       return 0;
@@ -2708,8 +2707,7 @@ static LRESULT theme_changed (const MONTHCAL_INFO* infoPtr)
 static INT MONTHCAL_StyleChanged(MONTHCAL_INFO *infoPtr, WPARAM wStyleType,
                                  const STYLESTRUCT *lpss)
 {
-    TRACE("(styletype=%lx, styleOld=0x%08x, styleNew=0x%08x)\n",
-          wStyleType, lpss->styleOld, lpss->styleNew);
+    TRACE("styletype %Ix, styleOld %#lx, styleNew %#lx\n", wStyleType, lpss->styleOld, lpss->styleNew);
 
     if (wStyleType != GWL_STYLE) return 0;
 
@@ -2725,8 +2723,7 @@ static INT MONTHCAL_StyleChanged(MONTHCAL_INFO *infoPtr, WPARAM wStyleType,
 static INT MONTHCAL_StyleChanging(MONTHCAL_INFO *infoPtr, WPARAM wStyleType,
                                   STYLESTRUCT *lpss)
 {
-    TRACE("(styletype=%lx, styleOld=0x%08x, styleNew=0x%08x)\n",
-          wStyleType, lpss->styleOld, lpss->styleNew);
+    TRACE("styletype %Ix, styleOld %#lx, styleNew %#lx\n", wStyleType, lpss->styleOld, lpss->styleNew);
 
     /* block MCS_MULTISELECT change */
     if ((lpss->styleNew ^ lpss->styleOld) & MCS_MULTISELECT)
@@ -2877,7 +2874,7 @@ MONTHCAL_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   MONTHCAL_INFO *infoPtr = (MONTHCAL_INFO *)GetWindowLongPtrW(hwnd, 0);
 
-  TRACE("hwnd=%p msg=%x wparam=%lx lparam=%lx\n", hwnd, uMsg, wParam, lParam);
+  TRACE("hwnd %p, msg %x, wparam %Ix, lparam %Ix\n", hwnd, uMsg, wParam, lParam);
 
   if (!infoPtr && (uMsg != WM_CREATE))
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);
@@ -3018,7 +3015,7 @@ MONTHCAL_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   default:
     if ((uMsg >= WM_USER) && (uMsg < WM_APP) && !COMCTL32_IsReflectedMessage(uMsg))
-      ERR( "unknown msg %04x wp=%08lx lp=%08lx\n", uMsg, wParam, lParam);
+      ERR( "unknown msg %04x, wp %Ix, lp %Ix\n", uMsg, wParam, lParam);
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);
   }
 }
