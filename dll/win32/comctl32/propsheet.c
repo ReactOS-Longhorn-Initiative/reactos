@@ -66,6 +66,8 @@
 
 #include "wine/debug.h"
 
+#define HPROPSHEETPAGE_MAGIC 0x5A9234E3
+
 /******************************************************************************
  * Data structures
  */
@@ -2277,6 +2279,14 @@ static BOOL PROPSHEET_InsertPage(HWND hwndDlg, HPROPSHEETPAGE hpageInsertAfter, 
   if (!ppi)
       return FALSE;
 
+  if (hpage && hpage->magic != HPROPSHEETPAGE_MAGIC)
+  {
+      if (psInfo->unicode)
+          hpage = CreatePropertySheetPageW((const PROPSHEETPAGEW *)hpage);
+      else
+          hpage = CreatePropertySheetPageA((const PROPSHEETPAGEA *)hpage);
+  }
+
   /*
    * Fill in a new PropPageInfo entry.
    */
@@ -2883,7 +2893,18 @@ INT_PTR WINAPI PropertySheetA(LPCPROPSHEETHEADERA lppsh)
   for (n = i = 0; i < lppsh->nPages; i++, n++)
   {
     if (!psInfo->usePropPage)
-      psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
+    {
+        if (psInfo->ppshheader.u3.phpage[i] &&
+                psInfo->ppshheader.u3.phpage[i]->magic == HPROPSHEETPAGE_MAGIC)
+        {
+            psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
+        }
+        else
+        {
+            psInfo->proppage[n].hpage = CreatePropertySheetPageA(
+                    (const PROPSHEETPAGEA *)psInfo->ppshheader.u3.phpage[i]);
+        }
+    }
     else
     {
        psInfo->proppage[n].hpage = CreatePropertySheetPageA((LPCPROPSHEETPAGEA)pByte);
@@ -2924,7 +2945,18 @@ INT_PTR WINAPI PropertySheetW(LPCPROPSHEETHEADERW lppsh)
   for (n = i = 0; i < lppsh->nPages; i++, n++)
   {
     if (!psInfo->usePropPage)
-      psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
+    {
+        if (psInfo->ppshheader.u3.phpage[i] &&
+                psInfo->ppshheader.u3.phpage[i]->magic == HPROPSHEETPAGE_MAGIC)
+        {
+            psInfo->proppage[n].hpage = psInfo->ppshheader.u3.phpage[i];
+        }
+        else
+        {
+            psInfo->proppage[n].hpage = CreatePropertySheetPageW(
+                    (const PROPSHEETPAGEW *)psInfo->ppshheader.u3.phpage[i]);
+        }
+    }
     else
     {
        psInfo->proppage[n].hpage = CreatePropertySheetPageW((LPCPROPSHEETPAGEW)pByte);
@@ -3399,15 +3431,35 @@ static LRESULT PROPSHEET_Paint(HWND hwnd, HDC hdcParam)
 	clrOld = SetTextColor (hdc, 0x00000000);
 	oldBkMode = SetBkMode (hdc, TRANSPARENT); 
 
-	if (flags & PSP_USEHEADERTITLE) {
+	if (ppshpage->dwFlags & PSP_USEHEADERTITLE) {
 	    SetRect(&r, 20, 10, 0, 0);
-            HPSP_draw_text(hpsp, hdc, TRUE, &r, DT_LEFT | DT_SINGLELINE | DT_NOCLIP);
+            if (!IS_INTRESOURCE(ppshpage->pszHeaderTitle))
+                DrawTextW(hdc, ppshpage->pszHeaderTitle, -1, &r, DT_LEFT | DT_SINGLELINE | DT_NOCLIP);
+	    else
+	    {
+		nLength = LoadStringW(ppshpage->hInstance, (UINT_PTR)ppshpage->pszHeaderTitle,
+				      szBuffer, 256);
+		if (nLength != 0)
+		{
+		    DrawTextW(hdc, szBuffer, nLength, &r, DT_LEFT | DT_SINGLELINE | DT_NOCLIP);
+		}
+	    }
 	}
 
-	if (flags & PSP_USEHEADERSUBTITLE) {
+	if (ppshpage->dwFlags & PSP_USEHEADERSUBTITLE) {
 	    SelectObject(hdc, psInfo->hFont);
 	    SetRect(&r, 40, 25, rzone.right - 69, rzone.bottom);
-            HPSP_draw_text(hpsp, hdc, FALSE, &r, DT_LEFT | DT_WORDBREAK);
+            if (!IS_INTRESOURCE(ppshpage->pszHeaderSubTitle))
+                DrawTextW(hdc, ppshpage->pszHeaderSubTitle, -1, &r, DT_LEFT | DT_WORDBREAK);
+	    else
+	    {
+		nLength = LoadStringW(ppshpage->hInstance, (UINT_PTR)ppshpage->pszHeaderSubTitle,
+				      szBuffer, 256);
+		if (nLength != 0)
+		{
+		    DrawTextW(hdc, szBuffer, nLength, &r, DT_LEFT | DT_WORDBREAK);
+		}
+	    }
 	}
 
 	offsety = rzone.bottom + 2;
