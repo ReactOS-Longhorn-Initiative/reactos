@@ -334,6 +334,11 @@ typedef struct tagLISTVIEW_INFO
   DWORD iVersion;          /* CCM_[G,S]ETVERSION */
 } LISTVIEW_INFO;
 
+#ifdef __REACTOS__
+#define LVM_QUERYINTERFACE (LVM_FIRST + 189)  
+HRESULT ListView_QueryInterface(LPARAM lParam);
+#endif
+
 /*
  * constants
  */
@@ -11856,6 +11861,11 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   case LVM_UPDATE:
     return LISTVIEW_Update(infoPtr, (INT)wParam);
+
+#ifdef __REACTOS__
+  case LVM_QUERYINTERFACE:
+    return ListView_QueryInterface(lParam);
+#endif
 
   case CCM_GETVERSION:
     return LISTVIEW_GetVersion(infoPtr);
