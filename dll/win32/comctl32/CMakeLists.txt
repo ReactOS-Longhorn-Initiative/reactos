@@ -31,6 +31,7 @@ list(APPEND SOURCE
     header.c
     hotkey.c
     imagelist.c
+    IListView.c
     ipaddress.c
     listbox.c
     listview.c
