@@ -1512,30 +1512,9 @@ HRESULT WINAPI DrawThemeText(HTHEME hTheme, HDC hdc, int iPartId, int iStateId,
     }
     opts.dwSize = sizeof(opts);
 
-    return UXTHEME_DrawThemeTextEx(hTheme, hdc, iPartId, iStateId, pszText, iCharCount, dwTextFlags, &rt, &opts);
+    return DrawThemeTextEx(hTheme, hdc, iPartId, iStateId, pszText, iCharCount, dwTextFlags, &rt, &opts);
 }
 
-/***********************************************************************
- *      DrawThemeTextEx                                     (UXTHEME.@)
- */
-HRESULT
-WINAPI
-DrawThemeTextEx(
-    _In_ HTHEME hTheme,
-    _In_ HDC hdc,
-    _In_ int iPartId,
-    _In_ int iStateId,
-    _In_ LPCWSTR pszText,
-    _In_ int iCharCount,
-    _In_ DWORD dwTextFlags,
-    _Inout_ LPRECT pRect,
-    _In_ const DTTOPTS *options
-)
-{
-    TRACE("(%p %p %d %d %s:%d 0x%08lx %p %p)\n", hTheme, hdc, iPartId, iStateId,
-        debugstr_wn(pszText, iCharCount), iCharCount, dwTextFlags, pRect, options);
-    return UXTHEME_DrawThemeTextEx(hTheme, hdc, iPartId, iStateId, pszText, iCharCount, dwTextFlags, pRect, options);
-}
 
 /***********************************************************************
  *      GetThemeBackgroundContentRect                       (UXTHEME.@)
