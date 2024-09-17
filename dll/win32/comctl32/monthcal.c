@@ -46,7 +46,6 @@
 #include "uxtheme.h"
 #include "vssym32.h"
 #include "wine/debug.h"
-#include "wine/heap.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(monthcal);
 
@@ -1949,7 +1948,7 @@ static void MONTHCAL_NotifyDayState(MONTHCAL_INFO *infoPtr)
   nmds.nmhdr.idFrom   = GetWindowLongPtrW(infoPtr->hwndSelf, GWLP_ID);
   nmds.nmhdr.code     = MCN_GETDAYSTATE;
   nmds.cDayState      = MONTHCAL_GetMonthRange(infoPtr, GMR_DAYSTATE, 0);
-  nmds.prgDayState    = state = heap_alloc_zero(nmds.cDayState * sizeof(MONTHDAYSTATE));
+  nmds.prgDayState    = state = calloc(nmds.cDayState, sizeof(MONTHDAYSTATE));
 
   MONTHCAL_GetMinDate(infoPtr, &nmds.stStart);
   nmds.stStart.wDay = 1;
@@ -1958,7 +1957,7 @@ static void MONTHCAL_NotifyDayState(MONTHCAL_INFO *infoPtr)
   memcpy(infoPtr->monthdayState, nmds.prgDayState,
       MONTHCAL_GetMonthRange(infoPtr, GMR_DAYSTATE, 0)*sizeof(MONTHDAYSTATE));
 
-  heap_free(state);
+  free(state);
 }
 
 /* no valid range check performed */
@@ -2596,9 +2595,9 @@ static void MONTHCAL_UpdateSize(MONTHCAL_INFO *infoPtr)
   {
       infoPtr->dim.cx = x;
       infoPtr->dim.cy = y;
-      infoPtr->calendars = heap_realloc(infoPtr->calendars, MONTHCAL_GetCalCount(infoPtr)*sizeof(CALENDAR_INFO));
+      infoPtr->calendars = realloc(infoPtr->calendars, MONTHCAL_GetCalCount(infoPtr)*sizeof(CALENDAR_INFO));
 
-      infoPtr->monthdayState = heap_realloc(infoPtr->monthdayState,
+      infoPtr->monthdayState = realloc(infoPtr->monthdayState,
           MONTHCAL_GetMonthRange(infoPtr, GMR_DAYSTATE, 0)*sizeof(MONTHDAYSTATE));
       MONTHCAL_NotifyDayState(infoPtr);
 
@@ -2753,7 +2752,7 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   MONTHCAL_INFO *infoPtr;
 
   /* allocate memory for info structure */
-  infoPtr = heap_alloc_zero(sizeof(*infoPtr));
+  infoPtr = calloc(1, sizeof(*infoPtr));
   SetWindowLongPtrW(hwnd, 0, (DWORD_PTR)infoPtr);
 
   if (infoPtr == NULL) {
@@ -2765,9 +2764,9 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   infoPtr->hwndNotify = lpcs->hwndParent;
   infoPtr->dwStyle = GetWindowLongW(hwnd, GWL_STYLE);
   infoPtr->dim.cx = infoPtr->dim.cy = 1;
-  infoPtr->calendars = heap_alloc_zero(sizeof(CALENDAR_INFO));
+  infoPtr->calendars = calloc(1, sizeof(*infoPtr->calendars));
   if (!infoPtr->calendars) goto fail;
-  infoPtr->monthdayState = heap_alloc_zero(3 * sizeof(MONTHDAYSTATE));
+  infoPtr->monthdayState = calloc(3, sizeof(*infoPtr->monthdayState));
   if (!infoPtr->monthdayState) goto fail;
 
   /* initialize info structure */
@@ -2808,9 +2807,9 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   return 0;
 
 fail:
-  heap_free(infoPtr->monthdayState);
-  heap_free(infoPtr->calendars);
-  heap_free(infoPtr);
+  free(infoPtr->monthdayState);
+  free(infoPtr->calendars);
+  free(infoPtr);
   return 0;
 }
 
@@ -2819,9 +2818,8 @@ MONTHCAL_Destroy(MONTHCAL_INFO *infoPtr)
 {
   INT i;
 
-  /* free month calendar info data */
-  heap_free(infoPtr->monthdayState);
-  heap_free(infoPtr->calendars);
+  free(infoPtr->monthdayState);
+  free(infoPtr->calendars);
   SetWindowLongPtrW(infoPtr->hwndSelf, 0, 0);
 
   CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
@@ -2829,7 +2827,7 @@ MONTHCAL_Destroy(MONTHCAL_INFO *infoPtr)
   for (i = 0; i < BrushLast; i++) DeleteObject(infoPtr->brushes[i]);
   for (i = 0; i < PenLast; i++) DeleteObject(infoPtr->pens[i]);
 
-  heap_free(infoPtr);
+  free(infoPtr);
   return 0;
 }
 
