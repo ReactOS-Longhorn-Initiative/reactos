@@ -4832,7 +4832,7 @@ typedef struct {
   #define DSA_AppendItem(hdsa, pitem) DSA_InsertItem (hdsa, DA_LAST, pitem)
 
   typedef struct _DPA *HDPA;
-
+  WINCOMMCTRLAPI HDPA  WINAPI DPA_Clone (const HDPA hdpa, HDPA hdpaNew);
   WINCOMMCTRLAPI HDPA WINAPI DPA_Create(int cItemGrow);
   WINCOMMCTRLAPI BOOL WINAPI DPA_Destroy(_Inout_opt_ HDPA hdpa);
   WINCOMMCTRLAPI PVOID WINAPI DPA_DeletePtr(_Inout_ HDPA hdpa, _In_ int i);
@@ -4940,7 +4940,7 @@ typedef const void*
     _In_ int i,
     _In_opt_ void *p);
 
-  WINCOMMCTRLAPI PVOID WINAPI DPA_GetPtr(_In_ HDPA hdpa, _In_ INT_PTR i);
+  WINCOMMCTRLAPI PVOID WINAPI DPA_GetPtr(HDPA hdpa, INT_PTR nIndex);
 
   WINCOMMCTRLAPI
   BOOL
