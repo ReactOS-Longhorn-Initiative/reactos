@@ -1948,7 +1948,7 @@ static void MONTHCAL_NotifyDayState(MONTHCAL_INFO *infoPtr)
   nmds.nmhdr.idFrom   = GetWindowLongPtrW(infoPtr->hwndSelf, GWLP_ID);
   nmds.nmhdr.code     = MCN_GETDAYSTATE;
   nmds.cDayState      = MONTHCAL_GetMonthRange(infoPtr, GMR_DAYSTATE, 0);
-  nmds.prgDayState    = state = calloc(nmds.cDayState, sizeof(MONTHDAYSTATE));
+  nmds.prgDayState    = state = Alloc(nmds.cDayState * sizeof(MONTHDAYSTATE));
 
   MONTHCAL_GetMinDate(infoPtr, &nmds.stStart);
   nmds.stStart.wDay = 1;
@@ -1957,7 +1957,7 @@ static void MONTHCAL_NotifyDayState(MONTHCAL_INFO *infoPtr)
   memcpy(infoPtr->monthdayState, nmds.prgDayState,
       MONTHCAL_GetMonthRange(infoPtr, GMR_DAYSTATE, 0)*sizeof(MONTHDAYSTATE));
 
-  free(state);
+  Free(state);
 }
 
 /* no valid range check performed */
@@ -2595,9 +2595,9 @@ static void MONTHCAL_UpdateSize(MONTHCAL_INFO *infoPtr)
   {
       infoPtr->dim.cx = x;
       infoPtr->dim.cy = y;
-      infoPtr->calendars = realloc(infoPtr->calendars, MONTHCAL_GetCalCount(infoPtr)*sizeof(CALENDAR_INFO));
+      infoPtr->calendars = ReAlloc(infoPtr->calendars, MONTHCAL_GetCalCount(infoPtr)*sizeof(CALENDAR_INFO));
 
-      infoPtr->monthdayState = realloc(infoPtr->monthdayState,
+      infoPtr->monthdayState = ReAlloc(infoPtr->monthdayState,
           MONTHCAL_GetMonthRange(infoPtr, GMR_DAYSTATE, 0)*sizeof(MONTHDAYSTATE));
       MONTHCAL_NotifyDayState(infoPtr);
 
@@ -2752,7 +2752,7 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   MONTHCAL_INFO *infoPtr;
 
   /* allocate memory for info structure */
-  infoPtr = calloc(1, sizeof(*infoPtr));
+  infoPtr = Alloc(sizeof(*infoPtr));
   SetWindowLongPtrW(hwnd, 0, (DWORD_PTR)infoPtr);
 
   if (infoPtr == NULL) {
@@ -2764,9 +2764,9 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   infoPtr->hwndNotify = lpcs->hwndParent;
   infoPtr->dwStyle = GetWindowLongW(hwnd, GWL_STYLE);
   infoPtr->dim.cx = infoPtr->dim.cy = 1;
-  infoPtr->calendars = calloc(1, sizeof(*infoPtr->calendars));
+  infoPtr->calendars = Alloc(sizeof(*infoPtr->calendars));
   if (!infoPtr->calendars) goto fail;
-  infoPtr->monthdayState = calloc(3, sizeof(*infoPtr->monthdayState));
+  infoPtr->monthdayState = Alloc(3 * sizeof(*infoPtr->monthdayState));
   if (!infoPtr->monthdayState) goto fail;
 
   /* initialize info structure */
@@ -2807,9 +2807,9 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   return 0;
 
 fail:
-  free(infoPtr->monthdayState);
-  free(infoPtr->calendars);
-  free(infoPtr);
+  Free(infoPtr->monthdayState);
+  Free(infoPtr->calendars);
+  Free(infoPtr);
   return 0;
 }
 
@@ -2818,8 +2818,8 @@ MONTHCAL_Destroy(MONTHCAL_INFO *infoPtr)
 {
   INT i;
 
-  free(infoPtr->monthdayState);
-  free(infoPtr->calendars);
+  Free(infoPtr->monthdayState);
+  Free(infoPtr->calendars);
   SetWindowLongPtrW(infoPtr->hwndSelf, 0, 0);
 
   CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
@@ -2827,7 +2827,7 @@ MONTHCAL_Destroy(MONTHCAL_INFO *infoPtr)
   for (i = 0; i < BrushLast; i++) DeleteObject(infoPtr->brushes[i]);
   for (i = 0; i < PenLast; i++) DeleteObject(infoPtr->pens[i]);
 
-  free(infoPtr);
+  Free(infoPtr);
   return 0;
 }
 
