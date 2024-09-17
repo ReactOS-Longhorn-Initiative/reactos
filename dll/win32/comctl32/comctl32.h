@@ -220,14 +220,15 @@ typedef struct
    SUBCLASSPROCS *SubclassProcs;
    SUBCLASSPROCS *stackpos;
    WNDPROC origproc;
+   int is_unicode;
    int running;
 } SUBCLASS_INFO, *LPSUBCLASS_INFO;
 
 /* undocumented functions */
 
+LPVOID WINAPI Alloc (DWORD) __WINE_ALLOC_SIZE(1);
+LPVOID WINAPI ReAlloc (LPVOID, DWORD) __WINE_ALLOC_SIZE(2);
 BOOL   WINAPI Free (LPVOID);
-void * WINAPI Alloc (DWORD) __WINE_ALLOC_SIZE(1) __WINE_DEALLOC(Free) __WINE_MALLOC;
-void * WINAPI ReAlloc (void *, DWORD) __WINE_ALLOC_SIZE(2) __WINE_DEALLOC(Free);
 DWORD  WINAPI GetSize (LPVOID);
 
 INT  WINAPI Str_GetPtrA (LPCSTR, LPSTR, INT);
