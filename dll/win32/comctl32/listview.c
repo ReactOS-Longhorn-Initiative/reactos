@@ -8906,8 +8906,8 @@ static inline void set_icon_size(SIZE *size, HIMAGELIST himl, BOOL is_small)
     }
     else
     {
-	size->cx = GetSystemMetrics(is_small ? SM_CXSMICON : SM_CXICON);
-	size->cy = GetSystemMetrics(is_small ? SM_CYSMICON : SM_CYICON);
+	    size->cx = GetSystemMetrics(is_small ? SM_CXSMICON : SM_CXICON);
+	    size->cy = GetSystemMetrics(is_small ? SM_CYSMICON : SM_CYICON);
     }
 }
 
