@@ -54,7 +54,9 @@ list(APPEND SOURCE
     tooltips.c
     trackbar.c
     treeview.c
-    updown.c)
+    undoc_scroll.c
+    updown.c
+    winterminal.cpp)
 
 list(APPEND PCH_SKIP_SOURCE
     stubs.c)
