@@ -132,6 +132,7 @@ typedef struct
     COLORREF   clrBk;
     COLORREF   clrText;
     HFONT    hFont;
+    HFONT    hStatusFont;
     HFONT    hTitleFont;
     INT      xTrackPos;
     INT      yTrackPos;
@@ -202,14 +203,16 @@ TOOLTIPS_InitSystemSettings (TOOLTIPS_INFO *infoPtr)
     infoPtr->clrBk   = comctl32_color.clrInfoBk;
     infoPtr->clrText = comctl32_color.clrInfoText;
 
-    DeleteObject (infoPtr->hFont);
+    DeleteObject (infoPtr->hStatusFont);
     nclm.cbSize = sizeof(nclm);
     SystemParametersInfoW (SPI_GETNONCLIENTMETRICS, sizeof(nclm), &nclm, 0);
-    infoPtr->hFont = CreateFontIndirectW (&nclm.lfStatusFont);
+    infoPtr->hStatusFont = CreateFontIndirectW (&nclm.lfStatusFont);
 
     DeleteObject (infoPtr->hTitleFont);
     nclm.lfStatusFont.lfWeight = FW_BOLD;
     infoPtr->hTitleFont = CreateFontIndirectW (&nclm.lfStatusFont);
+
+    infoPtr->hFont = infoPtr->hStatusFont;
 }
 
 /* Custom draw routines */
@@ -1919,7 +1922,7 @@ TOOLTIPS_Destroy (TOOLTIPS_INFO *infoPtr)
         DeleteObject(infoPtr->hTitleIcon);
 
     /* delete fonts */
-    DeleteObject (infoPtr->hFont);
+    DeleteObject (infoPtr->hStatusFont);
     DeleteObject (infoPtr->hTitleFont);
 
     /* free tool tips info data */
@@ -2046,8 +2049,7 @@ TOOLTIPS_SetFont (TOOLTIPS_INFO *infoPtr, HFONT hFont, BOOL redraw)
     if(!GetObjectW(hFont, sizeof(lf), &lf))
         return 0;
 
-    DeleteObject (infoPtr->hFont);
-    infoPtr->hFont = CreateFontIndirectW(&lf);
+    infoPtr->hFont = hFont;
 
     DeleteObject (infoPtr->hTitleFont);
     lf.lfWeight = FW_BOLD;
