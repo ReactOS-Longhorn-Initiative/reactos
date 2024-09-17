@@ -1506,6 +1506,19 @@ TRACKBAR_InitializeThumb (TRACKBAR_INFO *infoPtr)
     return 0;
 }
 
+static void TRACKBAR_RecalculateAll (TRACKBAR_INFO *infoPtr)
+{
+    if (infoPtr->dwStyle & TBS_FIXEDLENGTH)
+    {
+        TRACKBAR_CalcChannel(infoPtr);
+        TRACKBAR_UpdateThumb(infoPtr);
+    }
+    else
+    {
+        TRACKBAR_InitializeThumb(infoPtr);
+    }
+    TRACKBAR_AlignBuddies(infoPtr);
+}
 
 static LRESULT
 TRACKBAR_Create (HWND hwnd, const CREATESTRUCTW *lpcs)
@@ -1681,14 +1694,7 @@ TRACKBAR_SetFocus (TRACKBAR_INFO *infoPtr)
 static LRESULT
 TRACKBAR_Size (TRACKBAR_INFO *infoPtr)
 {
-    if (infoPtr->dwStyle & TBS_FIXEDLENGTH)
-    {
-        TRACKBAR_CalcChannel(infoPtr);
-        TRACKBAR_UpdateThumb(infoPtr);
-    }
-    else
-        TRACKBAR_InitializeThumb(infoPtr);
-    TRACKBAR_AlignBuddies (infoPtr);
+    TRACKBAR_RecalculateAll(infoPtr);
     TRACKBAR_InvalidateAll(infoPtr);
 
     return 0;
@@ -1701,7 +1707,8 @@ TRACKBAR_StyleChanged (TRACKBAR_INFO *infoPtr, WPARAM wStyleType,
     if (wStyleType != GWL_STYLE) return 0;
 
     infoPtr->dwStyle = lpss->styleNew;
-
+    TRACKBAR_RecalculateAll(infoPtr);
+    TRACKBAR_InvalidateAll(infoPtr);
     return 0;
 }
 
