@@ -2992,8 +2992,11 @@ static BOOL TREEVIEW_InitThemedCheckboxes(TREEVIEW_INFO *info)
 
     if (!GetWindowTheme(info->hwnd))
         return FALSE;
-
+#ifdef __REACTOS__
+    theme = OpenThemeData(NULL, L"Button");
+#else
     theme = OpenThemeDataForDpi(NULL, L"Button", GetDpiForWindow(info->hwnd));
+#endif
     if (!theme)
         return FALSE;
 

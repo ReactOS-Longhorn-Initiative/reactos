@@ -8592,8 +8592,11 @@ static HIMAGELIST LISTVIEW_CreateThemedCheckBoxImageList(const LISTVIEW_INFO *in
 
     if (!GetWindowTheme(info->hwndSelf))
         return NULL;
-
+#ifdef __REACTOS__
+    theme = OpenThemeData(NULL, L"Button");
+#else
     theme = OpenThemeDataForDpi(NULL, L"Button", GetDpiForWindow(info->hwndSelf));
+#endif
     if (!theme)
         return NULL;
 
