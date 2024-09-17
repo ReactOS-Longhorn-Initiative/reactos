@@ -2701,19 +2701,20 @@ TAB_SetItemSize (TAB_INFO *infoPtr, INT cx, INT cy)
   lResult = MAKELONG(infoPtr->tabWidth, infoPtr->tabHeight);
 
   /* UNDOCUMENTED: If requested Width or Height is 0 this means that program wants to use auto size. */
-  if (infoPtr->dwStyle & TCS_FIXEDWIDTH && (infoPtr->tabWidth != cx))
+  if (infoPtr->tabWidth != cx)
   {
     infoPtr->tabWidth = cx;
     bNeedPaint = TRUE;
   }
 
-  if (infoPtr->tabHeight != cy)
+  if (infoPtr->tabHeight != cy && cy != 0)
   {
-    if ((infoPtr->fHeightSet = (cy != 0)))
-      infoPtr->tabHeight = cy;
-
+    infoPtr->tabHeight = cy;
     bNeedPaint = TRUE;
   }
+
+  infoPtr->fHeightSet = (cy != 0);
+
   TRACE("was h=%d,w=%d, now h=%d,w=%d\n",
        HIWORD(lResult), LOWORD(lResult),
        infoPtr->tabHeight, infoPtr->tabWidth);
@@ -3106,8 +3107,7 @@ static LRESULT TAB_Create (HWND hwnd, LPARAM lParam)
                         infoPtr->uVItemPadding;
 
   /* Initialize the width of a tab. */
-  if (infoPtr->dwStyle & TCS_FIXEDWIDTH)
-    infoPtr->tabWidth = GetDeviceCaps(hdc, LOGPIXELSX);
+  infoPtr->tabWidth = GetDeviceCaps(hdc, LOGPIXELSX);
 
   infoPtr->tabMinWidth = -1;
 
