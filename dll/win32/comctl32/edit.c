@@ -51,7 +51,6 @@
 #include "uxtheme.h"
 #include "vsstyle.h"
 #include "wine/debug.h"
-#include "wine/heap.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(edit);
 
@@ -251,7 +250,7 @@ static INT EDIT_WordBreakProc(EDITSTATE *es, LPWSTR s, INT index, INT count, INT
         memset(&psa,0,sizeof(SCRIPT_ANALYSIS));
         psa.eScript = SCRIPT_UNDEFINED;
 
-        es->logAttr = heap_alloc(sizeof(SCRIPT_LOGATTR) * get_text_length(es));
+        es->logAttr = malloc(sizeof(SCRIPT_LOGATTR) * get_text_length(es));
         ScriptBreak(es->text, get_text_length(es), &psa, es->logAttr);
     }
 
@@ -489,7 +488,7 @@ static void EDIT_BuildLineDefs_ML(EDITSTATE *es, INT istart, INT iend, INT delta
 			{
 				/* The buffer has been expanded, create a new line and
 				   insert it into the link list */
-				LINEDEF *new_line = heap_alloc_zero(sizeof(*new_line));
+				LINEDEF *new_line = calloc(1, sizeof(*new_line));
 				new_line->next = previous_line->next;
 				previous_line->next = new_line;
 				current_line = new_line;
@@ -499,7 +498,7 @@ static void EDIT_BuildLineDefs_ML(EDITSTATE *es, INT istart, INT iend, INT delta
 			{
 				/* The previous line merged with this line so we delete this extra entry */
 				previous_line->next = current_line->next;
-				heap_free(current_line);
+				free(current_line);
 				current_line = previous_line->next;
 				es->line_count--;
 				continue;
@@ -599,7 +598,7 @@ static void EDIT_BuildLineDefs_ML(EDITSTATE *es, INT istart, INT iend, INT delta
 				if (current_line->ssa)
 				{
 					count = ScriptString_pcOutChars(current_line->ssa);
-					piDx = heap_alloc(sizeof(INT) * (*count));
+					piDx = malloc(sizeof(INT) * (*count));
 					ScriptStringGetLogicalWidths(current_line->ssa,piDx);
 
 					prev = current_line->net_length-1;
@@ -609,7 +608,7 @@ static void EDIT_BuildLineDefs_ML(EDITSTATE *es, INT istart, INT iend, INT delta
 					} while ( prev > 0 && current_line->width > fw);
 					if (prev<=0)
 						prev = 1;
-					heap_free(piDx);
+					free(piDx);
 				}
 				else
 					prev = (fw / es->char_width);
@@ -698,7 +697,7 @@ static void EDIT_BuildLineDefs_ML(EDITSTATE *es, INT istart, INT iend, INT delta
 		{
 			pnext = current_line->next;
 			EDIT_InvalidateUniscribeData_linedef(current_line);
-			heap_free(current_line);
+			free(current_line);
 			current_line = pnext;
 			es->line_count--;
 		}
@@ -1202,7 +1201,7 @@ static inline void text_buffer_changed(EDITSTATE *es)
 {
     es->text_length = (UINT)-1;
 
-    heap_free( es->logAttr );
+    free(es->logAttr);
     es->logAttr = NULL;
     EDIT_InvalidateUniscribeData(es);
 }
@@ -1328,7 +1327,8 @@ static BOOL EDIT_MakeUndoFit(EDITSTATE *es, UINT size)
 	TRACE("trying to ReAlloc to %d+1\n", size);
 
 	alloc_size = ROUND_TO_GROW((size + 1) * sizeof(WCHAR));
-	if ((new_undo_text = HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, es->undo_text, alloc_size))) {
+	if ((new_undo_text = realloc(es->undo_text, alloc_size))) {
+		memset(new_undo_text + es->undo_buffer_size, 0, alloc_size - es->undo_buffer_size * sizeof(WCHAR));
 		es->undo_text = new_undo_text;
 		es->undo_buffer_size = alloc_size/sizeof(WCHAR) - 1;
 		return TRUE;
@@ -2547,7 +2547,7 @@ static void EDIT_EM_ReplaceSel(EDITSTATE *es, BOOL can_undo, const WCHAR *lpsz_r
 		/* there is something to be deleted */
 		TRACE("deleting stuff.\n");
 		bufl = e - s;
-		buf = heap_alloc((bufl + 1) * sizeof(WCHAR));
+		buf = malloc((bufl + 1) * sizeof(WCHAR));
 		if (!buf) return;
 		memcpy(buf, es->text + s, bufl * sizeof(WCHAR));
 		buf[bufl] = 0; /* ensure 0 termination */
@@ -2660,7 +2660,7 @@ static void EDIT_EM_ReplaceSel(EDITSTATE *es, BOOL can_undo, const WCHAR *lpsz_r
 			EDIT_EM_EmptyUndoBuffer(es);
 	}
 
-	heap_free(buf);
+	free(buf);
 
 	s += strl;
 
@@ -2905,12 +2905,12 @@ static BOOL EDIT_EM_SetTabStops(EDITSTATE *es, INT count, const INT *tabs)
 {
 	if (!(es->style & ES_MULTILINE))
 		return FALSE;
-        heap_free(es->tabs);
+	free(es->tabs);
 	es->tabs_count = count;
 	if (!count)
 		es->tabs = NULL;
 	else {
-		es->tabs = heap_alloc(count * sizeof(INT));
+		es->tabs = malloc(count * sizeof(INT));
 		memcpy(es->tabs, tabs, count * sizeof(INT));
 	}
 	EDIT_InvalidateUniscribeData(es);
@@ -2954,7 +2954,7 @@ static BOOL EDIT_EM_Undo(EDITSTATE *es)
 
 	ulength = lstrlenW(es->undo_text);
 
-	utext = heap_alloc((ulength + 1) * sizeof(WCHAR));
+	utext = malloc((ulength + 1) * sizeof(WCHAR));
 
 	lstrcpyW(utext, es->undo_text);
 
@@ -2968,7 +2968,7 @@ static BOOL EDIT_EM_Undo(EDITSTATE *es)
         /* send the notification after the selection start and end are set */
         if (!notify_parent(es, EN_CHANGE)) return TRUE;
 	EDIT_EM_ScrollCaret(es);
-	heap_free(utext);
+	free(utext);
 
 	TRACE("after UNDO:insertion length = %d, deletion buffer = %s\n",
 			es->undo_insert_count, debugstr_w(es->undo_text));
@@ -4315,14 +4315,6 @@ static LRESULT EDIT_EM_GetThumb(EDITSTATE *es)
                         EDIT_WM_HScroll(es, EM_GETTHUMB, 0));
 }
 
-static inline WCHAR *heap_strdupW(const WCHAR *str)
-{
-    int len = lstrlenW(str) + 1;
-    WCHAR *ret = heap_alloc(len * sizeof(WCHAR));
-    lstrcpyW(ret, str);
-    return ret;
-}
-
 /*********************************************************************
  *
  *	EM_SETCUEBANNER
@@ -4333,8 +4325,8 @@ static BOOL EDIT_EM_SetCueBanner(EDITSTATE *es, BOOL draw_focused, const WCHAR *
     if (es->style & ES_MULTILINE || !cue_text)
         return FALSE;
 
-    heap_free(es->cue_banner_text);
-    es->cue_banner_text = heap_strdupW(cue_text);
+    free(es->cue_banner_text);
+    es->cue_banner_text = wcsdup(cue_text);
     es->cue_banner_draw_focused = draw_focused;
 
     return TRUE;
@@ -4384,7 +4376,7 @@ static void EDIT_GetCompositionStr(HIMC hIMC, LPARAM CompFlag, EDITSTATE *es)
         return;
     }
 
-    lpCompStr = heap_alloc(buflen);
+    lpCompStr = malloc(buflen);
     if (!lpCompStr)
     {
         ERR("Unable to allocate IME CompositionString\n");
@@ -4404,11 +4396,11 @@ static void EDIT_GetCompositionStr(HIMC hIMC, LPARAM CompFlag, EDITSTATE *es)
         if (dwBufLenAttr)
         {
             dwBufLenAttr ++;
-            lpCompStrAttr = heap_alloc(dwBufLenAttr + 1);
+            lpCompStrAttr = malloc(dwBufLenAttr + 1);
             if (!lpCompStrAttr)
             {
                 ERR("Unable to allocate IME Attribute String\n");
-                heap_free(lpCompStr);
+                free(lpCompStr);
                 return;
             }
             ImmGetCompositionStringW(hIMC,GCS_COMPATTR, lpCompStrAttr,
@@ -4452,7 +4444,7 @@ static void EDIT_GetResultStr(HIMC hIMC, EDITSTATE *es)
         return;
     }
 
-    lpResultStr = heap_alloc(buflen);
+    lpResultStr = malloc(buflen);
     if (!lpResultStr)
     {
         ERR("Unable to alloc buffer for IME string\n");
@@ -4529,7 +4521,7 @@ static LRESULT EDIT_WM_NCCreate(HWND hwnd, LPCREATESTRUCTW lpcs)
 
     TRACE("Creating edit control, style = %#lx\n", lpcs->style);
 
-    if (!(es = heap_alloc_zero(sizeof(*es))))
+    if (!(es = calloc(1, sizeof(*es))))
         return FALSE;
     SetWindowLongPtrW( hwnd, 0, (LONG_PTR)es );
 
@@ -4591,12 +4583,12 @@ static LRESULT EDIT_WM_NCCreate(HWND hwnd, LPCREATESTRUCTW lpcs)
 	    goto cleanup;
 	es->buffer_size = LocalSize(es->hloc32W)/sizeof(WCHAR) - 1;
 
-	if (!(es->undo_text = heap_alloc_zero((es->buffer_size + 1) * sizeof(WCHAR))))
+	if (!(es->undo_text = calloc(es->buffer_size + 1, sizeof(WCHAR))))
 		goto cleanup;
 	es->undo_buffer_size = es->buffer_size;
 
 	if (es->style & ES_MULTILINE)
-	    if (!(es->first_line_def = heap_alloc_zero(sizeof(LINEDEF))))
+	    if (!(es->first_line_def = calloc(1, sizeof(LINEDEF))))
 	        goto cleanup;
 	es->line_count = 1;
 
@@ -4621,11 +4613,11 @@ static LRESULT EDIT_WM_NCCreate(HWND hwnd, LPCREATESTRUCTW lpcs)
 cleanup:
 	SetWindowLongPtrW(es->hwndSelf, 0, 0);
 	EDIT_InvalidateUniscribeData(es);
-	heap_free(es->first_line_def);
-	heap_free(es->undo_text);
+	free(es->first_line_def);
+	free(es->undo_text);
 	if (es->hloc32W) LocalFree(es->hloc32W);
-	heap_free(es->logAttr);
-	heap_free(es);
+	free(es->logAttr);
+	free(es);
 	return FALSE;
 }
 
@@ -4708,14 +4700,14 @@ static LRESULT EDIT_WM_NCDestroy(EDITSTATE *es)
     while (pc)
     {
         pp = pc->next;
-        heap_free(pc);
+        free(pc);
         pc = pp;
     }
 
     SetWindowLongPtrW( es->hwndSelf, 0, 0 );
-    heap_free(es->undo_text);
-    heap_free(es->cue_banner_text);
-    heap_free(es);
+    free(es->undo_text);
+    free(es->cue_banner_text);
+    free(es);
 
     return 0;
 }
