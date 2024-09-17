@@ -3824,6 +3824,15 @@ static DWORD get_font_margins(HDC hdc, const TEXTMETRICW *tm)
 	return MAKELONG(left, right);
 }
 
+static void EDIT_UpdateImmCompositionFont(EDITSTATE *es)
+{
+    LOGFONTW composition_font;
+    HIMC himc = ImmGetContext(es->hwndSelf);
+    GetObjectW(es->font, sizeof(LOGFONTW), &composition_font);
+    ImmSetCompositionFontW(himc, &composition_font);
+    ImmReleaseContext(es->hwndSelf, himc);
+}
+
 /*********************************************************************
  *
  *	WM_SETFONT
@@ -4718,6 +4727,7 @@ static LRESULT CALLBACK EDIT_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
     EDITSTATE *es = (EDITSTATE *)GetWindowLongPtrW(hwnd, 0);
     LRESULT result = 0;
     RECT *rect;
+    POINT pt;
 
     TRACE("hwnd %p, msg %#x, wparam %Ix, lparam %Ix\n", hwnd, msg, wParam, lParam);
 
