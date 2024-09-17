@@ -1623,7 +1623,6 @@ static void CB_Paint( const BUTTON_INFO *infoPtr, HDC hDC, UINT action )
     LONG state = infoPtr->state;
     LONG style = GetWindowLongW( infoPtr->hwnd, GWL_STYLE );
     LONG ex_style = GetWindowLongW( infoPtr->hwnd, GWL_EXSTYLE );
-    SIZE box_size;
     HWND parent;
     HRGN hrgn;
 
