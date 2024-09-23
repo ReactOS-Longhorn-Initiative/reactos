@@ -1658,7 +1658,9 @@ VOID
 NTAPI
 LdrpValidateImageForMp(IN PLDR_DATA_TABLE_ENTRY LdrDataTableEntry)
 {
-    UNIMPLEMENTED;
+    DPRINT("LdrpValidateImageForMp is unimplemented\n");
+    // TODO:
+    // Scan the LockPrefixTable in the load config directory
 }
 
 BOOLEAN
