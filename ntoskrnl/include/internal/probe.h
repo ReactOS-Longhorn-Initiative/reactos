@@ -88,7 +88,7 @@ DefaultSetInfoBufferCheck(
         {
             if (!(ClassList[Class].Flags & ICIF_SET_SIZE_VARIABLE))
             {
-                Status = STATUS_INFO_LENGTH_MISMATCH;
+        //        Status = STATUS_INFO_LENGTH_MISMATCH;
             }
         }
 

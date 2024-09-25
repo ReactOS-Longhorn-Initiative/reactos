@@ -37,7 +37,7 @@ BOOL WINAPI CloseTouchInputHandle(
 {
   return 1;
 }
-BOOL RegisterTouchWindow(
+BOOL WINAPI RegisterTouchWindow(
  HWND  hwnd,
  ULONG ulFlags
 )

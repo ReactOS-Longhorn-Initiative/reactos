@@ -208,3 +208,5 @@
 #@ stdcall sym
 #@ stdcall symsrv
 #@ stdcall vc7fpo
+@ stdcall -stub SymGetModuleInfoEx64(ptr long ptr)
+@ stdcall -stub SymGetSymbolInfo64(ptr long ptr)

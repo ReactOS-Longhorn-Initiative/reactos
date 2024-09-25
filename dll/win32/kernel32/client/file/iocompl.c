@@ -327,7 +327,7 @@ GetQueuedCompletionStatusEx(
     PLARGE_INTEGER pTimeOut;
 	
 	pTimeOut = BaseFormatTimeOut(&TimeOut, dwMilliseconds);	
-	
+    UNREFERENCED_PARAMETER(pTimeOut);
 	// validate arguments
 	if(!lpCompletionPortEntries
 	|| !ulCount || !ulNumEntriesRemoved) {

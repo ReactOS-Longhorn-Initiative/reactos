@@ -303,7 +303,12 @@ static const INFORMATION_CLASS_INFO PsProcessInfoClass[] =
     ),
 
     /* ProcessTlsInformation */
-    IQS_NONE,
+    IQS_SAME
+    (
+        ULONG,
+        ULONG,
+        ICIF_QUERY | ICIF_SET
+    ),
 
     /* ProcessCookie */
     IQS_SAME

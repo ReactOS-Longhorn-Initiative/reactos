@@ -37,20 +37,20 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpv)
     return TRUE;
 }
 
-BOOL BeginPanningFeedback(
+BOOL WINAPI BeginPanningFeedback(
     HWND hwnd
 )
 {
     return 1;
 }
-BOOL EndPanningFeedback(
+BOOL WINAPI EndPanningFeedback(
    HWND hwnd,
    BOOL fAnimateBack
 )
 {
     return 1;
 }
-BOOL UpdatePanningFeedback(
+BOOL WINAPI UpdatePanningFeedback(
      HWND hwnd,
      LONG lTotalOverpanOffsetX,
      LONG lTotalOverpanOffsetY,
