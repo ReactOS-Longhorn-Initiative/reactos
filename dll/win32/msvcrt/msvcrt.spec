@@ -342,12 +342,12 @@
 @ extern -arch=i386,x86_64 __setlc_active
 @ cdecl __setusermatherr(ptr)
 @ stub -version=0x600+ __strncnt ;TODO:
-@ cdecl -version=0x600+ __stdio_common_vfprintf(int64 ptr str ptr ptr)
-@ cdecl -version=0x600+ __stdio_common_vsnprintf_s(int64 ptr long long str ptr ptr)
-@ cdecl -version=0x600+ __stdio_common_vsnwprintf_s(int64 wstr long long wstr ptr ptr)
-@ cdecl -version=0x600+ __stdio_common_vswprintf_s(int64 wstr long wstr ptr ptr)
-@ cdecl -norelay -version=0x600+ __stdio_common_vsprintf(int64 ptr long str ptr ptr)
-@ cdecl -version=0x600+ __stdio_common_vswprintf(int64 ptr long wstr ptr ptr)
+@ cdecl -stub -version=0x600+ __stdio_common_vfprintf(int64 ptr str ptr ptr)
+@ cdecl -stub -version=0x600+ __stdio_common_vsnprintf_s(int64 ptr long long str ptr ptr)
+@ cdecl -stub -version=0x600+ __stdio_common_vsnwprintf_s(int64 wstr long long wstr ptr ptr)
+@ cdecl -stub -version=0x600+ __stdio_common_vswprintf_s(int64 wstr long wstr ptr ptr)
+@ cdecl -stub -norelay -version=0x600+ __stdio_common_vsprintf(int64 ptr long str ptr ptr)
+@ cdecl -stub -version=0x600+ __stdio_common_vswprintf(int64 ptr long wstr ptr ptr)
 @ cdecl __threadhandle() kernel32.GetCurrentThread
 @ cdecl __threadid() kernel32.GetCurrentThreadId
 @ cdecl __toascii(long)
@@ -1588,7 +1588,7 @@
 @ cdecl -version=0x600+ _recalloc(ptr long long)
 
 @ cdecl -version=0x600+ wctype() winecrt.wctype
-
+@ cdecl terminate() MSVCRT_terminate
 @ cdecl -version=0x600+ ___lc_locale_name_func()
 @ cdecl -version=0x600+ _get_stream_buffer_pointers() winecrt._get_stream_buffer_pointers
 @ cdecl -version=0x600+ _configure_narrow_argv() winecrt._configure_narrow_argv
@@ -1605,3 +1605,43 @@
 @ cdecl -version=0x600+ _initialize_onexit_table(ptr)
 @ cdecl -version=0x600+ _register_onexit_function(ptr ptr)
 @ cdecl -version=0x600+ _crt_atexit(ptr)
+@ cdecl -stub __stdio_common_vsprintf_s(int64 ptr long ptr long long)
+
+@ cdecl -stub __stdio_common_vsprintf_p(int64 ptr long ptr long long)
+
+@ cdecl -stub _seh_filter_exe(long ptr) _XcptFilter
+@ cdecl -stub _seh_filter_dll(long ptr) __CppXcptFilter
+@ cdecl -stub _set_new_handler(ptr) 
+
+
+
+@ cdecl -stub __fpe_flt_rounds()
+@ cdecl -stub strtof(str ptr)
+
+@ cdecl -stub __stdio_common_vsscanf(int64 ptr long str ptr ptr)
+@ cdecl -stub _Wcsftime(ptr long wstr ptr ptr)
+
+@ cdecl -stub _W_Getdays()
+@ cdecl -stub _W_Getmonths()
+@ cdecl -stub _W_Gettnames()
+
+@ cdecl _lock_file(ptr)
+
+@ cdecl -stub _set_abort_behavior(long long)
+@ cdecl -stub _set_app_type(long)
+@ cdecl _unlock_file(ptr)
+@ cdecl -stub _except1(long long double double long ptr)
+@ cdecl -stub copysignl(double double) _copysign
+
+@ cdecl  copysignf(long long) _copysign
+
+@ cdecl -stub _dtest(ptr)
+@ cdecl -stub _dsign(double)
+
+@ cdecl -stub set_terminate(ptr)
+@ cdecl wmemcpy_s(ptr long ptr long)
+@ cdecl wmemmove_s(ptr long ptr long)
+
+@ cdecl _set_new_mode(long)
+@ cdecl -stub __sys_nerr()
+@ cdecl -stub _wsopen_dispatch(wstr long long long ptr long)
