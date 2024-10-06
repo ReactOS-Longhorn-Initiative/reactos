@@ -17,6 +17,61 @@
 
 /* FUNCTIONS ******************************************************************/
 
+
+/******************************************************************************
+ *              NtQueryLicenseValue  (NTDLL.@)
+ *
+ * NOTES
+ *  On Windows all license properties are stored in a single key, but
+ *  unless there is some app which explicitly depends on that, there is
+ *  no good reason to reproduce that.
+ */
+NTSTATUS WINAPI NtQueryLicenseValue( UNICODE_STRING *name, ULONG *type,
+                                     void *data, ULONG length, ULONG *retlen )
+{
+    static WCHAR nameW[] = {'\\','R','e','g','i','s','t','r','y','\\',
+                                  'M','a','c','h','i','n','e','\\',
+                                  'S','o','f','t','w','a','r','e','\\',
+                                  'W','i','n','e','\\','L','i','c','e','n','s','e',
+                                  'I','n','f','o','r','m','a','t','i','o','n',0};
+    UNICODE_STRING keyW = RTL_CONSTANT_STRING( nameW );
+    KEY_VALUE_PARTIAL_INFORMATION *info;
+    NTSTATUS status = STATUS_OBJECT_NAME_NOT_FOUND;
+    DWORD info_length, count;
+    OBJECT_ATTRIBUTES attr;
+    HANDLE key;
+
+    if (!name || !name->Buffer || !name->Length || !retlen) return STATUS_INVALID_PARAMETER;
+
+    info_length = FIELD_OFFSET( KEY_VALUE_PARTIAL_INFORMATION, Data ) + length;
+    if (!(info = RtlAllocateHeap( RtlGetProcessHeap(), 0, info_length ))) return STATUS_NO_MEMORY;
+
+    InitializeObjectAttributes( &attr, &keyW, 0, 0, NULL );
+
+    /* @@ Wine registry key: HKLM\Software\Wine\LicenseInformation */
+    if (!NtOpenKey( &key, KEY_READ, &attr ))
+    {
+        status = NtQueryValueKey( key, name, KeyValuePartialInformation, info, info_length, &count );
+        if (!status || status == STATUS_BUFFER_OVERFLOW)
+        {
+            if (type) *type = info->Type;
+            *retlen = info->DataLength;
+            if (status == STATUS_BUFFER_OVERFLOW)
+                status = STATUS_BUFFER_TOO_SMALL;
+            else
+                memcpy( data, info->Data, info->DataLength );
+        }
+        NtClose( key );
+    }
+
+    if (status == STATUS_OBJECT_NAME_NOT_FOUND)
+        DPRINT1( "License key %s not found\n", name->Buffer);
+
+    RtlFreeHeap( RtlGetProcessHeap(), 0, info);
+    return status;
+}
+
+
 /* HACK: ReactOS specific changes, see bug-reports CORE-6611 and CORE-4620 (aka. #5003) */
 static VOID NTAPI
 SetRosSpecificInfo(IN OUT PRTL_OSVERSIONINFOEXW VersionInformation)
