@@ -1,0 +1,198 @@
+; Licensed to the .NET Foundation under one or more agreements.
+; The .NET Foundation licenses this file to you under the MIT license.
+; See the LICENSE file in the project root for more information.
+
+
+LIBRARY DLL_NAME
+
+EXPORTS
+
+    IMILBitmapEffectConnector_IsConnected	
+    IMILBitmapEffectInputConnector_ConnectTo	
+    IMILBitmapEffectInputConnector_GetConnection	
+    IMILBitmapEffectOutputConnector_GetConnection	
+    IMILBitmapEffectOutputConnector_GetNumberConnections	
+    IMILBitmapEffectRenderContext_GetFinalTransform	
+    IMILBitmapEffectRenderContext_GetOutputDPI	
+    IMILBitmapEffectRenderContext_GetOutputPixelFormat
+    IMILBitmapEffectRenderContext_SetInitialTransform
+    IMILBitmapEffectRenderContext_SetOutputDPI	
+    IMILBitmapEffectRenderContext_SetOutputPixelFormat	
+    IMILBitmapEffectRenderContext_SetRegionOfInterest	
+    IMILBitmapEffectRenderContext_SetUseSoftwareRenderer	
+    IMILBitmapEffect_GetOutput
+    IMILBitmapEffect_GetParentEffect	
+    IMILBitmapEffect_IMILBitmapEffectConnectionsInfo_GetNumberInputs	
+    IMILBitmapEffect_IMILBitmapEffectConnectionsInfo_GetNumberOutputs	
+    IMILBitmapEffect_IMILBitmapEffectConnections_GetInputConnector	
+    IMILBitmapEffect_IMILBitmapEffectConnections_GetOutputConnector	
+    IMILBitmapEffect_IMILBitmapEffectGroup_Add	
+    IMILBitmapEffect_IMILBitmapEffectGroup_GetInteriorInputConnector
+    IMILBitmapEffect_IMILBitmapEffectGroup_GetInteriorOutputConnector	
+    IMILBitmapEffect_IMILBitmapEffectPrimitive_GetAffineMatrix	
+    IMILBitmapEffect_IMILBitmapEffectPrimitive_HasAffineTransform	
+    IMILBitmapEffect_IMILBitmapEffectPrimitive_HasInverseTransform
+    IMILBitmapEffect_IMILBitmapEffectPrimitive_SetValue
+    IMILBitmapEffect_IMILBitmapEffectPrimitive_TransformPoint	
+    IMILBitmapEffect_IMILBitmapEffectPrimitive_TransformRect	
+    IMILBitmapEffect_SetInputSource	
+    MIL3DCalcBrushToIdealSampleSpace	
+    MILCreateBitmapEffectOuterPublic	
+    MILFactoryCreateBitmapEffect	
+    MILFactoryCreateBitmapEffectContext	
+    MILFactoryCreateBitmapEffectOuter	
+    MILInitializeBitmapEffectPublic	
+    MILRegisterWmpFactory
+    MILStreamNotifyReadComplete
+    MilChannel_SendSyncCommand
+    MilCompositionEngine_GetFeedbackReader
+    MilConnection_RecordUCE
+    MilCoreClientIsDwm
+    MilGraphicsStream_Open
+    MilGraphicsStream_SetTransformHint
+    MilGraphicsStream_Close
+    MilGraphicsStream_GetTransformHint
+    MilSynchPacketTransport_Create
+    MilSynchPacketTransport_Present
+    MilTransport_AddRef
+    MilTransport_Create
+    MilTransport_CreateFromPacketTransport
+    MilTransport_CreateSurfaceManager
+    MilTransport_CreateTransportParameters
+    MilTransport_DisconnectTransport
+    MilTransport_InitializeConnectionManager
+    MilTransport_Release
+    MilTransport_ShutDownConnectionManager
+    VirtualChannelGetInstance
+    MILAddRef
+    MILRelease
+    MILQueryInterface
+
+    MILCreateFactory
+
+    MILFactoryCreateMediaPlayer
+    MILFactoryCreateSWRenderTargetForBitmap
+    MILFactoryCreateBitmapRenderTarget
+    MILLoadResource
+
+    MILRenderTargetBitmapGetBitmap
+    MILRenderTargetBitmapClear
+
+    MILMediaOpen
+    MILMediaStop
+    MILMediaClose
+    MILMediaGetPosition
+    MILMediaSetPosition
+    MILMediaSetVolume
+    MILMediaSetBalance
+    MILMediaSetIsScrubbingEnabled
+    MILMediaSetRate
+    MILMediaHasVideo
+    MILMediaHasAudio
+    MILMediaCanPause
+    MILMediaIsBuffering
+    MILMediaGetBufferingProgress
+    MILMediaGetDownloadProgress
+    MILMediaGetNaturalHeight
+    MILMediaGetNaturalWidth
+    MILMediaGetMediaLength
+    MILMediaNeedUIFrameUpdate
+    MILMediaShutdown
+    MILCreateEventProxy
+    MILMediaProcessExitHandler
+
+    MILSwDoubleBufferedBitmapCreate
+    MILSwDoubleBufferedBitmapGetBackBuffer
+    MILSwDoubleBufferedBitmapAddDirtyRect
+    MILSwDoubleBufferedBitmapProtectBackBuffer
+
+    MILCreateStreamFromStreamDescriptor
+    MILIStreamWrite
+
+    MILUpdateSystemParametersInfo
+
+    MilVersionCheck
+
+    MilCompositionEngine_EnterCompositionEngineLock
+    MilCompositionEngine_ExitCompositionEngineLock
+    MilCompositionEngine_GetComposedEventId
+    MilConnection_CreateChannel
+    MilConnection_DestroyChannel
+    MilChannel_CommitChannel
+    MilChannel_CloseBatch
+    WgxConnection_Create
+    WgxConnection_ShouldForceSoftwareForGraphicsStreamClient
+    WgxConnection_SameThreadPresent
+    WgxConnection_Disconnect
+    MilCompositionEngine_InitializePartitionManager
+    MilCompositionEngine_UpdateSchedulerSettings
+    MilCompositionEngine_DeinitializePartitionManager
+
+    MilPlayer_Create
+    MilPlayer_Process
+
+    MilUtility_GetTileBrushMapping
+    MilUtility_CopyPixelBuffer
+
+    MilComposition_SyncFlush
+
+    MilComposition_PeekNextMessage
+    MilComposition_WaitForNextMessage
+
+    MilResource_CreateOrAddRefOnChannel
+    MilResource_DuplicateHandle
+    MilResource_ReleaseOnChannel
+    MilResource_GetRefCountOnChannel
+
+    MilChannel_GetMarshalType
+    MilChannel_SetReceiveBroadcastMessages
+    MilResource_SendCommand
+    MilChannel_BeginCommand
+    MilChannel_AppendCommandData
+    MilChannel_EndCommand
+    MilResource_CreateCWICWrapperBitmap
+    MilResource_SendCommandBitmapSource
+    MilResource_SendCommandMedia
+    MilChannel_SetNotificationWindow
+
+    MilUtility_ArcToBezier
+    MilUtility_PathGeometryWiden
+    MilUtility_PathGeometryOutline
+    MilUtility_GetPointAtLengthFraction
+    MilUtility_PathGeometryCombine
+    MilUtility_PathGeometryFlatten
+    MilUtility_PolygonBounds
+    MilUtility_PathGeometryBounds
+    MilUtility_PolygonHitTest
+    MilUtility_PathGeometryHitTest
+    MilUtility_PathGeometryHitTestPathGeometry
+    MilUtility_GeometryGetArea
+
+    SetMilPerfInstrumentationFlags
+
+    MilVisualTarget_AttachToHwnd
+    MilVisualTarget_DetachFromHwnd
+
+    MilContent_AttachToHwnd
+    MilContent_DetachFromHwnd
+
+    MIL3DCalcProjected2DBounds
+
+    InteropDeviceBitmap_Create
+    InteropDeviceBitmap_Detach
+    InteropDeviceBitmap_AddDirtyRect
+    InteropDeviceBitmap_GetAsSoftwareBitmap
+
+    MilGlyphRun_GetGlyphOutline
+    MilGlyphRun_ReleasePathGeometryData
+
+    IWICColorContext_GetProfileBytes_Proxy
+    IWICColorContext_GetType_Proxy
+    IWICColorContext_GetExifColorSpace_Proxy
+
+    GetNextPerfElementId
+
+    RenderOptions_ForceSoftwareRenderingModeForProcess
+    RenderOptions_IsSoftwareRenderingForcedForProcess
+    RenderOptions_EnableHardwareAccelerationInRdp
+
