@@ -12,7 +12,7 @@
 
 #include <win32k.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 HFONT APIENTRY HfontCreate( IN PENUMLOGFONTEXDVW pelfw,IN ULONG cjElfw,IN LFTYPE lft,IN FLONG fl,IN PVOID pvCliData );

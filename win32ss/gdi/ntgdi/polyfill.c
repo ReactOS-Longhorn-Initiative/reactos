@@ -8,7 +8,7 @@
 
 #include <win32k.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 #define FILL_EDGE_ALLOC_TAG 0x45465044

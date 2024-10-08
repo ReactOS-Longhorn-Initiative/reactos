@@ -9,7 +9,7 @@
 #include <win32k.h>
 #include <napi.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 #include <kdros.h>
 

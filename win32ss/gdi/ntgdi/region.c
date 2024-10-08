@@ -123,7 +123,7 @@ SOFTWARE.
 #include <win32k.h>
 #include <suppress.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 PREGION prgnDefault = NULL;

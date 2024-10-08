@@ -10,7 +10,7 @@
 
 #include <win32k.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 

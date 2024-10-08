@@ -10,7 +10,7 @@
 #include <win32k.h>
 DBG_DEFAULT_CHANNEL(UserMonitor);
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 /* GLOBALS *******************************************************************/

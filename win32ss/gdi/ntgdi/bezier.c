@@ -5,7 +5,7 @@
 
 #include <win32k.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 /* Based on Wine Staging 1.7.37 - dlls/gdi32/painting.c */

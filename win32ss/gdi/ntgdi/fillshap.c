@@ -8,7 +8,7 @@
 
 #include <win32k.h>
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 #define Rsin(d) ((d) == 0.0 ? 0.0 : ((d) == 90.0 ? 1.0 : sin(d*M_PI/180.0)))

@@ -10,7 +10,7 @@
 
 #if DBG
 #include <win32k.h>
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 extern ULONG gulFirstFree;

@@ -10,7 +10,7 @@
 /** Includes ******************************************************************/
 
 #include <win32k.h>
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 #define DOES_VALUE_OVERFLOW_LONG(x) \

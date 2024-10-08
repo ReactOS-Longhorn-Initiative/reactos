@@ -32,7 +32,7 @@
 #include <gdi/eng/floatobj.h>
 #include "font.h"
 
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 typedef struct _FONTLINK

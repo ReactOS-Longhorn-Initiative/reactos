@@ -9,7 +9,7 @@
 /* INCLUDES ******************************************************************/
 
 #include <win32k.h>
-#define NDEBUG
+//#define NDEBUG
 #include <debug.h>
 
 typedef struct _GDI_POOL_SECTION
