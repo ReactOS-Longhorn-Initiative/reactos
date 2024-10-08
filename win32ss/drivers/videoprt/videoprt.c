@@ -1469,6 +1469,7 @@ VideoPortCreateSecondaryDisplay(
     IN OUT PVOID *SecondaryDeviceExtension,
     IN ULONG Flag)
 {
+    return ERROR_DEV_NOT_EXIST;
     PDEVICE_OBJECT DeviceObject;
     PVIDEO_PORT_DEVICE_EXTENSION FirstDeviceExtension, DeviceExtension;
     NTSTATUS Status;
