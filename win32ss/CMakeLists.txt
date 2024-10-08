@@ -4,9 +4,7 @@ set(USE_DIBLIB FALSE)
 # Give WIN32 subsystem its own project.
 PROJECT(WIN32SS)
 
-if (NATIVE_REACTX)
-    add_definitions(-DNATIVE_REACTX)
-endif()
+add_definitions(-DNATIVE_REACTX)
 
 add_subdirectory(drivers)
 
