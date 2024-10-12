@@ -68,7 +68,7 @@ _assert (
     if (iResult == IDRETRY)
     {
         /* Break and return to the caller */
-        __debugbreak();
+        //__debugbreak();
         return;
     }
 

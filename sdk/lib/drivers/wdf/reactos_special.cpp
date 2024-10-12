@@ -44,7 +44,7 @@ STDCALL
 WdfApiNotImplemented()
 {
 	DbgPrint("ReactOS KMDF: %s non-implemented API called\n");
-    __debugbreak();
+    //__debugbreak();
 	return STATUS_UNSUCCESSFUL;
 }
 
@@ -69,7 +69,7 @@ RosInitWdf()
 void
 __cxa_pure_virtual()
 {
-	__debugbreak();
+	//__debugbreak();
 }
 
 }  // extern "C"

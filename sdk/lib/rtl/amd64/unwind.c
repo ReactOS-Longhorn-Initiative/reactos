@@ -743,7 +743,7 @@ RtlpUnwindInternal(
                 return FALSE;
             }
 
-            __debugbreak();
+            //__debugbreak();
             RtlRaiseStatus(STATUS_BAD_STACK);
         }
 
@@ -795,7 +795,7 @@ RtlpUnwindInternal(
                         /* Check if it was non-continuable */
                         if (ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE)
                         {
-                            __debugbreak();
+                            //__debugbreak();
                             RtlRaiseStatus(EXCEPTION_NONCONTINUABLE_EXCEPTION);
                         }
 
@@ -805,20 +805,20 @@ RtlpUnwindInternal(
                     else if (Disposition == ExceptionNestedException)
                     {
                         /// TODO
-                        __debugbreak();
+                        //__debugbreak();
                     }
                 }
 
                 if (Disposition == ExceptionCollidedUnwind)
                 {
                     /// TODO
-                    __debugbreak();
+                    //__debugbreak();
                 }
 
                 /* This must be ExceptionContinueSearch now */
                 if (Disposition != ExceptionContinueSearch)
                 {
-                    __debugbreak();
+                    //__debugbreak();
                     RtlRaiseStatus(STATUS_INVALID_DISPOSITION);
                 }
             } while (ExceptionRecord->ExceptionFlags & EXCEPTION_COLLIDED_UNWIND);
@@ -830,7 +830,7 @@ RtlpUnwindInternal(
             (EstablisherFrame & 7))
         {
             /// TODO: Check for DPC stack
-            __debugbreak();
+            //__debugbreak();
 
             if (UnwindContext.Rip == ContextRecord->Rip)
             {

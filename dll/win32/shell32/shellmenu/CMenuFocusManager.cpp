@@ -74,7 +74,7 @@ bool DbgAssert(bool x, const char * filename, int line, const char * expr)
 
         OutputDebugStringA(szMsg);
 
-        __debugbreak();
+        //__debugbreak();
     }
     return x;
 }

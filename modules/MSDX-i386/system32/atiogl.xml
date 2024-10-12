@@ -1,0 +1,539 @@
+<PROFILES>
+<!-- Workstation Applications -->
+<!-- 3ds max -->
+	<_3dsmax>
+		<PROFILENAME>Autodesk3dsmax</PROFILENAME>
+	</_3dsmax>
+
+<!-- ABAQUS -->
+	<abq661>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</abq661>
+
+<!-- Accelrys Discovery Studio -->
+	<discoverystudio>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</discoverystudio>
+	<discoverystudio17>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</discoverystudio17>
+	<discoverystudio20>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</discoverystudio20>
+
+<!-- Adobe After Effects -->
+	<afterfx>
+		<PROFILENAME>GeneralApplication</PROFILENAME>
+	</afterfx>
+
+<!-- Altair HyperWorks -->
+	<hmopengl>
+		<PROFILENAME>AltairHyperWorks</PROFILENAME>
+	</hmopengl>
+
+<!-- ANSYS -->
+	<ansyswbu>
+		<PROFILENAME>Ansys</PROFILENAME>
+	</ansyswbu>
+
+<!-- ArcGIS -->
+	<arcglobe>
+		<PROFILENAME>ArcGis</PROFILENAME>
+	</arcglobe>
+
+<!-- ArchiCAD -->
+	<archicad>
+		<PROFILENAME>ArchiCAD</PROFILENAME>
+	</archicad>
+
+<!-- Autodesk Inventor -->
+	<inventor>
+		<PROFILENAME>AutodeskInventor</PROFILENAME>
+	</inventor>
+	<perforation>
+		<PROFILENAME>AutodeskInventor</PROFILENAME>
+	</perforation>
+	<scooch>
+		<PROFILENAME>AutodeskInventor</PROFILENAME>
+	</scooch>
+
+<!-- Autodesk Revit -->
+	<revit>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</revit>
+
+<!-- Autodesk VIZ -->
+	<_3dsviz>
+		<PROFILENAME>AutodeskVIZ</PROFILENAME>
+	</_3dsviz>
+
+<!-- AutoCAD -->
+	<acad>
+		<PROFILENAME>AutoCad</PROFILENAME>
+	</acad>
+
+<!-- AxioVision -->
+	<axiovs40>
+		<PROFILENAME>AxioVision</PROFILENAME>
+	</axiovs40>
+
+<!-- CATIA -->
+	<cnext>
+		<PROFILENAME>Catia</PROFILENAME>
+	</cnext>
+	<catstart>
+		<PROFILENAME>Catia</PROFILENAME>
+	</catstart>
+	<catsysdemon>
+		<PROFILENAME>Catia</PROFILENAME>
+	</catsysdemon>
+	<catgtsperformances>
+		<PROFILENAME>Catia</PROFILENAME>
+	</catgtsperformances>
+	<ve0perfo>
+		<PROFILENAME>Catia</PROFILENAME>
+	</ve0perfo>
+	<dmu>
+		<PROFILENAME>Catia</PROFILENAME>
+	</dmu>
+
+<!-- Fluent -->
+	<fluent>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</fluent>
+
+<!-- FreeForm Modeling Plus -->
+	<freeformmodelingplus>
+		<PROFILENAME>FreeFormModelingPlus</PROFILENAME>
+	</freeformmodelingplus>
+
+<!-- Houdini -->
+	<houdini>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</houdini>
+
+<!-- ICEM Surf -->
+	<uim>
+		<PROFILENAME>IcemSurf</PROFILENAME>
+	</uim>
+
+<!-- I-DEAS NX -->
+	<ideas>
+		<PROFILENAME>IdeasNx</PROFILENAME>
+	</ideas>
+	<ideasrl>
+		<PROFILENAME>IdeasNx</PROFILENAME>
+	</ideasrl>
+
+<!-- IronCAD -->
+	<ironcad>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</ironcad>
+
+<!-- LightWave 3D -->
+	<lightwav>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</lightwav>
+
+<!-- Maya -->
+	<maya>
+		<PROFILENAME>Maya</PROFILENAME>
+	</maya>
+	<fcheck>
+		<PROFILENAME>Maya</PROFILENAME>
+	</fcheck>
+	<mayabatch>
+		<PROFILENAME>Maya</PROFILENAME>
+	</mayabatch>
+
+<!-- Microstation -->
+	<teatime2>
+		<PROFILENAME>GeneralApplication</PROFILENAME>
+	</teatime2>
+	<ustation>
+		<PROFILENAME>GeneralApplication</PROFILENAME>
+	</ustation>
+
+<!-- Modo -->
+	<modo>
+		<PROFILENAME>Modo</PROFILENAME>
+	</modo>
+
+<!-- MSC Patran -->
+	<patran>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</patran>
+
+<!-- OneSpace Designer Modeling -->
+	<soliddesigner>
+		<PROFILENAME>OsdModeling</PROFILENAME>
+	</soliddesigner>
+
+<!-- Opticore Opus Realizer -->
+	<realizer>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</realizer>
+	<realizerbinary>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</realizerbinary>
+
+<!-- Opticore Opus Studio -->
+	<opusstudio>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</opusstudio>
+	<opusstudiobinary>
+		<PROFILENAME>WorkstationApplication</PROFILENAME>
+	</opusstudiobinary>
+
+<!-- Petrel -->
+	<petrel2004>
+		<PROFILENAME>Petrel</PROFILENAME>
+	</petrel2004>
+	<petrel2005>
+		<PROFILENAME>Petrel</PROFILENAME>
+	</petrel2005>
+
+<!-- Pro/CONCEPT -->
+	<concept>
+		<PROFILENAME>ProCONCEPT</PROFILENAME>
+	</concept>
+
+<!-- Pro/ENGINEER Wildfire -->
+	<xtop>
+		<PROFILENAME>ProeWildfire</PROFILENAME>
+	</xtop>
+
+<!-- SOFTIMAGE|XSI -->
+	<xsi>
+		<PROFILENAME>SoftimageXSI</PROFILENAME>
+	</xsi>
+	<flip>
+		<PROFILENAME>SoftimageXSI</PROFILENAME>
+	</flip>
+
+<!-- Solidworks -->
+	<sldworks>
+		<PROFILENAME>SolidWorks</PROFILENAME>
+	</sldworks>
+	<emodelviewer>
+		<PROFILENAME>SolidWorks</PROFILENAME>
+	</emodelviewer>
+	<swbenchmark>
+		<PROFILENAME>SolidWorks</PROFILENAME>
+	</swbenchmark>
+
+<!-- Solid Edge -->
+	<edge>
+		<PROFILENAME>SolidEdge</PROFILENAME>
+	</edge>
+
+<!-- StudioTools -->
+	<splash>
+		<PROFILENAME>StudioTools</PROFILENAME>
+	</splash>
+	<alias>
+		<PROFILENAME>StudioTools</PROFILENAME>
+	</alias>
+
+<!-- TeamCenter Visualization -->
+	<gdr>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME>
+	</gdr>
+	<grplayer>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME> 
+	</grplayer>
+	<grplayer_x64>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME> 
+	</grplayer_x64>
+	<visview>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME>
+	</visview>
+
+<!-- Tebis -->
+	<tcad>
+		<PROFILENAME>Tebis</PROFILENAME>
+	</tcad>
+	<tmess>
+		<PROFILENAME>Tebis</PROFILENAME>
+	</tmess>
+	<tview>
+		<PROFILENAME>Tebis</PROFILENAME>
+	</tview>
+	<tsimu>
+		<PROFILENAME>Tebis</PROFILENAME>
+	</tsimu>
+
+<!-- Unigraphics -->
+	<ugraf>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME>
+	</ugraf>
+	<nxapcconfig>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME>
+	</nxapcconfig>
+	<gdat_nx3_i>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME>
+	</gdat_nx3_i>
+	<gdat_nx4_i>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME>
+	</gdat_nx4_i>
+	<gdat_nx4_i_x64>
+		<PROFILENAME>UnigraphicsNx</PROFILENAME> 
+	</gdat_nx4_i_x64>
+
+<!-- Vitrea 2 -->
+	<vitrea>
+		<PROFILENAME>Vitrea</PROFILENAME>
+	</vitrea>
+
+<!-- Consumer Applications -->
+<!-- Chronicles Of Riddick -->
+	<sbzengine>
+		<PROFILENAME>OpenGLGames</PROFILENAME>
+	</sbzengine>
+	<riddick>
+		<PROFILENAME>OpenGLGames</PROFILENAME>
+	</riddick>
+
+<!-- DOOM3 -->
+	<doom3>
+		<PROFILENAME>CrossFireGames</PROFILENAME>
+	</doom3>
+
+<!-- Jedi Knight II -->
+	<jk2sp>
+		<PROFILENAME>OpenGLGames</PROFILENAME>
+	</jk2sp>
+
+<!-- Quake 3 -->
+	<quake3>
+		<PROFILENAME>OpenGLGames</PROFILENAME>
+	</quake3>
+
+<!-- Quake 4 -->
+	<quake4>
+		<PROFILENAME>OpenGLGames</PROFILENAME>
+	</quake4>
+
+<!-- Return To Castle Wolfenstein -->
+	<rtcw>
+		<PROFILENAME>OpenGLGames</PROFILENAME>
+	</rtcw>
+
+<!-- Profiles -->
+<!-- General Application -->
+	<GeneralApplication>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</GeneralApplication>
+
+<!-- Workstation Application -->
+	<WorkstationApplication>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</WorkstationApplication>
+
+<!-- 3ds max -->
+	<Autodesk3dsmax>
+		<OpenGLCaps>0x00008040</OpenGLCaps>
+		<OpenGLCapsEx>0x20000000</OpenGLCapsEx>
+	</Autodesk3dsmax>
+
+<!-- ArcGIS  -->
+	<ArcGis>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</ArcGis>
+
+<!-- Allplan  -->
+	<Allplan>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Allplan>
+
+<!-- Altair HyperWorks -->
+	<AltairHyperWorks>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000400</OpenGLCapsEx>
+	</AltairHyperWorks>
+
+<!-- ANSYS -->
+	<Ansys>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Ansys>
+
+<!-- ArchiCAD -->
+	<ArchiCad>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</ArchiCad>
+
+<!-- AutoCAD -->
+	<AutoCad>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</AutoCad>
+
+<!-- Autodesk Inventor -->
+	<AutodeskInventor>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</AutodeskInventor>
+
+<!-- Autodesk VIZ -->
+	<AutodeskVIZ>
+		<OpenGLCaps>0x00008040</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</AutodeskVIZ>
+
+<!-- Avid DS Nitris -->
+	<AvidDsNitris>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</AvidDsNitris>
+
+<!-- AxioVision -->
+	<AxioVision>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</AxioVision>
+
+<!-- CATIA -->
+	<Catia>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Catia>
+
+<!-- FreeForm Modeling Plus -->
+	<FreeFormModelingPlus>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</FreeFormModelingPlus>
+
+<!-- I-DEAS NX -->
+	<IdeasNx>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</IdeasNx>
+
+<!-- ICEM Surf -->
+	<IcemSurf>
+		<OpenGLCaps>0x00000001</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</IcemSurf>
+
+<!-- Landmark -->
+	<Landmark>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Landmark>
+
+<!-- Maya -->
+	<Maya>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Maya>
+
+<!-- Modo -->
+	<Modo>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Modo>
+
+<!-- Multiple CAx Apps/UGS -->
+	<MultipleCaxApps>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</MultipleCaxApps>
+
+<!-- OneSpace Designer Modeling -->
+	<OsdModeling>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</OsdModeling>
+
+<!-- Petrel -->
+	<Petrel>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Petrel>
+
+<!-- PowerSHAPE -->
+	<PowerShape>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</PowerShape>
+
+<!-- Pro/CONCEPT -->
+	<ProCONCEPT>
+		<OpenGLCaps>0x00200000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</ProCONCEPT>
+
+<!-- Pro/ENGINEER Wildfire -->
+	<ProeWildfire>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</ProeWildfire>
+
+<!-- SOFTIMAGE|XSI -->
+	<SoftimageXSI>
+		<OpenGLCaps>0x20008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000400</OpenGLCapsEx>
+	</SoftimageXSI>
+
+<!-- Solid Edge -->
+	<SolidEdge>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</SolidEdge>
+
+<!-- SolidMX -->
+	<SolidMx>
+		<OpenGLCaps>0x00000000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</SolidMx>
+
+<!-- SolidWorks -->
+	<SolidWorks>
+		<OpenGLCaps>0x00009000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</SolidWorks>
+
+<!-- StudioTools -->
+	<StudioTools>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</StudioTools>
+
+<!-- TEBIS -->
+	<Tebis>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Tebis>
+
+<!-- Unigraphics NX -->
+	<UnigraphicsNx>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</UnigraphicsNx>
+
+<!-- Vitrea 2 -->
+	<Vitrea>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</Vitrea>
+	
+<!-- OpenGL Games -->
+	<OpenGLGames>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+	</OpenGLGames>
+	
+	<CrossFireGames>
+		<OpenGLCaps>0x00008000</OpenGLCaps>
+		<OpenGLCapsEx>0x00000000</OpenGLCapsEx>
+		<CrossFireCaps>0x00000001</CrossFireCaps>
+	</CrossFireGames>
+
+</PROFILES>

@@ -478,7 +478,7 @@ FltpPreFsFilterOperation(_In_ PFS_FILTER_CALLBACK_DATA Data,
 {
     UNREFERENCED_PARAMETER(Data);
     UNREFERENCED_PARAMETER(CompletionContext);
-    __debugbreak();
+    //__debugbreak();
     return STATUS_SUCCESS;
 }
 
@@ -491,7 +491,7 @@ FltpPostFsFilterOperation(_In_ PFS_FILTER_CALLBACK_DATA Data,
     UNREFERENCED_PARAMETER(Data);
     UNREFERENCED_PARAMETER(OperationStatus);
     UNREFERENCED_PARAMETER(CompletionContext);
-    __debugbreak();
+    //__debugbreak();
 }
 
 NTSTATUS

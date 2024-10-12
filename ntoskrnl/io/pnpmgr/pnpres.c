@@ -648,6 +648,9 @@ IopCheckResourceDescriptor(
                                     ResDesc2->u.Interrupt.Vector, ResDesc2->u.Interrupt.Level);
                         }
 
+                        DPRINT1("This will probably cause a resource conflict\n");
+                      //  //__debugbreak();
+
                         Result = TRUE;
 
                         goto ByeBye;

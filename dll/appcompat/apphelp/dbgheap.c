@@ -159,7 +159,7 @@ void SdbpDebugHeapDeinit(void)
         RtlLeaveCriticalSection(&g_SdbpAllocationLock);
         DbgPrint("===============\r\n===============\r\n");
     }
-    /*__debugbreak();*/
+    /*//__debugbreak();*/
     /*RtlDeleteCriticalSection(&g_SdbpAllocationLock);*/
 }
 

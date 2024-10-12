@@ -23,6 +23,7 @@ list(APPEND INF_FILES
     ports.inf
     scsi.inf
     shortcuts.inf
+    CX_51250.inf
     unknown.inf
     usb.inf
     usbport.inf

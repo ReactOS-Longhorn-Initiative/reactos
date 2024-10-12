@@ -416,7 +416,7 @@ EnumParametersCallback(
                 if (ullLength > 8)
                 {
                     /* That is probably not possible */
-                    __debugbreak();
+                    //__debugbreak();
                 }
 
                 if (ullLength > 4)
@@ -654,7 +654,7 @@ GetCallingConvention(
         case CV_CALL_THISCALL:
             return "thiscall";
         default:
-            __debugbreak();
+            //__debugbreak();
     }
 #endif
     return "stdcall";

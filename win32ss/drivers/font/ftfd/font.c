@@ -145,7 +145,7 @@ FtfdQueryFontFile(
     PFTFD_FILE pfile = (PFTFD_FILE)iFile;
 
     DbgPrint("FtfdQueryFontFile(ulMode=%ld)\n", ulMode);
-//    __debugbreak();
+//    //__debugbreak();
 
     switch (ulMode)
     {
@@ -322,7 +322,7 @@ FtfdQueryFont(
     FT_Done_Face(ftface);
 
     DbgPrint("Finished with the ifi: %p\n", pifiX);
-    __debugbreak();
+    //__debugbreak();
 
     return pifi;
 }
@@ -470,7 +470,7 @@ DbgPrint("pcp[0].index = 0x%lx\n", pcp[0].index);
     *pid = (ULONG_PTR)pGlyphSet;
 
 DbgPrint("pGlyphSet=%p\n", pGlyphSet);
-__debugbreak();
+//__debugbreak();
 
     return pGlyphSet;
 }

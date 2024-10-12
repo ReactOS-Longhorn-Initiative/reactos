@@ -993,7 +993,11 @@ VideoPortVerifyAccessRanges(
                 &ConflictDetected);
 
     ExFreePoolWithTag(ResourceList, TAG_VIDEO_PORT);
-
+    if (ConflictDetected)
+    {
+        DPRINT1("VIDEOPRT ----------Conflict is detected-----------\n");
+    }
+    ConflictDetected = FALSE;
     if (!NT_SUCCESS(Status) || ConflictDetected)
         return NO_ERROR;
     else

@@ -14,7 +14,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/concat.cmake "
     file(READ \${SRC2} S2)
     file(WRITE \${DST} \"\${S1}\${S2}\")
 ")
-
+#
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/reactos.dff.cmake "")
 
 # This generates reactos.dff.dyn by processing the generator expressions

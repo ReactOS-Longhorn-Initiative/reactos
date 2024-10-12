@@ -134,7 +134,7 @@ KmtFltLoadDriver(
         if (Error)
         {
             // TODO
-            __debugbreak();
+            //__debugbreak();
         }
 
         Error = KmtFltLoad(TestServiceName);
@@ -187,7 +187,7 @@ KmtFltUnloadDriver(
     if (Error)
     {
         // TODO
-        __debugbreak();
+        //__debugbreak();
     }
 
     return Error;

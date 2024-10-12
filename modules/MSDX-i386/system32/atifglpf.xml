@@ -1,0 +1,82 @@
+<FIREGLPROFILE Version="1.0013">
+	<ASICFAMILYPROFILE Name="R300 Family">
+		<SUPPORTEDASIC>
+			<AsicEntry Name="FAMILY_ALL" Id="ALL"></AsicEntry>
+			<AsicEntry Name="FAMILY_R300" Id="44"></AsicEntry>
+			<AsicEntry Name="FAMILY_R350" Id="52"></AsicEntry>
+			<AsicEntry Name="FAMILY_R360" Id="53"></AsicEntry>
+			<AsicEntry Name="FAMILY_RS400" Id="26"></AsicEntry>
+			<AsicEntry Name="FAMILY_RS480" Id="27"></AsicEntry>
+			<AsicEntry Name="FAMILY_M18" Id="57"></AsicEntry>
+			<AsicEntry Name="FAMILY_M26" Id="59"></AsicEntry>
+			<AsicEntry Name="FAMILY_R420" Id="56"></AsicEntry>
+			<AsicEntry Name="FAMILY_RV410" Id="58"></AsicEntry>
+			<AsicEntry Name="FAMILY_R520" Id="60"></AsicEntry>
+			<AsicEntry Name="FAMILY_RV5XX" Id="62"></AsicEntry>
+			<AsicEntry Name="FAMILY_RV350" Id="45"></AsicEntry>
+			<AsicEntry Name="FAMILY_RV380" Id="54"></AsicEntry> 
+			<AsicEntry Name="FAMILY_M10" Id="46"></AsicEntry>
+			<AsicEntry Name="FAMILY_M24" Id="55"></AsicEntry>
+		</SUPPORTEDASIC>
+		<PROFILES>
+			<ProfileEntry Name="3ds max" Capabilities="00008040" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Adobe After Effects" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Allplan" Capabilities="0000A800" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="AliasStudio" Capabilities="00008000" CapabilitiesEx="10100000"></ProfileEntry>
+			<ProfileEntry Name="Altair HyperWorks" Capabilities="00009000" CapabilitiesEx="18000400"></ProfileEntry>
+			<ProfileEntry Name="ANSYS" Capabilities="00100000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="ABAQUS" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="AutoCAD" Capabilities="00009000" CapabilitiesEx="1c000000"></ProfileEntry>
+			<ProfileEntry Name="Autodesk Inventor" Capabilities="00009008" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Autodesk VIZ" Capabilities="00008040" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Autodesk Revit" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="ArcGIS" Capabilities="00009000" CapabilitiesEx="10004000"></ProfileEntry>
+			<ProfileEntry Name="ArchiCAD" Capabilities="00000000" CapabilitiesEx="10020000"></ProfileEntry>
+			<ProfileEntry Name="Avid DS Nitris" Capabilities="00008080" CapabilitiesEx="10000040"></ProfileEntry>
+			<ProfileEntry Name="AxioVision - Carl Zeiss" Capabilities="00009000" CapabilitiesEx="18000000"></ProfileEntry>
+			<ProfileEntry Name="CATIA" Capabilities="00809004" CapabilitiesEx="98010000"></ProfileEntry>
+			<ProfileEntry Name="Default" Capabilities="00000000" CapabilitiesEx="00000000"></ProfileEntry>
+			<ProfileEntry Name="Default - CAD" Capabilities="00008000" CapabilitiesEx="00000000"></ProfileEntry>
+			<ProfileEntry Name="Default - DCC" Capabilities="00008000" CapabilitiesEx="00000000"></ProfileEntry>
+			<ProfileEntry Name="Default - Visualization" Capabilities="00008000" CapabilitiesEx="00000000"></ProfileEntry>
+			<ProfileEntry Name="Discovery Studio" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="DYNAanimation" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="EdgeCAM" Capabilities="00009000" CapabilitiesEx="98000000"></ProfileEntry>
+			<ProfileEntry Name="EUKLID" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Femap" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="FLUENT" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="FreeForm Modeling Plus" Capabilities="00009000" CapabilitiesEx="30000000"></ProfileEntry>
+			<ProfileEntry Name="Houdini" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="ICAD/SX Mechanical PRO" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="I-DEAS" Capabilities="01008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="IronCAD" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Keyhole PRO" Capabilities="00008040" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="ICEM Surf" Capabilities="4080A000" CapabilitiesEx="10100000"></ProfileEntry>
+			<ProfileEntry Name="Landmark" Capabilities="00001000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="LightWave 3D" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Maya" Capabilities="00008010" CapabilitiesEx="50000020"></ProfileEntry>
+			<ProfileEntry Name="MegaCAD" Capabilities="00809004" CapabilitiesEx="98010000"></ProfileEntry>
+			<ProfileEntry Name="MicroStation" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Modo" Capabilities="00008000" CapabilitiesEx="18000000"></ProfileEntry>
+			<ProfileEntry Name="MSC.Patran" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Multiple CAx Apps/UGS" Capabilities="00109004" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="OneSpace Designer Modeling" Capabilities="00008200" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="OpenGL Games" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Opticore Opus Realizer" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Petrel" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Poser" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="PowerSHAPE" Capabilities="04009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Pro/CONCEPT" Capabilities="00009000" CapabilitiesEx="10004000"></ProfileEntry>
+			<ProfileEntry Name="Pro/ENGINEER Wildfire" Capabilities="00200000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="SOFTIMAGE|XSI" Capabilities="2000A000" CapabilitiesEx="18000400"></ProfileEntry>
+			<ProfileEntry Name="Solid Edge" Capabilities="00009000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="SolidMX" Capabilities="00001000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="SolidWorks" Capabilities="00008010" CapabilitiesEx="12000000"></ProfileEntry>
+			<ProfileEntry Name="TEBIS" Capabilities="00809000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Unigraphics NX" Capabilities="00009004" CapabilitiesEx="14080001"></ProfileEntry>
+			<ProfileEntry Name="VEO:factory by DaimlerChrysler" Capabilities="00008000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="VisiCAD" Capabilities="00000000" CapabilitiesEx="10000000"></ProfileEntry>
+			<ProfileEntry Name="Vitrea 2" Capabilities="00008400" CapabilitiesEx="10000000"></ProfileEntry>
+		</PROFILES>
+	</ASICFAMILYPROFILE>
+</FIREGLPROFILE>

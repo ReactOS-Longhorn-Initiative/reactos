@@ -385,7 +385,7 @@ KiInterruptHandler(IN PKTRAP_FRAME TrapFrame,
     //Irql = Pcr->IrqlMask[InterruptCause];
     //InterruptMask = Pcr->IrqlTable[Irql];
     Irql = 0;
-    __debugbreak();
+    //__debugbreak();
 
     //
     // Raise to the new IRQL
@@ -422,7 +422,7 @@ KiInterruptHandler(IN PKTRAP_FRAME TrapFrame,
     //
     /// FIXME: this should probably go into a table in ntoskrnl
     //Pcr->InterruptRoutine[Irql]();
-    __debugbreak();
+    //__debugbreak();
     ASSERT(KeGetCurrentThread()->TrapFrame == TrapFrame);
     KeGetCurrentThread()->TrapFrame = OldTrapFrame;
 //    DPRINT1("[ISR RETURN]\n");

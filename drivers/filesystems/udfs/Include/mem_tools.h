@@ -257,7 +257,7 @@ ULONG inline MyReallocPool__(PCHAR addr, ULONG len, PCHAR *pnewaddr, ULONG newle
         newaddr = (PCHAR)MyAllocatePool__(NonPagedPool,_newlen);
 #endif //TRACK_SYS_ALLOC_CALLERS
         if (!newaddr) {
-            __debugbreak();
+            //__debugbreak();
             *pnewaddr = addr;
             return 0;
         }

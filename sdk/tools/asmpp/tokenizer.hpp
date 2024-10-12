@@ -13,7 +13,7 @@
 
 // Uncomment this for easier debugging
 #if 0
-#define throw __debugbreak(); throw
+#define throw //__debugbreak(); throw
 #endif
 
 extern time_t search_time;

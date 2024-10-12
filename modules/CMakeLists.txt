@@ -40,8 +40,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/hybridcd_extras/)
     foreach(item ${EXTRA_FILES})
         add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/hybridcd_extras/${item} DESTINATION extras NO_CAB NAME_ON_CD ${item} FOR hybridcd)
     endforeach(item)
-endif()
-
+endif()#
+#
 ## Extra files which you need existing on the hard drive after the installation.
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/)
     file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/*)
@@ -79,3 +79,4 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ros/)
         add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/ros/${item} DESTINATION reactos NAME_ON_CD ${item} FOR all)
     endforeach(item)
 endif()
+#s

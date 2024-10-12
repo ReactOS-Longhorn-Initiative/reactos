@@ -112,18 +112,18 @@ int __cdecl iswctype(wint_t wc, wctype_t wctypeFlags)
 // Stubs to avoid pulling in data from CRT
 double pow(double x, double y)
 {
-    __debugbreak();
+    //__debugbreak();
     return 0.0;
 }
 
 double log(double x)
 {
-    __debugbreak();
+    //__debugbreak();
     return 0.0;
 }
 
 double log10(double x)
 {
-    __debugbreak();
+    //__debugbreak();
     return 0.0;
 }

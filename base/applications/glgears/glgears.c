@@ -73,24 +73,9 @@ static HGLRC hRC;
 static HWND hWnd;
 static HINSTANCE hInst;
 static RECT winrect;
-
-static const char *ProgramName;      /* program name (from argv[0]) */
-static Bool        verbose = False;  /* verbose output what the program is doing */
-
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
 static GLint gear1, gear2, gear3;
 static GLfloat angle = 0.0;
-
-static
-void usage(void)
-{
-   fprintf (stderr, "usage:  %s [options]\n", ProgramName);
-   fprintf (stderr, "-info\tPrint additional GL information.\n");
-   fprintf (stderr, "-h\tPrint this help page.\n");
-   fprintf (stderr, "-v\tVerbose output.\n");
-   fprintf (stderr, "\n");
-   exit(EXIT_FAILURE);
-}
 
 
 /* return current time (in seconds) */
@@ -379,7 +364,7 @@ static void make_window(LPCWSTR name, int x, int y, int width, int height) {
 	winrect.bottom = (long)height;
 
 	hInst = GetModuleHandle(NULL);
-	wc.style = CS_OWNDC;
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	wc.lpfnWndProc = (WNDPROC)WndProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
@@ -405,8 +390,8 @@ static void make_window(LPCWSTR name, int x, int y, int width, int height) {
 		printf("failed to create window\n");
 		exit(0);
 	}
-
-	if (!(hDC = GetDC(hWnd)) ||
+   hDC = GetDC(hWnd);
+	if (
 		!(PixelFormat = ChoosePixelFormat(hDC, &pfd)) ||
 		!(SetPixelFormat(hDC, PixelFormat, &pfd)) ||
 		!(hRC = wglCreateContext(hDC)) ||

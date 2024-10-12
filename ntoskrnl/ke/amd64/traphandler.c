@@ -276,6 +276,6 @@ KiSystemService(IN PKTHREAD Thread,
                 IN ULONG Instruction)
 {
     UNIMPLEMENTED;
-    __debugbreak();
+    //__debugbreak();
 }
 

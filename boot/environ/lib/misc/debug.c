@@ -170,7 +170,7 @@ BlStatusError (
                       Parameter4);
 
         /* Issue a breakpoint */
-        __debugbreak();
+        //__debugbreak();
     }
 }
 

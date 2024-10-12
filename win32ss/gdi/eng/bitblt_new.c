@@ -120,7 +120,7 @@ EngBitBlt(
     SURFOBJ *psoPattern;
 
 //static int count = 0;
-//if (++count >= 1230) __debugbreak();
+//if (++count >= 1230) //__debugbreak();
 
     /* Sanity checks */
     ASSERT(psoTrg);
@@ -174,7 +174,7 @@ EngBitBlt(
                 /* Use 0 as target format to get special right to left versions */
                 bltdata.siDst.iFormat = 0;
                 bltdata.siSrc.iFormat = psoSrc->iBitmapFormat;
-                //__debugbreak();
+                ////__debugbreak();
             }
             else
             {
@@ -222,7 +222,7 @@ EngBitBlt(
             psoPattern = BRUSHOBJ_psoPattern(pbo);
             if (!psoPattern)
             {
-                __debugbreak();
+                //__debugbreak();
                 return FALSE;
             }
 
@@ -253,7 +253,7 @@ EngBitBlt(
     /* Check if the ROP uses a mask */
     if (ROP4_USES_MASK(rop4))
     {
-        //__debugbreak();
+        ////__debugbreak();
 
         /* Check if we don't have a mask surface */
         if (psoMask == NULL)
@@ -400,7 +400,7 @@ IntEngBitBlt(
     SIZEL sizTrg;
     PFN_DrvBitBlt pfnBitBlt;
 
-//__debugbreak();
+////__debugbreak();
 
     /* Sanity checks */
     ASSERT(IS_VALID_ROP4(rop4));

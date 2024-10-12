@@ -20,7 +20,7 @@ __C_specific_handler(
     struct _DISPATCHER_CONTEXT *_DispatcherContext)
 {
     UNIMPLEMENTED;
-    __debugbreak();
+    //__debugbreak();
     return 0;
 }
 
@@ -32,7 +32,7 @@ __CxxFrameHandler3(
     EXCEPTION_REGISTRATION_RECORD** _ExceptionRecord)
 {
     UNIMPLEMENTED;
-    __debugbreak();
+    //__debugbreak();
     return 0;
 }
 

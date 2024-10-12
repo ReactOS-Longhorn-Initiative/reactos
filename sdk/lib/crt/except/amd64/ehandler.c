@@ -125,7 +125,7 @@ __C_specific_handler(
                             DispatcherContext->HistoryTable);
 
                 /* Should not get here */
-                __debugbreak();
+                //__debugbreak();
             }
         }
     }

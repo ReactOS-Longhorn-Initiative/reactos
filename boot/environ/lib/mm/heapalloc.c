@@ -232,7 +232,7 @@ MmHapReportHeapCorruption (
     if (DebuggerEnabled)
     {
         BlStatusPrint(L"\n*** Fatal Error 0x%08x :\n                (0x%p, 0x%p, 0x%p, 0x%p)\n\r\n", 2, BufferEntry, NULL, NULL, NULL);
-        __debugbreak();
+        //__debugbreak();
     }
 #else
     EfiPrintf(L"Heap corruption in the links surrounding %p!\r\n", BufferEntry);

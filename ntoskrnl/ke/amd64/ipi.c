@@ -45,6 +45,6 @@ KeIpiGenericCall(
     _In_ PKIPI_BROADCAST_WORKER Function,
     _In_ ULONG_PTR Argument)
 {
-    __debugbreak();
+    //__debugbreak();
     return 0;
 }

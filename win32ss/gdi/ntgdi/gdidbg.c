@@ -273,7 +273,7 @@ DbgDumpGdiHandleTableWithBT(void)
         DbgPrint("\n");
     }
 
-    __debugbreak();
+    //__debugbreak();
 
     KeLowerIrql(OldIrql);
 }

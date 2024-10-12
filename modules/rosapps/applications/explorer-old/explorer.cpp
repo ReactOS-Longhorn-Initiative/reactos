@@ -1145,7 +1145,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 
     if (_tcsstr(ext_options,TEXT("-break"))) {
         LOG(TEXT("debugger breakpoint"));
-        __debugbreak();
+        //__debugbreak();
     }
 
 #ifdef _M_IX86

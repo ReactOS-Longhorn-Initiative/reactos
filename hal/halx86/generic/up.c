@@ -20,7 +20,7 @@ HalRequestIpi(
     _In_ KAFFINITY TargetProcessors)
 {
     /* This should never be called in UP mode */
-    __debugbreak();
+    //__debugbreak();
 }
 
 BOOLEAN

@@ -318,7 +318,7 @@ WmipReceiveNotifications(
     PWMIP_IRP_CONTEXT IrpContext;
     NTSTATUS Status;
 
-    //__debugbreak();
+    ////__debugbreak();
     if ((InputLength < sizeof(WMI_NOTIFICATION)) || (*OutputLength < 0x38))
     {
         return STATUS_INVALID_DEVICE_REQUEST;
@@ -522,7 +522,7 @@ WmipIoControl(
         default:
             DPRINT1("Unsupported yet IOCTL: 0x%lx\n", IoControlCode);
             Status = STATUS_INVALID_DEVICE_REQUEST;
-            __debugbreak();
+            //__debugbreak();
             break;
     }
 

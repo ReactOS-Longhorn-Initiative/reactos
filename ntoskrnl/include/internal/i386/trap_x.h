@@ -90,7 +90,7 @@ KiFillTrapFrameDebug(IN PKTRAP_FRAME TrapFrame)
         { \
             DbgPrint("Dr%ld: expected %.8lx, got %.8lx\n", \
                     DrNumner, ExpectedValue, DrValue); \
-            __debugbreak(); \
+            //__debugbreak(); \
         } \
     }
 
@@ -109,7 +109,7 @@ KiExitTrapDebugChecks(IN PKTRAP_FRAME TrapFrame,
     if (__readeflags() & EFLAGS_INTERRUPT_MASK)
     {
         DbgPrint("Exiting with interrupts enabled: %lx\n", __readeflags());
-        __debugbreak();
+        //__debugbreak();
     }
 
     /* Make sure this is a real trap frame */
@@ -117,35 +117,35 @@ KiExitTrapDebugChecks(IN PKTRAP_FRAME TrapFrame,
     {
         DbgPrint("Exiting with an invalid trap frame? (No MAGIC in trap frame)\n");
         KiDumpTrapFrame(TrapFrame);
-        __debugbreak();
+        //__debugbreak();
     }
 
     /* Make sure we're not in user-mode or something */
     if (Ke386GetFs() != KGDT_R0_PCR)
     {
         DbgPrint("Exiting with an invalid FS: %lx\n", Ke386GetFs());
-        __debugbreak();
+        //__debugbreak();
     }
 
     /* Make sure we have a valid SEH chain */
     if (KeGetPcr()->NtTib.ExceptionList == 0)
     {
         DbgPrint("Exiting with NULL exception chain: %p\n", KeGetPcr()->NtTib.ExceptionList);
-        __debugbreak();
+        //__debugbreak();
     }
 
     /* Make sure we're restoring a valid SEH chain */
     if (TrapFrame->ExceptionList == 0)
     {
         DbgPrint("Entered a trap with a NULL exception chain: %p\n", TrapFrame->ExceptionList);
-        __debugbreak();
+        //__debugbreak();
     }
 
     /* If we're ignoring previous mode, make sure caller doesn't actually want it */
     if (SkipPreviousMode && (TrapFrame->PreviousPreviousMode != (ULONG)-1))
     {
         DbgPrint("Exiting a trap witout restoring previous mode, yet previous mode seems valid: %lx\n", TrapFrame->PreviousPreviousMode);
-        __debugbreak();
+        //__debugbreak();
     }
 
     /* FIXME: KDBG messes around with these improperly */
@@ -156,7 +156,7 @@ KiExitTrapDebugChecks(IN PKTRAP_FRAME TrapFrame,
         /* Check for active debugging */
         if (KeGetCurrentThread()->Header.DebugActive)
         {
-            if ((TrapFrame->Dr7 & ~DR7_RESERVED_MASK) == 0) __debugbreak();
+            if ((TrapFrame->Dr7 & ~DR7_RESERVED_MASK) == 0) //__debugbreak();
 
             CheckDr(0, TrapFrame->Dr0);
             CheckDr(1, TrapFrame->Dr1);

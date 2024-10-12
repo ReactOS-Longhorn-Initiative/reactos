@@ -431,7 +431,7 @@ FltpStartingToDrainObject(_Inout_ PFLT_OBJECT Object)
 VOID
 FltpMiniFilterDriverUnload()
 {
-    __debugbreak();
+    //__debugbreak();
 }
 
 

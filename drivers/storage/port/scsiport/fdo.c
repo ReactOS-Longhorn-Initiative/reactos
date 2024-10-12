@@ -271,14 +271,14 @@ FdoScanAdapter(
                     {
                         // remove the device
                         UNIMPLEMENTED;
-                        __debugbreak();
+                        //__debugbreak();
                     }
 
                     if (lunExt->InquiryData.DeviceTypeQualifier == DEVICE_QUALIFIER_NOT_SUPPORTED)
                     {
                         // remove the device
                         UNIMPLEMENTED;
-                        __debugbreak();
+                        //__debugbreak();
                     }
 
                     /* Decide whether we are continuing or not */
@@ -382,7 +382,7 @@ FdoCallHWInitialize(
         UNIMPLEMENTED;
 
         /* This code path will ALWAYS crash so stop it now */
-        __debugbreak();
+        //__debugbreak();
     }
     else
     {

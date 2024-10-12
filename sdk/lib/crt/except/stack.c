@@ -27,7 +27,7 @@
 void _chkesp_failed(void)
 {
     ERR("stack got corrupted!\n");
-    __debugbreak();
+    //__debugbreak();
 }
 
 #endif  /* __i386__ */

@@ -469,7 +469,7 @@ DoCrashCommand(VOID)
 
     /* Crash the machine */
     KeBugCheckEx(MANUALLY_INITIATED_CRASH, 0, 0, 0, 0);
-    __debugbreak();
+    //__debugbreak();
 }
 
 VOID

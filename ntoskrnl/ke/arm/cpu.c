@@ -67,7 +67,7 @@ KiSaveProcessorControlState(OUT PKPROCESSOR_STATE ProcessorState)
     //
     // Save some critical stuff we use
     //
-    __debugbreak();
+    //__debugbreak();
 #if 0
     ProcessorState->SpecialRegisters.ControlRegister = KeArmControlRegisterGet();
     ProcessorState->SpecialRegisters.LockdownRegister = KeArmLockdownRegisterGet();
@@ -80,7 +80,7 @@ VOID
 NTAPI
 KiRestoreProcessorControlState(PKPROCESSOR_STATE ProcessorState)
 {
-    __debugbreak();
+    //__debugbreak();
 #if 0
     KeArmControlRegisterSet(ProcessorState->SpecialRegisters.ControlRegister);
     KeArmLockdownRegisterSet(ProcessorState->SpecialRegisters.LockdownRegister);

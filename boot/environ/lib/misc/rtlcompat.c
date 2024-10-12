@@ -89,7 +89,7 @@ RtlAssert (
     }
 
     /* Issue a breakpoint */
-    __debugbreak();
+    //__debugbreak();
 }
 
 ULONG

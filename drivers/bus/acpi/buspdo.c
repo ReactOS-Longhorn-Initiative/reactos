@@ -1476,7 +1476,7 @@ Bus_PDO_QueryResourceRequirements(
                     RequirementDescriptor->Type = CmResourceTypeInterrupt;
                     RequirementDescriptor->ShareDisposition = (irq_data->Shareable == ACPI_SHARED ? CmResourceShareShared : CmResourceShareDeviceExclusive);
                     RequirementDescriptor->Flags =(irq_data->Triggering == ACPI_LEVEL_SENSITIVE ? CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE : CM_RESOURCE_INTERRUPT_LATCHED);
-                    RequirementDescriptor->u.Interrupt.MinimumVector =
+                    RequirementDescriptor->u.Interrupt.MinimumVector = 0;
                     RequirementDescriptor->u.Interrupt.MaximumVector = irq_data->Interrupts[i];
 
                     RequirementDescriptor++;
@@ -1492,7 +1492,7 @@ Bus_PDO_QueryResourceRequirements(
                     RequirementDescriptor->Type = CmResourceTypeInterrupt;
                     RequirementDescriptor->ShareDisposition = (irq_data->Shareable == ACPI_SHARED ? CmResourceShareShared : CmResourceShareDeviceExclusive);
                     RequirementDescriptor->Flags =(irq_data->Triggering == ACPI_LEVEL_SENSITIVE ? CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE : CM_RESOURCE_INTERRUPT_LATCHED);
-                    RequirementDescriptor->u.Interrupt.MinimumVector =
+                    RequirementDescriptor->u.Interrupt.MinimumVector = 0;
                     RequirementDescriptor->u.Interrupt.MaximumVector = irq_data->Interrupts[i];
 
                     RequirementDescriptor++;

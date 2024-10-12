@@ -48,7 +48,7 @@ Catch_RTC_Failure(
     ...)
 {
     /* FIXME: better failure routine */
-    __debugbreak();
+    //__debugbreak();
     return 0;
 }
 

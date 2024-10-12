@@ -1186,7 +1186,7 @@ CreatePortConfig:
         if (!NT_SUCCESS(Status))
         {
             DPRINT1("IoReportDetectedDevice failed. Status: 0x%x\n", Status);
-            __debugbreak();
+            //__debugbreak();
             break;
         }
 

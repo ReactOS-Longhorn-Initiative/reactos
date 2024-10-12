@@ -152,7 +152,7 @@ MmNotPresentFaultCachePage (
 
     if (Segment->FileObject)
     {
-        __debugbreak();
+        //__debugbreak();
         DPRINT("FileName %wZ\n", &Segment->FileObject->FileName);
     }
 

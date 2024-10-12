@@ -400,7 +400,7 @@ USBSTOR_HandleQueryProperty(
             .BusMinorVersion = 0 //FIXME
         };
 
-        // __debugbreak();
+        // //__debugbreak();
 
         // store returned length
         Irp->IoStatus.Information = sizeof(STORAGE_ADAPTER_DESCRIPTOR_WIN8);

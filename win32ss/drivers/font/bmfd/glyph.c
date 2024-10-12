@@ -328,7 +328,7 @@ BmfdQueryFontData(
 
     DbgPrint("BmfdQueryFontData(pfo=%p, iMode=%ld, hg=%p, pgd=%p, pv=%p, cjSize=%ld)\n",
              pfo, iMode, hg, pgd, pv, cjSize);
-//    __debugbreak();
+//    //__debugbreak();
 
     switch (iMode)
     {
