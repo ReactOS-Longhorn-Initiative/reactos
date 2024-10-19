@@ -13,3 +13,5 @@ add_subdirectory(sptilib)
 add_subdirectory(usbdex)
 add_subdirectory(virtio)
 add_subdirectory(wdf)
+
+add_subdirectory(rddm)
