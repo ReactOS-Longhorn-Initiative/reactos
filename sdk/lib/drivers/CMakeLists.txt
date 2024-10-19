@@ -11,3 +11,5 @@ add_subdirectory(rxce)
 add_subdirectory(sound)
 add_subdirectory(virtio)
 add_subdirectory(wdf)
+
+add_subdirectory(rddm)
