@@ -93,6 +93,8 @@
 @ stdcall ExGetExclusiveWaiterCount(ptr)
 @ stdcall ExGetPreviousMode()
 @ stdcall ExGetSharedWaiterCount(ptr)
+@ stdcall -version=0x600+ ExDeleteLookasideListEx(ptr)
+@ stdcall -version=0x600+ ExInitializeLookasideListEx(ptr ptr ptr ptr long long long long)
 @ stdcall ExInitializeNPagedLookasideList(ptr ptr ptr long long long long)
 @ stdcall ExInitializePagedLookasideList(ptr ptr ptr long long long long)
 @ stdcall ExInitializeResourceLite(ptr)
