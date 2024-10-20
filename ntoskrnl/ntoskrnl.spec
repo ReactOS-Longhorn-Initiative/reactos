@@ -454,6 +454,7 @@
 @ stdcall IoQueryVolumeInformation(ptr long long ptr ptr)
 @ stdcall IoQueueThreadIrp(ptr)
 @ stdcall IoQueueWorkItem(ptr ptr long ptr)
+@ stdcall -version=0x600+ IoQueueWorkItemEx(ptr ptr long ptr)
 @ stdcall IoRaiseHardError(ptr ptr ptr)
 @ stdcall IoRaiseInformationalHardError(long ptr ptr)
 @ stdcall IoReadDiskSignature(ptr long ptr)
