@@ -314,4 +314,98 @@ ExInitializePagedLookasideList(IN PPAGED_LOOKASIDE_LIST Lookaside,
                                 &ExpPagedLookasideListLock);
 }
 
+PVOID
+NTAPI
+ExAllocatePoolLookasideEx(_In_    POOL_TYPE PoolType,
+                          _In_    SIZE_T NumberOfBytes,
+                          _In_    ULONG Tag,
+                          _Inout_ PLOOKASIDE_LIST_EX Lookaside)
+{
+    return ExAllocatePoolWithTag(PoolType, NumberOfBytes, Tag);
+}
+
+VOID
+NTAPI
+ExFreePoolLookasideEx(PVOID Buffer, PLOOKASIDE_LIST_EX Lookaside)
+{
+    ExFreePoolWithTag(Buffer, 0);
+}
+
+/*
+ * @implemented - Vista+
+ */
+NTSTATUS
+NTAPI
+ExInitializeLookasideListEx(PLOOKASIDE_LIST_EX Lookaside,
+                            PALLOCATE_FUNCTION_EX Allocate,
+                            PFREE_FUNCTION_EX Free,
+                            POOL_TYPE PoolType,
+                            ULONG Flags,
+                            SIZE_T Size,
+                            ULONG Tag,
+                            USHORT Depth)
+{
+    /* Initialize the Header */
+    ExInitializeSListHead(&Lookaside->L.ListHead);
+    Lookaside->L.TotalAllocates = 0;
+    Lookaside->L.AllocateMisses = 0;
+    Lookaside->L.TotalFrees = 0;
+    Lookaside->L.FreeMisses = 0;
+    Lookaside->L.Type = PoolType | Flags;
+    Lookaside->L.Tag = Tag;
+    Lookaside->L.Size = (ULONG)Size;
+    Lookaside->L.LastTotalAllocates = 0;
+    Lookaside->L.LastAllocateMisses = 0;
+
+    //TODO: These values seems a little different on actual vista with SOME drivers (specifically WDDM?)
+    Lookaside->L.Depth = 4;
+    Lookaside->L.MaximumDepth = 256;
+
+    /* Set the Allocate/Free Routines */
+    if (Allocate)
+    {
+        Lookaside->L.AllocateEx = Allocate;
+    }
+    else
+    {
+        Lookaside->L.AllocateEx = ExAllocatePoolLookasideEx;
+    }
+
+    if (Free)
+    {
+        Lookaside->L.FreeEx = Free;
+    }
+    else
+    {
+        Lookaside->L.FreeEx = ExFreePoolLookasideEx;
+    }
+
+    /* Only except to usual non-paged pools is if we explicitly say we're paged */
+    if (PoolType == PagedPool)
+    {
+        /* Insert it into the list */
+        ExInterlockedInsertTailList(&ExpPagedLookasideListHead,
+                                    &Lookaside->L.ListEntry,
+                                    &ExpPagedLookasideListLock);
+    }
+    else
+    {
+         /* Insert it into the list */
+        ExInterlockedInsertTailList(&ExpNonPagedLookasideListHead,
+                                    &Lookaside->L.ListEntry,
+                                    &ExpNonPagedLookasideListLock);
+    }
+
+    //TODO: Let's do some error checking?
+    return STATUS_SUCCESS;
+}
+
+VOID
+NTAPI
+ExDeleteLookasideListEx(PLOOKASIDE_LIST_EX Lookaside)
+{
+    //TODO Hella Leaks bros
+    UNIMPLEMENTED_ONCE;
+}
+
 /* EOF */
