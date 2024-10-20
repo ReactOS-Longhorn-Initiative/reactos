@@ -12,6 +12,7 @@
 #include <ntstatus.h>
 #include <stdio.h>
 #include <ntddvdeo.h>
+#include <dispmprt.h>
 #include <reactos/rddm/rddm_private.h>
 
 
@@ -28,3 +29,5 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     ULONG SystemIoBusNumber;
     ULONG SystemIoSlotNumber;
 } RXGK_PRIVATE_EXTENSION, *PRXGK_PRIVATE_EXTENSION;
+
+#include "include/rxgkport.h"

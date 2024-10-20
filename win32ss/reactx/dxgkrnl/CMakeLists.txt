@@ -7,6 +7,7 @@ spec2def(dxgkrnl.sys dxgkrnl.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
      entry.cpp
+     miniport/rxgkport.cpp
      )
 
 add_library(dxgkrnl MODULE

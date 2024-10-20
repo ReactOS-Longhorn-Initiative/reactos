@@ -36,9 +36,7 @@ RxgkInternalDeviceControl(
             OutputBuffer = (PVOID*)Irp->UserBuffer;
             Irp->IoStatus.Information = 0;
             Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
-            *OutputBuffer = (PVOID)NULL;
-            UNIMPLEMENTED;
-            __debugbreak();
+            *OutputBuffer = (PVOID)RxgkPortInitializeMiniport;
             break;
         default:
             DPRINT("RxgkInternalDeviceControl: unknown IOCTRL Code: %X\n", IoControlCode);
