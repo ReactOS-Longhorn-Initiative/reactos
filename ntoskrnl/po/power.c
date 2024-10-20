@@ -1147,3 +1147,23 @@ Exit:
     /* We're done, return */
     return Status;
 }
+
+NTSTATUS
+NTAPI
+PoRegisterPowerSettingCallback(
+    _In_opt_ PDEVICE_OBJECT DeviceObject,
+    _In_ LPCGUID SettingGuid,
+    _In_ PPOWER_SETTING_CALLBACK Callback,
+    _In_opt_ PVOID Context,
+    _Outptr_opt_ PVOID *Handle)
+{
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
+PoUnregisterPowerSettingCallback(
+    _Inout_ PVOID Handle)
+{
+    return STATUS_NOT_IMPLEMENTED;
+}
