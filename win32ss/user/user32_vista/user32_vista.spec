@@ -1,2 +1,5 @@
 @ stdcall GetDpiForSystem()
 @ stdcall GetDpiForWindow(ptr)
+@ stdcall IsProcessDPIAware()
+@ stdcall SetProcessDPIAware()
+@ stdcall IsThreadDesktopComposited()

@@ -42,3 +42,24 @@ GetDpiForWindow(
     UNREFERENCED_PARAMETER(hWnd);
     return GetDpiForSystem();
 }
+
+BOOL
+WINAPI
+IsProcessDPIAware()
+{
+    return FALSE;
+}
+
+BOOL
+WINAPI
+SetProcessDPIAware()
+{
+    return FALSE;
+}
+
+BOOL
+WINAPI
+IsThreadDesktopComposited()
+{
+    return FALSE;
+}
