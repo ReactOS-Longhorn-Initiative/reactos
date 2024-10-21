@@ -665,3 +665,14 @@ HRESULT WINAPI AsyncInstallDistributionUnit(const WCHAR *szDistUnit, const WCHAR
 
     return hres;
 }
+
+#ifdef __REACTOS__
+HRESULT CompatFlagsFromClsid(
+   CLSID   *pclsid,
+   LPDWORD pdwCompatFlags,
+   LPDWORD pdwMiscStatusFlags
+)
+{
+    return S_FALSE;
+}
+#endif

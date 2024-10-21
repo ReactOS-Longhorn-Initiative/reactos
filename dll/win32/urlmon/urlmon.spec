@@ -41,7 +41,7 @@
 140 stdcall CoInternetQueryInfo(wstr long long ptr long ptr long)
 141 stdcall CoInternetSetFeatureEnabled(long long long)
 142 stdcall CompareSecurityIds(ptr long ptr long long)
-#143 CompatFlagsFromClsid
+143 stdcall CompatFlagsFromClsid(ptr ptr ptr)
 144 stdcall CopyBindInfo(ptr ptr)
 145 stdcall CopyStgMedium(ptr ptr)
 146 stdcall CreateAsyncBindCtx(long ptr ptr ptr)
