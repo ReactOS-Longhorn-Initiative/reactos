@@ -1353,3 +1353,15 @@ PowerWriteACValueIndex(
     UNIMPLEMENTED;
     return 0;
 }
+DWORD PowerReadACValue(
+ HKEY       RootPowerKey,
+ const GUID *SchemeGuid,
+ const GUID *SubGroupOfPowerSettingsGuid,
+ const GUID *PowerSettingGuid,
+ PULONG     Type,
+ LPBYTE     Buffer,
+ LPDWORD    BufferSize
+)
+{
+    return 0;
+}
