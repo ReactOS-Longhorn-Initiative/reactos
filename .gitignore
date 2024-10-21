@@ -5,6 +5,7 @@ modules/bootcd_extras
 modules/livecd_extras
 modules/hybridcd_extras
 modules/3rdparty
+modules/MSDX
 modules/[Aa][Hh][Kk]_[Tt]ests
 .cache
 .cproject
