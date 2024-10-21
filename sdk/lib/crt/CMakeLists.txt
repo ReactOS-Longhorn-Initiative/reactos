@@ -26,6 +26,7 @@ include(wstring/wstring.cmake)
 
 include(crt.cmake)
 include(libcntpr.cmake)
+include(ucrtsupport.cmake)
 include(msvcrtex.cmake)
 include(oldnames.cmake)
 
