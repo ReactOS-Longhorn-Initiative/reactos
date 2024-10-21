@@ -14,10 +14,12 @@ constexpr FLOAT CLEAR_COLOR[4] = { 1.0f, 0.1f, 1.0f, 1.0f };
 
 static void msgerror(LPCWSTR msg, DWORD err = GetLastError())
 {
+	#if 0
 	std::wstring x = msg;
 	x += L"\nWIN32 ERROR: ";
 	x += std::to_wstring(err);
 	MessageBoxW(g_hwnd, x.c_str(), L"FATAL ERROR", MB_OK | MB_ICONERROR);
+	#endif
 }
 
 static void D3D10Render()
@@ -65,18 +67,6 @@ static HRESULT InitD3D10()
 		return hr;
 	}
 
-	// get back buffer from output/swapchain
-	ID3D10Texture2D* bb;
-	hr = g_sc->GetBuffer(0, __uuidof(ID3D10Texture2D), (void**)&bb);
-	if (FAILED(hr))
-		return hr;
-
-	// create rtv
-	hr = g_dev->CreateRenderTargetView(bb, nullptr, &g_rtv);
-	if (FAILED(hr))
-		return hr;
-
-	bb->Release();
 
 	// tell d3d10 to render to the screen
 	g_dev->OMSetRenderTargets(1, &g_rtv, nullptr);
