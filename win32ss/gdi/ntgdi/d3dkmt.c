@@ -1,6 +1,11 @@
 #include <win32k.h>
 #include <reactos/rddm/rxgkinterface.h>
+#include <reactos/rddm/rddm_private.h>
 #include <debug.h>
+
+BOOLEAN IsWDDMOn = FALSE;
+PFILE_OBJECT RDDM_FileObject;
+PDEVICE_OBJECT RDDM_DeviceObject;
 
 /*
  * It looks like windows saves all the funciton pointers globally inside win32k,
@@ -8,6 +13,71 @@
  * we obtained with the IOCTRL.
  */
 static REACTOS_WIN32K_DXGKRNL_INTERFACE DxgAdapterCallbacks = {0};
+
+
+NTSTATUS
+APIENTRY
+EngQueryW32kCddInterface(HANDLE DriverHandle, UINT32 Something,
+                          PVOID W32kCddInterface,
+                          PVOID DxgAdapter,
+                          PVOID OkayLol, PVOID ProcessLocal)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
+
+BOOL
+TryHackedDxgkrnlStartAdapter()
+{
+    PIRP Irp;
+    KEVENT Event;
+    IO_STATUS_BLOCK IoStatusBlock;
+    UNICODE_STRING DestinationString;
+    NTSTATUS Status = STATUS_PROCEDURE_NOT_FOUND;
+
+    DPRINT1("TryHackedDxgkrnlAdapterStart: Enter\n");
+
+    /* First let's grab the RDDM objects */
+    RtlInitUnicodeString(&DestinationString, L"\\Device\\DxgKrnl");
+    Status = IoGetDeviceObjectPointer(&DestinationString, FILE_ALL_ACCESS, &RDDM_FileObject, &RDDM_DeviceObject);
+    if(Status != STATUS_SUCCESS)
+    {
+        DPRINT1("Setting up DxgKrnl Failed\n");
+        goto BypassDxgkrnl;
+    }
+
+    /* Build event and create IRP */
+    DPRINT1("TryHackedDxgkrnlAdapterStart: Building IOCTRL with DxgKrnl\n");
+    KeInitializeEvent(&Event, SynchronizationEvent, FALSE);
+    Irp = IoBuildDeviceIoControlRequest(IOCTL_VIDEO_I_AM_REACTOS,
+                                          RDDM_DeviceObject,
+                                          NULL,
+                                          0,
+                                          NULL,
+                                          0,
+                                          TRUE,
+                                          &Event,
+                                          &IoStatusBlock);
+    Status = IofCallDriver(RDDM_DeviceObject, Irp);
+    DPRINT1("TryHackedDxgkrnlAdapterStart: Status %d\n", IoStatusBlock.Status);
+    if (IoStatusBlock.Status != STATUS_SUCCESS)
+    {
+        DPRINT1("This is Windows DXGKNRL.SYS Or the adapter failed\n");
+        IsWDDMOn = TRUE;
+        return FALSE;
+    }
+    else
+    {
+        DPRINT1("TryHackedDxgkrnlAdapterStart: ReactOS AdapterStart Hack triggered\n");
+        /* let's load cdd here.. i guess */
+        IsWDDMOn = TRUE;
+        return TRUE;
+    }
+BypassDxgkrnl:
+    DPRINT1("TryHackedDxgkrnlAdapterStart: Dxgkrnl is not loaded\n");
+    return TRUE;
+}
+
 
 /*
  * This looks like it's done inside DxDdStartupDxGraphics, but i'd rather keep this organized.
@@ -17,6 +87,20 @@ VOID
 DxStartupDxgkInt()
 {
     DPRINT("DxStartupDxgkInt: Entry\n");
+    
+    if (!TryHackedDxgkrnlStartAdapter() && IsWDDMOn == TRUE)
+    {
+        DPRINT1("RDDM: Adapter failed to start\n");
+
+        UNIMPLEMENTED;
+    }
+    else if (IsWDDMOn)
+    {
+        DPRINT1("ReactOS Display Driver Model -> Win32k Start\n");
+
+        DPRINT1("RDDM: STOP! The Adapter is started\n");
+        __debugbreak();
+    }
     //TODO: Let DxgKrnl know it's time to start all adapters, and obtain the win32k<->dxgkrnl interface via an IOCTRL.
 }
 

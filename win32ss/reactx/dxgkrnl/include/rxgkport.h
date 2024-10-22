@@ -68,3 +68,7 @@ NTAPI
 IntCreateNewRegistryPath(
     PRXGK_PRIVATE_EXTENSION DeviceExtension);
 
+
+NTSTATUS
+NTAPI
+RxgkStartAdapter();

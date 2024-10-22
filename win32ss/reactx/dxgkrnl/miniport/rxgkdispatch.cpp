@@ -5,6 +5,15 @@
 extern PRXGK_PRIVATE_EXTENSION RxgkDriverExtension;
 
 
+NTSTATUS
+NTAPI
+RxgkStartAdapter()
+{
+    UNIMPLEMENTED;
+    __debugbreak();
+    return STATUS_UNSUCCESSFUL;
+}
+
 VOID
 NTAPI
 IntVideoPortDeferredRoutine(
