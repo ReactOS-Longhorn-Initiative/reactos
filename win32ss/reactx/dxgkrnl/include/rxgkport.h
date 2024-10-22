@@ -72,3 +72,17 @@ IntCreateNewRegistryPath(
 NTSTATUS
 NTAPI
 RxgkStartAdapter();
+
+NTSTATUS
+NTAPI
+RxgkpSetupDxgkrnl(
+    IN PDRIVER_OBJECT DriverObject,
+    IN PUNICODE_STRING RegistryPath);
+
+CODE_SEG("PAGE")
+NTSTATUS
+RxgkpQueryInterface(
+    _In_ PRXGK_PRIVATE_EXTENSION RxgkpExtension,
+    _In_ const GUID* Guid,
+    _Out_ PVOID Interface,
+    _In_ ULONG Size);

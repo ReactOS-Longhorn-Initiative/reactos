@@ -107,6 +107,6 @@ DriverEntry(
 
     DPRINT1("ReactOS Display Driver Model:\n");
     DPRINT1("Targetting Version: 0x%X\n", DXGKDDI_INTERFACE_VERSION_VISTA);
-
+    RxgkpSetupDxgkrnl(DriverObject, RegistryPath);
     return Status;
 }

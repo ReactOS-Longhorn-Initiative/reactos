@@ -3,15 +3,61 @@
 #include <debug.h>
 
 extern PRXGK_PRIVATE_EXTENSION RxgkDriverExtension;
+extern DXGKRNL_INTERFACE DxgkrnlInterface;
 
+NTSTATUS
+NTAPI
+RxgkpInitializePCI()
+{
+    NTSTATUS Status;
+    GUID Bus = {0x496b8280, 0x6f25, 0x11d0, 0xbe, 0xaf, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f};
 
+    Status = RxgkpQueryInterface(RxgkDriverExtension,
+                                   &Bus,
+                                   (PVOID)&RxgkDriverExtension->BusInterface,
+                                   sizeof(BUS_INTERFACE_STANDARD));
+    if (Status == STATUS_SUCCESS)
+    {
+        DPRINT1("DxgkpQueryInterface: Device has success context:0x%X\n", RxgkDriverExtension->BusInterface.Context);
+    }
+    else{
+        DPRINT1("DxgkPortStartAdapter: Failed with Status %d\n", Status);
+        __debugbreak();
+        return Status;
+    }
+
+    return Status;
+}
 NTSTATUS
 NTAPI
 RxgkStartAdapter()
 {
-    UNIMPLEMENTED;
-    __debugbreak();
-    return STATUS_UNSUCCESSFUL;
+    NTSTATUS Status;
+    ULONG AdapterNumberOfVideoPresentSources;
+    ULONG AdapterNumberOfChildren;
+
+    /* Initialize AdapterInterface Communication*/
+    DPRINT1("RxgkStartAdapter: initializing bus communication.\n");
+    if (RxgkDriverExtension->AdapterInterfaceType == PCIBus)
+    {
+        Status = RxgkpInitializePCI();
+        if (Status != STATUS_SUCCESS)
+            return Status;
+    }
+
+    /* Acquire StartInfo information */
+    DXGK_START_INFO     DxgkStartInfo = {0};
+    /* Dxgkrnl Callbacks */
+    /* Interrupt routine information*/
+    /* Calling start Adapter */
+    DPRINT1("RxgkStartAdapter: Calling Miniport StartAdapter\n");
+    Status = RxgkDriverExtension->DxgkDdiStartDevice(RxgkDriverExtension->MiniportContext,
+                                                     &DxgkStartInfo,
+                                                     &DxgkrnlInterface,
+                                                     &AdapterNumberOfVideoPresentSources,
+                                                     &AdapterNumberOfChildren);
+    DPRINT1("RxgkDriverExtension->DxgkDdiStartDevice: returned with Status %X\n", Status);
+    return Status;
 }
 
 VOID

@@ -18,6 +18,15 @@
 
 #ifndef _NTOSP_
 #define _NTOSP_
+
+#define DXGK_MAX_STRING_LEN 50
+#define DXGK_MAX_REG_SZ_LEN DXGK_MAX_STRING_LEN + 1
+#define DXGK_WHICHSPACE_CONFIG       PCI_WHICHSPACE_CONFIG
+#define DXGK_WHICHSPACE_ROM          PCI_WHICHSPACE_ROM
+#define DXGK_WHICHSPACE_MCH          0x80000000
+#define DXGK_WHICHSPACE_BRIDGE       0x80000001
+
+
 /* Compatiblity */
 typedef enum _EMULATOR_PORT_ACCESS_TYPE {
     Uchar,

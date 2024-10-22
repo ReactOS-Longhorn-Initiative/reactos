@@ -39,6 +39,12 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     PDXGKDDI_DISPATCH_IO_REQUEST             DxgkDdiDispatchIoRequest;
     PDXGKDDI_INTERRUPT_ROUTINE               DxgkDdiInterruptRoutine;
     PDXGKDDI_DPC_ROUTINE                     DxgkDdiDpcRoutine;
+
+
+    // BUS
+    BUS_INTERFACE_STANDARD BusInterface;
+    ULONG BusInterruptLevel;
+    ULONG BusInterruptVector;
 } RXGK_PRIVATE_EXTENSION, *PRXGK_PRIVATE_EXTENSION;
 
 #include "include/rxgkport.h"
