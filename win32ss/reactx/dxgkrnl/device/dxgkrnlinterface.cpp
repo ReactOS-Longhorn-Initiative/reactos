@@ -72,6 +72,62 @@ RxgkCbEvalAcpiMethod(_In_ HANDLE DeviceHandle,
     return STATUS_UNSUCCESSFUL;
 }
 
+
+NTSTATUS
+NTAPI
+DxgkrnlSetupResourceList(_Inout_ PCM_RESOURCE_LIST* ResourceList)
+{
+    NTSTATUS Status;
+    PCI_SLOT_NUMBER PciSlotNumber;
+    PCI_COMMON_CONFIG Config;
+    ULONG ReturnedLength;
+
+
+
+    PciSlotNumber.u.AsULONG = RxgkDriverExtension->SystemIoSlotNumber;
+
+
+    if (RxgkDriverExtension->MiniportPdo != NULL)
+    {
+        PciSlotNumber.u.AsULONG = RxgkDriverExtension->SystemIoSlotNumber;
+
+        ReturnedLength = HalGetBusData(PCIConfiguration,
+                                       RxgkDriverExtension->SystemIoBusNumber,
+                                       PciSlotNumber.u.AsULONG,
+                                       &Config,
+                                       sizeof(Config));
+
+        if (ReturnedLength != sizeof(Config))
+        {
+            __debugbreak();
+            return STATUS_NO_MEMORY;
+        }
+    }
+    else
+    {
+        __debugbreak();
+    }
+
+    Status = HalAssignSlotResources(&RxgkDriverExtension->RegistryPath,
+                                            NULL,
+                                            RxgkDriverExtension->MiniportDriverObject,
+                                            RxgkDriverExtension->MiniportDriverObject->DeviceObject,
+                                            RxgkDriverExtension->AdapterInterfaceType,
+                                            RxgkDriverExtension->SystemIoBusNumber,
+                                            PciSlotNumber.u.AsULONG,
+                                            ResourceList);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("HalAssignSlotResources failed with status %x.\n",Status);
+        __debugbreak();
+        return Status;
+    }
+    /* ******************************************************************/
+    DPRINT1("ResourceList loc %X\n", ResourceList);
+    return 0;
+}
+
+
 /**
  * @brief Fills out the DXGK_DEVICE_INFO parameter allocated
  *  by a miniport driver
@@ -87,8 +143,31 @@ APIENTRY
 RxgkCbGetDeviceInformation(_In_ HANDLE DeviceHandle,
                            _Out_ PDXGK_DEVICE_INFO DeviceInfo)
 {
-    UNIMPLEMENTED;
-    return STATUS_UNSUCCESSFUL;
+    PHYSICAL_ADDRESS PhyNull, HighestPhysicalAddress;
+    NTSTATUS Status;
+
+    PCM_RESOURCE_LIST TranslatedResourceList;
+    PhyNull.QuadPart = NULL;
+    HighestPhysicalAddress.QuadPart = 0x40000000;
+
+
+    Status = DxgkrnlSetupResourceList(&TranslatedResourceList);
+    if (Status != STATUS_SUCCESS)
+    {
+        DPRINT1("DxgkCbGetDeviceInformation: Failed with status: %X\n", Status);
+    }
+    DPRINT1("DxgkCbGetDeviceInformation: Called\n");
+    DeviceInfo->TranslatedResourceList = TranslatedResourceList;
+    DeviceInfo->MiniportDeviceContext = RxgkDriverExtension->MiniportFdo;
+    DeviceInfo->PhysicalDeviceObject = RxgkDriverExtension->MiniportPdo;
+    DeviceInfo->DockingState = DockStateUnsupported;
+    DeviceInfo->SystemMemorySize.QuadPart = 0x30000000;
+    DeviceInfo->AgpApertureBase = PhyNull;
+    DeviceInfo->AgpApertureSize = 0;
+    DeviceInfo->DeviceRegistryPath = RxgkDriverExtension->RegistryPath;
+    DeviceInfo->HighestPhysicalAddress = HighestPhysicalAddress;
+    DeviceInfo->MiniportDeviceContext = RxgkDriverExtension->MiniportContext;
+    return STATUS_SUCCESS;
 }
 
 /*
@@ -105,6 +184,58 @@ RxgkCbIndicateChildStatus(_In_ HANDLE DeviceHandle,
     return STATUS_UNSUCCESSFUL;
 }
 
+
+NTSTATUS NTAPI
+MapPhysicalMemory(
+   IN HANDLE Process,
+   IN PHYSICAL_ADDRESS PhysicalAddress,
+   IN ULONG SizeInBytes,
+   IN ULONG Protect,
+   IN OUT PVOID *VirtualAddress  OPTIONAL)
+{
+   OBJECT_ATTRIBUTES ObjAttribs;
+   UNICODE_STRING UnicodeString;
+   HANDLE hMemObj;
+   NTSTATUS Status;
+   SIZE_T Size;
+
+   /* Initialize object attribs */
+   RtlInitUnicodeString(&UnicodeString, L"\\Device\\PhysicalMemory");
+   InitializeObjectAttributes(&ObjAttribs,
+                              &UnicodeString,
+                              OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                              NULL, NULL);
+
+   /* Open physical memory section */
+   Status = ZwOpenSection(&hMemObj, SECTION_ALL_ACCESS, &ObjAttribs);
+   if (!NT_SUCCESS(Status))
+   {
+      DPRINT1("ZwOpenSection() failed! (0x%x)\n", Status);
+      return Status;
+   }
+
+   /* Map view of section */
+   Size = SizeInBytes;
+   Status = ZwMapViewOfSection(hMemObj,
+                               Process,
+                               VirtualAddress,
+                               0,
+                               Size,
+                               (PLARGE_INTEGER)(&PhysicalAddress),
+                               &Size,
+                               ViewUnmap,
+                               0,
+                               Protect);
+   ZwClose(hMemObj);
+   if (!NT_SUCCESS(Status))
+   {
+      DPRINT1("ZwMapViewOfSection() failed! (0x%x)\n", Status);
+   }
+
+   return Status;
+}
+
+
 NTSTATUS
 APIENTRY
 RxgkCbMapMemory(_In_ HANDLE DeviceHandle,
@@ -115,8 +246,60 @@ RxgkCbMapMemory(_In_ HANDLE DeviceHandle,
                 _In_ MEMORY_CACHING_TYPE CacheType,
                 _Outptr_ PVOID *VirtualAddress)
 {
-    UNIMPLEMENTED;
-    return STATUS_UNSUCCESSFUL;
+   NTSTATUS Status;
+       ULONG AddressSpace = InIoSpace;
+    PHYSICAL_ADDRESS CompleteAddress;
+    if (HalTranslateBusAddress(
+          RxgkDriverExtension->AdapterInterfaceType,
+          RxgkDriverExtension->SystemIoBusNumber,
+          TranslatedAddress,
+          &AddressSpace,
+          &CompleteAddress) == FALSE)
+   {
+        __debugbreak();
+
+      return NULL;
+   }
+
+    DPRINT1("DxgkCbMapMemory Entry\n");
+    if (InIoSpace == TRUE)
+    {
+        DPRINT1("Mapping InIoSpace\n");
+        *VirtualAddress = (PVOID)CompleteAddress.LowPart;
+    }
+    else if(MapToUserMode)
+    {
+
+                    /* Map to userspace */
+                Status = MapPhysicalMemory((HANDLE)0xFFFFFFFFFFFFFFFF,
+                               CompleteAddress,
+                               Length,
+                               PAGE_READWRITE/* | PAGE_WRITECOMBINE*/,
+                               VirtualAddress);
+
+        if (!NT_SUCCESS(Status))
+         {
+            DPRINT1("DxgkCbMapMemory: MapPhysicalMemory() failed! (0x%x)\n", Status);
+            *VirtualAddress =  NULL;
+            return Status;
+         }
+
+    }
+    else
+    {
+        *VirtualAddress = MmMapIoSpace(CompleteAddress, Length, CacheType);
+    }
+    
+
+    if (*VirtualAddress == NULL)
+    {
+        DPRINT1("VirtualAddress is still NULL - reverting to fallback\n");
+        //* final fallback
+          *VirtualAddress = (PVOID)CompleteAddress.LowPart;
+        return STATUS_SUCCESS;
+    }
+    DPRINT1("DxgkCbMapMemory Exit\n");
+    return STATUS_SUCCESS;
 }
 
 
@@ -279,9 +462,13 @@ RxgkCbSynchronizeExecution(_In_ HANDLE DeviceHandle,
                            _In_ ULONG MessageNumber,
                            _Out_ PBOOLEAN ReturnValue)
 {
-    UNIMPLEMENTED;
-    __debugbreak();
-    return STATUS_UNSUCCESSFUL;
+{
+    DPRINT1("RxgkCbSynchronizeExecution: ENtry\n");
+//    *ReturnValue = KeSynchronizeExecution(RxgkDriverExtension->InterruptObject, SynchronizeRoutine, Context);
+   *ReturnValue = 0;
+    return STATUS_SUCCESS;
+}
+
 }
 
 
