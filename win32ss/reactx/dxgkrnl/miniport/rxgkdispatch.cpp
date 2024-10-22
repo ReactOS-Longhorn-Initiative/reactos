@@ -57,6 +57,11 @@ RxgkStartAdapter()
                                                      &AdapterNumberOfVideoPresentSources,
                                                      &AdapterNumberOfChildren);
     DPRINT1("RxgkDriverExtension->DxgkDdiStartDevice: returned with Status %X\n", Status);
+    DXGKARG_ENUMVIDPNCOFUNCMODALITY VidPnNetwork = {0};
+    Status = RxgkDriverExtension->DxgkDdiEnumVidPnCofuncModality(RxgkDriverExtension->MiniportContext,
+                                                                &VidPnNetwork);
+       DPRINT1("RxgkDriverExtension->DxgkDdiEnumVidPnCofuncModality: returned with Status %X\n", Status);
+    __debugbreak();
     return Status;
 }
 

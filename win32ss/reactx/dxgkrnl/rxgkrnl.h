@@ -40,7 +40,8 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     PDXGKDDI_INTERRUPT_ROUTINE               DxgkDdiInterruptRoutine;
     PDXGKDDI_DPC_ROUTINE                     DxgkDdiDpcRoutine;
 
-
+    PDXGKDDI_RECOMMENDFUNCTIONALVIDPN        DxgkDdiRecommendFunctionalVidPn;
+    PDXGKDDI_ENUMVIDPNCOFUNCMODALITY         DxgkDdiEnumVidPnCofuncModality;
     // BUS
     BUS_INTERFACE_STANDARD BusInterface;
     ULONG BusInterruptLevel;
