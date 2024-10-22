@@ -101,7 +101,7 @@ DriverEntry(
         DPRINT1("DriverEntry Failed with status %X", Status);
 
     DPRINT1("ReactOS Display Driver Model:\n");
-    DPRINT1("Targetting Version: 0x%X\n", 0x1000);
+    DPRINT1("Targetting Version: 0x%X\n", DXGKDDI_INTERFACE_VERSION_VISTA);
 
     return Status;
 }
