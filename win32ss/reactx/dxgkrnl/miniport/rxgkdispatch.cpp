@@ -2,8 +2,115 @@
 
 #include <debug.h>
 
+
 extern PRXGK_PRIVATE_EXTENSION RxgkDriverExtension;
 extern DXGKRNL_INTERFACE DxgkrnlInterface;
+
+
+BOOLEAN NTAPI
+IntVideoPortInterruptRoutine(
+   IN struct _KINTERRUPT *Interrupt,
+   IN PVOID ServiceContext)
+{
+    #if 0
+   PVIDEO_PORT_DEVICE_EXTENSION DeviceExtension = ServiceContext;
+
+   ASSERT(DeviceExtension->DriverExtension->InitializationData.HwInterrupt != NULL);
+
+   return DeviceExtension->DriverExtension->InitializationData.HwInterrupt(
+      &DeviceExtension->MiniPortDeviceExtension);
+    #endif
+
+    return RxgkDriverExtension->DxgkDdiInterruptRoutine(RxgkDriverExtension->MiniportContext, 0);
+
+    __debugbreak();
+    return TRUE;
+}
+
+
+BOOLEAN NTAPI
+IntVideoPortSetupInterrupt()
+{
+    if (RxgkDriverExtension->AdapterInterfaceType == PCIBus)
+        RxgkDriverExtension->InterruptMode = LevelSensitive;
+    else
+        RxgkDriverExtension->InterruptMode = Latched;
+        
+   NTSTATUS Status;
+   if ((RxgkDriverExtension->BusInterruptLevel != 0 ||
+       RxgkDriverExtension->BusInterruptVector != 0))
+   {
+      ULONG InterruptVector;
+      KIRQL Irql;
+      KAFFINITY Affinity;
+
+      InterruptVector = HalGetInterruptVector(
+         RxgkDriverExtension->AdapterInterfaceType,
+         RxgkDriverExtension->SystemIoBusNumber,
+         RxgkDriverExtension->BusInterruptLevel,
+         RxgkDriverExtension->BusInterruptVector,
+         &Irql,
+         &Affinity);
+
+      if (InterruptVector == 0)
+      {
+         DPRINT1("HalGetInterruptVector failed\n");
+         return FALSE;
+      }
+
+      KeInitializeSpinLock(&RxgkDriverExtension->InterruptSpinLock);
+      Status = IoConnectInterrupt(
+         &RxgkDriverExtension->InterruptObject,
+         IntVideoPortInterruptRoutine,
+         RxgkDriverExtension,
+         &RxgkDriverExtension->InterruptSpinLock,
+         InterruptVector,
+         Irql,
+         Irql,
+         RxgkDriverExtension->InterruptMode,
+         RxgkDriverExtension->InterruptShared,
+         Affinity,
+         FALSE);
+
+      if (!NT_SUCCESS(Status))
+      {
+         DPRINT1("IoConnectInterrupt failed with status 0x%08x\n", Status);
+         return FALSE;
+      }
+   }
+
+   return TRUE;
+}
+
+VOID
+NTAPI
+RxgkSetupInterrupts()
+{
+    CM_FULL_RESOURCE_DESCRIPTOR *FullList;
+    CM_PARTIAL_RESOURCE_DESCRIPTOR *Descriptor;
+
+    PCM_RESOURCE_LIST ResourceList;
+    DxgkrnlSetupResourceList(&ResourceList);
+    FullList = ResourceList->List;
+    for (Descriptor = FullList->PartialResourceList.PartialDescriptors;
+         Descriptor < FullList->PartialResourceList.PartialDescriptors + FullList->PartialResourceList.Count;
+         Descriptor++)
+    {
+        if (Descriptor->Type == CmResourceTypeInterrupt)
+        {
+            RxgkDriverExtension->BusInterruptLevel = Descriptor->u.Interrupt.Level;
+            RxgkDriverExtension->BusInterruptVector = Descriptor->u.Interrupt.Vector;
+            if (Descriptor->ShareDisposition == CmResourceShareShared)
+                RxgkDriverExtension->InterruptShared = TRUE;
+            else
+                RxgkDriverExtension->InterruptShared = FALSE;
+            
+            DPRINT1("InterruptLevel: %X, InterruptVector %X\n", RxgkDriverExtension->BusInterruptLevel, RxgkDriverExtension->BusInterruptVector );
+        }
+    }
+
+    IntVideoPortSetupInterrupt();
+}
 
 NTSTATUS
 NTAPI
@@ -28,6 +135,7 @@ RxgkpInitializePCI()
 
     return Status;
 }
+
 NTSTATUS
 NTAPI
 RxgkStartAdapter()
@@ -49,6 +157,7 @@ RxgkStartAdapter()
     DXGK_START_INFO     DxgkStartInfo = {0};
     /* Dxgkrnl Callbacks */
     /* Interrupt routine information*/
+    RxgkSetupInterrupts();
     /* Calling start Adapter */
     DPRINT1("RxgkStartAdapter: Calling Miniport StartAdapter\n");
     Status = RxgkDriverExtension->DxgkDdiStartDevice(RxgkDriverExtension->MiniportContext,
@@ -57,11 +166,6 @@ RxgkStartAdapter()
                                                      &AdapterNumberOfVideoPresentSources,
                                                      &AdapterNumberOfChildren);
     DPRINT1("RxgkDriverExtension->DxgkDdiStartDevice: returned with Status %X\n", Status);
-    DXGKARG_ENUMVIDPNCOFUNCMODALITY VidPnNetwork = {0};
-    Status = RxgkDriverExtension->DxgkDdiEnumVidPnCofuncModality(RxgkDriverExtension->MiniportContext,
-                                                                &VidPnNetwork);
-       DPRINT1("RxgkDriverExtension->DxgkDdiEnumVidPnCofuncModality: returned with Status %X\n", Status);
-    __debugbreak();
     return Status;
 }
 

@@ -11,6 +11,7 @@ list(APPEND SOURCE
      miniport/registry.cpp
      miniport/rxgkdispatch.cpp
      miniport/rxgkport.cpp
+     videoss/vidpininterface.cpp
      )
 
 add_library(dxgkrnl MODULE

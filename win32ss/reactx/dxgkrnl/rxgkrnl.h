@@ -46,6 +46,17 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     BUS_INTERFACE_STANDARD BusInterface;
     ULONG BusInterruptLevel;
     ULONG BusInterruptVector;
+    ULONG InterruptVector;
+    ULONG InterruptLevel;
+    BOOLEAN InterruptShared;
+    PKINTERRUPT InterruptObject;
+    KSPIN_LOCK InterruptSpinLock;
+     KINTERRUPT_MODE InterruptMode;
+
 } RXGK_PRIVATE_EXTENSION, *PRXGK_PRIVATE_EXTENSION;
 
 #include "include/rxgkport.h"
+
+NTSTATUS
+NTAPI
+DxgkrnlSetupResourceList(_Inout_ PCM_RESOURCE_LIST* ResourceList);

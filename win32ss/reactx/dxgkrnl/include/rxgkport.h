@@ -86,3 +86,5 @@ RxgkpQueryInterface(
     _In_ const GUID* Guid,
     _Out_ PVOID Interface,
     _In_ ULONG Size);
+
+#include "vidpnss.h"

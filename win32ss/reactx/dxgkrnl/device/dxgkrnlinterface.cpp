@@ -393,7 +393,7 @@ APIENTRY
 CALLBACK
 RxgkCbQueryMonitorInterface(_In_ const HANDLE                          hAdapter,
                             _In_ const DXGK_MONITOR_INTERFACE_VERSION  MonitorInterfaceVersion,
-                            _Outptr_ const PDXGK_MONITOR_INTERFACE*    ppMonitorInterface)
+                            _Outptr_ const DXGK_MONITOR_INTERFACE**    ppMonitorInterface)
 {
     //TODO: Implement meh
     UNIMPLEMENTED;
@@ -433,18 +433,6 @@ RxgkCbExcluseAdapterAccess(_In_ HANDLE DeviceHandle,
     return STATUS_UNSUCCESSFUL;
 }
 
-NTSTATUS
-APIENTRY
-CALLBACK
-RxgkCbQueryVidPnInterface(_In_ const D3DKMDT_HVIDPN                   hVidPn,
-                           _In_ const DXGK_VIDPN_INTERFACE_VERSION    VidPnInterfaceVersion,
-                           _Outptr_ const PDXGK_VIDPN_INTERFACE       ppVidPnInterface)
-{
-    UNIMPLEMENTED;
-    __debugbreak();
-    return STATUS_UNSUCCESSFUL;
-}
-
 BOOLEAN
 APIENTRY
 RxgkCbQueueDpc(_In_ HANDLE DeviceHandle)
@@ -462,12 +450,10 @@ RxgkCbSynchronizeExecution(_In_ HANDLE DeviceHandle,
                            _In_ ULONG MessageNumber,
                            _Out_ PBOOLEAN ReturnValue)
 {
-{
     DPRINT1("RxgkCbSynchronizeExecution: ENtry\n");
-//    *ReturnValue = KeSynchronizeExecution(RxgkDriverExtension->InterruptObject, SynchronizeRoutine, Context);
-   *ReturnValue = 0;
+    *ReturnValue = KeSynchronizeExecution(RxgkDriverExtension->InterruptObject, SynchronizeRoutine, Context);
     return STATUS_SUCCESS;
-}
+
 
 }
 

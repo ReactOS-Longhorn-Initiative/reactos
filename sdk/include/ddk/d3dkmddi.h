@@ -833,7 +833,7 @@ NTSTATUS
 (APIENTRY *DXGKDDI_VIDPN_GETTOPOLOGY)(
     _In_ const D3DKMDT_HVIDPN                              hVidPn,
     _Out_ D3DKMDT_HVIDPNTOPOLOGY*                          phVidPnTopology,
-    _Outptr_ const PDXGK_VIDPNTOPOLOGY_INTERFACE           ppVidPnTopologyInterface);
+    _Outptr_ const DXGK_VIDPNTOPOLOGY_INTERFACE**          ppVidPnTopologyInterface);
 
 
 typedef
@@ -1113,14 +1113,14 @@ NTSTATUS
 (APIENTRY CALLBACK *DXGKCB_QUERYVIDPNINTERFACE)(
     _In_ const D3DKMDT_HVIDPN                                 hVidPn,
     _In_ const DXGK_VIDPN_INTERFACE_VERSION                   VidPnInterfaceVersion,
-    _Outptr_ const PDXGK_VIDPN_INTERFACE                  ppVidPnInterface);
+    _Outptr_ const DXGK_VIDPN_INTERFACE**                     ppVidPnInterface);
 
 typedef
 NTSTATUS
 (APIENTRY CALLBACK *DXGKCB_QUERYMONITORINTERFACE)(
     _In_ const HANDLE                          hAdapter,
     _In_ const DXGK_MONITOR_INTERFACE_VERSION  MonitorInterfaceVersion,
-    _Outptr_ const PDXGK_MONITOR_INTERFACE*    ppMonitorInterface);
+    _Outptr_ const DXGK_MONITOR_INTERFACE**    ppMonitorInterface);
 
 typedef
 NTSTATUS
