@@ -39,7 +39,7 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     PDXGKDDI_DISPATCH_IO_REQUEST             DxgkDdiDispatchIoRequest;
     PDXGKDDI_INTERRUPT_ROUTINE               DxgkDdiInterruptRoutine;
     PDXGKDDI_DPC_ROUTINE                     DxgkDdiDpcRoutine;
-
+    PDXGKDDI_QUERYADAPTERINFO                DxgkDdiQueryAdapterInfo;
     PDXGKDDI_RECOMMENDFUNCTIONALVIDPN        DxgkDdiRecommendFunctionalVidPn;
     PDXGKDDI_ENUMVIDPNCOFUNCMODALITY         DxgkDdiEnumVidPnCofuncModality;
     // BUS
