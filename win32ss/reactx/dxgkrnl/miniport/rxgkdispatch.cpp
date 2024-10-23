@@ -166,6 +166,16 @@ RxgkStartAdapter()
                                                      &AdapterNumberOfVideoPresentSources,
                                                      &AdapterNumberOfChildren);
     DPRINT1("RxgkDriverExtension->DxgkDdiStartDevice: returned with Status %X\n", Status);
+
+
+    DXGKARG_CREATEDEVICE CreateDevice = {0};
+    DXGK_DEVICEINFO pInfo = {0};
+    CreateDevice.pInfo = &pInfo;
+    CreateDevice.hDevice = (HANDLE)0x100;
+    Status = RxgkDriverExtension->DxgkDdiCreateDevice(RxgkDriverExtension->MiniportContext,
+                                                        &CreateDevice);
+    DPRINT1("RxgkDriverExtension->DxgkDdiCreateDevice: returned with Status %X\n", Status);
+    __debugbreak();
     return Status;
 }
 

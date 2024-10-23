@@ -47,6 +47,8 @@ RxgkPortInitializeMiniport(_In_ PDRIVER_OBJECT DriverObject,
     RxgkDriverExtension->DxgkDdiRecommendFunctionalVidPn = DriverInitData->DxgkDdiRecommendFunctionalVidPn;
     RxgkDriverExtension->DxgkDdiEnumVidPnCofuncModality = DriverInitData->DxgkDdiEnumVidPnCofuncModality;
     RxgkDriverExtension->DxgkDdiQueryAdapterInfo = DriverInitData->DxgkDdiQueryAdapterInfo;
+    RxgkDriverExtension->DxgkDdiCreateDevice = DriverInitData->DxgkDdiCreateDevice;
+
     DPRINT1("RDDM: WDDM Miniport driver reports a version of %X\n", RxgkDriverExtension->Version);
     PDRIVER_EXTENSION DriverExtend;
 

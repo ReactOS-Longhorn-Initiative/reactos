@@ -8,10 +8,11 @@
 
 #include <win32k.h>
 DBG_DEFAULT_CHANNEL(UserDisplay);
+#include <debug.h>
 
 BOOL gbBaseVideo = FALSE;
 static PPROCESSINFO gpFullscreen = NULL;
-
+extern BOOLEAN IsWDDMOn;
 static const PWCHAR KEY_VIDEO = L"\\Registry\\Machine\\HARDWARE\\DEVICEMAP\\VIDEO";
 
 VOID
@@ -100,10 +101,50 @@ InitDisplayDriver(
         return NULL;
     }
 
-    /* Initialize the UNICODE_STRING */
-    ustrDisplayDrivers.Buffer = awcBuffer;
-    ustrDisplayDrivers.MaximumLength = (USHORT)cbSize;
-    ustrDisplayDrivers.Length = (USHORT)cbSize;
+    /*
+     *
+     * FIME:
+     * Well this is awkward, this is kind of a retardeed way to achieve
+     * what i want. But the way windows does this doesn't make much sense either..
+     * I should seen concil from the people that know win32k logic better for guidence
+     * because this is dumb and i don't know what i'm doing.
+     * I'm just trying to get the display driver to load.
+     * I'm not sure if this is the right way to do it.
+     * I'm not sure if this is the right place to do it.
+     * I'm not sure if this is the right time to do it.
+     *
+     */
+    UNICODE_STRING testOne, TestTwo;
+    RtlInitUnicodeString(&testOne, L"framebuf");
+    RtlInitUnicodeString(&TestTwo, awcBuffer);
+    wchar_t *str = L"cdd";
+    if (RtlCompareUnicodeString(&testOne, &TestTwo, TRUE) == 0)
+    {
+        /* Check to see if WDDM is on*/
+        if (IsWDDMOn == TRUE)
+        {
+            ustrDisplayDrivers.Buffer = str;
+            cbSize = sizeof(str);
+            DPRINT1("Detected WDDM Driver\n");
+        }
+        else
+        {
+            DPRINT1("Falling back to generic framebuf\n");
+            /* Initialize the UNICODE_STRING */
+            ustrDisplayDrivers.Buffer = awcBuffer;
+            ustrDisplayDrivers.MaximumLength = (USHORT)cbSize;
+            ustrDisplayDrivers.Length = (USHORT)cbSize;
+        }
+
+    }
+    else
+    {
+        DPRINT1("Detected accelerated XDDM Driver\n");
+        /* Initialize the UNICODE_STRING */
+        ustrDisplayDrivers.Buffer = awcBuffer;
+        ustrDisplayDrivers.MaximumLength = (USHORT)cbSize;
+        ustrDisplayDrivers.Length = (USHORT)cbSize;
+    }
 
     /* Set Buffer for description and size of remaining buffer */
     ustrDescription.Buffer = awcBuffer + (cbSize / sizeof(WCHAR));
@@ -145,7 +186,6 @@ InitDisplayDriver(
 
     return pGraphicsDevice;
 }
-
 NTSTATUS
 NTAPI
 InitVideo(VOID)

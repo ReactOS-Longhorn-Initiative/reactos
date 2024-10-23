@@ -42,6 +42,7 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     PDXGKDDI_QUERYADAPTERINFO                DxgkDdiQueryAdapterInfo;
     PDXGKDDI_RECOMMENDFUNCTIONALVIDPN        DxgkDdiRecommendFunctionalVidPn;
     PDXGKDDI_ENUMVIDPNCOFUNCMODALITY         DxgkDdiEnumVidPnCofuncModality;
+    PDXGKDDI_CREATEDEVICE                    DxgkDdiCreateDevice;
     // BUS
     BUS_INTERFACE_STANDARD BusInterface;
     ULONG BusInterruptLevel;
