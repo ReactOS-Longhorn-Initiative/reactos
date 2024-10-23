@@ -7,11 +7,14 @@
 
 #pragma once
 
+#include <ntifs.h>
 #include <ntddk.h>
 #include <windef.h>
 #include <ntstatus.h>
 #include <stdio.h>
 #include <ntddvdeo.h>
+#include <exfuncs.h>
+#include <ntagp.h>
 #include <dispmprt.h>
 #include <reactos/rddm/rddm_private.h>
 typedef struct _RXGK_PRIVATE_EXTENSION

@@ -127,3 +127,34 @@ GdiDllInitialize(
 }
 
 /* EOF */
+
+#include <debug.h>
+
+#include <d3dkmddi.h>
+NTSTATUS
+WINAPI
+D3DKMTOpenAdapterFromGdiDisplayName(_Inout_ D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME* unnamedParam1)
+{
+    HDC hdc = NULL;
+    DPRINT1("D3DKMTOpenAdapterFromGdiDisplayName: Entry\n Adapter: ");
+    OutputDebugStringW(unnamedParam1->DeviceName);
+    DPRINT1("\n");
+    hdc = CreateDCW(unnamedParam1->DeviceName, unnamedParam1->DeviceName, 0, 0);
+
+
+    D3DKMT_OPENADAPTERFROMHDC HdcOpenAdapter = {0};
+    HdcOpenAdapter.AdapterLuid = unnamedParam1->AdapterLuid;
+    HdcOpenAdapter.hDc = hdc;
+    HdcOpenAdapter.VidPnSourceId = unnamedParam1->VidPnSourceId;
+    HdcOpenAdapter.hAdapter = unnamedParam1->hAdapter;
+    NTSTATUS Status = NtGdiDdDDIOpenAdapterFromHdc(&HdcOpenAdapter);
+
+    if (Status == STATUS_SUCCESS)
+    {
+        unnamedParam1->AdapterLuid = HdcOpenAdapter.AdapterLuid;
+        unnamedParam1->VidPnSourceId = HdcOpenAdapter.VidPnSourceId;
+        unnamedParam1->hAdapter = HdcOpenAdapter.hAdapter;
+    }
+
+    return Status;
+}

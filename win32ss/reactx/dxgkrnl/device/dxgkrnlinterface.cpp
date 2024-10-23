@@ -1,3 +1,5 @@
+
+
 #include <rxgkrnl.h>
 
 #include <debug.h>
@@ -143,13 +145,21 @@ APIENTRY
 RxgkCbGetDeviceInformation(_In_ HANDLE DeviceHandle,
                            _Out_ PDXGK_DEVICE_INFO DeviceInfo)
 {
+    SYSTEM_BASIC_INFORMATION SystemBasicInfo;
     PHYSICAL_ADDRESS PhyNull, HighestPhysicalAddress;
     NTSTATUS Status;
-
     PCM_RESOURCE_LIST TranslatedResourceList;
     PhyNull.QuadPart = NULL;
-    HighestPhysicalAddress.QuadPart = 0x40000000;
+    HighestPhysicalAddress.QuadPart = 0x00000000FFFFFFFF;
 
+    Status = ZwQuerySystemInformation(SystemBasicInformation,
+                                      &SystemBasicInfo,
+                                      sizeof(SystemBasicInfo),
+                                      NULL);
+    if (Status != STATUS_SUCCESS)
+    {
+        DPRINT1("ZwQuerySystemInformation: Failed with status: %X\n", Status);
+    }
 
     Status = DxgkrnlSetupResourceList(&TranslatedResourceList);
     if (Status != STATUS_SUCCESS)
@@ -161,12 +171,15 @@ RxgkCbGetDeviceInformation(_In_ HANDLE DeviceHandle,
     DeviceInfo->MiniportDeviceContext = RxgkDriverExtension->MiniportFdo;
     DeviceInfo->PhysicalDeviceObject = RxgkDriverExtension->MiniportPdo;
     DeviceInfo->DockingState = DockStateUnsupported;
-    DeviceInfo->SystemMemorySize.QuadPart = 0x30000000;
-    DeviceInfo->AgpApertureBase = PhyNull;
-    DeviceInfo->AgpApertureSize = 0;
+    DeviceInfo->SystemMemorySize.QuadPart = (SystemBasicInfo.NumberOfPhysicalPages *
+                                             SystemBasicInfo.PageSize);
     DeviceInfo->DeviceRegistryPath = RxgkDriverExtension->RegistryPath;
     DeviceInfo->HighestPhysicalAddress = HighestPhysicalAddress;
     DeviceInfo->MiniportDeviceContext = RxgkDriverExtension->MiniportContext;
+
+    // AGP can suck my
+    DeviceInfo->AgpApertureBase = PhyNull;
+    DeviceInfo->AgpApertureSize = 0;
     return STATUS_SUCCESS;
 }
 

@@ -12,19 +12,8 @@ IntVideoPortInterruptRoutine(
    IN struct _KINTERRUPT *Interrupt,
    IN PVOID ServiceContext)
 {
-    #if 0
-   PVIDEO_PORT_DEVICE_EXTENSION DeviceExtension = ServiceContext;
-
-   ASSERT(DeviceExtension->DriverExtension->InitializationData.HwInterrupt != NULL);
-
-   return DeviceExtension->DriverExtension->InitializationData.HwInterrupt(
-      &DeviceExtension->MiniPortDeviceExtension);
-    #endif
-
+    DPRINT1("RxgkIntVideoPortInterruptRoutine: Entry");
     return RxgkDriverExtension->DxgkDdiInterruptRoutine(RxgkDriverExtension->MiniportContext, 0);
-
-    __debugbreak();
-    return TRUE;
 }
 
 
@@ -35,7 +24,7 @@ IntVideoPortSetupInterrupt()
         RxgkDriverExtension->InterruptMode = LevelSensitive;
     else
         RxgkDriverExtension->InterruptMode = Latched;
-        
+
    NTSTATUS Status;
    if ((RxgkDriverExtension->BusInterruptLevel != 0 ||
        RxgkDriverExtension->BusInterruptVector != 0))
@@ -104,7 +93,7 @@ RxgkSetupInterrupts()
                 RxgkDriverExtension->InterruptShared = TRUE;
             else
                 RxgkDriverExtension->InterruptShared = FALSE;
-            
+
             DPRINT1("InterruptLevel: %X, InterruptVector %X\n", RxgkDriverExtension->BusInterruptLevel, RxgkDriverExtension->BusInterruptVector );
         }
     }
@@ -153,8 +142,11 @@ RxgkStartAdapter()
             return Status;
     }
 
-    /* Acquire StartInfo information */
+    /* Acquire StartInfo information - ?*/
     DXGK_START_INFO     DxgkStartInfo = {0};
+    DxgkStartInfo.RequiredDmaQueueEntry = 1;
+    DxgkStartInfo.AdapterGuid = {0};
+    DxgkStartInfo.AdapterGuid.Data1 = 1;
     /* Dxgkrnl Callbacks */
     /* Interrupt routine information*/
     RxgkSetupInterrupts();
@@ -167,15 +159,6 @@ RxgkStartAdapter()
                                                      &AdapterNumberOfChildren);
     DPRINT1("RxgkDriverExtension->DxgkDdiStartDevice: returned with Status %X\n", Status);
 
-
-    DXGKARG_CREATEDEVICE CreateDevice = {0};
-    DXGK_DEVICEINFO pInfo = {0};
-    CreateDevice.pInfo = &pInfo;
-    CreateDevice.hDevice = (HANDLE)0x100;
-    Status = RxgkDriverExtension->DxgkDdiCreateDevice(RxgkDriverExtension->MiniportContext,
-                                                        &CreateDevice);
-    DPRINT1("RxgkDriverExtension->DxgkDdiCreateDevice: returned with Status %X\n", Status);
-    __debugbreak();
     return Status;
 }
 
