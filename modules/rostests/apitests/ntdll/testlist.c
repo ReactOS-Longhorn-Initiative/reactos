@@ -4,6 +4,7 @@
 #include <apitest.h>
 
 extern void func_DllLoadNotification(void);
+extern void func_implicit_tls(void);
 extern void func_LdrEnumResources(void);
 extern void func_LdrLoadDll(void);
 extern void func_load_notifications(void);
@@ -109,6 +110,7 @@ extern void func_UserModeException(void);
 const struct test winetest_testlist[] =
 {
     { "DllLoadNotification",            func_DllLoadNotification },
+    { "implicit_tls",                   func_implicit_tls },
     { "LdrEnumResources",               func_LdrEnumResources },
     { "LdrLoadDll",                     func_LdrLoadDll },
     { "load_notifications",             func_load_notifications },
