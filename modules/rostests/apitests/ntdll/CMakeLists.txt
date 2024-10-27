@@ -1,7 +1,9 @@
 
+add_subdirectory(implicit_tls)
 add_subdirectory(load_notifications)
 add_subdirectory(empty_dll)
 
+include_directories($<TARGET_FILE_DIR:implicit_tls>)
 include_directories($<TARGET_FILE_DIR:load_notifications>)
 include_directories($<TARGET_FILE_DIR:empty_dll>)
 include_directories(${REACTOS_SOURCE_DIR}/ntoskrnl/include)
@@ -30,6 +32,7 @@ add_dependencies(ntdll_crt_test_lib psdk)
 
 list(APPEND SOURCE
     DllLoadNotification.c
+    implicit_tls.c
     LdrEnumResources.c
     LdrLoadDll.c
     load_notifications.c
@@ -152,6 +155,7 @@ endif()
 list(APPEND PCH_SKIP_SOURCE
     testlist.c)
 
+add_rc_deps(testdata.rc ${CMAKE_CURRENT_BINARY_DIR}/implicit_tls/implicit_tls.dll)
 add_rc_deps(testdata.rc ${CMAKE_CURRENT_BINARY_DIR}/load_notifications/load_notifications.dll)
 add_rc_deps(testdata.rc ${CMAKE_CURRENT_BINARY_DIR}/empty_dll/empty_dll.dll)
 
@@ -171,7 +175,7 @@ target_link_libraries(ntdll_apitest ntdll_crt_test_lib rtl_test_lib wine uuid ${
 set_module_type(ntdll_apitest win32cui)
 add_importlibs(ntdll_apitest msvcrt advapi32 kernel32 ntdll)
 add_pch(ntdll_apitest precomp.h "${PCH_SKIP_SOURCE}")
-add_dependencies(ntdll_apitest load_notifications empty_dll)
+add_dependencies(ntdll_apitest load_notifications empty_dll implicit_tls)
 
 if(NOT MSVC)
     set_source_files_properties(
