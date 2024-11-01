@@ -29,7 +29,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_SUCCESS
 Language=Bulgarian
-ERROR_SUCCESS - Действието е завършено успешно.
+ERROR_SUCCESS - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=1
@@ -37,7 +37,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_FUNCTION
 Language=Bulgarian
-ERROR_INVALID_FUNCTION - Грешна функция.
+ERROR_INVALID_FUNCTION - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=2
@@ -45,7 +45,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_FILE_NOT_FOUND
 Language=Bulgarian
-ERROR_FILE_NOT_FOUND - Файлът не е открит.
+ERROR_FILE_NOT_FOUND - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=3
@@ -53,7 +53,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_PATH_NOT_FOUND
 Language=Bulgarian
-ERROR_PATH_NOT_FOUND - Пътят не е открит.
+ERROR_PATH_NOT_FOUND - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=4
@@ -61,7 +61,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_TOO_MANY_OPEN_FILES
 Language=Bulgarian
-ERROR_TOO_MANY_OPEN_FILES - Твърде много отворени файлове.
+ERROR_TOO_MANY_OPEN_FILES - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=5
@@ -69,7 +69,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_ACCESS_DENIED
 Language=Bulgarian
-ERROR_ACCESS_DENIED - Достъпът е отказан.
+ERROR_ACCESS_DENIED - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=6
@@ -77,7 +77,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_HANDLE
 Language=Bulgarian
-ERROR_INVALID_HANDLE - Грешен държател.
+ERROR_INVALID_HANDLE - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=7
@@ -93,7 +93,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NOT_ENOUGH_MEMORY
 Language=Bulgarian
-ERROR_NOT_ENOUGH_MEMORY - Недостатъчна складова наличност за изпълнение на заповедта.
+ERROR_NOT_ENOUGH_MEMORY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=9
@@ -109,7 +109,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_ENVIRONMENT
 Language=Bulgarian
-ERROR_BAD_ENVIRONMENT - Средата е неправилна.
+ERROR_BAD_ENVIRONMENT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=11
@@ -117,7 +117,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_FORMAT
 Language=Bulgarian
-ERROR_BAD_FORMAT - Направен е опит за зареждане на приложение с неправилен формат.
+ERROR_BAD_FORMAT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=12
@@ -125,7 +125,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_ACCESS
 Language=Bulgarian
-ERROR_INVALID_ACCESS - Кодът за достъп е грешен.
+ERROR_INVALID_ACCESS - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=13
@@ -133,7 +133,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_DATA
 Language=Bulgarian
-ERROR_INVALID_DATA - Неправилни данни.
+ERROR_INVALID_DATA - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=14
@@ -149,7 +149,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_DRIVE
 Language=Bulgarian
-ERROR_INVALID_DRIVE - Уредбата не може да намери указаното устройство.
+ERROR_INVALID_DRIVE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=16
@@ -157,7 +157,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_CURRENT_DIRECTORY
 Language=Bulgarian
-ERROR_CURRENT_DIRECTORY - Изтриването на папката е невъзможно.
+ERROR_CURRENT_DIRECTORY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=17
@@ -165,7 +165,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NOT_SAME_DEVICE
 Language=Bulgarian
-ERROR_NOT_SAME_DEVICE - Уредбата не може да премести файла на друго дисково устройство.
+ERROR_NOT_SAME_DEVICE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=18
@@ -173,7 +173,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NO_MORE_FILES
 Language=Bulgarian
-ERROR_NO_MORE_FILES - Няма повече файлове.
+ERROR_NO_MORE_FILES - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=19
@@ -181,7 +181,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_WRITE_PROTECT
 Language=Bulgarian
-ERROR_WRITE_PROTECT - Носителят е защитен против запис.
+ERROR_WRITE_PROTECT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=20
@@ -189,7 +189,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_UNIT
 Language=Bulgarian
-ERROR_BAD_UNIT - Уредбата не може да намери указаното устройство.
+ERROR_BAD_UNIT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=21
@@ -197,7 +197,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NOT_READY
 Language=Bulgarian
-ERROR_NOT_READY - Устройството не е готово.
+ERROR_NOT_READY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=22
@@ -205,7 +205,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_COMMAND
 Language=Bulgarian
-ERROR_BAD_COMMAND - Устройството не разпознава командата.
+ERROR_BAD_COMMAND - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=23
@@ -213,7 +213,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_CRC
 Language=Bulgarian
-ERROR_CRC - Грешка в данните (проверка на цикличния остатък (crc)).
+ERROR_CRC - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (crc)).
 .
 
 MessageId=24
@@ -221,7 +221,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_LENGTH
 Language=Bulgarian
-ERROR_BAD_LENGTH - Програмата издаде команда, но дължината на командата е грешна.
+ERROR_BAD_LENGTH - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=25
@@ -229,7 +229,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_SEEK
 Language=Bulgarian
-ERROR_SEEK - Устройството не може да открие определена област или пътечката от диска.
+ERROR_SEEK - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=26
@@ -237,7 +237,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NOT_DOS_DISK
 Language=Bulgarian
-ERROR_NOT_DOS_DISK - Указаният диск или дискета не може да бъде достъпен.
+ERROR_NOT_DOS_DISK - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=27
@@ -245,7 +245,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_SECTOR_NOT_FOUND
 Language=Bulgarian
-ERROR_SECTOR_NOT_FOUND - Устройството не може да намери заявения отсек (сектор).
+ERROR_SECTOR_NOT_FOUND - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ).
 .
 
 MessageId=28
@@ -253,7 +253,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_OUT_OF_PAPER
 Language=Bulgarian
-ERROR_OUT_OF_PAPER - Хартията в печатача свърши.
+ERROR_OUT_OF_PAPER - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=29
@@ -261,7 +261,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_WRITE_FAULT
 Language=Bulgarian
-ERROR_WRITE_FAULT - Уредбата не може да пише на указаното устройство.
+ERROR_WRITE_FAULT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=30
@@ -269,14 +269,14 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_READ_FAULT
 Language=Bulgarian
-ERROR_READ_FAULT - Уредбата не може да чете от указаното устройство..
+ERROR_READ_FAULT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ..
 
 MessageId=31
 Severity=Success
 Facility=System
 SymbolicName=ERROR_GEN_FAILURE
 Language=Bulgarian
-ERROR_GEN_FAILURE - Закаченото към уредбата устройсване не работи.
+ERROR_GEN_FAILURE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=32
@@ -284,7 +284,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_SHARING_VIOLATION
 Language=Bulgarian
-ERROR_SHARING_VIOLATION - Действието няма достъп до файла, защото е зает от от друго действие.
+ERROR_SHARING_VIOLATION - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=33
@@ -300,7 +300,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_WRONG_DISK
 Language=Bulgarian
-ERROR_WRONG_DISK - В устройството има неправилна дискета. Сложете %2 (Сериен № на тома: %3) в устройство %1.
+ERROR_WRONG_DISK - пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅ %2 (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ: %3) пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=36
@@ -316,7 +316,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_HANDLE_EOF
 Language=Bulgarian
-ERROR_HANDLE_EOF - Достигнат е краят на файла.
+ERROR_HANDLE_EOF - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=39
@@ -324,7 +324,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_HANDLE_DISK_FULL
 Language=Bulgarian
-ERROR_HANDLE_DISK_FULL - Дискът е пълен.
+ERROR_HANDLE_DISK_FULL - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=50
@@ -332,7 +332,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NOT_SUPPORTED
 Language=Bulgarian
-ERROR_NOT_SUPPORTED - Заявката не се поддържа.
+ERROR_NOT_SUPPORTED - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=51
@@ -356,7 +356,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_NETPATH
 Language=Bulgarian
-ERROR_BAD_NETPATH - Мрежовият път не е открит.
+ERROR_BAD_NETPATH - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=54
@@ -364,7 +364,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NETWORK_BUSY
 Language=Bulgarian
-ERROR_NETWORK_BUSY - Мрежата е заета.
+ERROR_NETWORK_BUSY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=55
@@ -388,7 +388,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_ADAP_HDW_ERR
 Language=Bulgarian
-ERROR_ADAP_HDW_ERR - Възникнала е повреда в мрежовата карта.
+ERROR_ADAP_HDW_ERR - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=58
@@ -396,7 +396,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_NET_RESP
 Language=Bulgarian
-ERROR_BAD_NET_RESP - Указаният сървър не може да извърши заявеното действие.
+ERROR_BAD_NET_RESP - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=59
@@ -404,7 +404,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_UNEXP_NET_ERR
 Language=Bulgarian
-ERROR_UNEXP_NET_ERR - Появи се неочаквана мрежова грешка.
+ERROR_UNEXP_NET_ERR - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=60
@@ -420,7 +420,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_PRINTQ_FULL
 Language=Bulgarian
-ERROR_PRINTQ_FULL - Опашката на печатача е пълна.
+ERROR_PRINTQ_FULL - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=62
@@ -468,7 +468,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_NET_NAME
 Language=Bulgarian
-ERROR_BAD_NET_NAME - Мрежовото име не е намерено.
+ERROR_BAD_NET_NAME - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=68
@@ -516,7 +516,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_FILE_EXISTS
 Language=Bulgarian
-ERROR_FILE_EXISTS - Файлът съществува.
+ERROR_FILE_EXISTS - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=82
@@ -524,7 +524,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_CANNOT_MAKE
 Language=Bulgarian
-ERROR_CANNOT_MAKE - Неуспешно създаване на файл или папка.
+ERROR_CANNOT_MAKE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=83
@@ -548,7 +548,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_ALREADY_ASSIGNED
 Language=Bulgarian
-ERROR_ALREADY_ASSIGNED - Името на местното устройство вече се използва.
+ERROR_ALREADY_ASSIGNED - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=86
@@ -564,7 +564,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_PARAMETER
 Language=Bulgarian
-ERROR_INVALID_PARAMETER - Неправилен ключ.
+ERROR_INVALID_PARAMETER - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.
 .
 
 MessageId=88
@@ -636,7 +636,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_SEM_USER_LIMIT
 Language=Bulgarian
-ERROR_SEM_USER_LIMIT - Поставете дискетата в устройство %1.
+ERROR_SEM_USER_LIMIT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=107
@@ -668,7 +668,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_OPEN_FAILED
 Language=Bulgarian
-ERROR_OPEN_FAILED - Системе не удалось открыть указанный файл или устройство.
+ERROR_OPEN_FAILED - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=111
@@ -676,7 +676,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BUFFER_OVERFLOW
 Language=Bulgarian
-ERROR_BUFFER_OVERFLOW - Имя файла е твърде дълго.
+ERROR_BUFFER_OVERFLOW - пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=112
@@ -684,7 +684,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_DISK_FULL
 Language=Bulgarian
-ERROR_DISK_FULL - На диска няма достатъчно място.
+ERROR_DISK_FULL - пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=113
@@ -732,7 +732,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_CALL_NOT_IMPLEMENTED
 Language=Bulgarian
-ERROR_CALL_NOT_IMPLEMENTED - Эта функция не поддерживается в данной системе.
+ERROR_CALL_NOT_IMPLEMENTED - пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=121
@@ -756,7 +756,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_NAME
 Language=Bulgarian
-ERROR_INVALID_NAME - Имя файла, директории или метки диска имеют неверный синтаксис.
+ERROR_INVALID_NAME - пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=124
@@ -772,7 +772,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_NO_VOLUME_LABEL
 Language=Bulgarian
-ERROR_NO_VOLUME_LABEL - Диск не имеет метки тома.
+ERROR_NO_VOLUME_LABEL - пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.
 .
 
 MessageId=126
@@ -780,7 +780,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_MOD_NOT_FOUND
 Language=Bulgarian
-ERROR_MOD_NOT_FOUND - Указанный модуль не найден.
+ERROR_MOD_NOT_FOUND - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=127
@@ -788,7 +788,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_PROC_NOT_FOUND
 Language=Bulgarian
-ERROR_PROC_NOT_FOUND - Указанная процедура не найдена.
+ERROR_PROC_NOT_FOUND - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=128
@@ -804,7 +804,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_CHILD_NOT_COMPLETE
 Language=Bulgarian
-ERROR_CHILD_NOT_COMPLETE - Приложение %1 не может быть запущено в режиме Win32.
+ERROR_CHILD_NOT_COMPLETE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Win32.
 .
 
 MessageId=130
@@ -932,7 +932,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_DIR_NOT_EMPTY
 Language=Bulgarian
-ERROR_DIR_NOT_EMPTY - Директория не пустая.
+ERROR_DIR_NOT_EMPTY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=146
@@ -956,7 +956,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_PATH_BUSY
 Language=Bulgarian
-ERROR_PATH_BUSY - Указанный путь не может быть использован в данное время.
+ERROR_PATH_BUSY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=149
@@ -1012,7 +1012,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_TOO_MANY_TCBS
 Language=Bulgarian
-ERROR_TOO_MANY_TCBS - Невозможно создать другой поток.
+ERROR_TOO_MANY_TCBS - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=156
@@ -1060,7 +1060,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_PATHNAME
 Language=Bulgarian
-ERROR_BAD_PATHNAME - Указанный путь неверный.
+ERROR_BAD_PATHNAME - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=162
@@ -1092,7 +1092,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BUSY
 Language=Bulgarian
-ERROR_BUSY - Требуемый ресурс уже используется.
+ERROR_BUSY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=173
@@ -1124,7 +1124,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_ORDINAL
 Language=Bulgarian
-ERROR_INVALID_ORDINAL - Операционная система не может запустить %1.
+ERROR_INVALID_ORDINAL - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=183
@@ -1156,7 +1156,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_STARTING_CODESEG
 Language=Bulgarian
-ERROR_INVALID_STARTING_CODESEG - Операционная система не может запустить %1.
+ERROR_INVALID_STARTING_CODESEG - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=189
@@ -1164,7 +1164,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_STACKSEG
 Language=Bulgarian
-ERROR_INVALID_STACKSEG - Операционная система не может запустить %1.
+ERROR_INVALID_STACKSEG - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=190
@@ -1172,7 +1172,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_MODULETYPE
 Language=Bulgarian
-ERROR_INVALID_MODULETYPE - Операционная система не может запустить %1.
+ERROR_INVALID_MODULETYPE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=191
@@ -1180,7 +1180,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_EXE_SIGNATURE
 Language=Bulgarian
-ERROR_INVALID_EXE_SIGNATURE - Невозможно запустить %1 в режиме Win32.
+ERROR_INVALID_EXE_SIGNATURE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1 пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Win32.
 .
 
 MessageId=192
@@ -1188,7 +1188,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_EXE_MARKED_INVALID
 Language=Bulgarian
-ERROR_EXE_MARKED_INVALID - Операционная система не может запустить %1.
+ERROR_EXE_MARKED_INVALID - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=193
@@ -1196,7 +1196,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_BAD_EXE_FORMAT
 Language=Bulgarian
-ERROR_BAD_EXE_FORMAT - %1 некорретное Win32 приложение.
+ERROR_BAD_EXE_FORMAT - %1 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Win32 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=194
@@ -1204,7 +1204,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_ITERATED_DATA_EXCEEDS_64k
 Language=Bulgarian
-ERROR_ITERATED_DATA_EXCEEDS_64k - Операционная система не может запустить %1.
+ERROR_ITERATED_DATA_EXCEEDS_64k - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=195
@@ -1212,7 +1212,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_MINALLOCSIZE
 Language=Bulgarian
-ERROR_INVALID_MINALLOCSIZE - Операционная система не может запустить %1.
+ERROR_INVALID_MINALLOCSIZE - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=196
@@ -1236,7 +1236,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INVALID_SEGDPL
 Language=Bulgarian
-ERROR_INVALID_SEGDPL - Операционная система не может запустить %1.
+ERROR_INVALID_SEGDPL - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=199
@@ -1260,7 +1260,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_RELOC_CHAIN_XEEDS_SEGLIM
 Language=Bulgarian
-ERROR_RELOC_CHAIN_XEEDS_SEGLIM - Операционная система не может запустить %1.
+ERROR_RELOC_CHAIN_XEEDS_SEGLIM - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=202
@@ -1268,7 +1268,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_INFLOOP_IN_RELOC_CHAIN
 Language=Bulgarian
-ERROR_INFLOOP_IN_RELOC_CHAIN - Операционная система не может запустить %1.
+ERROR_INFLOOP_IN_RELOC_CHAIN - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ %1.
 .
 
 MessageId=203
@@ -1292,7 +1292,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_FILENAME_EXCED_RANGE
 Language=Bulgarian
-ERROR_FILENAME_EXCED_RANGE - Имя файла или расширение слишком длинные.
+ERROR_FILENAME_EXCED_RANGE - пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=207
@@ -1412,7 +1412,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_MORE_DATA
 Language=Bulgarian
-ERROR_MORE_DATA - Другие данные недоступны.
+ERROR_MORE_DATA - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=240
@@ -1420,7 +1420,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_VC_DISCONNECTED
 Language=Bulgarian
-ERROR_VC_DISCONNECTED - Сессия была отменена.
+ERROR_VC_DISCONNECTED - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=254
@@ -1436,7 +1436,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_EA_LIST_INCONSISTENT
 Language=Bulgarian
-ERROR_EA_LIST_INCONSISTENT - Расширенные атрибуты протеворечивы.
+ERROR_EA_LIST_INCONSISTENT - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=258
@@ -1460,7 +1460,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_CANNOT_COPY
 Language=Bulgarian
-ERROR_CANNOT_COPY - Функция копирования не может быть использована.
+ERROR_CANNOT_COPY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=267
@@ -1468,7 +1468,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_DIRECTORY
 Language=Bulgarian
-ERROR_DIRECTORY - Неверное имя директории.
+ERROR_DIRECTORY - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=275
@@ -1508,7 +1508,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_EAS_NOT_SUPPORTED
 Language=Bulgarian
-ERROR_EAS_NOT_SUPPORTED - Смонтированная файловая система не поддерживает расширенные атрибуты.
+ERROR_EAS_NOT_SUPPORTED - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
 .
 
 MessageId=288
@@ -1620,7 +1620,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_ACPI_ERROR
 Language=Bulgarian
-ERROR_ACPI_ERROR - Произошла ошибка в подсистеме ACPI.
+ERROR_ACPI_ERROR - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ACPI.
 .
 
 MessageId=538
@@ -1628,7 +1628,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_ABIOS_ERROR
 Language=Bulgarian
-ERROR_ABIOS_ERROR - Произошла ошибка в подсистеме ABIOS.
+ERROR_ABIOS_ERROR - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ABIOS.
 .
 
 MessageId=539
@@ -1644,7 +1644,7 @@ Severity=Success
 Facility=System
 SymbolicName=ERROR_WX86_ERROR
 Language=Bulgarian
-ERROR_WX86_ERROR - Произошла ошибка в подсистеме WX86.
+ERROR_WX86_ERROR - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ WX86.
 .
 
 MessageId=541

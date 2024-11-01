@@ -22,110 +22,6 @@
 /* PUBLIC FUNCTIONS ***********************************************************/
 
 /*
- * @implemented
- */
-BOOL
-WINAPI
-QueryFullProcessImageNameW(HANDLE hProcess,
-                           DWORD dwFlags,
-                           LPWSTR lpExeName,
-                           PDWORD pdwSize)
-{
-    BYTE Buffer[sizeof(UNICODE_STRING) + MAX_PATH * sizeof(WCHAR)];
-    UNICODE_STRING *DynamicBuffer = NULL;
-    UNICODE_STRING *Result = NULL;
-    NTSTATUS Status;
-    DWORD Needed;
-
-    Status = NtQueryInformationProcess(hProcess,
-                                       ProcessImageFileName,
-                                       Buffer,
-                                       sizeof(Buffer) - sizeof(WCHAR),
-                                       &Needed);
-    if (Status == STATUS_INFO_LENGTH_MISMATCH)
-    {
-        DynamicBuffer = RtlAllocateHeap(RtlGetProcessHeap(), 0, Needed + sizeof(WCHAR));
-        if (!DynamicBuffer)
-        {
-            BaseSetLastNTError(STATUS_NO_MEMORY);
-            return FALSE;
-        }
-
-        Status = NtQueryInformationProcess(hProcess,
-                                           ProcessImageFileName,
-                                           (LPBYTE)DynamicBuffer,
-                                           Needed,
-                                           &Needed);
-        Result = DynamicBuffer;
-    }
-    else Result = (PUNICODE_STRING)Buffer;
-
-    if (!NT_SUCCESS(Status)) goto Cleanup;
-
-    if (Result->Length / sizeof(WCHAR) + 1 > *pdwSize)
-    {
-        Status = STATUS_BUFFER_TOO_SMALL;
-        goto Cleanup;
-    }
-
-    *pdwSize = Result->Length / sizeof(WCHAR);
-    memcpy(lpExeName, Result->Buffer, Result->Length);
-    lpExeName[*pdwSize] = 0;
-
-Cleanup:
-    RtlFreeHeap(RtlGetProcessHeap(), 0, DynamicBuffer);
-
-    if (!NT_SUCCESS(Status))
-    {
-        BaseSetLastNTError(Status);
-    }
-
-    return !Status;
-}
-
-
-/*
- * @implemented
- */
-BOOL
-WINAPI
-QueryFullProcessImageNameA(HANDLE hProcess,
-                           DWORD dwFlags,
-                           LPSTR lpExeName,
-                           PDWORD pdwSize)
-{
-    DWORD pdwSizeW = *pdwSize;
-    BOOL Result;
-    LPWSTR lpExeNameW;
-
-    lpExeNameW = RtlAllocateHeap(RtlGetProcessHeap(),
-                                 HEAP_ZERO_MEMORY,
-                                 *pdwSize * sizeof(WCHAR));
-    if (!lpExeNameW)
-    {
-        BaseSetLastNTError(STATUS_NO_MEMORY);
-        return FALSE;
-    }
-
-    Result = QueryFullProcessImageNameW(hProcess, dwFlags, lpExeNameW, &pdwSizeW);
-
-    if (Result)
-        Result = (0 != WideCharToMultiByte(CP_ACP, 0,
-                                           lpExeNameW,
-                                           -1,
-                                           lpExeName,
-                                           *pdwSize,
-                                           NULL, NULL));
-
-    if (Result)
-        *pdwSize = strlen(lpExeName);
-
-    RtlFreeHeap(RtlGetProcessHeap(), 0, lpExeNameW);
-    return Result;
-}
-
-
-/*
  * @unimplemented
  */
 HRESULT
@@ -154,58 +50,6 @@ GetApplicationRestart(IN HANDLE hProcess,
     UNIMPLEMENTED;
     return E_FAIL;
 }
-
-
-/*
- * @unimplemented
- */
-VOID
-WINAPI
-ApplicationRecoveryFinished(IN BOOL bSuccess)
-{
-    UNIMPLEMENTED;
-}
-
-
-/*
- * @unimplemented
- */
-HRESULT
-WINAPI
-ApplicationRecoveryInProgress(OUT PBOOL pbCancelled)
-{
-    UNIMPLEMENTED;
-    return E_FAIL;
-}
-
-
-/*
- * @unimplemented
- */
-HRESULT
-WINAPI
-RegisterApplicationRecoveryCallback(IN APPLICATION_RECOVERY_CALLBACK pRecoveryCallback,
-                                    IN PVOID pvParameter  OPTIONAL,
-                                    DWORD dwPingInterval,
-                                    DWORD dwFlags)
-{
-    UNIMPLEMENTED;
-    return E_FAIL;
-}
-
-
-/*
- * @unimplemented
- */
-HRESULT
-WINAPI
-RegisterApplicationRestart(IN PCWSTR pwzCommandline  OPTIONAL,
-                           IN DWORD dwFlags)
-{
-    UNIMPLEMENTED;
-    return E_FAIL;
-}
-
 
 /*
  * @implemented
@@ -444,96 +288,7 @@ CreateSymbolicLinkA(IN LPCSTR lpSymlinkFileName,
     return Ret;
 }
 
-
-/*
- * @unimplemented
- */
-DWORD
-WINAPI
-GetFinalPathNameByHandleW(IN HANDLE hFile,
-                          OUT LPWSTR lpszFilePath,
-                          IN DWORD cchFilePath,
-                          IN DWORD dwFlags)
-{
-    if (dwFlags & ~(VOLUME_NAME_DOS | VOLUME_NAME_GUID | VOLUME_NAME_NT |
-                    VOLUME_NAME_NONE | FILE_NAME_NORMALIZED | FILE_NAME_OPENED))
-    {
-        SetLastError(ERROR_INVALID_PARAMETER);
-        return 0;
-    }
-
-    UNIMPLEMENTED;
-    return 0;
-}
-
-
-/*
- * @implemented
- */
-DWORD
-WINAPI
-GetFinalPathNameByHandleA(IN HANDLE hFile,
-                          OUT LPSTR lpszFilePath,
-                          IN DWORD cchFilePath,
-                          IN DWORD dwFlags)
-{
-    WCHAR FilePathW[MAX_PATH];
-    UNICODE_STRING FilePathU;
-    DWORD PrevLastError;
-    DWORD Ret = 0;
-
-    if (cchFilePath != 0 &&
-        cchFilePath > sizeof(FilePathW) / sizeof(FilePathW[0]))
-    {
-        FilePathU.Length = 0;
-        FilePathU.MaximumLength = (USHORT)cchFilePath * sizeof(WCHAR);
-        FilePathU.Buffer = RtlAllocateHeap(RtlGetProcessHeap(),
-                                           0,
-                                           FilePathU.MaximumLength);
-        if (FilePathU.Buffer == NULL)
-        {
-            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-            return 0;
-        }
-    }
-    else
-    {
-        FilePathU.Length = 0;
-        FilePathU.MaximumLength = sizeof(FilePathW);
-        FilePathU.Buffer = FilePathW;
-    }
-
-    /* save the last error code */
-    PrevLastError = GetLastError();
-    SetLastError(ERROR_SUCCESS);
-
-    /* call the unicode version that does all the work */
-    Ret = GetFinalPathNameByHandleW(hFile,
-                                    FilePathU.Buffer,
-                                    cchFilePath,
-                                    dwFlags);
-
-    if (GetLastError() == ERROR_SUCCESS)
-    {
-        /* no error, restore the last error code and convert the string */
-        SetLastError(PrevLastError);
-
-        Ret = FilenameU2A_FitOrFail(lpszFilePath,
-                                    cchFilePath,
-                                    &FilePathU);
-    }
-
-    /* free allocated memory if necessary */
-    if (FilePathU.Buffer != FilePathW)
-    {
-        RtlFreeHeap(RtlGetProcessHeap(),
-                    0,
-                    FilePathU.Buffer);
-    }
-
-    return Ret;
-}
-
+ 
 
 /*
  * @unimplemented
@@ -569,21 +324,6 @@ GetFileBandwidthReservation(IN HANDLE hFile,
 }
 
 
-/*
- * @unimplemented
- */
-HANDLE
-WINAPI
-OpenFileById(IN HANDLE hFile,
-             IN LPFILE_ID_DESCRIPTOR lpFileID,
-             IN DWORD dwDesiredAccess,
-             IN DWORD dwShareMode,
-             IN LPSECURITY_ATTRIBUTES lpSecurityAttributes  OPTIONAL,
-             IN DWORD dwFlags)
-{
-    UNIMPLEMENTED;
-    return INVALID_HANDLE_VALUE;
-}
 
 
 
@@ -683,17 +423,6 @@ GetThreadPreferredUILanguages(
     return FALSE;
 }
 
-/*
- * @unimplemented
- */
-LANGID
-WINAPI
-GetThreadUILanguage(VOID)
-{
-    UNIMPLEMENTED;
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return 0;
-}
 
 /*
  * @unimplemented

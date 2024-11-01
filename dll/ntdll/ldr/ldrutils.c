@@ -2801,5 +2801,3 @@ LdrpUnloadShimEngine()
     LdrUnloadDll(g_pShimEngineModule);
     g_pShimEngineModule = NULL;
 }
-
-/* EOF */
