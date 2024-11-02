@@ -82,9 +82,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prev, WCHAR *cmdline, int sho
     static const WCHAR unregserverW[] = {'u','n','r','e','g','s','e','r','v','e','r',0};
 
     if(*cmdline == '-' || *cmdline == '/') {
-        if(!wcsicmp(cmdline+1, regserverW))
+        if(!_wcsicmp(cmdline+1, regserverW))
             return register_iexplore(TRUE);
-        if(!wcsicmp(cmdline+1, unregserverW))
+        if(!_wcsicmp(cmdline+1, unregserverW))
             return register_iexplore(FALSE);
     }
 
