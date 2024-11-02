@@ -1711,7 +1711,7 @@
 @ cdecl -version=0x400-0x502 -impsym _swprintf() swprintf # Compatibility with pre NT6
 @ stub swprintf_s
 @ cdecl _vsnprintf()
-@ cdecl -version=0x600+ _vsnprintf_s(ptr wstr ptr)
+@ cdecl -stub -version=0x600+ _vsnprintf_s(ptr wstr ptr)
 @ cdecl _vsnwprintf()
 ;@ cdecl -stub -version=0x600+ _vswprintf(ptr wstr ptr)
 @ cdecl _wcsicmp()
