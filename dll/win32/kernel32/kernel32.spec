@@ -87,7 +87,7 @@
 @ stdcall CloseHandle(long)
 @ stdcall -stub -version=0x600+ ClosePrivateNamespace(ptr long)
 @ stdcall CloseProfileUserMapping()
-@ stdcall -version=0xA00+ ClosePseudoConsole(ptr)
+@ stdcall -stub -version=0xA00+ ClosePseudoConsole(ptr)
 @ stdcall -version=0x600+ CloseThreadpool(ptr) NTDLL.TpReleasePool
 @ stdcall -version=0x600+ CloseThreadpoolCleanupGroup(ptr) NTDLL.TpReleaseCleanupGroup
 @ stdcall -version=0x600+ CloseThreadpoolCleanupGroupMembers(ptr long ptr) NTDLL.TpReleaseCleanupGroupMembers
@@ -176,7 +176,7 @@
 @ stdcall CreateProcessInternalA(ptr str str ptr ptr long long ptr str ptr ptr long)
 @ stdcall CreateProcessInternalW(ptr wstr wstr ptr ptr long long ptr wstr ptr ptr long)
 @ stdcall CreateProcessW(wstr wstr ptr ptr long long ptr wstr ptr ptr)
-@ stdcall -version=0xA00+ CreatePseudoConsole(long long long long ptr)
+@ stdcall -stub -version=0xA00+ CreatePseudoConsole(long long long long ptr)
 @ stdcall CreateRemoteThread(long ptr long ptr long long ptr)
 @ stdcall -version=0x601+ -stub CreateRemoteThreadEx(long ptr long ptr ptr long ptr ptr)
 @ stdcall CreateSemaphoreA(ptr long long str)
@@ -227,7 +227,7 @@
 @ stdcall DeleteFileW(wstr)
 @ stdcall -version=0x600+ DeleteProcThreadAttributeList(ptr)
 # @ stub -version=0x601+ DisableThreadProfiling
-@ stdcall -version=0xA00+ DiscardVirtualMemory(ptr long) 
+@ stdcall -stub -version=0xA00+ DiscardVirtualMemory(ptr long) 
 @ stdcall DeleteTimerQueue(long)
 @ stdcall DeleteTimerQueueEx(long long)
 @ stdcall DeleteTimerQueueTimer(long long long)
@@ -465,17 +465,17 @@
 @ stdcall -version=0x600+ GetCurrentConsoleFontEx(ptr long ptr)
 @ stdcall GetCurrentDirectoryA(long ptr)
 @ stdcall GetCurrentDirectoryW(long ptr)
-@ stdcall -version=0x602+ GetCurrentPackageFamilyName(ptr ptr) 
-@ stdcall -version=0x602+ GetCurrentPackageFullName(ptr ptr) 
+@ stdcall -stub -version=0x602+ GetCurrentPackageFamilyName(ptr ptr) 
+@ stdcall -stub -version=0x602+ GetCurrentPackageFullName(ptr ptr) 
 @ stdcall -version=0x602+ GetCurrentPackageId(ptr ptr)
-@ stdcall -version=0x602+ GetCurrentPackagePath(ptr ptr)
+@ stdcall -stub -version=0x602+ GetCurrentPackagePath(ptr ptr)
 @ stdcall -norelay GetCurrentProcess()
 @ stdcall -norelay GetCurrentProcessId()
 @ stdcall GetCurrentProcessorNumber() ntdll.RtlGetCurrentProcessorNumber
 @ stdcall -version=0x601+ -stub GetCurrentProcessorNumberEx(ptr) ;NTDLL.RtlGetCurrentProcessorNumberEx
 @ stdcall -norelay GetCurrentThread()
 @ stdcall -norelay GetCurrentThreadId()
-@ stdcall -version=0x602+  GetCurrentThreadStackLimits(ptr ptr)
+@ stdcall -stub -version=0x602+  GetCurrentThreadStackLimits(ptr ptr)
 @ stdcall -version=0x601+ -arch=win64 GetCurrentUmsThread()
 @ stdcall GetDateFormatA(long long ptr str ptr long)
 @ stdcall -version=0x600+ GetDateFormatEx(wstr long ptr wstr wstr long wstr)
@@ -495,7 +495,7 @@
 @ stub -version=0x600+ GetDurationFormat
 @ stub -version=0x600+ GetDurationFormatEx
 @ stdcall -version=0x600+ GetDynamicTimeZoneInformation(ptr)
-@ stdcall -version=0x602+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
+@ stdcall -stub -version=0x602+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
 @ stdcall -stub -version=0x601+ -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures()
 @ stdcall GetEnvironmentStrings()
 @ stdcall GetEnvironmentStringsA() GetEnvironmentStrings
@@ -598,11 +598,11 @@
 @ stdcall GetOEMCP()
 @ stdcall GetOverlappedResult(long ptr ptr long)
 @ stdcall -version=0x602+ GetOverlappedResultEx(long ptr ptr long long)
-@ stdcall -version=0xA00+ GetUserDefaultGeoName(ptr long)
-@ stdcall -version=0x602+ GetPackageFamilyName(long ptr ptr)
-@ stdcall -version=0x602+ GetPackageFullName(long ptr ptr)
-@ stdcall -version=0x602+ GetPackagesByPackageFamily(wstr ptr ptr ptr ptr)
-@ stdcall -version=0x603+ GetPackagePathByFullName(wstr ptr wstr)
+@ stdcall -stub -version=0xA00+ GetUserDefaultGeoName(ptr long)
+@ stdcall -stub -version=0x602+ GetPackageFamilyName(long ptr ptr)
+@ stdcall -stub -version=0x602+ GetPackageFullName(long ptr ptr)
+@ stdcall -stub -version=0x602+ GetPackagesByPackageFamily(wstr ptr ptr ptr ptr)
+@ stdcall -stub -version=0x603+ GetPackagePathByFullName(wstr ptr wstr)
 @ stdcall -stub -version=0x600+ GetPhysicallyInstalledSystemMemory(ptr)
 @ stdcall GetPriorityClass(long)
 @ stdcall GetPrivateProfileIntA(str str long str)
@@ -624,9 +624,9 @@
 @ stdcall GetProcessHeaps(long ptr)
 @ stdcall GetProcessId(long)
 @ stdcall GetProcessIdOfThread(ptr)
-@ stdcall -version=0x602+ GetProcessInformation(long long ptr long)
+@ stdcall -stub -version=0x602+ GetProcessInformation(long long ptr long)
 @ stdcall GetProcessIoCounters(long ptr)
-@ stdcall -version=0x602+ GetProcessMitigationPolicy(long long ptr long)
+@ stdcall -stub -version=0x602+ GetProcessMitigationPolicy(long long ptr long)
 @ stdcall -stub -version=0x601+ GetProcessPreferredUILanguages(long ptr ptr ptr)
 @ stdcall GetProcessPriorityBoost(long ptr)
 @ stdcall GetProcessShutdownParameters(ptr ptr)
@@ -656,7 +656,7 @@
 @ stdcall GetStringTypeExW(long long wstr long ptr)
 @ stdcall GetStringTypeW(long wstr long ptr)
 @ stdcall GetSystemDEPPolicy()
-@ stdcall -version=0xA00+ GetSystemCpuSetInformation(ptr long ptr ptr long)
+@ stdcall -stub -version=0xA00+ GetSystemCpuSetInformation(ptr long ptr ptr long)
 @ stdcall GetSystemDefaultLCID()
 @ stdcall GetSystemDefaultLangID()
 @ stdcall -stub -version=0x600+ GetSystemDefaultLocaleName(ptr long)
@@ -789,7 +789,7 @@
 @ stdcall -version=0x600+ InitOnceInitialize(ptr) ntdll.RtlRunOnceInitialize
 @ stdcall -version=0x600+ InitializeConditionVariable(ptr) ntdll.RtlInitializeConditionVariable
 @ stdcall -stub -version=0x601+ InitializeContext(ptr long ptr ptr)
-@ stdcall -version=0xA00+ InitializeContext2(ptr long ptr ptr int64)
+@ stdcall -stub -version=0xA00+ InitializeContext2(ptr long ptr ptr int64)
 @ stdcall InitializeCriticalSection(ptr)
 @ stdcall InitializeCriticalSectionAndSpinCount(ptr long)
 @ stdcall -version=0x600+ InitializeCriticalSectionEx(ptr long long)
@@ -833,9 +833,9 @@
 @ stdcall IsValidLanguageGroup(long long)
 @ stdcall IsValidLocale(long long)
 @ stdcall -version=0x501-0x502 IsValidUILanguage(long)
-@ stdcall -version=0x602+ IsValidNLSVersion(long wstr ptr)
+@ stdcall -stub -version=0x602+ IsValidNLSVersion(long wstr ptr)
 @ stdcall IsWow64Process(ptr ptr)
-@ stdcall -version=0xA00+ IsWow64Process2(ptr ptr ptr)
+@ stdcall -stub -version=0xA00+ IsWow64Process2(ptr ptr ptr)
 @ stdcall -version=0x601+ K32EmptyWorkingSet(long) EmptyWorkingSet
 @ stdcall -version=0x601+ K32EnumDeviceDrivers(ptr long ptr) EnumDeviceDrivers
 @ stdcall -version=0x601+ K32EnumPageFilesA(ptr ptr) EnumPageFilesA
@@ -911,7 +911,7 @@
 @ stdcall MapViewOfFile(long long long long long)
 @ stdcall MapViewOfFileEx(long long long long long ptr)
 @ stub -version=0x600+ MapViewOfFileExNuma
-@ stdcall -version=0x602+ MapViewOfFileFromApp(long long int64 long)
+@ stdcall -stub -version=0x602+ MapViewOfFileFromApp(long long int64 long)
 @ stdcall Module32First(long ptr)
 @ stdcall Module32FirstW(long ptr)
 @ stdcall Module32Next(long ptr)
@@ -967,11 +967,11 @@
 @ stdcall PeekConsoleInputW(ptr ptr long ptr)
 @ stdcall PeekNamedPipe(long ptr long ptr ptr ptr)
 @ stdcall PostQueuedCompletionStatus(long long ptr ptr)
-@ stdcall -version=0x602+ PackageIdFromFullName(wstr long ptr ptr)
+@ stdcall -stub -version=0x602+ PackageIdFromFullName(wstr long ptr ptr)
 @ stdcall -version=0x601+ PowerClearRequest(long long)
 @ stdcall -version=0x601+ PowerCreateRequest(ptr)
 @ stdcall -version=0x601+ PowerSetRequest(long long)
-@ stdcall -version=0x602+ PrefetchVirtualMemory(ptr ptr ptr long)
+@ stdcall -stub -version=0x602+ PrefetchVirtualMemory(ptr ptr ptr long)
 @ stdcall PrepareTape(ptr long long)
 @ stdcall PrivCopyFileExW(wstr wstr ptr ptr long long)
 @ stdcall PrivMoveFileIdentityW(long long long)
@@ -1101,7 +1101,7 @@
 @ stdcall ResetEvent(long)
 @ stdcall ResetWriteWatch(ptr long)
 @ stdcall -version=0xA00+ ResizePseudoConsole(ptr long)
-@ stdcall -version=0x602+ ResolveDelayLoadedAPI(ptr ptr ptr ptr ptr long) NTDLL.LdrResolveDelayLoadedAPI
+@ stdcall -stub -version=0x602+ ResolveDelayLoadedAPI(ptr ptr ptr ptr ptr long)
 @ stdcall -stub -version=0x601+ ResolveLocaleName(wstr ptr long)
 @ stdcall RestoreLastError(long) ntdll.RtlRestoreLastWin32Error
 @ stdcall ResumeThread(long)
@@ -1121,7 +1121,7 @@
 @ stdcall RtlUnwind(ptr ptr ptr ptr) ntdll.RtlUnwind
 @ stdcall -arch=x86_64 RtlUnwindEx(ptr ptr ptr ptr ptr ptr) ntdll.RtlUnwindEx
 @ stdcall -arch=x86_64 RtlVirtualUnwind(ptr ptr ptr long) ntdll.RtlVirtualUnwind
-@ stdcall -version=0xA00+ -arch=x86_64 -norelay RtlIsEcCode(ptr) NTDLL.RtlIsEcCode
+@ stdcall -stub -version=0xA00+ -arch=x86_64 -norelay RtlIsEcCode(ptr) 
 @ stdcall RtlZeroMemory(ptr long) ntdll.RtlZeroMemory
 @ stdcall ScrollConsoleScreenBufferA(long ptr ptr ptr ptr)
 @ stdcall ScrollConsoleScreenBufferW(long ptr ptr ptr ptr)
@@ -1230,10 +1230,10 @@
 @ stdcall SetPriorityClass(long long)
 @ stdcall SetProcessAffinityMask(long long)
 @ stub -version=0x600+ SetProcessAffinityUpdateMode
-@ stdcall -version=0xA00+ SetProcessDefaultCpuSets(ptr ptr long)
+@ stdcall -stub -version=0xA00+ SetProcessDefaultCpuSets(ptr ptr long)
 @ stdcall SetProcessDEPPolicy(long)
-@ stdcall -version=0x602+ SetProcessInformation(long long ptr long)
-@ stdcall -version=0x602+ SetProcessMitigationPolicy(long ptr long)
+@ stdcall -stub -version=0x602+ SetProcessInformation(long long ptr long)
+@ stdcall -stub -version=0x602+ SetProcessMitigationPolicy(long ptr long)
 @ stdcall -stub -version=0x601+ SetProcessPreferredUILanguages(long ptr ptr)
 @ stdcall SetProcessPriorityBoost(long long)
 @ stdcall SetProcessShutdownParameters(long long)
@@ -1263,7 +1263,7 @@
 @ stdcall -version=0x600+ SetThreadPreferredUILanguages(long wstr ptr)
 @ stdcall SetThreadPriority(long long)
 @ stdcall SetThreadPriorityBoost(long long)
-@ stdcall -version=0xA00+ SetThreadSelectedCpuSets(ptr ptr long)
+@ stdcall -stub -version=0xA00+ SetThreadSelectedCpuSets(ptr ptr long)
 @ stdcall SetThreadStackGuarantee(ptr)
 @ stdcall -version=0x601+ SetThreadToken(ptr ptr) 
 @ stdcall SetThreadUILanguage(long)
@@ -1277,7 +1277,7 @@
 @ stdcall -version=0x601+ -arch=win64 SetUmsThreadInformation(ptr long ptr long)
 @ stdcall SetUnhandledExceptionFilter(ptr)
 @ stdcall SetUserGeoID(long)
-@ stdcall -version=0xA00+  SetUserGeoName(wstr)
+@ stdcall -stub -version=0xA00+  SetUserGeoName(wstr)
 @ stdcall SetVDMCurrentDirectories(long long)
 @ stdcall SetVolumeLabelA(str str)
 @ stdcall SetVolumeLabelW(wstr wstr)

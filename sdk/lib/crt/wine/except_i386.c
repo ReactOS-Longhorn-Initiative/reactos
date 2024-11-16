@@ -745,26 +745,7 @@ unsigned int CDECL __CxxQueryExceptionSize(void)
 }
 
 
-/*********************************************************************
- *		_EH_prolog (MSVCRT.@)
- */
 
-/* Provided for VC++ binary compatibility only */
-__ASM_GLOBAL_FUNC(_EH_prolog,
-                  __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")  /* skip ret addr */
-                  "pushl $-1\n\t"
-                  __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                  "pushl %eax\n\t"
-                  __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                  "pushl %fs:0\n\t"
-                  __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                  "movl  %esp, %fs:0\n\t"
-                  "movl  12(%esp), %eax\n\t"
-                  "movl  %ebp, 12(%esp)\n\t"
-                  "leal  12(%esp), %ebp\n\t"
-                  "pushl %eax\n\t"
-                  __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                  "ret")
 
 static const SCOPETABLE_V4 *get_scopetable_v4( MSVCRT_EXCEPTION_FRAME *frame, ULONG_PTR cookie )
 {

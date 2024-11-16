@@ -1,9 +1,9 @@
 @ stdcall CMP_GetBlockedDriverInfo(wstr ptr long ptr)
 @ stdcall CMP_GetServerSideDeviceInstallFlags(ptr long ptr)
 @ stdcall CMP_Init_Detection(long)
-@ stdcall -version=0x500-0x601 CMP_RegisterNotification(ptr ptr long ptr)
+@ stdcall -version=0x500+ CMP_RegisterNotification(ptr ptr long ptr)
 @ stdcall CMP_Report_LogOn(long long)
-@ stdcall -version=0x500-0x601 CMP_UnregisterNotification(ptr)
+@ stdcall -version=0x500+ CMP_UnregisterNotification(ptr)
 @ stdcall CMP_WaitNoPendingInstallEvents(long)
 @ stdcall CMP_WaitServicesAvailable(ptr)
 

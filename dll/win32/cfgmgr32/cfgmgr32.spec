@@ -202,4 +202,3 @@
 @ stub CM_Reset_Children_Marks_Ex # setupapi.CM_Reset_Children_Marks_Ex
 
 @ stdcall -stub -version=0x600+ CM_Get_DevNode_PropertyW(long ptr ptr)
-@ stdcall -stub -version=0x600+ CM_Get_Device_IDW(long wstr long long)

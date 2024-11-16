@@ -20,6 +20,15 @@ add_library(user32_vista_only_static
 target_link_libraries(user32_vista_only_static wine win32ksys)
 add_dependencies(user32_vista_only_static wine psdk)
 
+if(MSVC)
+    # Disable warning C4090: 'function': different 'const' qualifiers
+    # Disable warning C4133: 'function': incompatible types - from 'UINT *' to 'MSIINSTALLCONTEXT *'
+    # Disable warning C4146: unary minus operator applied to unsigned type, result still unsigned
+    # Disable warning C4312: 'type cast': conversion from 'unsigned int' to 'HANDLE' of greater size
+    target_compile_options(user32_vista_only_static PRIVATE /wd4090 /wd4133 /wd4146 /wd4312)
+endif()
+
+
 add_library(user32_vista_static
             ${SOURCE})
 target_link_libraries(user32_vista_static win32ksys)

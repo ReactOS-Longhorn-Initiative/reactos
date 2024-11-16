@@ -80,6 +80,15 @@ add_library(user32 MODULE
     user32.rc
     ${CMAKE_CURRENT_BINARY_DIR}/user32.def)
 
+if(MSVC)
+    # Disable warning C4090: 'function': different 'const' qualifiers
+    # Disable warning C4133: 'function': incompatible types - from 'UINT *' to 'MSIINSTALLCONTEXT *'
+    # Disable warning C4146: unary minus operator applied to unsigned type, result still unsigned
+    # Disable warning C4312: 'type cast': conversion from 'unsigned int' to 'HANDLE' of greater size
+    target_compile_options(user32 PRIVATE /wd4090 /wd4133 /wd4146 /wd4312)
+endif()
+
+
 set_module_type(user32 win32dll UNICODE ENTRYPOINT DllMain 12)
 target_link_libraries(user32 user32_vista_only_static user32_vista_static user32_wsprintf wine win32ksys ${PSEH_LIB})
 add_dependencies(user32 asm)
