@@ -126,6 +126,7 @@ pci.sys      = 1,,,,,,x,4,,,,1,4
 scsiport.sys = 1,,,,,,,4,,,,1,4
 storport.sys = 1,,,,,,,4,,,,1,4
 ucx01000.sys = 1,,,,,,x,4,,,,1,4
+uaspstor.sys = 1,,,,,,x,4,,,,1,4
 fastfat.sys  = 1,,,,,,x,4,,,,1,4
 btrfs.sys    = 1,,,,,,x,4,,,,1,4
 ramdisk.sys  = 1,,,,,,x,4,,,,1,4
