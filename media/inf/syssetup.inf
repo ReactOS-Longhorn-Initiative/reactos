@@ -25,6 +25,8 @@ ports.inf
 scsi.inf
 unknown.inf
 usbport.inf
+usbxhci.inf
+usbhub3.inf
 volume.inf
 audio.inf
 ks.inf

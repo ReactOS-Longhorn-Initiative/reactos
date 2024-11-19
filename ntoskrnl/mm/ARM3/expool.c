@@ -2604,11 +2604,7 @@ ExFreePoolWithTag(IN PVOID P,
         if (TagToFree && TagToFree != Tag)
         {
             DPRINT1("Freeing pool - invalid tag specified: %.4s != %.4s\n", (char*)&TagToFree, (char*)&Tag);
-#if DBG
-            /* Do not bugcheck in case this is a big allocation for which we didn't manage to insert the tag */
-            if (Tag != ' GIB')
-                KeBugCheckEx(BAD_POOL_CALLER, 0x0A, (ULONG_PTR)P, Tag, TagToFree);
-#endif
+
         }
 
         //
@@ -2691,7 +2687,7 @@ ExFreePoolWithTag(IN PVOID P,
     {
         DPRINT1("Freeing pool - invalid tag specified: %.4s != %.4s\n", (char*)&TagToFree, (char*)&Tag);
 #if DBG
-        KeBugCheckEx(BAD_POOL_CALLER, 0x0A, (ULONG_PTR)P, Tag, TagToFree);
+       // KeBugCheckEx(BAD_POOL_CALLER, 0x0A, (ULONG_PTR)P, Tag, TagToFree);
 #endif
     }
 

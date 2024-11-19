@@ -28,7 +28,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/bootcd_extras/)
     foreach(item ${EXTRA_FILES})
         add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/bootcd_extras/${item} DESTINATION extras NO_CAB NAME_ON_CD ${item} FOR bootcd regtest)
     endforeach(item)
-endif()
+endif()#
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/livecd_extras/)
     file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/livecd_extras/ ${CMAKE_CURRENT_SOURCE_DIR}/livecd_extras/*)
     foreach(item ${EXTRA_FILES})
