@@ -1423,7 +1423,17 @@ typedef struct _RTL_CRITICAL_SECTION_DEBUG
     LIST_ENTRY ProcessLocksList;
     ULONG EntryCount;
     ULONG ContentionCount;
-    ULONG Spare[2];
+    union
+    {
+        ULONG_PTR WineDebugString;
+        ULONG_PTR Spare[1];
+        struct
+        {
+            ULONG Flags;
+            USHORT CreatorBackTraceIndexHigh;
+            USHORT SpareWORD;
+        };
+    };
 } RTL_CRITICAL_SECTION_DEBUG, *PRTL_CRITICAL_SECTION_DEBUG, RTL_RESOURCE_DEBUG, *PRTL_RESOURCE_DEBUG;
 
 typedef struct _RTL_CRITICAL_SECTION
