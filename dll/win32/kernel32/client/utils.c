@@ -952,3 +952,4 @@ BasepCheckWinSaferRestrictions(IN HANDLE UserToken,
     /* Return the status */
     return Status;
 }
+

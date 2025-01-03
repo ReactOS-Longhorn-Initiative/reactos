@@ -93,3 +93,6 @@
 93 stdcall SetThemeAppProperties(long)
 94 stdcall SetWindowTheme(ptr wstr wstr)
 95 stdcall ThemeInitApiHook(long ptr)
+@ stdcall UpdatePanningFeedback(ptr long long long)
+@ stdcall EndPanningFeedback(ptr long)
+@ stdcall BeginPanningFeedback(ptr)

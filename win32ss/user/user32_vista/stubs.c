@@ -20,8 +20,30 @@ BOOL WINAPI ShutdownBlockReasonCreate(_In_ HWND    hWnd,
     //UNIMPLEMENTED;
     return TRUE;
 }
+ 
+BOOL WINAPI ChangeWindowMessageFilterEx(
+  HWND                hwnd,
+  UINT                message,
+  DWORD               action,
+  PVOID pChangeFilterStruct
+)
+{
+  return 1;
+}
 
-
+BOOL WINAPI CloseTouchInputHandle(
+   PVOID  hTouchInput
+)
+{
+  return 1;
+}
+BOOL RegisterTouchWindow(
+ HWND  hwnd,
+ ULONG ulFlags
+)
+{
+  return 1;
+}
 BOOL WINAPI IsThreadDesktopComposited()
 {
    // UNIMPLEMENTED;

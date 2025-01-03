@@ -762,3 +762,12 @@
 @ stdcall -stub -version=0x600+ ShutdownBlockReasonDestroy(ptr)
 @ stub -version=0x600+ PaintMonitor
 @ stub IsWindowRedirectedForPrint
+@ stdcall ChangeWindowMessageFilterEx(ptr long long ptr)
+@ stdcall CloseTouchInputHandle(ptr)
+@ stdcall RegisterTouchWindow(ptr long)
+
+@ stdcall -stub GetTouchInputInfo(ptr)
+@ stdcall -stub SetGestureInfo(ptr)
+@ stdcall -stub SetGestureConfig(ptr)
+@ stdcall -stub CloseGestureInfoHandle(ptr)
+@ stdcall -stub GetGestureInfo(ptr)
