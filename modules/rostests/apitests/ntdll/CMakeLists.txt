@@ -1,14 +1,17 @@
 
 add_subdirectory(implicit_tls)
 add_subdirectory(load_notifications)
+add_subdirectory(empty_dll)
 
 include_directories($<TARGET_FILE_DIR:implicit_tls>)
 include_directories($<TARGET_FILE_DIR:load_notifications>)
+include_directories($<TARGET_FILE_DIR:empty_dll>)
 include_directories(${REACTOS_SOURCE_DIR}/ntoskrnl/include)
 spec2def(ntdll_apitest.exe ntdll_apitest.spec)
 
 list(APPEND SOURCE
     implicit_tls.c
+    DllLoadNotification.c
     LdrEnumResources.c
     LdrLoadDll.c
     load_notifications.c
@@ -122,6 +125,7 @@ list(APPEND PCH_SKIP_SOURCE
 
 add_rc_deps(testdata.rc ${CMAKE_CURRENT_BINARY_DIR}/implicit_tls/implicit_tls.dll)
 add_rc_deps(testdata.rc ${CMAKE_CURRENT_BINARY_DIR}/load_notifications/load_notifications.dll)
+add_rc_deps(testdata.rc ${CMAKE_CURRENT_BINARY_DIR}/empty_dll/empty_dll.dll)
 
 add_executable(ntdll_apitest
     ${SOURCE}
@@ -139,8 +143,12 @@ target_link_libraries(ntdll_apitest rtl_test_lib wine uuid ${PSEH_LIB})
 set_module_type(ntdll_apitest win32cui)
 add_importlibs(ntdll_apitest msvcrt advapi32 kernel32 ntdll)
 add_pch(ntdll_apitest precomp.h "${PCH_SKIP_SOURCE}")
+<<<<<<< HEAD
 add_dependencies(ntdll_apitest implicit_tls)
 add_dependencies(ntdll_apitest load_notifications)
+=======
+add_dependencies(ntdll_apitest load_notifications empty_dll)
+>>>>>>> 95b60b99c3e ([NTDLL_VISTA:LDR] Implement Dll Notification)
 
 if(NOT MSVC)
     set_source_files_properties(RtlGetFullPathName_UstrEx.c PROPERTIES COMPILE_OPTIONS "-Wno-format")

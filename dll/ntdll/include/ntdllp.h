@@ -241,6 +241,15 @@ VOID
 NTAPI
 LdrpFinalizeAndDeallocateDataTableEntry(IN PLDR_DATA_TABLE_ENTRY Entry);
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA) || (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
+
+VOID
+NTAPI
+LdrpSendDllNotifications(
+    _In_ PLDR_DATA_TABLE_ENTRY DllEntry,
+    _In_ ULONG NotificationReason);
+
+#endif /* (_WIN32_WINNT >= _WIN32_WINNT_VISTA) || (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) */
 
 /* path.c */
 BOOLEAN
@@ -254,9 +263,14 @@ NTAPI
 RtlpInitializeKeyedEvent(
     VOID);
 
+
 VOID
 NTAPI
-RtlpInitializeThreadPooling(
+RtlpInitializeThreadPooling(VOID);
+
+VOID
+NTAPI
+RtlpCloseKeyedEvent(
     VOID);
 
 /* EOF */
