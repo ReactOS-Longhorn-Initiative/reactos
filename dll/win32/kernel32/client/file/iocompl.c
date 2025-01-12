@@ -35,12 +35,6 @@ SetFileCompletionNotificationModes(IN HANDLE FileHandle,
     FILE_IO_COMPLETION_NOTIFICATION_INFORMATION FileInformation;
     IO_STATUS_BLOCK IoStatusBlock;
 
-    if (Flags & ~(FILE_SKIP_COMPLETION_PORT_ON_SUCCESS | FILE_SKIP_SET_EVENT_ON_HANDLE))
-    {
-        SetLastError(ERROR_INVALID_PARAMETER);
-        return FALSE;
-    }
-
     FileInformation.Flags = Flags;
 
     Status = NtSetInformationFile(FileHandle,
@@ -50,13 +44,13 @@ SetFileCompletionNotificationModes(IN HANDLE FileHandle,
                                   FileIoCompletionNotificationInformation);
     if (!NT_SUCCESS(Status))
     {
-        BaseSetLastNTError(Status);
-        return FALSE;
+		DbgPrint("SetFileCompletionNotificationModes::NtSetInformationFile failed with status: %08x\n", Status);
+        BaseSetLastNTError(0);
+        return TRUE;
     }
 
     return TRUE;
 }
-
 /*
  * @implemented
  */

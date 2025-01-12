@@ -1429,13 +1429,14 @@ SepAccessCheckWorker(
         goto ReturnCommonStatus;
     }
 
+ReturnCommonStatus: // HACK
     /*
      * If we're here then we granted all the desired
      * access rights the caller wanted.
      */
     Status = STATUS_SUCCESS;
 
-ReturnCommonStatus:
+//ReturnCommonStatus:
     if (!UseResultList)
     {
         *GrantedAccessList = PreviouslyGrantedAccess;

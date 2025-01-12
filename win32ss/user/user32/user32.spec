@@ -771,3 +771,6 @@
 @ stdcall -stub SetGestureConfig(ptr)
 @ stdcall -stub CloseGestureInfoHandle(ptr)
 @ stdcall -stub GetGestureInfo(ptr)
+@ stdcall -stub DisplayConfigGetDeviceInfo(ptr)
+@ stdcall GetDisplayConfigBufferSizes(long ptr ptr)
+@ stdcall QueryDisplayConfig(long ptr ptr ptr ptr ptr)

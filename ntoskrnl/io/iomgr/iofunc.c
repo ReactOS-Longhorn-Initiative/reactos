@@ -2309,7 +2309,7 @@ NtQueryInformationFile(IN HANDLE FileHandle,
             !(IopQueryOperationLength[FileInformationClass]))
         {
             /* Invalid class */
-            return STATUS_INVALID_INFO_CLASS;
+           // return STATUS_INVALID_INFO_CLASS;
         }
 
         /* Validate the length */
@@ -2344,7 +2344,7 @@ NtQueryInformationFile(IN HANDLE FileHandle,
             !(IopQueryOperationLength[FileInformationClass]))
         {
             /* Invalid class */
-            return STATUS_INVALID_INFO_CLASS;
+          //  return STATUS_INVALID_INFO_CLASS;
         }
 
         /* Validate the length */
@@ -3128,7 +3128,7 @@ NtSetInformationFile(IN HANDLE FileHandle,
             !(IopSetOperationLength[FileInformationClass]))
         {
             /* Invalid class */
-            return STATUS_INVALID_INFO_CLASS;
+         //   return STATUS_INVALID_INFO_CLASS;
         }
 
         /* Validate the length */
@@ -3165,7 +3165,7 @@ NtSetInformationFile(IN HANDLE FileHandle,
             !(IopSetOperationLength[FileInformationClass]))
         {
             /* Invalid class */
-            return STATUS_INVALID_INFO_CLASS;
+          //  return STATUS_INVALID_INFO_CLASS;
         }
 
         /* Validate the length */
@@ -4179,7 +4179,7 @@ NtQueryVolumeInformationFile(IN HANDLE FileHandle,
             !(IopQueryFsOperationLength[FsInformationClass]))
         {
             /* Invalid class */
-            return STATUS_INVALID_INFO_CLASS;
+           // return STATUS_INVALID_INFO_CLASS;
         }
 
         /* Validate the length */

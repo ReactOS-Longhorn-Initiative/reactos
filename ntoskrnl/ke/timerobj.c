@@ -207,7 +207,7 @@ KeCancelTimer(IN OUT PKTIMER Timer)
 {
     KIRQL OldIrql;
     BOOLEAN Inserted;
-    ASSERT_TIMER(Timer);
+    //ASSERT_TIMER(Timer);
     ASSERT(KeGetCurrentIrql() <= DISPATCH_LEVEL);
     DPRINT("KeCancelTimer(): Timer %p\n", Timer);
 

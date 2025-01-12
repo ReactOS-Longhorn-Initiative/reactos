@@ -1371,3 +1371,4 @@
 @ stdcall GetThreadGroupAffinity(ptr ptr)
 @ stdcall GetThreadIdealProcessorEx(ptr ptr)
 @ stdcall -stub ResolveLocaleName(ptr)
+@ stdcall -stub QueryUnbiasedInterruptTime(ptr)
