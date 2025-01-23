@@ -28,7 +28,6 @@
 #include "windows.h"
 #include "appmodel.h"
 #include "shlwapi.h"
-#include "perflib.h"
 #include "winternl.h"
 
 #include "wine/debug.h"

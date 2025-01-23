@@ -1176,6 +1176,17 @@ void WINAPI DECLSPEC_HOTPATCH AddRefActCtx( HANDLE context )
     RtlAddRefActivationContext( context );
 }
 
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlCreateActivationContext(
+    _In_ ULONG Flags,
+    _In_ PVOID ActivationContextData,
+    _In_ ULONG ExtraBytes,
+    _In_ PVOID NotificationRoutine,
+    _In_ PVOID NotificationContext,
+    _Out_ PVOID *ActCtx
+);
 
 /***********************************************************************
  *          CreateActCtxW    (kernelbase.@)
@@ -1186,7 +1197,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateActCtxW( PCACTCTXW ctx )
 
     TRACE( "%p %08lx\n", ctx, ctx ? ctx->dwFlags : 0 );
 
-    if (!set_ntstatus( RtlCreateActivationContext( &context, ctx ))) return INVALID_HANDLE_VALUE;
+    if (!set_ntstatus( RtlCreateActivationContext( 0, (PVOID)ctx, 0, NULL, NULL, &context))) return INVALID_HANDLE_VALUE;
     return context;
 }
 

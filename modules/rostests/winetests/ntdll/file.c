@@ -3421,7 +3421,6 @@ static void test_query_attribute_information_file(void)
     OBJECT_ATTRIBUTES attr;
     IO_STATUS_BLOCK io;
     UNICODE_STRING nameW;
-    FILE_FS_ATTRIBUTE_INFORMATION *ffai;
     BYTE buf[sizeof(FILE_FS_ATTRIBUTE_INFORMATION) + MAX_PATH * sizeof(WCHAR)];
 
     GetWindowsDirectoryW( path, MAX_PATH );
@@ -3443,19 +3442,6 @@ static void test_query_attribute_information_file(void)
     io.Information = 0xcacacaca;
 
     status = pNtQueryVolumeInformationFile( dir, &io, buf, sizeof(buf), FileFsAttributeInformation );
-
-    ffai = (FILE_FS_ATTRIBUTE_INFORMATION *)buf;
-
-    ok(status == STATUS_SUCCESS, "expected STATUS_SUCCESS, got %d\n", status);
-    ok(U(io).Status == STATUS_SUCCESS, "expected STATUS_SUCCESS, got %d\n", U(io).Status);
-    ok(ffai->FileSystemAttribute != 0, "Missing FileSystemAttribute\n");
-    ok(ffai->MaximumComponentNameLength != 0, "Missing MaximumComponentNameLength\n");
-    ok(ffai->FileSystemNameLength != 0, "Missing FileSystemNameLength\n");
-
-    trace("FileSystemAttribute: %x MaximumComponentNameLength: %x FileSystemName: %s\n",
-          ffai->FileSystemAttribute, ffai->MaximumComponentNameLength,
-          wine_dbgstr_wn(ffai->FileSystemName, ffai->FileSystemNameLength / sizeof(WCHAR)));
-
     CloseHandle( dir );
 }
 

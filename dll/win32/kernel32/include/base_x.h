@@ -8,6 +8,9 @@
 
 #pragma once
 
+HANDLE
+WINAPI
+BaseGetNamedObjectDirectory_Kernel32(VOID);
 /* INCLUDES *******************************************************************/
 
 //
@@ -151,7 +154,7 @@
     InitializeObjectAttributes(ObjectAttributes,                                \
                                &ObjectName,                                     \
                                inh ? OBJ_INHERIT : 0,                           \
-                               BaseGetNamedObjectDirectory(),                   \
+                               BaseGetNamedObjectDirectory_Kernel32(),          \
                                NULL);                                           \
     Status = NtOpen##ntobj(&Handle, acc, ObjectAttributes);                     \
     if (!NT_SUCCESS(Status))                                                    \
