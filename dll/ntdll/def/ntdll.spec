@@ -1915,3 +1915,5 @@
 @ stdcall -arch=arm __rt_udiv()
 @ stdcall -arch=arm __rt_udiv64()
 @ stdcall -arch=arm __rt_srsh()
+@ stdcall -version=0x601+ RtlTryAcquireSRWLockExclusive(ptr)   
+@ stdcall -version=0x6001 RtlTryAcquireSRWLockShared(ptr) 
