@@ -19,18 +19,23 @@ typedef enum _WSC_PROVIDER_INFO_TYPE {
 } WSC_PROVIDER_INFO_TYPE ;
 
 /* FUNCTIONS *****************************************************************/
-int WSCGetProviderInfo(
-  LPGUID                 lpProviderId,
-  WSC_PROVIDER_INFO_TYPE InfoType,
-  PBYTE                  Info,
-  size_t                 *InfoSize,
-  DWORD                  Flags,
-  LPINT                  lpErrno
-)
+int WINAPI WSCGetProviderInfo( GUID *provider, WSC_PROVIDER_INFO_TYPE info_type,
+                               BYTE *info, size_t *len, DWORD flags, int *errcode )
 {
-    UNIMPLEMENTED;
-    return 0;
+ 
+    if (!errcode)
+        return -1;
+
+    if (!provider)
+    {
+        *errcode = WSAEFAULT;
+        return -1;
+    }
+
+    *errcode = WSANO_RECOVERY;
+    return -1;
 }
+
 /*
  * @implemented
  */

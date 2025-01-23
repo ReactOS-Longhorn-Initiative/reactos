@@ -3212,3 +3212,12 @@ I_QueryTagInformation(PVOID Unused,
 }
 
 /* EOF */
+
+DWORD NotifyServiceStatusChangeW(
+   PVOID        hService,
+   DWORD            dwNotifyMask,
+   PVOID pNotifyBuffer
+)
+{
+    return 0;
+}

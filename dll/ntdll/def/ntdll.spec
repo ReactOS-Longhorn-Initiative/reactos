@@ -220,27 +220,27 @@
 @ stdcall NtAllocateUserPhysicalPages(ptr ptr ptr)
 @ stdcall NtAllocateUuids(ptr ptr ptr ptr)
 @ stdcall NtAllocateVirtualMemory(long ptr ptr ptr long long)
-@ stub -version=0x600+ NtAlpcAcceptConnectPort
-@ stub -version=0x600+ NtAlpcCancelMessage
-@ stub -version=0x600+ NtAlpcConnectPort
-@ stub -version=0x600+ NtAlpcCreatePort
-@ stub -version=0x600+ NtAlpcCreatePortSection
-@ stub -version=0x600+ NtAlpcCreateResourceReserve
-@ stub -version=0x600+ NtAlpcCreateSectionView
-@ stub -version=0x600+ NtAlpcCreateSecurityContext
-@ stub -version=0x600+ NtAlpcDeletePortSection
-@ stub -version=0x600+ NtAlpcDeleteResourceReserve
-@ stub -version=0x600+ NtAlpcDeleteSectionView
-@ stub -version=0x600+ NtAlpcDeleteSecurityContext
-@ stub -version=0x600+ NtAlpcDisconnectPort
-@ stub -version=0x600+ NtAlpcImpersonateClientOfPort
-@ stub -version=0x600+ NtAlpcOpenSenderProcess
-@ stub -version=0x600+ NtAlpcOpenSenderThread
-@ stub -version=0x600+ NtAlpcQueryInformation
-@ stub -version=0x600+ NtAlpcQueryInformationMessage
-@ stub -version=0x600+ NtAlpcRevokeSecurityContext
-@ stub -version=0x600+ NtAlpcSendWaitReceivePort
-@ stub -version=0x600+ NtAlpcSetInformation
+@ stdcall -stub -version=0x600+ NtAlpcAcceptConnectPort(long long long long long long long long long)
+@ stdcall -stub -version=0x600+ NtAlpcCancelMessage(long long long)
+@ stdcall -stub -version=0x600+ NtAlpcConnectPort(long long long long long long long long long long long)
+@ stdcall -stub -version=0x600+ NtAlpcCreatePort(long long long) 
+@ stdcall -stub -version=0x600+ NtAlpcCreatePortSection(long long long long ptr ptr)
+@ stdcall -stub -version=0x600+ NtAlpcCreateResourceReserve(long long long ptr)
+@ stdcall -stub -version=0x600+ NtAlpcCreateSectionView(long long long)
+@ stdcall -stub -version=0x600+ NtAlpcCreateSecurityContext(long long ptr)
+@ stdcall -stub -version=0x600+ NtAlpcDeletePortSection(long long long long ptr ptr)
+@ stdcall -stub -version=0x600+ NtAlpcDeleteResourceReserve(long long long ptr)
+@ stdcall -stub -version=0x600+ NtAlpcDeleteSectionView(long long long ptr)
+@ stdcall -stub -version=0x600+ NtAlpcDeleteSecurityContext(long long long)
+@ stdcall -stub -version=0x600+ NtAlpcDisconnectPort(long long)
+@ stdcall -stub -version=0x600+ NtAlpcImpersonateClientOfPort(long long long)
+@ stdcall -stub -version=0x600+ NtAlpcOpenSenderProcess(ptr long long long long ptr)
+@ stdcall -stub -version=0x600+ NtAlpcOpenSenderThread(ptr long long long long ptr)
+@ stdcall -stub -version=0x600+ NtAlpcQueryInformation(long long long long long)
+@ stdcall -stub -version=0x600+ NtAlpcQueryInformationMessage(long long long long long long)
+@ stdcall -stub -version=0x600+ NtAlpcRevokeSecurityContext(long long long)
+@ stdcall -stub -version=0x600+ NtAlpcSendWaitReceivePort(long long long long long long long long)
+@ stdcall -stub -version=0x600+ NtAlpcSetInformation(long long long long)
 @ stdcall NtApphelpCacheControl(long ptr)
 @ stdcall NtAreMappedFilesTheSame(ptr ptr)
 @ stdcall NtAssignProcessToJobObject(long long)

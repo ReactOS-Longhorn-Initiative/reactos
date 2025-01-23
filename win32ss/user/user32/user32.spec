@@ -756,7 +756,7 @@
 @ stdcall -version=0x600+ ChangeWindowMessageFilter(long long)
 @ stdcall -version=0x600+ ShutdownBlockReasonDestroy(ptr)
 @ stub -version=0x600+ PaintMonitor
-@ stub IsWindowRedirectedForPrint
+@ stdcall IsWindowRedirectedForPrint(ptr)
 @ stdcall ChangeWindowMessageFilterEx(ptr long long ptr)
 @ stdcall CloseTouchInputHandle(ptr)
 @ stdcall RegisterTouchWindow(ptr long)

@@ -1,6 +1,6 @@
 #ifndef __WIN32K_NTUSER_H
 #define __WIN32K_NTUSER_H
-
+#include <imm32_undoc.h>
 struct _PROCESSINFO;
 struct _THREADINFO;
 struct _DESKTOP;
