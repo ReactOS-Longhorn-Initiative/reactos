@@ -36,3 +36,29 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpv)
     }
     return TRUE;
 }
+
+BOOL BeginPanningFeedback(
+    HWND hwnd
+)
+{
+     TRACE("Here");
+    return 1;
+}
+BOOL EndPanningFeedback(
+   HWND hwnd,
+   BOOL fAnimateBack
+)
+{
+    TRACE("Here");
+    return 1;
+}
+BOOL UpdatePanningFeedback(
+     HWND hwnd,
+     LONG lTotalOverpanOffsetX,
+     LONG lTotalOverpanOffsetY,
+     BOOL fInInertia
+)
+{
+      TRACE("Here");
+    return TRUE;
+}
