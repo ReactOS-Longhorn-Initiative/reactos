@@ -721,3 +721,11 @@
 @ stdcall WriteEncryptedFileRaw(ptr ptr ptr)
 @ stdcall -version=0x600+ RegLoadMUIStringW(ptr wstr wstr long ptr long wstr) advapi32_vista.RegLoadMUIStringW
 @ stdcall -version=0x600+ RegLoadMUIStringA(ptr str str long ptr long str) advapi32_vista.RegLoadMUIStringA
+@ stdcall -stub -version=0x600+ EventActivityIdControl(long ptr)
+@ stdcall -stub -version=0x600+ EventEnabled(ptr ptr)
+@ stdcall -stub -version=0x600+ EventProviderEnabled(ptr str int64)
+@ stdcall -stub -version=0x600+ EventWrite(ptr ptr long ptr)
+@ stub -version=0x600+ EventWriteString
+@ stdcall -stub -version=0x600+ EventWriteTransfer(ptr ptr ptr ptr long ptr)
+@ stdcall -stub -version=0x600+ EventRegister(ptr ptr ptr ptr)
+@ stdcall -stub -version=0x600+ EventUnregister(ptr)

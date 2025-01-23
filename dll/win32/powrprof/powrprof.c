@@ -1318,12 +1318,10 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     return TRUE;
 }
 
-DWORD
-WINAPI
+DWORD WINAPI
 PowerSetActiveScheme(HKEY       UserRootPowerKey,
                      const GUID *SchemeGuid)
 {
-    UNIMPLEMENTED;
     return 0;
 }
 
@@ -1334,22 +1332,60 @@ PowerWriteDCValueIndex(
   const GUID *SchemeGuid,
   const GUID *SubGroupOfPowerSettingsGuid,
   const GUID *PowerSettingGuid,
-  DWORD      DcValueIndex)
+  DWORD      DcValueIndex
+)
 {
-    UNIMPLEMENTED;
     return 0;
 }
 
 
-DWORD
-WINAPI
+DWORD WINAPI 
 PowerWriteACValueIndex(
   HKEY       RootPowerKey,
   const GUID *SchemeGuid,
   const GUID *SubGroupOfPowerSettingsGuid,
   const GUID *PowerSettingGuid,
-  DWORD      AcValueIndex)
+  DWORD      AcValueIndex
+)
 {
-    UNIMPLEMENTED;
+    return 0;
+}
+
+typedef enum _POWER_PLATFORM_ROLE {
+  PlatformRoleUnspecified = 0,
+  PlatformRoleDesktop,
+  PlatformRoleMobile,
+  PlatformRoleWorkstation,
+  PlatformRoleEnterpriseServer,
+  PlatformRoleSOHOServer,
+  PlatformRoleAppliancePC,
+  PlatformRolePerformanceServer,
+  PlatformRoleSlate,
+  PlatformRoleMaximum
+} POWER_PLATFORM_ROLE, *PPOWER_PLATFORM_ROLE;
+
+POWER_PLATFORM_ROLE WINAPI
+PowerDeterminePlatformRole()
+{
+    return PlatformRoleDesktop;
+}
+
+POWER_PLATFORM_ROLE WINAPI
+PowerDeterminePlatformRoleEx(UINT32 thing)
+{
+    return PlatformRoleDesktop;
+}
+
+
+DWORD WINAPI PowerReadACValue(
+  HKEY       RootPowerKey,
+  const GUID *SchemeGuid,
+  const GUID *SubGroupOfPowerSettingsGuid,
+  const GUID *PowerSettingGuid,
+  PULONG     Type,
+  LPBYTE     Buffer,
+  LPDWORD    BufferSize
+)
+{
     return 0;
 }

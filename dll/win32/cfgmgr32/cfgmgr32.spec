@@ -200,3 +200,5 @@
 @ stub CM_Remove_Unmarked_Children_Ex # setupapi.CM_Remove_Unmarked_Children_Ex
 @ stub CM_Reset_Children_Marks # setupapi.CM_Reset_Children_Marks
 @ stub CM_Reset_Children_Marks_Ex # setupapi.CM_Reset_Children_Marks_Ex
+@ stdcall -stub CM_Get_DevNode_PropertyW(ptr)
+@ stdcall -stub CM_Get_Device_IDW(ptr)

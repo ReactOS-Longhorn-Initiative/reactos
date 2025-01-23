@@ -12,9 +12,25 @@
 
 #define NDEBUG
 #include <debug.h>
+typedef enum _WSC_PROVIDER_INFO_TYPE {
+//  InfoType is:                  Info points to:
+    ProviderInfoLspCategories, // DWORD (LspCategories)
+    ProviderInfoAudit,         // struct WSC_PROVIDER_AUDIT_INFO
+} WSC_PROVIDER_INFO_TYPE ;
 
 /* FUNCTIONS *****************************************************************/
-
+int WSCGetProviderInfo(
+  LPGUID                 lpProviderId,
+  WSC_PROVIDER_INFO_TYPE InfoType,
+  PBYTE                  Info,
+  size_t                 *InfoSize,
+  DWORD                  Flags,
+  LPINT                  lpErrno
+)
+{
+    UNIMPLEMENTED;
+    return 0;
+}
 /*
  * @implemented
  */

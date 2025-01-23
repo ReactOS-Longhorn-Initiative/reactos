@@ -603,3 +603,4 @@
 @ stub pSetupVerifyQueuedCatalogs
 @ stub pSetupWriteLogEntry
 @ stub pSetupWriteLogError
+@ stdcall -stub SetupDiGetDevicePropertyW(ptr ptr)
