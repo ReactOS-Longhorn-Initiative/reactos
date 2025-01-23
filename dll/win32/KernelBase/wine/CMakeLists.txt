@@ -21,7 +21,7 @@ list(APPEND SOURCE_STATIC
     loader.c
     locale.c
     main.c
-    #memory.c
+    memory.c
    # path.c
     #process.c
     #registry.c

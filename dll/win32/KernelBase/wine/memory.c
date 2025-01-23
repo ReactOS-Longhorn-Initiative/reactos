@@ -23,44 +23,24 @@
 #include <string.h>
 #include <limits.h>
 
-
-
-#define NTOS_MODE_USER
-#include <ndk/cmfuncs.h>
-#include <ndk/exfuncs.h>
-#include <ndk/iofuncs.h>
-#include <ndk/iotypes.h>
-#include <ndk/kdtypes.h>
-#include <ndk/kefuncs.h>
-#include <ndk/ldrfuncs.h>
-#include <ndk/mmfuncs.h>
-#include <ndk/obfuncs.h>
-#include <ndk/psfuncs.h>
-#include <ndk/rtlfuncs.h>
-#include <ndk/setypes.h>
-#include <ndk/umfuncs.h>
-
-#include <sys/types.h>
-
 #include "ntstatus.h"
 #define WIN32_NO_STATUS
-#include "windef.h"
-#include "winbase.h"
-#include "winnls.h"
-#ifdef __REACTOS__
-#else
-#include "ddk/wdm.h"
-#endif
+#include "windows.h"
+#include "appmodel.h"
+#include "shlwapi.h"
+#include "perflib.h"
+#include "winternl.h"
 
-#include "kernelbase.h"
-#include "wine/exception.h"
 #include "wine/debug.h"
-
+#include "kernelbase.h"
+#include "wine/heap.h"
+#include "wine/list.h"
 WINE_DEFAULT_DEBUG_CHANNEL(heap);
 WINE_DECLARE_DEBUG_CHANNEL(virtual);
 WINE_DECLARE_DEBUG_CHANNEL(globalmem);
 
 
+#ifndef __REACTOS__
 
 static CROSS_PROCESS_WORK_LIST *open_cross_process_connection( HANDLE process )
 {
@@ -115,7 +95,7 @@ static void send_cross_process_notification( CROSS_PROCESS_WORK_LIST *list, UINT
 static const SIZE_T page_mask = 0xfff;
 #define ROUND_ADDR(addr) ((void *)((UINT_PTR)(addr) & ~page_mask))
 #define ROUND_SIZE(addr,size) (((SIZE_T)(size) + ((UINT_PTR)(addr) & page_mask) + page_mask) & ~page_mask)
-#ifndef __REACTOS__
+
 /***********************************************************************
  *             DiscardVirtualMemory   (kernelbase.@)
  */
@@ -140,7 +120,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH FlushViewOfFile( const void *base, SIZE_T size )
     return set_ntstatus( status );
 }
 
-
 /****************************************************************************
  *           FlushInstructionCache   (kernelbase.@)
  */
@@ -156,7 +135,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH FlushInstructionCache( HANDLE process, LPCVOID add
     return set_ntstatus( NtFlushInstructionCache( process, addr, size ));
 }
 
-#endif
 /***********************************************************************
  *          GetLargePageMinimum   (kernelbase.@)
  */
@@ -212,7 +190,6 @@ static void fill_system_info( SYSTEM_INFO *si, const SYSTEM_BASIC_INFORMATION *b
     }
 }
 
-#ifndef __REACTOS__
 /***********************************************************************
  *          GetNativeSystemInfo   (kernelbase.@)
  */
@@ -329,7 +306,7 @@ LPVOID WINAPI DECLSPEC_HOTPATCH MapViewOfFileEx( HANDLE handle, DWORD access, DW
     }
     return addr;
 }
-#endif
+
 
 /***********************************************************************
  *             MapViewOfFileFromApp   (kernelbase.@)
@@ -1843,3 +1820,4 @@ UINT WINAPI GetSystemFirmwareTable( DWORD provider, DWORD id, void *buffer, DWOR
     HeapFree( GetProcessHeap(), 0, info );
     return buffer_size;
 }
+#endif
