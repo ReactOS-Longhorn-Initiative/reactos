@@ -750,3 +750,22 @@
 @ varargs wsprintfW(ptr wstr)
 @ stdcall wvsprintfA(ptr str ptr)
 @ stdcall wvsprintfW(ptr wstr ptr)
+@ stdcall -version=0x600+ RegisterPowerSettingNotification(ptr ptr long)
+@ stdcall -version=0x600+ UnregisterPowerSettingNotification(ptr)
+
+@ stdcall -version=0x600+ ChangeWindowMessageFilter(long long)
+@ stdcall -stub -version=0x600+ ShutdownBlockReasonDestroy(ptr)
+@ stub -version=0x600+ PaintMonitor
+@ stub IsWindowRedirectedForPrint
+@ stdcall ChangeWindowMessageFilterEx(ptr long long ptr)
+@ stdcall CloseTouchInputHandle(ptr)
+@ stdcall RegisterTouchWindow(ptr long)
+
+@ stdcall -stub GetTouchInputInfo(ptr)
+@ stdcall -stub SetGestureInfo(ptr)
+@ stdcall -stub SetGestureConfig(ptr)
+@ stdcall -stub CloseGestureInfoHandle(ptr)
+@ stdcall -stub GetGestureInfo(ptr)
+@ stdcall -stub DisplayConfigGetDeviceInfo(ptr)
+@ stdcall GetDisplayConfigBufferSizes(long ptr ptr)
+@ stdcall QueryDisplayConfig(long ptr ptr ptr ptr ptr)
