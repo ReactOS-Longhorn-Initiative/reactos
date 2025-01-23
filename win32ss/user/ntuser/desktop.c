@@ -396,7 +396,7 @@ GetSystemVersionString(OUT PWSTR pwszzVersion,
         /* String for Safe Mode */
         Status = RtlStringCchPrintfW(pwszzVersion,
                                      cchDest,
-                                     L"ReactOS Version %S %wZ (NT %u.%u Build %u%s)\n",
+                                     L"ReactOS Longhorn Version %S %wZ (NT %u.%u Build %u%s)\n",
                                      KERNEL_VERSION_STR,
                                      &BuildLabString,
                                      SharedUserData->NtMajorVersion,
