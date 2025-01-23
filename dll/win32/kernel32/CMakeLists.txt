@@ -75,6 +75,7 @@ list(APPEND SOURCE
     wine/actctx.c
     wine/comm.c
     wine/lzexpand.c
+    wine/module.c
     wine/muldiv.c
     wine/profile.c
     wine/res.c
