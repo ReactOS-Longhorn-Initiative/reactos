@@ -105,7 +105,7 @@ NTSTATUS WINAPI RtlQueryDynamicTimeZoneInformation(RTL_DYNAMIC_TIME_ZONE_INFORMA
 {
     return NtQuerySystemInformation( 102, ret, sizeof(*ret), NULL ); //SystemDynamicTimeZoneInformation
 }
-
+ 
 NTSTATUS WINAPI RtlAddMandatoryAce(
     IN OUT PACL pAcl,
     IN DWORD dwAceRevision,
