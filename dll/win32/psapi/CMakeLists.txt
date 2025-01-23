@@ -3,6 +3,7 @@ spec2def(psapi.dll psapi.spec ADD_IMPORTLIB)
 
 
 add_library(win32_psapi
+    main.c
     psapi.c
 )
 target_link_libraries(win32_psapi ${PSEH_LIB})
