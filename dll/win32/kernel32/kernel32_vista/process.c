@@ -5,6 +5,7 @@
 #include <debug.h>
 DEBUG_CHANNEL(wine);
 
+#ifndef __REACTOS__
 /***********************************************************************
  *           CmdBatNotification   (KERNEL32.@)
  *
@@ -22,6 +23,7 @@ BOOL WINAPI CmdBatNotification( BOOL bBatchRunning )
     FIXME("%d\n", bBatchRunning);
     return FALSE;
 }
+#endif
 
 /***********************************************************************
  *           RegisterApplicationRestart       (KERNEL32.@)
@@ -170,6 +172,8 @@ WORD WINAPI GetMaximumProcessorGroupCount(void)
     return groups;
 }
 
+
+#ifndef __REACTOS__
 /**********************************************************************
  *           GetNumaNodeProcessorMask     (KERNEL32.@)
  */
@@ -189,6 +193,7 @@ BOOL WINAPI GetNumaAvailableMemoryNode(UCHAR node, PULONGLONG available_bytes)
     SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
     return FALSE;
 }
+#endif
 
 /**********************************************************************
  *           GetNumaAvailableMemoryNodeEx     (KERNEL32.@)
@@ -200,6 +205,7 @@ BOOL WINAPI GetNumaAvailableMemoryNodeEx(USHORT node, PULONGLONG available_bytes
     return FALSE;
 }
 
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetNumaProcessorNode (KERNEL32.@)
  */
@@ -217,6 +223,7 @@ BOOL WINAPI GetNumaProcessorNode(UCHAR processor, PUCHAR node)
     SetLastError(ERROR_INVALID_PARAMETER);
     return FALSE;
 }
+#endif
 
 /***********************************************************************
  *           GetNumaProcessorNodeEx (KERNEL32.@)

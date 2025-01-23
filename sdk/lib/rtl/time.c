@@ -420,4 +420,40 @@ RtlSecondsSince1980ToTime(IN ULONG SecondsSince1980,
     Time->QuadPart = ((LONGLONG)SecondsSince1980 * TICKSPERSEC) + TICKSTO1980;
 }
 
+BOOL WINAPI RtlQueryUnbiasedInterruptTime(ULONGLONG *time)
+{
+    ULONG high, low;
+
+    if (!time)
+    {
+        RtlSetLastWin32ErrorAndNtStatusFromNtStatus( STATUS_INVALID_PARAMETER );
+        return FALSE;
+    }
+
+    do
+    {
+        high = user_shared_data->InterruptTime.High1Time;
+        low = user_shared_data->InterruptTime.LowPart;
+    }
+    while (high != user_shared_data->InterruptTime.High2Time);
+    /* FIXME: should probably subtract InterruptTimeBias */
+    *time = (ULONGLONG)high << 32 | low;
+    return TRUE;
+}
+
+
+LONGLONG WINAPI RtlGetSystemTimePrecise( void )
+{
+    LARGE_INTEGER SystemTime;
+
+    do
+    {
+        SystemTime.HighPart = SharedUserData->SystemTime.High1Time;
+        SystemTime.LowPart = SharedUserData->SystemTime.LowPart;
+    }
+    while (SystemTime.HighPart != SharedUserData->SystemTime.High2Time);
+
+    return SystemTime.QuadPart;
+}
+
 /* EOF */

@@ -271,10 +271,14 @@ BOOL WINAPI QueryIdleProcessorCycleTime( ULONG *size, ULONG64 *times )
  */
 BOOL WINAPI QueryIdleProcessorCycleTimeEx( USHORT group_id, ULONG *size, ULONG64 *times )
 {
+#ifndef __REACTOS__
     ULONG ret_size;
     NTSTATUS status = NtQuerySystemInformationEx( SystemProcessorIdleCycleTimeInformation, &group_id, sizeof(group_id),
                                                   times, *size, &ret_size );
     if (!*size || !status) *size = ret_size;
+#else
+    //DPRINT1("UNIMPLEMENTED\n");
+#endif
     return TRUE;
 }
 
@@ -494,7 +498,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEventEx( DEBUG_EVENT *event, DWORD tim
 #endif
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           WaitOnAddress   (kernelbase.@)
  */
@@ -548,7 +552,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateEventW( SECURITY_ATTRIBUTES *sa, BOOL manu
     return CreateEventExW( sa, name, flags, EVENT_ALL_ACCESS );
 }
 
-
+#endif
 /***********************************************************************
  *           CreateEventExA    (kernelbase.@)
  */
@@ -602,7 +606,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateEventExW( SECURITY_ATTRIBUTES *sa, LPCWSTR
         SetLastError( RtlNtStatusToDosError(status) );
     return ret;
 }
-
+#ifndef __REACTOS__
 
 /***********************************************************************
  *           OpenEventA    (kernelbase.@)
@@ -688,7 +692,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateMutexW( SECURITY_ATTRIBUTES *sa, BOOL owne
     return CreateMutexExW( sa, name, owner ? CREATE_MUTEX_INITIAL_OWNER : 0, MUTEX_ALL_ACCESS );
 }
 
-
+#endif
 /***********************************************************************
  *           CreateMutexExA   (kernelbase.@)
  */
@@ -709,7 +713,6 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateMutexExA( SECURITY_ATTRIBUTES *sa, LPCSTR 
     }
     return CreateMutexExW( sa, NtCurrentTeb()->StaticUnicodeString.Buffer, flags, access );
 }
-
 
 /***********************************************************************
  *           CreateMutexExW   (kernelbase.@)
@@ -732,7 +735,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateMutexExW( SECURITY_ATTRIBUTES *sa, LPCWSTR
     return ret;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           OpenMutexW   (kernelbase.@)
  */
@@ -837,7 +840,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateWaitableTimerW( SECURITY_ATTRIBUTES *sa, B
     return CreateWaitableTimerExW( sa, name, manual ? CREATE_WAITABLE_TIMER_MANUAL_RESET : 0,
                                    TIMER_ALL_ACCESS );
 }
-
+#endif
 
 /***********************************************************************
  *           CreateWaitableTimerExW    (kernelbase.@)

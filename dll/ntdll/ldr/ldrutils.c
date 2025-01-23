@@ -2787,5 +2787,168 @@ LdrpUnloadShimEngine()
     LdrUnloadDll(g_pShimEngineModule);
     g_pShimEngineModule = NULL;
 }
+#include "wine/list.h"
+/* windows directory */
+const WCHAR windows_dir[] = L"C:\\windows";
+/* system directory with trailing backslash */
+const WCHAR system_dir[] = L"C:\\windows\\system32\\";
+
+/* system search path */
+static const WCHAR system_path[] = L"C:\\windows\\system32;C:\\windows\\system;C:\\windows";
+
+static BOOL is_prefix_bootstrap;  /* are we bootstrapping the prefix? */
+static BOOL imports_fixup_done = FALSE;  /* set once the imports have been fixed up, before attaching them */
+static BOOL process_detaching = FALSE;  /* set on process detach to avoid deadlocks with thread detach */
+static int free_lib_count;   /* recursion depth of LdrUnloadDll calls */
+static LONG path_safe_mode;  /* path mode set by RtlSetSearchPathMode */
+static LONG dll_safe_mode = 1;  /* dll search mode */
+static UNICODE_STRING dll_directory;  /* extra path for LdrSetDllDirectory */
+static UNICODE_STRING system_dll_path; /* path to search for system dependency dlls */
+static DWORD default_search_flags;  /* default flags set by LdrSetDefaultDllDirectories */
+static WCHAR *default_load_path;    /* default dll search path */
+static CRITICAL_SECTION dlldir_section;
+typedef enum
+{
+    INVALID_PATH = 0,
+    UNC_PATH,              /* "//foo" */
+    ABSOLUTE_DRIVE_PATH,   /* "c:/foo" */
+    RELATIVE_DRIVE_PATH,   /* "c:foo" */
+    ABSOLUTE_PATH,         /* "/foo" */
+    RELATIVE_PATH,         /* "foo" */
+    DEVICE_PATH,           /* "//./foo" */
+    UNC_DOT_PATH           /* "//." */
+} DOS_PATHNAME_TYPE;
+struct dll_dir_entry
+{
+    struct list entry;
+    WCHAR       dir[1];
+};
+static struct list dll_dir_list = LIST_INIT( dll_dir_list );  /* extra dirs from LdrAddDllDirectory */
+NTSYSAPI NTSTATUS  WINAPI RtlDosPathNameToNtPathName_U_WithStatus(PCWSTR,PUNICODE_STRING,PWSTR*,CURDIR*);
+#define LOAD_WITH_ALTERED_SEARCH_PATH       0x00000008
+#define LOAD_IGNORE_CODE_AUTHZ_LEVEL        0x00000010
+#define LOAD_LIBRARY_AS_IMAGE_RESOURCE      0x00000020
+#define LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE  0x00000040
+#define LOAD_LIBRARY_REQUIRE_SIGNED_TARGET  0x00000080
+#define LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR    0x00000100
+#define LOAD_LIBRARY_SEARCH_APPLICATION_DIR 0x00000200
+#define LOAD_LIBRARY_SEARCH_USER_DIRS       0x00000400
+#define LOAD_LIBRARY_SEARCH_SYSTEM32        0x00000800
+#define LOAD_LIBRARY_SEARCH_DEFAULT_DIRS    0x00001000
+
+/****************************************************************************
+ *		LdrGetDllDirectory  (NTDLL.@)
+ */
+NTSTATUS WINAPI LdrGetDllDirectory( UNICODE_STRING *dir )
+{
+    NTSTATUS status = STATUS_SUCCESS;
+
+    RtlEnterCriticalSection( (PRTL_CRITICAL_SECTION)&dlldir_section );
+    dir->Length = dll_directory.Length + sizeof(WCHAR);
+    if (dir->MaximumLength >= dir->Length) RtlCopyUnicodeString( dir, &dll_directory );
+    else
+    {
+        status = STATUS_BUFFER_TOO_SMALL;
+        if (dir->MaximumLength) dir->Buffer[0] = 0;
+    }
+    RtlLeaveCriticalSection((PRTL_CRITICAL_SECTION) &dlldir_section );
+    return status;
+}
+
+
+/****************************************************************************
+ *		LdrSetDllDirectory  (NTDLL.@)
+ */
+NTSTATUS WINAPI LdrSetDllDirectory( const UNICODE_STRING *dir )
+{
+    NTSTATUS status = STATUS_SUCCESS;
+    UNICODE_STRING new;
+
+    if (!dir->Buffer) RtlInitUnicodeString( &new, NULL );
+    else if ((status = RtlDuplicateUnicodeString( 1, dir, &new ))) return status;
+
+    RtlEnterCriticalSection( (PRTL_CRITICAL_SECTION)&dlldir_section );
+    RtlFreeUnicodeString( &dll_directory );
+    dll_directory = new;
+    RtlLeaveCriticalSection( (PRTL_CRITICAL_SECTION)&dlldir_section );
+    return status;
+}
+
+
+NTSTATUS WINAPI LdrAddDllDirectory( const UNICODE_STRING *dir, void **cookie )
+{
+    FILE_BASIC_INFORMATION info;
+    UNICODE_STRING nt_name;
+    NTSTATUS status;
+    OBJECT_ATTRIBUTES attr;
+    DWORD len;
+    struct dll_dir_entry *ptr;
+    DOS_PATHNAME_TYPE type = RtlDetermineDosPathNameType_U( dir->Buffer );
+
+    if (type != ABSOLUTE_PATH && type != ABSOLUTE_DRIVE_PATH && type != UNC_PATH)
+        return STATUS_INVALID_PARAMETER;
+
+    status = RtlDosPathNameToNtPathName_U_WithStatus( dir->Buffer, &nt_name, NULL, NULL );
+    if (status) return status;
+    len = nt_name.Length / sizeof(WCHAR);
+    if (!(ptr = RtlAllocateHeap( RtlGetProcessHeap(), 0, offsetof(struct dll_dir_entry, dir[++len] ))))
+        return STATUS_NO_MEMORY;
+    memcpy( ptr->dir, nt_name.Buffer, len * sizeof(WCHAR) );
+
+    attr.Length = sizeof(attr);
+    attr.RootDirectory = 0;
+    attr.Attributes = OBJ_CASE_INSENSITIVE;
+    attr.ObjectName = &nt_name;
+    attr.SecurityDescriptor = NULL;
+    attr.SecurityQualityOfService = NULL;
+    status = NtQueryAttributesFile( &attr, &info );
+    RtlFreeUnicodeString( &nt_name );
+
+    if (!status)
+    {
+      //  TRACE( "%s\n", debugstr_w( ptr->dir ));
+        RtlEnterCriticalSection((PRTL_CRITICAL_SECTION) &dlldir_section );
+        list_add_head( &dll_dir_list, &ptr->entry );
+        RtlLeaveCriticalSection( (PRTL_CRITICAL_SECTION)&dlldir_section );
+        *cookie = ptr;
+    }
+    else RtlFreeHeap( RtlGetProcessHeap(), 0, ptr );
+    return status;
+}
+
+
+/****************************************************************************
+ *		LdrRemoveDllDirectory  (NTDLL.@)
+ */
+NTSTATUS WINAPI LdrRemoveDllDirectory( void *cookie )
+{
+    struct dll_dir_entry *ptr = cookie;
+
+    //TRACE( "%s\n", debugstr_w( ptr->dir ));
+
+    RtlEnterCriticalSection((PRTL_CRITICAL_SECTION) &dlldir_section );
+    list_remove( &ptr->entry );
+    RtlFreeHeap( RtlGetProcessHeap(), 0, ptr );
+    RtlLeaveCriticalSection((PRTL_CRITICAL_SECTION) &dlldir_section );
+    return STATUS_SUCCESS;
+}
+
+
+/*************************************************************************
+ *		LdrSetDefaultDllDirectories  (NTDLL.@)
+ */
+NTSTATUS WINAPI LdrSetDefaultDllDirectories( ULONG flags )
+{
+    /* LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR doesn't make sense in default dirs */
+    const ULONG load_library_search_flags = (LOAD_LIBRARY_SEARCH_APPLICATION_DIR |
+                                             LOAD_LIBRARY_SEARCH_USER_DIRS |
+                                             LOAD_LIBRARY_SEARCH_SYSTEM32 |
+                                             LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+
+    if (!flags || (flags & ~load_library_search_flags)) return STATUS_INVALID_PARAMETER;
+    default_search_flags = flags;
+    return STATUS_SUCCESS;
+}
+
 
 /* EOF */
