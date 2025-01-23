@@ -598,7 +598,7 @@ PspTerminateJobObject(
             ExitStatus);
 
     return PspEnumerateProcessesInJob(Job,
-                                      PspTerminateProcessCallback,
+                                      (PJOB_ENUMERATOR_CALLBACK)PspTerminateProcessCallback,
                                       &Context,
                                       FALSE);
 }
@@ -1885,6 +1885,7 @@ NtQueryInformationJobObject(
     BOOLEAN NoOutput;
     PVOID JobInfoBuffer;
     PLIST_ENTRY NextEntry;
+    UNREFERENCED_PARAMETER(NextEntry);
     PKTHREAD CurrentThread;
     KPROCESSOR_MODE PreviousMode;
     JOBOBJECT_EXTENDED_LIMIT_INFORMATION ExtendedLimit;
