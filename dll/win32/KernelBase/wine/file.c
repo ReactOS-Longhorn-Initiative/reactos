@@ -510,7 +510,7 @@ static BOOL is_same_file( HANDLE h1, HANDLE h2 )
             !memcmp( &id1.ObjectId, &id2.ObjectId, sizeof(id1.ObjectId) ));
 }
 
-
+#ifndef __REACTOS__
 /******************************************************************************
  *	AreFileApisANSI   (kernelbase.@)
  */
@@ -518,6 +518,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH AreFileApisANSI(void)
 {
     return !oem_file_apis;
 }
+#endif
 
 /******************************************************************************
  *  copy_file
@@ -1421,6 +1422,8 @@ HANDLE WINAPI FindFirstFileNameW( const WCHAR *file_name, DWORD flags, DWORD *le
     return INVALID_HANDLE_VALUE;
 }
 
+#ifndef __REACTOS__
+
 /**************************************************************************
  *	FindFirstStreamW   (kernelbase.@)
  */
@@ -1431,7 +1434,6 @@ HANDLE WINAPI FindFirstStreamW( const WCHAR *filename, STREAM_INFO_LEVELS level,
     return INVALID_HANDLE_VALUE;
 }
 
-#ifndef __REACTOS__
 /******************************************************************************
  *	FindNextFileA   (kernelbase.@)
  */
@@ -1543,7 +1545,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH FindNextFileW( HANDLE handle, WIN32_FIND_DATAW *da
     RtlLeaveCriticalSection( &info->cs );
     return ret;
 }
-#endif
 
 /**************************************************************************
  *	FindNextStreamW   (kernelbase.@)
@@ -1555,7 +1556,6 @@ BOOL WINAPI FindNextStreamW( HANDLE handle, void *data )
     return FALSE;
 }
 
-#ifndef __REACTOS__
 /******************************************************************************
  *	FindClose   (kernelbase.@)
  */
@@ -1979,7 +1979,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleW( HANDLE file, LPWSTR pa
     return result;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	GetFullPathNameA   (kernelbase.@)
  */
@@ -2343,6 +2343,7 @@ UINT WINAPI /* DECLSPEC_HOTPATCH */ GetSystemWow64DirectoryW( LPWSTR path, UINT 
     return copy_filename( get_machine_wow64_dir( IMAGE_FILE_MACHINE_I386 ), path, count );
 }
 
+#endif
 
 /***********************************************************************
  *	GetSystemWow64Directory2A   (kernelbase.@)
@@ -2365,6 +2366,7 @@ UINT WINAPI DECLSPEC_HOTPATCH GetSystemWow64Directory2W( LPWSTR path, UINT count
     return dir ? copy_filename( dir, path, count ) : 0;
 }
 
+#ifndef __REACTOS__
 
 /***********************************************************************
  *	GetTempFileNameA   (kernelbase.@)
@@ -2458,7 +2460,6 @@ UINT WINAPI DECLSPEC_HOTPATCH GetTempFileNameW( LPCWSTR path, LPCWSTR prefix, UI
     return unique;
 }
 
-
 /***********************************************************************
  *	GetTempPathA   (kernelbase.@)
  */
@@ -2528,6 +2529,8 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetTempPathW( DWORD count, LPWSTR path )
     TRACE( "returning %u, %s\n", ret, debugstr_w( path ));
     return ret;
 }
+
+#endif
 
 
 /***********************************************************************
@@ -2656,7 +2659,6 @@ error:
     if (source_handle) NtClose( source_handle );
     return FALSE;
 }
-#endif
 
 /***********************************************************************
  *	NeedCurrentDirectoryForExePathA   (kernelbase.@)
@@ -2682,7 +2684,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH NeedCurrentDirectoryForExePathW( LPCWSTR name )
     return !GetEnvironmentVariableW( L"NoDefaultCurrentDirectoryInExePath", &env_val, 1 );
 }
 
-#ifndef __REACTOS__
 /***********************************************************************
  *	ReplaceFileW   (kernelbase.@)
  */
@@ -2926,8 +2927,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetCurrentDirectoryW( LPCWSTR dir )
     return set_ntstatus( RtlSetCurrentDirectory_U( &dirW ));
 }
 
-#endif
-
 /**************************************************************************
  *	SetFileApisToANSI   (kernelbase.@)
  */
@@ -2999,7 +2998,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetFileAttributesW( LPCWSTR name, DWORD attributes
     return set_ntstatus( status );
 }
 
-
 /***********************************************************************
  *	Wow64DisableWow64FsRedirection   (kernelbase.@)
  */
@@ -3007,7 +3005,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH Wow64DisableWow64FsRedirection( PVOID *old_value )
 {
     return set_ntstatus( RtlWow64EnableFsRedirectionEx( TRUE, (ULONG *)old_value ));
 }
-
+#endif
 
 /***********************************************************************
  *	Wow64EnableWow64FsRedirection   (kernelbase.@)
@@ -3019,7 +3017,7 @@ DWORD /*BOOLEAN*/ WINAPI kernelbase_Wow64EnableWow64FsRedirection( BOOLEAN enabl
     return set_ntstatus( RtlWow64EnableFsRedirection( enable ));
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	Wow64RevertWow64FsRedirection   (kernelbase.@)
  */
@@ -3033,7 +3031,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH Wow64RevertWow64FsRedirection( PVOID old_value )
  * Operations on file handles
  ***********************************************************************/
 
-
 /***********************************************************************
  *	CancelIo   (kernelbase.@)
  */
@@ -3043,7 +3040,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH CancelIo( HANDLE handle )
 
     return set_ntstatus( NtCancelIoFile( handle, &io ) );
 }
-
+#endif
 
 /***********************************************************************
  *	CancelIoEx   (kernelbase.@)
@@ -3071,7 +3068,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH CancelSynchronousIo( HANDLE thread )
 #endif
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	FlushFileBuffers   (kernelbase.@)
  */
@@ -3082,7 +3079,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH FlushFileBuffers( HANDLE file )
     return set_ntstatus( NtFlushBuffersFile( file, &iosb ));
 }
 
-#ifndef __REACTOS__
 /***********************************************************************
  *	GetFileInformationByHandle   (kernelbase.@)
  */
@@ -3304,6 +3300,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFileType( HANDLE file )
 BOOL WINAPI DECLSPEC_HOTPATCH GetOverlappedResultEx( HANDLE file, OVERLAPPED *overlapped,
                                                      DWORD *result, DWORD timeout, BOOL alertable );
 #endif
+#ifndef __REACTOS__
 /***********************************************************************
  *	GetOverlappedResult   (kernelbase.@)
  */
@@ -3312,7 +3309,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetOverlappedResult( HANDLE file, LPOVERLAPPED ove
 {
     return GetOverlappedResultEx( file, overlapped, result, wait ? INFINITE : 0, FALSE );
 }
-
+#endif
 
 /***********************************************************************
  *	GetOverlappedResultEx   (kernelbase.@)
@@ -3358,7 +3355,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetOverlappedResultEx( HANDLE file, OVERLAPPED *ov
     return set_ntstatus( status );
 }
 
-
+#ifndef __REACTOS__
 /**************************************************************************
  *	LockFile   (kernelbase.@)
  */
@@ -3407,7 +3404,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH LockFileEx( HANDLE file, DWORD flags, DWORD reserv
                                      flags & LOCKFILE_FAIL_IMMEDIATELY,
                                      flags & LOCKFILE_EXCLUSIVE_LOCK ));
 }
-
+#endif
 
 /***********************************************************************
  *	OpenFileById   (kernelbase.@)
@@ -3454,7 +3451,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH OpenFileById( HANDLE handle, LPFILE_ID_DESCRIPTO
     return result;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	ReOpenFile   (kernelbase.@)
  */
@@ -3722,7 +3719,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetEndOfFile( HANDLE file )
     return set_ntstatus( status );
 }
 
-
+#endif
 /***********************************************************************
  *	SetFileInformationByHandle   (kernelbase.@)
  */
@@ -3800,7 +3797,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetFileInformationByHandle( HANDLE file, FILE_INFO
     return set_ntstatus( status );
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	SetFilePointer   (kernelbase.@)
  */
@@ -4050,6 +4047,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WriteFileGather( HANDLE file, FILE_SEGMENT_ELEMENT
                                             io, segments, count, &offset, NULL ));
 }
 
+#endif
 
 /***********************************************************************
  * Operations on file times
