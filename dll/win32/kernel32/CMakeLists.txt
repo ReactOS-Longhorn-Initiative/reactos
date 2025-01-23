@@ -4,7 +4,18 @@ add_subdirectory(kernel32_vista)
 add_definitions(-D_KERNEL32_)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/subsys)
 spec2def(kernel32.dll kernel32.spec ADD_IMPORTLIB)
-
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
+   CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    # Silence GCC/Clang warnings
+    add_compile_options(
+        -Wno-unused-function
+        -Wno-unknown-pragmas
+        -Wno-unused-variable
+        -Wno-unused-value
+        -Wno-unused-function
+    )
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder>)
+endif()
 add_library(kernel32_native
     client/actctx.c
     client/thread.c
