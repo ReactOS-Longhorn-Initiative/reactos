@@ -1246,7 +1246,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH QueryActCtxSettingsW( DWORD flags, HANDLE ctx, con
                                                                        buffer, size, written ));
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *          QueryActCtxW    (kernelbase.@)
  */
@@ -1256,7 +1256,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH QueryActCtxW( DWORD flags, HANDLE context, PVOID i
     return set_ntstatus( RtlQueryInformationActivationContext( flags, context, inst, class,
                                                                buffer, size, written ));
 }
-
+#endif
 
 /***********************************************************************
  *          ReleaseActCtx    (kernelbase.@)

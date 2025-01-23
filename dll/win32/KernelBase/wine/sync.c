@@ -61,7 +61,6 @@ static inline LARGE_INTEGER *get_nt_timeout( LARGE_INTEGER *time, DWORD timeout 
     return time;
 }
 
-
 /***********************************************************************
  *              BaseGetNamedObjectDirectory  (kernelbase.@)
  */
@@ -1247,7 +1246,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetQueuedCompletionStatusEx( HANDLE port, OVERLAPP
     else SetLastError( RtlNtStatusToDosError(ret) );
     return FALSE;
 }
-#endif
 
 /******************************************************************************
  *		PostQueuedCompletionStatus   (kernelbase.@)
@@ -1259,7 +1257,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH PostQueuedCompletionStatus( HANDLE port, DWORD cou
 
     return set_ntstatus( NtSetIoCompletion( port, key, (ULONG_PTR)overlapped, STATUS_SUCCESS, count ));
 }
-
 
 /***********************************************************************
  * Named pipes
@@ -1456,7 +1453,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreatePipe( HANDLE *read_pipe, HANDLE *write_pipe,
     return TRUE;
 }
 
-
 /***********************************************************************
  *           DisconnectNamedPipe   (kernelbase.@)
  */
@@ -1468,7 +1464,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH DisconnectNamedPipe( HANDLE pipe )
     return set_ntstatus( NtFsControlFile( pipe, 0, NULL, NULL, &io_block,
                                           FSCTL_PIPE_DISCONNECT, NULL, 0, NULL, 0 ));
 }
-
 
 /***********************************************************************
  *           GetNamedPipeHandleStateW   (kernelbase.@)
@@ -1791,5 +1786,5 @@ __ASM_STDCALL_FUNC(InterlockedDecrement, 4,
                   "ret $4")
 
 #endif  /* __i386__ */
-
+#endif
 #endif

@@ -350,6 +350,8 @@ CreateWaitableTimerA(IN LPSECURITY_ATTRIBUTES lpTimerAttributes OPTIONAL,
     ConvertWin32AnsiObjectApiToUnicodeApi(WaitableTimer, lpTimerName, lpTimerAttributes, bManualReset);
 }
 
+#if 0
+TODO: um ok.
 /*
  * @implemented
  */
@@ -361,6 +363,7 @@ OpenWaitableTimerW(IN DWORD dwDesiredAccess,
 {
     OpenNtObjectFromWin32Api(Timer, dwDesiredAccess, bInheritHandle, lpTimerName);
 }
+#endif
 
 /*
  * @implemented
@@ -372,53 +375,6 @@ OpenWaitableTimerA(IN DWORD dwDesiredAccess,
                    IN LPCSTR lpTimerName)
 {
     ConvertOpenWin32AnsiObjectApiToUnicodeApi(WaitableTimer, dwDesiredAccess, bInheritHandle, lpTimerName);
-}
-
-/*
- * @implemented
- */
-BOOL
-WINAPI
-SetWaitableTimer(IN HANDLE hTimer,
-                 IN const LARGE_INTEGER *pDueTime,
-                 IN LONG lPeriod,
-                 IN PTIMERAPCROUTINE pfnCompletionRoutine OPTIONAL,
-                 IN OPTIONAL LPVOID lpArgToCompletionRoutine,
-                 IN BOOL fResume)
-{
-    NTSTATUS Status;
-
-    /* Set the timer */
-    Status = NtSetTimer(hTimer,
-                        (PLARGE_INTEGER)pDueTime,
-                        (PTIMER_APC_ROUTINE)pfnCompletionRoutine,
-                        lpArgToCompletionRoutine,
-                        (BOOLEAN)fResume,
-                        lPeriod,
-                        NULL);
-    if (NT_SUCCESS(Status)) return TRUE;
-
-    /* If we got here, then we failed */
-    BaseSetLastNTError(Status);
-    return FALSE;
-}
-
-/*
- * @implemented
- */
-BOOL
-WINAPI
-CancelWaitableTimer(IN HANDLE hTimer)
-{
-    NTSTATUS Status;
-
-    /* Cancel the timer */
-    Status = NtCancelTimer(hTimer, NULL);
-    if (NT_SUCCESS(Status)) return TRUE;
-
-    /* If we got here, then we failed */
-    BaseSetLastNTError(Status);
-    return FALSE;
 }
 
 /*

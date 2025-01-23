@@ -262,7 +262,7 @@ LCID WINAPI /* DECLSPEC_HOTPATCH */ GetThreadLocale(void)
     return ret;
 }
 
-
+#ifndef __REACTOS__
 /**********************************************************************
  *           GetThreadPriority   (kernelbase.@)
  */
@@ -319,7 +319,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetThreadTimes( HANDLE thread, LPFILETIME creation
     }
     return TRUE;
 }
-
+#endif
 
 /***********************************************************************
  *	     GetThreadUILanguage   (kernelbase.@)
@@ -333,7 +333,7 @@ LANGID WINAPI DECLSPEC_HOTPATCH GetThreadUILanguage(void)
     return lang;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	     OpenThread   (kernelbase.@)
  */
@@ -406,6 +406,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadContext( HANDLE thread, const CONTEXT *co
     return set_ntstatus( NtSetContextThread( thread, context ));
 }
 
+#endif
 
 /***********************************************************************
  *           SetThreadDescription   (kernelbase.@)
@@ -501,7 +502,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadGroupAffinity( HANDLE thread, const GROUP
     return set_ntstatus( NtSetInformationThread( thread, ThreadGroupInformation, new, sizeof(*new) ));
 }
 
-
+#ifndef __REACTOS__
 /**********************************************************************
  *           SetThreadIdealProcessor   (kernelbase.@)
  */
@@ -515,7 +516,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH SetThreadIdealProcessor( HANDLE thread, DWORD pro
     SetLastError( RtlNtStatusToDosError( status ));
     return ~0u;
 }
-
+#endif
 
 /***********************************************************************
  *           SetThreadIdealProcessorEx   (kernelbase.@)
@@ -528,6 +529,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadIdealProcessorEx( HANDLE thread, PROCESSO
     return FALSE;
 }
 
+#ifndef __REACTOS__
 
 /**********************************************************************
  *	SetThreadLocale   (kernelbase.@)
@@ -566,7 +568,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadPriorityBoost( HANDLE thread, BOOL disabl
     return set_ntstatus( NtSetInformationThread( thread, ThreadPriorityBoost, &disable, sizeof(disable) ));
 }
 
-#ifndef __REACTOS__
 /**********************************************************************
  *           SetThreadStackGuarantee   (kernelbase.@)
  */
@@ -587,7 +588,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadStackGuarantee( ULONG *size )
     if (new_size > prev_size) NtCurrentTeb()->GuaranteedStackBytes = (new_size + 4095) & ~4095;
     return TRUE;
 }
-#endif
 
 /**********************************************************************
  *	SetThreadUILanguage   (kernelbase.@)
@@ -599,6 +599,7 @@ LANGID WINAPI DECLSPEC_HOTPATCH SetThreadUILanguage( LANGID langid )
     if (!langid) langid = GetThreadUILanguage();
     return langid;
 }
+#endif
 
 
 /**********************************************************************
@@ -1340,7 +1341,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH TrySubmitThreadpoolCallback( PTP_SIMPLE_CALLBACK c
     return set_ntstatus( TpSimpleTryPost( callback, userdata, environment ));
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           QueueUserWorkItem   (kernelbase.@)
  */
@@ -1348,6 +1349,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH QueueUserWorkItem( LPTHREAD_START_ROUTINE func, PV
 {
     return set_ntstatus( RtlQueueWorkItem( func, context, flags ));
 }
+#endif
 
 /***********************************************************************
  *           SetThreadpoolStackInformation   (kernelbase.@)
