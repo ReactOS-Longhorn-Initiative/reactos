@@ -65,6 +65,8 @@ HRESULT WINAPI RegisterApplicationRecoveryCallback(APPLICATION_RECOVERY_CALLBACK
 }
 BOOL WINAPI DECLSPEC_HOTPATCH GetLogicalProcessorInformationEx( LOGICAL_PROCESSOR_RELATIONSHIP relationship,
                                             SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *buffer, DWORD *len );
+
+
 static SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *get_logical_processor_info(void)
 {
     DWORD size = 0;

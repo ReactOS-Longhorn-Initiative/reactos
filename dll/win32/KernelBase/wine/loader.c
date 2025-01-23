@@ -48,7 +48,7 @@ struct exclusive_datafile
     HANDLE      file;
 };
 static struct list exclusive_datafile_list = LIST_INIT( exclusive_datafile_list );
-
+#ifndef __REACTOS__
 static CRITICAL_SECTION exclusive_datafile_list_section;
 static CRITICAL_SECTION_DEBUG critsect_debug =
 {
@@ -56,8 +56,11 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
     { &critsect_debug.ProcessLocksList, &critsect_debug.ProcessLocksList },
       0, 0, { (DWORD_PTR)(__FILE__ ": exclusive_datafile_list_section") }
 };
-static CRITICAL_SECTION exclusive_datafile_list_section = { &critsect_debug, -1, 0, 0, 0, 0 };
 
+static CRITICAL_SECTION exclusive_datafile_list_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+#else
+ CRITICAL_SECTION exclusive_datafile_list_section;
+#endif
 /***********************************************************************
  * Modules
  ***********************************************************************/

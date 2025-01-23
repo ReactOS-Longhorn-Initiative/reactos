@@ -11,6 +11,18 @@ add_definitions(
 
 remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
 add_definitions(-D_WIN32_WINNT=0x601 -DWINVER=0x601)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
+   CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    # Silence GCC/Clang warnings
+    add_compile_options(
+        -Wno-unused-function
+        -Wno-unknown-pragmas
+        -Wno-unused-variable
+        -Wno-unused-value
+        -Wno-unused-function
+    )
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder>)
+endif()
 
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 

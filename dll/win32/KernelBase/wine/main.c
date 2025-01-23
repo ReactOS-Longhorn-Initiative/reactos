@@ -84,6 +84,19 @@ void init_startup_info( RTL_USER_PROCESS_PARAMETERS *params )
 const GUID IID_IUnknown           = {0x00000000, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
 
 #endif
+
+#ifdef __REACTOS__
+extern  CRITICAL_SECTION exclusive_datafile_list_section;
+VOID
+NTAPI
+RtlpInitializeSections(
+    VOID)
+{
+    RtlInitializeCriticalSection(&exclusive_datafile_list_section);
+}
+
+#endif
+
 /***********************************************************************
  *           DllMain
  */
@@ -94,6 +107,7 @@ BOOL WINAPI DllMain_KernelBaseStatic( HINSTANCE hinst, DWORD reason, LPVOID rese
         DisableThreadLibraryCalls( hinst );
         IsWow64Process( GetCurrentProcess(), &is_wow64 );
         init_global_data();
+        RtlpInitializeSections();
     //    init_locale( hinst );
         init_startup_info( NtCurrentTeb()->Peb->ProcessParameters );
 #ifndef __REACTOS__
