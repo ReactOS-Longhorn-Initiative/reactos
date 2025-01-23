@@ -11,9 +11,7 @@ if(ENABLE_ROSTESTS)
     add_subdirectory(rostests)
 endif()
 
-if(ENABLE_WALLPAPERS)
-    add_subdirectory(wallpapers)
-endif()
+add_subdirectory(wallpapers)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/AHK_Tests/)
     add_subdirectory(AHK_Tests)
