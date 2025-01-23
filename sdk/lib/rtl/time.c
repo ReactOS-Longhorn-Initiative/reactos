@@ -410,6 +410,7 @@ RtlSecondsSince1970ToTime(IN ULONG SecondsSince1970,
 }
 
 
+static const struct _KUSER_SHARED_DATA *user_shared_data = (struct _KUSER_SHARED_DATA *)USER_SHARED_DATA;
 /*
  * @implemented
  */

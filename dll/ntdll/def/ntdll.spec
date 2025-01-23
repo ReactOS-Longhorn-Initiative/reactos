@@ -627,7 +627,7 @@
 @ stdcall RtlAddAuditAccessObjectAce(ptr long long long ptr ptr ptr long long)
 @ stdcall -stub RtlAddCompoundAce(ptr long long long ptr ptr)
 @ stdcall -arch=x86_64 RtlAddFunctionTable(ptr long long)
-@ stub -version=0x600+ RtlAddMandatoryAce
+@ stdcall -version=0x600+ RtlAddMandatoryAce(ptr long long long long ptr)
 @ stdcall RtlAddRefActivationContext(ptr)
 @ stdcall RtlAddRefMemoryStream(ptr)
 @ stub -version=0x600+ RtlAddSIDToBoundaryDescriptor
@@ -1070,7 +1070,7 @@
 @ stdcall RtlQueryAtomInAtomTable(ptr long ptr ptr ptr ptr)
 @ stub -version=0x600+ RtlQueryCriticalSectionOwner
 @ stdcall RtlQueryDepthSList(ptr)
-@ stub -version=0x600+ RtlQueryDynamicTimeZoneInformation
+@ stdcall -version=0x600+ RtlQueryDynamicTimeZoneInformation(ptr)
 @ stub -version=0x600+ RtlQueryElevationFlags
 @ stub -version=0x600+ RtlQueryEnvironmentVariable
 @ stdcall RtlQueryEnvironmentVariable_U(ptr ptr ptr)

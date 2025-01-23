@@ -3049,9 +3049,8 @@ BOOL WINAPI DECLSPEC_HOTPATCH CancelIoEx( HANDLE handle, LPOVERLAPPED overlapped
 {
     IO_STATUS_BLOCK io;
 
-    return set_ntstatus( NtCancelIoFileEx( handle, (PIO_STATUS_BLOCK)overlapped, &io ) );
+    return set_ntstatus( NtCancelIoFile( handle, &io ) );
 }
-
 
 /***********************************************************************
  *	CancelSynchronousIo   (kernelbase.@)

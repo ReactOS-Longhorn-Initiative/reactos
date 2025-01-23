@@ -1181,7 +1181,7 @@
 @ stdcall PeekConsoleInputA(ptr ptr long ptr)
 @ stdcall PeekConsoleInputW(ptr ptr long ptr)
 @ stdcall PeekNamedPipe(long ptr long ptr ptr ptr)
-@ stdcall PerfCreateInstance(long ptr wstr long)
+@ stdcall -stub PerfCreateInstance(long ptr wstr long)
 # @ stub PerfDecrementULongCounterValue
 # @ stub PerfDecrementULongLongCounterValue
 @ stdcall PerfDeleteInstance(long ptr)

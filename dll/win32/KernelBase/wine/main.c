@@ -24,7 +24,7 @@
 #include "windows.h"
 #include "appmodel.h"
 #include "shlwapi.h"
-#include "perflib.h"
+
 #include "winternl.h"
 
 #include "wine/debug.h"
@@ -94,6 +94,7 @@ RtlpInitializeSections(
 {
     RtlInitializeCriticalSection(&exclusive_datafile_list_section);
 }
+
 
 #endif
 
@@ -205,34 +206,8 @@ LONG WINAPI AppPolicyGetWindowingModel(HANDLE token, AppPolicyWindowingModel *po
     return ERROR_SUCCESS;
 }
 
-struct counterset_template
-{
-    PERF_COUNTERSET_INFO counterset;
-    PERF_COUNTER_INFO counter[1];
-};
 
-struct counterset_instance
-{
-    struct list entry;
-    struct counterset_template *template;
-    PERF_COUNTERSET_INSTANCE instance;
-};
-
-struct perf_provider
-{
-    GUID guid;
-    PERFLIBREQUEST callback;
-    struct counterset_template **countersets;
-    unsigned int counterset_count;
-
-    struct list instance_list;
-};
-
-static struct perf_provider *perf_provider_from_handle(HANDLE prov)
-{
-    return (struct perf_provider *)prov;
-}
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           PerfCreateInstance   (KERNELBASE.@)
  */
@@ -453,7 +428,7 @@ ULONG WINAPI PerfStopProvider(HANDLE handle)
     heap_free( prov );
     return STATUS_SUCCESS;
 }
-
+#endif
 /***********************************************************************
  *           QuirkIsEnabled   (KERNELBASE.@)
  */
