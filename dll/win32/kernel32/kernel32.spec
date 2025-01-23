@@ -617,7 +617,7 @@
 @ stdcall GetPrivateProfileStructW(wstr wstr ptr long wstr)
 @ stdcall GetProcAddress(long str)
 @ stdcall GetProcessAffinityMask(long ptr ptr)
-@ stub -version=0x600+ GetProcessDEPPolicy
+@ stdcall -version=0x600+ GetProcessDEPPolicy(ptr ptr ptr)
 @ stdcall -stub -version=0x601+ GetProcessGroupAffinity(long ptr ptr)
 @ stdcall GetProcessHandleCount(long ptr)
 @ stdcall -norelay GetProcessHeap()
@@ -1327,7 +1327,7 @@
 @ stdcall UnlockFileEx(long long long long ptr)
 @ stdcall UnmapViewOfFile(ptr)
 @ stub -version=0x600+ UnregisterApplicationRecoveryCallback
-@ stub -version=0x600+ UnregisterApplicationRestart
+@ stdcall -version=0x600+ UnregisterApplicationRestart()
 @ stdcall UnregisterConsoleIME()
 @ stdcall UnregisterWait(long)
 @ stdcall UnregisterWaitEx(long long)

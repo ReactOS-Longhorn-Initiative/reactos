@@ -37,6 +37,53 @@ WINE_DEFAULT_DEBUG_CHANNEL(kernelbase);
 
 BOOL is_wow64 = FALSE;
 
+#ifdef __REACTOS__
+struct mem_entry
+{
+    union
+    {
+        struct
+        {
+            WORD flags;
+            BYTE lock;
+        };
+        void *next_free;
+    };
+    void *ptr;
+};
+struct kernelbase_global_data
+{
+    struct mem_entry *mem_entries;
+    struct mem_entry *mem_entries_end;
+};
+#define MAX_MEM_HANDLES  0x10000
+static struct mem_entry *next_free_mem;
+static struct kernelbase_global_data global_data = {0};
+void init_global_data(void)
+{
+    global_data.mem_entries = VirtualAlloc( NULL, MAX_MEM_HANDLES * sizeof(struct mem_entry), MEM_COMMIT, PAGE_READWRITE );
+    if (!(next_free_mem = global_data.mem_entries)) ERR( "Failed to allocate kernelbase global handle table\n" );
+    global_data.mem_entries_end = global_data.mem_entries + MAX_MEM_HANDLES;
+}
+
+
+static char *command_lineA;
+static WCHAR *command_lineW;
+
+/******************************************************************
+ *		init_startup_info
+ */
+void init_startup_info( RTL_USER_PROCESS_PARAMETERS *params )
+{
+    ANSI_STRING ansi;
+
+    command_lineW = params->CommandLine.Buffer;
+    if (!RtlUnicodeStringToAnsiString( &ansi, &params->CommandLine, TRUE )) command_lineA = ansi.Buffer;
+}
+
+const GUID IID_IUnknown           = {0x00000000, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
+
+#endif
 /***********************************************************************
  *           DllMain
  */
@@ -47,7 +94,7 @@ BOOL WINAPI DllMain_KernelBaseStatic( HINSTANCE hinst, DWORD reason, LPVOID rese
         DisableThreadLibraryCalls( hinst );
         IsWow64Process( GetCurrentProcess(), &is_wow64 );
         init_global_data();
-        init_locale( hinst );
+    //    init_locale( hinst );
         init_startup_info( NtCurrentTeb()->Peb->ProcessParameters );
 #ifndef __REACTOS__
         init_console();
@@ -67,7 +114,7 @@ BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
         DisableThreadLibraryCalls( hinst );
         IsWow64Process( GetCurrentProcess(), &is_wow64 );
         init_global_data();
-        init_locale( hinst );
+     //   init_locale( hinst );
         init_startup_info( NtCurrentTeb()->Peb->ProcessParameters );
 #ifndef __REACTOS__
         init_console();
