@@ -194,7 +194,12 @@ SwapBuffers(HDC  hdc)
     return(glSwapBuffers(hdc));
 }
 
-
+VOID
+WINAPI
+CreateBitmapFromDxSurface(PVOID ptr)
+{
+    
+}
 /*
 	Do this here for now.
 */

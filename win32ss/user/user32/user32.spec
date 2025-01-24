@@ -794,3 +794,5 @@
 @ stdcall -version=0x600+ SetProcessDpiAwarenessInternal(long) ; user32_vista.SetProcessDpiAwarenessInternal
 @ stdcall -version=0x600+ GetDpiForMonitorInternal(ptr long ptr ptr) ; user32_vista.GetDpiForMonitorInternal
 @ stdcall -stub SetWindowDisplayAffinity(ptr long)
+@ stdcall ShutdownBlockReasonCreate(ptr wstr)
+2000 stdcall -stub device(ptr)

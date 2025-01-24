@@ -1462,3 +1462,5 @@
 ;@ stdcall -arch=x86_64 uaw_wcsrchr(wstr long)
 @ stdcall -stub RaiseFailFastException(ptr ptr long)
 @ stdcall GetThreadIdealProcessorEx(ptr ptr)
+@ stdcall -stub LoadStringW(long long ptr long)
+@ stdcall -stub LoadStringA(long long ptr)

@@ -68,17 +68,17 @@
 @ stdcall -version=0x502 EtwEnableTrace(long long long ptr double)
 @ stub -version=0x600+ EtwEnumerateProcessRegGuids
 @ stdcall -stub -version=0x502 EtwEnumerateTraceGuids(ptr long ptr)
-@ stub -version=0x600+ EtwEventActivityIdControl
-@ stub -version=0x600+ EtwEventEnabled
-@ stub -version=0x600+ EtwEventProviderEnabled
-@ stub -version=0x600+ EtwEventRegister
-@ stub -version=0x600+ EtwEventUnregister
-@ stub -version=0x600+ EtwEventWrite
-@ stub -version=0x600+ EtwEventWriteEndScenario
-@ stub -version=0x600+ EtwEventWriteFull
-@ stub -version=0x600+ EtwEventWriteStartScenario
-@ stub -version=0x600+ EtwEventWriteString
-@ stub -version=0x600+ EtwEventWriteTransfer
+@ stdcall -stub -version=0x600+ EtwEventActivityIdControl(ptr)
+@ stdcall -stub -version=0x600+ EtwEventEnabled(ptr)
+@ stdcall -stub -version=0x600+ EtwEventProviderEnabled(ptr)
+@ stdcall -stub -version=0x600+ EtwEventRegister(ptr)
+@ stdcall -stub -version=0x600+ EtwEventUnregister(ptr)
+@ stdcall -stub -version=0x600+ EtwEventWrite(ptr)
+@ stdcall -stub -version=0x600+ EtwEventWriteEndScenario(ptr)
+@ stdcall -stub -version=0x600+ EtwEventWriteFull(ptr)
+@ stdcall -stub -version=0x600+ EtwEventWriteStartScenario(ptr)
+@ stdcall -stub -version=0x600+ EtwEventWriteString(ptr)
+@ stdcall -stub -version=0x600+ EtwEventWriteTransfer(ptr)
 @ stdcall -version=0x502 EtwFlushTraceA(double str ptr)
 @ stdcall -version=0x502 EtwFlushTraceW(double wstr ptr)
 @ stdcall EtwGetTraceEnableFlags(double)
@@ -1927,3 +1927,7 @@
 @ stdcall -ret64 RtlGetSystemTimePrecise()
 @ stdcall RtlQueryPerformanceCounter(ptr)
 @ stdcall -stub WinSqmAddToStreamEx(ptr)
+@ stdcall -stub WinSqmSetDWORD(ptr)
+@ stdcall -stub WinSqmIncrementDWORD(ptr)
+@ stdcall -stub wcsnpcy_s(ptr)
+@ stdcall wcscat_s(wstr long wstr)

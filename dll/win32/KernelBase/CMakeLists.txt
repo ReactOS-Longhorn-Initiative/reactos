@@ -23,8 +23,8 @@ add_library(KernelBase MODULE
     ${CMAKE_CURRENT_BINARY_DIR}/KernelBase_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/KernelBase.def)
 
-target_link_libraries(KernelBase kernelbase_static)
+#target_link_libraries(KernelBase kernel32_native win32_psapi win32_registry kernel32_vista_static kernel32_shared wine kernelbase_static)
 set_module_type(KernelBase win32dll ENTRYPOINT DllMain)
-add_importlibs(KernelBase ntdll ntdll_vista)
+add_importlibs(KernelBase ntdll ntdll_vista kernel32_vista advapi32 kernel32)
 add_dependencies(KernelBase psdk)
 add_cd_file(TARGET KernelBase DESTINATION reactos/system32 FOR all)

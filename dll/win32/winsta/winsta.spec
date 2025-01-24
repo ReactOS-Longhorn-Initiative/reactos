@@ -123,3 +123,4 @@
 @ stdcall _WinStationUpdateUserConfig(ptr)
 @ stdcall _WinStationWaitForConnect()
 
+@ stdcall WinStationIsSessionRemoteable(ptr)

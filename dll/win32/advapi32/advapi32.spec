@@ -730,3 +730,5 @@
 @ stdcall -stub -version=0x600+ EventRegister(ptr ptr ptr ptr)
 @ stdcall -stub -version=0x600+ EventUnregister(ptr)
 @ stdcall -version=0x600+ NotifyServiceStatusChangeW(ptr long ptr)
+@ stdcall -stub -version=0x601+ EnableTraceEx(ptr)
+@ stdcall -stub TreeSetNamedSecurityInfoW(ptr)

@@ -267,3 +267,6 @@
 #456 Urlmon_CleanIETldListCache
 #457 CreateIETldListManager
 #458 IsClientCertSuppliedInProcess
+103 stdcall -stub Function(ptr)
+104 stdcall -stub FunctionONe(ptr)
+105 stdcall -stub FunctionTwos(ptr)

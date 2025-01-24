@@ -455,3 +455,9 @@ WINSTAAPI _WinStationUpdateClientCachedCredentials(PVOID A,
 }
 
 /* EOF */
+
+BOOLEAN
+WinStationIsSessionRemoteable(PVOID ptr)
+{
+    return FALSE;
+}
