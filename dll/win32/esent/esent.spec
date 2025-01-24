@@ -290,3 +290,11 @@
 290 stub JetUpgradeDatabase
 291 stub ese
 292 stub esent
+
+@ stub JetSetSystemParameterW
+@ stub JetOpenTableW
+@ stub JetOpenDataBaseW
+@ stub JetGetTableColumnInfoW
+@ stub JetAttachDatabase2W
+@ stub JetBeginSessionW
+@ stub JetCreateInstanceW

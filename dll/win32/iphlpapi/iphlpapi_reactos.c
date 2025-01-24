@@ -83,3 +83,11 @@ DWORD TCPSendIoctl(HANDLE hDevice, DWORD dwIoControlCode, LPVOID lpInBuffer, PUL
 
     return ERROR_SUCCESS;
 }
+
+DWORD WINAPI NotifyIpInterfaceChange(ADDRESS_FAMILY family, PVOID  callback,
+                                     PVOID context, BOOLEAN init_notify, PHANDLE handle)
+{
+
+    if (handle) *handle = NULL;
+    return NO_ERROR;
+}

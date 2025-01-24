@@ -22,6 +22,16 @@ PVOID MmHighestUserAddress = (PVOID)MI_HIGHEST_USER_ADDRESS;
 
 /* FUNCTIONS ***************************************************************/
 
+/******************************************************************************
+ *  RtlQueryPerformanceCounter   [NTDLL.@]
+ */
+BOOL WINAPI DECLSPEC_HOTPATCH RtlQueryPerformanceCounter( LARGE_INTEGER *counter )
+{
+    NtQueryPerformanceCounter( counter, NULL );
+    return TRUE;
+}
+
+
 BOOLEAN
 NTAPI
 RtlpCheckForActiveDebugger(VOID)

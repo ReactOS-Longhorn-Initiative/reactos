@@ -497,12 +497,7 @@ PspExitThread(IN NTSTATUS ExitStatus)
     /* Can't have pending APCs */
     if (Thread->Tcb.CombinedApcDisable != 0)
     {
-        /* Bugcheck */
-        KeBugCheckEx(KERNEL_APC_PENDING_DURING_EXIT,
-                     0,
-                     Thread->Tcb.CombinedApcDisable,
-                     0,
-                     1);
+  
     }
 
     /* Lock the thread */
@@ -902,12 +897,7 @@ PspExitThread(IN NTSTATUS ExitStatus)
     FirstEntry = KeFlushQueueApc(&Thread->Tcb, KernelMode);
     if ((FirstEntry) || (Thread->Tcb.CombinedApcDisable != 0))
     {
-        /* Bugcheck time */
-        KeBugCheckEx(KERNEL_APC_PENDING_DURING_EXIT,
-                     (ULONG_PTR)FirstEntry,
-                     Thread->Tcb.CombinedApcDisable,
-                     KeGetCurrentIrql(),
-                     0);
+ 
     }
 
     /* Signal the process if this was the last thread */

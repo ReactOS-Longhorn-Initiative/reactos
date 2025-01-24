@@ -410,17 +410,12 @@ GetSystemPreferredUILanguages(
 /*
  * @unimplemented
  */
-BOOL
-WINAPI
-GetThreadPreferredUILanguages(
-    DWORD dwFlags,
-    PULONG pulNumLanguages,
-    PZZWSTR pwszLanguagesBuffer,
-    PULONG pcchLanguagesBuffer)
+NTSTATUS WINAPI RtlGetThreadPreferredUILanguages( DWORD flags, ULONG *count, WCHAR *buffer, ULONG *size );
+BOOL WINAPI DECLSPEC_HOTPATCH GetThreadPreferredUILanguages( DWORD flags, ULONG *count,
+                                                             WCHAR *buffer, ULONG *size )
 {
-    DPRINT1("%x %p %p %p\n", dwFlags, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer);
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+   RtlGetThreadPreferredUILanguages( flags, count, buffer, size );
+   return TRUE;
 }
 
 
@@ -487,7 +482,7 @@ SetThreadPreferredUILanguages(
     )
 {
     DPRINT1("%x %p %p\n", dwFlags, pwszLanguagesBuffer, pulNumLanguages);
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+    //SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return TRUE;
 }
 

@@ -2082,3 +2082,19 @@ DdSetGammaRamp(LPDDRAWI_DIRECTDRAW_LCL pDDraw,
 
 
 
+BOOL WINAPI GetFontFileData( DWORD instance_id, DWORD file_index, UINT64 offset,
+                             void *buff, SIZE_T buff_size )
+{
+   return FALSE;
+}
+
+BOOL WINAPI GetFontFileInfo( DWORD instance_id, DWORD file_index, PVOID nfo,
+                                  SIZE_T size, SIZE_T *needed )
+{
+    return FALSE;
+}
+
+BOOL WINAPI GetFontRealizationInfo( HDC hdc,  PVOID info )
+{
+    return 0;
+}

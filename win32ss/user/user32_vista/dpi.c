@@ -483,6 +483,10 @@ DisplayConfigGetDeviceInfo(
 }
 
 
+BOOL SetProcessDPIAware()
+{
+  return 0;
+}
 
 BOOL
 WINAPI

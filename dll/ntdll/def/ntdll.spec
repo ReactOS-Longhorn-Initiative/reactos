@@ -904,7 +904,7 @@
 @ stub -version=0x600+ RtlGetSystemPreferredUILanguages
 @ stdcall RtlGetThreadErrorMode()
 @ stub -version=0x600+ RtlGetThreadLangIdByIndex
-@ stub -version=0x600+ RtlGetThreadPreferredUILanguages
+ 
 @ stub -version=0x600+ RtlGetUILanguageInfo
 @ stdcall RtlGetUnloadEventTrace()
 @ stub -version=0x600+ RtlGetUnloadEventTraceEx
@@ -1005,7 +1005,7 @@
 @ stdcall -arch=win32 -ret64 RtlLargeIntegerShiftRight(double long)
 @ stdcall -arch=win32 -ret64 RtlLargeIntegerSubtract(double double)
 @ stdcall RtlLargeIntegerToChar(ptr long long ptr)
-@ stub -version=0x600+ RtlLcidToLocaleName
+@ stdcall -version=0x600+ RtlLcidToLocaleName(long ptr long long)
 @ stdcall RtlLeaveCriticalSection(ptr)
 @ stdcall RtlLengthRequiredSid(long)
 @ stdcall RtlLengthSecurityDescriptor(ptr)
@@ -1353,16 +1353,17 @@
 @ stdcall -version=0x600+ TpWaitForWait(ptr long)
 @ stdcall -version=0x600+ TpWaitForWork(ptr long)
 @ stdcall -ret64 VerSetConditionMask(double long long)
-@ stub -version=0x600+ WerCheckEventEscalation
-@ stub -version=0x600+ WerReportSQMEvent
-@ stub -version=0x600+ WerReportWatsonEvent
-@ stub -version=0x600+ WinSqmAddToStream
-@ stub -version=0x600+ WinSqmEndSession
-@ stub -version=0x600+ WinSqmEventEnabled
-@ stub -version=0x600+ WinSqmEventWrite
-@ stub -version=0x600+ WinSqmIsOptedIn
-@ stub -version=0x600+ WinSqmSetString
-@ stub -version=0x600+ WinSqmStartSession
+@ stdcall -stub -version=0x600+ WerCheckEventEscalation(ptr)
+@ stdcall -stub -version=0x600+ WerReportSQMEvent(ptr)
+@ stdcall -stub -version=0x600+ WerReportWatsonEvent(ptr)
+@ stdcall -stub -version=0x600+ WinSqmAddToStream(ptr)
+@ stdcall -stub -version=0x600+ WinSqmEndSession(ptr)
+@ stdcall -stub -version=0x600+ WinSqmEventEnabled(ptr)
+@ stdcall -stub -version=0x600+ WinSqmEventWrite(ptr)
+@ stdcall -stub -version=0x600+ WinSqmIsOptedIn(ptr)
+@ stdcall -stub -version=0x600+ WinSqmSetString(ptr)
+@ stdcall -stub -version=0x600+ WinSqmStartSession(ptr)
+@ stdcall RtlGetThreadPreferredUILanguages(long ptr ptr ptr)
 @ stdcall ZwAcceptConnectPort(ptr long ptr long long ptr)
 @ stdcall ZwAccessCheck(ptr long long ptr ptr ptr ptr ptr)
 @ stdcall ZwAccessCheckAndAuditAlarm(ptr long ptr ptr ptr long ptr long ptr ptr ptr)
@@ -1924,4 +1925,5 @@
 @ stdcall -version=0x601+ LdrSetDefaultDllDirectories(long)
 @ stdcall -version=0x601+ RtlQueryUnbiasedInterruptTime(ptr)
 @ stdcall -ret64 RtlGetSystemTimePrecise()
-@ stdcall -stub RtlQueryPerformanceCounter(ptr)
+@ stdcall RtlQueryPerformanceCounter(ptr)
+@ stdcall -stub WinSqmAddToStreamEx(ptr)

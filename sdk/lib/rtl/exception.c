@@ -315,7 +315,7 @@ RtlUnhandledExceptionFilter(IN struct _EXCEPTION_POINTERS* ExceptionInfo)
     /* This is used by the security cookie checks, and also called externally */
     UNIMPLEMENTED;
     PrintStackTrace(ExceptionInfo);
-    return ERROR_CALL_NOT_IMPLEMENTED;
+    return 0;
 }
 
 /*
@@ -330,7 +330,7 @@ RtlUnhandledExceptionFilter2(
     /* This is used by the security cookie checks, and also called externally */
     UNIMPLEMENTED;
     PrintStackTrace(ExceptionInfo);
-    return ERROR_CALL_NOT_IMPLEMENTED;
+    return 0;
 }
 
 /*
