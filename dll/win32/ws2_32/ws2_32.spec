@@ -119,4 +119,5 @@
 @ stdcall -version=0x600+ InetNtopW(long ptr ptr long)
 @ stdcall -version=0x600+ inet_pton(long str ptr)
 @ stdcall -version=0x600+ InetPtonW(long wstr ptr)
-@ stdcall WSCGetProviderInfo(ptr long ptr long long ptr)
+@ stdcall -version=0x600+ WSCGetProviderInfo(ptr long ptr long long ptr)
+@ stdcall -version=0x600+ WSAPoll(ptr long long)

@@ -447,5 +447,13 @@ TzSpecificLocalTimeToSystemTime(LPTIME_ZONE_INFORMATION lpTimeZoneInformation,
     LL2FILETIME( t, &ft)
     return FileTimeToSystemTime(&ft, lpUniversalTime);
 }
+BOOLEAN WINAPI RtlGetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion, DWORD dwSpMajorVersion,
+                                 DWORD dwSpMinorVersion, PDWORD pdwReturnedProductType);
+BOOL WINAPI DECLSPEC_HOTPATCH GetProductInfo( DWORD os_major, DWORD os_minor,
+                                              DWORD sp_major, DWORD sp_minor, DWORD *type )
+{
+    return RtlGetProductInfo( os_major, os_minor, sp_major, sp_minor, type );
+}
+
 
 /* EOF */

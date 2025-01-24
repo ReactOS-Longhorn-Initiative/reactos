@@ -202,3 +202,20 @@ WPUSetEvent(IN WSAEVENT hEvent,
     UNIMPLEMENTED;
     return FALSE;
 }
+
+
+typedef struct pollfd {
+
+    SOCKET  fd;
+    SHORT   events;
+    SHORT   revents;
+
+} WSAPOLLFD, *PWSAPOLLFD, FAR *LPWSAPOLLFD;
+
+/***********************************************************************
+ *      WSAPoll   (ws2_32.@)
+ */
+int WINAPI WSAPoll( WSAPOLLFD *fds, ULONG count, int timeout )
+{
+  return 0;
+}
