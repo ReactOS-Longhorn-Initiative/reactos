@@ -773,7 +773,7 @@ LoadReactOSSetup(
         UiResetForSOS();
 
     /* Allocate and minimally-initialize the Loader Parameter Block */
-    AllocateAndInitLPB(TARGET_VERSION, &LoaderBlock);
+    AllocateAndInitLPB(_WIN32_WINNT_WS03, &LoaderBlock);
 
     /* Allocate and initialize the setup loader block */
     SetupBlock = &WinLdrSystemBlock->SetupBlock;
@@ -811,7 +811,7 @@ LoadReactOSSetup(
     UiDrawStatusText("The Setup program is starting...");
 
     /* Finish loading */
-    return LoadAndBootWindowsCommon(TARGET_VERSION,
+    return LoadAndBootWindowsCommon(_WIN32_WINNT_WS03,
                                     LoaderBlock,
                                     BootOptions,
                                     BootPath);
