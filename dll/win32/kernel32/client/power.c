@@ -18,73 +18,108 @@
 #include <debug.h>
 
 /* PUBLIC FUNCTIONS ***********************************************************/
-
-/*
- * @implemented
- */
-BOOL
-WINAPI
-GetSystemPowerStatus(IN LPSYSTEM_POWER_STATUS PowerStatus)
+typedef struct _REASON_CONTEXT
 {
-    NTSTATUS Status;
-    SYSTEM_BATTERY_STATE BattState;
-    ULONG Max, Current;
-
-    Status = NtPowerInformation(SystemBatteryState,
-                                NULL,
-                                0,
-                                &BattState,
-                                sizeof(SYSTEM_BATTERY_STATE));
-    if (!NT_SUCCESS(Status))
+    ULONG Version;
+    DWORD Flags;
+    union
     {
-        BaseSetLastNTError(Status);
-        return FALSE;
-    }
+        struct
+        {
+            HMODULE LocalizedReasonModule;
+            ULONG LocalizedReasonId;
+            ULONG ReasonStringCount;
+            LPWSTR *ReasonStrings;
+        } Detailed;
+        LPWSTR SimpleReasonString;
+    } Reason;
+} REASON_CONTEXT, *PREASON_CONTEXT;
 
-    RtlZeroMemory(PowerStatus, sizeof(SYSTEM_POWER_STATUS));
+typedef enum _POWER_REQUEST_TYPE
+{
+    PowerRequestDisplayRequired,
+    PowerRequestSystemRequired,
+    PowerRequestAwayModeRequired
+} POWER_REQUEST_TYPE, *PPOWER_REQUEST_TYPE;
+DEBUG_CHANNEL(wine);
+/***********************************************************************
+ *           GetSystemPowerStatus      (KERNEL32.@)
+ */
+BOOL WINAPI GetSystemPowerStatus(LPSYSTEM_POWER_STATUS ps)
+{
+    SYSTEM_BATTERY_STATE bs;
+    NTSTATUS status;
 
-    PowerStatus->BatteryLifeTime = BATTERY_LIFE_UNKNOWN;
-    PowerStatus->BatteryFullLifeTime = BATTERY_LIFE_UNKNOWN;
-    PowerStatus->BatteryLifePercent = BATTERY_PERCENTAGE_UNKNOWN;
-    PowerStatus->ACLineStatus = AC_LINE_ONLINE;
+    TRACE("(%p)\n", ps);
 
-    Max = BattState.MaxCapacity;
-    Current = BattState.RemainingCapacity;
-    if (Max)
+    ps->ACLineStatus        = AC_LINE_UNKNOWN;
+    ps->BatteryFlag         = BATTERY_FLAG_UNKNOWN;
+    ps->BatteryLifePercent  = BATTERY_PERCENTAGE_UNKNOWN;
+    ps->SystemStatusFlag    = 0;
+    ps->BatteryLifeTime     = BATTERY_LIFE_UNKNOWN;
+    ps->BatteryFullLifeTime = BATTERY_LIFE_UNKNOWN;
+
+    status = NtPowerInformation(SystemBatteryState, NULL, 0, &bs, sizeof(bs));
+    if (status == STATUS_NOT_IMPLEMENTED) return TRUE;
+    if (FAILED(status)) return FALSE;
+
+    ps->ACLineStatus = bs.AcOnLine;
+
+    if (bs.BatteryPresent)
     {
-        if (Current <= Max)
-        {
-            PowerStatus->BatteryLifePercent = (UCHAR)((100 * Current + Max / 2) / Max);
-        }
-        else
-        {
-            PowerStatus->BatteryLifePercent = 100;
-        }
+        ps->BatteryLifePercent = bs.MaxCapacity ? 100 * bs.RemainingCapacity / bs.MaxCapacity : 100;
+        ps->BatteryLifeTime = bs.EstimatedTime;
+        if (!bs.Charging && (LONG)bs.Rate < 0)
+            ps->BatteryFullLifeTime = 3600 * bs.MaxCapacity / -(LONG)bs.Rate;
 
-        if (PowerStatus->BatteryLifePercent <= 4)
-            PowerStatus->BatteryFlag |= BATTERY_FLAG_CRITICAL;
-
-        if (PowerStatus->BatteryLifePercent <= 32)
-            PowerStatus->BatteryFlag |= BATTERY_FLAG_LOW;
-
-        if (PowerStatus->BatteryLifePercent >= 67)
-            PowerStatus->BatteryFlag |= BATTERY_FLAG_HIGH;
+        ps->BatteryFlag = 0;
+        if (bs.Charging)
+            ps->BatteryFlag |= BATTERY_FLAG_CHARGING;
+        if (ps->BatteryLifePercent > 66)
+            ps->BatteryFlag |= BATTERY_FLAG_HIGH;
+        if (ps->BatteryLifePercent < 33)
+            ps->BatteryFlag |= BATTERY_FLAG_LOW;
+        if (ps->BatteryLifePercent < 5)
+            ps->BatteryFlag |= BATTERY_FLAG_CRITICAL;
     }
-
-    if (!BattState.BatteryPresent)
-        PowerStatus->BatteryFlag |= BATTERY_FLAG_NO_BATTERY;
-
-    if (BattState.Charging)
-        PowerStatus->BatteryFlag |= BATTERY_FLAG_CHARGING;
-
-    if (!(BattState.AcOnLine) && (BattState.BatteryPresent))
-        PowerStatus->ACLineStatus = AC_LINE_OFFLINE;
-
-    if (BattState.EstimatedTime)
-        PowerStatus->BatteryLifeTime = BattState.EstimatedTime;
+    else
+    {
+        ps->BatteryFlag = BATTERY_FLAG_NO_BATTERY;
+    }
 
     return TRUE;
 }
+
+/***********************************************************************
+ *           PowerCreateRequest      (KERNEL32.@)
+ */
+HANDLE WINAPI PowerCreateRequest(REASON_CONTEXT *context)
+{
+    FIXME("(%p): stub\n", context);
+
+    return CreateEventW(NULL, TRUE, FALSE, NULL);
+}
+
+/***********************************************************************
+ *           PowerSetRequest      (KERNEL32.@)
+ */
+BOOL WINAPI PowerSetRequest(HANDLE request, POWER_REQUEST_TYPE type)
+{
+    FIXME("(%p, %u): stub\n", request, type);
+
+    return TRUE;
+}
+
+/***********************************************************************
+ *           PowerClearRequest      (KERNEL32.@)
+ */
+BOOL WINAPI PowerClearRequest(HANDLE request, POWER_REQUEST_TYPE type)
+{
+    FIXME("(%p, %u): stub\n", request, type);
+
+    return TRUE;
+}
+
 
 /*
  * @implemented

@@ -163,6 +163,15 @@ GetCurrentConsoleFontEx(IN HANDLE hConsoleOutput,
     return FALSE;
 }
 
+/******************************************************************************
+ *	ResizePseudoConsole   (kernelbase.@)
+ */
+HRESULT WINAPI ResizePseudoConsole( PVOID handle, COORD size )
+{
+    DPRINT1( "%p (%u,%u)\n", handle, size.X, size.Y );
+    return E_NOTIMPL;
+}
+
 #endif // (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 
 /* EOF */
