@@ -34,6 +34,7 @@
 @ stdcall CoFreeUnusedLibraries()
 @ stdcall CoFreeUnusedLibrariesEx(long long)
 # CoGetApartmentID
+@ stdcall -version=0x601+ CoGetApartmentType(ptr ptr)
 @ stdcall CoGetCallContext(ptr ptr)
 @ stdcall CoGetCallerTID(ptr)
 @ stdcall -stub CoGetCancelObject(long ptr ptr)
