@@ -973,6 +973,7 @@ typedef struct _WIN32_FIND_DATAW {
 	WCHAR cAlternateFileName[14];
 } WIN32_FIND_DATAW,*PWIN32_FIND_DATAW,*LPWIN32_FIND_DATAW;
 
+
 #if (_WIN32_WINNT >= 0x0501)
 typedef enum _STREAM_INFO_LEVELS {
 	FindStreamInfoStandard

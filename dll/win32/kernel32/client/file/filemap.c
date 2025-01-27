@@ -288,6 +288,10 @@ OpenFileMappingA(IN DWORD dwDesiredAccess,
     ConvertOpenWin32AnsiObjectApiToUnicodeApi(FileMapping, dwDesiredAccess, bInheritHandle, lpName);
 }
 
+HANDLE
+WINAPI
+BaseGetNamedObjectDirectory_Kernel32(VOID);
+
 /*
  * @implemented
  */
@@ -316,7 +320,7 @@ OpenFileMappingW(IN DWORD dwDesiredAccess,
     InitializeObjectAttributes(&ObjectAttributes,
                                &UnicodeName,
                                (bInheritHandle ? OBJ_INHERIT : 0),
-                               BaseGetNamedObjectDirectory(),
+                               BaseGetNamedObjectDirectory_Kernel32(),
                                NULL);
 
     /* Convert COPY to READ */
