@@ -79,7 +79,7 @@ BaseExitThreadPoolThread(IN NTSTATUS ExitStatus)
     ExitThread(ExitStatus);
     return STATUS_SUCCESS;
 }
-
+BOOL WINAPI DllMain_KernelBaseStatic( HINSTANCE hinst, DWORD reason, LPVOID reserved );
 BOOL
 WINAPI
 DllMain(HANDLE hDll,
@@ -219,6 +219,7 @@ DllMain(HANDLE hDll,
 
             /* Insert more dll attach stuff here! */
             DllInitialized = TRUE;
+            DllMain_KernelBaseStatic(hDll,dwReason,lpReserved); //TODO: oh god what a hack.
             break;
         }
 

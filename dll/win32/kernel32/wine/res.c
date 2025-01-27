@@ -159,27 +159,6 @@ HRSRC WINAPI FindResourceA( HMODULE hModule, LPCSTR name, LPCSTR type )
 
 
 /**********************************************************************
- *	    FindResourceExW  (KERNEL32.@)
- */
-HRSRC WINAPI FindResourceExW( HMODULE hModule, LPCWSTR type, LPCWSTR name, WORD lang )
-{
-    TRACE( "%p %s %s %04x\n", hModule, debugstr_w(type), debugstr_w(name), lang );
-
-    if (!hModule) hModule = GetModuleHandleW(0);
-    return find_resourceW( hModule, type, name, lang );
-}
-
-
-/**********************************************************************
- *	    FindResourceW    (KERNEL32.@)
- */
-HRSRC WINAPI FindResourceW( HINSTANCE hModule, LPCWSTR name, LPCWSTR type )
-{
-    return FindResourceExW( hModule, type, name, MAKELANGID( LANG_NEUTRAL, SUBLANG_NEUTRAL ) );
-}
-
-
-/**********************************************************************
  *	EnumResourceTypesA	(KERNEL32.@)
  */
 BOOL WINAPI EnumResourceTypesA( HMODULE hmod, ENUMRESTYPEPROCA lpfun, LONG_PTR lparam )
@@ -351,77 +330,6 @@ done:
     return ret;
 }
 
-
-/**********************************************************************
- *	EnumResourceNamesW	(KERNEL32.@)
- */
-BOOL WINAPI EnumResourceNamesW( HMODULE hmod, LPCWSTR type, ENUMRESNAMEPROCW lpfun, LONG_PTR lparam )
-{
-    int i, len = 0;
-    BOOL ret = FALSE;
-    LPWSTR name = NULL;
-    NTSTATUS status;
-    UNICODE_STRING typeW;
-    LDR_RESOURCE_INFO info;
-    IMAGE_RESOURCE_DIRECTORY *basedir, *resdir;
-    const IMAGE_RESOURCE_DIRECTORY_ENTRY *et;
-    const IMAGE_RESOURCE_DIR_STRING_U *str;
-
-    TRACE( "%p %s %p %lx\n", hmod, debugstr_w(type), lpfun, lparam );
-
-    if (!hmod) hmod = GetModuleHandleW( NULL );
-    typeW.Buffer = NULL;
-    if ((status = LdrFindResourceDirectory_U( hmod, NULL, 0, &basedir )) != STATUS_SUCCESS)
-        goto done;
-    if ((status = get_res_nameW( type, &typeW )) != STATUS_SUCCESS)
-        goto done;
-    info.Type = (ULONG_PTR)typeW.Buffer;
-    if ((status = LdrFindResourceDirectory_U( hmod, &info, 1, &resdir )) != STATUS_SUCCESS)
-        goto done;
-
-    et = (const IMAGE_RESOURCE_DIRECTORY_ENTRY *)(resdir + 1);
-    __TRY
-    {
-        for (i = 0; i < resdir->NumberOfNamedEntries+resdir->NumberOfIdEntries; i++)
-        {
-            if (et[i].NameIsString)
-            {
-                str = (const IMAGE_RESOURCE_DIR_STRING_U *)((const BYTE *)basedir + et[i].NameOffset);
-                if (str->Length + 1 > len)
-                {
-                    len = str->Length + 1;
-                    HeapFree( GetProcessHeap(), 0, name );
-                    if (!(name = HeapAlloc( GetProcessHeap(), 0, len * sizeof(WCHAR) )))
-                    {
-                        ret = FALSE;
-                        break;
-                    }
-                }
-                memcpy(name, str->NameString, str->Length * sizeof (WCHAR));
-                name[str->Length] = 0;
-                ret = lpfun(hmod,type,name,lparam);
-            }
-            else
-            {
-                ret = lpfun( hmod, type, UIntToPtr(et[i].Id), lparam );
-            }
-            if (!ret) break;
-        }
-    }
-    __EXCEPT_PAGE_FAULT
-    {
-        ret = FALSE;
-        status = STATUS_ACCESS_VIOLATION;
-    }
-    __ENDTRY
-done:
-    HeapFree( GetProcessHeap(), 0, name );
-    if (!IS_INTRESOURCE(typeW.Buffer)) HeapFree( GetProcessHeap(), 0, typeW.Buffer );
-    if (status != STATUS_SUCCESS) SetLastError( RtlNtStatusToDosError(status) );
-    return ret;
-}
-
-
 /**********************************************************************
  *	EnumResourceLanguagesA	(KERNEL32.@)
  */
@@ -525,51 +433,6 @@ done:
     return ret;
 }
 
-
-/**********************************************************************
- *	    LoadResource     (KERNEL32.@)
- */
-HGLOBAL WINAPI LoadResource( HINSTANCE hModule, HRSRC hRsrc )
-{
-    NTSTATUS status;
-    void *ret = NULL;
-
-    TRACE( "%p %p\n", hModule, hRsrc );
-
-    if (!hRsrc) return 0;
-    if (!hModule) hModule = GetModuleHandleA( NULL );
-    status = LdrAccessResource( hModule, (IMAGE_RESOURCE_DATA_ENTRY *)hRsrc, &ret, NULL );
-    if (status != STATUS_SUCCESS) SetLastError( RtlNtStatusToDosError(status) );
-    return ret;
-}
-
-
-/**********************************************************************
- *	    LockResource     (KERNEL32.@)
- */
-LPVOID WINAPI LockResource( HGLOBAL handle )
-{
-    return handle;
-}
-
-
-/**********************************************************************
- *	    FreeResource     (KERNEL32.@)
- */
-BOOL WINAPI FreeResource( HGLOBAL handle )
-{
-    return FALSE;
-}
-
-
-/**********************************************************************
- *	    SizeofResource   (KERNEL32.@)
- */
-DWORD WINAPI SizeofResource( HINSTANCE hModule, HRSRC hRsrc )
-{
-    if (!hRsrc) return 0;
-    return ((PIMAGE_RESOURCE_DATA_ENTRY)hRsrc)->Size;
-}
 
 /*
  *  Data structure for updating resources.
