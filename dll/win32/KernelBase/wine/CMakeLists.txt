@@ -24,6 +24,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder>)
 endif()
 
+
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 
 list(APPEND SOURCE_STATIC
@@ -47,3 +48,7 @@ list(APPEND SOURCE_STATIC
 add_library(kernelbase_static ${SOURCE_STATIC})
 target_link_libraries(kernelbase_static ${PSEH_LIB})
 add_dependencies(kernelbase_static psdk)
+if(NOT MSVC)
+    target_compile_options(kernelbase_static PRIVATE -Wno-unused-variable)
+    target_compile_options(kernelbase_static PRIVATE -Wno-unused-function)
+endif()

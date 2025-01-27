@@ -28,6 +28,28 @@
 
 /* CSRSS Headers */
 #include <win/base.h>
-
+typedef enum _RTL_UMS_THREAD_INFO_CLASS {
+    UmsThreadInvalidInfoClass = 0,
+    UmsThreadUserContext,
+    UmsThreadPriority,              // Reserved
+    UmsThreadAffinity,              // Reserved
+    UmsThreadTeb,
+    UmsThreadIsSuspended,
+    UmsThreadIsTerminated,
+    UmsThreadMaxInfoClass
+} RTL_UMS_THREAD_INFO_CLASS, *PRTL_UMS_THREAD_INFO_CLASS;
 /* Internal Kernel32 Header */
 #include "../include/kernel32.h"
+typedef void *PUMS_CONTEXT;
+typedef void *PUMS_COMPLETION_LIST;
+typedef PVOID PUMS_SCHEDULER_ENTRY_POINT;
+typedef struct _UMS_SCHEDULER_STARTUP_INFO
+{
+    ULONG UmsVersion;
+    PUMS_COMPLETION_LIST CompletionList;
+    PUMS_SCHEDULER_ENTRY_POINT SchedulerProc;
+    PVOID SchedulerParam;
+} UMS_SCHEDULER_STARTUP_INFO, *PUMS_SCHEDULER_STARTUP_INFO;
+
+typedef enum _RTL_UMS_SCHEDULER_REASON UMS_SCHEDULER_REASON;
+typedef enum _RTL_UMS_THREAD_INFO_CLASS UMS_THREAD_INFO_CLASS, *PUMS_THREAD_INFO_CLASS;

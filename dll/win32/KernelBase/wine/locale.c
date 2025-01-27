@@ -45,7 +45,9 @@ WINE_DEFAULT_DEBUG_CHANNEL(nls);
 #ifdef __REACTOS__
 //#define RtlEnterCriticalSection EnterCriticalSection
 //#define RtlLeaveCriticalSection LeaveCriticalSection
+#ifndef swprintf
 #define swprintf snwprintf
+#endif
 #endif
 
 static HMODULE kernelbase_handle;
@@ -430,14 +432,7 @@ static struct
     const struct jamo_sort        *jamo;            /* table for Jamo compositions */
 } sort;
 
-static CRITICAL_SECTION locale_section;
-static CRITICAL_SECTION_DEBUG critsect_debug =
-{
-    0, 0, &locale_section,
-    { &critsect_debug.ProcessLocksList, &critsect_debug.ProcessLocksList },
-      0, 0, { (DWORD_PTR)(__FILE__ ": locale_section") }
-};
-static CRITICAL_SECTION locale_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+CRITICAL_SECTION locale_section;
 
 #ifndef __REACTOS__
 static void load_locale_nls(void)
@@ -5669,14 +5664,7 @@ INT WINAPI DECLSPEC_HOTPATCH GetCalendarInfoEx( const WCHAR *name, CALID calenda
 
 
 #endif
-static CRITICAL_SECTION tzname_section;
-static CRITICAL_SECTION_DEBUG tzname_section_debug =
-{
-    0, 0, &tzname_section,
-    { &tzname_section_debug.ProcessLocksList, &tzname_section_debug.ProcessLocksList },
-      0, 0, { (DWORD_PTR)(__FILE__ ": tzname_section") }
-};
-static CRITICAL_SECTION tzname_section = { &tzname_section_debug, -1, 0, 0, 0, 0 };
+CRITICAL_SECTION tzname_section;
 static struct {
     LCID lcid;
     WCHAR key_name[128];

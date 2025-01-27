@@ -20,5 +20,3 @@
 #include <stdarg.h>
 
 #include <k32_vista.h>
-
-WINE_DEFAULT_DEBUG_CHANNEL(powermgnt);

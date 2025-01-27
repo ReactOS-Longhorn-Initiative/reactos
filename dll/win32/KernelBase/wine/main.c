@@ -87,12 +87,16 @@ const GUID IID_IUnknown           = {0x00000000, 0x0000, 0x0000, {0xC0, 0x00, 0x
 
 #ifdef __REACTOS__
 extern  CRITICAL_SECTION exclusive_datafile_list_section;
+extern CRITICAL_SECTION tzname_section;
+extern CRITICAL_SECTION locale_section;
 VOID
 NTAPI
 RtlpInitializeSections(
     VOID)
 {
-    RtlInitializeCriticalSection(&exclusive_datafile_list_section);
+    RtlInitializeCriticalSection((RTL_CRITICAL_SECTION *)&exclusive_datafile_list_section);
+    RtlInitializeCriticalSection((RTL_CRITICAL_SECTION *)&tzname_section);
+    RtlInitializeCriticalSection((RTL_CRITICAL_SECTION *)&locale_section);
 }
 
 

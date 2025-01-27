@@ -129,7 +129,19 @@ typedef enum _THREAD_INFORMATION_CLASS {
     ThreadPowerThrottling,
     ThreadInformationClassMax
 } THREAD_INFORMATION_CLASS;
+typedef void *PUMS_CONTEXT;
+typedef void *PUMS_COMPLETION_LIST;
+typedef PVOID PUMS_SCHEDULER_ENTRY_POINT;
+typedef struct _UMS_SCHEDULER_STARTUP_INFO
+{
+    ULONG UmsVersion;
+    PUMS_COMPLETION_LIST CompletionList;
+    PUMS_SCHEDULER_ENTRY_POINT SchedulerProc;
+    PVOID SchedulerParam;
+} UMS_SCHEDULER_STARTUP_INFO, *PUMS_SCHEDULER_STARTUP_INFO;
 
+typedef enum _RTL_UMS_SCHEDULER_REASON UMS_SCHEDULER_REASON;
+typedef enum _RTL_UMS_THREAD_INFO_CLASS UMS_THREAD_INFO_CLASS, *PUMS_THREAD_INFO_CLASS;
 typedef enum AppPolicyMediaFoundationCodecLoading
 {
     AppPolicyMediaFoundationCodecLoading_All = 0,
