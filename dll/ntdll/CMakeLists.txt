@@ -65,6 +65,11 @@ set_module_type(ntdll win32dll ENTRYPOINT 0)
 set_subsystem(ntdll console)
 ################# END  HACK #################
 
+if(NOT MSVC)
+    target_compile_options(ntdll PRIVATE -Wno-unused-variable)
+    target_compile_options(ntdll PRIVATE -Wno-unused-function)
+endif()
+
 target_link_libraries(ntdll ntdll_vista_static etwtrace csrlib rtl rtl_um rtl_vista ntdllsys libcntpr uuid ${PSEH_LIB})
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
     target_link_libraries(ntdll cryptlib)
