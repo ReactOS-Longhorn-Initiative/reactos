@@ -4817,3 +4817,139 @@ WinExec(LPCSTR lpCmdLine,
 }
 
 /* EOF */
+
+struct proc_thread_attr
+{
+    DWORD_PTR attr;
+    SIZE_T size;
+    void *value;
+};
+#define PROC_THREAD_ATTRIBUTE_NUMBER   0x0000ffff
+#define PROC_THREAD_ATTRIBUTE_THREAD   0x00010000
+#define PROC_THREAD_ATTRIBUTE_INPUT    0x00020000
+#define PROC_THREAD_ATTRIBUTE_ADDITIVE 0x00040000
+ 
+#define PROC_THREAD_ATTRIBUTE_PARENT_PROCESS (ProcThreadAttributeParentProcess | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_HANDLE_LIST (ProcThreadAttributeHandleList | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_GROUP_AFFINITY (ProcThreadAttributeGroupAffinity | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_PREFERRED_NODE (ProcThreadAttributePreferredNode | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_IDEAL_PROCESSOR (ProcThreadAttributeIdealProcessor | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_UMS_THREAD (ProcThreadAttributeUmsThread | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY (ProcThreadAttributeMitigationPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES (ProcThreadAttributeSecurityCapabilities | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_PROTECTION_LEVEL (ProcThreadAttributeProtectionLevel | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_JOB_LIST (ProcThreadAttributeJobList | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_CHILD_PROCESS_POLICY (ProcThreadAttributeChildProcessPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY (ProcThreadAttributeAllApplicationPackagesPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_WIN32K_FILTER (ProcThreadAttributeWin32kFilter | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY (ProcThreadAttributeDesktopAppPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE (22 | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_MITIGATION_AUDIT_POLICY (ProcThreadAttributeMitigationAuditPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_MACHINE_TYPE (25 | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_COMPONENT_FILTER (ProcThreadAttributeComponentFilter | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES (ProcThreadAttributeEnableOptionalXStateFeatures | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
+struct _PROC_THREAD_ATTRIBUTE_LIST
+{
+    DWORD mask;  /* bitmask of items in list */
+    DWORD size;  /* max number of items in list */
+    DWORD count; /* number of items in list */
+    DWORD pad;
+    DWORD_PTR unk;
+    struct proc_thread_attr attrs[1];
+};
+BOOL WINAPI DECLSPEC_HOTPATCH InitializeProcThreadAttributeList( struct _PROC_THREAD_ATTRIBUTE_LIST *list,
+                                                                 DWORD count, DWORD flags, SIZE_T *size )
+{
+    SIZE_T needed;
+    BOOL ret = FALSE;
+  //  TRACE( "(%p %ld %lx %p)\n", list, count, flags, size );
+    needed = FIELD_OFFSET( struct _PROC_THREAD_ATTRIBUTE_LIST, attrs[count] );
+    if (list && *size >= needed)
+    {
+        list->mask = 0;
+        list->size = count;
+        list->count = 0;
+        list->unk = 0;
+        ret = TRUE;
+    }
+    else SetLastError( ERROR_INSUFFICIENT_BUFFER );
+    *size = needed;
+    return ret;
+}
+typedef void *HPCON;
+static inline DWORD validate_proc_thread_attribute( DWORD_PTR attr, SIZE_T size )
+{
+    switch (attr)
+    {
+    case PROC_THREAD_ATTRIBUTE_PARENT_PROCESS:
+        if (size != sizeof(HANDLE)) return ERROR_BAD_LENGTH;
+        break;
+    case PROC_THREAD_ATTRIBUTE_HANDLE_LIST:
+        if ((size / sizeof(HANDLE)) * sizeof(HANDLE) != size) return ERROR_BAD_LENGTH;
+        break;
+    case PROC_THREAD_ATTRIBUTE_IDEAL_PROCESSOR:
+        if (size != sizeof(PROCESSOR_NUMBER)) return ERROR_BAD_LENGTH;
+        break;
+    case PROC_THREAD_ATTRIBUTE_CHILD_PROCESS_POLICY:
+       if (size != sizeof(DWORD) && size != sizeof(DWORD64)) return ERROR_BAD_LENGTH;
+       break;
+    case PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY:
+        if (size != sizeof(DWORD) && size != sizeof(DWORD64) && size != sizeof(DWORD64) * 2)
+            return ERROR_BAD_LENGTH;
+        break;
+    case PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE:
+       if (size != sizeof(HPCON)) return ERROR_BAD_LENGTH;
+       break;
+    case PROC_THREAD_ATTRIBUTE_JOB_LIST:
+        if ((size / sizeof(HANDLE)) * sizeof(HANDLE) != size) return ERROR_BAD_LENGTH;
+        break;
+    case PROC_THREAD_ATTRIBUTE_MACHINE_TYPE:
+        if (size != sizeof(USHORT)) return ERROR_BAD_LENGTH;
+        break;
+    default:
+      //  FIXME( "Unhandled attribute %Iu\n", attr & PROC_THREAD_ATTRIBUTE_NUMBER );
+        return ERROR_NOT_SUPPORTED;
+    }
+    return 0;
+}
+/***********************************************************************
+ *           UpdateProcThreadAttribute   (kernelbase.@)
+ */
+BOOL WINAPI DECLSPEC_HOTPATCH UpdateProcThreadAttribute( struct _PROC_THREAD_ATTRIBUTE_LIST *list,
+                                                         DWORD flags, DWORD_PTR attr, void *value,
+                                                         SIZE_T size, void *prev_ret, SIZE_T *size_ret )
+{
+    DWORD mask, err;
+    struct proc_thread_attr *entry;
+    //( "(%p %lx %08Ix %p %Id %p %p)\n", list, flags, attr, value, size, prev_ret, size_ret );
+    if (list->count >= list->size)
+    {
+        SetLastError( ERROR_GEN_FAILURE );
+        return FALSE;
+    }
+    if ((err = validate_proc_thread_attribute( attr, size )))
+    {
+        SetLastError( err );
+        return FALSE;
+    }
+    mask = 1 << (attr & PROC_THREAD_ATTRIBUTE_NUMBER);
+    if (list->mask & mask)
+    {
+        SetLastError( ERROR_OBJECT_NAME_EXISTS );
+        return FALSE;
+    }
+    list->mask |= mask;
+    entry = list->attrs + list->count;
+    entry->attr = attr;
+    entry->size = size;
+    entry->value = value;
+    list->count++;
+    return TRUE;
+}
+/***********************************************************************
+ *           DeleteProcThreadAttributeList   (kernelbase.@)
+ */
+void WINAPI DECLSPEC_HOTPATCH DeleteProcThreadAttributeList( struct _PROC_THREAD_ATTRIBUTE_LIST *list )
+{
+    return;
+}
