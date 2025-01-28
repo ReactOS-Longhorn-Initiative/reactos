@@ -36,6 +36,7 @@
 @ stdcall BCryptImportKey(ptr ptr wstr ptr ptr long ptr long long) bcrypt.BCryptImportKey
 @ stdcall BCryptImportKeyPair(ptr ptr wstr ptr ptr long long) bcrypt.BCryptImportKeyPair
 @ stub BCryptKeyDerivation
+@ stdcall BCryptOpenAlgorithmProvider(ptr wstr wstr long) bcrypt.BCryptOpenAlgorithmProvider
 @ stdcall CryptOpenAlgorithmProvider(ptr wstr wstr long) bcrypt.BCryptOpenAlgorithmProvider
 @ stub BCryptQueryContextConfiguration
 @ stub BCryptQueryContextFunctionConfiguration

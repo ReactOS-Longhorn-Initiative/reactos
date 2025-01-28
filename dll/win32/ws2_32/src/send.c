@@ -298,3 +298,19 @@ WSASendTo(IN SOCKET s,
     SetLastError(ErrorCode);
     return SOCKET_ERROR;
 }
+
+
+int WINAPI WSASendMsg( SOCKET s, LPWSAMSG msg, DWORD dwFlags, LPDWORD lpNumberOfBytesSent,
+                       LPWSAOVERLAPPED lpOverlapped,
+                       LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+{
+    if (!msg)
+    {
+        SetLastError( WSAEFAULT );
+        return SOCKET_ERROR;
+    }
+
+    return WSASendTo( s, msg->lpBuffers, msg->dwBufferCount, lpNumberOfBytesSent,
+                       dwFlags, msg->name, msg->namelen,
+                       lpOverlapped, lpCompletionRoutine );
+}
