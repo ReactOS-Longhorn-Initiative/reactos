@@ -202,3 +202,22 @@ WPUSetEvent(IN WSAEVENT hEvent,
     UNIMPLEMENTED;
     return FALSE;
 }
+
+typedef enum _WSC_PROVIDER_INFO_TYPE {
+//  InfoType is:                  Info points to:
+    ProviderInfoLspCategories, // DWORD (LspCategories)
+    ProviderInfoAudit,         // struct WSC_PROVIDER_AUDIT_INFO
+} WSC_PROVIDER_INFO_TYPE ;
+
+int WINAPI WSCGetProviderInfo(
+    LPGUID                 lpProviderId,
+    WSC_PROVIDER_INFO_TYPE InfoType,
+    PBYTE                  Info,
+    size_t                 *InfoSize,
+    DWORD                  Flags,
+    LPINT                  lpErrno
+)
+{
+    DPRINT1("WSCGetProviderInfo Triggered: Please replace ws2_32\n");
+    return 0;
+}
