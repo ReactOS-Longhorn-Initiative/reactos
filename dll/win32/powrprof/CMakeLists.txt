@@ -6,6 +6,14 @@ add_library(powrprof MODULE
     powrprof.rc
     ${CMAKE_CURRENT_BINARY_DIR}/powrprof.def)
 
+if(MSVC)
+    # Disable warning C4090: 'function': different 'const' qualifiers
+    # Disable warning C4133: 'function': incompatible types - from 'UINT *' to 'MSIINSTALLCONTEXT *'
+    # Disable warning C4146: unary minus operator applied to unsigned type, result still unsigned
+    # Disable warning C4312: 'type cast': conversion from 'unsigned int' to 'HANDLE' of greater size
+    target_compile_options(powrprof PRIVATE /wd4090 /wd4133 /wd4146 /wd4312)
+endif()
+
 set_module_type(powrprof win32dll UNICODE)
 target_link_libraries(powrprof wine)
 add_importlibs(powrprof advapi32 user32 comctl32 msvcrt kernel32 ntdll)
