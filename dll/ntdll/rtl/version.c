@@ -228,6 +228,7 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
     return STATUS_SUCCESS;
 }
 
+
 /* EOF */
 
 BOOLEAN
