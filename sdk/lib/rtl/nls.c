@@ -944,5 +944,3 @@ RtlUpperChar(IN CHAR Source)
 
     return Destination;
 }
-
-/* EOF */
