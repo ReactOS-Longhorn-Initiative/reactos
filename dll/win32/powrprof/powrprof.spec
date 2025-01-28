@@ -32,3 +32,4 @@
 @ stdcall WriteProcessorPwrScheme (long ptr)
 @ stdcall WritePwrScheme (ptr str str ptr)
 @ stdcall ValidatePowerPolicies (ptr ptr)
+@ stdcall PowerReadACValue(ptr ptr ptr ptr ptr ptr ptr)
