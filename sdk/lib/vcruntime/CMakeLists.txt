@@ -31,7 +31,9 @@ list(APPEND VCRT_RUNTIME_SOURCES
 )
 
 list(APPEND VCRT_STARTUP_SOURCES
-    # TBD
+    __acrt_initialize_stub.cpp
+    mainCRTStartup.cpp
+    wmainCRTStartup.cpp
 )
 
 if(${ARCH} STREQUAL "i386")
