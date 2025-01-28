@@ -155,3 +155,15 @@
 @ stub do_echo_rep
 @ stub do_echo_req
 @ stub register_icmp
+<<<<<<< HEAD
+=======
+@ stdcall -stub CancelMibChangeNotify2(ptr)
+@ stdcall -stub NotifyIpInterfaceChange(long ptr ptr long ptr)
+@ stdcall -stub FreeMibTable(ptr)
+@ stdcall -stub GetIfTable2(ptr)
+@ stdcall -stub ConvertInterfaceIndexToLuid(long ptr)
+@ stdcall -stub ConvertInterfaceLuidToGuid(ptr ptr)
+@ stdcall -stub ConvertInterfaceLuidToIndex(ptr ptr)
+@ stdcall -stub ConvertInterfaceLuidToNameW(ptr wstr long)
+@ stdcall -stub ConvertInterfaceNameToLuidW(ptr ptr)
+>>>>>>> f1fc97ff5f5 ([IPJLPAPI] More stubs)
