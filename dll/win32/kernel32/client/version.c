@@ -29,6 +29,18 @@ GetVersion(VOID)
                       Peb->OSMajorVersion );
 }
 
+BOOLEAN WINAPI RtlGetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion, DWORD dwSpMajorVersion,
+                                 DWORD dwSpMinorVersion, PDWORD pdwReturnedProductType);
+            
+/***********************************************************************
+ *         GetProductInfo   (kernelbase.@)
+ */
+BOOL WINAPI GetProductInfo( DWORD os_major, DWORD os_minor,
+                                              DWORD sp_major, DWORD sp_minor, DWORD *type )
+{
+    return RtlGetProductInfo( os_major, os_minor, sp_major, sp_minor, type );
+}
+
 /*
  * @implemented
  */
