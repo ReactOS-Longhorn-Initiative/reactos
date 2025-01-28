@@ -667,3 +667,7 @@
 @ stdcall -version=0x600+ D3DKMTWaitForIdle(ptr)
 @ stdcall -version=0x600+ D3DKMTWaitForSynchronizationObject(ptr)
 @ stdcall -version=0x600+ D3DKMTWaitForVerticalBlankEvent(ptr)
+
+@ stdcall -version=0x600+ GetFontFileData(long long int64 ptr long)
+@ stdcall -version=0x600+ GetFontFileInfo(long long ptr long ptr)  
+@ stdcall -version=0x600+ GetFontRealizationInfo(long ptr)  
