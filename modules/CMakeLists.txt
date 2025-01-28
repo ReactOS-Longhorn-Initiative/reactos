@@ -57,11 +57,31 @@ endif()
 
 
 if(ARCH STREQUAL "i386")
+    ## Slipstreaming system32 x86
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/x86/system32/)
+        file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/x86/system32/ ${CMAKE_CURRENT_SOURCE_DIR}/x86/system32/*)
+        foreach(item ${EXTRA_FILES})
+            add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x86/system32/${item} DESTINATION reactos/system32 NAME_ON_CD ${item} FOR all)
+        endforeach(item)
+    endif()
+elseif(ARCH STREQUAL "amd64")
+    ## Slipstreaming system32 amd64
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/x64/system32/)
+        file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/x64/system32/ ${CMAKE_CURRENT_SOURCE_DIR}/x64/system32/*)
+        foreach(item ${EXTRA_FILES})
+            add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x64/system32/${item} DESTINATION reactos/system32 NAME_ON_CD ${item} FOR all)
+        endforeach(item)
+    endif()
+endif()
+
+
+
+if(ARCH STREQUAL "i386")
     ## Slipstreaming drivers x86
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/x86/drivers/)
         file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/x86/drivers/ ${CMAKE_CURRENT_SOURCE_DIR}/x86/drivers/*)
         foreach(item ${EXTRA_FILES})
-            add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x86/drivers/${item} DESTINATION reactos/system32/drivers NAME_ON_CD ${item} FOR all)
+            add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x86/drivers/${item} DESTINATION reactos/system32/drivers NAME_ON_CD ${item} FOR bootcd all)
         endforeach(item)
     endif()
 elseif(ARCH STREQUAL "amd64")

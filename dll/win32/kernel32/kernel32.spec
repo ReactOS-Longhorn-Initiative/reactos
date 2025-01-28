@@ -1315,7 +1315,7 @@
 @ stdcall TransactNamedPipe(long ptr long ptr long ptr ptr)
 @ stdcall TransmitCommChar(long long)
 @ stdcall -version=0x601+ TryAcquireSRWLockExclusive(ptr) NTDLL.RtlTryAcquireSRWLockExclusive
-@ stdcall -version=0x6001 TryAcquireSRWLockShared(ptr) NTDLL.RtlTryAcquireSRWLockShared
+@ stdcall -version=0x601+ TryAcquireSRWLockShared(ptr) NTDLL.RtlTryAcquireSRWLockShared
 @ stdcall TryEnterCriticalSection(ptr) ntdll.RtlTryEnterCriticalSection
 @ stdcall TrySubmitThreadpoolCallback(ptr ptr ptr)
 @ stdcall TzSpecificLocalTimeToSystemTime(ptr ptr ptr)
@@ -1485,3 +1485,4 @@
 @ stdcall -stub PssCaptureSnapshot(ptr long ptr long)
 @ stdcall -stub PssFreeSnapshot(ptr ptr)
 @ stdcall -stub PssQuerySnapshot(ptr long ptr long)
+@ stdcall -stub -version=0xA00+ RaiseFailFastException(ptr ptr long)

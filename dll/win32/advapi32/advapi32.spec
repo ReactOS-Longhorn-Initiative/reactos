@@ -732,3 +732,7 @@
 @ stub WmiSetSingleItemW
 @ stub Wow64Win32ApiEntry
 @ stdcall WriteEncryptedFileRaw(ptr ptr ptr)
+@ stdcall RegDeleteKeyValueA(long str str)
+@ stdcall RegDeleteKeyValueW(long wstr wstr)
+@ stdcall RegLoadAppKeyA(str ptr long long long)
+@ stdcall RegLoadAppKeyW(wstr ptr long long long)

@@ -164,3 +164,6 @@
 @ stdcall -stub ConvertInterfaceLuidToIndex(ptr ptr)
 @ stdcall -stub ConvertInterfaceLuidToNameW(ptr wstr long)
 @ stdcall -stub ConvertInterfaceNameToLuidW(ptr ptr)
+@ stdcall -stub if_nametoindex(str) 
+@ stdcall -stub NotifyRouteChange2( long ptr ptr long ptr )
+@ stdcall -stub GetIpForwardTable2( long ptr )

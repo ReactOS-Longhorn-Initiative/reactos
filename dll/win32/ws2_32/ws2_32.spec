@@ -121,3 +121,4 @@
 @ stdcall -version=0x600+ InetPtonW(long wstr ptr)
 @ stdcall -version=0x600+ -stub WSCGetProviderInfo(ptr long ptr long long ptr)
 @ stdcall -version=0x600+ WSAPoll(ptr long long)
+@ stdcall -version=0x602+ WSASendMsg(ptr ptr long ptr ptr ptr)
