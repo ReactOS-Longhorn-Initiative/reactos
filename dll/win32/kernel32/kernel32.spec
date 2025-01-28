@@ -225,7 +225,7 @@
 @ stdcall -version=0x600+ DeleteFileTransactedA(str ptr)
 @ stdcall -version=0x600+ DeleteFileTransactedW(wstr ptr)
 @ stdcall DeleteFileW(wstr)
-@ stdcall -version=0x600+ -stub DeleteProcThreadAttributeList(ptr)
+@ stdcall -version=0x600+ DeleteProcThreadAttributeList(ptr)
 # @ stub -version=0x601+ DisableThreadProfiling
 @ stdcall -version=0xA00+ DiscardVirtualMemory(ptr long) 
 @ stdcall DeleteTimerQueue(long)
@@ -644,7 +644,7 @@
 @ stdcall GetProfileStringA(str str str ptr long)
 @ stdcall GetProfileStringW(wstr wstr wstr ptr long)
 @ stdcall GetQueuedCompletionStatus(long ptr ptr ptr long)
-@ stdcall -stub -version=0x600+ GetQueuedCompletionStatusEx(ptr ptr long ptr long long)
+@ stdcall -version=0x600+ GetQueuedCompletionStatusEx(ptr ptr long ptr long long)
 @ stdcall GetShortPathNameA(str ptr long)
 @ stdcall GetShortPathNameW(wstr ptr long)
 @ stdcall GetStartupInfoA(ptr)
@@ -793,7 +793,7 @@
 @ stdcall InitializeCriticalSection(ptr)
 @ stdcall InitializeCriticalSectionAndSpinCount(ptr long)
 @ stdcall -version=0x600+ InitializeCriticalSectionEx(ptr long long)
-@ stdcall -stub -version=0x600+ InitializeProcThreadAttributeList(ptr long long ptr)
+@ stdcall -version=0x600+ InitializeProcThreadAttributeList(ptr long long ptr)
 @ stdcall InitializeSListHead(ptr) ntdll.RtlInitializeSListHead
 @ stdcall -version=0x600+ InitializeSRWLock(ptr) ntdll.RtlInitializeSRWLock
 @ stdcall -arch=i386 -ret64 InterlockedCompareExchange64(ptr double double) ntdll.RtlInterlockedCompareExchange64
@@ -1000,7 +1000,7 @@
 # @ stub -version=0x601+ QueryThreadProfiling
 @ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr)
 @ stdcall -version=0x601+ -arch=win64 QueryUmsThreadInformation(ptr long ptr long ptr)
-@ stdcall -stub -version=0x601+ QueryUnbiasedInterruptTime(ptr)
+@ stdcall -version=0x601+ QueryUnbiasedInterruptTime(ptr) ntdll.RtlQueryUnbiasedInterruptTime
 @ stdcall QueueUserAPC(ptr long long)
 @ stdcall QueueUserWorkItem(ptr ptr long)
 @ stdcall -norelay RaiseException(long long long ptr)
@@ -1331,7 +1331,7 @@
 @ stdcall UnregisterWait(long)
 @ stdcall UnregisterWaitEx(long long)
 @ stub -version=0x600+ UpdateCalendarDayOfWeek
-@ stdcall -stub -version=0x600+ UpdateProcThreadAttribute(ptr long ptr ptr ptr ptr ptr)
+@ stdcall -version=0x600+ UpdateProcThreadAttribute(ptr long ptr ptr ptr ptr ptr)
 @ stdcall UpdateResourceA(long str str long ptr long)
 @ stdcall UpdateResourceW(long wstr wstr long ptr long)
 @ stdcall VDMConsoleOperation(long long)
