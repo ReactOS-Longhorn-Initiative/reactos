@@ -155,3 +155,7 @@
 @ stub do_echo_rep
 @ stub do_echo_req
 @ stub register_icmp
+@ stdcall -stub CancelMibChangeNotify2(ptr)
+@ stdcall -stub NotifyIpInterfaceChange(long ptr ptr long ptr)
+@ stdcall -stub FreeMibTable(ptr)
+@ stdcall -stub GetIfTable2(ptr)
