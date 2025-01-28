@@ -159,3 +159,8 @@
 @ stdcall -stub NotifyIpInterfaceChange(long ptr ptr long ptr)
 @ stdcall -stub FreeMibTable(ptr)
 @ stdcall -stub GetIfTable2(ptr)
+@ stdcall -stub ConvertInterfaceIndexToLuid(long ptr)
+@ stdcall -stub ConvertInterfaceLuidToGuid(ptr ptr)
+@ stdcall -stub ConvertInterfaceLuidToIndex(ptr ptr)
+@ stdcall -stub ConvertInterfaceLuidToNameW(ptr wstr long)
+@ stdcall -stub ConvertInterfaceNameToLuidW(ptr ptr)
