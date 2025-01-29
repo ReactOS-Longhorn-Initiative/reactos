@@ -53,7 +53,8 @@ DbgPrint(
 
 #ifdef _M_AMD64
 #define __wine_spec_unimplemented_stub(module, function) \
-    DbgPrint("WARNING: calling stub %s in module %s\n", function, module);
+    DbgPrint("WARNING: calling stub %s in module %s\n", function, module); \
+    __debugbreak();
 #else
 #define __wine_spec_unimplemented_stub(module, function) \
 { \
