@@ -286,6 +286,17 @@ MMixerSetGetMuteControlDetails(
     IN ULONG bSet);
 
 MIXER_STATUS
+MMixerSetGetControlTypeOnOff(
+    IN PMIXER_CONTEXT MixerContext,
+    IN LPMIXER_INFO MixerInfo,
+    IN ULONG NodeId,
+    IN LPMIXERCONTROL_EXT MixerControl,
+    IN ULONG dwLineID,
+    IN LPMIXERCONTROLDETAILS MixerControlDetails,
+    IN LPMIXERLINE_EXT MixerLine,
+    IN ULONG bSet);
+
+MIXER_STATUS
 MMixerSetGetVolumeControlDetails(
     IN PMIXER_CONTEXT MixerContext,
     IN LPMIXER_INFO MixerInfo,

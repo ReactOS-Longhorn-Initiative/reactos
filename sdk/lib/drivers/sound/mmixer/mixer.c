@@ -554,6 +554,8 @@ MMixerSetControlDetails(
         case MIXERCONTROL_CONTROLTYPE_MUX:
             Status = MMixerSetGetMuxControlDetails(MixerContext, MixerInfo, NodeId, TRUE, Flags, MixerControl, MixerControlDetails, MixerLine);
             break;
+        case MIXERCONTROL_CONTROLTYPE_ONOFF:
+            Status = MMixerSetGetControlTypeOnOff(MixerContext, MixerInfo, NodeId, MixerControl, MixerLine->Line.dwLineID, MixerControlDetails, MixerLine, TRUE);
         default:
             Status = MM_STATUS_NOT_IMPLEMENTED;
     }
@@ -618,7 +620,7 @@ MMixerGetControlDetails(
             Status = MMixerSetGetVolumeControlDetails(MixerContext, MixerInfo, NodeId, FALSE, MixerControl, MixerControlDetails, MixerLine);
             break;
         case MIXERCONTROL_CONTROLTYPE_ONOFF:
-            DPRINT1("Not Implemented MIXERCONTROL_CONTROLTYPE_ONOFF\n");
+            Status = MMixerSetGetControlTypeOnOff(MixerContext, MixerInfo, NodeId, MixerControl, MixerLine->Line.dwLineID, MixerControlDetails, MixerLine, FALSE);
             break;
         case MIXERCONTROL_CONTROLTYPE_MUX:
             Status = MMixerSetGetMuxControlDetails(MixerContext, MixerInfo, NodeId, FALSE, Flags, MixerControl, MixerControlDetails, MixerLine);
@@ -836,10 +838,11 @@ MMixerInitialize(
             }
             else
             {
-                DPRINT1("Failed to enumerate device %lu\n", DeviceIndex);
+                DPRINT1("Failed to enumerate device %lu, Status %x\n", DeviceIndex, Status);
 
-                /* TODO cleanup */
-                return Status;
+                /* ignore error and continue */
+                DeviceIndex++;
+                continue;
             }
         }
         else

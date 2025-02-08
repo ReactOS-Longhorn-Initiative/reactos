@@ -278,7 +278,7 @@ MMixerCreateDestinationLine(
     DestinationLine->Line.Target.wPid = MixerInfo->MixCaps.wPid;
     DestinationLine->Line.Target.vDriverVersion = MixerInfo->MixCaps.vDriverVersion;
 
-    ASSERT(MixerInfo->MixCaps.szPname[MAXPNAMELEN-1] == 0);
+    MixerInfo->MixCaps.szPname[MAXPNAMELEN-1] = 0;
     wcscpy(DestinationLine->Line.Target.szPname, MixerInfo->MixCaps.szPname);
 
     /* initialize extra line */
