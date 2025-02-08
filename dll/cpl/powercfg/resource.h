@@ -18,6 +18,7 @@
 #define IDD_PROPPAGEADVANCED      74
 #define IDD_PROPPAGEHIBERNATE     75
 #define IDD_SAVEPOWERSCHEME       76
+#define IDD_POWERMETERDETAILS     77
 
 #define IDS_NOACTION               100
 #define IDS_PowerActionNone1       114
@@ -48,12 +49,23 @@
 #define IDS_DEL_SCHEME             166
 #define IDS_DEL_SCHEME_TITLE       167
 #define IDS_DEL_SCHEME_ERROR       168
+#define IDS_OFFLINE                169
+#define IDS_CHARGING               170
+#define IDS_ONLINE                 171
+#define IDS_DETAILEDBATTERY        172
+#define IDC_BATTERYNAME            173
+#define IDC_BATTERYUNIQUEID        174
+#define IDC_BATTERYCHEMISTRY       175
+#define IDC_BATTERYPOWERSTATE      176
+#define IDC_BATTERYMANUFACTURER    177
+#define IDS_DISCHARGING            178
 
 #define IDI_AC        175
 #define IDI_DC        176
 #define IDI_ACDC      177
 #define IDI_SCREEN    178
 #define IDI_HIBERNATE 179
+#define IDI_BATTERYDETAIL 180
 
 #define IDS_CPLNAME_1       190
 #define IDC_ENERGYLIST      200
@@ -117,5 +129,12 @@
 #define IDS_CRITCLENERGY         717
 #define IDS_LOWENERGY            718
 #define IDS_UNKNOWN              719
+
+#define IDC_SHOWDETAILS          800
+#define IDC_POWERSOURCE          801
+#define IDC_POWERSTATUS          802
+#define IDC_BATTERYPERCENT       803
+#define IDC_BATTERYCHARGING      804
+#define IDC_REFRESH              805
 
 #define IDS_CPLDESCRIPTION_1 901

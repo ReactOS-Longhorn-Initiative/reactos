@@ -130,6 +130,45 @@ BEGIN
     PUSHBUTTON "Cancel", IDCANCEL, 133, 40, 50, 14
 END
 
+IDD_PROPPAGEPOWERMETER DIALOGEX 0, 0, 252, 220
+STYLE DS_SHELLFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Power Meter"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    AUTOCHECKBOX "Show details for each &battery", IDC_SHOWDETAILS, 7, 10, 190, 10, WS_TABSTOP
+	GROUPBOX "Power status", -1, 7, 41, 240, 170
+    ICON IDI_HIBERNATE, IDI_HIBERNATE, 23, 54, 21, 20
+    LTEXT "Current power source:", -1, 54, 54, 73, 10
+    LTEXT "AC power", IDC_POWERSOURCE, 140, 54, 60, 10
+    LTEXT "Total battery power remaining:", -1, 54, 64, 101, 10
+    LTEXT "100% (charging)", IDC_POWERSTATUS, 160, 64, 50, 10
+	LTEXT "#1", -1, 24, 113, 13, 10
+    ICON IDI_HIBERNATE, IDI_BATTERYDETAIL, 20, 124, 21, 20, SS_NOTIFY
+	LTEXT "100%", IDC_BATTERYPERCENT, 46, 127, 21, 10 
+	LTEXT "Charging", IDC_BATTERYCHARGING, 24, 142, 38, 10
+    LTEXT "Click an individual battery icon for more information.", -1, 108, 230, 150, 10
+END
+
+IDD_POWERMETERDETAILS DIALOGEX 0, 0, 252, 220
+STYLE DS_SHELLFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Power Meter"
+FONT 8, "MS Shell Dlg"
+BEGIN
+	GROUPBOX "Battery status", -1, 7, 41, 240, 170
+	LTEXT "Battery name: ", -1, 24, 50, 30, 10
+	LTEXT "", IDC_BATTERYNAME, 80, 50, 30, 10
+	LTEXT "Unique ID: ", -1, 24, 60, 30, 10
+	LTEXT "", IDC_BATTERYUNIQUEID, 80, 60, 30, 10
+	LTEXT "Chemistry: ", -1, 24, 70, 40, 10
+	LTEXT "", IDC_BATTERYCHEMISTRY, 80, 70, 30, 10
+	LTEXT "Power state: ", -1, 24, 80, 30, 10
+	LTEXT "", IDC_BATTERYPOWERSTATE, 80, 80, 30, 10
+	LTEXT "Manufacturer: ", -1, 24, 90, 50, 10
+	LTEXT "", IDC_BATTERYMANUFACTURER, 80, 90, 30, 10
+    DEFPUSHBUTTON "&Refresh", IDC_REFRESH, 24, 120, 50, 14
+	DEFPUSHBUTTON "&OK", IDOK, 124, 160, 50, 14
+END
+
 STRINGTABLE
 BEGIN
     IDS_CPLNAME_1 "Power Options"
@@ -168,4 +207,9 @@ BEGIN
     IDS_DEL_SCHEME "Are you sure you want to delete the power scheme: ""%s""?"
     IDS_DEL_SCHEME_TITLE "Delete Scheme"
     IDS_DEL_SCHEME_ERROR "Unable to delete power scheme"
+	IDS_CHARGING "Charging"
+	IDS_DISCHARGING "Discharging"
+	IDS_ONLINE "Online"
+	IDS_OFFLINE "Offline"
+	IDS_DETAILEDBATTERY "Detailed Information for Battery #%d"
 END
