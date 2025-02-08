@@ -1276,15 +1276,20 @@ KiFlushNPXState(IN PFLOATING_SAVE_AREA SaveArea)
         {
             /* Get the FX frame and store the state there */
             FxSaveArea = KiGetThreadNpxArea(NpxThread);
-            Ke386FxSave(FxSaveArea);
-
+            if (FxSaveArea)
+            {
+                Ke386FxSave(FxSaveArea);
+            }
             /* NPX thread has lost its state */
             NpxThread->NpxState = NPX_STATE_NOT_LOADED;
         }
 
         /* Now load NPX state from the NPX area */
         FxSaveArea = KiGetThreadNpxArea(Thread);
-        Ke386FxStore(FxSaveArea);
+        if (FxSaveArea)
+        {
+            Ke386FxStore(FxSaveArea);
+        }
     }
     else
     {
@@ -1301,7 +1306,7 @@ KiFlushNPXState(IN PFLOATING_SAVE_AREA SaveArea)
         Thread->NpxState = NPX_STATE_NOT_LOADED;
 
         /* Save state if supported by CPU */
-        if (KeI386FxsrPresent) Ke386FxSave(FxSaveArea);
+        if (KeI386FxsrPresent && FxSaveArea) Ke386FxSave(FxSaveArea);
     }
 
     /* Now save the FN state wherever it was requested */
@@ -1441,12 +1446,15 @@ KeSaveFloatingPointState(
             /* Get the FX frame */
             FxSaveAreaFrame = KiGetThreadNpxArea(CurrentPrcb->NpxThread);
 
-            /* Save the FPU state */
-            Ke386SaveFpuState(FxSaveAreaFrame);
+            if (FxSaveAreaFrame)
+            {
+                /* Save the FPU state */
+                Ke386SaveFpuState(FxSaveAreaFrame);
 
-            /* NPX thread has lost its state */
-            CurrentPrcb->NpxThread->NpxState = NPX_STATE_NOT_LOADED;
-            FxSaveAreaFrame->NpxSavedCpu = 0;
+                /* NPX thread has lost its state */
+                CurrentPrcb->NpxThread->NpxState = NPX_STATE_NOT_LOADED;
+                FxSaveAreaFrame->NpxSavedCpu = 0;
+            }
         }
 
         /* The new NPX thread is the current thread */

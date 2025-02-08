@@ -43,8 +43,8 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
     PAGED_CODE();
 
     /* Return the basics */
-    lpVersionInformation->dwMajorVersion = NtMajorVersion;
-    lpVersionInformation->dwMinorVersion = NtMinorVersion;
+    lpVersionInformation->dwMajorVersion = 6;
+    lpVersionInformation->dwMinorVersion = 2;
     lpVersionInformation->dwBuildNumber = NtBuildNumber & 0x3FFF;
     lpVersionInformation->dwPlatformId = VER_PLATFORM_WIN32_NT;
 
