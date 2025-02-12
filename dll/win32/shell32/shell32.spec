@@ -557,7 +557,7 @@
 @   stdcall -version=0x600+ SHGetPropertyStoreFromParsingName(wstr ptr ptr ptr ptr)
 @   stdcall -stub -version=0x600+ SHGetTemporaryPropertyForItem(ptr ptr ptr)
 @   stdcall -version=0x600+ SHOpenWithDialog(ptr ptr)
-@   stdcall -stub -version=0x600+ SHGetPropertyStoreForWindow(ptr ptr)
+@   stdcall -version=0x600+ SHGetPropertyStoreForWindow(ptr ptr)
 @   stdcall -version=0x600+ SHQueryUserNotificationState(ptr)
 @   stdcall -stub -version=0x600+ SHSetTemporaryPropertyForItem(ptr ptr ptr)
 @   stdcall -version=0x600+ Shell_GetCachedImageIndexA(str long long)

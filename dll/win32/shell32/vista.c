@@ -29,6 +29,7 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(shell);
 
+
 /******************************************************************************
  * load_string [Internal]
  *

@@ -994,9 +994,9 @@
 @ stdcall QueryMemoryResourceNotification(ptr ptr)
 @ stdcall QueryPerformanceCounter(ptr)
 @ stdcall QueryPerformanceFrequency(ptr)
-@ stub -version=0x600+ QueryProcessAffinityUpdateMode
-@ stub -version=0x600+ QueryProcessCycleTime
-@ stub -version=0x600+ QueryThreadCycleTime
+@ stdcall -stub -version=0x600+ QueryProcessAffinityUpdateMode(ptr)
+@ stdcall -stub -version=0x600+ QueryProcessCycleTime(ptr)
+@ stdcall -stub -version=0x600+ QueryThreadCycleTime(ptr ptr)
 # @ stub -version=0x601+ QueryThreadProfiling
 @ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr)
 @ stdcall -version=0x601+ -arch=win64 QueryUmsThreadInformation(ptr long ptr long ptr)
@@ -1460,8 +1460,8 @@
 ;@ stdcall -arch=x86_64 uaw_wcsicmp(wstr wstr)
 ;@ stdcall -arch=x86_64 uaw_wcslen(wstr)
 ;@ stdcall -arch=x86_64 uaw_wcsrchr(wstr long)
-
-
+@ stdcall GetLengthSid(ptr)
+@ stdcall IsValidSid(ptr)
 @ stdcall PathCchAddBackslash(wstr long)
 @ stdcall PathCchAddBackslashEx(wstr long ptr ptr)
 @ stdcall PathCchAddExtension(wstr long wstr)
@@ -1471,7 +1471,7 @@
 @ stdcall PathCchCanonicalizeEx(ptr long wstr long)
 @ stdcall PathCchCombine(ptr long wstr wstr)
 @ stdcall PathCchCombineEx(ptr long wstr wstr long)
-@ stdcall PathCchFindExtension(wstr long ptr)
+ 
 @ stdcall PathCchFindExtension(wstr long ptr)
 @ stdcall PathCchIsRoot(wstr)
 @ stdcall PathCchRemoveBackslash(wstr long)
