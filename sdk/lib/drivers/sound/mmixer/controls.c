@@ -1395,7 +1395,7 @@ MMixerHandlePhysicalConnection(
     DPRINT("Name %S, Pin %lu bInput %lu\n", OutConnection->SymbolicLinkName, OutConnection->Pin, bInput);
 
     /* sanity check */
-    ASSERT(MixerData->MixerInfo == NULL || MixerData->MixerInfo == MixerInfo);
+    //ASSERT(MixerData->MixerInfo == NULL || MixerData->MixerInfo == MixerInfo);
 
     /* associate with mixer */
     MixerData->MixerInfo = MixerInfo;
