@@ -291,6 +291,7 @@ list(APPEND SOURCE
     ${REACTOS_SOURCE_DIR}/ntoskrnl/se/tokencls.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/se/tokenlif.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/vf/driver.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/wmi/etw.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/wmi/guidobj.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/wmi/smbios.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/wmi/wmi.c
