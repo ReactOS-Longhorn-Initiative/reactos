@@ -587,7 +587,7 @@ MMixerGetChannelCountEnhanced(
                 if (Header->Flags & KSPROPERTY_MEMBER_FLAG_BASICSUPPORT_MULTICHANNEL)
                 {
                     /* found enhanced flag */
-                    ASSERT(Header->MembersCount > 1);
+                    ASSERT(Header->MembersCount >= 1);
 
                     /* store channel count */
                     *MaxChannels = Header->MembersCount;
