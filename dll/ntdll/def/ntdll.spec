@@ -1921,8 +1921,6 @@
 @ stdcall -arch=arm __rt_udiv()
 @ stdcall -arch=arm __rt_udiv64()
 @ stdcall -arch=arm __rt_srsh()
-@ stdcall -version=0x600+ RtlTryAcquireSRWLockExclusive(ptr)   
-@ stdcall -version=0x600+ RtlTryAcquireSRWLockShared(ptr) 
 @ stdcall -version=0x601+ LdrAddDllDirectory(ptr ptr)
 @ stdcall -version=0x601+ LdrSetDllDirectory(ptr)
 @ stdcall -version=0x601+ LdrGetDllDirectory(ptr)
