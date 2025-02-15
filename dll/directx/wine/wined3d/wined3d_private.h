@@ -51,6 +51,18 @@
 #include "wine/list.h"
 #include "wine/rbtree.h"
 
+
+#ifdef __REACTOS__
+
+#ifndef DCX_USESTYLE
+#define DCX_USESTYLE         0x00010000
+#endif
+
+#define ssize_t size_t
+
+#define RTL_CRITICAL_SECTION_DEBUG CRITICAL_SECTION_DEBUG
+#endif
+
 static inline size_t align(size_t addr, size_t alignment)
 {
     return (addr + (alignment - 1)) & ~(alignment - 1);
@@ -2590,6 +2602,32 @@ struct wined3d_output
 };
 
 HRESULT wined3d_output_get_gamma_ramp(struct wined3d_output *output, struct wined3d_gamma_ramp *ramp);
+
+#ifdef __REACTOS__
+#define SHRT_MIN  (-0x8000)
+#define SHRT_MAX    0x7fff
+#define USHRT_MAX   0xffff
+
+#define INT_MIN   (-0x7fffffff - 1)
+#define INT_MAX     0x7fffffff
+#define UINT_MAX    0xffffffffU
+
+#define LONG_MIN  (-0x7fffffffL - 1L)
+#define LONG_MAX    0x7fffffffL
+#define ULONG_MAX   0xffffffffUL
+
+#define LLONG_MAX   0x7fffffffffffffffLL
+#define LLONG_MIN   (-LLONG_MAX-1)
+#define ULLONG_MAX  0xffffffffffffffffULL
+
+#define _I64_MAX    0x7fffffffffffffffLL
+#define _I64_MIN    (-_I64_MAX-1)
+#define _UI64_MAX   0xffffffffffffffffULL
+
+#define I64_MIN  _I64_MIN
+#define I64_MAX  _I64_MAX
+#define UI64_MAX _UI64_MAX
+#endif
 
 #ifdef _WIN64
 #define MAX_PERSISTENT_MAPPED_BYTES I64_MAX

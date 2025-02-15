@@ -34,6 +34,27 @@
 #include "initguid.h"
 #include "wine/fil_data.h"
 
+enum device_type
+{
+    DEVICE_FILTER,
+    DEVICE_CODEC,
+    DEVICE_DMO,
+};
+
+struct moniker
+{
+    IMoniker IMoniker_iface;
+    LONG ref;
+    CLSID class;
+    BOOL has_class;
+    enum device_type type;
+    WCHAR *name;    /* for filters and codecs */
+    CLSID clsid;    /* for DMOs */
+
+    IPropertyBag IPropertyBag_iface;
+};
+
+
 WINE_DEFAULT_DEBUG_CHANNEL(devenum);
 
 static HRESULT WINAPI devenum_factory_QueryInterface(ICreateDevEnum *iface, REFIID riid, void **ppv)
@@ -382,6 +403,12 @@ static void write_filter_data(IPropertyBag *prop_bag, REGFILTER2 *rgf)
         VariantClear(&var);
     }
 }
+HRESULT
+WINAPI
+DllCanUnloadNow(void)
+{
+    return S_OK;
+}
 
 static void register_legacy_filters(void)
 {
@@ -420,7 +447,7 @@ static void register_legacy_filters(void)
             if (FAILED(hr))
                 continue;
 
-            swprintf(wszRegKey, ARRAY_SIZE(wszRegKey), L"CLSID\\%s", wszFilterSubkeyName);
+            swprintf(wszRegKey,  L"CLSID\\%s", wszFilterSubkeyName);
             if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wszRegKey, 0, KEY_READ, &classkey) != ERROR_SUCCESS)
                 continue;
 
@@ -729,7 +756,7 @@ static void register_avicap_devices(void)
                 version, ARRAY_SIZE(version)))
             continue;
 
-        swprintf(name, ARRAY_SIZE(name), L"video%d", i);
+        swprintf(name, L"video%d", i);
 
         hr = register_codec(&CLSID_VideoInputDeviceCategory, name,
                 &CLSID_VfwCapture, friendlyname, &prop_bag);
