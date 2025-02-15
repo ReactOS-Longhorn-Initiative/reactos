@@ -19,7 +19,12 @@
 #ifndef __VKD3D_COMMON_H
 #define __VKD3D_COMMON_H
 
+#ifdef __REACTOS__
+#include "wine/config.h"
+#else
 #include "config.h"
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #include "vkd3d_types.h"
@@ -36,6 +41,10 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>
+#endif
+
+#ifdef __REACTOS__
+long _InterlockedAdd(_Interlocked_operand_ long volatile * _Addend, long _Value);
 #endif
 
 #ifndef ARRAY_SIZE
