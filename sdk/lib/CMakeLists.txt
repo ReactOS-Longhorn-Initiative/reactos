@@ -56,6 +56,7 @@ add_subdirectory(ucrt)
 add_subdirectory(udmihelp)
 add_subdirectory(uuid)
 add_subdirectory(vcruntime)
+add_subdirectory(vkd3d)
 add_subdirectory(wdmguid)
 
 else()

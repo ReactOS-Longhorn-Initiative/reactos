@@ -51,6 +51,18 @@
 #include "wine/list.h"
 #include "wine/rbtree.h"
 
+
+#ifdef __REACTOS__
+
+#ifndef DCX_USESTYLE
+#define DCX_USESTYLE         0x00010000
+#endif
+
+#define ssize_t size_t
+
+#define RTL_CRITICAL_SECTION_DEBUG CRITICAL_SECTION_DEBUG
+#endif
+
 static inline size_t align(size_t addr, size_t alignment)
 {
     return (addr + (alignment - 1)) & ~(alignment - 1);
