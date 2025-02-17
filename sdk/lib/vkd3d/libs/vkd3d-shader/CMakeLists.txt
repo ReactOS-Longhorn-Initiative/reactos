@@ -5,11 +5,11 @@ include_directories(../../include/private)
 include_directories(../../include/vulkan)
 
 FLEX_TARGET(hlsl_scanner hlsl.l ${CMAKE_CURRENT_BINARY_DIR}/hlsl.yy.c)
-BISON_TARGET(hlsl_parser hlsl.y ${CMAKE_CURRENT_BINARY_DIR}/hlsl.tab.c COMPILE_FLAGS "-p hlsl_")
+BISON_TARGET(hlsl_parser hlsl.y ${CMAKE_CURRENT_BINARY_DIR}/hlsl.tab.c)
 ADD_FLEX_BISON_DEPENDENCY(hlsl_scanner hlsl_parser)
 
 FLEX_TARGET(preproc_scanner preproc.l ${CMAKE_CURRENT_BINARY_DIR}/preproc.yy.c)
-BISON_TARGET(preproc_parser preproc.y ${CMAKE_CURRENT_BINARY_DIR}/preproc.tab.c COMPILE_FLAGS "-p preproc_")
+BISON_TARGET(preproc_parser preproc.y ${CMAKE_CURRENT_BINARY_DIR}/preproc.tab.c)
 ADD_FLEX_BISON_DEPENDENCY(preproc_scanner preproc_parser)
 
 list(APPEND PCH_SKIP_SOURCE
