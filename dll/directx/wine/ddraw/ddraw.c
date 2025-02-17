@@ -1096,6 +1096,9 @@ static HRESULT WINAPI ddraw7_SetDisplayMode(IDirectDraw7 *iface, DWORD width, DW
     struct wined3d_display_mode mode;
     enum wined3d_format_id format;
     RECT clip_rect;
+#ifdef __REACTOS__
+    UNREFERENCED_PARAMETER(clip_rect);
+#endif
     HRESULT hr;
 
     TRACE("iface %p, width %lu, height %lu, bpp %lu, refresh_rate %lu, flags %#lx.\n",
@@ -1154,12 +1157,16 @@ static HRESULT WINAPI ddraw7_SetDisplayMode(IDirectDraw7 *iface, DWORD width, DW
                 ddrawformat_from_wined3dformat(&ddraw->primary->surface_desc.ddpfPixelFormat, mode.format_id);
         }
         ddraw->flags |= DDRAW_RESTORE_MODE;
-
+#ifdef __REACTOS__
+        if (ddraw->cooperative_level & DDSCL_EXCLUSIVE)
+            SetWindowPos(ddraw->dest_window, HWND_TOP, 0, 0, width, height, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+#else
         if (ddraw->cooperative_level & DDSCL_EXCLUSIVE)
         {
             SetRect(&clip_rect, 0, 0, width, height);
             ClipCursor(&clip_rect);
         }
+#endif
     }
 
     InterlockedCompareExchange(&ddraw->device_state, DDRAW_DEVICE_STATE_NOT_RESTORED, DDRAW_DEVICE_STATE_OK);

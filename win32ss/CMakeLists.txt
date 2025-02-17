@@ -168,6 +168,7 @@ list(APPEND SOURCE
     user/rtl/image.c
     user/rtl/text.c
     gdi/ntgdi/arc.c
+    gdi/ntgdi/basicrenderersys.c
     gdi/ntgdi/bezier.c
     gdi/ntgdi/bitblt.c
     gdi/ntgdi/bitmaps.c
