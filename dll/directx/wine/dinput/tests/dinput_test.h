@@ -31,7 +31,7 @@
 #include "windef.h"
 #include "winbase.h"
 #include "winioctl.h"
-#include "winternl.h"
+#include "wine/winternl.h"
 
 #include "dinput.h"
 

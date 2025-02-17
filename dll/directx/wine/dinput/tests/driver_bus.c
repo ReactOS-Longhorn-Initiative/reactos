@@ -29,7 +29,7 @@
 #define WIN32_NO_STATUS
 #include "windef.h"
 #include "winbase.h"
-#include "winternl.h"
+#include "wine/winternl.h"
 #include "winioctl.h"
 #include "ddk/wdm.h"
 #include "ddk/hidsdi.h"

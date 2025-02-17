@@ -27,7 +27,7 @@
 #include "dinput.h"
 #include "wine/list.h"
 #include "dinput_private.h"
-
+#define GET_RAWINPUT_CODE_WPARAM(wParam) ((wParam) & 0xff)
 struct dinput_device;
 struct hid_value_caps;
 

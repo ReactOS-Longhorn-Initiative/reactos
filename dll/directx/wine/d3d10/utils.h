@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Austin English
+ * Copyright 2022 Matteo Bruni for CodeWeavers
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,11 +16,20 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#define WINE_FILEDESCRIPTION_STR "Wine d3d8thk"
-#define WINE_FILENAME_STR "d3d8thk.dll"
-#define WINE_FILEVERSION 5,3,2600,5512
-#define WINE_FILEVERSION_STR "5.3.2600.5512"
-#define WINE_PRODUCTVERSION 5,3,2600,5512
-#define WINE_PRODUCTVERSION_STR "5.3.2600.5512"
+#ifndef __WINE_UTILS_H
+#define __WINE_UTILS_H
 
-#include "wine/wine_common_ver.rc"
+#include <stdint.h>
+
+static inline uint32_t read_u32(const char **ptr)
+{
+    uint32_t r;
+
+    memcpy(&r, *ptr, sizeof(r));
+    *ptr += sizeof(r);
+    return r;
+}
+
+void skip_u32_unknown(const char **ptr, unsigned int count);
+
+#endif /* __WINE_UTILS_H */

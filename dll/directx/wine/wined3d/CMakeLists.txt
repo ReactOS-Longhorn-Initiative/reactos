@@ -64,3 +64,9 @@ add_dependencies(d3dwine psdk xdk wineheaders d3d_idl_headers)
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     target_compile_options(d3dwine PRIVATE -Wno-incompatible-pointer-types -Wno-implicit-function-declaration -Wno-write-strings -Wno-unknown-pragmas -Wno-switch -Wno-format-extra-args -Wno-format-overflow)
 endif()
+
+if(MSVC)
+    # Disable warning C4090: 'function': different 'const' qualifiers
+    # Disable warning C4312: 'type cast': conversion from 'unsigned int' to 'void *' of greater size
+    target_compile_options(d3dwine PRIVATE /wd4090 /wd4312)
+endif()

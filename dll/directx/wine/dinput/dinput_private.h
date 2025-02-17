@@ -26,7 +26,11 @@
 #include "dinput.h"
 #include "dinputd.h"
 #include "wine/list.h"
+#ifdef __REACTOS__
+typedef VOID (*PINTERFACE_REFERENCE)(PVOID Context);
+typedef VOID (*PINTERFACE_DEREFERENCE)(PVOID Context);
 
+#endif
 extern HINSTANCE DINPUT_instance;
 
 struct dinput

@@ -187,7 +187,7 @@ static int default_open_include(const char *filename, bool local,
         return VKD3D_ERROR;
     }
 #ifdef __REACTOS__
-    if (_fstat(fileno(f), &st) == -1)
+    if (_fstat(_fileno(f), &st) == -1)
 #else
     if (fstat(fileno(f), &st) == -1)
 #endif

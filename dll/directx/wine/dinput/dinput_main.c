@@ -373,9 +373,9 @@ static DWORD WINAPI dinput_thread_proc( void *params )
     HMODULE this_module = NULL;
     DWORD ret;
     MSG msg;
-
+#ifndef __REACTOS__
     SetThreadDescription( GetCurrentThread(), L"wine_dinput_worker" );
-
+#endif
     di_em_win = CreateWindowW( L"DIEmWin", L"DIEmWin", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, DINPUT_instance, NULL );
     input_thread_state = &state;
 
