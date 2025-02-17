@@ -30,6 +30,7 @@ list(APPEND VKD3DSHADER_SOURCE
      hlsl_constant_ops.c
      hlsl.c
      ir.c
+     msl.c
      spirv.c
      tpf.c
      vkd3d_shader_main.c)

@@ -4,7 +4,8 @@ add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 include_directories(../../include)
 include_directories(../../include/private)
 include_directories(../../include/vulkan)
-add_library(vkd3d        command.c
+add_library(vkd3d        cache.c
+                         command.c
                          device.c
                          resource.c
                          state.c
