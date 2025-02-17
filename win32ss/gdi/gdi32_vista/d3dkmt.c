@@ -7,7 +7,7 @@
 
 #include <gdi32_vista.h>
 #include <d3dkmddi.h>
-
+#include <debug.h>
  
  
 /* Not just a syscall even in wine. */
@@ -15,5 +15,6 @@ NTSTATUS
 WINAPI
 D3DKMTOpenAdapterFromGdiDisplayName(_Inout_ D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME* unnamedParam1)
 {
-    return STATUS_PROCEDURE_NOT_FOUND;
+    __debugbreak();
+    return 0;
 }

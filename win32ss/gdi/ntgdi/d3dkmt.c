@@ -146,7 +146,14 @@ NtGdiDdDDICloseAdapter(_In_ const D3DKMT_CLOSEADAPTER* unnamedParam1)
         STATUS_INVALID_PARAMETER;
 
     if (!DxgAdapterCallbacks.RxgkIntPfnCloseAdapter)
+    {
+        if (1) // CHECK XDDM
+            return XDDMWrapCloseAdapter(unnamedParam1);
+    }
+    else
+    {
         return STATUS_PROCEDURE_NOT_FOUND;
+    }
 
     return DxgAdapterCallbacks.RxgkIntPfnCloseAdapter(unnamedParam1);
 }
@@ -172,7 +179,13 @@ NtGdiDdDDICreateDevice(_Inout_ D3DKMT_CREATEDEVICE* unnamedParam1)
         STATUS_INVALID_PARAMETER;
 
     if (!DxgAdapterCallbacks.RxgkIntPfnCreateDevice)
+    {
+        if (1)
+            return XDDMWrapCreateDevice(unnamedParam1);
+    }
+    {
         return STATUS_PROCEDURE_NOT_FOUND;
+    }
 
     return DxgAdapterCallbacks.RxgkIntPfnCreateDevice(unnamedParam1);
 }
@@ -237,8 +250,13 @@ NtGdiDdDDIDestroyDevice(_In_ const D3DKMT_DESTROYDEVICE* unnamedParam1)
         STATUS_INVALID_PARAMETER;
 
     if (!DxgAdapterCallbacks.RxgkIntPfnDestroyDevice)
+    {
+        if (1)
+            return XDDMWrapDestroyDevice(unnamedParam1);
+    }
+    {
         return STATUS_PROCEDURE_NOT_FOUND;
-
+    }
     return DxgAdapterCallbacks.RxgkIntPfnDestroyDevice(unnamedParam1);
 }
 
@@ -628,8 +646,14 @@ NtGdiDdDDISetVidPnSourceOwner(_In_ const D3DKMT_SETVIDPNSOURCEOWNER* unnamedPara
         STATUS_INVALID_PARAMETER;
 
     if (!DxgAdapterCallbacks.RxgkIntPfnSetVidPnSourceOwner)
+    {
+        if (1) // XDDM ACTIVE
+            return XDDMWrapSetVidPnSourceOwner(unnamedParam1);
+    }
+    else
+    {
         return STATUS_PROCEDURE_NOT_FOUND;
-
+    }
     return DxgAdapterCallbacks.RxgkIntPfnSetVidPnSourceOwner(unnamedParam1);
 }
 
