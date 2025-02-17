@@ -31,6 +31,7 @@ list(APPEND SOURCE
     ffp_hlsl.c
     gl_compat.c
     glsl_shader.c
+    kmt_xddm.c
     palette.c
     query.c
     resource.c

@@ -1064,7 +1064,12 @@ HRESULT CDECL wined3d_adapter_get_video_memory_info(const struct wined3d_adapter
     query_memory_info.hAdapter = adapter->kmt_adapter;
     query_memory_info.PhysicalAdapterIndex = node_idx;
     query_memory_info.MemorySegmentGroup = (D3DKMT_MEMORY_SEGMENT_GROUP)group;
+#ifdef __REACTOS__
+    NTSTATUS WINAPI D3DKMTQueryVideoMemoryInfo_wined3d( D3DKMT_QUERYVIDEOMEMORYINFO *unnamedParam1);
+    status = D3DKMTQueryVideoMemoryInfo_wined3d(&query_memory_info);
+#else
     status = D3DKMTQueryVideoMemoryInfo(&query_memory_info);
+#endif
     if (status == STATUS_SUCCESS)
     {
         info->budget = query_memory_info.Budget;
@@ -3411,8 +3416,14 @@ BOOL wined3d_adapter_init(struct wined3d_adapter *adapter, unsigned int ordinal,
     TRACE("adapter %p LUID %08lx:%08lx.\n", adapter, adapter->luid.HighPart, adapter->luid.LowPart);
 
     open_adapter_desc.AdapterLuid = adapter->luid;
+#ifdef __REACTOS__
+        NTSTATUS WINAPI D3DKMTOpenAdapterFromLuid_wined3d(_Inout_ CONST D3DKMT_OPENADAPTERFROMLUID* unnamedParam1);
+        if (D3DKMTOpenAdapterFromLuid_wined3d(&open_adapter_desc))
+            return FALSE;
+#else
     if (D3DKMTOpenAdapterFromLuid(&open_adapter_desc))
         return FALSE;
+#endif
     adapter->kmt_adapter = open_adapter_desc.hAdapter;
 
     display_device.cb = sizeof(display_device);
