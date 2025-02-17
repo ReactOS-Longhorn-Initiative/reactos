@@ -186,8 +186,11 @@ static int default_open_include(const char *filename, bool local,
         ERR("Unable to open %s for reading.\n", debugstr_a(filename));
         return VKD3D_ERROR;
     }
-
+#ifdef __REACTOS__
+    if (_fstat(fileno(f), &st) == -1)
+#else
     if (fstat(fileno(f), &st) == -1)
+#endif
     {
         ERR("Could not stat file %s.\n", debugstr_a(filename));
         fclose(f);
