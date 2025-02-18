@@ -93,7 +93,21 @@ NtGdiExtEscape(
    INT      Result;
    PPDEVOBJ ppdev;
    PSURFACE psurf;
+   KFLOATING_SAVE TempBuffer;
+   BOOLEAN SwapStateEnabled;
 
+   NTSTATUS
+   NTAPI
+   MmGrowKernelStack(IN PVOID StackPointer);
+   /* also because AMD. */
+   PETHREAD CurrThread = PsGetCurrentThread();
+   //My math here might be stupid.
+   ULONG_PTR ThreadStackBase = (ULONG_PTR)((ULONG_PTR)CurrThread->Tcb.StackBase-KERNEL_LARGE_STACK_SIZE+
+   KERNEL_LARGE_STACK_COMMIT);
+   Status = MmGrowKernelStack((PVOID)ThreadStackBase);
+   if (Status != STATUS_SUCCESS)
+      DPRINT1("Stack is sad, sad AMD\n");
+     SwapStateEnabled = KeSetKernelStackSwapEnable(FALSE)
    if (hDC == NULL)
    {
       if (pDriver)
@@ -235,6 +249,13 @@ NtGdiExtEscape(
       }
    }
 
+   /* Because AMD. */
+   Status = KeSaveFloatingPointState(&TempBuffer);
+   if (Status != STATUS_SUCCESS)
+   {
+       DPRINT1("Failed to save floating point state]n");
+   }
+
    /* Finally call the driver */
    Result = ppdev->DriverFunctions.Escape(
          &psurf->SurfObj,
@@ -243,6 +264,7 @@ NtGdiExtEscape(
          SafeInData,
          OutSize,
          SafeOutData );
+   KeRestoreFloatingPointState(&TempBuffer);
 
 Exit:
    if (hDC == NULL)
@@ -281,7 +303,7 @@ Exit:
 
       ExFreePoolWithTag ( SafeOutData, GDITAG_TEMP );
    }
-
+   KeSetKernelStackSwapEnable(SwapStateEnabled);
    return Result;
 }
 
