@@ -760,6 +760,7 @@
 @ stdcall UnregisterDeviceNotification(long)
 @ stdcall UnregisterHotKey(long long) NtUserUnregisterHotKey
 @ stdcall UnregisterMessagePumpHook()
+@ stdcall UnregisterTouchWindow(ptr)
 @ stdcall -version=0x600+ UnregisterPowerSettingNotification(ptr)
 @ stdcall -version=0x602+ UnregisterSuspendResumeNotification(ptr)
 @ stdcall UnregisterUserApiHook() NtUserUnregisterUserApiHook
