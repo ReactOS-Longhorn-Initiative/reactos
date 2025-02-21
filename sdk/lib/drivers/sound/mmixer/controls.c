@@ -1314,10 +1314,10 @@ MMixerHandleTopologyFilter(
         MMixerApplyOutputFilterHack(MixerContext, MixerData, MixerData->hDevice, &PinsCount, Pins);
 
         /* sanity checks */
-        ASSERT(PinsCount != 0);
         if (PinsCount != 1)
         {
             DPRINT1("MMixerHandlePhysicalConnection Expected 1 pin but got %lu\n", PinsCount);
+            return MM_STATUS_UNSUCCESSFUL;
         }
 
         /* create destination line */
