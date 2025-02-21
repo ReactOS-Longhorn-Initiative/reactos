@@ -61,3 +61,18 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/system32/)
         add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/system32/${item} DESTINATION reactos/system32 NAME_ON_CD ${item} FOR all)
     endforeach(item)
 endif()
+
+ 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/)
+file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/system32 ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/system32/*)
+foreach(item ${EXTRA_FILES})
+    add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/system32/${item} DESTINATION reactos/system32 NAME_ON_CD ${item} FOR all)
+endforeach(item)
+file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/drivers ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/drivers/*)
+foreach(item ${EXTRA_FILES})
+    add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/MSDX-${ARCH}/drivers/${item} DESTINATION reactos/system32/drivers NAME_ON_CD ${item} FOR all)
+endforeach(item)
+else()
+message(FATAL_ERROR "Please provide the MS DX package in modules.")
+endif()
+#####
