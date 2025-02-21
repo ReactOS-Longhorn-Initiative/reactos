@@ -16,21 +16,6 @@
 // void Event_Handler_Function_Name(PWLX_NOTIFICATION_INFO pInfo);
 typedef VOID (WINAPI *PWLX_NOTIFY_HANDLER)(PWLX_NOTIFICATION_INFO pInfo);
 
-static PSTR FuncNames[LastHandler] =
-{
-    "Logon",
-    "Logoff",
-    "Lock",
-    "Unlock",
-    "Startup",
-    "Shutdown",
-    "StartScreenSaver",
-    "StopScreenSaver",
-    "Disconnect",
-    "Reconnect",
-    "StartShell",
-    "PostShell"
-};
 
 typedef struct _NOTIFICATION_ITEM
 {

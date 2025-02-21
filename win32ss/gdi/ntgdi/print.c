@@ -107,7 +107,7 @@ NtGdiExtEscape(
    Status = MmGrowKernelStack((PVOID)ThreadStackBase);
    if (Status != STATUS_SUCCESS)
       DPRINT1("Stack is sad, sad AMD\n");
-     SwapStateEnabled = KeSetKernelStackSwapEnable(FALSE)
+     SwapStateEnabled = KeSetKernelStackSwapEnable(FALSE);
    if (hDC == NULL)
    {
       if (pDriver)

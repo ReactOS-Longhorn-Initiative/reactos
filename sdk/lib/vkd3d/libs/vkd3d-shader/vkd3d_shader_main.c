@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <math.h>
-
+FILE _iob[_IOB_ENTRIES];
 static inline int char_to_int(char c)
 {
     if ('0' <= c && c <= '9')

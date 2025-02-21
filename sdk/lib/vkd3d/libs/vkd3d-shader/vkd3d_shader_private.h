@@ -73,7 +73,7 @@ static inline int __signbit(double x)
 int isfinite(double x);
 float __cdecl log2f (float);
 float __cdecl exp2f(float);
-FILE _iob[_IOB_ENTRIES];
+extern FILE _iob[];
 int
 __cdecl
 _isnan(

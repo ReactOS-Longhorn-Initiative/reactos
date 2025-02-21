@@ -56,28 +56,8 @@ static const char *const debug_level_names[] =
 
 enum vkd3d_dbg_level vkd3d_dbg_get_level(void)
 {
-    static unsigned int level = ~0u;
-    const char *vkd3d_debug;
-    unsigned int i;
-
-    if (level != ~0u)
-        return level;
-
-    if (!(vkd3d_debug = getenv(vkd3d_dbg_env_name)))
-        vkd3d_debug = "";
-
-    for (i = 0; i < ARRAY_SIZE(debug_level_names); ++i)
-    {
-        if (!strcmp(debug_level_names[i], vkd3d_debug))
-        {
-            level = i;
-            return level;
-        }
-    }
-
-    /* Default debug level. */
-    level = VKD3D_DBG_LEVEL_FIXME;
-    return level;
+ 
+    return VKD3D_DBG_LEVEL_FIXME;
 }
 
 static PFN_vkd3d_log log_callback;

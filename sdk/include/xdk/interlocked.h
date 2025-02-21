@@ -317,6 +317,20 @@ _InlineInterlockedExchange64(
             return Prev;
     }
 }
+ 
+#undef _InterlockedAdd
+#define _InterlockedAdd _InlineInterlockedAdd
+FORCEINLINE
+LONG
+_InlineInterlockedAdd (
+    _Inout_ _Interlocked_operand_ LONG volatile *Addend,
+    _In_ LONG Value
+    )
+{
+
+    return InterlockedExchangeAdd((volatile long int *)Addend, Value) + Value;
+}
+
 
 #undef _InterlockedAdd64
 #define _InterlockedAdd64 _InlineInterlockedAdd64

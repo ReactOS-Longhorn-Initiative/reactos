@@ -239,6 +239,8 @@ DirectDrawEnumerateExA(LPDDENUMCALLBACKEXA lpCallback,
                 {
                     EnumerateAttachedSecondaries = TRUE;
                     privateDWFlags = DDENUM_ATTACHEDSECONDARYDEVICES;
+                    UNREFERENCED_PARAMETER(privateDWFlags);
+                    UNREFERENCED_PARAMETER(EnumerateAttachedSecondaries);
                 }
             }
             RegCloseKey(hKey);
@@ -397,7 +399,7 @@ D3DParseUnknownCommand( LPVOID lpCmd,
            }
            else
            {   /* set error code for 4 - 7, 9 - 12, 14  */
-               retCode = D3DERR_COMMAND_UNPARSED;
+               retCode = 0x88760BB8;
            }
 
     }

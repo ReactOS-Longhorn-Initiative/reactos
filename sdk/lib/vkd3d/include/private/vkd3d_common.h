@@ -45,14 +45,7 @@
 
 #ifdef __REACTOS__
 
-
-
- 
-
-
-#define _InterlockedAdd _interlockedadd
-
-
+#include <intrin.h>
 
 
 #endif
