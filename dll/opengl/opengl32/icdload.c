@@ -144,11 +144,14 @@ custom_end:
         /* Query for the ICD DLL name and version */
         dwInput = 0;
         ret = ExtEscape(hdc, OPENGL_GETINFO, sizeof(DWORD), (LPCSTR)&dwInput, sizeof(DrvInfo), (LPSTR)&DrvInfo);
-
         if(ret <= 0)
         {
             ERR("Driver claims to support OPENGL_GETINFO escape code, but doesn't.\n");
-            return NULL;
+            //TODO: import code that pulls this from reg
+            LPCWSTR driverName = L"ati2dvag";
+            memcpy(&DrvInfo.DriverName,driverName,16);
+            DrvInfo.DriverVersion = 1;
+            DrvInfo.Version = 2; 
         }
 
         pDrvInfo = &DrvInfo;
