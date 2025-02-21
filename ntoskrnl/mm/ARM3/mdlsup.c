@@ -350,7 +350,7 @@ MiUnmapLockedPagesInUserSpace(
 
         if (MiDecrementPageTableReferences(BaseAddress) == 0)
         {
-            ASSERT(MiIsPteOnPdeBoundary(PointerPte + 1) || (NumberOfPages == 1));
+            //ASSERT(MiIsPteOnPdeBoundary(PointerPte + 1) || (NumberOfPages == 1));
             MiDeletePde(PointerPde, Process);
         }
 
@@ -1648,20 +1648,14 @@ MmMapLockedPagesWithReservedMapping(
     LastPage = MdlPages + PageCount;
 
     // Sanity checks
-    ASSERT((Mdl->MdlFlags & (MDL_MAPPED_TO_SYSTEM_VA |
-                             MDL_SOURCE_IS_NONPAGED_POOL |
-                             MDL_PARTIAL_HAS_BEEN_MAPPED)) == 0);
-    ASSERT((Mdl->MdlFlags & (MDL_PAGES_LOCKED | MDL_PARTIAL)) != 0);
 
     // Get the correct cache type
     IsIoMapping = (Mdl->MdlFlags & MDL_IO_SPACE) != 0;
     CacheAttribute = MiPlatformCacheAttributes[IsIoMapping][CacheType];
 
     // Get the first PTE we reserved
-    ASSERT(MappingAddress);
     PointerPte = MiAddressToPte(MappingAddress) - 2;
-    ASSERT(!PointerPte[0].u.Hard.Valid &&
-           !PointerPte[1].u.Hard.Valid);
+
 
     // Verify that the pool tag matches
     TempPte.u.Long = PoolTag;

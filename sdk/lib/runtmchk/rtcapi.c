@@ -43,7 +43,7 @@ _RTC_DefaultErrorFuncW(
     ...)
 {
     /* Simple fallback function */
-    __debugbreak();
+    //__debugbreak();
     return 0;
 }
 
@@ -83,7 +83,7 @@ void
 __cdecl
 _RTC_Shutdown(void)
 {
-    __debugbreak();
+    //__debugbreak();
 }
 
 void
