@@ -15,7 +15,7 @@
  * with extended debugging information.
  */
 #if DBG
-#define CSR_DBG
+//#define CSR_DBG
 #endif
 
 #include "csrmsg.h"
