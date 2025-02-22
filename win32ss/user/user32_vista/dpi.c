@@ -17,6 +17,12 @@ NtUserGetDC(HWND hWnd);
 
 #define NDEBUG
 #include <debug.h>
+UINT
+WINAPI
+IsThreadDesktopComposited(VOID)
+{
+    return 0;
+}
 
 /*
  * @stub

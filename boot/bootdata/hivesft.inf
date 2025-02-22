@@ -500,6 +500,11 @@ HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Network\SMAddOns",,0x00000012
 HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Network\UMAddOns",,0x00000012
 HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Network\World Full Access Shared Parameters",,0x00000012
 
+HKLM, "Software\Microsoft\Windows NT\CurrentVersion\OpenGLDrivers\ati2dvag", "Version",0x00010001,0x00010000
+HKLM, "Software\Microsoft\Windows NT\CurrentVersion\OpenGLDrivers\ati2dvag", "DriverVersion", 0x00010001,0x00010000
+HKLM, "Software\Microsoft\Windows NT\CurrentVersion\OpenGLDrivers\ati2dvag", "Flags", 0x00010001,0x00000001
+HKLM, "Software\Microsoft\Windows NT\CurrentVersion\OpenGLDrivers\ati2dvag", "Dll",, "atioglxx"
+
 ; INI File Mappings
 HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\IniFileMapping",,0x00000012
 

@@ -95,7 +95,7 @@ NtGdiExtEscape(
    PSURFACE psurf;
    KFLOATING_SAVE TempBuffer;
    BOOLEAN SwapStateEnabled;
-
+   DPRINT1("NtGdiExtEscape: EscapeCode: %X Driver: %ls", Escape, pDriver);
    NTSTATUS
    NTAPI
    MmGrowKernelStack(IN PVOID StackPointer);

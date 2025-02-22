@@ -9,6 +9,23 @@ HKLM,"SYSTEM\CurrentControlSet\Control","WaitToKillServiceTimeout",2,"20000"
 HKLM,"SYSTEM\CurrentControlSet\Control\PnP",,0x00000012
 HKLM,"SYSTEM\CurrentControlSet\Control\Video",,0x00000012
 
+HKLM,"SYSTEM\CurrentControlSet\Services\ati","ErrorControl",0x00010001,0x00000000
+HKLM,"SYSTEM\CurrentControlSet\Services\ati","Group",0x00000000,"Video"
+HKLM,"SYSTEM\CurrentControlSet\Services\ati","ImagePath",0x00020000,"system32\drivers\ati2mtag.sys"
+HKLM,"SYSTEM\CurrentControlSet\Services\ati","Start",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\ati","Type",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\ati","Tag",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Video","Service",0x00000000,"ati"
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","InstalledDisplayDrivers",0x00010000,"ati2dvag"
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","DefaultSettings.BitsPerPel",0x00010001,32
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","DefaultSettings.XResolution",0x00010001,1024
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","DefaultSettings.YResolution",0x00010001,768
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","DefaultSettings.VgaCompatible",0x00010001,0
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","Acceleration.Level",0x00010001,0
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","Attach.PrimaryDevice",0x00010001,1
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","Attach.ToDesktop",0x00010001,1
+HKLM,"SYSTEM\CurrentControlSet\Services\ati\Device0","Device Description",0x00000000,"ATI Mobility Radeon HD 4200 Series"
+
 ; Critical Device Database
 
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\*PNP0A03","Service",0x00000000,"pci"
@@ -89,8 +106,11 @@ HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0000","Clas
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0001","Service",0x00000000,"vga"
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0001","ClassGUID",0x00000000,"{4D36E968-E325-11CE-BFC1-08002BE10318}"
 
-HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0300","Service",0x00000000,"vga"
-HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0300","ClassGUID",0x00000000,"{4D36E968-E325-11CE-BFC1-08002BE10318}"
+;HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0300","Service",0x00000000,"vga"
+;HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0300","ClassGUID",0x00000000,"{4D36E968-E325-11CE-BFC1-08002BE10318}"
+
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1002&DEV_9712","Service",0x00000000,"ati"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1002&DEV_9712","ClassGUID",0x00000000,"{4D36E968-E325-11CE-BFC1-08002BE10318}"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0301","Service",0x00000000,"vga"
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#CC_0301","ClassGUID",0x00000000,"{4D36E968-E325-11CE-BFC1-08002BE10318}"
