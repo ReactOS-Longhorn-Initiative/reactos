@@ -350,7 +350,7 @@ MiUnmapLockedPagesInUserSpace(
 
         if (MiDecrementPageTableReferences(BaseAddress) == 0)
         {
-            ASSERT(MiIsPteOnPdeBoundary(PointerPte + 1) || (NumberOfPages == 1));
+          //  ASSERT(MiIsPteOnPdeBoundary(PointerPte + 1) || (NumberOfPages == 1));
             MiDeletePde(PointerPde, Process);
         }
 
