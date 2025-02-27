@@ -63,11 +63,17 @@
 #define fmin min
 #define fmax max
 #define ssize_t size_t
-int __cdecl __signbit (double);
+
+static inline int __signbit(double x)
+{
+    union { double x; unsigned __int64 i; } u = { x };
+    return (int)(u.i >> 63);
+}
 #define signbit __signbit
 int isfinite(double x);
 float __cdecl log2f (float);
 float __cdecl exp2f(float);
+FILE _iob[_IOB_ENTRIES];
 int
 __cdecl
 _isnan(

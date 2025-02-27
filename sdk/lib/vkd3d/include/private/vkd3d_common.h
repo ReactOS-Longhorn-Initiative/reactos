@@ -44,7 +44,17 @@
 #endif
 
 #ifdef __REACTOS__
-long _InterlockedAdd(_Interlocked_operand_ long volatile * _Addend, long _Value);
+
+
+
+ 
+
+
+#define _InterlockedAdd _interlockedadd
+
+
+
+
 #endif
 
 #ifndef ARRAY_SIZE

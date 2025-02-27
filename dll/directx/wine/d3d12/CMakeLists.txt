@@ -19,7 +19,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif()
 
 set_module_type(d3d12 win32dll)
-target_link_libraries(d3d12 vkd3d-common dxguid dx10guid uuid wine)
+target_link_libraries(d3d12 dxguid dx10guid uuid wine)
 add_importlibs(d3d12 dxgi advapi32 gdi32 user32 d3dwine msvcrt kernel32 kernel32_vista ntdll)
 add_dependencies(d3d12 wineheaders)
 add_cd_file(TARGET d3d12 DESTINATION reactos/system32 FOR all)
