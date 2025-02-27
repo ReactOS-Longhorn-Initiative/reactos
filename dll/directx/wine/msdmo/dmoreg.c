@@ -84,7 +84,7 @@ static const IEnumDMOVtbl edmovt;
 
 static const WCHAR *GUIDToString(WCHAR *string, const GUID *guid)
 {
-    swprintf(string, 37, L"%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+    swprintf(string, L"%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
             guid->Data1, guid->Data2, guid->Data3,
             guid->Data4[0], guid->Data4[1], guid->Data4[2], guid->Data4[3],
             guid->Data4[4], guid->Data4[5], guid->Data4[6], guid->Data4[7]);
@@ -373,7 +373,7 @@ static HRESULT IEnumDMO_Constructor(
         WCHAR szguid[64];
         WCHAR szKey[MAX_PATH];
 
-        swprintf(szKey, ARRAY_SIZE(szKey), L"DirectShow\\MediaObjects\\Categories\\%s",
+        swprintf(szKey, L"DirectShow\\MediaObjects\\Categories\\%s",
                 GUIDToString(szguid, guidCategory));
         RegOpenKeyExW(HKEY_CLASSES_ROOT, szKey, 0, KEY_READ, &lpedmo->hkey);
     }
@@ -510,7 +510,7 @@ static HRESULT WINAPI IEnumDMO_fnNext(
 
         if (!(This->dwFlags & DMO_ENUMF_INCLUDE_KEYED))
         {
-            swprintf(path, ARRAY_SIZE(path), L"DirectShow\\MediaObjects\\%s\\Keyed", szNextKey);
+            swprintf(path, L"DirectShow\\MediaObjects\\%s\\Keyed", szNextKey);
             ret = RegOpenKeyExW(HKEY_CLASSES_ROOT, path, 0, KEY_READ, &hkey);
             if (ERROR_SUCCESS == ret)
             {
@@ -520,7 +520,7 @@ static HRESULT WINAPI IEnumDMO_fnNext(
             }
         }
 
-        swprintf(path, ARRAY_SIZE(path), L"DirectShow\\MediaObjects\\%s", szNextKey);
+        swprintf(path, L"DirectShow\\MediaObjects\\%s", szNextKey);
         ret = RegOpenKeyExW(HKEY_CLASSES_ROOT, path, 0, KEY_READ, &hkey);
         TRACE("Testing %s.\n", debugstr_w(path));
 
