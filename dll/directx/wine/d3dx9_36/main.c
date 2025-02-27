@@ -1,6 +1,3 @@
-#ifdef __REACTOS__
-#include "precomp.h"
-#else
 /*
  * Direct3D X 9 main file
  *
@@ -26,10 +23,10 @@
 
 #include "initguid.h"
 #include "d3dx9_private.h"
-#endif /* __REACTOS__ */
 
 WINE_DEFAULT_DEBUG_CHANNEL(d3dx);
 
+<<<<<<< HEAD
 BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
 {
     switch(reason)
@@ -45,6 +42,8 @@ BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
     return TRUE;
 }
 
+=======
+>>>>>>> ec90f6b1353 ([DIRECTX:WINE] New DirectX stack based on WINE 10.1)
 BOOL WINAPI D3DXCheckVersion(UINT d3d_sdk_ver, UINT d3dx_sdk_ver)
 {
     return d3d_sdk_ver == D3D_SDK_VERSION && d3dx_sdk_ver == D3DX_SDK_VERSION;
