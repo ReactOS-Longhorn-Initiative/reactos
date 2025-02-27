@@ -22,9 +22,9 @@ add_library(devenum MODULE
 
 set_source_files_properties(devenum.rc PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/devenum_classes.rgs)
 set_module_type(devenum win32dll UNICODE)
-target_link_libraries(devenum strmiids uuid wine)
+target_link_libraries(devenum dxguid strmiids uuid wine)
 add_delay_importlibs(devenum msvfw32)
 add_importlibs(devenum advapi32 advapi32_vista ole32 oleaut32 winmm user32 avicap32 msacm32 dsound msdmo msvcrt kernel32 ntdll)
-add_dependencies(devenum wineheaders)
+add_dependencies(devenum dxsdk wineheaders)
 add_pch(devenum precomp.h SOURCE)
 add_cd_file(TARGET devenum DESTINATION reactos/system32 FOR all)

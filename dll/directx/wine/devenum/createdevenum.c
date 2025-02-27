@@ -403,6 +403,12 @@ static void write_filter_data(IPropertyBag *prop_bag, REGFILTER2 *rgf)
         VariantClear(&var);
     }
 }
+HRESULT
+WINAPI
+DllCanUnloadNow(void)
+{
+    return S_OK;
+}
 
 static void register_legacy_filters(void)
 {
