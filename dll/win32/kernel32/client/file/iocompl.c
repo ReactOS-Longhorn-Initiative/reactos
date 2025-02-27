@@ -327,7 +327,7 @@ GetQueuedCompletionStatusEx(
     NTSTATUS status;
     DWORD ret;	
     LARGE_INTEGER TimeOut;
-
+    UNREFERENCED_PARAMETER(TimeOut);
 	// validate arguments
 	if(!lpCompletionPortEntries
 	|| !ulCount || !ulNumEntriesRemoved) {
