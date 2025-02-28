@@ -15,7 +15,7 @@
 IDB_PALLETTE        BITMAP "inbv/resources/pallette.bmp"
 
 /* SOS Logo header */
-IDB_HEADER_LOGO     BITMAP "inbv/resources/header_new.bmp"
+IDB_HEADER_LOGO     BITMAP "inbv/resources/header.bmp"
 
 /* Normal bootscreen */
 IDB_ROTATING_BAR    BITMAP "inbv/resources/rotbar.bmp"
