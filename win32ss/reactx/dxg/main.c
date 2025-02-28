@@ -43,8 +43,6 @@ DxDdStartupDxGraphics (ULONG SizeEngDrv,
                        PULONG DirectDrawContext,
                        PEPROCESS Proc )
 {
-    __debugbreak();
-
     PDRVFN drv_func;
     PFN *peng_funcs;
     UINT i;

@@ -21,7 +21,7 @@
 #include "winternl.h"
 #include "dwrite.h"
 #include "dwrite_private.h"
-#include "wine/unixlib.h"
+//#include "wine/unixlib.h"
 
 struct create_font_object_params
 {

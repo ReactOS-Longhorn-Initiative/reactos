@@ -863,7 +863,8 @@ static HRESULT WINAPI InputProcessorProfileMgr_UnregisterProfile(ITfInputProcess
         LANGID langid, REFGUID guidProfile, DWORD dwFlags)
 {
     InputProcessorProfiles *This = impl_from_ITfInputProcessorProfileMgr(iface);
-    FIXME("(%p)->(%s %x %s %x)\n", This, debugstr_guid(rclsid), langid, debugstr_guid(guidProfile), dwFlags);
+    UNREFERENCED_PARAMETER(This);
+    //FIXME("(%p)->(%s %x %s %x)\n", This, debugstr_guid(rclsid), langid, debugstr_guid(guidProfile), dwFlags);
     return E_NOTIMPL;
 }
 
@@ -871,7 +872,8 @@ static HRESULT WINAPI InputProcessorProfileMgr_GetActiveProfile(ITfInputProcesso
         TF_INPUTPROCESSORPROFILE *pProfile)
 {
     InputProcessorProfiles *This = impl_from_ITfInputProcessorProfileMgr(iface);
-    FIXME("(%p)->(%s %p)\n", This, debugstr_guid(catid), pProfile);
+    UNREFERENCED_PARAMETER(This);
+   // FIXME("(%p)->(%s %p)\n", This, debugstr_guid(catid), pProfile);
     return E_NOTIMPL;
 }
 

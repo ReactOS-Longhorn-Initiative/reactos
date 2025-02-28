@@ -1141,7 +1141,7 @@ LdrpApplyFileNameRedirection(
         RtlAppendUnicodeStringToString(ResultPath, &NtSystemRoot);
         RtlAppendUnicodeStringToString(ResultPath, &System32);
         RtlAppendUnicodeStringToString(ResultPath, &ApisetName);
-        DPRINT1("ApiSetResolveToHost redirected %wZ to %wZ\n", OriginalName, ResultPath);
+        DPRINT("ApiSetResolveToHost redirected %wZ to %wZ\n", OriginalName, ResultPath);
         *NewName = ResultPath;
     }
     else

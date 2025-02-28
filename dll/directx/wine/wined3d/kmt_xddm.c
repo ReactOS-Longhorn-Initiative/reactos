@@ -14,7 +14,6 @@ NTSTATUS
 WINAPI
 D3DKMTOpenAdapterFromLuid_wined3d(_Inout_ CONST D3DKMT_OPENADAPTERFROMLUID* unnamedParam1)
 {
-    DbgBreakPoint();
     return 0;
 }
 
