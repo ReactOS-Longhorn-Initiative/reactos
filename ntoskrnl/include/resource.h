@@ -25,9 +25,9 @@
 #define IDB_HIBERNATE_BAR   2
 #define IDB_SHUTDOWN_MSG    3
 #define IDB_BAR_DEFAULT     4
-#define IDB_LOGO_DEFAULT    5
+#define IDB_PALLETTE        5
 
-#define IDB_BAR_WKSTA       8
+#define IDB_ROTATING_BAR    8
 #define IDB_BAR_HOME        9
 
 #define IDB_SERVER_LOGO     13
@@ -39,7 +39,7 @@
 #define IDB_SERVER_HEADER   14
 #define IDB_SERVER_FOOTER   15
 #elif SOS_UI != SOS_UI_NONE
-#define IDB_HEADER_NEW      6
+#define IDB_HEADER_LOGO      6
 #endif
 
 /* Workstation editions Overlays */
@@ -59,7 +59,7 @@
 /* ReactOS additions */
 #define IDB_LOGO_XMAS       19
 #define IDB_ROTATING_LINE   20
-#define IDB_PROGRESS_BAR    21
+#define IDB_PROGRESS_RECT   21
 #define IDB_COPYRIGHT       22
 
 #define IDB_MAX_RESOURCES   IDB_COPYRIGHT
