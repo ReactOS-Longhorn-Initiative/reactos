@@ -337,7 +337,7 @@ PDEVOBJ_pSurface(
     return ppdev->pSurface;
 }
 
-#ifdef NATIVE_REACTX
+#if 1
 BOOL
 PDEVOBJ_bEnableDirectDraw(
     _Inout_ PPDEVOBJ ppdev)
@@ -417,7 +417,7 @@ PDEVOBJ_bDisableDisplay(
     if (ppdev->flFlags & PDEV_DISABLED)
         return TRUE;
 
-#ifdef NATIVE_REACTX
+#if 1
     PDEVOBJ_vSuspendDirectDraw(ppdev);
 #endif
 
@@ -604,7 +604,7 @@ PDEVOBJ_Create(
         return NULL;
     }
 
-#ifdef NATIVE_REACTX
+#if 1
     /* Enable DirectDraw */
     if (!PDEVOBJ_bEnableDirectDraw(ppdev))
     {
@@ -698,7 +698,7 @@ PDEVOBJ_bDynamicModeChange(
     ppdev->pfn.CompletePDEV(ppdev->dhpdev, (HDEV)ppdev);
     ppdev2->pfn.CompletePDEV(ppdev2->dhpdev, (HDEV)ppdev2);
 
-#ifdef NATIVE_REACTX
+#if 1
     /* Switch DirectDraw mode */
     PDEVOBJ_vSwitchDirectDraw(ppdev, ppdev2);
 #endif
@@ -732,7 +732,7 @@ PDEVOBJ_bSwitchMode(
     if (!PDEVOBJ_bDisableDisplay(ppdev))
     {
         DPRINT1("PDEVOBJ_bDisableDisplay() failed\n");
-#ifdef NATIVE_REACTX
+#if 1
         /* Resume DirectDraw in case of failure */
         PDEVOBJ_vResumeDirectDraw(ppdev);
 #endif
@@ -756,7 +756,7 @@ PDEVOBJ_bSwitchMode(
         goto leave2;
     }
 
-#ifdef NATIVE_REACTX
+#if 1
     /* 4. Temporarily suspend DirectDraw for mode change */
     PDEVOBJ_vSuspendDirectDraw(ppdev);
     PDEVOBJ_vSuspendDirectDraw(ppdevTmp);
@@ -770,7 +770,7 @@ PDEVOBJ_bSwitchMode(
         goto leave2;
     }
 
-#ifdef NATIVE_REACTX
+#if 1
     /* 6. Resume DirectDraw */
     PDEVOBJ_vResumeDirectDraw(ppdev);
     PDEVOBJ_vResumeDirectDraw(ppdevTmp);
@@ -779,7 +779,7 @@ PDEVOBJ_bSwitchMode(
     /* Release temp PDEV */
     PDEVOBJ_vRelease(ppdevTmp);
 
-#ifdef NATIVE_REACTX
+#if 1
     /* Re-initialize DirectDraw data */
     ppdev->pEDDgpl->hDev = (HDEV)ppdev;
     ppdev->pEDDgpl->dhpdev = ppdev->dhpdev;

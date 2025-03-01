@@ -61,7 +61,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/system32/)
         add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/system32/${item} DESTINATION reactos/system32 NAME_ON_CD ${item} FOR all)
     endforeach(item)
 endif()
-
+#
 if(ARCH STREQUAL "i386")
     ## Slipstreaming drivers x86
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/x86/drivers/)
@@ -78,4 +78,4 @@ elseif(ARCH STREQUAL "amd64")
             add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x64/drivers/${item} DESTINATION reactos/system32/drivers NO_CAB NAME_ON_CD ${item} FOR all)
         endforeach(item)
     endif()
-endif()
+endif()###

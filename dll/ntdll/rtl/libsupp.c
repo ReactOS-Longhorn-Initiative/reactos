@@ -22,14 +22,7 @@ PVOID MmHighestUserAddress = (PVOID)MI_HIGHEST_USER_ADDRESS;
 
 /* FUNCTIONS ***************************************************************/
 
-/******************************************************************************
- *  RtlQueryPerformanceCounter   [NTDLL.@]
- */
-BOOL WINAPI DECLSPEC_HOTPATCH RtlQueryPerformanceCounter( LARGE_INTEGER *counter )
-{
-    NtQueryPerformanceCounter( counter, NULL );
-    return TRUE;
-}
+
 #define TICKSPERSEC 10000000
 BOOL WINAPI DECLSPEC_HOTPATCH RtlQueryPerformanceFrequency( LARGE_INTEGER *frequency )
 {

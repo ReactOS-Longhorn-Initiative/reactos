@@ -105,22 +105,6 @@ NTSTATUS WINAPI RtlQueryDynamicTimeZoneInformation(RTL_DYNAMIC_TIME_ZONE_INFORMA
 {
     return NtQuerySystemInformation( 102, ret, sizeof(*ret), NULL ); //SystemDynamicTimeZoneInformation
 }
- 
-NTSTATUS WINAPI RtlAddMandatoryAce(
-    IN OUT PACL pAcl,
-    IN DWORD dwAceRevision,
-    IN DWORD dwAceFlags,
-    IN DWORD dwMandatoryFlags,
-    IN UCHAR dwAceType,
-    IN PSID pSid)
-{
- 
-    if (dwAceType != SYSTEM_MANDATORY_LABEL_ACE_TYPE)
-        return STATUS_INVALID_PARAMETER;
-    if (dwMandatoryFlags & ~SYSTEM_MANDATORY_LABEL_VALID_MASK)
-        return STATUS_INVALID_PARAMETER;
 
-    return add_access_ace(pAcl, dwAceRevision, dwAceFlags, dwMandatoryFlags, pSid, dwAceType);
-}
 
 /* EOF */
