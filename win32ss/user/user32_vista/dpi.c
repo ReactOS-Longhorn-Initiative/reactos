@@ -18,6 +18,29 @@ NtUserGetDC(HWND hWnd);
 #define NDEBUG
 #include <debug.h>
 
+
+BOOL WINAPI PaintMonitor(HMONITOR monnitor, HDC hdc, RECT rcDst)
+{
+	return PaintDesktop(hdc);	
+}
+
+HWND 
+WINAPI 
+GhostWindowFromHungWindow (
+    HWND hwndGhost
+) 
+{
+	DbgPrint("GhostWindowFromHungWindow is UNIMPLEMENTED\n");
+	return hwndGhost;
+}
+
+HWND WINAPI HungWindowFromGhostWindow(
+    HWND hwndGhost
+) 
+{
+	return hwndGhost;
+}
+
 /*
  * @stub
  */

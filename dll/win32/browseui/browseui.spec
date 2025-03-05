@@ -29,3 +29,4 @@
 136 stdcall -noname SHEnumClassesOfCategories(long ptr long ptr ptr)
 137 stdcall -noname SHWriteClassesOfCategories(long long long long long long long)
 138 stdcall -noname SHIsExplorerBrowser()
+139 stub ExmapleFunction

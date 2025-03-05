@@ -521,3 +521,5 @@
 520 stub tree_into_ndr
 521 stub tree_peek_ndr
 522 stub tree_size_ndr
+@ varargs -stub -arch=win64 NdrClientCall3(ptr long ptr)
+@ varargs -stub -arch=win64 Ndr64AsyncClientCall(ptr long ptr)

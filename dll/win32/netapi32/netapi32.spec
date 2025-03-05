@@ -338,3 +338,6 @@
 @ stub RxNetServerEnum
 @ stub RxNetUserPasswordSet
 @ stub RxRemoteApi
+@ stub DavGetHTTPFromUNCPath
+@ stub DavGetUNCFromHTTPPath
+@ stub DavFlushFile

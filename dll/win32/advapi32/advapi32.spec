@@ -732,3 +732,5 @@
 @ stub WmiSetSingleItemW
 @ stub Wow64Win32ApiEntry
 @ stdcall WriteEncryptedFileRaw(ptr ptr ptr)
+@ stdcall -stub TreeSetNamedSecurityInfoW(wstr long long ptr ptr ptr ptr long long ptr ptr)
+@ stdcall -stub TreeSetNamedSecurityInfoA(str long long ptr ptr ptr ptr long long ptr ptr)

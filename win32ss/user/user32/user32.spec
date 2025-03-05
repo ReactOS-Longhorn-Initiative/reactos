@@ -800,3 +800,8 @@
 @ varargs wsprintfW(ptr wstr)
 @ stdcall wvsprintfA(ptr str ptr)
 @ stdcall wvsprintfW(ptr wstr ptr)
+
+
+@ stdcall GhostWindowFromHungWindow(ptr)
+@ stdcall HungWindowFromGhostWindow(ptr)
+@ stdcall PaintMonitor(ptr ptr long)

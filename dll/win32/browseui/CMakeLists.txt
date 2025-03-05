@@ -44,6 +44,7 @@ add_library(browseui MODULE
     ${SOURCE}
     ${PCH_SKIP_SOURCE}
     browseui.rc
+    ${CMAKE_CURRENT_BINARY_DIR}/browseui_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/browseui.def)
 
 set_module_type(browseui win32dll UNICODE)
