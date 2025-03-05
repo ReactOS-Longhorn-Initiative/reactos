@@ -3,6 +3,9 @@
 NTSTATUS
 NTAPI
 RtlpInitializeLocaleTable(VOID);
+VOID
+NTAPI
+LdrpInitializeDllDirectorySection(VOID);
 
 BOOL
 WINAPI
@@ -22,6 +25,7 @@ DllMain(HANDLE hDll,
             RtlpCloseKeyedEvent();
             return FALSE;
         }
+        LdrpInitializeDllDirectorySection();
     }
     else if (dwReason == DLL_PROCESS_DETACH)
     {

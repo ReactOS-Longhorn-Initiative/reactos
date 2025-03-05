@@ -4253,7 +4253,6 @@ NTSTATUS
 APIENTRY
 NtGdiDdDDISetDisplayPrivateDriverFormat(
     _In_ const D3DKMT_SETDISPLAYPRIVATEDRIVERFORMAT* unnamedParam1);
-
 __kernel_entry
 W32KAPI
 NTSTATUS

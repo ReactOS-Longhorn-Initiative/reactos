@@ -35,14 +35,17 @@ function(add_d3dx9_target __version)
         ${PCH_SKIP_SOURCE}
         version.rc
         ${CMAKE_CURRENT_BINARY_DIR}/${module}.def)
-
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(${module} PRIVATE -Wno-sequence-point -Wno-unused-function -Wno-unused-but-set-variable -Wno-error) # Our favourite compiler :)
+    endif()
+    
     add_definitions(-D__ROS_LONG64__)
     set_module_type(${module} win32dll)
     add_dependencies(${module} d3d_idl_headers)
     target_link_libraries(${module} dxguid wine oldnames)
-    add_importlibs(${module} d3dcompiler_43 d3dxof usp10 user32 ole32 gdi32 msvcrt kernel32 ntdll)
+    add_importlibs(${module} d3dcompiler_43 d3dxof usp10 user32 ole32 gdi32 msvcrt kernel32_vista kernel32 ntdll)
     add_delay_importlibs(${module} windowscodecs)
-    add_pch(${module} ../d3dx9_36/precomp.h "${PCH_SKIP_SOURCE}")
+  #  add_pch(${module} ../d3dx9_36/precomp.h "${PCH_SKIP_SOURCE}")
     add_cd_file(TARGET ${module} DESTINATION reactos/system32 FOR all)
 
     target_compile_definitions(${module} PRIVATE D3DX_SDK_VERSION=${__version} __WINESRC__ copysignf=_copysignf)

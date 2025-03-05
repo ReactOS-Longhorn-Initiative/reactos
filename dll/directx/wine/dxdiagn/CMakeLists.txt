@@ -17,9 +17,9 @@ add_library(dxdiagn MODULE
 
 set_module_type(dxdiagn win32dll)
 target_compile_definitions(dxdiagn PRIVATE _CRT_NON_CONFORMING_SWPRINTFS)
-target_link_libraries(dxdiagn strmiids dxguid uuid wine)
+target_link_libraries(dxdiagn strmiids dxguid uuid wine wine_dll_register wine_dll_canunload oldnames)
 add_dependencies(dxdiagn wineheaders)
 add_importlibs(dxdiagn d3d9 ddraw version ole32 oleaut32 psapi user32 dsound msvcrt kernel32 ntdll)
-add_pch(dxdiagn precomp.h "${PCH_SKIP_SOURCE}")
+#add_pch(dxdiagn precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET dxdiagn DESTINATION reactos/system32 FOR all)
 set_wine_module_FIXME(dxdiagn) # CORE-5743: No ARRAY_SIZE and CONST_VTABLE

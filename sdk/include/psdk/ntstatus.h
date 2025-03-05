@@ -49,7 +49,6 @@ extern "C" {
 #define FACILITY_ACPI_ERROR_CODE        0x14
 #define FACILITY_SXS_ERROR_CODE         0x15
 #define FACILITY_TRANSACTION            0x19
-#define FACILITY_COMMONLOG              0x1A
 #define FACILITY_VIDEO                  0x1B
 #define FACILITY_FILTER_MANAGER         0x1C
 #define FACILITY_MONITOR                0x1D

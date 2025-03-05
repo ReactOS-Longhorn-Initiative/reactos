@@ -59,3 +59,11 @@
 @ stdcall TpWaitForTimer(ptr long)
 @ stdcall TpWaitForWait(ptr long)
 @ stdcall TpWaitForWork(ptr long)
+
+@ stdcall LdrAddDllDirectory(ptr ptr)
+@ stdcall LdrSetDllDirectory(ptr)
+@ stdcall LdrGetDllDirectory(ptr)
+@ stdcall LdrRemoveDllDirectory(ptr)
+@ stdcall LdrSetDefaultDllDirectories(long)
+@ stdcall LdrGetDllPath(wstr long ptr ptr)
+

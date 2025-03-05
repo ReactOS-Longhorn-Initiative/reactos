@@ -75,12 +75,14 @@ GdiThreadDestroy(PETHREAD Thread)
     return STATUS_SUCCESS;
 }
 
+VOID
+DxStartupDxgkInt(VOID);
+
 BOOL
 InitializeGreCSRSS(VOID)
 {
-    /* Initialize Dxgkrnl interfaces and run startup routine */
+    /* Initialize Dxgkrnl interfaces and run final startup routine */
     DxStartupDxgkInt();
-
     /* Initialize Legacy DirectX graphics driver */
     if (DxDdStartupDxGraphics(0, NULL, 0, NULL, NULL, gpepCSRSS) != STATUS_SUCCESS)
     {
