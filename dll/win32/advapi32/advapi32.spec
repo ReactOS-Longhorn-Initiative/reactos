@@ -734,3 +734,5 @@
 @ stdcall WriteEncryptedFileRaw(ptr ptr ptr)
 @ stdcall -stub TreeSetNamedSecurityInfoW(wstr long long ptr ptr ptr ptr long long ptr ptr)
 @ stdcall -stub TreeSetNamedSecurityInfoA(str long long ptr ptr ptr ptr long long ptr ptr)
+@ stub UsePinForEncryptedFilesW
+@ stub SetUserFileEncryptionKeyEx

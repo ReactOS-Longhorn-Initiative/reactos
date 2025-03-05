@@ -21,6 +21,7 @@
 420 stub PROPSYS_420
 421 stub PROPSYS_421
 422 stub PROPSYS_422
+423 stub PROPSYS_423
 
 @ stub ClearPropVariantArray
 @ stub ClearVariantArray

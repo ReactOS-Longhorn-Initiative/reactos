@@ -48,3 +48,10 @@
 @ stub GetLockSessionUnwrappedKey
 @ stub GetLockSessionWrappedKey
 @ stub OefsCheckSupport
+@ stub EfsApplyLastPolicy
+@ stub EfsUtilGetProvider
+@ stub EfsInitPolicyLibrary
+@ stub EfsUtilCreateSelfSignedCertificate
+@ stub EfsUtilCheckCurrentKeyCapabilities
+@ stub EfsUtilSmartcardCredsNeededError
+@ stub EfsUtilGetCertContextFromCertHash
