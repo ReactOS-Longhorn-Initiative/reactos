@@ -1,4 +1,3 @@
-
 add_definitions(-D__WINESRC__)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 spec2def(msdmo.dll msdmo.spec ADD_IMPORTLIB)

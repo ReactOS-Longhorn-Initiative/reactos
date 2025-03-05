@@ -16,7 +16,6 @@
 #define NDEBUG
 #include <debug.h>
 
-
 /* GLOBALS *******************************************************************/
 
 HANDLE ImageExecOptionsKey;
