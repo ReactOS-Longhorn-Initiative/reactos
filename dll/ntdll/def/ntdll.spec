@@ -134,6 +134,7 @@
 @ stdcall KiUserExceptionDispatcher(ptr ptr)
 @ stdcall -version=0x502 LdrAccessOutOfProcessResource(ptr ptr ptr ptr ptr)
 @ stdcall LdrAccessResource(ptr ptr ptr ptr)
+@ stdcall -version=0x601+ LdrAddDllDirectory(ptr ptr)
 @ stdcall -stub -version=0x600+ LdrAddLoadAsDataTable(ptr wstr long ptr)
 @ stdcall LdrAddRefDll(long ptr)
 @ stdcall -version=0x502 LdrAlternateResourcesEnabled()
@@ -148,8 +149,10 @@
 @ stdcall -stub LdrFindResourceEx_U(ptr ptr ptr ptr ptr) ; 5.1 and higher
 @ stdcall LdrFindResource_U(ptr ptr long ptr)
 @ stdcall LdrFlushAlternateResourceModules()
+@ stdcall -version=0x601+ LdrGetDllDirectory(ptr)
 @ stdcall LdrGetDllHandle(wstr ptr ptr ptr)
 @ stdcall LdrGetDllHandleEx(long wstr ptr ptr ptr)
+@ stdcall LdrGetDllPath(wstr long ptr ptr)
 @ stub -version=0x600+ LdrGetFailureData
 @ stdcall -stub -version=0x600+ LdrGetFileNameFromLoadAsDataTable(ptr ptr)
 @ stdcall -stub -version=0x600+ -arch=x86_64 LdrGetKnownDllSectionHandle(wstr long ptr)
@@ -171,12 +174,15 @@
 @ stdcall -stub -version=0x600+ LdrQueryModuleServiceTags(ptr ptr ptr)
 @ stdcall LdrQueryProcessModuleInformation(ptr long ptr)
 @ stdcall -version=0x600+ LdrRegisterDllNotification(long ptr ptr ptr)
+@ stdcall -version=0x601+ LdrRemoveDllDirectory(ptr)
 @ stdcall -stub -version=0x600+ LdrRemoveLoadAsDataTable(ptr ptr ptr long)
 @ stub -version=0x600+ LdrResFindResource
 @ stub -version=0x600+ LdrResFindResourceDirectory
 @ stub -version=0x600+ LdrResRelease
 @ stub -version=0x600+ LdrResSearchResource
 @ stdcall LdrSetAppCompatDllRedirectionCallback(long ptr ptr)
+@ stdcall -version=0x601+ LdrSetDefaultDllDirectories(long)
+@ stdcall -version=0x601+ LdrSetDllDirectory(ptr)
 @ stdcall LdrSetDllManifestProber(ptr)
 @ stub -version=0x600+ LdrSetMUICacheType
 @ stdcall LdrShutdownProcess()
