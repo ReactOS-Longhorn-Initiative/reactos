@@ -211,43 +211,7 @@ PopSendQuerySystemPowerState(PDEVICE_OBJECT DeviceObject, SYSTEM_POWER_STATE Sys
 NTSTATUS
 PopSendSetSystemPowerState(PDEVICE_OBJECT DeviceObject, SYSTEM_POWER_STATE SystemState, POWER_ACTION PowerAction)
 {
-    KEVENT Event;
-    IO_STATUS_BLOCK IoStatusBlock;
-    PIO_STACK_LOCATION IrpSp;
-    PIRP Irp;
-    NTSTATUS Status;
-
-    KeInitializeEvent(&Event,
-                      NotificationEvent,
-                      FALSE);
-
-    Irp = IoBuildSynchronousFsdRequest(IRP_MJ_POWER,
-                                       DeviceObject,
-                                       NULL,
-                                       0,
-                                       NULL,
-                                       &Event,
-                                       &IoStatusBlock);
-    if (!Irp) return STATUS_INSUFFICIENT_RESOURCES;
-
-    IrpSp = IoGetNextIrpStackLocation(Irp);
-    IrpSp->MinorFunction = IRP_MN_SET_POWER;
-    IrpSp->Parameters.Power.Type = SystemPowerState;
-    IrpSp->Parameters.Power.State.SystemState = SystemState;
-    IrpSp->Parameters.Power.ShutdownType = PowerAction;
-
-    Status = PoCallDriver(DeviceObject, Irp);
-    if (Status == STATUS_PENDING)
-    {
-        KeWaitForSingleObject(&Event,
-                              Executive,
-                              KernelMode,
-                              FALSE,
-                              NULL);
-        Status = IoStatusBlock.Status;
-    }
-
-    return Status;
+    return 0;
 }
 
 NTSTATUS
