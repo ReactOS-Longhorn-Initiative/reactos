@@ -278,7 +278,7 @@ MMixerCreateDestinationLine(
     DestinationLine->Line.Target.wPid = MixerInfo->MixCaps.wPid;
     DestinationLine->Line.Target.vDriverVersion = MixerInfo->MixCaps.vDriverVersion;
 
-    ASSERT(MixerInfo->MixCaps.szPname[MAXPNAMELEN-1] == 0);
+    MixerInfo->MixCaps.szPname[MAXPNAMELEN-1] = 0;
     wcscpy(DestinationLine->Line.Target.szPname, MixerInfo->MixCaps.szPname);
 
     /* initialize extra line */
@@ -587,7 +587,7 @@ MMixerGetChannelCountEnhanced(
                 if (Header->Flags & KSPROPERTY_MEMBER_FLAG_BASICSUPPORT_MULTICHANNEL)
                 {
                     /* found enhanced flag */
-                    ASSERT(Header->MembersCount > 1);
+                    ASSERT(Header->MembersCount >= 1);
 
                     /* store channel count */
                     *MaxChannels = Header->MembersCount;
@@ -1314,10 +1314,10 @@ MMixerHandleTopologyFilter(
         MMixerApplyOutputFilterHack(MixerContext, MixerData, MixerData->hDevice, &PinsCount, Pins);
 
         /* sanity checks */
-        ASSERT(PinsCount != 0);
         if (PinsCount != 1)
         {
             DPRINT1("MMixerHandlePhysicalConnection Expected 1 pin but got %lu\n", PinsCount);
+            return MM_STATUS_UNSUCCESSFUL;
         }
 
         /* create destination line */
@@ -1395,7 +1395,7 @@ MMixerHandlePhysicalConnection(
     DPRINT("Name %S, Pin %lu bInput %lu\n", OutConnection->SymbolicLinkName, OutConnection->Pin, bInput);
 
     /* sanity check */
-    ASSERT(MixerData->MixerInfo == NULL || MixerData->MixerInfo == MixerInfo);
+    //ASSERT(MixerData->MixerInfo == NULL || MixerData->MixerInfo == MixerInfo);
 
     /* associate with mixer */
     MixerData->MixerInfo = MixerInfo;

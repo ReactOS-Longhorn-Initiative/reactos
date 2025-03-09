@@ -741,6 +741,9 @@ PFX_SAVE_AREA
 KiGetThreadNpxArea(IN PKTHREAD Thread)
 {
     ASSERT((ULONG_PTR)Thread->InitialStack % 16 == 0);
+    if ((ULONG_PTR)Thread->InitialStack < sizeof(FX_SAVE_AREA))
+        return NULL;
+
     return (PFX_SAVE_AREA)((ULONG_PTR)Thread->InitialStack - sizeof(FX_SAVE_AREA));
 }
 
