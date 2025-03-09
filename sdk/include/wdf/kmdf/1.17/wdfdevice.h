@@ -1366,6 +1366,7 @@ WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS_INIT(
 
     switch (IdleCaps) {
     case IdleUsbSelectiveSuspend:
+    case IdleCapsInvalid:
     case IdleCanWakeFromS0:
         Settings->DxState = PowerDeviceMaximum;
         break;

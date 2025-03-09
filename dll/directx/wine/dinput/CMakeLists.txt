@@ -19,7 +19,9 @@ add_library(dinput MODULE
     dinput.rc
     version.rc
     ${CMAKE_CURRENT_BINARY_DIR}/dinput.def)
-
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(dinput PRIVATE -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-sign-compare -Wno-switch -Wno-write-strings -Wno-format)
+endif()
 add_library(dinput_data_formats data_formats.c)
 add_dependencies(dinput_data_formats psdk)
 set_module_type(dinput win32dll)

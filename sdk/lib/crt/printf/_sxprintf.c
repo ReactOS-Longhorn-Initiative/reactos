@@ -61,7 +61,6 @@ _sxprintf(
     /* Validate parameters */
     if (MSVCRT_CHECK_PMT(((buffer == NULL) || (format == NULL) || (sizeOfBuffer <= 0))))
     {
-        errno = EINVAL;
         return -1;
     }
 

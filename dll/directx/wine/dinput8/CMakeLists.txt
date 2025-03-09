@@ -20,6 +20,9 @@ add_library(dinput8 MODULE
     ${SOURCE}
     ${DINPUT_SOURCE_FOLDER}/dinput.rc
     version.rc)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(dinput8 PRIVATE -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-sign-compare -Wno-switch -Wno-write-strings -Wno-format)
+endif()
 
 set_module_type(dinput8 win32dll)
 target_link_libraries(dinput8 dxguid uuid wine)

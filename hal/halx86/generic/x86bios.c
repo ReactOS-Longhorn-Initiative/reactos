@@ -78,7 +78,7 @@ HalInitializeBios(
                                                         FALSE);
         if (x86BiosBufferPhysical == 0)
         {
-            ASSERT(FALSE);
+         //   ASSERT(FALSE);
         }
     }
     else

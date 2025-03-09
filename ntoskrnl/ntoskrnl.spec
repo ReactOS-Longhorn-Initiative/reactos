@@ -166,7 +166,7 @@
 @ fastcall ExRundownCompletedCacheAware(ptr) ExfRundownCompletedCacheAware
 @ extern ExSemaphoreObjectType
 @ stdcall ExSetResourceOwnerPointer(ptr ptr)
-@ stdcall -version=0x600+ ExSetTimer(ptr long long ptr)
+@ stdcall -version=0x600+ ExSetTimer(ptr int64 int64 ptr)
 @ stdcall ExSetTimerResolution(long long)
 @ stdcall ExSizeOfRundownProtectionCacheAware()
 @ stdcall ExSystemExceptionFilter()
@@ -822,7 +822,7 @@
 @ stdcall MmAllocateContiguousMemorySpecifyCache(long long long long long long long long)
 @ stdcall -version=0x600+ MmAllocateContiguousMemorySpecifyCacheNode(long long long long long long long long long)
 @ stdcall MmAllocateMappingAddress(long long)
-@ stdcall -version=0x600+ MmAllocateContiguousNodeMemory(long long long long long long)
+@ stdcall -version=0x600+ MmAllocateContiguousNodeMemory(long int64 int64 int64 long long)
 @ stdcall MmAllocateNonCachedMemory(long)
 @ stdcall MmAllocatePagesForMdl(ptr ptr ptr ptr ptr ptr ptr)
 @ stdcall MmAllocatePagesForMdlEx(long long long long long long long long long)
