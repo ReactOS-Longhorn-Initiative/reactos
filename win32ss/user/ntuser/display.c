@@ -506,12 +506,6 @@ UserEnumDisplaySettings(
         return STATUS_INVALID_PARAMETER_1;
     }
 
-    /* let's politely ask the driver for an updated mode list,
-       just in case there's something new in there (vbox) */
-
-    PDEVOBJ_vRefreshModeList(ppdev);
-    PDEVOBJ_vRelease(ppdev);
-
     iFoundMode = 0;
     for (i = 0; i < pGraphicsDevice->cDevModes; i++)
     {
