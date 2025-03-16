@@ -1033,35 +1033,6 @@ static VOID SetRegTextData(HWND hWnd, HKEY hKey, LPCWSTR Value, UINT uID)
     }
 }
 
-INT_PTR CALLBACK AboutAuthorsDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
-{
-    switch(msg)
-    {
-        case WM_INITDIALOG:
-        {
-            const char* const *pstr = SHELL_Authors;
-
-            // Add the authors to the list
-            SendDlgItemMessageW( hWnd, IDC_ABOUT_AUTHORS_LISTBOX, WM_SETREDRAW, FALSE, 0 );
-
-            while (*pstr)
-            {
-                WCHAR name[64];
-
-                /* authors list is in utf-8 format */
-                MultiByteToWideChar( CP_UTF8, 0, *pstr, -1, name, sizeof(name)/sizeof(WCHAR) );
-                SendDlgItemMessageW( hWnd, IDC_ABOUT_AUTHORS_LISTBOX, LB_ADDSTRING, (WPARAM)-1, (LPARAM)name );
-                pstr++;
-            }
-
-            SendDlgItemMessageW( hWnd, IDC_ABOUT_AUTHORS_LISTBOX, WM_SETREDRAW, TRUE, 0 );
-
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
 /*************************************************************************
  * AboutDlgProc            (internal)
  */
@@ -1071,8 +1042,9 @@ static INT_PTR CALLBACK AboutDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
     static DWORD   cxLogoBmp;
     static DWORD   cyLogoBmp, cyLineBmp;
-    static HBITMAP hLogoBmp, hLineBmp;
-    static HWND    hWndAuthors;
+    static HBITMAP hLogoBmp;
+    static HWND    hLine;
+    static RECT    rect;
 
     switch (msg)
     {
@@ -1080,19 +1052,18 @@ static INT_PTR CALLBACK AboutDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM
         {
             ABOUT_INFO *info = (ABOUT_INFO *)lParam;
 
+            GetClientRect(hWnd, &rect);
+
             if (info)
             {
                 HKEY hRegKey;
-                MEMORYSTATUSEX MemStat;
                 WCHAR szAppTitle[512];
                 WCHAR szAppTitleTemplate[512];
-                WCHAR szAuthorsText[20];
 
                 // Preload the ROS bitmap
                 hLogoBmp = (HBITMAP)LoadImage(shell32_hInstance, MAKEINTRESOURCE(IDB_REACTOS), IMAGE_BITMAP, 0, 0, LR_DEFAULTCOLOR);
-                hLineBmp = (HBITMAP)LoadImage(shell32_hInstance, MAKEINTRESOURCE(IDB_LINEBAR), IMAGE_BITMAP, 0, 0, LR_DEFAULTCOLOR);
 
-                if (hLogoBmp && hLineBmp)
+                if (hLogoBmp)
                 {
                     BITMAP bmpLogo;
 
@@ -1100,10 +1071,16 @@ static INT_PTR CALLBACK AboutDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
                     cxLogoBmp = bmpLogo.bmWidth;
                     cyLogoBmp = bmpLogo.bmHeight;
-
-                    GetObject(hLineBmp, sizeof(BITMAP), &bmpLogo);
-                    cyLineBmp = bmpLogo.bmHeight;
                 }
+
+                /* Add a separator line */
+                hLine = CreateWindowEx(0, L"Static", NULL,
+                                       WS_CHILD | WS_VISIBLE | SS_ETCHEDHORZ,
+                                       25,
+                                       cyLogoBmp + 4,
+                                       rect.right - 50,
+                                       2,
+                                       hWnd, NULL, shell32_hInstance, NULL);
 
                 // Set App-specific stuff (icon, app name, szOtherStuff string)
                 SendDlgItemMessageW(hWnd, IDC_ABOUT_ICON, STM_SETICON, (WPARAM)info->hIcon, 0);
@@ -1123,92 +1100,16 @@ static INT_PTR CALLBACK AboutDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM
                     SetRegTextData(hWnd, hRegKey, L"RegisteredOwner", IDC_ABOUT_REG_USERNAME);
                     SetRegTextData(hWnd, hRegKey, L"RegisteredOrganization", IDC_ABOUT_REG_ORGNAME);
 
-                    if (GetWindowTextLengthW(GetDlgItem(hWnd, IDC_ABOUT_REG_USERNAME)) == 0 &&
-                        GetWindowTextLengthW(GetDlgItem(hWnd, IDC_ABOUT_REG_ORGNAME)) == 0)
-                    {
-                        ShowWindow(GetDlgItem(hWnd, IDC_ABOUT_REG_TO), SW_HIDE);
-                    }
-
                     RegCloseKey(hRegKey);
                 }
 
-                // Set the value for the installed physical memory
-                MemStat.dwLength = sizeof(MemStat);
-                if (GlobalMemoryStatusEx(&MemStat))
-                {
-                    WCHAR szBuf[12];
-
-                    if (MemStat.ullTotalPhys > 1024 * 1024 * 1024)
-                    {
-                        double dTotalPhys;
-                        WCHAR szDecimalSeparator[4];
-                        WCHAR szUnits[3];
-
-                        // We're dealing with GBs or more
-                        MemStat.ullTotalPhys /= 1024 * 1024;
-
-                        if (MemStat.ullTotalPhys > 1024 * 1024)
-                        {
-                            // We're dealing with TBs or more
-                            MemStat.ullTotalPhys /= 1024;
-
-                            if (MemStat.ullTotalPhys > 1024 * 1024)
-                            {
-                                // We're dealing with PBs or more
-                                MemStat.ullTotalPhys /= 1024;
-
-                                dTotalPhys = (double)MemStat.ullTotalPhys / 1024;
-                                wcscpy(szUnits, L"PB");
-                            }
-                            else
-                            {
-                                dTotalPhys = (double)MemStat.ullTotalPhys / 1024;
-                                wcscpy(szUnits, L"TB");
-                            }
-                        }
-                        else
-                        {
-                            dTotalPhys = (double)MemStat.ullTotalPhys / 1024;
-                            wcscpy(szUnits, L"GB");
-                        }
-
-                        // We need the decimal point of the current locale to display the RAM size correctly
-                        if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SDECIMAL,
-                            szDecimalSeparator,
-                            ARRAY_SIZE(szDecimalSeparator)) > 0)
-                        {
-                            UCHAR uDecimals;
-                            UINT uIntegral;
-
-                            uIntegral = (UINT)dTotalPhys;
-                            uDecimals = (UCHAR)((UINT)(dTotalPhys * 100) - uIntegral * 100);
-
-                            // Display the RAM size with 2 decimals
-                            swprintf(szBuf, L"%u%s%02u %s", uIntegral, szDecimalSeparator, uDecimals, szUnits);
-                        }
-                    }
-                    else
-                    {
-                        // We're dealing with MBs, don't show any decimals
-                        swprintf(szBuf, L"%u MB", (UINT)MemStat.ullTotalPhys / 1024 / 1024);
-                    }
-
-                    SetDlgItemTextW(hWnd, IDC_ABOUT_PHYSMEM, szBuf);
-                }
-
-                // Add the Authors dialog
-                hWndAuthors = CreateDialogW(shell32_hInstance, MAKEINTRESOURCEW(IDD_ABOUT_AUTHORS), hWnd, AboutAuthorsDlgProc);
-                LoadStringW(shell32_hInstance, IDS_SHELL_ABOUT_AUTHORS, szAuthorsText, ARRAY_SIZE(szAuthorsText));
-                SetDlgItemTextW(hWnd, IDC_ABOUT_AUTHORS, szAuthorsText);
-            }
-
             return TRUE;
+            }
         }
 
         case WM_PAINT:
         {
-            if (hLogoBmp && hLineBmp)
-            {
+            if (hLogoBmp) {
                 PAINTSTRUCT ps;
                 HDC hdc;
                 HDC hdcMem;
@@ -1217,14 +1118,18 @@ static INT_PTR CALLBACK AboutDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM
                 hdc = BeginPaint(hWnd, &ps);
                 hdcMem = CreateCompatibleDC(hdc);
 
-                if (hdcMem)
-                {
+                if (hdcMem) {
                     hOldObj = SelectObject(hdcMem, hLogoBmp);
-                    BitBlt(hdc, 0, 0, cxLogoBmp, cyLogoBmp, hdcMem, 0, 0, SRCCOPY);
 
-                    SelectObject(hdcMem, hLineBmp);
-                    BitBlt(hdc, 0, cyLogoBmp, cxLogoBmp, cyLineBmp, hdcMem, 0, 0, SRCCOPY);
+                    BLENDFUNCTION blendFunc = {0};
+                    blendFunc.BlendOp = AC_SRC_OVER;
+                    blendFunc.SourceConstantAlpha = 255;
+                    blendFunc.AlphaFormat = AC_SRC_ALPHA;
 
+                    // Paint the logo
+                    AlphaBlend(hdc, (rect.right - cxLogoBmp) / 2, 0, cxLogoBmp, cyLogoBmp, hdcMem, 0, 0, cxLogoBmp, cyLogoBmp, blendFunc);
+
+                    // Clean up
                     SelectObject(hdcMem, hOldObj);
                     DeleteDC(hdcMem);
                 }
@@ -1242,27 +1147,6 @@ static INT_PTR CALLBACK AboutDlgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM
                 case IDCANCEL:
                     EndDialog(hWnd, TRUE);
                     return TRUE;
-
-                case IDC_ABOUT_AUTHORS:
-                {
-                    static BOOL bShowingAuthors = FALSE;
-                    WCHAR szAuthorsText[20];
-
-                    if (bShowingAuthors)
-                    {
-                        LoadStringW(shell32_hInstance, IDS_SHELL_ABOUT_AUTHORS, szAuthorsText, ARRAY_SIZE(szAuthorsText));
-                        ShowWindow(hWndAuthors, SW_HIDE);
-                    }
-                    else
-                    {
-                        LoadStringW(shell32_hInstance, IDS_SHELL_ABOUT_BACK, szAuthorsText, ARRAY_SIZE(szAuthorsText));
-                        ShowWindow(hWndAuthors, SW_SHOW);
-                    }
-
-                    SetDlgItemTextW(hWnd, IDC_ABOUT_AUTHORS, szAuthorsText);
-                    bShowingAuthors = !bShowingAuthors;
-                    return TRUE;
-                }
             }
             break;
         }
@@ -1345,7 +1229,7 @@ BOOL WINAPI ShellAboutW( HWND hWnd, LPCWSTR szApp, LPCWSTR szOtherStuff,
     info.szOSVersion  = szVersionString;
 #endif
     info.szOtherStuff = szOtherStuff;
-    info.hIcon        = hIcon ? hIcon : LoadIconW( 0, (LPWSTR)IDI_WINLOGO );
+    info.hIcon        = hIcon ? hIcon : NULL;
 
     bRet = DialogBoxIndirectParamW((HINSTANCE)GetWindowLongPtrW( hWnd, GWLP_HINSTANCE ),
                                    DlgTemplate, hWnd, AboutDlgProc, (LPARAM)&info );

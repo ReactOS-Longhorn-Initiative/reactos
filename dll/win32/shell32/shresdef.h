@@ -380,12 +380,9 @@
 #define IDC_ABOUT_REG_TO              0x3506
 #define IDC_ABOUT_REG_USERNAME        0x3507
 #define IDC_ABOUT_REG_ORGNAME         0x3508
-#define IDC_ABOUT_PHYSMEM             0x3503
 
 /* About authors dialog */
-#define IDD_ABOUT_AUTHORS         3
-#define IDC_ABOUT_AUTHORS         0x4101
-#define IDC_ABOUT_AUTHORS_LISTBOX 0x4102
+
 
 /* Pick icon dialog */
 #define IDD_PICK_ICON        4
