@@ -1015,7 +1015,7 @@ VideoPortVerifyAccessRanges(
     }
 
     if (!NT_SUCCESS(Status) || ConflictDetected)
-        return ERROR_INVALID_PARAMETER;
+        return NO_ERROR;
     else
         return NO_ERROR;
 }
