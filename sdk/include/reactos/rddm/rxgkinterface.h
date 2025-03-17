@@ -10,7 +10,7 @@
 #include <d3dkmddi.h>
 
 /*
- * Every structure in here is shared across two or more modules and doesn't currently
+ * Every structure in here is shared across two or modules and doesn't currently
  * match a single Windows version/update.
  *
  * These structures DO have variants in Windows, I just would like to track what
@@ -357,6 +357,10 @@ typedef DXGADAPTER_SETCONTEXTSCHEDULINGPRIORITY *PDXGADAPTER_SETCONTEXTSCHEDULIN
  *
  * Reversing this isn't possible until we can throw our DxgKrnl into vista or above at runtime.
  * But this cannot happen without us first supporting watchdog.
+<<<<<<< HEAD
+=======
+ *
+>>>>>>> cb58e3bc055 ([NT6 DIRECTX] Rather messed up import)
  */
 typedef struct _REACTOS_WIN32K_DXGKRNL_INTERFACE
 {
@@ -408,3 +412,5 @@ typedef struct _REACTOS_WIN32K_DXGKRNL_INTERFACE
     PDXGADAPTER_SETDISPLAYPRIVATEDRIVERFORMAT RxgkIntPfnSetDisplayPrivateDriverFormat;
     PDXGADAPTER_UNLOCK RxgkIntPfnUnlock;
 } REACTOS_WIN32K_DXGKRNL_INTERFACE, *PREACTOS_WIN32K_DXGKRNL_INTERFACE;
+
+#include "xddmwrap.h"

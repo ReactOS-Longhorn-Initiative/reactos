@@ -395,4 +395,37 @@ static inline void wine_rb_remove_key(struct wine_rb_tree *tree, const void *key
     if (entry) wine_rb_remove(tree, entry);
 }
 
+
+static inline void wine_rb_replace(struct wine_rb_tree *tree, struct wine_rb_entry *dst, struct wine_rb_entry *src)
+{
+    if (!(src->parent = dst->parent))
+        tree->root = src;
+    else if (dst->parent->left == dst)
+        dst->parent->left = src;
+    else
+        dst->parent->right = src;
+
+    if ((src->left = dst->left))
+        src->left->parent = src;
+    if ((src->right = dst->right))
+        src->right->parent = src;
+    src->flags = dst->flags;
+}
+
+/* old names for backwards compatibility */
+#define rb_entry wine_rb_entry
+#define rb_tree wine_rb_tree
+#define rb_init wine_rb_init
+#define rb_for_each_entry wine_rb_for_each_entry
+#define rb_destroy wine_rb_destroy
+#define rb_get wine_rb_get
+#define rb_put wine_rb_put
+#define rb_remove wine_rb_remove
+#define rb_remove_key wine_rb_remove_key
+#define rb_replace wine_rb_replace
+#define RB_ENTRY_VALUE WINE_RB_ENTRY_VALUE
+#define RB_FOR_EACH_ENTRY WINE_RB_FOR_EACH_ENTRY
+#define RB_FOR_EACH_ENTRY_DESTRUCTOR WINE_RB_FOR_EACH_ENTRY_DESTRUCTOR
+
+
 #endif  /* __WINE_WINE_RBTREE_H */
