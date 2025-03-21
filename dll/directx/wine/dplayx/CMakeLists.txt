@@ -26,6 +26,6 @@ add_library(dplayx MODULE
 
 set_module_type(dplayx win32dll)
 target_link_libraries(dplayx wine_dll_register dxguid uuid wine)
-add_importlibs(dplayx winmm ole32 user32 advapi32 msvcrt kernel32 ntdll)
+add_importlibs(dplayx winmm ole32 user32 advapi32 ucrtbase msvcrt kernel32_vista kernel32 ntdll)
 add_pch(dplayx precomp.h SOURCE)
 add_cd_file(TARGET dplayx DESTINATION reactos/system32 FOR all)

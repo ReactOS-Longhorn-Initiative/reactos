@@ -35,6 +35,6 @@ add_library(d3dcompiler_43 MODULE
 
 set_module_type(d3dcompiler_43 win32dll)
 target_link_libraries(d3dcompiler_43 vkd3d-shader vkd3d vkd3d-common dx10guid uuid wine wpp)
-add_importlibs(d3dcompiler_43 msvcrt ucrtbase kernel32 ntdll)
+add_importlibs(d3dcompiler_43 msvcrt ucrtbase kernel32_vista kernel32 ntdll)
 add_dependencies(d3dcompiler_43 d3d_idl_headers)
 add_cd_file(TARGET d3dcompiler_43 DESTINATION reactos/system32 FOR all)

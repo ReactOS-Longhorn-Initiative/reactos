@@ -18,6 +18,6 @@ endif()
 
 set_module_type(dxva2 win32dll)
 target_link_libraries(dxva2 dx10guid dxguid uuid wine)
-add_importlibs(dxva2 ole32 advapi32 gdi32 user32 d3dwine msvcrt kernel32 ntdll)
+add_importlibs(dxva2 ole32 advapi32 gdi32 user32 d3dwine msvcrt kernel32_vista kernel32 ntdll)
 add_dependencies(dxva2 wineheaders d3d_idl_headers)
 add_cd_file(TARGET dxva2 DESTINATION reactos/system32 FOR all)
