@@ -58,7 +58,7 @@ AddReg=Classes
 11,,d3dxof.dll,1
 11,,ddraw.dll,1
 11,,ddrawex.dll,1
-11,,devenum.dll,1
+;11,,devenum.dll,1
 11,,dinput.dll,1
 11,,dinput8.dll,1
 11,,dmusic.dll,1
@@ -101,7 +101,7 @@ AddReg=Classes
 11,,qedit.dll,1
 11,,qmgr.dll,1
 11,,qmgrprxy.dll,1
-11,,quartz.dll,1
+;11,,quartz.dll,1
 11,,rpcrt4.dll,1
 11,,rsabase.dll,1
 11,,rsaenh.dll,1
