@@ -126,7 +126,7 @@ typedef struct _PEB_LDR_DATA
     LIST_ENTRY InMemoryOrderModuleList;
     LIST_ENTRY InInitializationOrderModuleList;
     PVOID EntryInProgress;
-#if (NTDDI_VERSION >= NTDDI_WIN7)
+#if (NTDDI_VERSION >= NTDDI_VISTA)
     UCHAR ShutdownInProgress;
     PVOID ShutdownThreadId;
 #endif
@@ -252,6 +252,41 @@ typedef struct _ALT_RESOURCE_MODULE
     ULONG ErrorCode;
 #endif
 } ALT_RESOURCE_MODULE, *PALT_RESOURCE_MODULE;
+
+typedef struct _LDRP_RESOURCE_MODULE_ENTRY
+{
+    LIST_ENTRY ResourceModuleLinks;
+    ALT_RESOURCE_MODULE AlternativeResourceModuleData;
+} LDRP_RESOURCE_MODULE_ENTRY, *PLDRP_RESOURCE_MODULE_ENTRY;
+
+typedef struct _MUI_RESOURCE_DATA
+{
+    ULONG ulSignature;
+    ULONG ulSize;
+    ULONG ulVersion;
+    ULONG ulPathType;
+    ULONG ulFileType;
+    ULONG ulSystemAttributes;
+    ULONG ulFallbackLocation;
+    UCHAR ServiceChecksum[16];
+    UCHAR Checksum[16];
+    ULONG Reserved[2];
+    ULONG ulMuiPathOffset;
+    ULONG ulMuiPathSize;
+    ULONG Reserved1[2];
+    ULONG ulLnTypeNameOffset;
+    ULONG ulLnTypeNameSize;
+    ULONG ulLnTypeIdOffset;
+    ULONG ulLnTypeIdSize;
+    ULONG ulMuiTypeNameOffset;
+    ULONG ulMuiTypeNameSize;
+    ULONG ulMuiTypeIdOffset;
+    ULONG ulMuiTypeIdSize;
+    ULONG ulLocaleNameOffset;
+    ULONG ulLocaleNameSize;
+    ULONG ulFallbackLocaleNameOffset;
+    ULONG ulFallbackLocaleNameSize;
+} MUI_RESOURCE_DATA, *PMUI_RESOURCE_DATA;
 
 //
 // Callback function for LdrEnumerateLoadedModules

@@ -1027,6 +1027,7 @@ LdrpMapDll(IN PWSTR SearchPath OPTIONAL,
     BOOLEAN RelocatableDll = TRUE;
     UNICODE_STRING IllegalDll;
     PVOID RelocData;
+    PVOID MuiDllHandle;
     ULONG RelocDataSize = 0;
 
     // FIXME: AppCompat stuff is missing
@@ -1515,6 +1516,9 @@ NoRelocNeeded:
         /* Validate the image for MP */
         LdrpValidateImageForMp(LdrEntry);
     }
+
+    /* And finally, load the MUI module associated with the module. */
+    LdrLoadAlternateResourceModule(Peb->ImageBaseAddress, &MuiDllHandle);
 
     // FIXME: LdrpCorUnloadImage() is missing
 

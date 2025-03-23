@@ -58,6 +58,7 @@ PVOID NtDllBase;
 extern LARGE_INTEGER RtlpTimeout;
 extern BOOLEAN RtlpTimeoutDisable;
 LIST_ENTRY LdrpHashTable[LDR_HASH_TABLE_ENTRIES];
+LIST_ENTRY LdrpAlternateResourceModuleList;
 HANDLE LdrpKnownDllObjectDirectory;
 UNICODE_STRING LdrpKnownDllPath;
 WCHAR LdrpKnownDllPathBuffer[128];
@@ -1942,7 +1943,6 @@ LdrpInitializeProcess(IN PCONTEXT Context,
     PWCHAR Current;
     ULONG ExecuteOptions = 0;
     PVOID ViewBase;
-
     /* Set a NULL SEH Filter */
     RtlSetUnhandledExceptionFilter(NULL);
 
@@ -2419,6 +2419,9 @@ LdrpInitializeProcess(IN PCONTEXT Context,
     /* Link the Init Order List */
     InsertHeadList(&Peb->Ldr->InInitializationOrderModuleList,
                    &LdrpNtDllDataTableEntry->InInitializationOrderLinks);
+
+    /* Initialize Alternate Resource Module List */
+    InitializeListHead(&LdrpAlternateResourceModuleList);
 
     /* Initialize Wine's active context implementation for the current process */
     RtlpInitializeActCtx(&OldShimData);

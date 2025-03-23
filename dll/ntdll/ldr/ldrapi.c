@@ -22,6 +22,7 @@ BOOLEAN LdrpShowRecursiveLoads, LdrpBreakOnRecursiveDllLoads;
 UNICODE_STRING LdrApiDefaultExtension = RTL_CONSTANT_STRING(L".DLL");
 ULONG AlternateResourceModuleCount;
 extern PLDR_MANIFEST_PROBER_ROUTINE LdrpManifestProberRoutine;
+extern LIST_ENTRY LdrpAlternateResourceModuleList;
 
 /* FUNCTIONS *****************************************************************/
 
@@ -80,8 +81,8 @@ BOOLEAN
 NTAPI
 LdrAlternateResourcesEnabled(VOID)
 {
-    /* ReactOS does not support this */
-    return FALSE;
+    /* ReactOS does support MUI */
+    return TRUE;
 }
 
 FORCEINLINE
@@ -1595,15 +1596,266 @@ LdrProcessRelocationBlock(
  */
 NTSTATUS
 NTAPI
+LdrLoadAlternateResourceModuleEx(
+    _In_ PVOID BaseAddress,
+    _In_ LCID LocaleId,
+    _Out_ PHANDLE ModuleHandle,
+    _Out_ PLARGE_INTEGER RsrcSectionSize,
+    _In_ ULONG Flags)
+{
+    PLIST_ENTRY ModuleListHead, Entry;
+    PLDR_DATA_TABLE_ENTRY Module;
+    PLDRP_RESOURCE_MODULE_ENTRY AltResourceModuleEntry;
+    PIMAGE_RESOURCE_DIRECTORY_ENTRY ImageResourceDirectoryEntry;
+    PIMAGE_RESOURCE_DIRECTORY_ENTRY InnerImageResourceDirectoryEntry;
+    PIMAGE_RESOURCE_DIRECTORY ImageResourceDirectory;
+    PIMAGE_RESOURCE_DIRECTORY InnerResourceDirectory;
+    PIMAGE_RESOURCE_DATA_ENTRY ResourceDataEntry;
+    PMUI_RESOURCE_DATA MuiResourceData;
+    WCHAR lpOriginalModuleName[MAX_PATH];
+    WCHAR lpOriginalModuleDirectory[MAX_PATH];
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    HANDLE hMapping;
+    NTSTATUS Status;
+    PVOID lpBaseAddress = NULL;
+    SIZE_T ViewSize = 0;
+    ULONG BaseDllNameIdx;
+    UNICODE_STRING MuiFilePathStr;
+    ULONG MuiRsrcDirSize;
+    PWSTR ResourceNameMui, ResourceNameOffset;
+    ULONG_PTR Cookie = 0;
+    WCHAR LocaleName[] = L"en-US";
+    BOOLEAN IsValidMui = FALSE;
+
+    /* Zero out handle value */
+    *ModuleHandle = 0;
+
+    /* First, use the base address to find the name and path of the module. */
+    /* The MUI directory name will be that of the current locale name. */
+    /* Then we build the MUI file name and load the resulting module. */
+    /* Acquire the loader lock */
+    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &Cookie);
+
+    /* As for the function that implements the actual fetching of resources, I want to try to get the resource from the main
+       module, but on failure, then try for each MUI listed for the module. */
+    ModuleListHead = &NtCurrentPeb()->Ldr->InLoadOrderModuleList;
+    Entry = ModuleListHead->Flink;
+    while (Entry != ModuleListHead)
+    {
+        Module = CONTAINING_RECORD(Entry, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
+
+        /* Check if this is the requested module */
+        if (Module->DllBase == BaseAddress)
+        {
+            /* Copy contents */
+            RtlMoveMemory(lpOriginalModuleDirectory, Module->FullDllName.Buffer, Module->FullDllName.MaximumLength);
+            /* Remove file name from directory string */
+            for (BaseDllNameIdx = Module->FullDllName.Length;
+                 lpOriginalModuleDirectory[BaseDllNameIdx] != L'\\';
+                 BaseDllNameIdx--)
+            {
+                lpOriginalModuleDirectory[BaseDllNameIdx] = L'\0';
+            }
+            /* Copy contents */
+            RtlMoveMemory(lpOriginalModuleName, Module->BaseDllName.Buffer, Module->FullDllName.MaximumLength);
+
+            /* Break out of the loop */
+            break;
+        }
+
+        /* Advance to the next entry */
+        Entry = Entry->Flink;
+    }
+
+    RtlInitUnicodeString(&MuiFilePathStr, lpOriginalModuleDirectory);
+    RtlAppendUnicodeToString(&MuiFilePathStr, LocaleName);
+    RtlAppendUnicodeToString(&MuiFilePathStr, L"\\");
+    RtlAppendUnicodeToString(&MuiFilePathStr, lpOriginalModuleName);
+    RtlAppendUnicodeToString(&MuiFilePathStr, L".mui");
+    InitializeObjectAttributes(&ObjectAttributes, &MuiFilePathStr, 0, NULL, NULL);
+    /* Open this file we found */
+    Status = NtCreateFile(&hFile,
+                          GENERIC_READ,
+                          &ObjectAttributes,
+                          NULL,
+                          NULL,
+                          FILE_ATTRIBUTE_NORMAL,
+                          FILE_SHARE_READ | FILE_SHARE_DELETE,
+                          FILE_OPEN,
+                          FILE_NON_DIRECTORY_FILE,
+                          NULL,
+                          0);
+
+    /* If opening failed - return status value */
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+		return STATUS_MUI_FILE_NOT_FOUND;
+	}
+
+    /* Create file mapping */
+    Status = NtCreateSection(&hMapping,
+                             SECTION_MAP_READ,
+                             NULL,
+                             NULL,
+                             PAGE_READONLY,
+                             0,
+                             &hFile);
+
+    /* If creating file mapping failed - return status value */
+    if (!hMapping)
+    {
+        NtClose(hFile);
+        LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+		return Status;
+	}
+    /* Map view of section */
+    Status = NtMapViewOfSection(&hMapping,
+                                NtCurrentProcess(),
+                                &lpBaseAddress,
+                                0,
+                                0,
+                                0,
+                                &ViewSize,
+                                ViewShare,
+                                0,
+                                PAGE_READONLY);
+
+    /* Close handle to the section */
+    NtClose(hMapping);
+
+    /* If mapping view of section failed - return last status value */
+    if (!NT_SUCCESS(Status))
+    {
+        NtClose(hFile);
+        LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+		return Status;
+	}
+
+    /* Make sure it's a valid PE file */
+    if (!RtlImageNtHeader(lpBaseAddress))
+    {
+        /* Unmap the view and return failure status */
+        NtClose(hFile);
+        NtUnmapViewOfSection(NtCurrentProcess(), lpBaseAddress);
+        LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+        return STATUS_INVALID_IMAGE_FORMAT;
+    }
+
+
+    /* Also make sure that there is a resource directory with an MUI table and that it corresponds to
+       the selected locale */
+    ImageResourceDirectory = RtlImageDirectoryEntryToData((PVOID)((ULONG_PTR)lpBaseAddress | 1),
+                                                          FALSE,
+                                                          IMAGE_DIRECTORY_ENTRY_RESOURCE,
+                                                          &MuiRsrcDirSize);
+    if (!ImageResourceDirectory)
+    {
+        /* Unmap the view and return failure status */
+        NtClose(hFile);
+        NtUnmapViewOfSection(NtCurrentProcess(), lpBaseAddress);
+        LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+        return STATUS_RESOURCE_DATA_NOT_FOUND;
+    }
+
+    ImageResourceDirectoryEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)((ULONG_PTR)&ImageResourceDirectory
+                                  + sizeof(*ImageResourceDirectory));
+
+    for (int i = 0; i < ImageResourceDirectory->NumberOfNamedEntries
+	                    + ImageResourceDirectory->NumberOfIdEntries; i++)
+    {
+        if (ImageResourceDirectoryEntry[i].Name & IMAGE_RESOURCE_NAME_IS_STRING)
+        {
+            ResourceNameOffset = (PWSTR)((ULONG_PTR)&ImageResourceDirectory + (ImageResourceDirectoryEntry[i].Name
+                                 & ~IMAGE_RESOURCE_NAME_IS_STRING));
+            if (ResourceNameOffset[0] == 0x3 &&
+                ResourceNameOffset[1] == L'M' &&
+                ResourceNameOffset[2] == L'U' &&
+                ResourceNameOffset[3] == L'I')
+            {
+                InnerResourceDirectory = (PIMAGE_RESOURCE_DIRECTORY)((ULONG_PTR)&ImageResourceDirectory
+                                          + (ImageResourceDirectoryEntry[i].OffsetToData
+                                         & ~IMAGE_RESOURCE_NAME_IS_STRING));
+                InnerImageResourceDirectoryEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)((ULONG_PTR)&InnerResourceDirectory +
+				                                    sizeof(*InnerResourceDirectory));
+                InnerResourceDirectory = (PIMAGE_RESOURCE_DIRECTORY)((ULONG_PTR)&ImageResourceDirectory
+                                          + (ImageResourceDirectoryEntry[i].OffsetToData
+                                         & ~IMAGE_RESOURCE_NAME_IS_STRING));
+                InnerImageResourceDirectoryEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)((ULONG_PTR)&InnerResourceDirectory +
+				                                    sizeof(*InnerResourceDirectory));
+                ResourceDataEntry = (PIMAGE_RESOURCE_DATA_ENTRY)((ULONG_PTR)&ImageResourceDirectory
+                                    + (InnerImageResourceDirectoryEntry->OffsetToData & ~IMAGE_RESOURCE_NAME_IS_STRING));
+                MuiResourceData = (PMUI_RESOURCE_DATA)((ULONG_PTR)&ImageResourceDirectory + ResourceDataEntry->OffsetToData);
+                if (MuiResourceData->ulLocaleNameSize)
+                {
+                    ResourceNameMui = (PWSTR)((ULONG_PTR)&MuiResourceData + MuiResourceData->ulLocaleNameOffset);
+                    if (!RtlCompareMemory(ResourceNameMui, LocaleName, MuiResourceData->ulLocaleNameSize))
+                    {
+                        IsValidMui = TRUE;
+                        break;
+                    }
+                }
+                if (MuiResourceData->ulFallbackLocaleNameSize)
+                {
+                    ResourceNameMui = (PWSTR)((ULONG_PTR)&MuiResourceData + MuiResourceData->ulFallbackLocaleNameOffset);
+                    if (!RtlCompareMemory(ResourceNameMui, LocaleName, MuiResourceData->ulFallbackLocaleNameSize))
+                    {
+                        IsValidMui = TRUE;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!IsValidMui)
+    {
+        /* Unmap the view and return failure status */
+        NtClose(hFile);
+        NtUnmapViewOfSection(NtCurrentProcess(), lpBaseAddress);
+        LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+        return STATUS_RESOURCE_DATA_NOT_FOUND;
+    }
+    /* Add module to alternate resource module list */
+    ModuleListHead = &LdrpAlternateResourceModuleList;
+    AltResourceModuleEntry = RtlAllocateHeap(RtlGetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(*AltResourceModuleEntry));
+    AltResourceModuleEntry->AlternativeResourceModuleData.LangId = LocaleId;
+    AltResourceModuleEntry->AlternativeResourceModuleData.ModuleBase = BaseAddress;
+    AltResourceModuleEntry->AlternativeResourceModuleData.ModuleManifest = 0;// MuiTableBase;
+    AltResourceModuleEntry->AlternativeResourceModuleData.AlternateModule = (HMODULE)((ULONG_PTR)lpBaseAddress | 1);
+    AltResourceModuleEntry->AlternativeResourceModuleData.AlternateFileHandle = hFile;
+    AltResourceModuleEntry->AlternativeResourceModuleData.ErrorCode = -1;
+    InsertTailList(&LdrpAlternateResourceModuleList, &AltResourceModuleEntry->ResourceModuleLinks);
+
+    ++AlternateResourceModuleCount;
+
+    /* Release the loader lock */
+    LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+
+    /* Set low bit of handle to indicate datafile module */
+    *ModuleHandle = (HMODULE)((ULONG_PTR)lpBaseAddress | 1);
+
+    RsrcSectionSize->QuadPart = MuiRsrcDirSize;
+
+    return STATUS_SUCCESS;
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
 LdrLoadAlternateResourceModule(
     _In_ PVOID Module,
-    _In_ PWSTR Buffer)
+    _Out_ PHANDLE ModuleHandle)
 {
+    LCID LocaleId;
     /* Is MUI Support enabled? */
     if (!LdrAlternateResourcesEnabled()) return STATUS_SUCCESS;
-
-    UNIMPLEMENTED;
-    return STATUS_MUI_FILE_NOT_FOUND;
+    /* Todo: get locale ID from thread preferred UI languages */
+    LocaleId = 0x0409;
+    return LdrLoadAlternateResourceModuleEx(Module, LocaleId, ModuleHandle, NULL, 0);
 }
 
 /*
@@ -1614,6 +1866,8 @@ NTAPI
 LdrUnloadAlternateResourceModule(
     _In_ PVOID BaseAddress)
 {
+    PLIST_ENTRY ModuleListHead, NextEntry;
+    PLDRP_RESOURCE_MODULE_ENTRY AltResourceModuleEntry;
     ULONG_PTR Cookie;
 
     /* Acquire the loader lock */
@@ -1622,7 +1876,22 @@ LdrUnloadAlternateResourceModule(
     /* Check if there's any alternate resources loaded */
     if (AlternateResourceModuleCount)
     {
-        UNIMPLEMENTED;
+        /* Remove the relevant modules from the alternate resource list */
+        ModuleListHead = &LdrpAlternateResourceModuleList;
+        for (NextEntry = ModuleListHead->Blink;
+             NextEntry != ModuleListHead;
+             NextEntry = NextEntry->Blink)
+        {
+            AltResourceModuleEntry = CONTAINING_RECORD(NextEntry, 
+                                                       LDRP_RESOURCE_MODULE_ENTRY, 
+                                                       ResourceModuleLinks);
+            if (AltResourceModuleEntry->AlternativeResourceModuleData.ModuleBase == BaseAddress)
+            {
+                NtClose(AltResourceModuleEntry->AlternativeResourceModuleData.AlternateFileHandle);
+                RemoveEntryList(NextEntry);
+            }
+        }
+        --AlternateResourceModuleCount;
     }
 
     /* Release the loader lock */

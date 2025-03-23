@@ -16,6 +16,8 @@
 #define NDEBUG
 #include <debug.h>
 
+extern LIST_ENTRY LdrpAlternateResourceModuleList;
+
 SIZE_T RtlpAllocDeallocQueryBufferSize = PAGE_SIZE;
 PTEB LdrpTopLevelDllBeingLoadedTeb = NULL;
 PVOID MmHighestUserAddress = (PVOID)MI_HIGHEST_USER_ADDRESS;
@@ -577,7 +579,7 @@ int push_language( USHORT *list, ULONG pos, WORD lang );
  *
  * Find a resource entry
  */
-NTSTATUS find_entry( PVOID BaseAddress, LDR_RESOURCE_INFO *info,
+NTSTATUS find_entry_int( PVOID BaseAddress, LDR_RESOURCE_INFO *info,
                      ULONG level, void **ret, int want_dir )
 {
     ULONG size;
@@ -660,6 +662,44 @@ NTSTATUS find_entry( PVOID BaseAddress, LDR_RESOURCE_INFO *info,
 done:
     *ret = resdirptr;
     return STATUS_SUCCESS;
+}
+
+NTSTATUS find_entry( PVOID BaseAddress, LDR_RESOURCE_INFO *info,
+                     ULONG level, void **ret, int want_dir )
+{
+    NTSTATUS Status;
+    PLIST_ENTRY ModuleListHead, NextEntry;
+    PLDRP_RESOURCE_MODULE_ENTRY AltResourceModuleEntry;
+    ULONG_PTR Cookie = 0;
+
+    Status = find_entry_int(BaseAddress, info, level, ret, want_dir);
+
+    if (NT_SUCCESS(Status))
+        return Status;
+
+    /* Acquire the loader lock */
+    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &Cookie);
+    /* Set up the enumeration of the alternate module list */
+    ModuleListHead = &LdrpAlternateResourceModuleList;
+    for (NextEntry = ModuleListHead->Blink;
+         NextEntry != ModuleListHead;
+         NextEntry = NextEntry->Blink)
+    {
+        AltResourceModuleEntry = CONTAINING_RECORD(NextEntry,
+                                                   LDRP_RESOURCE_MODULE_ENTRY,
+                                                   ResourceModuleLinks);
+        if (AltResourceModuleEntry->AlternativeResourceModuleData.ModuleBase == BaseAddress)
+        {
+            Status = find_entry_int(AltResourceModuleEntry->AlternativeResourceModuleData.AlternateModule,
+                                    info, level, ret, want_dir);
+            if (NT_SUCCESS(Status))
+                break;
+        }
+    }
+    /* Release the loader lock */
+    LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+
+    return Status;
 }
 
 /*
@@ -1239,5 +1279,4 @@ RtlGetTickCount(VOID)
     /* Convert to milliseconds */
     return KiTickCountToMs(TickCount);
 }
-
 /* EOF */

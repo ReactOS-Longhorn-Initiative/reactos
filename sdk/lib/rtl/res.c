@@ -29,6 +29,8 @@
 #define NDEBUG
 #include <debug.h>
 
+extern LIST_ENTRY LdrpAlternateResourceModuleList;
+
 NTSTATUS find_entry( PVOID BaseAddress, LDR_RESOURCE_INFO *info,
                      ULONG level, void **ret, int want_dir );
 
@@ -216,26 +218,49 @@ static NTSTATUS LdrpAccessResource( PVOID BaseAddress, IMAGE_RESOURCE_DATA_ENTRY
                                     void **ptr, ULONG *size )
 #endif
 {
+    PLIST_ENTRY ModuleListHead, NextEntry;
+    PLDRP_RESOURCE_MODULE_ENTRY AltResourceModuleEntry;
+    PVOID ModuleBaseAddress = BaseAddress;
     NTSTATUS status = STATUS_SUCCESS;
+    ULONG_PTR Cookie = 0;
 
+    /* Acquire the loader lock */
+    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &Cookie);
     _SEH2_TRY
     {
         ULONG dirsize;
-
-        if (!RtlImageDirectoryEntryToData( BaseAddress, TRUE, IMAGE_DIRECTORY_ENTRY_RESOURCE, &dirsize ))
+        /* Set up the enumeration of the alternate module list */
+        ModuleListHead = &LdrpAlternateResourceModuleList;
+        NextEntry = ModuleListHead->Blink;
+StartRsrcEnumPerModule:
+        if (!RtlImageDirectoryEntryToData( ModuleBaseAddress, ((ULONG_PTR)ModuleBaseAddress & 1) ?
+                                          FALSE : TRUE, IMAGE_DIRECTORY_ENTRY_RESOURCE, &dirsize ))
             status = STATUS_RESOURCE_DATA_NOT_FOUND;
         else
         {
             if (ptr)
             {
-                if (is_data_file_module(BaseAddress))
+                if (is_data_file_module(ModuleBaseAddress))
                 {
-                    PVOID mod = (PVOID)((ULONG_PTR)BaseAddress & ~1);
+                    PVOID mod = (PVOID)((ULONG_PTR)ModuleBaseAddress & ~1);
                     *ptr = RtlImageRvaToVa( RtlImageNtHeader(mod), mod, entry->OffsetToData, NULL );
                 }
-                else *ptr = (char *)BaseAddress + entry->OffsetToData;
+                else *ptr = (char *)ModuleBaseAddress + entry->OffsetToData;
             }
             if (size) *size = entry->Size;
+        }
+        /* Obtain the relevant modules from the alternate resource list */
+        for ( ; NextEntry != ModuleListHead;
+             NextEntry = NextEntry->Blink)
+        {
+            AltResourceModuleEntry = CONTAINING_RECORD(NextEntry,
+                                                       LDRP_RESOURCE_MODULE_ENTRY,
+                                                       ResourceModuleLinks);
+            if (AltResourceModuleEntry->AlternativeResourceModuleData.ModuleBase == BaseAddress)
+            {
+                ModuleBaseAddress = AltResourceModuleEntry->AlternativeResourceModuleData.AlternateModule;
+                goto StartRsrcEnumPerModule;
+            }
         }
     }
     _SEH2_EXCEPT(page_fault(_SEH2_GetExceptionCode()))
@@ -243,6 +268,10 @@ static NTSTATUS LdrpAccessResource( PVOID BaseAddress, IMAGE_RESOURCE_DATA_ENTRY
         status = _SEH2_GetExceptionCode();
     }
     _SEH2_END;
+
+    /* Release the loader lock */
+    LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
+
     return status;
 }
 
@@ -397,11 +426,15 @@ LdrEnumResources(
     ULONG i, j, k;
     ULONG NumberOfTypeEntries, NumberOfNameEntries, NumberOfLangEntries;
     ULONG Count, MaxResourceCount;
+    PLIST_ENTRY ModuleListHead, NextEntry;
+    PLDRP_RESOURCE_MODULE_ENTRY AltResourceModuleEntry;
     PIMAGE_RESOURCE_DIRECTORY TypeDirectory, NameDirectory, LangDirectory;
     PIMAGE_RESOURCE_DIRECTORY_ENTRY TypeEntry, NameEntry, LangEntry;
     PIMAGE_RESOURCE_DATA_ENTRY DataEntry;
     ULONG Size;
     LONG Result;
+    PVOID ModuleBaseAddress = ImageBase;
+    ULONG_PTR Cookie = 0;
 
     /* If the caller wants data, get the maximum count of entries */
     MaxResourceCount = (Resources != NULL) ? *ResourceCount : 0;
@@ -409,14 +442,23 @@ LdrEnumResources(
     /* Default to 0 */
     *ResourceCount = 0;
 
+    /* Acquire the loader lock */
+    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &Cookie);
+
+    /* Set up the enumeration of the alternate module list */
+    ModuleListHead = &LdrpAlternateResourceModuleList;
+    NextEntry = ModuleListHead->Blink;
+StartRsrcEnumPerModule:
     /* Locate the resource directory */
-    ResourceData = RtlImageDirectoryEntryToData(ImageBase,
-                                                TRUE,
+    ResourceData = RtlImageDirectoryEntryToData(ModuleBaseAddress,
+                                                ((ULONG_PTR)ModuleBaseAddress & 1) ? FALSE : TRUE,
                                                 IMAGE_DIRECTORY_ENTRY_RESOURCE,
                                                 &Size);
     if (ResourceData == NULL)
-        return STATUS_RESOURCE_DATA_NOT_FOUND;
-
+    {
+        Status = STATUS_RESOURCE_DATA_NOT_FOUND;
+        goto AltRsrcModList;
+    }
     /* The type directory is at the root, followed by the entries */
     TypeDirectory = (PIMAGE_RESOURCE_DIRECTORY)ResourceData;
     TypeEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(TypeDirectory + 1);
@@ -447,6 +489,8 @@ LdrEnumResources(
         /* The entry must point to the name directory */
         if (!TypeEntry->DataIsDirectory)
         {
+            /* Release the loader lock */
+            LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
             return STATUS_INVALID_IMAGE_FORMAT;
         }
 
@@ -477,6 +521,8 @@ LdrEnumResources(
             /* The entry must point to the language directory */
             if (!NameEntry->DataIsDirectory)
             {
+                /* Release the loader lock */
+                LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
                 return STATUS_INVALID_IMAGE_FORMAT;
             }
 
@@ -507,6 +553,8 @@ LdrEnumResources(
                 /* This entry must point to data */
                 if (LangEntry->DataIsDirectory)
                 {
+                    /* Release the loader lock */
+                    LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
                     return STATUS_INVALID_IMAGE_FORMAT;
                 }
 
@@ -524,7 +572,7 @@ LdrEnumResources(
                         NAME_FROM_RESOURCE_ENTRY(ResourceData, NameEntry);
                     Resources[Count].Language =
                         NAME_FROM_RESOURCE_ENTRY(ResourceData, LangEntry);
-                    Resources[Count].Data = (PUCHAR)ImageBase + DataEntry->OffsetToData;
+                    Resources[Count].Data = (PUCHAR)ModuleBaseAddress + DataEntry->OffsetToData;
                     Resources[Count].Reserved = 0;
                     Resources[Count].Size = DataEntry->Size;
                 }
@@ -539,6 +587,23 @@ LdrEnumResources(
             }
         }
     }
+AltRsrcModList:
+    /* Obtain the relevant modules from the alternate resource list */
+    for ( ; NextEntry != ModuleListHead;
+         NextEntry = NextEntry->Blink)
+    {
+        AltResourceModuleEntry = CONTAINING_RECORD(NextEntry,
+                                                   LDRP_RESOURCE_MODULE_ENTRY,
+                                                   ResourceModuleLinks);
+        if (AltResourceModuleEntry->AlternativeResourceModuleData.ModuleBase == ImageBase)
+        {
+            ModuleBaseAddress = AltResourceModuleEntry->AlternativeResourceModuleData.AlternateModule;
+            goto StartRsrcEnumPerModule;
+        }
+    }
+
+    /* Release the loader lock */
+    LdrUnlockLoaderLock(LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, Cookie);
 
     /* Return the number of matching resources */
     *ResourceCount = Count;

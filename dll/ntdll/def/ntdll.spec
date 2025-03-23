@@ -163,7 +163,7 @@
 @ stdcall LdrInitShimEngineDynamic(ptr)
 @ stdcall LdrInitializeThunk(long long long long)
 @ stdcall LdrLoadAlternateResourceModule(ptr ptr)
-@ stdcall -stub -version=0x600+ LdrLoadAlternateResourceModuleEx(long long ptr ptr long)
+@ stdcall -version=0x600+ LdrLoadAlternateResourceModuleEx(long long ptr ptr long)
 @ stdcall LdrLoadDll(wstr long ptr ptr)
 @ stdcall LdrLockLoaderLock(long ptr ptr)
 @ stdcall LdrOpenImageFileOptionsKey(ptr long ptr) ; 5.2 SP1 and higher

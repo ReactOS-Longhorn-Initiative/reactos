@@ -52,6 +52,7 @@ NTSTATUS
     _Outptr_ PWSTR* EffectiveDllPath);
 
 /* Global data */
+extern LIST_ENTRY LdrpAlternateResourceModuleList;
 extern RTL_CRITICAL_SECTION LdrpLoaderLock;
 extern BOOLEAN LdrpInLdrInit;
 extern PVOID LdrpHeap;

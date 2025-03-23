@@ -76,7 +76,17 @@ NTSTATUS
 NTAPI
 LdrLoadAlternateResourceModule(
     _In_ PVOID Module,
-    _In_ PWSTR Buffer
+    _Out_ PHANDLE ModuleHandle
+);
+
+NTSTATUS
+NTAPI
+LdrLoadAlternateResourceModuleEx(
+    _In_ PVOID BaseAddress,
+    _In_ LCID LocaleId,
+    _Out_ PHANDLE ModuleHandle,
+    _Out_ PLARGE_INTEGER RsrcSectionSize,
+    _In_ ULONG Flags
 );
 
 BOOLEAN
