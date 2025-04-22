@@ -18,7 +18,7 @@
 typedef BOOL (NTAPI *PUSER_SOUND_SENTRY)(VOID);
 BOOL NTAPI FirstSoundSentry(VOID);
 
-static PUSER_SOUND_SENTRY _UserSoundSentry = FirstSoundSentry;
+//static PUSER_SOUND_SENTRY _UserSoundSentry = FirstSoundSentry;
 
 /* PRIVATE FUNCTIONS **********************************************************/
 
