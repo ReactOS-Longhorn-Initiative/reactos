@@ -34,26 +34,8 @@ BOOL
 NTAPI
 FirstSoundSentry(VOID)
 {
-    UNICODE_STRING DllString = RTL_CONSTANT_STRING(L"winsrv");
-    STRING FuncString = RTL_CONSTANT_STRING("_UserSoundSentry");
-    HANDLE DllHandle;
-    NTSTATUS Status;
-    PUSER_SOUND_SENTRY NewSoundSentry = FailSoundSentry;
-
-    /* Load winsrv manually */
-    Status = LdrGetDllHandle(NULL, NULL, &DllString, &DllHandle);
-    if (NT_SUCCESS(Status))
-    {
-        /* If it was found, get SoundSentry export */
-        Status = LdrGetProcedureAddress(DllHandle,
-                                        &FuncString,
-                                        0,
-                                        (PVOID*)&NewSoundSentry);
-    }
-
-    /* Set it as the callback for the future, and call it */
-    _UserSoundSentry = NewSoundSentry;
-    return _UserSoundSentry();
+    /* Not done in vista */
+    return TRUE;
 }
 
 /* PUBLIC SERVER APIS *********************************************************/
@@ -61,7 +43,7 @@ FirstSoundSentry(VOID)
 CSR_API(BaseSrvSoundSentryNotification)
 {
     /* Call the API and see if it succeeds */
-    return (_UserSoundSentry() ? STATUS_SUCCESS : STATUS_ACCESS_DENIED);
+    return STATUS_ACCESS_DENIED;
 }
 
 /* EOF */
