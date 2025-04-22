@@ -19,6 +19,7 @@ add_subdirectory(user/user32)
 add_subdirectory(user/user32_vista)
 add_subdirectory(user/winsrv)
 add_subdirectory(win32u)
+add_subdirectory(dwm)
 
 spec2def(win32k.sys win32k.spec ADD_IMPORTLIB)
 
