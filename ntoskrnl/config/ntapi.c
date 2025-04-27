@@ -1786,6 +1786,7 @@ Failure:
     {
         if (KeyObject->NotifyBlock == NotifyBlock)
         {
+            RemoveEntryList(&(NotifyBlock->HiveList));
             KeyObject->NotifyBlock = NULL;
         }
 
