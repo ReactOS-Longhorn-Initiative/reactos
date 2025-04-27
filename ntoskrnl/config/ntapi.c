@@ -1567,6 +1567,8 @@ NtNotifyChangeMultipleKeys(IN HANDLE MasterKeyHandle,
     PCM_NOTIFY_BLOCK NotifyBlock = NULL;
     PCM_POST_BLOCK PostBlock = NULL;
     PCMHIVE Hive = NULL;
+    HANDLE LocalEventHandle = NULL;
+    PKEVENT EventObject = NULL;
 
     PAGED_CODE();
 
@@ -1681,6 +1683,11 @@ NtNotifyChangeMultipleKeys(IN HANDLE MasterKeyHandle,
     }
     else
     {
+        /* Allocate and initialize event object */
+        Status = CmpCreateEvent(NotificationEvent, &LocalEventHandle, &EventObject);
+        if (!NT_SUCCESS(Status))
+            goto Failure;
+
         /* Allocate and initialize PostBlock */
         PostBlock = ExAllocatePoolWithTag(NonPagedPool, sizeof(CM_POST_BLOCK), TAG_CM);
         if (!PostBlock)
@@ -1691,8 +1698,9 @@ NtNotifyChangeMultipleKeys(IN HANDLE MasterKeyHandle,
         RtlZeroMemory(PostBlock, sizeof(CM_POST_BLOCK));
         
         InitializeListHead(&(PostBlock->NotifyList));
-        KeInitializeEvent(&(PostBlock->Event), NotificationEvent, FALSE);
         PostBlock->Filter = CompletionFilter;
+        PostBlock->EventHandle = LocalEventHandle;
+        PostBlock->Event = EventObject;
 
         /* Link post block to notify block */
         InsertHeadList(&(PostBlock->NotifyList), &(NotifyBlock->PostList));
@@ -1706,12 +1714,7 @@ NtNotifyChangeMultipleKeys(IN HANDLE MasterKeyHandle,
         /* FIXME: handle scenarios where the key is deleted, or the handle closed */
         /* FIXME: Fill IoStatusBlock */
 
-        /* Free the PostBlock now when the wait is over */
-        CmpAcquireKcbLockExclusive(KeyObject->KeyControlBlock);
-        RemoveEntryList(&(PostBlock->NotifyList));
-        ExFreePoolWithTag(PostBlock, TAG_CM);
-        PostBlock = NULL;
-        CmpReleaseKcbLock(KeyObject->KeyControlBlock);
+        /* PostBlock is freed automatically when the event is signaled */
 
         Status = STATUS_NOTIFY_ENUM_DIR;
         goto Cleanup;
@@ -1722,6 +1725,12 @@ Unimpl:
     UNIMPLEMENTED_ONCE;
 
 Failure:
+    if (EventObject)
+        ObDereferenceObject(EventObject);
+
+    if (LocalEventHandle)
+        ZwClose(LocalEventHandle);
+
     if (NotifyBlock)
     {
         if (KeyObject->NotifyBlock == NotifyBlock)
