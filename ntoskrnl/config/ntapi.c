@@ -1721,7 +1721,7 @@ NtNotifyChangeMultipleKeys(IN HANDLE MasterKeyHandle,
         }
 
         /* Register for receiving notifications */
-        Status = CmpInsertNewPostBlock(KeyObject->NotifyBlock, CompletionFilter, LocalEventHandle, NULL, WorkQueueItem, WorkQueueType, &PostBlock);
+        Status = CmpInsertNewPostBlock(KeyObject->NotifyBlock, CompletionFilter, WatchTree, LocalEventHandle, NULL, WorkQueueItem, WorkQueueType, &PostBlock);
         if (!NT_SUCCESS(Status))
             goto Failure;
 
@@ -1741,7 +1741,7 @@ NtNotifyChangeMultipleKeys(IN HANDLE MasterKeyHandle,
             goto Failure;
 
         /* Register for receiving notifications */
-        Status = CmpInsertNewPostBlock(KeyObject->NotifyBlock, CompletionFilter, LocalEventHandle, EventObject, NULL, 0, &PostBlock);
+        Status = CmpInsertNewPostBlock(KeyObject->NotifyBlock, CompletionFilter, WatchTree, LocalEventHandle, EventObject, NULL, 0, &PostBlock);
         if (!NT_SUCCESS(Status))
             goto Failure;
 
