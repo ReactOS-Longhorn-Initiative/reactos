@@ -286,7 +286,7 @@ AssertW(
     );
 
 // Macros to widen a string macro
-#define __WIDEN2(x) L ## x
+#define __WIDEN2(x) L ## #x
 #define __WIDEN(x)  __WIDEN2(x)
 
 #define __WFILE__ __WIDEN(__FILE__)
@@ -300,21 +300,27 @@ AssertW(
 
 #define FREASSERT(_exp) \
     ((!(_exp)) ? \
-        (AssertW(NULL, L#_exp, __WFUNCTION__, __WFILE__, __LINE__),FALSE) : \
+        (AssertW(NULL, L ## #_exp, __WFUNCTION__, __WFILE__, __LINE__),FALSE) : \
         TRUE)
 
 #define FREASSERTMSGA(_msg, _exp) \
     ((!(_exp)) ? \
-        (AssertA(_msg, L#_exp, __WFUNCTION__, __WFILE__, __LINE__),FALSE) : \
+        (AssertA(_msg, L ## #_exp, __WFUNCTION__, __WFILE__, __LINE__),FALSE) : \
         TRUE)
 
 #define FREASSERTMSGW(_msg, _exp) \
     ((!(_exp)) ? \
-        (AssertW(_msg, L#_exp, __WFUNCTION__, __WFILE__, __LINE__),FALSE) : \
+        (AssertW(_msg, L ## #_exp, __WFUNCTION__, __WFILE__, __LINE__),FALSE) : \
         TRUE)
 
 #endif  // (NTDDI_VERSION >= NTDDI_WINXP)   
 
+#if (!defined(_Outptr_) || _MSC_VER <= 1600) && !( defined( MIDL_PASS ) || defined(__midl) || defined(RC_INVOKED) ) /*IFSTRIP=IGN*/
+#undef __annotation
+#define __annotation(...) 1/* fun */
+#undef __PRIMOP
+#define __PRIMOP(type, fun)
+#endif /* !defined(_Outptr_) || _MSC_VER <= 1600 */
 
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 #if !defined(NT_FREASSERT)
@@ -345,11 +351,7 @@ AssertW(
 //-----------------------------------------------------------------------------
 
 
-#if defined(_M_IX86)
-    #define AvalonDebugBreak() _asm { int 3 }
-#else
-    #define AvalonDebugBreak() DebugBreak()
-#endif
+#define AvalonDebugBreak() DebugBreak()
 
 
 //-----------------------------------------------------------------------------

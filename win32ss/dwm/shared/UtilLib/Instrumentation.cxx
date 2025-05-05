@@ -10,7 +10,7 @@
 //  Contents:  Implementation of MIL instrumentation functions
 //
 //------------------------------------------------------------------------
-#include "Pch.h"
+#include "pch.h"
 
 //
 // Captured stack failures
@@ -56,7 +56,7 @@ EnsureStackCaptureRegisteredWithWER()
 
     if (InterlockedCompareExchange(&s_lStackCaptureRegisteredWithWER, TRUE, FALSE) == FALSE)
     {
-        HMODULE hKernel32 = GetModuleHandle(L"kernel32.dll");
+        HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
 
         if (hKernel32 != NULL)
         {
@@ -524,7 +524,7 @@ bool IsOOM(HRESULT hr)
         MILINSTRUMENTATION_DEFAULTOOMHRS
     };
     
-    for (UINT i = 0; i < ARRAYSIZE(rghr); i++)
+    for (UINT i = 0; i < _ARRAYSIZE(rghr); i++)
     {
         if (rghr[i] == hr)
         {

@@ -19,4 +19,9 @@ list(APPEND SOURCE
 
 add_library(UtilLib ${SOURCE})
 add_dependencies(UtilLib xdk)
+
+if(NOT MSVC)
+    target_compile_options(UtilLib PRIVATE -frtti)
+endif()
+
 target_link_libraries(UtilLib PRIVATE cppstl)

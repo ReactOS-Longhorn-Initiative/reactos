@@ -46,11 +46,11 @@
 #define INLINE_HRESULT_FROM_WIN32
 
 // Windows include
-#include <w4warn.h>
+#include <W4Warn.h>
 
 
 #include <windows.h>
-#include <w4warn.h> // windows.h reenables some pragmas
+#include <W4Warn.h> // windows.h reenables some pragmas
 #include <windowsx.h>
 
 #ifdef AVALON_INCLUDE_NT_HEADERS
@@ -96,7 +96,7 @@ __declspec(deprecated) void   __cdecl free(void *);
 #define __endexcept
 #endif // UNIX
 
-#include <w4warn.h>
+#include <W4Warn.h>
 #include "AvalonDebugP.h"
 
 

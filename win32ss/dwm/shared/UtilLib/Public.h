@@ -19,7 +19,7 @@
 #include "DebugBreak.h"
 #include "Instrumentation.h"
 #include "InstrumentationConfig.h"
-#include "InstrumentationApi.h"
+#include "instrumentationapi.h"
 #include "MemUtils.h"
 #include "Locks.h"
 #include "StrUtil.h"
