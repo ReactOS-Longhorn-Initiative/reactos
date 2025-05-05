@@ -1740,8 +1740,11 @@ NtNotifyChangeMultipleKeys(_In_ HANDLE MasterKeyHandle,
     if (KeyObject->KeyControlBlock->Delete)
     {
         DPRINT("NtNotifyChangeMultipleKeys: MasterKeyHandle is marked for deletion.\n");
-        ExFreePoolWithTag(LocalSubObjects, TAG_CM);
-        ExFreePoolWithTag(SubNames, TAG_CM);
+        if (Count > 0)
+        {
+            ExFreePoolWithTag(LocalSubObjects, TAG_CM);
+            ExFreePoolWithTag(SubNames, TAG_CM);
+        }
         ObDereferenceObject(KeyObject);
         return STATUS_KEY_DELETED;
     }
@@ -1751,8 +1754,11 @@ NtNotifyChangeMultipleKeys(_In_ HANDLE MasterKeyHandle,
     {
         DPRINT("NtNotifyChangeMultipleKeys: Early-return on pending notification.\n");
         KeyObject->NotifyBlock->NotifyPending = FALSE;
-        ExFreePoolWithTag(LocalSubObjects, TAG_CM);
-        ExFreePoolWithTag(SubNames, TAG_CM);
+        if (Count > 0)
+        {
+            ExFreePoolWithTag(LocalSubObjects, TAG_CM);
+            ExFreePoolWithTag(SubNames, TAG_CM);
+        }
         ObDereferenceObject(KeyObject);
         return STATUS_NOTIFY_ENUM_DIR;
     }
