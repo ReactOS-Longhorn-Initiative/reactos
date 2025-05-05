@@ -497,7 +497,7 @@ AssertW(
     if (ASSERT_STACK_CAPTURE_DEPTH_MINIMUM <=
             RtlCaptureStackBackTrace(
                 1,                         // Skip this frame
-                ARRAYSIZE(rgStackCapture), // Max # of frames 
+                _ARRAYSIZE(rgStackCapture), // Max # of frames 
                 rgStackCapture,            // Place capture here
                 NULL)                      // Ignored optional param
        )
@@ -517,7 +517,7 @@ AssertW(
     }
 #endif
 
-    PSTR szKDPrompt = 
+    PCCH szKDPrompt = 
 #if DBG
         fCanDisable ?
         "Break, Go (continue), Ignore all, terminate Process, or terminate Thread (bgipt)? " :
