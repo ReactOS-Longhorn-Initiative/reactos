@@ -5,7 +5,7 @@ add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/include)
 
-add_definitions(-D_sppc_)
+add_definitions(-D_SLC_)
 spec2def(sppc.dll sppc.spec ADD_IMPORTLIB)
 list(APPEND SOURCE
     sppc.c)
@@ -16,7 +16,8 @@ add_library(sppc MODULE
 	${CMAKE_CURRENT_BINARY_DIR}/sppc_stubs.c)
 
 set_module_type(sppc win32dll)
-add_importlibs(sppc msvcrt kernel32 ntdll user32)
 target_link_libraries(sppc wine)
+add_importlibs(sppc user32 msvcrt kernel32 ntdll)
 add_dependencies(sppc psdk)
 add_cd_file(TARGET sppc DESTINATION reactos/system32 FOR all)
+set_wine_module(sppc)
