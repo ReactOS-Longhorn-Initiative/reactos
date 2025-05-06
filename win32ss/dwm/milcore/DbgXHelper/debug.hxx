@@ -23,7 +23,7 @@ Abstract:
 
 #include <wdbgexts.h>
 
-#if DBG
+#if 0
 
 extern const char NoIndent[];
 

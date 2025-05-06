@@ -4,7 +4,7 @@
 
 
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 
 

@@ -351,7 +351,7 @@ RtlAssert(
 
 #pragma warning(push)
 #pragma warning (disable:4005) // suppress macro redefinition warning
-#include <D2D1.h>
+#include <d2d1.h>
 #include <d3d9.h>
 #include "dwrite.h"
 #pragma warning(pop)
@@ -371,7 +371,7 @@ extern "C" {
 #include <wgx_core_types.h>
 #include <wgx_render.h>
 
-#include "avalonutilp.h"
+#include "AvalonUtilP.h"
 
 //
 // This header file must be included last because it changes the structure 

@@ -8,7 +8,5 @@
 #define _DEFINE_DEPRECATED_HASH_CLASSES 0
 #define _SDL_BANNED_RECOMMENDED 1
 
-#if !defined(DDBANNED_H)
-#define DDBANNED_H
-#include <ddbanned.h>
-#endif
+#include <vadefs.h>
+#include <sal.h>

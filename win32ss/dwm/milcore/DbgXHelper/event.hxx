@@ -31,7 +31,4 @@ HRESULT EventCallbacksReady(PDEBUG_CLIENT Client);
 extern BOOL gbSymbolsNotLoaded;
 extern ULONG UniqueTargetState;
 
-#endif  _EVENT_HXX_
-
-
-
+#endif /* _EVENT_HXX_ */

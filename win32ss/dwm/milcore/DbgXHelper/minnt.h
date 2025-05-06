@@ -36,6 +36,11 @@ extern "C" {
 #define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
 #define STATUS_COMMITMENT_LIMIT          ((NTSTATUS)0xC000012DL)
 
+#ifndef __out
+#define __out
+#define __in
+#endif
+
 FORCEINLINE
 VOID
 InitializeListHead(

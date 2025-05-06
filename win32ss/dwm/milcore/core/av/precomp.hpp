@@ -17,7 +17,7 @@
 
 #define INITGUID
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 #include "d2d1.h"
 

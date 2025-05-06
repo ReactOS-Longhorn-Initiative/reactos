@@ -7,7 +7,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 //
 // System Includes
 //

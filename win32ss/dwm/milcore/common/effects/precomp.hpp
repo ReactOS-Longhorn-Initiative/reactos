@@ -17,7 +17,7 @@
 *      Created it.
 *
 **************************************************************************/
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <std.h>
 
 #include "shared\shared.h"

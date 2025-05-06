@@ -47,7 +47,7 @@ HRESULT WINAPI SLCAPI SLOpen(HSLC *handle)
     if (!handle)
         return E_INVALIDARG;
 
-    *handle = (HSLC)0xdeadbeef;
+    *handle = (HSLC)(uintptr_t)0xdeadbeef;
 
     return S_OK;
 }

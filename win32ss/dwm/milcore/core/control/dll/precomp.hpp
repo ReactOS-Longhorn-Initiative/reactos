@@ -11,7 +11,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <windows.h>
 #include "..\util\common.h"
 #include "..\util\control.h"
