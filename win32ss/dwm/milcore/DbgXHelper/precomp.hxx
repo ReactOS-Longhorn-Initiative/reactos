@@ -16,7 +16,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <windows.h>
 #include <intsafe.h>
 #include <stdio.h>
@@ -27,7 +27,7 @@
 
 #include "minnt.h"
 
-#include "DbgXHelper.h"
+#include "dbgxhelper.h"
 #include "debug.hxx"
 
 #undef IFC

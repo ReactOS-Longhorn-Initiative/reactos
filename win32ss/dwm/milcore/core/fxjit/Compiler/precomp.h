@@ -11,7 +11,7 @@
 //
 //------------------------------------------------------------------------
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <sal.h>
 #include <salextra.h>
 

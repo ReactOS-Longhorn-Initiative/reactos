@@ -20,8 +20,8 @@ extern "C" {
 
 struct TAGINFO
 {
-    CHAR *  pchOwner;
-    CHAR *  pchDesc;
+    const CHAR *  pchOwner;
+    const CHAR *  pchDesc;
     BOOL    fEnabled;
 };
 
@@ -75,7 +75,7 @@ char * GetModuleName(HINSTANCE hInst)
     return(psz);
 }
 
-void LeakDumpAppend(__in PSTR pszMsg, void * pvArg = NULL)
+void LeakDumpAppend(__in const char* pszMsg, void * pvArg = NULL)
 {
     HANDLE hFile;
     char ach[1024];
@@ -137,7 +137,7 @@ BOOL WINAPI _DbgExEnableTag(TRACETAG tag, BOOL fEnable)
 {
     BOOL fOld = FALSE;
 
-    if (tag > 0 && tag < ARRAY_SIZE(g_rgtaginfo) - 1)
+    if (tag > 0 && tag < (TRACETAG)(ARRAY_SIZE(g_rgtaginfo) - 1))
     {
         fOld = g_rgtaginfo[tag].fEnabled;
         g_rgtaginfo[tag].fEnabled = fEnable;
@@ -158,7 +158,7 @@ BOOL WINAPI _DbgExSetBreakFlag(TRACETAG tag, BOOL fBreak)
 
 BOOL WINAPI _DbgExIsTagEnabled(TRACETAG tag)
 {
-    return(tag >= 0 && tag < ARRAY_SIZE(g_rgtaginfo) && g_rgtaginfo[tag].fEnabled);
+    return(tag >= 0 && tag < (TRACETAG)ARRAY_SIZE(g_rgtaginfo) && g_rgtaginfo[tag].fEnabled);
 }
 
 TRACETAG WINAPI _DbgExFindTag(__in PCSTR szTagDesc)
@@ -166,7 +166,7 @@ TRACETAG WINAPI _DbgExFindTag(__in PCSTR szTagDesc)
     TAGINFO * pti = g_rgtaginfo;
     TRACETAG tag;
 
-    for (tag = 0; tag < ARRAY_SIZE(g_rgtaginfo); ++tag, ++pti)
+    for (tag = 0; tag < (TRACETAG)ARRAY_SIZE(g_rgtaginfo); ++tag, ++pti)
     {
         if (!lstrcmpiA(pti->pchDesc, szTagDesc))
         {
@@ -232,7 +232,7 @@ TRACETAG WINAPI _DbgExTagRegisterTrace(__in PCSTR szTag, __in PCSTR szOwner, __i
     TAGINFO * pti = g_rgtaginfo;
     TRACETAG tag;
 
-    for (tag = 0; tag < ARRAY_SIZE(g_rgtaginfo) - 1; ++tag, ++pti)
+    for (tag = 0; tag < (TRACETAG)ARRAY_SIZE(g_rgtaginfo) - 1; ++tag, ++pti)
     {
         if (!lstrcmpiA(pti->pchDesc, szDescrip) && !lstrcmpiA(pti->pchOwner, szOwner))
         {
@@ -483,12 +483,12 @@ void WINAPI _DbgExMtSet(PERFMETERTAG mt, LONG lCnt, LONG lVal)
 {
 }
 
-char * WINAPI _DbgExMtGetName(PERFMETERTAG mt)
+const char * WINAPI _DbgExMtGetName(PERFMETERTAG mt)
 {
     return("");
 }
 
-char * WINAPI _DbgExMtGetDesc(PERFMETERTAG mt)
+const char * WINAPI _DbgExMtGetDesc(PERFMETERTAG mt)
 {
     return("");
 }
@@ -662,8 +662,8 @@ DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...)
     DBGEXWRAP(PERFMETERTAG, DbgExMtRegister, (__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, DWORD dwFlags), (szTag, szOwner, szDescrip, dwFlags)) \
     DBGEXWRAP_(void, DbgExMtAdd, (PERFMETERTAG mt, LONG lCnt, LONG lVal), (mt, lCnt, lVal)) \
     DBGEXWRAP_(void, DbgExMtSet, (PERFMETERTAG mt, LONG lCnt, LONG lVal), (mt, lCnt, lVal)) \
-    DBGEXWRAP (char *, DbgExMtGetName, (PERFMETERTAG mt), (mt)) \
-    DBGEXWRAP (char *, DbgExMtGetDesc, (PERFMETERTAG mt), (mt)) \
+    DBGEXWRAP (const char *, DbgExMtGetName, (PERFMETERTAG mt), (mt)) \
+    DBGEXWRAP (const char *, DbgExMtGetDesc, (PERFMETERTAG mt), (mt)) \
     DBGEXWRAP (PERFMETERTAG, DbgExMtGetParent, (PERFMETERTAG mt), (mt)) \
     DBGEXWRAP (DWORD, DbgExMtGetFlags, (PERFMETERTAG mt), (mt)) \
     DBGEXWRAP_(void, DbgExMtSetFlags, (PERFMETERTAG mt, DWORD dwFlags), (mt, dwFlags)) \
@@ -688,19 +688,19 @@ DBGEXFUNCTIONS()
 
 #undef  DBGEXWRAP
 #undef  DBGEXWRAP_
-#define DBGEXWRAP(ret, fn, formals, params) ret WINAPI fn formals { return(g_##fn params); }
-#define DBGEXWRAP_(ret, fn, formals, params) ret WINAPI fn formals { g_##fn params; }
+#define DBGEXWRAP(ret, fn, formals, params) ret __attribute__((dllexport)) WINAPI fn formals { return(g_##fn params); }
+#define DBGEXWRAP_(ret, fn, formals, params) ret __attribute__((dllexport)) WINAPI fn formals { g_##fn params; }
 
 DBGEXFUNCTIONS()
 
-BOOL InitDebugProcedure(void ** ppv, __in PSTR pchFn)
+BOOL InitDebugProcedure(void ** ppv, __in const char* pchFn)
 {
     *ppv = (void *)GetProcAddress(g_hInstDbg, pchFn);
 
     if (*ppv == NULL)
     {
         char ach[512];
-        StringCchVPrintfA(ach, ARRAY_SIZE(ach), "InitDebugLib: Can't find PresentationDebug.dll entrypoint %s\r\n", pchFn);
+        StringCchVPrintfA(ach, ARRAY_SIZE(ach), "InitDebugLib: Can't find PresentationDebug.dll entrypoint %s\r\n", (va_list)pchFn);
         OutputDebugStringA(ach);
         return(FALSE);
     }

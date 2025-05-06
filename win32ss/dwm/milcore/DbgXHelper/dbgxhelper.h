@@ -43,6 +43,20 @@ typedef struct {
     DEBUG_MODULE_PARAMETERS DbgModParams;
 } ModuleParameters;
 
+#ifdef __REACTOS__
+#define PDEBUG_CLIENT IDebugClient*
+#define PDEBUG_CONTROL IDebugControl*
+#define PDEBUG_OUTPUT_CALLBACKS IDebugOutputCallbacks*
+#define PDEBUG_SYMBOLS IDebugSymbols*
+#define PDEBUG_DATA_SPACES IDebugDataSpaces*
+#define DEBUG_OUTCTL_AMBIENT_TEXT 0xffffffff
+#define DEBUG_OUTCTL_AMBIENT DEBUG_OUTCTL_AMBIENT_TEXT
+#define DEBUG_VALUE_INVALID 0
+#define DEBUG_VALUE_INT64 4
+#define DEBUG_OUTPUT_NORMAL 0x00000001
+#define IDebugSystemObjects4 IDebugSystemObjects3 // TODO
+#define CPPMOD
+#endif
 
 //
 // Global data consumed by DbgXHelper.lib and must be defined by ext DLL.

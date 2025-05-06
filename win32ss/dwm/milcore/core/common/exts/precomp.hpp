@@ -7,7 +7,7 @@
 // Get NT headers.
 //
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <winnt.h>
 #include <d3dx9.h>
 

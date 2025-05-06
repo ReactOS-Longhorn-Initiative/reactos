@@ -23,7 +23,7 @@ Abstract:
 
 HRESULT GetYNInput(PDEBUG_CONTROL Control, PCSTR Prompt);
 
-#endif  _INPUT_HXX_
+#endif  /*_INPUT_HXX_ */
 
 
 

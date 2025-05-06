@@ -8,7 +8,7 @@
 //
 //  File:       Precomp.h
 //------------------------------------------------------------------------------
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "always.h"
 
 

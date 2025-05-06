@@ -25,7 +25,7 @@
 *
 **************************************************************************/
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 // system includes
 
 #include "std.h"
