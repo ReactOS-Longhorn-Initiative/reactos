@@ -15,7 +15,8 @@ add_library(slc MODULE
 	${CMAKE_CURRENT_BINARY_DIR}/slc_stubs.c)
 
 set_module_type(slc win32dll)
-add_importlibs(slc sppc msvcrt kernel32 ntdll user32)
-add_dependencies(slc psdk)
 target_link_libraries(slc wine)
+add_importlibs(slc sppc user32 msvcrt kernel32 ntdll)
+add_dependencies(slc psdk)
 add_cd_file(TARGET slc DESTINATION reactos/system32 FOR all)
+set_wine_module(slc)
