@@ -32,7 +32,7 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(slc);
 
-SLCAPI HRESULT WINAPI SLGetLicensingStatusInformation(HSLC handle, const SLID *app, const SLID *product,
+HRESULT WINAPI SLGetLicensingStatusInformation(HSLC handle, const SLID *app, const SLID *product,
                                                LPCWSTR name, UINT *count, SL_LICENSING_STATUS **status)
 {
     FIXME("(%p %p %p %s %p %p) stub\n", handle, app, product, debugstr_w(name), count, status );
@@ -40,7 +40,7 @@ SLCAPI HRESULT WINAPI SLGetLicensingStatusInformation(HSLC handle, const SLID *a
     return SL_E_RIGHT_NOT_CONSUMED;
 }
 
-SLCAPI HRESULT WINAPI SLOpen(HSLC *handle)
+HRESULT WINAPI SLOpen(HSLC *handle)
 {
     FIXME("(%p) stub\n", handle );
 
@@ -52,14 +52,14 @@ SLCAPI HRESULT WINAPI SLOpen(HSLC *handle)
     return S_OK;
 }
 
-SLCAPI HRESULT WINAPI SLClose(HSLC handle)
+HRESULT WINAPI SLClose(HSLC handle)
 {
     FIXME("(%p) stub\n", handle );
 
     return S_OK;
 }
 
-SLCAPI HRESULT WINAPI SLPersistApplicationPolicies(const SLID *app, const SLID *product, DWORD flags)
+HRESULT WINAPI SLPersistApplicationPolicies(const SLID *app, const SLID *product, DWORD flags)
 {
     FIXME("(%s,%s,%lx) stub\n", wine_dbgstr_guid(app), wine_dbgstr_guid(product), flags);
 

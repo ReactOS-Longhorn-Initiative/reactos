@@ -11,7 +11,9 @@
 
 
 #pragma once
-#define __in 
+#ifndef __in
+#define __in
+#endif
 #ifdef _MANAGED
 #pragma unmanaged
 #endif
