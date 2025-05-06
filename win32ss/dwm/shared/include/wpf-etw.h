@@ -19,7 +19,7 @@
 #endif
 
 #ifdef _MSC_VER
-#define WPFSelectAny WPFSelectAny
+#define WPFSelectAny EXTERN_C __declspec(selectany)
 #else
 #define WPFSelectAny
 #endif
