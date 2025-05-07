@@ -350,7 +350,7 @@ protected:
 //
 CDbgBookmarkStack<MAX_DISABLED_UNIQUE_ASSERT_STACKS, ASSERT_STACK_CAPTURE_DEPTH> g_rgbmkDisabledAsserts;
 
-#endif DBG
+#endif /* DBG */
 
 
 //+----------------------------------------------------------------------------
@@ -515,13 +515,13 @@ AssertW(
         // since we have successfully captured stack.
         fCanDisable = g_rgbmkDisabledAsserts.AreMarksAvailable();
     }
-#endif DBG
+#endif /* DBG */
 
     PSTR szKDPrompt = 
 #if DBG
         fCanDisable ?
         "Break, Go (continue), Ignore all, terminate Process, or terminate Thread (bgipt)? " :
-#endif DBG
+#endif /* DBG */
         "Break, Go (continue), terminate Process, or terminate Thread (bgpt)? ";
 
     //
@@ -591,7 +591,7 @@ AssertW(
                 "  g                    -- Go (continue)\n"
 #if DBG
                 "  eb 0x%p 'i';g  -- %s\n"
-#endif DBG
+#endif /* DBG */
                 "  eb 0x%p 'p';g  -- terminate Process\n"
                 "  eb 0x%p 't';g  -- terminate Thread\n"
                 " or regular debugging.\n",
@@ -600,7 +600,7 @@ AssertW(
                 fCanDisable ?
                 "Ignore all future hits" :
                 "<not available>",
-#endif DBG
+#endif /* DBG */
                 &Response[0],
                 &Response[0]
                 );
@@ -646,7 +646,7 @@ AssertW(
             DbgPrintEx(g_uDPFltrID, DPFLTR_ERROR_LEVEL,
                        "'i' is only supported with debug builds.\n"
                        );
-#endif DBG
+#endif /* DBG */
             goto Prompt;
 
             // terminate Process

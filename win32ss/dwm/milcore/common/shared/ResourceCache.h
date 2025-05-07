@@ -156,7 +156,7 @@ private:
     // Check the single threading assumptions
     void Enter() { Assert(InterlockedIncrement(&m_cInCall) == 1); }
     void Leave() { Assert(InterlockedDecrement(&m_cInCall) == 0); }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
 #if !RESOURCE_CACHE_SINGLE_THREADED || DBG
     volatile LONG m_cInCall;

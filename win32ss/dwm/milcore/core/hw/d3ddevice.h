@@ -1100,7 +1100,7 @@ private:
     bool m_fDbgInStepRenderingPresent;
     CD3DSurface *m_pDbgSaveSurface;
 
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 #if DBG
 public:
@@ -1114,7 +1114,7 @@ private:
 
     // Rendering stats
     CD3DStats m_d3dStats;
-#endif DBG
+#endif /* DBG */
 
 
 public: 

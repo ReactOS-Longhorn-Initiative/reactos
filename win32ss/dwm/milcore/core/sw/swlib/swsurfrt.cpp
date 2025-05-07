@@ -470,7 +470,7 @@ CSwRenderTargetSurface::Begin3D(
     // Remember these debug params independent of success
     m_Dbg3DBounds = m_rcBounds;
     m_Dbg3DAAMode = AntiAliasMode;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 Cleanup:
 
@@ -1919,7 +1919,7 @@ HRESULT CSwRenderTargetBitmap::Create(
 #if DBG_STEP_RENDERING
     pRT->m_pDisplayRTParent = pDisplayRTParent;
     if (pRT->m_pDisplayRTParent) { pRT->m_pDisplayRTParent->AddRef(); }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
     if (pRT != NULL)

@@ -742,7 +742,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
                             EnableTag(tagMILStepRendering, TRUE);
                         }
                     }
-#endif DBG
+#endif /* DBG */
                 }
             }
         }

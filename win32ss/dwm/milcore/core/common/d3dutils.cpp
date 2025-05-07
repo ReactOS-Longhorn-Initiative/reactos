@@ -105,7 +105,7 @@ GetMinimalTextureDesc(
     d3dsdOrg.Format = pd3dsd->Format;
     d3dsdOrg.Width  = pd3dsd->Width;
     d3dsdOrg.Height = pd3dsd->Height;
-#endif DBG
+#endif /* DBG */
 
     // Do either width or height need checked?
     //  => Are relative flags not equal to ignoring both width and height?
@@ -254,7 +254,7 @@ GetMinimalTextureDesc(
                   pd3dsd->Format, pd3dsd->Width, pd3dsd->Height
                   ));
     }
-#endif DBG
+#endif /* DBG */
 
     return hr;
 }

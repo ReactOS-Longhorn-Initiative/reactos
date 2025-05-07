@@ -1366,7 +1366,7 @@ EXTERN_C const IID IID_IUnknown;
     };
 
 typedef IUnknown *LPUNKNOWN;
-#endif __INC_XCPUNKNWN__
+#endif /* __INC_XCPUNKNWN__ */
 
 // END Definitions for XMLLite
 

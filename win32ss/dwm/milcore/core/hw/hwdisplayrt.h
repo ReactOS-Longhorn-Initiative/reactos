@@ -232,7 +232,7 @@ private:
         );
         
     BOOL m_fDbgClearOnPresent;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 };
 
 

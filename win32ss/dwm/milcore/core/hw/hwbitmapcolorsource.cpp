@@ -39,7 +39,7 @@ DbgTintDirtyRectangle(
     const CMilRectU *prcDirty
     );
 
-#endif DBG
+#endif /* DBG */
 
 
 DeclareTag(tagShowBitmapDirtyRectangles, "MIL-HW", "Show bitmap dirty rectangles");
@@ -2151,7 +2151,7 @@ CHwBitmapColorSource::SetBitmapAndContextCacheParameters(
         // No Reference held for m_pIBitmapSourceDBG
         //m_pIBitmapSourceDBG->AddRef();
     }
-#endif DBG
+#endif /* DBG */
 
     m_pIBitmapSource = pBitmapSource;
     // No Reference held for m_pIBitmapSource
@@ -4442,7 +4442,7 @@ Cleanup:
     return;
 }
 
-#endif DBG
+#endif /* DBG */
 
 
 //+----------------------------------------------------------------------------

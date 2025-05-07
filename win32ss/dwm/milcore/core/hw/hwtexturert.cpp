@@ -178,7 +178,7 @@ CHwTextureRenderTarget::~CHwTextureRenderTarget()
 #if DBG_STEP_RENDERING
     if (m_pDisplayRTParent) { m_pDisplayRTParent->Release(); }
     m_pDisplayRTParent = NULL;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
     // m_pVidMemOnlyTexture can be NULL when Init fails. It may also be invalid
@@ -339,7 +339,7 @@ CHwTextureRenderTarget::Init(
 #if DBG_STEP_RENDERING
     m_pDisplayRTParent = pDisplayRTParent;
     if (m_pDisplayRTParent) { m_pDisplayRTParent->AddRef(); }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 Cleanup:
     if (FAILED(hr))

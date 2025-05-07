@@ -222,7 +222,7 @@ CSwRenderTargetHWND::CSwRenderTargetHWND(
 #if DBG_STEP_RENDERING
     // Set the parent to be itself, not ref counted of course
     m_pDisplayRTParent = this;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 }
 
 //+-----------------------------------------------------------------------------
@@ -339,7 +339,7 @@ HRESULT CSwRenderTargetHWND::Init(
 
 #if DBG_STEP_RENDERING
     m_fDbgClearOnPresent = !(nFlags & MilRTInitialization::PresentRetainContents);
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 Cleanup:
 
@@ -410,7 +410,7 @@ STDMETHODIMP CSwRenderTargetHWND::Present(
 
         fGreen = !fGreen;
     }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 Cleanup:
 
@@ -611,7 +611,7 @@ void CSwRenderTargetHWND::ShowSteppedRendering(
         AvalonDebugBreak();
     }
 }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 //+-----------------------------------------------------------------------------
 //

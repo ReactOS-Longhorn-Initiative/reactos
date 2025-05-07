@@ -215,7 +215,7 @@ public:
         __inout_ecount(1) IWGXBitmapSource *pBitmapSource,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
         );
-#endif DBG
+#endif /* DBG */
 
 protected:
 

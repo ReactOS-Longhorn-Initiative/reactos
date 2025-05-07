@@ -166,7 +166,7 @@ CHwDisplayRenderTarget::Init(
 
 #if DBG_STEP_RENDERING
     m_fDbgClearOnPresent = !(dwFlags & MilRTInitialization::PresentRetainContents);
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
     RRETURN(S_OK);
 }
@@ -202,7 +202,7 @@ CHwDisplayRenderTarget::CHwDisplayRenderTarget(
 #if DBG_STEP_RENDERING
     // Set the parent to be itself, not ref counted of course
     m_pDisplayRTParent = this;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
     //
     // Update hw render target stats
@@ -229,7 +229,7 @@ CHwDisplayRenderTarget::~CHwDisplayRenderTarget()
 #if DBG_STEP_RENDERING
     // NULL the parent so CHwSurfaceRT won't try to release it
     m_pDisplayRTParent = NULL;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
     //
     // Update hw render target stats
@@ -466,7 +466,7 @@ CHwDisplayRenderTarget::Present(
 
         fGreen = !fGreen;
     }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 Cleanup:
     //
@@ -1058,7 +1058,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 //+------------------------------------------------------------------------
 //

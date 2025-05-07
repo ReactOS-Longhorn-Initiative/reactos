@@ -236,7 +236,7 @@ private:
     // once all outstanding brushes are dereferenced this
     // object should be deleted.
     BOOL m_fDbgReleased;
-#endif DBG
+#endif /* DBG */
 };
 
 

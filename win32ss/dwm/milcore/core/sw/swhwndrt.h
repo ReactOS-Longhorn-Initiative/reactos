@@ -203,7 +203,7 @@ private:
         __in LPCTSTR pszRenderDesc,
         __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
         );
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 private:
 
