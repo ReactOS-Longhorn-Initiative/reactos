@@ -688,8 +688,8 @@ DBGEXFUNCTIONS()
 
 #undef  DBGEXWRAP
 #undef  DBGEXWRAP_
-#define DBGEXWRAP(ret, fn, formals, params) ret __attribute__((dllexport)) WINAPI fn formals { return(g_##fn params); }
-#define DBGEXWRAP_(ret, fn, formals, params) ret __attribute__((dllexport)) WINAPI fn formals { g_##fn params; }
+#define DBGEXWRAP(ret, fn, formals, params) ret WINAPI fn formals { return(g_##fn params); }
+#define DBGEXWRAP_(ret, fn, formals, params) ret WINAPI fn formals { g_##fn params; }
 
 DBGEXFUNCTIONS()
 
