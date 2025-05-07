@@ -7,7 +7,7 @@
 
 #include "matrix_t.hpp"
 #include "xmcommon.hpp"
-#include "factories/factory.hpp"
+#include "Factories/factory.hpp"
 
 #include <DirectXMath.h>
 

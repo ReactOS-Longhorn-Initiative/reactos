@@ -173,7 +173,7 @@ HRESULT CLogger::Dump()
     return S_OK;
 }
 
-#endif MIL_LOGGER
+#endif /* MIL_LOGGER */
 
 
 

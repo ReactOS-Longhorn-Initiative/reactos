@@ -7,7 +7,7 @@
 
 #include "matrix_t.hpp"
 #include "dx9layercommon.hpp"
-#include "factories/factory.hpp"
+#include "Factories/factory.hpp"
 
 #include <d3dx9math.h>
 
