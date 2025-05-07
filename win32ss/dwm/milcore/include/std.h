@@ -69,7 +69,7 @@ typedef void (__stdcall *PFLS_CALLBACK_FUNCTION)(void *lpFlsData);
 #endif
 #endif // DUMMYUNIONNAME
 
-#ifndef DUMMYSTRUCTNAME
+/*#ifndef DUMMYSTRUCTNAME
 #if defined(NONAMELESSUNION) || !defined(_MSC_EXTENSIONS)
 #define DUMMYSTRUCTNAME  s
 #define DUMMYSTRUCTNAME2 s2
@@ -83,7 +83,7 @@ typedef void (__stdcall *PFLS_CALLBACK_FUNCTION)(void *lpFlsData);
 #define DUMMYSTRUCTNAME4
 #define DUMMYSTRUCTNAME5
 #endif
-#endif // DUMMYSTRUCTNAME
+#endif */// DUMMYSTRUCTNAME
 
 // </winnt copying>
 

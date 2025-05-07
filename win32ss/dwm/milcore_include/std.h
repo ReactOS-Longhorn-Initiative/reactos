@@ -42,48 +42,6 @@
 // "NTAPI" macro removed since it is ignored: "warning C4229: anachronism used : modifiers on data are ignored" 
 typedef void (__stdcall *PFLS_CALLBACK_FUNCTION)(void *lpFlsData);
 
-//
-// For compilers that don't support nameless unions/structs
-//
-#ifndef DUMMYUNIONNAME
-#if defined(NONAMELESSUNION) || !defined(_MSC_EXTENSIONS)
-#define DUMMYUNIONNAME   u
-#define DUMMYUNIONNAME2  u2
-#define DUMMYUNIONNAME3  u3
-#define DUMMYUNIONNAME4  u4
-#define DUMMYUNIONNAME5  u5
-#define DUMMYUNIONNAME6  u6
-#define DUMMYUNIONNAME7  u7
-#define DUMMYUNIONNAME8  u8
-#define DUMMYUNIONNAME9  u9
-#else
-#define DUMMYUNIONNAME
-#define DUMMYUNIONNAME2
-#define DUMMYUNIONNAME3
-#define DUMMYUNIONNAME4
-#define DUMMYUNIONNAME5
-#define DUMMYUNIONNAME6
-#define DUMMYUNIONNAME7
-#define DUMMYUNIONNAME8
-#define DUMMYUNIONNAME9
-#endif
-#endif // DUMMYUNIONNAME
-
-#ifndef DUMMYSTRUCTNAME
-#if defined(NONAMELESSUNION) || !defined(_MSC_EXTENSIONS)
-#define DUMMYSTRUCTNAME  s
-#define DUMMYSTRUCTNAME2 s2
-#define DUMMYSTRUCTNAME3 s3
-#define DUMMYSTRUCTNAME4 s4
-#define DUMMYSTRUCTNAME5 s5
-#else
-#define DUMMYSTRUCTNAME
-#define DUMMYSTRUCTNAME2
-#define DUMMYSTRUCTNAME3
-#define DUMMYSTRUCTNAME4
-#define DUMMYSTRUCTNAME5
-#endif
-#endif // DUMMYSTRUCTNAME
 
 // </winnt copying>
 
@@ -102,6 +60,10 @@ typedef void (__stdcall *PFLS_CALLBACK_FUNCTION)(void *lpFlsData);
 #include <stddef.h>     // For offsetof
 #include <tchar.h>
 
+#ifndef __in
+#define __in
+#define __out
+#endif
 
 typedef struct _RTL_SPLAY_LINKS {
     struct _RTL_SPLAY_LINKS *Parent;
@@ -339,7 +301,7 @@ RtlAssert(
 #endif
 
 #include <time.h>
-#include <cmath>
+//#include <cmath>
 #include <float.h>
 #include <stdio.h>
 #include <fcntl.h>
