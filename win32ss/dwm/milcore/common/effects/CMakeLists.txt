@@ -25,4 +25,8 @@ effectlist.cpp
 add_library(common ${SOURCE})
 add_dependencies(common xdk)
 
+if(NOT MSVC)
+    target_compile_options(common PRIVATE -fexceptions)
+endif()
+
 target_link_libraries(common PRIVATE cppstl)
