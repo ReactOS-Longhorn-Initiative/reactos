@@ -27,7 +27,7 @@
 #include "C_u8x8.h"
 #else //_AMD64_
 #include "C_u64.h"
-#endif WPFGFX_FXJIT_X86
+#endif /* WPFGFX_FXJIT_X86 */
 
 #include "XmmValue.h"
 #include "C_u128x1.h"

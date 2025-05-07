@@ -458,7 +458,7 @@ CBaseSurfaceRenderTarget<TRenderTargetLayerData>::DbgAssertBoundsState()
 
     return;
 }
-#endif DBG
+#endif /* DBG */
 
 
 // Explicit template instantiation

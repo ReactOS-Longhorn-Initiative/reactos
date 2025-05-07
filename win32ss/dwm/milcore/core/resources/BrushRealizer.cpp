@@ -70,7 +70,7 @@ GetAlphaScaleFromEffect(
             IGNORE_HR(pEffect->GetCLSID(0, &clsid));
             Assert(clsid == CLSID_MILEffectAlphaScale);
         }
-        #endif DBG
+#endif /* DBG */
     
         AlphaScaleParams alphaScale;
 

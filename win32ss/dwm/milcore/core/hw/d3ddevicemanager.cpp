@@ -864,7 +864,7 @@ CD3DDeviceManager::GetAvailableDevice(
                       ));
         }
     }
-#endif DBG
+#endif /* DBG */
 
     // No RRETURN because we don't want spew or capture here.
     return hr;

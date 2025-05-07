@@ -404,7 +404,7 @@ CMILResourceCache::GetResource(
         Assert(m_cInCall > 0);
 
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     // Set default value for returned resource
     *ppResource = NULL;
@@ -464,7 +464,7 @@ CMILResourceCache::GetResource(
                      INVALID_CACHEABLE_RESOURCE,
                      pResource)
                  );
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
         //
         // Check if we've snagged a valid resource
@@ -505,7 +505,7 @@ CMILResourceCache::GetResource(
                 pResource = NULL;
 #if RESOURCE_CACHE_SINGLE_THREADED
                 GetDataBuffer()[uIndex] = NULL;
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
             }
         }
 
@@ -548,7 +548,7 @@ CMILResourceCache::GetResource(
 
     cInCall = InterlockedDecrement(&m_cInCall);
     Assert(cInCall >= 0);
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -615,7 +615,7 @@ CMILResourceCache::SetResource(
         }
         Assert(m_cInCall > 0);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     //
     // Make sure the required space is reserved
@@ -688,7 +688,7 @@ Cleanup:
 
     cInCall = InterlockedDecrement(&m_cInCall);
     Assert(cInCall >= 0);
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -720,7 +720,7 @@ CMILResourceCache::ReleaseResources()
     {
         SleepEx(0, TRUE);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     UINT i = Count;
     IMILCacheableResource **ppResource = GetDataBuffer();
@@ -746,7 +746,7 @@ CMILResourceCache::ReleaseResources()
 
     Assert(m_cInCall < 0);
     m_cInCall = 0;
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -781,7 +781,7 @@ CMILResourceCache::ReleaseOtherResources(
     {
         SleepEx(0, TRUE);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     IMILCacheableResource **ppResource = GetDataBuffer();
 
@@ -803,7 +803,7 @@ CMILResourceCache::ReleaseOtherResources(
 
     Assert(m_cInCall < 0);
     m_cInCall = 0;
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -851,7 +851,7 @@ CMILResourceCache::EnsureCount(
     {
         SleepEx(0, TRUE);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     //
     // Check if count is already sufficient

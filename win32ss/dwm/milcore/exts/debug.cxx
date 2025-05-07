@@ -74,7 +74,7 @@ vPrintNativeSymDumpParam(
     }
 }
 
-#endif  DBG
+#endif /* DBG */
 
 
 

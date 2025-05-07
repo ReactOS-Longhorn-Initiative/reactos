@@ -286,8 +286,8 @@ CD3DModuleLoaderInternal::Init()
 #else
 #define D3DINIT_ERR(msg) \
     OutputDebugString( TEXT("WARNING: MILCore: ") TEXT(msg) TEXT("\n") )
-#endif DBG
-#endif USE_MESSAGEBOX_FOR_D3DINIT_ERRORS
+#endif /* DBG */
+#endif /* USE_MESSAGEBOX_FOR_D3DINIT_ERRORS */
 
 HRESULT
 CD3DModuleLoaderInternal::LoadD3DModule(

@@ -68,7 +68,7 @@ CHwSurfaceRenderTarget::CHwSurfaceRenderTarget(
 
 #if DBG_STEP_RENDERING
     m_pDisplayRTParent = NULL;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 }
 
 //+----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ CHwSurfaceRenderTarget::~CHwSurfaceRenderTarget()
 
 #if DBG_STEP_RENDERING
     Assert(m_pDisplayRTParent == NULL);
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 }
 

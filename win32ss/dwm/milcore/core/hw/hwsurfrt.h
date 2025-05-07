@@ -14,7 +14,7 @@
 class CD3DDeviceLevel1;
 #if DBG_STEP_RENDERING
 class CHwDisplayRenderTarget;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
 class CHwBlurShader;
@@ -458,7 +458,7 @@ public:
         } while (UNCONDITIONAL_EXPR(0))
 #else
     #define HW_DBG_RENDERING_STEP(func)
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 };
 
 

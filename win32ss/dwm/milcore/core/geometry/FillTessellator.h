@@ -50,7 +50,7 @@ public:
     {
 #if DBG
         m_fDbgDestroyed = false;
-#endif DBG
+#endif /* DBG */
     }
 
     virtual ~CFillTessellator()
@@ -58,7 +58,7 @@ public:
 #if DBG
         Assert(!m_fDbgDestroyed);
         m_fDbgDestroyed = true;
-#endif DBG
+#endif /* DBG */
     }
     
     //
@@ -139,7 +139,7 @@ private:
 
 #if DBG
     bool m_fDbgDestroyed;     // Used to check single Release pattern
-#endif DBG
+#endif /* DBG */
 
 protected:
     // Data

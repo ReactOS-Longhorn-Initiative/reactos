@@ -15,7 +15,7 @@ MtExtern(CHwTextureRenderTarget);
 
 #if DBG
 class CHwDisplayRenderTarget;
-#endif DBG
+#endif /* DBG */
 
 class CDeviceBitmap;
 

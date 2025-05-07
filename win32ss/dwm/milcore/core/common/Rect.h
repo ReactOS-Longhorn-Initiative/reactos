@@ -132,7 +132,7 @@ public:
     : BaseMILRectType(rc)
 #endif // !_PREFIX_
     {}
-#endif NEVER
+#endif /* NEVER */
 
 
     template<typename TPoint>
@@ -279,7 +279,7 @@ public:
     : TRect_<CMilRectF, Space>(rc)
 #endif // !_PREFIX_
     {}
-#endif NEVER
+#endif /* NEVER */
 
     template<typename TPoint>
     CRectF(

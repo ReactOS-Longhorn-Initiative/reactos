@@ -317,7 +317,7 @@ public:
         } while (UNCONDITIONAL_EXPR(0))
 #else
     #define SW_DBG_RENDERING_STEP(func)
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 };
 
 

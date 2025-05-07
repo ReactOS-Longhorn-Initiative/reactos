@@ -295,7 +295,7 @@ CD3DDeviceLevel1::CD3DDeviceLevel1(
 #if DBG_STEP_RENDERING
     m_fDbgInStepRenderingPresent = false;
     m_pDbgSaveSurface = NULL;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 }
 
 
@@ -1735,7 +1735,7 @@ CD3DDeviceLevel1::MarkUnusable(
            // For example CHwSurfaceRenderTarget::DrawBitmap does that with the
            // m_pDrawBitmapScratchBrush.
         && !DbgInStepRenderingPresent()
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
        )
     {
         // Destroy all GPUMarkers created using this device
@@ -5064,7 +5064,7 @@ CD3DDeviceLevel1::DbgRestoreSurface(
 
     RRETURN(HandleDIE(hr));
 }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
 //+-----------------------------------------------------------------------------

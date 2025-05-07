@@ -54,7 +54,7 @@ vPrintNativeSymDumpParam(
 #define vPrintNativeFieldInfo
 #define vPrintNativeSymDumpParam
 
-#endif  DBG
+#endif /* DBG */
 
 
 
