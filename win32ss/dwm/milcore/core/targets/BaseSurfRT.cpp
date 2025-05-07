@@ -463,10 +463,10 @@ CBaseSurfaceRenderTarget<TRenderTargetLayerData>::DbgAssertBoundsState()
 
 // Explicit template instantiation
 
-#include "scanop\scanop.h"
-#include "glyph\glyph.h"
-#include "sw\sw.h"
-#include "hw\hw.h"
+#include "scanop/scanop.h"
+#include "glyph/glyph.h"
+#include "sw/sw.h"
+#include "hw/hw.h"
 
 template class CBaseSurfaceRenderTarget<CSwRenderTargetLayerData>;
 template class CBaseSurfaceRenderTarget<CHwRenderTargetLayerData>;

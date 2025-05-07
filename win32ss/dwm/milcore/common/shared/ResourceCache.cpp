@@ -303,7 +303,7 @@ class CMILCacheableResourceDummy :
 #define RESOURCE_CACHE_EXCLUSIVE_RELEASE_FLAG   0x40000000
 #define RESOURCE_CACHE_EXCLUSIVE_GROW       (LONG_MIN & ~RESOURCE_CACHE_EXCLUSIVE_RELEASE_FLAG)
 
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED */
 
 
 //+------------------------------------------------------------------------
@@ -317,7 +317,7 @@ CMILResourceCache::CMILResourceCache()
 {
 #if !RESOURCE_CACHE_SINGLE_THREADED || DBG
     m_cInCall = 0;
-#endif !RESOURCE_CACHE_SINGLE_THREADED || DBG
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED || DBG */
 }
 
 //+------------------------------------------------------------------------
@@ -474,7 +474,7 @@ CMILResourceCache::GetResource(
         {
 #if !RESOURCE_CACHE_SINGLE_THREADED
             Assert(pResource != INVALID_CACHEABLE_RESOURCE);
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED*/
 
             //
             // Note that we have no protection on when a resource
@@ -535,7 +535,7 @@ CMILResourceCache::GetResource(
                 pResource->CacheRelease();
             }
         }
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED*/
     }
 
 #if RESOURCE_CACHE_SINGLE_THREADED
@@ -902,7 +902,7 @@ Cleanup:
                             &m_cInCall,
                             cCurrent - RESOURCE_CACHE_EXCLUSIVE_GROW + 1,
                             cCurrent));
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED*/
 
     Assert(m_cInCall > 0);
 

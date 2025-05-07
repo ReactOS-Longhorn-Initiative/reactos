@@ -21,28 +21,28 @@
 #include "std.h"
 #include "d2d1.h"
 
-#include "common\common.h"
-#include "scanop\scanop.h"
+#include "common/common.h"
+#include "scanop/scanop.h"
 
 // needed for sw.h
-#include "glyph\glyph.h"
+#include "glyph/glyph.h"
 
 // needed for api_include.h
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // needed for resources.h
-#include "api\api_include.h"
+#include "api/api_include.h"
 
 // Needed for sw.h and hw.h
-#include "targets\targets.h"
+#include "targets/targets.h"
 
 // Needed for hw.h
-#include "sw\sw.h"
+#include "sw/sw.h"
 
 // Needed for CD3DDeviceLevel1
-#include "hw\hw.h"
+#include "hw/hw.h"
 
-#include "resources\resources.h"
+#include "resources/resources.h"
 
 #define EC_COMPLETE                         0x01
 

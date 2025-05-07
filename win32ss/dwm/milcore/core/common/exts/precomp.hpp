@@ -13,6 +13,6 @@
 
 #define Assert(x) NT_ASSERT(x)
 
-#include "..\memreader.h"
+#include "../memreader.h"
 
 

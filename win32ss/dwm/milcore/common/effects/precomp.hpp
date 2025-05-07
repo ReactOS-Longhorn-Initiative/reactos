@@ -20,7 +20,7 @@
 #include <WPFSDL.h>
 #include <std.h>
 
-#include "shared\shared.h"
+#include "shared/shared.h"
 
 // API stubs/proxy classes.
 

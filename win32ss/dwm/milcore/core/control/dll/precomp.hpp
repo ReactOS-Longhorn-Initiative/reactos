@@ -13,6 +13,6 @@
 
 #include <WPFSDL.h>
 #include <windows.h>
-#include "..\util\common.h"
-#include "..\util\control.h"
+#include "../util/common.h"
+#include "../util/control.h"
 

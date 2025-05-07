@@ -156,5 +156,5 @@ private:
     LONG        m_cRef;
 };
 
-#include "..\av\milav.inl"
+#include "../av/milav.inl"
 
