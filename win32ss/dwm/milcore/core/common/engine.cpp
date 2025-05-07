@@ -41,7 +41,7 @@ bool CCommonRegistryData::m_fGPUThrottlingDisabled = false;
 \**************************************************************************/
 
 HRESULT GetAvalonRegistrySettingsKey(
-    __out HKEY *phRegSettings, 
+    _Out_ HKEY *phRegSettings, 
     BOOL fCurrentUser
     )
 {
@@ -64,7 +64,7 @@ HRESULT GetAvalonRegistrySettingsKey(
 \**************************************************************************/
 
 HRESULT GetDWMRegistrySettingsKey(
-    __out HKEY *phRegSettings
+    _Out_ HKEY *phRegSettings
     )
 {
     return (RegOpenKeyEx(
@@ -86,8 +86,8 @@ HRESULT GetDWMRegistrySettingsKey(
 \**************************************************************************/
 
 bool RegReadDWORD(
-    __in HKEY hKey, 
-    __in PCWSTR pName, 
+    _In_ HKEY hKey, 
+    _In_ PCWSTR pName, 
     __inout_ecount(1) DWORD *pValue
     )
 {

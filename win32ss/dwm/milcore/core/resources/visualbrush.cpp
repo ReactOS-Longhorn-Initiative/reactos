@@ -232,8 +232,8 @@ Cleanup:
 //-------------------------------------------------------------------------
 HRESULT
 CMilVisualBrushDuce::PreComputeHelper(
-    __in CPreComputeContext *pPreComputeContext,
-    __in CMilVisual *pVisual
+    _In_ CPreComputeContext *pPreComputeContext,
+    _In_ CMilVisual *pVisual
     )
 {   
     HRESULT hr = S_OK;

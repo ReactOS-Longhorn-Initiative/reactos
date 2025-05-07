@@ -128,11 +128,11 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CFakePP::Create(
-    __in MediaInstance *pMediaInstance,
-    __in DWORD dwFrameDuration,
-    __in UINT uiFrames,
-    __in UINT uiVideoWidth,
-    __in UINT uiVideoHeight,
+    _In_ MediaInstance *pMediaInstance,
+    _In_ DWORD dwFrameDuration,
+    _In_ UINT uiFrames,
+    _In_ UINT uiVideoWidth,
+    _In_ UINT uiVideoHeight,
     __deref_out_ecount(1) CFakePP ** ppFakePP
     )
 {
@@ -173,7 +173,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CFakePP::RaiseEvent(
-    __in AVEvent avEventType
+    _In_ AVEvent avEventType
     )
 {
     HRESULT hr = S_OK;
@@ -297,7 +297,7 @@ CFakePP::NotifyVideoResource()
 //------------------------------------------------------------------------------
 STDMETHODIMP
 CFakePP::Open(
-    __in LPCWSTR pwszURL
+    _In_ LPCWSTR pwszURL
     )
 {
     HRESULT hr = S_OK;
@@ -918,11 +918,11 @@ Cleanup:
 //
 STDMETHODIMP
 CFakePP::BeginComposition(
-    __in    CMilSlaveVideo  *pCaller,
-    __in    BOOL            displaySetChanged,
-    __in    BOOL            syncChannel,
+    _In_    CMilSlaveVideo  *pCaller,
+    _In_    BOOL            displaySetChanged,
+    _In_    BOOL            syncChannel,
     __inout LONGLONG        *pLastCompositionSampleTime,
-    __out   BOOL            *pbFrameReady
+    _Out_   BOOL            *pbFrameReady
     )
 {
     HRESULT     hr = S_OK;
@@ -1113,7 +1113,7 @@ Cleanup:
 
 STDMETHODIMP
 CFakePP::EndComposition(
-    __in    CMilSlaveVideo  *pCaller
+    _In_    CMilSlaveVideo  *pCaller
     )
 {
     return S_OK;
@@ -1198,7 +1198,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CFakePP::RegisterResource(
-    __in CMilSlaveVideo *pSlaveVideo
+    _In_ CMilSlaveVideo *pSlaveVideo
     )
 {
     HRESULT hr = S_OK;
@@ -1221,7 +1221,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CFakePP::UnregisterResource(
-    __in CMilSlaveVideo *pSlaveVideo
+    _In_ CMilSlaveVideo *pSlaveVideo
     )
 {
     HRESULT hr = S_OK;

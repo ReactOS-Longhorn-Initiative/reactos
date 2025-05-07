@@ -90,7 +90,7 @@ public:
             // Point there
 
     void GetPointAndDerivatives(
-        __in double t,
+        _In_ double t,
             // Parameter value
         __out_ecount(3) GpPointR *pValues) const;
                 // Point, first derivative and second derivative there
@@ -102,9 +102,9 @@ public:
         IN double t);             // Parameter value
 
     bool TrimBetween(
-        __in double rStart,
+        _In_ double rStart,
             // Parameter value for the new start, must be between 0 and 1
-        __in double rEnd);
+        _In_ double rEnd);
             // Parameter value for the new end, must be between 0 and 1
 
     bool operator ==(__in_ecount(1) const CBezier &other) const

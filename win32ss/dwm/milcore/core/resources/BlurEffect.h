@@ -41,7 +41,7 @@ struct GenerateColorsBlurParams
 };
 
 typedef void (__stdcall *GenerateColorsBlur)(
-    __in GenerateColorsBlurParams *pParams
+    _In_ GenerateColorsBlurParams *pParams
     );
 
 // Class: CMilBlurEffectDuce
@@ -61,26 +61,26 @@ public:
         );
 
     override HRESULT ApplyEffect(
-        __in CContextState *pContextState, 
-        __in CHwSurfaceRenderTarget *pDestRT,
-        __in CMILMatrix *pScaleTransform,
-        __in CD3DDeviceLevel1 *pDevice, 
+        _In_ CContextState *pContextState, 
+        _In_ CHwSurfaceRenderTarget *pDestRT,
+        _In_ CMILMatrix *pScaleTransform,
+        _In_ CD3DDeviceLevel1 *pDevice, 
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt CHwTextureRenderTarget *pImplicitInput
         );
 
     override HRESULT ApplyEffectSw(
-        __in CContextState *pContextState,
-        __in CSwRenderTargetSurface *pDestRT,
-        __in CMILMatrix *pScaleTransform,
+        _In_ CContextState *pContextState,
+        _In_ CSwRenderTargetSurface *pDestRT,
+        _In_ CMILMatrix *pScaleTransform,
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IWGXBitmap *pImplicitInput
         );
 
     override HRESULT PrepareSoftwarePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
         )
@@ -91,20 +91,20 @@ public:
     override HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
 
     override HRESULT GetLocalSpaceClipBounds(
-        __in CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
-        __in CRectF<CoordinateSpace::PageInPixels> clip,
-        __in const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
-        __out CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace
+        _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
+        _In_ CRectF<CoordinateSpace::PageInPixels> clip,
+        _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
+        _Out_ CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace
         );
 
     HRESULT ApplyEffectInPipeline(
-        __in const CContextState *pContextState, 
-        __in const CMILMatrix *pScaleTransform,
-        __in CD3DDeviceLevel1 *pDevice,
+        _In_ const CContextState *pContextState, 
+        _In_ const CMILMatrix *pScaleTransform,
+        _In_ CD3DDeviceLevel1 *pDevice,
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
-        __in CHwTextureRenderTarget *pSourceRT, 
-        __in CD3DVidMemOnlyTexture *pDestRT
+        _In_ CHwTextureRenderTarget *pSourceRT, 
+        _In_ CD3DVidMemOnlyTexture *pDestRT
         );
 
     static HRESULT Create(
@@ -118,7 +118,7 @@ public:
     override void UnRegisterNotifiers();
 
     static HRESULT CalculateGaussianSamplingWeightsFullKernel(
-        __in UINT radius,
+        _In_ UINT radius,
         __deref_out_xcount(2*radius+1) float **ppSamplingWeights
         );
 
@@ -136,9 +136,9 @@ public:
          );
 
     static void ApplyRadiusScaling(
-        __in const CMILMatrix *pScaleTransform,
-        __in UINT localSpaceRadius,
-        __out UINT *scaledRadius
+        _In_ const CMILMatrix *pScaleTransform,
+        _In_ UINT localSpaceRadius,
+        _Out_ UINT *scaledRadius
         );
     
 protected:
@@ -160,47 +160,47 @@ private:
     double GetRadius();
 
     void GetScaledRadius(
-        __in const CMILMatrix *pScaleTransform,
-        __out UINT* pRadius
+        _In_ const CMILMatrix *pScaleTransform,
+        _Out_ UINT* pRadius
         );
 
     static void CalculateSamplingWeights(
-        __in UINT radius,
+        _In_ UINT radius,
         __deref_out_xcount(radius+1) float **ppSamplingWeights,
-        __in MilKernelType::Enum kernelType
+        _In_ MilKernelType::Enum kernelType
         );
 
     static HRESULT SetupShader(
-         __in CD3DDeviceLevel1 *pDevice, 
+         _In_ CD3DDeviceLevel1 *pDevice, 
         bool isHorizontalPass,
         bool isMultiInputPass,
         float destinationSize,
         UINT cSamples,
         int sampleIndex,
-        __in float *arrSamplingWeights
+        _In_ float *arrSamplingWeights
         );
 
     HRESULT ApplyEffectImpl(
-        __in const CContextState *pContextState,
-        __in const CMILMatrix *pScaleTransform,
-        __in CD3DDeviceLevel1 *pDevice,
+        _In_ const CContextState *pContextState,
+        _In_ const CMILMatrix *pScaleTransform,
+        _In_ CD3DDeviceLevel1 *pDevice,
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
-        __in CHwTextureRenderTarget *pSourceRT, 
+        _In_ CHwTextureRenderTarget *pSourceRT, 
         __in_opt CHwSurfaceRenderTarget *pFinalDestRT,
         __in_opt CD3DVidMemOnlyTexture *pPipelineDestRT
         );
 
     HRESULT ExecutePasses(
-        __in CD3DDeviceLevel1 *pDevice, 
-        __in bool isHorizontal,
-        __in bool isQuality,
-        __in UINT radius,
-        __in float destinationSize,
-        __in float* pSamplingWeights,
-        __in CD3DVidMemOnlyTexture* pTextureNoRef_A,
-        __in CD3DVidMemOnlyTexture* pTexture_B,
-        __in CD3DSurface* pSurface_B,
+        _In_ CD3DDeviceLevel1 *pDevice, 
+        _In_ bool isHorizontal,
+        _In_ bool isQuality,
+        _In_ UINT radius,
+        _In_ float destinationSize,
+        _In_ float* pSamplingWeights,
+        _In_ CD3DVidMemOnlyTexture* pTextureNoRef_A,
+        _In_ CD3DVidMemOnlyTexture* pTexture_B,
+        _In_ CD3DSurface* pSurface_B,
         __in_opt CD3DVidMemOnlyTexture* pTexture_C,
         __in_opt CD3DSurface* pSurface_C
         );

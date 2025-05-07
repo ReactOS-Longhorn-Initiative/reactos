@@ -122,7 +122,7 @@ public:
     VOID TransformAsVectors(
         __in_ecount(count) const MilPoint2F *srcVectors,
         __out_ecount(count) MilPoint2F *destVectors,
-        __in UINT count
+        _In_ UINT count
         ) const;
 
     REAL GetDeterminant2D() const

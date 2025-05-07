@@ -30,12 +30,12 @@ public:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CSWMFMediaBuffer));
 
     CSWMFMediaBuffer(
-        __in    UINT             uiID,
-        __in    LONG             continuity,
-        __in    UINT             uiWidth,
-        __in    UINT             uiHeight,
-        __in    D3DFORMAT        format,
-        __in    CD3DDeviceLevel1 *pRenderDevice
+        _In_    UINT             uiID,
+        _In_    LONG             continuity,
+        _In_    UINT             uiWidth,
+        _In_    UINT             uiHeight,
+        _In_    D3DFORMAT        format,
+        _In_    CD3DDeviceLevel1 *pRenderDevice
         );
 
     __override
@@ -46,7 +46,7 @@ public:
     __override
     HRESULT
     GetBitmapSource(
-        __in            bool                syncChannel,
+        _In_            bool                syncChannel,
         __in_opt        CD3DDeviceLevel1    *pDisplayDevice,
         __deref_out     IWGXBitmapSource    **ppIBitmapSource
         );
@@ -71,12 +71,12 @@ private:
     // Cannot copy or assign a Hardware media buffer
     //
     CSWMFMediaBuffer(
-        __in    const CSWMFMediaBuffer &
+        _In_    const CSWMFMediaBuffer &
         );
 
     CSWMFMediaBuffer &
     operator=(
-        __in    const CSWMFMediaBuffer &
+        _In_    const CSWMFMediaBuffer &
         );
 
     HRESULT
@@ -86,8 +86,8 @@ private:
 
     HRESULT
     AliasBitmap(
-        __in    CClientMemoryBitmap         *pBitmap,
-        __in    bool                        initializing
+        _In_    CClientMemoryBitmap         *pBitmap,
+        _In_    bool                        initializing
         );
 
     IDirect3DSurface9       *m_pIBitmapSurface;

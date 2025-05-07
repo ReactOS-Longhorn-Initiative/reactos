@@ -26,12 +26,12 @@ MtDefine(CSWMFMediaBuffer, Mem, "CSWMFMediaBuffer");
 
 CSWMFMediaBuffer::
 CSWMFMediaBuffer(
-    __in    UINT             uiID,
-    __in    LONG             continuity,
-    __in    UINT             uiWidth,
-    __in    UINT             uiHeight,
-    __in    D3DFORMAT        format,
-    __in    CD3DDeviceLevel1 *pRenderDevice
+    _In_    UINT             uiID,
+    _In_    LONG             continuity,
+    _In_    UINT             uiWidth,
+    _In_    UINT             uiHeight,
+    _In_    D3DFORMAT        format,
+    _In_    CD3DDeviceLevel1 *pRenderDevice
     ) : CMFMediaBuffer(
             uiID,
             continuity,
@@ -76,7 +76,7 @@ __override
 HRESULT
 CSWMFMediaBuffer::
 GetBitmapSource(
-    __in            bool                syncChannel,
+    _In_            bool                syncChannel,
         // Whether the channel is synchronous (not relevant for SW case).
     __in_opt        CD3DDeviceLevel1    *pDisplayDevice,
         // The display device or NULL if this is a software target. If this is a
@@ -281,8 +281,8 @@ Cleanup:
 HRESULT
 CSWMFMediaBuffer::
 AliasBitmap(
-    __in    CClientMemoryBitmap         *pClientBitmap,
-    __in    bool                        initializing
+    _In_    CClientMemoryBitmap         *pClientBitmap,
+    _In_    bool                        initializing
     )
 {
     HRESULT     hr = S_OK;

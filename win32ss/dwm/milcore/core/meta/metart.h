@@ -203,13 +203,13 @@ public:
     // This method is used to determine if the render target is being
     // used to render, or if it's merely being used for bounds accumulation,
     // hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType);
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType);
 
 
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHOD(SetClearTypeHint) (
-        __in bool forceClearType
+        _In_ bool forceClearType
         );
 
     UINT GetRealizationCacheIndex() override;

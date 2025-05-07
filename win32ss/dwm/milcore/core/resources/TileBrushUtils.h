@@ -60,7 +60,7 @@ public:
         __in_ecount(1) const CMILMatrix *pmatViewportToWorld,
         __in_ecount(1) const MilPointAndSizeD *pViewport,
         __in_ecount_opt(1) const BrushCachingParameters *pCachingParams,
-        __in MilTileMode::Enum tileMode,
+        _In_ MilTileMode::Enum tileMode,
         __out_ecount(1) IWGXBitmapSource **ppBaseTile,
         __out_ecount(1) CMILMatrix *pmatIntermediateBitmapToXSpace,
         __out_ecount(1) BOOL *pfTileIsEmpty,

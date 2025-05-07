@@ -8,7 +8,7 @@
 
 PresenterWrapper::
 PresenterWrapper(
-    __in    UINT        id
+    _In_    UINT        id
     ) : m_uiID(id),
         m_pEvrPresenter(NULL),
         m_isScrubbing(false),
@@ -260,7 +260,7 @@ DisplayHeight(
 void
 PresenterWrapper::
 SetPresenter(
-    __in    EvrPresenterObj     *pEvrPresenter
+    _In_    EvrPresenterObj     *pEvrPresenter
     )
 {
     bool                isScrubbing = false;

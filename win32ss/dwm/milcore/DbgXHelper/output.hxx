@@ -82,14 +82,14 @@ public:
 
     HRESULT SetOutputLinePrefix(__in_opt PCSTR Prefix);
 
-    HRESULT Output(ULONG Mask, __in PCSTR Format, ...);
-    HRESULT OutputVaList(ULONG Mask, __in PCSTR Format, va_list Args);
+    HRESULT Output(ULONG Mask, _In_ PCSTR Format, ...);
+    HRESULT OutputVaList(ULONG Mask, _In_ PCSTR Format, va_list Args);
 
-    HRESULT Output(__in PCSTR Format, ...);
-    HRESULT OutErr(__in PCSTR Format, ...);
-    HRESULT OutWarn(__in PCSTR Format, ...);
-    HRESULT OutVerb(__in PCSTR Format, ...);
-    HRESULT OutExtWarn(__in PCSTR Format, ...);
+    HRESULT Output(_In_ PCSTR Format, ...);
+    HRESULT OutErr(_In_ PCSTR Format, ...);
+    HRESULT OutWarn(_In_ PCSTR Format, ...);
+    HRESULT OutVerb(_In_ PCSTR Format, ...);
+    HRESULT OutExtWarn(_In_ PCSTR Format, ...);
 
     // Output an offset stylized to targets native pointer size
     HRESULT OutputOffset(ULONG64 Offset);
@@ -102,9 +102,9 @@ public:
 
     HRESULT GetInterrupt();
     HRESULT SetInterrupt(ULONG Flags);
-    HRESULT Evaluate(__in PCSTR Expression, ULONG DesiredType, __out PDEBUG_VALUE Value, __out_opt PULONG RemainderIndex);
-    HRESULT Execute(__in PCSTR Command, ULONG Flags);
-    HRESULT CoerceValue(__in const DEBUG_VALUE *In, ULONG OutType, __out PDEBUG_VALUE Out);
+    HRESULT Evaluate(_In_ PCSTR Expression, ULONG DesiredType, _Out_ PDEBUG_VALUE Value, __out_opt PULONG RemainderIndex);
+    HRESULT Execute(_In_ PCSTR Command, ULONG Flags);
+    HRESULT CoerceValue(_In_ const DEBUG_VALUE *In, ULONG OutType, _Out_ PDEBUG_VALUE Out);
     HRESULT IsPointer64Bit();
 
 private:
@@ -123,7 +123,7 @@ public:
 
     HRESULT Setup(ULONG OutMask, __in_opt PDEBUG_OUTPUT_CALLBACKS OutCallbacks);
 
-    HRESULT Execute(__in PCSTR pszCommand);
+    HRESULT Execute(_In_ PCSTR pszCommand);
 
     HRESULT OutputType(
         BOOL Physical,
@@ -136,7 +136,7 @@ public:
     HRESULT OutputType(
         BOOL Physical,
         ULONG64 Offset,
-        __in PCSTR Type,
+        _In_ PCSTR Type,
         ULONG Flags
     );
 
@@ -222,8 +222,8 @@ public:
     // IUnknown.
     STDMETHOD(QueryInterface)(
         THIS_
-        __in REFIID InterfaceId,
-        __out PVOID* Interface
+        _In_ REFIID InterfaceId,
+        _Out_ PVOID* Interface
         );
     STDMETHOD_(ULONG, AddRef)(
         THIS
@@ -236,7 +236,7 @@ public:
     STDMETHOD(Output)(
         THIS_
         ULONG Mask,
-        __in PCSTR Text
+        _In_ PCSTR Text
         );
 
 protected:
@@ -257,7 +257,7 @@ public:
     STDMETHOD(Output)(
         THIS_
         ULONG Mask,
-        __in PCSTR Text
+        _In_ PCSTR Text
         );
 };
 
@@ -290,7 +290,7 @@ public:
     STDMETHOD(Output)(
         THIS_
         ULONG Mask,
-        __in PCSTR Text
+        _In_ PCSTR Text
         );
 
     // Discard any text left unused by Parse
@@ -602,8 +602,8 @@ public:
                   ULONG Type = DEBUG_VALUE_INVALID,
                   ULONG Radix = PARSER_UNSPECIFIED_RADIX);
 
-    HRESULT Replace(ULONG Flags, __in PCSTR Query, __in_opt PCSTR Replacement);
-    HRESULT Skip(ULONG Flags, __in PCSTR Query);
+    HRESULT Replace(ULONG Flags, _In_ PCSTR Query, __in_opt PCSTR Replacement);
+    HRESULT Skip(ULONG Flags, _In_ PCSTR Query);
 
     HRESULT OutputText(OutputControl *OutCtl = NULL, ULONG Mask = DEBUG_OUTPUT_NORMAL);
 
@@ -645,7 +645,7 @@ protected:
 
     __deref_out_opt QuerySpec **FindPrior(
         ULONG Flags,
-        __in PCSTR Query,
+        _In_ PCSTR Query,
         __deref_in_opt QuerySpec **List
         );
     QuerySpec *FindMatch(PCSTR Text,

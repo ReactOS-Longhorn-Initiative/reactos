@@ -191,7 +191,7 @@ void CDesktopRenderTarget::SetSingleSubRT(
 //
 //------------------------------------------------------------------------------
 HRESULT CDesktopRenderTarget::Init(
-    __in HWND hwnd,
+    _In_ HWND hwnd,
     MilWindowLayerType::Enum eWindowLayerType,
     MilRTInitialization::Flags dwFlags
     )

@@ -41,7 +41,7 @@ CompositionNotifier::
 HRESULT
 CompositionNotifier::
 Init(
-    __in    MediaInstance   *pMediaInstance
+    _In_    MediaInstance   *pMediaInstance
     )
 {
     HRESULT hr = S_OK;
@@ -62,7 +62,7 @@ Cleanup:
 HRESULT
 CompositionNotifier::
 RegisterResource(
-    __in    CMilSlaveVideo  *pCMilSlaveVideo
+    _In_    CMilSlaveVideo  *pCMilSlaveVideo
     )
 {
     HRESULT                     hr = S_OK;
@@ -87,7 +87,7 @@ Cleanup:
 void
 CompositionNotifier::
 UnregisterResource(
-    __in    CMilSlaveVideo  *pCMilSlaveVideo
+    _In_    CMilSlaveVideo  *pCMilSlaveVideo
     )
 {
     TRACEF(NULL);

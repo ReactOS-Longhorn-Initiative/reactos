@@ -98,7 +98,7 @@ public:
         );
 
     virtual HRESULT UpdateSurface(
-        __in UINT cDirtyRects,
+        _In_ UINT cDirtyRects,
         __in_ecount(cDirtyRects) const CMilRectU *prgDirtyRects,
         __in_ecount(1) IDirect3DSurface9 *pISrcSurface
         );
@@ -118,10 +118,10 @@ protected:
     virtual ~CHwDeviceBitmapColorSource();
     
     static HRESULT GetRealizationDesc(
-        __in IWGXBitmap *pBitmap,
+        _In_ IWGXBitmap *pBitmap,
         MilPixelFormat::Enum fmt,
-        __in const CMilRectU &rcBoundsRequired,
-        __out CacheParameters &oRealizationDesc
+        _In_ const CMilRectU &rcBoundsRequired,
+        _Out_ CacheParameters &oRealizationDesc
         );
 
     HRESULT Init(

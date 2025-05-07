@@ -59,7 +59,7 @@ protected:
     virtual
     bool
     IsAnOwner(
-        __in    IUnknown    *pIUnknown
+        _In_    IUnknown    *pIUnknown
         );
 
     virtual
@@ -74,12 +74,12 @@ private:
     // Cannot copy or assign a CStateThreadItem
     //
     CStateThreadItem(
-        __in    const CStateThreadItem &
+        _In_    const CStateThreadItem &
         );
 
     CStateThreadItem &
     operator=(
-        __in    const CStateThreadItem &
+        _In_    const CStateThreadItem &
         );
 
     bool                    m_isQueued;
@@ -119,7 +119,7 @@ public:
     // Custom IUknown implementation
     //
     STDMETHOD(QueryInterface)(
-        __in        REFIID      riid,
+        _In_        REFIID      riid,
         __deref_out void        **ppv
         );
 
@@ -129,12 +129,12 @@ public:
 
     HRESULT
     AddItem(
-        __in    CStateThreadItem           *pStateThreadItem
+        _In_    CStateThreadItem           *pStateThreadItem
         );
 
     bool
     ReleaseItem(
-        __in    CStateThreadItem           *pStateThreadItem
+        _In_    CStateThreadItem           *pStateThreadItem
         );
 
     DWORD
@@ -144,7 +144,7 @@ public:
 
     void
     CancelAllItemsWithOwner(
-        __in    IUnknown    *pIOwner
+        _In_    IUnknown    *pIOwner
         );
 
 private:
@@ -152,14 +152,14 @@ private:
     static
     HRESULT
     CreateStateThread(
-        __in            CCriticalSection    *pCritSec,
+        _In_            CCriticalSection    *pCritSec,
         __deref_inout   CStateThread        **ppGlobalThread,
         __deref_out     CStateThread        **ppStateThread
         );
 
     CStateThread(
-        __in    CCriticalSection    *pLock,
-        __in    CStateThread        **ppGlobalReference
+        _In_    CCriticalSection    *pLock,
+        _In_    CStateThread        **ppGlobalReference
 
         );
 
@@ -175,7 +175,7 @@ private:
     static
     DWORD __stdcall
     ThreadThunk(
-        __in    void        *pThat
+        _In_    void        *pThat
         );
 
     HRESULT
@@ -192,12 +192,12 @@ private:
     // Cannot copy or assign an Apartment Thread
     //
     CStateThread(
-        __in const CStateThread &
+        _In_ const CStateThread &
         );
 
     CStateThread &
     operator=(
-        __in const CStateThread &
+        _In_ const CStateThread &
         );
 
     HRESULT

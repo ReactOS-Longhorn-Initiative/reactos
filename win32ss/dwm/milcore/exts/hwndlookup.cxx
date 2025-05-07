@@ -22,7 +22,7 @@
 HRESULT LookupCMilWindowContext(
     PDEBUG_CLIENT Client,
     ULONG64 hwnd,
-    __out ULONG64* pulpCMilWindowContext)
+    _Out_ ULONG64* pulpCMilWindowContext)
 {
     HRESULT hr = S_OK;
     OutputControl OutCtl(Client);

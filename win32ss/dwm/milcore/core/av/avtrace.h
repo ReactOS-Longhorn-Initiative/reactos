@@ -125,7 +125,7 @@ private:
 
 public:
     AutoTrace(
-        __in                UINT       uiID,
+        _In_                UINT       uiID,
         __in_opt            void       *pThisPointer,
         __in	            const char *functionName,
         __in_ecount_opt(1)  HRESULT    *phr

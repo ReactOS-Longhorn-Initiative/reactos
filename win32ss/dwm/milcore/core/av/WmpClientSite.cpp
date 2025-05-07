@@ -19,8 +19,8 @@ MtDefine(CWmpClientSite, Mem, "CWmpClientSite");
 //
 //------------------------------------------------------------------------------
 CWmpClientSite::CWmpClientSite(
-    __in    UINT                uiID,
-    __in    CWmpStateEngine     *pPlayerState
+    _In_    UINT                uiID,
+    _In_    CWmpStateEngine     *pPlayerState
     ) : m_uiID(uiID),
         m_pPresenter(NULL),
         m_pFilterGraph(NULL),
@@ -61,9 +61,9 @@ CWmpClientSite::~CWmpClientSite()
 //------------------------------------------------------------------------------
 HRESULT
 CWmpClientSite::Create(
-    __in    UINT                uiID,
+    _In_    UINT                uiID,
     __deref_out CWmpClientSite  **ppSetup,
-    __in    CWmpStateEngine     *pPlayerState
+    _In_    CWmpStateEngine     *pPlayerState
     )
 {
     HRESULT hr = S_OK;

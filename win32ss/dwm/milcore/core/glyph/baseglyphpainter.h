@@ -96,7 +96,7 @@ public:
     
     void GetAlphaArray(
         __deref_out_ecount(*pAlphaArraySize) BYTE **ppAlphaArray,
-        __out UINT32 *pAlphaArraySize
+        _Out_ UINT32 *pAlphaArraySize
         ) const 
     {
         *ppAlphaArray = m_pAlphaArray;

@@ -56,7 +56,7 @@ public:
     // crashes safely if the index is out of range. 
     //
 
-    __out T& At(UINT n) const
+    _Out_ T& At(UINT n) const
     {
         FreAssert(n < Count);
         return GetDataBuffer()[n];

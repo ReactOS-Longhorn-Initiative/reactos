@@ -57,8 +57,8 @@ CMilConnection::~CMilConnection()
 //----------------------------------------------------------------------------
 
 HRESULT CMilConnection::Create(
-    __in MilMarshalType::Enum marshalType,
-    __out CMilConnection** ppConnection)
+    _In_ MilMarshalType::Enum marshalType,
+    _Out_ CMilConnection** ppConnection)
 {   
     HRESULT hr = S_OK;
     CMilConnection *pConnection = NULL;
@@ -383,7 +383,7 @@ Cleanup:
 //----------------------------------------------------------------------------
 
 HRESULT
-CMilConnection::SubmitBatch(__in CMilCommandBatch *pBatch)
+CMilConnection::SubmitBatch(_In_ CMilCommandBatch *pBatch)
 {
     HRESULT hr = S_OK;
     
@@ -416,7 +416,7 @@ Cleanup:
 //----------------------------------------------------------------------------
 HRESULT
 CMilConnection::PostMessageToClient(
-    __in const MIL_MESSAGE *pNotification,
+    _In_ const MIL_MESSAGE *pNotification,
     HMIL_CHANNEL hChannel
     )
 {

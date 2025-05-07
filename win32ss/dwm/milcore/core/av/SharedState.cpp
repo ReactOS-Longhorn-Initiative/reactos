@@ -45,7 +45,7 @@ GetNaturalWidth(
 void
 SharedState::
 SetNaturalWidth(
-    __in    UINT        width
+    _In_    UINT        width
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -67,7 +67,7 @@ GetNaturalHeight(
 void
 SharedState::
 SetNaturalHeight(
-    __in    UINT        height
+    _In_    UINT        height
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -89,7 +89,7 @@ GetIsBuffering(
 void
 SharedState::
 SetIsBuffering(
-    __in    bool        isBuffering
+    _In_    bool        isBuffering
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -111,7 +111,7 @@ GetCanPause(
 void
 SharedState::
 SetCanPause(
-    __in    bool        canPause
+    _In_    bool        canPause
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -133,7 +133,7 @@ GetHasVideo(
 void
 SharedState::
 SetHasVideo(
-    __in    bool        hasVideo
+    _In_    bool        hasVideo
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -155,7 +155,7 @@ GetHasAudio(
 void
 SharedState::
 SetHasAudio(
-    __in    bool        hasAudio
+    _In_    bool        hasAudio
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -177,7 +177,7 @@ GetLength(
 void
 SharedState::
 SetLength(
-    __in    LONGLONG    length
+    _In_    LONGLONG    length
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -199,7 +199,7 @@ GetDownloadProgress(
 void
 SharedState::
 SetDownloadProgress(
-    __in    double      downloadProgress
+    _In_    double      downloadProgress
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -223,7 +223,7 @@ GetBufferingProgress(
 void
 SharedState::
 SetBufferingProgress(
-    __in    double      bufferingProgress
+    _In_    double      bufferingProgress
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -247,7 +247,7 @@ GetPosition(
 void
 SharedState::
 SetPosition(
-    __in    LONGLONG    position
+    _In_    LONGLONG    position
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -278,7 +278,7 @@ GetTimedOutPosition(
 void
 SharedState::
 SetTimedOutPosition(
-    __in    LONGLONG    position
+    _In_    LONGLONG    position
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -307,7 +307,7 @@ GetTimedOutDownloadProgress(
 void
 SharedState::
 SetTimedOutDownloadProgress(
-    __in    double      downloadProgress
+    _In_    double      downloadProgress
     )
 {
     CGuard<CCriticalSection> guard(m_lock);
@@ -336,7 +336,7 @@ GetTimedOutBufferingProgress(
 void
 SharedState::
 SetTimedOutBufferingProgress(
-    __in    double      bufferingProgress
+    _In_    double      bufferingProgress
     )
 {
     CGuard<CCriticalSection> guard(m_lock);

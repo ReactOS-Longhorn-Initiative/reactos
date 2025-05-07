@@ -104,9 +104,9 @@ OutputBreakpointTrace(const void *pCode)
 //-------------------------------------------------------------------------
 HRESULT 
 CPixelShaderCompiler::Create(
-    __in void* pCode,
-    __in unsigned uByteCodeSize,
-    __out CPixelShaderCompiler **ppPixelShaderCompiler
+    _In_ void* pCode,
+    _In_ unsigned uByteCodeSize,
+    _Out_ CPixelShaderCompiler **ppPixelShaderCompiler
     )
 {
     HRESULT hr = S_OK;
@@ -172,8 +172,8 @@ CPixelShaderCompiler::~CPixelShaderCompiler()
 //-------------------------------------------------------------------------
 HRESULT 
 CPixelShaderCompiler::Init(
-    __in void *pCode,
-    __in unsigned uByteCodeSize
+    _In_ void *pCode,
+    _In_ unsigned uByteCodeSize
     )
 {
     HRESULT hr = S_OK;
@@ -232,7 +232,7 @@ CPixelShaderCompiler::AddRef()
 //
 //-------------------------------------------------------------------------
 HRESULT 
-CPixelShaderCompiler::LoadTextureVariables(__in P_u8 *pPixelShaderState)
+CPixelShaderCompiler::LoadTextureVariables(_In_ P_u8 *pPixelShaderState)
 {
     HRESULT hr = S_OK;
 
@@ -275,13 +275,13 @@ Cleanup:
 //-------------------------------------------------------------------------
 HRESULT 
 CPixelShaderCompiler::ComputeEval(
-    __in  const P_u8 *pPixelShaderState,
-    __in  const C_u32 *puX,
-    __in  const C_u32 *puY,
-    __out C_f32x4  *pEvalRight,
-    __out C_f32x4  *pEvalDeltaRight,
-    __out C_f32x4  *pEvalDown,
-    __out C_f32x4  *pEvalDeltaDown
+    _In_  const P_u8 *pPixelShaderState,
+    _In_  const C_u32 *puX,
+    _In_  const C_u32 *puY,
+    _Out_ C_f32x4  *pEvalRight,
+    _Out_ C_f32x4  *pEvalDeltaRight,
+    _Out_ C_f32x4  *pEvalDown,
+    _Out_ C_f32x4  *pEvalDeltaDown
     )
 {
     HRESULT hr = S_OK;
@@ -321,7 +321,7 @@ CPixelShaderCompiler::ComputeEval(
 //-------------------------------------------------------------------------
 HRESULT
 CPixelShaderCompiler::LoadShaderConstants(
-    __in INT32 nChannel, 
+    _In_ INT32 nChannel, 
     __inout CPixelShaderRegisters *pShaderRegisters
     )
 {
@@ -345,12 +345,12 @@ CPixelShaderCompiler::LoadShaderConstants(
 //-------------------------------------------------------------------------
 HRESULT
 SampleTexture(
-    __in CInstructionVariables *pInstructionVars, // Instruction compile variables
-    __in CTextureVariables *pTextureVars,         // Texture sampler info vars
-    __in const PSTRRegister *pRegUV,              // texture coordinates to sample from
+    _In_ CInstructionVariables *pInstructionVars, // Instruction compile variables
+    _In_ CTextureVariables *pTextureVars,         // Texture sampler info vars
+    _In_ const PSTRRegister *pRegUV,              // texture coordinates to sample from
     __inout const PSTRRegister *pRegOutput,       // Desintation register
-    __in BYTE writeMask,                          // Write mask
-    __in bool useBilinear                         // Specifies bilinear or nearest neighbor
+    _In_ BYTE writeMask,                          // Write mask
+    _In_ bool useBilinear                         // Specifies bilinear or nearest neighbor
     )
 {
     HRESULT hr = S_OK;
@@ -591,9 +591,9 @@ Cleanup:
 void
 ConditionalMultiply(
     __inout C_f32x4 **ppRegSource,
-    __in INT32 fMultiply,
+    _In_ INT32 fMultiply,
     __inout C_f32x4 *pTempRegister,
-    __in const C_f32x4 &multiplicand
+    _In_ const C_f32x4 &multiplicand
     )
 {
     if (fMultiply)
@@ -613,8 +613,8 @@ ConditionalMultiply(
 //-------------------------------------------------------------------------
 HRESULT
 CPixelShaderCompiler::CompileInstruction(
-    __in INT32 i,                                         // channel
-    __in PSTRINST_BASE_PARAMS* pBaseInstr,                // instruction
+    _In_ INT32 i,                                         // channel
+    _In_ PSTRINST_BASE_PARAMS* pBaseInstr,                // instruction
     __inout CInstructionVariables *pInstructionVariables // instruction variables
     )
 {
@@ -1159,8 +1159,8 @@ Cleanup:
 //-------------------------------------------------------------------------
 HRESULT
 CPixelShaderCompiler::PreloadConstant(
-    __in INT32 i,                                         // channel
-    __in PSTRINST_BASE_PARAMS* pBaseInstr,                // instruction
+    _In_ INT32 i,                                         // channel
+    _In_ PSTRINST_BASE_PARAMS* pBaseInstr,                // instruction
     __inout CInstructionVariables *pInstructionVariables // instruction variables
     )
 {
@@ -1427,7 +1427,7 @@ Cleanup:
 //-------------------------------------------------------------------------
 HRESULT
 CPixelShaderCompiler::CompileDependentInstruction(
-    __in PSTRINST_BASE_PARAMS* pBaseInstr,               // instruction
+    _In_ PSTRINST_BASE_PARAMS* pBaseInstr,               // instruction
     __inout CInstructionVariables *pInstructionVariables // instruction variables
     )
 {
@@ -2171,7 +2171,7 @@ Cleanup:
 //-------------------------------------------------------------------------
 HRESULT
 CPixelShaderCompiler::Compile(
-    __out GenerateColorsEffect **ppfn
+    _Out_ GenerateColorsEffect **ppfn
     )
 {
     HRESULT  hr             = S_OK;

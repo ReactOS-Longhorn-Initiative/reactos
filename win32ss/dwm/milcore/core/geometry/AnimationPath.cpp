@@ -106,7 +106,7 @@ const REAL g_rFuzzBreaks = .01f;
 //------------------------------------------------------------------------------
 void
 CAnimationSegment::CSquaredSpeedDerivative::GetValueAndDerivative(
-    __in double t,
+    _In_ double t,
         // Where on the curve
     __out_ecount(1) double &f,
         // The derivative of the distance at t
@@ -582,7 +582,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 void
 CAnimationSegment::GetValueAndDerivative(
-    __in double t,
+    _In_ double t,
         // Where on the curve
     __out_ecount(1) double &f,
         // The derivative of the distance at t

@@ -21,7 +21,7 @@ HRESULT GetFieldOffset(
     PDEBUG_CLIENT Client,
     PCSTR typeName,
     PCSTR fieldName,
-    __out ULONG* pFieldOffset
+    _Out_ ULONG* pFieldOffset
     );
 
 HRESULT ReadPointerField(
@@ -29,7 +29,7 @@ HRESULT ReadPointerField(
     ULONG64 typeAddress,
     PCSTR typeName,
     PCSTR fieldName,
-    __out ULONG64* pFieldValue
+    _Out_ ULONG64* pFieldValue
     );
 
 HRESULT ReadNonPointerField(
@@ -38,7 +38,7 @@ HRESULT ReadNonPointerField(
     PCSTR typeName,
     PCSTR fieldName,
     ULONG fieldSize,
-    __out VOID* pFieldValue
+    _Out_ VOID* pFieldValue
     );
 
 template<typename T>
@@ -47,7 +47,7 @@ HRESULT ReadTypedField(
     ULONG64 typeAddress,
     PCSTR typeName,
     PCSTR fieldName,
-    __out T* pFieldValue
+    _Out_ T* pFieldValue
     )
 {
     return ReadNonPointerField(Client, typeAddress, typeName, fieldName, sizeof(*pFieldValue), pFieldValue);
@@ -66,7 +66,7 @@ HRESULT SearchTable(
     ULONG64 ulpTableRoot, 
     ULONG ulFieldOffset, 
     ULONG64 ulValueToLookFor,
-    __out ULONG64* ulpEntry
+    _Out_ ULONG64* ulpEntry
     );
 
 

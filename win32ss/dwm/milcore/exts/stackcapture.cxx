@@ -70,7 +70,7 @@ class CStackCaptureFrameConverter
 {
 protected:
     CStackCaptureFrameConverter(
-        __in ULONG64 u64DoStackCaptureOffset
+        _In_ ULONG64 u64DoStackCaptureOffset
         )
     {
         m_u64DoStackCaptureOffset = u64DoStackCaptureOffset;
@@ -95,7 +95,7 @@ public:
         __inout_ecount(1) IDebugSymbols3 *pISymbols,
         __in_ecount(1) DEBUG_TYPE_ENTRY const * pStackCaptureFrameType,
         bool fTempIsPointer64Bit,
-        __in ULONG64 u64DoStackCaptureOffset,
+        _In_ ULONG64 u64DoStackCaptureOffset,
         __deref_out_ecount(1) CStackCaptureFrameConverter **ppConverter,
         __inout_ecount_opt(1) OutputControl *pOutCtl
         )
@@ -313,7 +313,7 @@ private:
     HRESULT IsDoStackCapture(
         __in_ecount(1) OutputControl* pOutCtl,
         __in_ecount(1) IDebugSymbols3* pISymbols,
-        __in ULONG64 u64CapturedFrameSymbol,
+        _In_ ULONG64 u64CapturedFrameSymbol,
         __out_ecount(1) bool* pfIsDoStackCapture
         ) const
     {
@@ -385,7 +385,7 @@ public:
     static HRESULT Create(
         __in_ecount(1) IDebugDataSpaces* pIData,
         __inout_ecount(1) IDebugSymbols3 *pISymbols,
-        __in PCSTR szModuleName,
+        _In_ PCSTR szModuleName,
         __inout_ecount(1) OutputControl *pOutCtl,
         __deref_out_ecount(1) CStackCaptureData **ppCaptureData
         )
@@ -434,7 +434,7 @@ protected:
     HRESULT Init(
         __in_ecount(1) IDebugDataSpaces* pIData,
         __inout_ecount(1) IDebugSymbols3 *pISymbols,
-        __in PCSTR szModuleName,
+        _In_ PCSTR szModuleName,
         __inout_ecount(1) OutputControl *pOutCtl
         );
 
@@ -1196,7 +1196,7 @@ private:
 
 HRESULT GetStackCaptureSymbols(
     __inout_ecount(1) IDebugSymbols3 *pISymbols,
-    __in PCSTR szModuleName,
+    _In_ PCSTR szModuleName,
     __out_ecount(1) PDEBUG_SYMBOL_ENTRY pStackCaptureFramesSymbolEntry,
     __out_ecount(1) PDEBUG_TYPE_ENTRY   pStackCaptureFrameTypeEntry,
     __out_ecount(1) PDEBUG_SYMBOL_ENTRY pCurrentStackCaptureIndexSymbolEntry,
@@ -1330,7 +1330,7 @@ Cleanup:
 HRESULT GetStackCaptureValuesAndSymbols(
     __in_ecount(1) IDebugDataSpaces* pIData,
     __inout_ecount(1) IDebugSymbols3 *pISymbols,
-    __in PCSTR szModuleName,
+    _In_ PCSTR szModuleName,
     __out_ecount(1) PDEBUG_TYPE_ENTRY   pStackCaptureFrameTypeEntry,
     __out_ecount(1) PDEBUG_SYMBOL_ENTRY pDoStackCaptureSymbolEntry,
     __out_ecount(1) PUINT puCurrentStackCaptureIndex,
@@ -1430,7 +1430,7 @@ HRESULT
 CStackCaptureData::Init(
     __in_ecount(1) IDebugDataSpaces* pIData,
     __inout_ecount(1) IDebugSymbols3 *pISymbols,
-    __in PCSTR szModuleName,
+    _In_ PCSTR szModuleName,
     __inout_ecount(1) OutputControl *pOutCtl
     )
 {
@@ -1505,7 +1505,7 @@ HRESULT DumpCaptureImpl(
     DWORD StackOutputFlags,
     __in_ecount(1) DEBUG_VALUE const &ThreadIdFilterArg,
     __in_ecount(1) DEBUG_VALUE const &HRESULTFilter,
-    __in PCSTR szModuleName,
+    _In_ PCSTR szModuleName,
     ULONG uNumberOfCaptureCollections,
     __out_ecount_opt(1) StackCaptureFrame *pLastCapturedFrame
     )

@@ -40,24 +40,24 @@ public:
     static
     HRESULT
     Create(
-        __in            MediaInstance       *pMediaInstance,
-        __in            CWmpStateEngine     *pStateEngine,
+        _In_            MediaInstance       *pMediaInstance,
+        _In_            CWmpStateEngine     *pStateEngine,
         __deref_out     CWmpEventHandler    **ppEventHandler
         );
 
 
     // IDispatch methods
     STDMETHOD(GetIDsOfNames)(
-        __in REFIID riid,
+        _In_ REFIID riid,
         __in_ecount(cNames) OLECHAR FAR *FAR *rgszNames,
-        __in unsigned int cNames,
-        __in LCID lcid,
+        _In_ unsigned int cNames,
+        _In_ LCID lcid,
         __out_ecount(cNames) DISPID FAR *rgDispId )
     { return( E_NOTIMPL ); }
 
     STDMETHOD(GetTypeInfo)(
-        __in unsigned int iTInfo,
-        __in LCID lcid,
+        _In_ unsigned int iTInfo,
+        _In_ LCID lcid,
         __out_ecount(1) ITypeInfo FAR *FAR *ppTInfo )
     { return( E_NOTIMPL ); }
 
@@ -68,13 +68,13 @@ public:
     }
 
     STDMETHOD(Invoke)(
-        __in DISPID  dispIdMember,
-        __in REFIID  riid,
-        __in LCID  lcid,
-        __in WORD  wFlags,
+        _In_ DISPID  dispIdMember,
+        _In_ REFIID  riid,
+        _In_ LCID  lcid,
+        _In_ WORD  wFlags,
         __in_ecount(1) DISPPARAMS FAR*  pDispParams,
-        __in VARIANT FAR*  pVarResult,
-        __in EXCEPINFO FAR*  pExcepInfo,
+        _In_ VARIANT FAR*  pVarResult,
+        _In_ EXCEPINFO FAR*  pExcepInfo,
         __out_ecount(1) unsigned int FAR*  puArgErr );
 
     // IWMPEvents methods
@@ -139,8 +139,8 @@ protected:
 
 private:
     CWmpEventHandler(
-        __in        MediaInstance       *pMediaInstance,
-        __in        CWmpStateEngine     *pStateEngine
+        _In_        MediaInstance       *pMediaInstance,
+        _In_        CWmpStateEngine     *pStateEngine
         );
 
     virtual
@@ -150,8 +150,8 @@ private:
 
     HRESULT
     RaiseEvent(
-        __in        AVEvent         avEventType,
-        __in        HRESULT         hr = S_OK
+        _In_        AVEvent         avEventType,
+        _In_        HRESULT         hr = S_OK
         );
 
     UINT m_uiID;

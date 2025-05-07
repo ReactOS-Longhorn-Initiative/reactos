@@ -47,7 +47,7 @@ public:
         ) const;
 
     void EndRendering(
-        __in HDC hdc
+        _In_ HDC hdc
         ) const;
 
     HRESULT CreateCompatibleDC(

@@ -30,7 +30,7 @@
 //------------------------------------------------------------------------
 __checkReturn HRESULT
 CProgram::Create(
-    __in UINT16 usCallParametersSize,
+    _In_ UINT16 usCallParametersSize,
     __deref_out CProgram **ppProgram
     )
 {
@@ -204,11 +204,11 @@ CProgram::AllocFlushMemory(UINT32 cbSize)
 
 SOperator *
 CProgram::AddOperator(
-    __in OpType ot,
-    __in UINT32 vResult,
-    __in UINT32 vOperand1,
-    __in UINT32 vOperand2,
-    __in UINT32 vOperand3
+    _In_ OpType ot,
+    _In_ UINT32 vResult,
+    _In_ UINT32 vOperand1,
+    _In_ UINT32 vOperand2,
+    _In_ UINT32 vOperand3
     )
 {
     HRESULT hr = S_OK;

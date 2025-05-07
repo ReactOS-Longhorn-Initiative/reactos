@@ -49,7 +49,7 @@ extern CCriticalSection g_csGraphicsStream;
 //-----------------------------------------------------------------------------
 BOOL
 MILCoreDllMain(
-    __in HINSTANCE   dllHandle,
+    _In_ HINSTANCE   dllHandle,
     ULONG reason
     )
 {

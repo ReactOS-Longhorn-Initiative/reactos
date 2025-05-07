@@ -162,7 +162,7 @@ protected:
         __in_ecount(1) const CMILMatrix *pContentToViewport,
         __in_ecount(1) const CMILMatrix *pmatViewportToWorld,
         __in_ecount(1) const MilPointAndSizeD *pViewport,
-        __in MilTileMode::Enum tileMode,   
+        _In_ MilTileMode::Enum tileMode,   
         __out_ecount(1) BOOL *pfNeedsIntermediateSurfaceRealization,
         __out_ecount(1) BOOL *pfBrushIsEmpty
         );    
@@ -178,7 +178,7 @@ protected:
         __in_ecount(1) const CMILMatrix *pContentToViewport,
         __in_ecount(1) const CMILMatrix *pmatViewportToWorld,
         __in_ecount(1) const MilPointAndSizeD *pViewport,
-        __in MilTileMode::Enum tileMode,
+        _In_ MilTileMode::Enum tileMode,
         __out_ecount(1) IWGXBitmapSource **ppBaseTile,
         __out_ecount(1) CMILMatrix *pmatBaseTileToXSpace,
         __out_ecount(1) BOOL *pfTileIsEmpty,

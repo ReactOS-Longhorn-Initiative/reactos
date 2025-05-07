@@ -107,7 +107,7 @@ OutputControl::SetOutputLinePrefix(
 HRESULT
 OutputControl::Output(
     ULONG Mask,
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     ...
     )
 {
@@ -137,7 +137,7 @@ OutputControl::Output(
 HRESULT
 OutputControl::OutputVaList(
     ULONG Mask,
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     va_list Args
     )
 {
@@ -163,7 +163,7 @@ OutputControl::OutputVaList(
 
 HRESULT
 OutputControl::Output(
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     ...
     )
 {
@@ -179,7 +179,7 @@ OutputControl::Output(
 
 HRESULT
 OutputControl::OutErr(
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     ...
     )
 {
@@ -195,7 +195,7 @@ OutputControl::OutErr(
 
 HRESULT
 OutputControl::OutWarn(
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     ...
     )
 {
@@ -211,7 +211,7 @@ OutputControl::OutWarn(
 
 HRESULT
 OutputControl::OutVerb(
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     ...
     )
 {
@@ -227,7 +227,7 @@ OutputControl::OutVerb(
 
 HRESULT
 OutputControl::OutExtWarn(
-    __in PCSTR Format,
+    _In_ PCSTR Format,
     ...
     )
 {
@@ -324,9 +324,9 @@ OutputControl::SetInterrupt(
 
 HRESULT
 OutputControl::Evaluate(
-    __in PCSTR Expression,
+    _In_ PCSTR Expression,
     ULONG DesiredType,
-    __out PDEBUG_VALUE Value,
+    _Out_ PDEBUG_VALUE Value,
     __out_opt PULONG RemainderIndex
     )
 {
@@ -340,7 +340,7 @@ OutputControl::Evaluate(
 
 HRESULT
 OutputControl::Execute(
-    __in PCSTR Command,
+    _In_ PCSTR Command,
     ULONG Flags
     )
 {
@@ -352,9 +352,9 @@ OutputControl::Execute(
 
 HRESULT
 OutputControl::CoerceValue(
-    __in const DEBUG_VALUE *In,
+    _In_ const DEBUG_VALUE *In,
     ULONG OutType,
-    __out PDEBUG_VALUE Out
+    _Out_ PDEBUG_VALUE Out
     )
 {
     return (Control == NULL) ?
@@ -501,7 +501,7 @@ OutputState::Setup(
 
 HRESULT
 OutputState::Execute(
-    __in PCSTR pszCommand
+    _In_ PCSTR pszCommand
     )
 {
     HRESULT hr = hrInit;
@@ -538,7 +538,7 @@ HRESULT
 OutputState::OutputType(
     BOOL Physical,
     ULONG64 Offset,
-    __in PCSTR Type,
+    _In_ PCSTR Type,
     ULONG Flags
     )
 {
@@ -1218,7 +1218,7 @@ OutputFilter::ReplacementSpec::ReplacementSpec(
 __deref_out_opt OutputFilter::QuerySpec **
 OutputFilter::FindPrior(
     ULONG Flags,
-    __in PCSTR Query,
+    _In_ PCSTR Query,
     __deref_in_opt QuerySpec **List
     )
 {
@@ -1244,7 +1244,7 @@ OutputFilter::FindPrior(
 HRESULT
 OutputFilter::Replace(
     ULONG Flags,
-    __in PCSTR Query,
+    _In_ PCSTR Query,
     __in_opt PCSTR Replacement
     )
 {
@@ -1330,7 +1330,7 @@ OutputFilter::Replace(
 HRESULT
 OutputFilter::Skip(
     ULONG Flags,
-    __in PCSTR Query
+    _In_ PCSTR Query
     )
 {
     if (Query == NULL)

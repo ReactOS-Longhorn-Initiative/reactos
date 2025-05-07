@@ -24,8 +24,8 @@ NTSYSAPI
 ULONG
 __cdecl
 DbgPrintEx (
-    __in ULONG ComponentId,
-    __in ULONG Level,
+    _In_ ULONG ComponentId,
+    _In_ ULONG Level,
     __in_z __drv_formatString(printf) PCSTR Format,
     ...
     );

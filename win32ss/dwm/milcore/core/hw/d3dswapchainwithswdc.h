@@ -42,12 +42,12 @@ public:
 
     override HRESULT ReleaseDC(
         /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
-        __in HDC hdcBackBuffer
+        _In_ HDC hdcBackBuffer
         ) const;
 
 private:
     CD3DSwapChainWithSwDC(
-        __in HDC hdcPresentVia,
+        _In_ HDC hdcPresentVia,
         __in_range(>, 0) /*__out_range(==, this->m_cBackBuffers)*/ UINT cBackBuffers,
         __inout_ecount(1) IDirect3DSwapChain9 *pID3DSwapChain
         );

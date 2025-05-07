@@ -488,8 +488,8 @@ CDummyRenderTarget::CopyPalette(
 STDMETHODIMP
 CDummyRenderTarget::CopyPixels(
     __in_ecount_opt(1) const MILRect *prc,
-    __in UINT cbStride,
-    __in UINT cbBufferSize,
+    _In_ UINT cbStride,
+    _In_ UINT cbBufferSize,
     __out_ecount(cbBufferSize) BYTE *pvPixels
     )
 {
@@ -542,7 +542,7 @@ STDMETHODIMP
 CDummyRenderTarget::GetInvalidRegions(
     __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
     __out_ecount(1) UINT *pNumRegions,
-    __out bool *fWholeTargetInvalid    
+    _Out_ bool *fWholeTargetInvalid    
     )
 {
     *prgRegions = NULL;

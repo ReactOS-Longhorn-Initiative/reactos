@@ -33,7 +33,7 @@ public:
 
     CConnectionContext(
         MilMarshalType::Enum mType,
-        __in CMilConnection *pNotifTransport
+        _In_ CMilConnection *pNotifTransport
         );
 
     virtual ~CConnectionContext();
@@ -43,7 +43,7 @@ public:
     DECLARE_COM_BASE
 
     HRESULT PostMessageToClient(
-        __in const MIL_MESSAGE *Msg,
+        _In_ const MIL_MESSAGE *Msg,
         HMIL_CHANNEL hChannel);
 
     HRESULT PresentAllPartitions();
@@ -57,7 +57,7 @@ public:
 
 private:
 
-    HRESULT GetServerChannel(HMIL_CHANNEL hChannel, __out CMilServerChannel **ppServerChannel);
+    HRESULT GetServerChannel(HMIL_CHANNEL hChannel, _Out_ CMilServerChannel **ppServerChannel);
     
     HRESULT GetOwningComposition(
         HMIL_CHANNEL hSourceChannel,

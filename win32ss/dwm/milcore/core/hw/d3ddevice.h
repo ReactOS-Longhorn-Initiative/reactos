@@ -360,12 +360,12 @@ public:
         );
 
     HRESULT CreateVertexShader(
-        __in const DWORD *pdwfnVertexShader,
+        _In_ const DWORD *pdwfnVertexShader,
         __deref_out_ecount(1) IDirect3DVertexShader9 ** const ppOutShader
         );
 
     HRESULT CreatePixelShader(
-        __in const DWORD *pdwfnPixelShader,
+        _In_ const DWORD *pdwfnPixelShader,
         __deref_out_ecount(1) IDirect3DPixelShader9 **const ppOutShader
         );
 
@@ -682,7 +682,7 @@ public:
         __range(1, UINT_MAX) UINT uNumVertices,
         __range(1, UINT_MAX) UINT uPrimitiveCount,
         __in_xcount(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
-        __in const void* pVertexStreamZeroData,
+        _In_ const void* pVertexStreamZeroData,
         __range(1, UINT_MAX) UINT uVertexStreamZeroStride
         );
 
@@ -756,7 +756,7 @@ public:
     }
 
 #if DBG==1
-    static void DbgTraceDeviceCreationFailure(UINT uAdapter, __in PCSTR szMessage, HRESULT hrError);
+    static void DbgTraceDeviceCreationFailure(UINT uAdapter, _In_ PCSTR szMessage, HRESULT hrError);
     const IDirect3DDevice9* DbgGetID3DDevice9() const { return m_pD3DDevice; }
 #endif
 

@@ -89,7 +89,7 @@ Cancel(
 bool
 CStateThreadItem::
 IsAnOwner(
-    __in    IUnknown    *pIUnknown
+    _In_    IUnknown    *pIUnknown
     )
 {
     return false;
@@ -223,7 +223,7 @@ Cleanup:
 HRESULT
 CStateThread::
 CreateStateThread(
-    __in            CCriticalSection    *pCritSec,
+    _In_            CCriticalSection    *pCritSec,
     __deref_inout   CStateThread        **ppGlobalThread,
     __deref_out     CStateThread        **ppStateThread
         // The returned apartment thread
@@ -278,7 +278,7 @@ Cleanup:
 STDMETHODIMP
 CStateThread::
 QueryInterface(
-    __in        REFIID      riid,
+    _In_        REFIID      riid,
     __deref_out void        **ppv
     )
 {
@@ -398,7 +398,7 @@ Release(
 HRESULT
 CStateThread::
 AddItem(
-    __in    CStateThreadItem           *pStateThreadItem
+    _In_    CStateThreadItem           *pStateThreadItem
         // The appartment thread item to add
     )
 {
@@ -456,7 +456,7 @@ Cleanup:
 bool
 CStateThread::
 ReleaseItem(
-    __in    CStateThreadItem           *pStateThreadItem
+    _In_    CStateThreadItem           *pStateThreadItem
     )
 {
     TRACEFID(0, NULL);
@@ -505,7 +505,7 @@ GetThreadId(
 void
 CStateThread::
 CancelAllItemsWithOwner(
-    __in    IUnknown    *pIOwner
+    _In_    IUnknown    *pIOwner
     )
 {
     TRACEFID(0, NULL);
@@ -561,8 +561,8 @@ CancelAllItemsWithOwner(
 //
 CStateThread::
 CStateThread(
-    __in    CCriticalSection    *pLock,
-    __in    CStateThread        **ppGlobalReference
+    _In_    CCriticalSection    *pLock,
+    _In_    CStateThread        **ppGlobalReference
     ) : m_cRef(1),
         m_thread(NULL),
         m_signalEvent(NULL),
@@ -690,7 +690,7 @@ Cleanup:
 DWORD __stdcall
 CStateThread::
 ThreadThunk(
-    __in    void        *pThat
+    _In_    void        *pThat
     )
 {
     return

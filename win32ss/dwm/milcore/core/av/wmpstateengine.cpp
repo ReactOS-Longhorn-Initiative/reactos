@@ -47,10 +47,10 @@ MtDefine(SubArcMethodItem, Mem, "SubArcMethodItem");
 HRESULT
 CWmpStateEngine::
 Create(
-    __in        MediaInstance       *pMediaInstance,
+    _In_        MediaInstance       *pMediaInstance,
         // per media globals
-    __in        bool                canOpenAnyMedia,
-    __in        SharedState         *pSharedState,
+    _In_        bool                canOpenAnyMedia,
+    _In_        SharedState         *pSharedState,
     __deref_out CWmpStateEngine     **ppPlayerState
     )
 {
@@ -82,7 +82,7 @@ Cleanup:
 void
 CWmpStateEngine::
 SetHasAudio(
-    __in    bool            hasAudio
+    _In_    bool            hasAudio
     )
 {
     Assert(m_stateThreadId == GetCurrentThreadId());
@@ -99,7 +99,7 @@ SetHasAudio(
 void
 CWmpStateEngine::
 SetHasVideo(
-    __in    bool            hasVideo
+    _In_    bool            hasVideo
     )
 {
     Assert(m_stateThreadId == GetCurrentThreadId());
@@ -367,7 +367,7 @@ Cleanup:
 void
 CWmpStateEngine::
 SetMediaLength(
-    __in        double          length
+    _In_        double          length
     )
 {
     TRACEF(NULL);
@@ -473,7 +473,7 @@ UpdateNaturalWidth(
 void
 CWmpStateEngine::
 SetIsBuffering(
-    __in    bool    isBuffering
+    _In_    bool    isBuffering
     )
 {
     TRACEF(NULL);
@@ -500,7 +500,7 @@ SetIsBuffering(
 void
 CWmpStateEngine::
 SetCanPause(
-    __in    bool    canPause
+    _In_    bool    canPause
     )
 {
     TRACEF(NULL);
@@ -520,7 +520,7 @@ SetCanPause(
 void
 CWmpStateEngine::
 SetDownloadProgress(
-    __in    double  downloadProgress
+    _In_    double  downloadProgress
     )
 {
     TRACEF(NULL);
@@ -538,7 +538,7 @@ SetDownloadProgress(
 void
 CWmpStateEngine::
 SetBufferingProgress(
-    __in    double  bufferingProgress
+    _In_    double  bufferingProgress
     )
 {
     TRACEF(NULL);
@@ -596,7 +596,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetOcx(
-    __in    bool                isOcxCreated
+    _In_    bool                isOcxCreated
     )
 {
     HRESULT hr = S_OK;
@@ -619,7 +619,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetUrl(
-    __in    LPCWSTR             url
+    _In_    LPCWSTR             url
     )
 {
     HRESULT hr = S_OK;
@@ -647,7 +647,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetActionState(
-    __in    ActionState::Enum   actionState
+    _In_    ActionState::Enum   actionState
     )
 {
     HRESULT hr = S_OK;
@@ -670,7 +670,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetVolume(
-    __in    long                volume
+    _In_    long                volume
     )
 {
     HRESULT hr = S_OK;
@@ -693,7 +693,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetBalance(
-    __in    long                balance
+    _In_    long                balance
     )
 {
     HRESULT hr = S_OK;
@@ -716,7 +716,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetRate(
-    __in    double              rate
+    _In_    double              rate
     )
 {
     HRESULT hr = S_OK;
@@ -739,7 +739,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetSeekTo(
-    __in    Optional<double>    seekTo
+    _In_    Optional<double>    seekTo
     )
 {
     HRESULT hr = S_OK;
@@ -762,7 +762,7 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 SetTargetIsScrubbingEnabled(
-    __in    bool                isScrubbingEnabled
+    _In_    bool                isScrubbingEnabled
     )
 {
     TRACEF(NULL);
@@ -854,7 +854,7 @@ UpdateHasVideoForWmp11(
 void
 CWmpStateEngine::
 ErrorInTransition(
-    __in    HRESULT                 failureHr
+    _In_    HRESULT                 failureHr
         // HRESULT of failure.
     )
 {
@@ -916,7 +916,7 @@ Cleanup:
 void
 CWmpStateEngine::
 PlayerReachedActionState(
-    __in    WMPPlayState            state
+    _In_    WMPPlayState            state
         // The WMP player state
     )
 {
@@ -1003,7 +1003,7 @@ PlayerReachedActionState(
 void
 CWmpStateEngine::
 PlayerReachedOpenState(
-    __in    WMPOpenState            state
+    _In_    WMPOpenState            state
     )
 {
     HRESULT hr = S_OK;
@@ -1043,7 +1043,7 @@ Cleanup:
 void
 CWmpStateEngine::
 PlayerReachedPosition(
-    __in double newPosition
+    _In_ double newPosition
     )
 {
     TRACEF(NULL);
@@ -1072,7 +1072,7 @@ PlayerReachedPosition(
 HRESULT
 CWmpStateEngine::
 EvrReachedState(
-    __in    RenderState::Enum   renderState
+    _In_    RenderState::Enum   renderState
     )
 {
     LogAVDataM(
@@ -1101,7 +1101,7 @@ EvrReachedState(
 HRESULT
 CWmpStateEngine::
 ScrubSampleComposited(
-    __in    int                 placeHolder
+    _In_    int                 placeHolder
     )
 {
     HRESULT hr = S_OK;
@@ -1212,7 +1212,7 @@ NeedUIFrameUpdate(
 HRESULT
 CWmpStateEngine::
 Shutdown(
-    __in    int     placeholder
+    _In_    int     placeholder
     )
 {
     TRACEF(NULL);
@@ -1294,9 +1294,9 @@ Run(
 //
 CWmpStateEngine::
 CWmpStateEngine(
-    __in        MediaInstance           *pMediaInstance,
-    __in        bool                    canOpenAnyMedia,
-    __in        SharedState         *pSharedState
+    _In_        MediaInstance           *pMediaInstance,
+    _In_        bool                    canOpenAnyMedia,
+    _In_        SharedState         *pSharedState
     ) : m_uiID(pMediaInstance->GetID()),
         m_pDummyRenderer(NULL),
         m_pIWMPPlayer(NULL),
@@ -1816,7 +1816,7 @@ RemoveOcx(
 HRESULT
 CWmpStateEngine::
 CheckPlayerVersion(
-    __in            IWMPPlayer          *pIWmpPlayer
+    _In_            IWMPPlayer          *pIWmpPlayer
     )
 {
     HRESULT hr = S_OK;
@@ -4223,7 +4223,7 @@ Cleanup:
 Optional<ActionState::Enum>
 CWmpStateEngine::
 MapWmpStateEngine(
-    __in                        WMPPlayState                playerState
+    _In_                        WMPPlayState                playerState
     )
 {
     static const struct
@@ -4303,8 +4303,8 @@ Cleanup:
 HRESULT
 CWmpStateEngine::
 RaiseEvent(
-    __in    AVEvent     event,
-    __in    HRESULT     failureHr
+    _In_    AVEvent     event,
+    _In_    HRESULT     failureHr
     )
 {
     HRESULT hr = S_OK;
@@ -4580,7 +4580,7 @@ IsEmpty(
 HRESULT
 CWmpStateEngine::
 SetSafeForScripting(
-    __in        IWMPPlayer       *pIWMPMedia
+    _In_        IWMPPlayer       *pIWMPMedia
     )
 {
     HRESULT         hr = S_OK;

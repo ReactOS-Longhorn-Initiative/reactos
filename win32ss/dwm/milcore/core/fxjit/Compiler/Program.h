@@ -183,7 +183,7 @@ class CProgram : public CFlushObject
 public:
 
     static __checkReturn HRESULT Create(
-        __in UINT16 usCallParametersSize,
+        _In_ UINT16 usCallParametersSize,
         __deref_out CProgram **ppProgram
         );
 
@@ -208,11 +208,11 @@ public:
     void MergeFlow();
 
     SOperator * AddOperator(
-        __in OpType ot = otNone,
-        __in UINT32 vResult = 0,
-        __in UINT32 vOperand1 = 0,
-        __in UINT32 vOperand2 = 0,
-        __in UINT32 vOperand3 = 0
+        _In_ OpType ot = otNone,
+        _In_ UINT32 vResult = 0,
+        _In_ UINT32 vOperand1 = 0,
+        _In_ UINT32 vOperand2 = 0,
+        _In_ UINT32 vOperand3 = 0
         );
 
     void AddReturnOperator();
@@ -237,7 +237,7 @@ public:
 
     UINT32 GetCodeSize() const { return m_uCodeSize; }
 
-    SOperator * GetOperator(__in UINT32 uIndex)
+    SOperator * GetOperator(_In_ UINT32 uIndex)
     {
         WarpAssert(uIndex < m_uOperatorsCount);
         return m_prgOperators[uIndex];

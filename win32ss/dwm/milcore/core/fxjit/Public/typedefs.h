@@ -1263,7 +1263,7 @@ __success(return!=0)
 BOOL
 WINAPI
 GetComputerNameExW (
-    __in    COMPUTER_NAME_FORMAT NameType,
+    _In_    COMPUTER_NAME_FORMAT NameType,
     __out_ecount_part(*nSize, (*nSize + 1)) LPWSTR lpBuffer,
     __inout LPDWORD nSize
     );
@@ -1357,7 +1357,7 @@ EXTERN_C const IID IID_IUnknown;
     {
     public:
         virtual __checkReturn HRESULT STDMETHODCALLTYPE QueryInterface(
-            __in REFIID riid,
+            _In_ REFIID riid,
             __deref_out void **ppvObject) = 0;
 
         virtual ULONG STDMETHODCALLTYPE AddRef( void) = 0;

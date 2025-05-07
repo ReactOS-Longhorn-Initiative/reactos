@@ -155,29 +155,29 @@ private:
         );
 
     HRESULT PushBoundsAffectingProperties(
-        __in CMilVisual *pNode
+        _In_ CMilVisual *pNode
         );
 
     void PopBoundsAffectingProperties(
-        __in CMilVisual const *pNode
+        _In_ CMilVisual const *pNode
         );
 
     HRESULT PushCache(
-        __in CMilVisual *pNode
+        _In_ CMilVisual *pNode
         );
 
     HRESULT PopCache(
-        __in CMilVisual *pNode
+        _In_ CMilVisual *pNode
         );
 
     HRESULT ScrollableAreaHandling(
-        __in CMilVisual *pNode,
-        __in CDirtyRegion2 *pDirtyRegion,
-        __out bool *pScrollOccurred
+        _In_ CMilVisual *pNode,
+        _In_ CDirtyRegion2 *pDirtyRegion,
+        _Out_ bool *pScrollOccurred
         );
 
     bool ScrollHandlingRequired(
-        __in CMilVisual const *pNode
+        _In_ CMilVisual const *pNode
         );
 
     bool EffectsInParentChain() const 

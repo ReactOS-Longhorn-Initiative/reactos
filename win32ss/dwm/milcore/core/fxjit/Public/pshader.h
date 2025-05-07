@@ -38,9 +38,9 @@ class CPixelShaderCompiler
 {
 public:
     static PS_HRESULT Create(
-        __in void* pCode,
-        __in unsigned uByteCodeSize,
-        __out CPixelShaderCompiler **ppPixelShaderCompiler
+        _In_ void* pCode,
+        _In_ unsigned uByteCodeSize,
+        _Out_ CPixelShaderCompiler **ppPixelShaderCompiler
         );
 
     unsigned AddRef();
@@ -56,42 +56,42 @@ private:
     ~CPixelShaderCompiler();
 
     PS_HRESULT Init(
-        __in void *pCode,
-        __in unsigned uByteCodeSize
+        _In_ void *pCode,
+        _In_ unsigned uByteCodeSize
         );
 
     PS_HRESULT Compile(
-        __out GenerateColorsEffect **ppfn
+        _Out_ GenerateColorsEffect **ppfn
         );
 
-    PS_HRESULT LoadTextureVariables(__in P_u8 *pPixelShaderState);
+    PS_HRESULT LoadTextureVariables(_In_ P_u8 *pPixelShaderState);
 
-    PS_HRESULT LoadShaderConstants(__in int nChannel, __inout CPixelShaderRegisters *pShaderRegisters);
+    PS_HRESULT LoadShaderConstants(_In_ int nChannel, __inout CPixelShaderRegisters *pShaderRegisters);
 
     PS_HRESULT ComputeEval(
-        __in  const P_u8 *pPixelShaderState,
-        __in  const C_u32 *puX,
-        __in  const C_u32 *puY,
-        __out C_f32x4  *pEvalRight,
-        __out C_f32x4  *pEvalDeltaRight,
-        __out C_f32x4  *pEvalDown,
-        __out C_f32x4  *pEvalDeltaDown
+        _In_  const P_u8 *pPixelShaderState,
+        _In_  const C_u32 *puX,
+        _In_  const C_u32 *puY,
+        _Out_ C_f32x4  *pEvalRight,
+        _Out_ C_f32x4  *pEvalDeltaRight,
+        _Out_ C_f32x4  *pEvalDown,
+        _Out_ C_f32x4  *pEvalDeltaDown
         );
 
     PS_HRESULT CompileInstruction(
-        __in int i,                                         // channel
-        __in PSTRINST_BASE_PARAMS* pBaseInstr,              // instruction
+        _In_ int i,                                         // channel
+        _In_ PSTRINST_BASE_PARAMS* pBaseInstr,              // instruction
         __inout CInstructionVariables *pInstructionVars     // variables used by instruction compiler
         );
 
     PS_HRESULT CompileDependentInstruction(
-        __in PSTRINST_BASE_PARAMS* pBaseInstr,              // instruction
+        _In_ PSTRINST_BASE_PARAMS* pBaseInstr,              // instruction
         __inout CInstructionVariables *pInstructionVars     // variables used by instruction compiler
         );
 
     PS_HRESULT PreloadConstant(
-        __in int i,                                         // channel
-        __in PSTRINST_BASE_PARAMS* pBaseInstr,              // instruction
+        _In_ int i,                                         // channel
+        _In_ PSTRINST_BASE_PARAMS* pBaseInstr,              // instruction
         __inout CInstructionVariables *pInstructionVars     // variables used by instruction compiler
         );
 

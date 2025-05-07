@@ -35,7 +35,7 @@ protected:
     
     virtual ~CMilTranslateTransformDuce();
 
-    CMilTranslateTransformDuce(__in MilPoint2F *pTransformBy) 
+    CMilTranslateTransformDuce(_In_ MilPoint2F *pTransformBy) 
     { 
         m_data.m_pXAnimation = m_data.m_pYAnimation = NULL;
         m_data.m_X = pTransformBy->X;

@@ -24,7 +24,7 @@
 inline
 HRESULT 
 IsSupportedWmpReturn(
-    __in    HRESULT     hr
+    _In_    HRESULT     hr
     )
 {
     // convert this "success" code to a failure
@@ -41,8 +41,8 @@ IsSupportedWmpReturn(
 inline
 HRESULT
 SysAllocStringCheck(
-    __in    PCWSTR          pszString,
-    __out   BSTR            *pbstrString
+    _In_    PCWSTR          pszString,
+    _Out_   BSTR            *pbstrString
     )
 {
     HRESULT     hr = S_OK;
@@ -73,7 +73,7 @@ SmartRelease(
 inline
 D3DFORMAT
 FormatFromMediaType(
-    __in        IMFVideoMediaType   *pIVideoMediaType
+    _In_        IMFVideoMediaType   *pIVideoMediaType
     )
 {
     return static_cast<D3DFORMAT>(pIVideoMediaType->GetVideoFormat()->guidFormat.Data1);

@@ -30,7 +30,7 @@ MtDefine(DummySurfaceRenderer, Mem, "DummySurfaceRenderer");
 HRESULT
 DummySurfaceRenderer::
 Create(
-    __in        MediaInstance           *pMediaInstance,
+    _In_        MediaInstance           *pMediaInstance,
     __deref_out DummySurfaceRenderer    **ppDummySurfaceRenderer
     )
 {
@@ -66,11 +66,11 @@ Cleanup:
 STDMETHODIMP
 DummySurfaceRenderer::
 BeginComposition(
-    __in    CMilSlaveVideo  *pCaller,
-    __in    BOOL            displaySetChanged,
-    __in    BOOL            syncChannel,
+    _In_    CMilSlaveVideo  *pCaller,
+    _In_    BOOL            displaySetChanged,
+    _In_    BOOL            syncChannel,
     __inout LONGLONG        *pLastCompositionSampleTime,
-    __out   BOOL            *pbFrameReady
+    _Out_   BOOL            *pbFrameReady
     )
 {
     HRESULT     hr = S_OK;
@@ -123,7 +123,7 @@ EndRender(
 
 STDMETHODIMP
 DummySurfaceRenderer::EndComposition(
-    __in    CMilSlaveVideo  *pCaller
+    _In_    CMilSlaveVideo  *pCaller
     )
 {
     return S_OK;
@@ -179,7 +179,7 @@ Cleanup:
 void
 DummySurfaceRenderer::
 SetIDirect3DDevice9(
-    __in IDirect3DDevice9 *pIDirect3DDevice9
+    _In_ IDirect3DDevice9 *pIDirect3DDevice9
     )
 {
     //
@@ -236,7 +236,7 @@ Cleanup:
 //
 DummySurfaceRenderer::
 DummySurfaceRenderer(
-    __in        MediaInstance       *pMediaInstance
+    _In_        MediaInstance       *pMediaInstance
     ) : m_uiID(pMediaInstance->GetID()),
         m_pMediaInstance(NULL),
         m_pDummySource(NULL),
@@ -259,8 +259,8 @@ DummySurfaceRenderer::
 HRESULT
 DummySurfaceRenderer::
 InitializeDummySource(
-    __in    UINT    width,
-    __in    UINT    height
+    _In_    UINT    width,
+    _In_    UINT    height
     )
 {
     HRESULT         hr = S_OK;
@@ -287,8 +287,8 @@ Cleanup:
 void
 DummySurfaceRenderer::
 ForceFrameUpdate(
-    __in    UINT    mediaWidth,
-    __in    UINT    mediaHeight
+    _In_    UINT    mediaWidth,
+    _In_    UINT    mediaHeight
     )
 {
     HRESULT hr = S_OK;

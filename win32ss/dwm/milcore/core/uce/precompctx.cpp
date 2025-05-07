@@ -674,7 +674,7 @@ Cleanup:
 //-----------------------------------------------------------------------------
 HRESULT
 CPreComputeContext::PushBoundsAffectingProperties(
-    __in CMilVisual *pNode
+    _In_ CMilVisual *pNode
     )
 {
     HRESULT hr = S_OK;
@@ -755,7 +755,7 @@ Cleanup:
 //-----------------------------------------------------------------------------
 void
 CPreComputeContext::PopBoundsAffectingProperties(
-    __in CMilVisual const *pNode
+    _In_ CMilVisual const *pNode
     )
 {
     if (pNode->m_pTransform != NULL) 
@@ -792,7 +792,7 @@ CPreComputeContext::PopBoundsAffectingProperties(
 //-----------------------------------------------------------------------------
 HRESULT
 CPreComputeContext::PushCache(
-    __in CMilVisual *pNode
+    _In_ CMilVisual *pNode
     )
 {
     HRESULT hr = S_OK;
@@ -823,7 +823,7 @@ Cleanup:
 //-----------------------------------------------------------------------------
 HRESULT 
 CPreComputeContext::PopCache(
-    __in CMilVisual *pNode
+    _In_ CMilVisual *pNode
     )
 {
     HRESULT hr = S_OK;
@@ -1064,9 +1064,9 @@ Cleanup:
 //=============================================================================
 
 HRESULT CPreComputeContext::ScrollableAreaHandling(
-    __in CMilVisual *pNode,
-    __in CDirtyRegion2 *pDirtyRegion,
-    __out bool *pScrollOccurred
+    _In_ CMilVisual *pNode,
+    _In_ CDirtyRegion2 *pDirtyRegion,
+    _Out_ bool *pScrollOccurred
 )
 {
     HRESULT hr = S_OK;
@@ -1254,7 +1254,7 @@ Cleanup:
 
 bool 
 CPreComputeContext::ScrollHandlingRequired(
-        __in CMilVisual const *pNode
+        _In_ CMilVisual const *pNode
         )
 {
     return (   pNode->CanBeScrolled() 

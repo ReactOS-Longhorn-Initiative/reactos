@@ -193,10 +193,10 @@ CMilShaderEffectDuce::TransformBoundsForInflation(__inout CMilRectF *bounds)
 
 HRESULT 
 CMilShaderEffectDuce::ApplyEffect(
-    __in CContextState *pContextState, 
-    __in CHwSurfaceRenderTarget *pDestRT,
-    __in CMILMatrix *pScaleTransform,
-    __in CD3DDeviceLevel1 *pDevice, 
+    _In_ CContextState *pContextState, 
+    _In_ CHwSurfaceRenderTarget *pDestRT,
+    _In_ CMILMatrix *pScaleTransform,
+    _In_ CD3DDeviceLevel1 *pDevice, 
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
     __in_opt CHwTextureRenderTarget *pImplicitInput
@@ -306,7 +306,7 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::ResetTextureStagesHw(
-    __in CD3DDeviceLevel1 *pDevice
+    _In_ CD3DDeviceLevel1 *pDevice
     )
 {
     HRESULT hr = S_OK;
@@ -332,12 +332,12 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::SendShaderSamplersSw(
-    __in CContextState *pContextState,
-    __in CSwRenderTargetSurface *pDestRT,
+    _In_ CContextState *pContextState,
+    _In_ CSwRenderTargetSurface *pDestRT,
     __in_opt IWGXBitmap *pImplicitInputTexture,
     float implicitInputWidth,
     float implicitInputHeight,
-    __in const CMILMatrix *pScaleTransform)
+    _In_ const CMILMatrix *pScaleTransform)
 {
     //
     // OVERVIEW: 
@@ -418,8 +418,8 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::PrepareCacheBrushSamplerSw(
-    __in CMilBitmapCacheBrushDuce *pBrush,
-    __in CSwRenderTargetSurface *pDestRT, 
+    _In_ CMilBitmapCacheBrushDuce *pBrush,
+    _In_ CSwRenderTargetSurface *pDestRT, 
     __deref_out_opt IWGXBitmap** ppBrushSwTexture
     )
 {
@@ -487,12 +487,12 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::PrepareTileBrushSamplerSw(
-    __in CContextState *pContextState,
-    __in CMilBrushDuce *pBrush, 
-    __in CSwRenderTargetSurface *pDestRT,
+    _In_ CContextState *pContextState,
+    _In_ CMilBrushDuce *pBrush, 
+    _In_ CSwRenderTargetSurface *pDestRT,
     float implicitInputWidth,
     float implicitInputHeight,
-    __in const CMILMatrix *pScaleTransform,
+    _In_ const CMILMatrix *pScaleTransform,
     __deref_out IWGXBitmap** ppBrushSwTexture
     )
 {
@@ -534,13 +534,13 @@ Cleanup:
 
 HRESULT
 CMilShaderEffectDuce::SendShaderSamplersHw(
-    __in CContextState *pContextState,
-    __in CD3DDeviceLevel1 *pDevice,
-    __in CHwSurfaceRenderTarget *pDestRT,
+    _In_ CContextState *pContextState,
+    _In_ CD3DDeviceLevel1 *pDevice,
+    _In_ CHwSurfaceRenderTarget *pDestRT,
     __in_opt CD3DVidMemOnlyTexture* pImplicitInputTexture,
     float implicitInputWidth,
     float implicitInputHeight,
-    __in const CMILMatrix *pScaleTransform
+    _In_ const CMILMatrix *pScaleTransform
     )
 {
     //
@@ -659,9 +659,9 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::PrepareCacheBrushSamplerHw(
-    __in CMilBitmapCacheBrushDuce *pBrush,
-    __in CD3DDeviceLevel1 *pDevice,
-    __in CHwSurfaceRenderTarget *pDestRT, 
+    _In_ CMilBitmapCacheBrushDuce *pBrush,
+    _In_ CD3DDeviceLevel1 *pDevice,
+    _In_ CHwSurfaceRenderTarget *pDestRT, 
     __deref_out CD3DVidMemOnlyTexture** ppBrushTexture
     )
 {
@@ -747,12 +747,12 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::PrepareTileBrushSamplerHw(
-    __in CContextState *pContextState,
-    __in CMilBrushDuce *pBrush, 
-    __in CHwSurfaceRenderTarget *pDestRT, 
+    _In_ CContextState *pContextState,
+    _In_ CMilBrushDuce *pBrush, 
+    _In_ CHwSurfaceRenderTarget *pDestRT, 
     float implicitInputWidth,
     float implicitInputHeight,
-    __in const CMILMatrix *pScaleTransform,
+    _In_ const CMILMatrix *pScaleTransform,
     __deref_out CD3DVidMemOnlyTexture** ppBrushTexture
     )
 {
@@ -792,12 +792,12 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::DrawIntoIntermediate(
-    __in CContextState *pContextState,
-    __in CMilBrushDuce *pBrush, 
-    __in IRenderTargetInternal *pDestRT, 
+    _In_ CContextState *pContextState,
+    _In_ CMilBrushDuce *pBrush, 
+    _In_ IRenderTargetInternal *pDestRT, 
     float implicitInputWidth,
     float implicitInputHeight,
-    __in const CMILMatrix *pScaleTransform,
+    _In_ const CMILMatrix *pScaleTransform,
     __deref_out IMILRenderTargetBitmap** ppTexture
     )
 {
@@ -949,9 +949,9 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::ApplyEffectSw(
-    __in CContextState *pContextState,
-    __in CSwRenderTargetSurface *pDestRT,
-    __in CMILMatrix *pScaleTransform, 
+    _In_ CContextState *pContextState,
+    _In_ CSwRenderTargetSurface *pDestRT,
+    _In_ CMILMatrix *pScaleTransform, 
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
     __in_opt IWGXBitmap *pImplicitInput
@@ -1025,7 +1025,7 @@ Cleanup:
 
 HRESULT 
 CMilShaderEffectDuce::PrepareSoftwarePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
         )

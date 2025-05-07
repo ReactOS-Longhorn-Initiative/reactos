@@ -60,8 +60,8 @@ CCodeGen::~CCodeGen()
 //-----------------------------------------------------------------------------
 HRESULT
 CCodeGen::Initialize(
-    __in char const *pszFileNameCpp,
-    __in char const *pszFileNameHpp
+    _In_ char const *pszFileNameCpp,
+    _In_ char const *pszFileNameHpp
     )
 {
     HRESULT hr = S_OK;
@@ -121,8 +121,8 @@ char const CCodeGen::sc_szTitle[] =
 //-----------------------------------------------------------------------------
 HRESULT
 CCodeGen::CompileEffect(
-    __in WCHAR const *pszEffectFileName,
-    __in char const *pszEffectName
+    _In_ WCHAR const *pszEffectFileName,
+    _In_ char const *pszEffectName
     )
 {
     HRESULT hr = S_OK;
@@ -337,7 +337,7 @@ CCodeGen::WriteVertexShader()
 //-----------------------------------------------------------------------------
 void
 CCodeGen::WriteDwordArray(
-    __in DWORD const *pFunction
+    _In_ DWORD const *pFunction
     )
 {
     // open array data

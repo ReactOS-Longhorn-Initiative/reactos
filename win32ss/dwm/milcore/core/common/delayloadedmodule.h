@@ -134,7 +134,7 @@ public:
         RRETURN(hr);
     }
 
-    __out HMODULE Handle() const
+    _Out_ HMODULE Handle() const
     {
         Assert(SUCCEEDED(m_hrLoad));
         return m_hModule;
@@ -142,7 +142,7 @@ public:
 
     FARPROC
     GetProcAddress(
-        __in PCSTR pProcName
+        _In_ PCSTR pProcName
         ) const
     {
         Assert(SUCCEEDED(m_hrLoad));
@@ -151,7 +151,7 @@ public:
 
     FARPROC
     LoadProcAddress(
-        __in PCSTR pProcName
+        _In_ PCSTR pProcName
         )
     {
         return SUCCEEDED(Load()) ? ::GetProcAddress(m_hModule, pProcName) : NULL;

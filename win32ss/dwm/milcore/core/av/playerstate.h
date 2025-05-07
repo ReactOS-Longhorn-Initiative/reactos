@@ -57,7 +57,7 @@ struct Optional
     inline
     Optional &
     operator=(
-        __in  T value
+        _In_  T value
         );
 
     bool DoesMatch(T value) const;
@@ -89,21 +89,21 @@ struct OptionalString
 
     HRESULT
     ApplyAsMask(
-        __in        PCWSTR      uri,
+        _In_        PCWSTR      uri,
         __deref_out PWSTR       *pRet
         ) const;
 };
 
 template <class T>
 bool operator==(
-    __in    Optional<T>     &o1,
-    __in    Optional<T>     &o2
+    _In_    Optional<T>     &o1,
+    _In_    Optional<T>     &o2
     );
 
 template <class T>
 bool operator!=(
-    __in    Optional<T>     &o1,
-    __in    Optional<T>     &o2
+    _In_    Optional<T>     &o1,
+    _In_    Optional<T>     &o2
     );
 
 //
@@ -132,13 +132,13 @@ struct PlayerState
 
     HRESULT
     Copy(
-        __out PlayerState *
+        _Out_ PlayerState *
         ) const;
 
     void
     DumpPlayerState(
-        __in UINT       uiID,
-        __in char       *description
+        _In_ UINT       uiID,
+        _In_ char       *description
         ) const;
 
 private:
@@ -147,25 +147,25 @@ private:
     // Copy
     //
     PlayerState(
-        __in PlayerState &
+        _In_ PlayerState &
         );
 
     PlayerState &
     operator=(
-        __in PlayerState &
+        _In_ PlayerState &
         );
 
     static const long msc_defaultWmpVolume = 100;
 };
 
 bool operator==(
-    __in    PlayerState     &ps1,
-    __in    PlayerState     &ps2
+    _In_    PlayerState     &ps1,
+    _In_    PlayerState     &ps2
     );
 
 bool operator!=(
-    __in    PlayerState     &ps1,
-    __in    PlayerState     &ps2
+    _In_    PlayerState     &ps1,
+    _In_    PlayerState     &ps2
     );
 
 bool

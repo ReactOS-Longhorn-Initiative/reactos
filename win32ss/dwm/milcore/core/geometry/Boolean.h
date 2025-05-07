@@ -161,9 +161,9 @@ public:
     COutline(
         __inout_ecount_opt(1) IShapeBuilder *pResult,
             // The recepient of the resulting shape (NULL okay)
-        __in bool fRetrieveCurves=true,
+        _In_ bool fRetrieveCurves=true,
             // Retrieve curves if true
-        __in double rTolerance=0);
+        _In_ double rTolerance=0);
             // Curve retrieval error tolerance
 
     virtual ~COutline()
@@ -393,11 +393,11 @@ public:
     CBoolean(
         __inout_ecount_opt(1) IShapeBuilder *pResult,
             // The recepient of the result of the oeration (NULL okay)
-        __in MilCombineMode::Enum  eOperation,
+        _In_ MilCombineMode::Enum  eOperation,
             // The Boolean operation
-        __in bool fRetrieveCurves=true,
+        _In_ bool fRetrieveCurves=true,
             // Retrieve curves if true
-        __in double rTolerance=0)
+        _In_ double rTolerance=0)
             // Curve retrieval error tolerance
         :COutline(pResult, fRetrieveCurves, rTolerance),
          m_oBoolClassifier(eOperation)

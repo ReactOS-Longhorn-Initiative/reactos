@@ -1254,7 +1254,7 @@ void ExtendBaseByAdjacentSectionsOfRect(
         rcPossibleExtension.bottom : rcBase.bottom;
 }
 
-inline CMilRectF MilRectLToMilRectF(__in const CMilRectL &rc)
+inline CMilRectF MilRectLToMilRectF(_In_ const CMilRectL &rc)
 {
     CMilRectF output(
         static_cast<float>(rc.left),

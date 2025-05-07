@@ -153,7 +153,7 @@ public:
     // This method is used to determine if the render target is being
     // used to render, or if it's merely being used for bounds accumulation,
     // hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType) 
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType) 
     { 
         *pRenderTargetType = DummyRenderTarget; 
         RRETURN(S_OK);
@@ -162,7 +162,7 @@ public:
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHOD(SetClearTypeHint)(
-        __in bool forceClearType
+        _In_ bool forceClearType
         )
     {
         RRETURN(S_OK);
@@ -200,7 +200,7 @@ public:
     override STDMETHOD(GetInvalidRegions)(
         __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
         __out_ecount(1) UINT *pNumRegions,
-        __out bool *fWholeTargetInvalid
+        _Out_ bool *fWholeTargetInvalid
         );
 
     override STDMETHOD(UpdatePresentProperties)(
@@ -268,8 +268,8 @@ public:
 
     override STDMETHOD(CopyPixels)(
         __in_ecount_opt(1) const MILRect *prc,
-        __in UINT cbStride,
-        __in UINT cbBufferSize,
+        _In_ UINT cbStride,
+        _In_ UINT cbBufferSize,
         __out_ecount(cbBufferSize) BYTE *pvPixels
         );
 

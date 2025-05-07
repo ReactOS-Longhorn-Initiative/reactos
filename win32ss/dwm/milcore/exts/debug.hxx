@@ -100,13 +100,13 @@ HRESULT ResolveHMilResource(
     PDEBUG_CLIENT Client,
     ULONG64 ulhResource,
     ULONG64 ulpMilChannel,
-    __out ULONG64* pulpHANDLE_ENTRY
+    _Out_ ULONG64* pulpHANDLE_ENTRY
     );
 
 HRESULT LookupCMilWindowContext(
     PDEBUG_CLIENT Client,
     ULONG64 hwnd,
-    __out ULONG64* pulpCMilWindowContext
+    _Out_ ULONG64* pulpCMilWindowContext
     );
 
 

@@ -89,12 +89,12 @@ protected:
     HRESULT InitializeTexture(
         __in_ecount(1) const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         __in_ecount(3) const MilPoint2F *pGradientPoints,
-        __in BOOL fRadialGradient,
+        _In_ BOOL fRadialGradient,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode,
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode,
         __out_ecount(1) CMILMatrix *pmatDeviceIPCtoGradientTextureHPC 
         );
 
@@ -158,9 +158,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode
         );
 
 
@@ -173,9 +173,9 @@ protected:
     INT MatrixValueToFix16(FLOAT value);
 
     MIL_FORCEINLINE void GenerateColorsInit(
-        __in INT nX,
-        __in INT nY,
-        __in INT nCount,
+        _In_ INT nX,
+        _In_ INT nY,
+        _In_ INT nCount,
         __out_ecount(1) INT *pnTexturePositionIPC,
         __out_ecount(1) INT *pnXIncrement
         );
@@ -183,9 +183,9 @@ protected:
 private:
 
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
     
@@ -221,9 +221,9 @@ protected:
 
 void
 CLinearGradientBrushSpan::GenerateColorsInit(
-    __in INT nX,
-    __in INT nY,
-    __in INT nCount,
+    _In_ INT nX,
+    _In_ INT nY,
+    _In_ INT nCount,
     __out_ecount(1) INT *pnTexturePositionIPC,
     __out_ecount(1) INT *pnXIncrement
     )
@@ -295,9 +295,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode
         );
 
     virtual ScanOpFunc GetScanOp() const { return ColorSource_LinearGradient_32bppPARGB_MMX; }
@@ -305,9 +305,9 @@ public:
 private:
     
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
     
@@ -340,9 +340,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode
         );
 
     virtual ScanOpFunc GetScanOp() const { return ColorSource_RadialGradient_32bppPARGB; }
@@ -365,9 +365,9 @@ private:
     
     template<typename TPlatform>
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
     
@@ -399,9 +399,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode,
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode,
         __in_ecount(1) const MilPoint2F *pFocalPoint
         );
 
@@ -427,9 +427,9 @@ private:
         ) const;
 
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
 
@@ -450,7 +450,7 @@ public:
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CShaderEffectBrushSpan));
 
     HRESULT Initialize(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush);
 
 
@@ -461,9 +461,9 @@ public:
 private:
 
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
 

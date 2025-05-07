@@ -63,10 +63,10 @@ public:
     static
     HRESULT
     Create(
-        __in    MediaInstance           *pMediaInstance,
-        __in    UINT                    resetToken,
-        __in    CWmpStateEngine         *pWmpStateEngine,
-        __in    CDXVAManagerWrapper     *pDXVAManagerWrapper,
+        _In_    MediaInstance           *pMediaInstance,
+        _In_    UINT                    resetToken,
+        _In_    CWmpStateEngine         *pWmpStateEngine,
+        _In_    CDXVAManagerWrapper     *pDXVAManagerWrapper,
         __deref_out EvrPresenterObj     **ppEvrPresenter
         );
 
@@ -98,7 +98,7 @@ public:
     // IMFTopologyServiceLookupClient
     //
     STDMETHOD(InitServicePointers)(
-        __in        IMFTopologyServiceLookup        *pILookup
+        _In_        IMFTopologyServiceLookup        *pILookup
         );
 
     STDMETHOD(ReleaseServicePointers)(
@@ -136,13 +136,13 @@ public:
     STDMETHOD(GetSlowestRate)(
         MFRATE_DIRECTION    direction,
         BOOL                fAllowThinning,
-        __out               float *pflRate
+        _Out_               float *pflRate
         );
 
     STDMETHOD(GetFastestRate)(
         MFRATE_DIRECTION    direction,
         BOOL                fAllowThinning,
-        __out               float *pflRate
+        _Out_               float *pflRate
         );
 
     STDMETHOD(IsRateSupported)(
@@ -155,8 +155,8 @@ public:
     // IMFGetService
     //
     STDMETHOD(GetService)(
-        __in        REFGUID guidService,
-        __in        REFIID  riid,
+        _In_        REFGUID guidService,
+        _In_        REFIID  riid,
         __deref_out LPVOID  *ppvObject
         );
 
@@ -180,19 +180,19 @@ public:
 
     STDMETHOD(GetVideoPosition)(
         __inout_opt MFVideoNormalizedRect *pnrcSource,
-        __out       LPRECT               prcDest
+        _Out_       LPRECT               prcDest
         );
 
     STDMETHOD(SetAspectRatioMode)(
-        __in        DWORD                dwAspectRatioMode
+        _In_        DWORD                dwAspectRatioMode
         );
 
     STDMETHOD(GetAspectRatioMode)(
-        __out       DWORD                *pdwAspectRatioMode
+        _Out_       DWORD                *pdwAspectRatioMode
         );
 
     STDMETHOD(SetVideoWindow)(
-        __in        HWND                 hwndVideo
+        _In_        HWND                 hwndVideo
         );
 
     STDMETHOD(GetVideoWindow)(
@@ -205,32 +205,32 @@ public:
     STDMETHOD(GetCurrentImage)(
         __inout     BITMAPINFOHEADER    *pBih,
         __deref_out BYTE                **pDib,
-        __out       DWORD               *pcbDib,
+        _Out_       DWORD               *pcbDib,
         __inout_opt LONGLONG            *pTimeStamp
         ) NOTIMPL_METHOD;
 
     STDMETHOD(SetBorderColor)(
-        __in        COLORREF            Clr
+        _In_        COLORREF            Clr
         ) NOTIMPL_METHOD;
 
     STDMETHOD(GetBorderColor)(
-        __out       COLORREF            *pClr
+        _Out_       COLORREF            *pClr
         ) NOTIMPL_METHOD;
 
     STDMETHOD(SetRenderingPrefs)(
-        __in        DWORD               dwRenderFlags
+        _In_        DWORD               dwRenderFlags
         );
 
     STDMETHOD(GetRenderingPrefs)(
-        __out       DWORD               *pdwRenderFlags
+        _Out_       DWORD               *pdwRenderFlags
         );
 
     STDMETHOD(SetFullscreen)(
-        __in        BOOL                fFullscreen
+        _In_        BOOL                fFullscreen
         );
 
     STDMETHOD(GetFullscreen)(
-        __out       BOOL                *pfFullscreen
+        _Out_       BOOL                *pfFullscreen
         );
 
     //
@@ -258,8 +258,8 @@ public:
 
     HRESULT
     SignalMixer(
-        __in    DWORD                   continuityKey,
-        __in    LONGLONG                timeToSignal
+        _In_    DWORD                   continuityKey,
+        _In_    LONGLONG                timeToSignal
         );
 
     HRESULT
@@ -269,14 +269,14 @@ public:
 
     HRESULT
     NewMixerDevice(
-        __in    CD3DDeviceLevel1        *pRenderDevice,
-        __in    CD3DDeviceLevel1        *pMixerDevice,
-        __in    D3DDEVTYPE              devType
+        _In_    CD3DDeviceLevel1        *pRenderDevice,
+        _In_    CD3DDeviceLevel1        *pMixerDevice,
+        _In_    D3DDEVTYPE              devType
         );
 
     HRESULT
     TimeCallback(
-        __in    IMFAsyncResult          *pIAsyncResult
+        _In_    IMFAsyncResult          *pIAsyncResult
         );
 
     HRESULT
@@ -287,19 +287,19 @@ public:
     static inline
     bool
     IsSoftwareFallbackError(
-        __in    HRESULT                     hr
+        _In_    HRESULT                     hr
         );
 
     static inline
     HRESULT
     TreatNonSoftwareFallbackErrorAsUnknownHardwareError(
-        __in    HRESULT                     hr
+        _In_    HRESULT                     hr
         );
 
     static inline
     bool
     IsMandatorySoftwareFallbackError(
-        __in    HRESULT                     hr
+        _In_    HRESULT                     hr
         );
 
     inline
@@ -311,10 +311,10 @@ public:
 protected:
 
     EvrPresenter(
-        __in    MediaInstance           *pMediaInstance,
-        __in    UINT                    resetToken,
-        __in    CWmpStateEngine         *pWmpStateEngine,
-        __in    CDXVAManagerWrapper     *pDXVAManagerWrapper
+        _In_    MediaInstance           *pMediaInstance,
+        _In_    UINT                    resetToken,
+        _In_    CWmpStateEngine         *pWmpStateEngine,
+        _In_    CDXVAManagerWrapper     *pDXVAManagerWrapper
         );
 
     virtual
@@ -322,7 +322,7 @@ protected:
 
     void *
     GetInterface(
-        __in    REFIID      riid
+        _In_    REFIID      riid
         );
 
 private:
@@ -339,8 +339,8 @@ private:
     public:
 
         AVSurfaceRenderer(
-            __in    UINT                uiID,
-            __in    CWmpStateEngine     *pWmpStateEngine
+            _In_    UINT                uiID,
+            _In_    CWmpStateEngine     *pWmpStateEngine
             );
 
         ~AVSurfaceRenderer(
@@ -349,15 +349,15 @@ private:
 
         HRESULT
         Init(
-            __in    EvrPresenter        *pEvrPresenter,
-            __in    RenderClock         *pRenderClock
+            _In_    EvrPresenter        *pEvrPresenter,
+            _In_    RenderClock         *pRenderClock
             );
 
         //
         // IUnknown
         //
         STDMETHOD(QueryInterface)(
-            __in        REFIID      riid,
+            _In_        REFIID      riid,
             __deref_out void        **ppvObject
             );
 
@@ -373,11 +373,11 @@ private:
         // IAVSurfaceRenderer
         //
         STDMETHOD(BeginComposition)(
-            __in    CMilSlaveVideo  *pCaller,
-            __in    BOOL            displaySetChanged,
-            __in    BOOL            syncChannel,
+            _In_    CMilSlaveVideo  *pCaller,
+            _In_    BOOL            displaySetChanged,
+            _In_    BOOL            syncChannel,
             __inout LONGLONG        *pLastCompositionSampleTime,
-            __out   BOOL            *pbFrameReady
+            _Out_   BOOL            *pbFrameReady
             );
 
         STDMETHOD(BeginRender)(
@@ -389,7 +389,7 @@ private:
             );
 
         STDMETHOD(EndComposition)(
-            __in    CMilSlaveVideo  *pCaller
+            _In_    CMilSlaveVideo  *pCaller
             );
 
         STDMETHOD(GetContentRect)(
@@ -412,7 +412,7 @@ private:
 
         void
         SignalFallbackFailure(
-            __in        HRESULT                 hr
+            _In_        HRESULT                 hr
             );
 
         inline
@@ -427,19 +427,19 @@ private:
         // Cannot copy or assign an AVSurfaceRenderer
         //
         AVSurfaceRenderer(
-            __in const AVSurfaceRenderer        &
+            _In_ const AVSurfaceRenderer        &
             );
 
         AVSurfaceRenderer &
         operator=(
-            __in const AVSurfaceRenderer &
+            _In_ const AVSurfaceRenderer &
             );
 
         HRESULT
         ChooseSample(
-            __in        LONGLONG    currentTime,
-            __in        bool        isPaused,
-            __out       LONGLONG    *pThisSampleTime
+            _In_        LONGLONG    currentTime,
+            _In_        bool        isPaused,
+            _Out_       LONGLONG    *pThisSampleTime
             );
 
         HRESULT
@@ -449,20 +449,20 @@ private:
 
         HRESULT
         GetHWDevice(
-            __in        UINT                        adapter,
-            __in        bool                        forceMultithreaded,
+            _In_        UINT                        adapter,
+            _In_        bool                        forceMultithreaded,
             __deref_out CD3DDeviceLevel1            **ppD3DDevice
             );
 
         HRESULT
         NewRenderDevice(
-            __in    CD3DDeviceLevel1            *pNewRenderDevice
+            _In_    CD3DDeviceLevel1            *pNewRenderDevice
             );
 
         inline
         HRESULT
         FallbackToSoftwareIfNecessary(
-            __in    HRESULT                     hr
+            _In_    HRESULT                     hr
             );
 
         HRESULT
@@ -478,17 +478,17 @@ private:
         static inline
         bool
         IsTransientError(
-            __in    HRESULT         hr
+            _In_    HRESULT         hr
             );
 
         HRESULT
         AddCompositingResource(
-            __in    CMilSlaveVideo  *pCMilSlaveVideo
+            _In_    CMilSlaveVideo  *pCMilSlaveVideo
             );
 
         void
         RemoveCompositingResource(
-            __in    CMilSlaveVideo  *pCMilSlaveVideo
+            _In_    CMilSlaveVideo  *pCMilSlaveVideo
             );
 
         void
@@ -559,12 +559,12 @@ private:
     // Cannot copy or assign a EvrPresenter.
     //
     EvrPresenter(
-        __in    const EvrPresenter     &
+        _In_    const EvrPresenter     &
         );
 
     EvrPresenter &
     operator=(
-        __in    const EvrPresenter     &
+        _In_    const EvrPresenter     &
         );
 
     HRESULT
@@ -584,7 +584,7 @@ private:
 
     HRESULT
     GetBestMediaType(
-        __out       IMFMediaType    **ppIBestMediaType
+        _Out_       IMFMediaType    **ppIBestMediaType
         );
 
     HRESULT
@@ -604,18 +604,18 @@ private:
 
     HRESULT
     ProcessOneSample(
-        __in    LONGLONG    currentTime
+        _In_    LONGLONG    currentTime
         );
 
     HRESULT
     ProcessSamples(
         __inout     ProcessSamplesData          *pProcessSamplesData,
-        __in        LONGLONG                    currentTime = gc_invalidTimerTime
+        _In_        LONGLONG                    currentTime = gc_invalidTimerTime
         );
 
     void
     ProcessSampleDataOutsideOfLock(
-        __in        const ProcessSamplesData    &processSamplesData
+        _In_        const ProcessSamplesData    &processSamplesData
         );
 
     HRESULT
@@ -635,7 +635,7 @@ private:
 
     HRESULT
     Step(
-        __in        DWORD               stepCount
+        _In_        DWORD               stepCount
         );
 
     HRESULT
@@ -645,7 +645,7 @@ private:
 
     HRESULT
     ValidateMixerHasCorrectType(
-        __in        IMFTransform        *pIMixer
+        _In_        IMFTransform        *pIMixer
         );
 
     void
@@ -673,7 +673,7 @@ private:
     static inline
     HRESULT
     CheckForShutdown(
-        __in    RenderState::Enum       renderState
+        _In_    RenderState::Enum       renderState
         );
 
     UINT                    m_uiID;

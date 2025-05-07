@@ -604,7 +604,7 @@ volatile BOOL g_fStepHWRenderingLock = false;
 
 void 
 CHwDisplayRenderTarget::ShowSteppedRendering(
-    __in LPCTSTR pszRenderDesc,
+    _In_ LPCTSTR pszRenderDesc,
     __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
     )
 {

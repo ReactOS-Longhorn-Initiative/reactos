@@ -73,7 +73,7 @@ protected:
     void SetSingleSubRT();
 
     HRESULT Init(
-        __in HWND hwnd,
+        _In_ HWND hwnd,
         MilWindowLayerType::Enum eWindowLayerType,
         MilRTInitialization::Flags dwFlags
         );

@@ -127,7 +127,7 @@ MilCompositionEngine_DeinitializePartitionManager()
 
 
 HRESULT WINAPI WgxConnection_SameThreadPresent(
-    __in HMIL_CONNECTION hConnection
+    _In_ HMIL_CONNECTION hConnection
     )
 {
     HRESULT hr = S_OK;
@@ -321,9 +321,9 @@ Cleanup:
 }
 
 HRESULT WINAPI MilComposition_PeekNextMessage(
-    __in MIL_CHANNEL hChannel,
+    _In_ MIL_CHANNEL hChannel,
     __out_bcount_part(cbSize, sizeof(MIL_MESSAGE)) MIL_MESSAGE *pmsg,
-    __in size_t cbSize,
+    _In_ size_t cbSize,
     __out_ecount(1) BOOL *pfMessageRetrieved
     )
 {
@@ -755,7 +755,7 @@ Cleanup:
 
 HRESULT WINAPI
 MilChannel_SetNotificationWindow(
-    __in MIL_CHANNEL hChannel,
+    _In_ MIL_CHANNEL hChannel,
     HWND hwnd,
     UINT message
     )
@@ -968,13 +968,13 @@ VOID WINAPI SetMilPerfInstrumentationFlags(UINT flags)
 
 HRESULT WINAPI
 MilGlyphRun_GetGlyphOutline(
-    __in IDWriteFontFace* pFontFace,
+    _In_ IDWriteFontFace* pFontFace,
     USHORT glyphIndex, 
     bool sideways, 
     double renderingEmSize,
     __deref_out_ecount(*pSize) byte **ppFigureDataBytes,
-    __out UINT *pSize,
-    __out MilFillMode::Enum *pFillRule
+    _Out_ UINT *pSize,
+    _Out_ MilFillMode::Enum *pFillRule
     )
 {
     HRESULT hr = S_OK;
@@ -1022,7 +1022,7 @@ Cleanup:
 
 HRESULT WINAPI
 MilGlyphRun_ReleasePathGeometryData(
-    __in byte* pPathGeometryData
+    _In_ byte* pPathGeometryData
     )
 {
     MilPathGeometry *pFigureData = reinterpret_cast<MilPathGeometry*>(pPathGeometryData);

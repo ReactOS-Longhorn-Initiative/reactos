@@ -30,7 +30,7 @@
 #pragma warning( disable : 4355 )
 
 CD3DSwapChainWithSwDC::CD3DSwapChainWithSwDC(
-    __in HDC hdcPresentVia,
+    _In_ HDC hdcPresentVia,
     __in_range(>, 0) /*__out_range(==, this->m_cBackBuffers)*/ UINT cBackBuffers,
     __inout_ecount(1) IDirect3DSwapChain9 *pD3DSwapChain
     ) : CD3DSwapChain(
@@ -200,7 +200,7 @@ Cleanup:
 HRESULT
 CD3DSwapChainWithSwDC::ReleaseDC(
     /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
-    __in HDC hdcBackBuffer
+    _In_ HDC hdcBackBuffer
     ) const
 {
     //

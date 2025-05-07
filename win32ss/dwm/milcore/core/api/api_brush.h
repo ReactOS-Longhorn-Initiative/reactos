@@ -508,13 +508,13 @@ public:
     // Creation methods
 
     static HRESULT Create(
-        __in CMilEffectDuce *pShaderEffect,
+        _In_ CMilEffectDuce *pShaderEffect,
         __deref_out CMILBrushShaderEffect **ppShaderEffectBrush);
 
 
 protected:
 
-    CMILBrushShaderEffect(__in CMilEffectDuce *pShaderEffect);
+    CMILBrushShaderEffect(_In_ CMilEffectDuce *pShaderEffect);
     ~CMILBrushShaderEffect() override;
 
 private:
@@ -525,15 +525,15 @@ public:
     DECLARE_MIL_OBJECT   
 
     HRESULT ConfigurePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::BaseSampling> &matBitmapToBaseSamplingSpace);
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::BaseSampling> &matBitmapToBaseSamplingSpace);
     
     void GetBitmapToSampleSpaceTransform(
-        __in const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &matBaseSamplingToSampleSpace, // Composition: local to device.
-        __out CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pMatBitmapToBaseSamplingSpace); // Composition: texture to device
+        _In_ const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &matBaseSamplingToSampleSpace, // Composition: local to device.
+        _Out_ CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pMatBitmapToBaseSamplingSpace); // Composition: texture to device
     
 
     HRESULT PreparePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler);
 

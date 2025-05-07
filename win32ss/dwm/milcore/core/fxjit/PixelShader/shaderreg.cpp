@@ -23,8 +23,8 @@
 //-------------------------------------------------------------------------
 HRESULT 
 CPixelShaderRegisters::SetConstant(
-    __in INT32 nChannel,
-    __in ConstDef_F constant
+    _In_ INT32 nChannel,
+    _In_ ConstDef_F constant
     )
 {
     HRESULT hr = S_OK;
@@ -51,9 +51,9 @@ Cleanup:
 //-------------------------------------------------------------------------
 HRESULT 
 CPixelShaderRegisters::GetRegister(
-    __in P_u8 *pPixelShaderState, 
-    __in const PSTRRegister *pRegister, 
-    __out C_f32x4 **ppRegisterOut
+    _In_ P_u8 *pPixelShaderState, 
+    _In_ const PSTRRegister *pRegister, 
+    _Out_ C_f32x4 **ppRegisterOut
     )
 {
     HRESULT hr = S_OK;

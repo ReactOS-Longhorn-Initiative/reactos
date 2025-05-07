@@ -41,12 +41,12 @@ class CCodeGen
 public:
     CCodeGen();
     HRESULT Initialize(
-        __in char const *pszFileNameCpp,
-        __in char const *pszFileNameHpp
+        _In_ char const *pszFileNameCpp,
+        _In_ char const *pszFileNameHpp
         );
     HRESULT CompileEffect(
-        __in WCHAR const *pszEffectFileName,
-        __in char const *pszEffectName
+        _In_ WCHAR const *pszEffectFileName,
+        _In_ char const *pszEffectName
         );
     ~CCodeGen();
 
@@ -59,7 +59,7 @@ private:
     HRESULT WritePixelShader();
     HRESULT WriteVertexShader();
     void WriteDwordArray(
-        __in DWORD const *pFunction
+        _In_ DWORD const *pFunction
         );
 
 private:

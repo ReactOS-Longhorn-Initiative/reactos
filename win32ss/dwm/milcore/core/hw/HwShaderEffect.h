@@ -66,10 +66,10 @@ public:
     //
 
     static HRESULT Create(
-        __in CD3DDeviceLevel1 *pDevice,
+        _In_ CD3DDeviceLevel1 *pDevice,
         __in_bcount(sizeInBytes) BYTE *pPixelShaderByteCode,
-        __in UINT sizeInBytes,
-        __out CHwPixelShaderEffect **ppHwPixelShaderEffect);
+        _In_ UINT sizeInBytes,
+        _Out_ CHwPixelShaderEffect **ppHwPixelShaderEffect);
    
     //
     // SendToDevice
@@ -84,7 +84,7 @@ public:
     //    device is being used in debug builds.
 
     HRESULT SendToDevice(
-        __in CD3DDeviceLevel1 *pDevice);
+        _In_ CD3DDeviceLevel1 *pDevice);
 
 
 #if PERFMETER
@@ -125,9 +125,9 @@ public:
 private:
 
     HRESULT Init(
-        __in CD3DDeviceLevel1 *pDevice,
+        _In_ CD3DDeviceLevel1 *pDevice,
         __in_bcount(sizeInBytes) BYTE *pPixelShaderByteCode,
-        __in UINT sizeInBytes);
+        _In_ UINT sizeInBytes);
         
 private:
 

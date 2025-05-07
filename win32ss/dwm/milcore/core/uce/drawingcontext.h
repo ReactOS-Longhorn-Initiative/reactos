@@ -473,11 +473,11 @@ private:
         SkipRender
     };
 
-    static void CheckEffectSupport(__out bool *pHasHardwareSupport, __out bool *pHasSoftwareSupport, __in bool isPS30);
+    static void CheckEffectSupport(_Out_ bool *pHasHardwareSupport, _Out_ bool *pHasSoftwareSupport, _In_ bool isPS30);
 
     HRESULT DetermineEffectCompositionMode(
-        __in CMilEffectDuce *pEffect,
-        __out EffectCompositionMode *pCompositionMode
+        _In_ CMilEffectDuce *pEffect,
+        _Out_ EffectCompositionMode *pCompositionMode
         );
 
     bool CanUseCacheAsEffectInput(
@@ -501,16 +501,16 @@ private:
         );
 
     HRESULT CalculateEffectTextureLimits(
-        __in UINT uTextureWidthIn,
-        __in UINT uTextureHeightIn,
-        __out UINT &uTextureWidthOut,
-        __out UINT &uTextureHeightOut,
-        __out float &uScaleX,
-        __out float &uScaleY
+        _In_ UINT uTextureWidthIn,
+        _In_ UINT uTextureHeightIn,
+        _Out_ UINT &uTextureWidthOut,
+        _Out_ UINT &uTextureHeightOut,
+        _Out_ float &uScaleX,
+        _Out_ float &uScaleY
         );
 
     HRESULT PushDummyLayer(
-        __in CRectF<CoordinateSpace::LocalRendering> *pBounds
+        _In_ CRectF<CoordinateSpace::LocalRendering> *pBounds
         );
 
     HRESULT PopLayerIfDummy();

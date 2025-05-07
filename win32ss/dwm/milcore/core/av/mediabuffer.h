@@ -37,14 +37,14 @@ public:
     static
     HRESULT
     Create(
-        __in            UINT                uiID,
-        __in            LONG                continuity,
-        __in            UINT                uiWidth,
-        __in            UINT                uiHeight,
-        __in            D3DFORMAT           format,
-        __in            CD3DDeviceLevel1    *pRenderDevice,
-        __in            CD3DDeviceLevel1    *pMixerDevice,
-        __in            D3DDEVTYPE          deviceType,
+        _In_            UINT                uiID,
+        _In_            LONG                continuity,
+        _In_            UINT                uiWidth,
+        _In_            UINT                uiHeight,
+        _In_            D3DFORMAT           format,
+        _In_            CD3DDeviceLevel1    *pRenderDevice,
+        _In_            CD3DDeviceLevel1    *pMixerDevice,
+        _In_            D3DDEVTYPE          deviceType,
         __deref_out     CMFMediaBuffer      **ppMFMediaBuffer
         );
 
@@ -89,7 +89,7 @@ public:
     virtual
     HRESULT
     GetBitmapSource(
-        __in            bool                syncChannel,
+        _In_            bool                syncChannel,
         __in_opt        CD3DDeviceLevel1    *pDisplayDevice,
         __deref_out     IWGXBitmapSource    **ppIBitmapSource
         ) = 0;
@@ -108,7 +108,7 @@ public:
 
     HRESULT
     GetDevice(
-        __out   CD3DDeviceLevel1        **ppD3DDevice
+        _Out_   CD3DDeviceLevel1        **ppD3DDevice
         );
 
     inline
@@ -121,7 +121,7 @@ protected:
 
     HRESULT
     Init(
-        __in    IDirect3DSurface9       *pIDecodeSurface
+        _In_    IDirect3DSurface9       *pIDecodeSurface
         );
 
     virtual
@@ -131,12 +131,12 @@ protected:
         ) = 0;
 
     CMFMediaBuffer(
-        __in    UINT             uiID,
-        __in    LONG             continuity,
-        __in    UINT             uiWidth,
-        __in    UINT             uiHeight,
-        __in    D3DFORMAT        format,
-        __in    CD3DDeviceLevel1 *pRenderDevice
+        _In_    UINT             uiID,
+        _In_    LONG             continuity,
+        _In_    UINT             uiWidth,
+        _In_    UINT             uiHeight,
+        _In_    D3DFORMAT        format,
+        _In_    CD3DDeviceLevel1 *pRenderDevice
         );
 
     virtual
@@ -165,12 +165,12 @@ private:
     // Cannot copy or assign a CMFMediaBuffer
     //
     CMFMediaBuffer(
-        __in    const CMFMediaBuffer    &
+        _In_    const CMFMediaBuffer    &
         );
 
     CMFMediaBuffer &
     operator=(
-        __in    const CMFMediaBuffer    &
+        _In_    const CMFMediaBuffer    &
         );
 
     IMFMediaBuffer      *m_pIMFMediaBuffer;

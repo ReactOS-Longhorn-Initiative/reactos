@@ -19,8 +19,8 @@ MtDefine(AVEvent, Mem, "AVEvent");
 //
 //------------------------------------------------------------------------------
 CWmpEventHandler::CWmpEventHandler(
-    __in    MediaInstance       *pMediaInstance,
-    __in    CWmpStateEngine     *pStateEngine
+    _In_    MediaInstance       *pMediaInstance,
+    _In_    CWmpStateEngine     *pStateEngine
     ) : m_uiID(pMediaInstance->GetID()),
         m_pMediaInstance(NULL),
         m_pStateEngine(NULL),
@@ -62,8 +62,8 @@ CWmpEventHandler::~CWmpEventHandler()
 HRESULT
 CWmpEventHandler::
 Create(
-    __in            MediaInstance       *pMediaInstance,
-    __in            CWmpStateEngine     *pStateEngine,
+    _In_            MediaInstance       *pMediaInstance,
+    _In_            CWmpStateEngine     *pStateEngine,
     __deref_out     CWmpEventHandler** ppEventHandler
     )
 {
@@ -129,13 +129,13 @@ Cleanup:
 //------------------------------------------------------------------------------
 STDMETHODIMP
 CWmpEventHandler::Invoke(
-    __in DISPID  dispIdMember,
-    __in REFIID  riid,
-    __in LCID  lcid,
-    __in WORD  wFlags,
+    _In_ DISPID  dispIdMember,
+    _In_ REFIID  riid,
+    _In_ LCID  lcid,
+    _In_ WORD  wFlags,
     __in_ecount(1)  DISPPARAMS FAR*  pDispParams,
-    __in VARIANT FAR*  pVarResult,
-    __in EXCEPINFO FAR*  pExcepInfo,
+    _In_ VARIANT FAR*  pVarResult,
+    _In_ EXCEPINFO FAR*  pExcepInfo,
     __out_ecount(1) unsigned int FAR*  puArgErr
     )
 {
@@ -1137,8 +1137,8 @@ CWmpEventHandler::MouseUp(short nButton, short nShiftState, long fX, long fY)
 //------------------------------------------------------------------------------
 HRESULT
 CWmpEventHandler::RaiseEvent(
-    __in    AVEvent avEventType,
-    __in    HRESULT failureHr
+    _In_    AVEvent avEventType,
+    _In_    HRESULT failureHr
     )
 {
     HRESULT hr = S_OK;

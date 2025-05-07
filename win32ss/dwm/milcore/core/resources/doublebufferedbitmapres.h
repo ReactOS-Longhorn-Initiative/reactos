@@ -25,7 +25,7 @@ protected:
 
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CMilSlaveDoubleBufferedBitmap));
 
-    CMilSlaveDoubleBufferedBitmap(__in CComposition *pComposition);
+    CMilSlaveDoubleBufferedBitmap(_In_ CComposition *pComposition);
 
     virtual ~CMilSlaveDoubleBufferedBitmap();
 
@@ -42,7 +42,7 @@ public:
 
     override virtual HRESULT Draw(
         __in_ecount(1) CDrawingContext *pDC,
-        __in MilBitmapWrapMode::Enum wrapMode
+        _In_ MilBitmapWrapMode::Enum wrapMode
         );
 
     override virtual HRESULT GetBounds(

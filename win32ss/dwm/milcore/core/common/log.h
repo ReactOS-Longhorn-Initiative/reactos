@@ -33,7 +33,7 @@ public:
     // location. The format is the same as printf.
     //
 
-    HRESULT Print(__in PCSTR pFormat, ...);
+    HRESULT Print(_In_ PCSTR pFormat, ...);
 
     //
     // Dump the log to a file.

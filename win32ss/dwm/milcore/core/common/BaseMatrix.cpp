@@ -310,7 +310,7 @@ CBaseMatrix::TransformAsVectors(
     __out_ecount(count) MilPoint2F *destVectors,
         // Destination to place transformed vectors.
         // Can be the same array as destVectors.
-    __in UINT count
+    _In_ UINT count
         // Number of vectors to transform
     ) const
 {

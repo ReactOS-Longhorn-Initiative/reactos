@@ -28,7 +28,7 @@ class CMediaEventProxy
 public:
 
     CMediaEventProxy(
-        __in        UINT                    uiID,
+        _In_        UINT                    uiID,
         __in_opt        CEventProxy             *pCEventProxy
         );
 
@@ -43,16 +43,16 @@ public:
 
     HRESULT
     RaiseEvent(
-        __in AVEvent    eventType,
-        __in HRESULT    failureHr = S_OK
+        _In_ AVEvent    eventType,
+        _In_ HRESULT    failureHr = S_OK
         );
 
     HRESULT
     RaiseEvent(
-        __in     AVEvent    eventType,
+        _In_     AVEvent    eventType,
         __in_opt PCWSTR     type,
         __in_opt PCWSTR     param,
-        __in     HRESULT    failureHr = S_OK
+        _In_     HRESULT    failureHr = S_OK
         );
 
     void
@@ -74,12 +74,12 @@ private:
         static
         HRESULT
         Create(
-            __in        UINT                    id,
-            __in        CEventProxy             *pCEventProxy,
-            __in        AVEvent                 eventType,
+            _In_        UINT                    id,
+            _In_        CEventProxy             *pCEventProxy,
+            _In_        AVEvent                 eventType,
             __in_opt    PCWSTR                  type,
             __in_opt    PCWSTR                  param,
-            __in        HRESULT                 failureHr,
+            _In_        HRESULT                 failureHr,
             __deref_out EventItem               **ppEventItem
             );
 
@@ -103,10 +103,10 @@ private:
 
     private:
         EventItem(
-            __in        UINT                    uiID,
-            __in        CEventProxy             *pCEventProxy,
-            __in        AVEvent                 eventType,
-            __in        HRESULT                 failureHr
+            _In_        UINT                    uiID,
+            _In_        CEventProxy             *pCEventProxy,
+            _In_        AVEvent                 eventType,
+            _In_        HRESULT                 failureHr
             );
 
         virtual
@@ -123,12 +123,12 @@ private:
         // Cannot copy or assign a CMediaEventProxy
         // 
         EventItem(
-            __in const EventItem &
+            _In_ const EventItem &
             );
 
         EventItem &
         operator=(
-            __in const EventItem &
+            _In_ const EventItem &
             );
 
         UINT                    m_uiID;
@@ -148,12 +148,12 @@ private:
     // Cannot copy or assign a CMediaEventProxy
     // 
     CMediaEventProxy(
-        __in const CMediaEventProxy &
+        _In_ const CMediaEventProxy &
         );
 
     CMediaEventProxy &
     operator=(
-        __in const CMediaEventProxy &
+        _In_ const CMediaEventProxy &
         );
 
     UINT                    m_uiID;

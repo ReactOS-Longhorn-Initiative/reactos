@@ -485,9 +485,9 @@ namespace RobustIntersections
 
         // Where to report the audit.
         static void ReportAuditCounters(
-            __in PCSTR reportTitle = " no title.",
-            __in PCSTR reportPrefix = "Line Segment Intersection Audit: ",
-            __in PCSTR outputFileName = ".\\LineSegmentIntersectionAuditReport.txt"             
+            _In_ PCSTR reportTitle = " no title.",
+            _In_ PCSTR reportPrefix = "Line Segment Intersection Audit: ",
+            _In_ PCSTR outputFileName = ".\\LineSegmentIntersectionAuditReport.txt"             
         );
 
         static void IncrementFpa()

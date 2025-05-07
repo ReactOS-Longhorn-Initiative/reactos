@@ -168,13 +168,13 @@ public:
     // used to render, or if it's merely being used for bounds accumulation,
     // hit test, etc.
     STDMETHOD(GetType) (
-        __out DWORD *pRenderTargetType
+        _Out_ DWORD *pRenderTargetType
         ) PURE;
 
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHOD (SetClearTypeHint) (
-        __in bool forceClearType
+        _In_ bool forceClearType
         ) PURE;
 
     virtual UINT GetRealizationCacheIndex() PURE;

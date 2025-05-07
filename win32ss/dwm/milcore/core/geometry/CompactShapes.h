@@ -103,7 +103,7 @@ protected:
     
     inline static void ComputeBoundsOfPoints(
         __in_ecount(cPoints) const MilPoint2F *points,
-        __in UINT cPoints,
+        _In_ UINT cPoints,
         __out_ecount(1) MilRectF &rect
         );    
 };
@@ -432,19 +432,19 @@ public:
             // The pen (NULL OK but not optional)
         __in_ecount_opt(1) const CMILMatrix *pMatrix,
             // Transformation (NULL OK but not optional)
-        __in double rTolerance=0, 
+        _In_ double rTolerance=0, 
             // Error tolerance (optional)
-        __in bool fRelative=false,
+        _In_ bool fRelative=false,
             // True if the tolerance is relative (optional)       
-        __in bool fSkipHollows=true) const override;
+        _In_ bool fSkipHollows=true) const override;
             // If true, skip non-fillable figures when computing fill bounds (optional)       
 
     HRESULT WidenToShape(
         __in_ecount(1) const            CPlainPen &pen,
             // The pen
-        __in double           rTolerance,
+        _In_ double           rTolerance,
             // Flattening tolerance
-        __in bool             fRelative,
+        _In_ bool             fRelative,
             // True if the tolerance is relative       
         __in_ecount(1) CShape &widened,
             // The widened shape, populated here

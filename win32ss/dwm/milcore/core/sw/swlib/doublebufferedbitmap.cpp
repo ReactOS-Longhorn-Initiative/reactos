@@ -224,7 +224,7 @@ CSwDoubleBufferedBitmap::Create(
     UINT height,
     double dpiX,
     double dpiY,
-    __in MilPixelFormat::Enum pixelFormat,
+    _In_ MilPixelFormat::Enum pixelFormat,
     __in_opt IWICPalette *pIPalette,
     __deref_out CSwDoubleBufferedBitmap **ppSwDoubleBufferedBitmap
     )
@@ -340,7 +340,7 @@ CSwDoubleBufferedBitmap::GetFrontBuffer(
 //------------------------------------------------------------------------------
 
 HRESULT
-CSwDoubleBufferedBitmap::AddDirtyRect(__in const CMilRectU *prcDirty)
+CSwDoubleBufferedBitmap::AddDirtyRect(_In_ const CMilRectU *prcDirty)
 {
     HRESULT hr = S_OK;
     CMilRectU rcBounds(0, 0, m_width, m_height, XYWH_Parameters);
@@ -520,7 +520,7 @@ Cleanup:
 
 STDMETHODIMP
 CSwDoubleBufferedBitmap::HrFindInterface(
-    __in REFIID riid,
+    _In_ REFIID riid,
     __deref_out void **ppvObject
     )
 {

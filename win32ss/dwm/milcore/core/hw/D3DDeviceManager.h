@@ -67,8 +67,8 @@ public:
         __out_ecount_opt(1) UINT *pAdapterOrdinalInGroup
         );
                       
-    HRESULT AddAdapterStatusListener(__in IAdapterStatusListener *pListener);
-    void RemoveAdapterStatusListener(__in IAdapterStatusListener *pListener);
+    HRESULT AddAdapterStatusListener(_In_ IAdapterStatusListener *pListener);
+    void RemoveAdapterStatusListener(_In_ IAdapterStatusListener *pListener);
 
     HRESULT GetSWDevice(__deref_out_ecount(1) CD3DDeviceLevel1 **ppDevice);
 

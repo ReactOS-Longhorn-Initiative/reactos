@@ -36,7 +36,7 @@ MtDefine(CEvrFilterWrapper, Mem, "CEvrFilterWrapper");
 HRESULT
 CEvrFilterWrapper::
 Create(
-    __in        UINT                id,
+    _In_        UINT                id,
         // Logical id that binds together a set of related objects (corresponds to 
         // one media clock)
     __deref_out CEvrFilterWrapper   **ppCEvrFilterWrapper
@@ -113,7 +113,7 @@ Release(
 STDMETHODIMP
 CEvrFilterWrapper::
 QueryInterface(
-    __in REFIID riid,
+    _In_ REFIID riid,
     __deref_out void **ppvObject
     )
 {
@@ -149,7 +149,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetCapabilities(
-    __out   DWORD   *pCapabilities
+    _Out_   DWORD   *pCapabilities
     )
 {
     HRESULT hr = S_OK;
@@ -177,7 +177,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 CheckCapabilities(
-    __in    DWORD   *pCapabilities
+    _In_    DWORD   *pCapabilities
     )
 {
     HRESULT hr = S_OK;
@@ -190,7 +190,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 SetTimeFormat(
-    __in    const GUID  *pFormat
+    _In_    const GUID  *pFormat
     )
 {
     HRESULT hr = S_OK;
@@ -203,7 +203,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetTimeFormat(
-    __out   GUID    *pFormat
+    _Out_   GUID    *pFormat
     )
 {
     HRESULT hr = S_OK;
@@ -216,7 +216,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 IsUsingTimeFormat(
-    __in    const GUID  *pFormat
+    _In_    const GUID  *pFormat
     )
 {
     HRESULT hr = S_OK;
@@ -229,7 +229,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 IsFormatSupported(
-    __in    const GUID  *pFormat
+    _In_    const GUID  *pFormat
     )
 {
     HRESULT hr = S_OK;
@@ -260,7 +260,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 QueryPreferredFormat(
-    __out   GUID    *pFormat
+    _Out_   GUID    *pFormat
     )
 {
     HRESULT hr = S_OK;
@@ -273,9 +273,9 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 ConvertTimeFormat(
-    __out       LONGLONG    *pTarget,
+    _Out_       LONGLONG    *pTarget,
     __in_opt    const GUID  *pTargetFormat,
-    __in        LONGLONG    Source,
+    _In_        LONGLONG    Source,
     __in_opt    const GUID  *pSourceFormat
     )
 {
@@ -291,9 +291,9 @@ STDMETHODIMP
 CEvrFilterWrapper::
 SetPositions(
     __in_opt    LONGLONG    *pCurrent,
-    __in        DWORD       CurrentFlags,
+    _In_        DWORD       CurrentFlags,
     __in_opt    LONGLONG    *pStop,
-    __in        DWORD       StopFlags
+    _In_        DWORD       StopFlags
     )
 {
     HRESULT hr = S_OK;
@@ -323,7 +323,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetCurrentPosition(
-    __out   LONGLONG    *pCurrent
+    _Out_   LONGLONG    *pCurrent
     )
 {
     HRESULT hr = S_OK;
@@ -337,7 +337,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetStopPosition(
-    __out   LONGLONG    *pStop
+    _Out_   LONGLONG    *pStop
     )
 {
     HRESULT hr = S_OK;
@@ -351,7 +351,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 SetRate(
-    __in    double  dRate
+    _In_    double  dRate
     )
 {
     HRESULT hr = S_OK;
@@ -365,7 +365,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetRate(
-    __out   double  *pdRate
+    _Out_   double  *pdRate
     )
 {
     HRESULT hr = S_OK;
@@ -379,7 +379,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetDuration(
-    __out   LONGLONG    *pDuration
+    _Out_   LONGLONG    *pDuration
     )
 {
     HRESULT hr = S_OK;
@@ -408,7 +408,7 @@ Cleanup:
 STDMETHODIMP
 CEvrFilterWrapper::
 GetPreroll(
-    __out   LONGLONG    *pllPreroll
+    _Out_   LONGLONG    *pllPreroll
     )
 {
     HRESULT hr = S_OK;
@@ -426,7 +426,7 @@ Cleanup:
 //
 CEvrFilterWrapper::
 CEvrFilterWrapper(
-    __in        UINT                    uiID
+    _In_        UINT                    uiID
     ) : m_uiID(uiID)
       , m_cRef(1)
       , m_pINonDelegatingUnknown(NULL)

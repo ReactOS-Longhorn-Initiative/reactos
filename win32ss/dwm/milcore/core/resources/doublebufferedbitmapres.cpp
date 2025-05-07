@@ -18,7 +18,7 @@ MtDefine(CMilSlaveDoubleBufferedBitmap, MILImaging, "CMilSlaveDoubleBufferedBitm
 //------------------------------------------------------------------------------      
 
 CMilSlaveDoubleBufferedBitmap::CMilSlaveDoubleBufferedBitmap(
-    __in CComposition* comp
+    _In_ CComposition* comp
     ) :
     m_pDoubleBufferedBitmap(NULL)
 {
@@ -44,7 +44,7 @@ CMilSlaveDoubleBufferedBitmap::~CMilSlaveDoubleBufferedBitmap()
 HRESULT
 CMilSlaveDoubleBufferedBitmap::Draw(
     __in_ecount(1) CDrawingContext *pDC,
-    __in MilBitmapWrapMode::Enum wrapMode
+    _In_ MilBitmapWrapMode::Enum wrapMode
     )
 {
     HRESULT hr = S_OK;

@@ -100,8 +100,8 @@ Unlock(
 HRESULT
 MFActivate::
 Create(
-    __in        UINT                uiID,
-    __in        CWmpStateEngine     *pWmpStateEngine,
+    _In_        UINT                uiID,
+    _In_        CWmpStateEngine     *pWmpStateEngine,
     __deref_out MFActivateObj       **ppMFActivateObj
     )
 {
@@ -207,7 +207,7 @@ ShutdownObject(
 STDMETHODIMP
 MFActivate::
 ActivateObject(
-    __in        REFIID  riid,
+    _In_        REFIID  riid,
         // The interface to the object being requested.
     __deref_out void    **ppv
         // The object.
@@ -263,7 +263,7 @@ Cleanup:
 void *
 MFActivate::
 GetInterface(
-    __in    REFIID      riid
+    _In_    REFIID      riid
     )
 {
     if (riid == __uuidof(IUnknown))
@@ -285,8 +285,8 @@ GetInterface(
 
 MFActivate::
 MFActivate(
-    __in    UINT                uiID,
-    __in    CWmpStateEngine     *pWmpStateEngine
+    _In_    UINT                uiID,
+    _In_    CWmpStateEngine     *pWmpStateEngine
     ) : m_uiID(uiID),
         m_pWmpStateEngine(NULL),
         m_pEvrPresenter(NULL)

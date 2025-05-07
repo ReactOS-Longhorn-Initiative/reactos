@@ -38,7 +38,7 @@ OSSupportsUpdateLayeredWindowIndirect(
 //-----------------------------------------------------------------------------
 HRESULT
 UpdateLayeredWindowEx(
-    __in HWND hWnd,
+    _In_ HWND hWnd,
     __in_opt HDC hdcDst,
     __in_ecount_opt(1) CONST POINT *pptDst,
     __in_ecount_opt(1) CONST SIZE *psize,

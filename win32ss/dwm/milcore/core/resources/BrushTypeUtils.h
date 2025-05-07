@@ -41,13 +41,13 @@ public:
 
 VOID 
 AdjustRelativePoint(
-    __in const MilPointAndSizeD *pBoundingBox,
+    _In_ const MilPointAndSizeD *pBoundingBox,
     __inout MilPoint2F *pt
     );
 
 VOID 
 AdjustRelativeRectangle(
-    __in const MilPointAndSizeD *prcBoundingBox,
+    _In_ const MilPointAndSizeD *prcBoundingBox,
     __inout MilPointAndSizeD *prcAdjustRectangle
     );
 

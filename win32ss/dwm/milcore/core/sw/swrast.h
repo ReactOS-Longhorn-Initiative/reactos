@@ -181,7 +181,7 @@ public:
         ) = 0;
 
     virtual HRESULT GetCS_EffectShader(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush,
         __deref_out CColorSource **ppColorSource
         ) = 0;   
@@ -332,7 +332,7 @@ public:
         ) override;
 
     HRESULT GetCS_EffectShader(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush,
         __deref_out CColorSource **ppColorSource
         ) override;
@@ -428,7 +428,7 @@ public:
         ) override;
 
     HRESULT GetCS_EffectShader(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush,
         __deref_out CColorSource **ppColorSource
         ) override;

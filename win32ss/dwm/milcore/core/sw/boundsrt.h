@@ -159,7 +159,7 @@ public:
     // This method is used to determine if the render target is being
     // used to render, or if it's merely being used for bounds accumulation,
     // hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType) override
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType) override
     { 
         *pRenderTargetType = BoundsRenderTarget; 
         RRETURN(S_OK);
@@ -168,7 +168,7 @@ public:
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHOD(SetClearTypeHint)(
-        __in bool forceClearType
+        _In_ bool forceClearType
         ) override
     {
         RRETURN(S_OK);

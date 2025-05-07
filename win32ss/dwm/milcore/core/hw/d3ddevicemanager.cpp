@@ -1813,7 +1813,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 HRESULT 
-CD3DDeviceManager::AddAdapterStatusListener(__in IAdapterStatusListener *pListener)
+CD3DDeviceManager::AddAdapterStatusListener(_In_ IAdapterStatusListener *pListener)
 {
     CGuard<CCriticalSection> oGuard(m_csManagement);
     
@@ -1831,7 +1831,7 @@ CD3DDeviceManager::AddAdapterStatusListener(__in IAdapterStatusListener *pListen
 //------------------------------------------------------------------------------
 
 void 
-CD3DDeviceManager::RemoveAdapterStatusListener(__in IAdapterStatusListener *pListener)
+CD3DDeviceManager::RemoveAdapterStatusListener(_In_ IAdapterStatusListener *pListener)
 {
     CGuard<CCriticalSection> oGuard(m_csManagement);
         

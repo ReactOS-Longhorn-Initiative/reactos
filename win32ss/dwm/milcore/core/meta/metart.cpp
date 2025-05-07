@@ -1325,7 +1325,7 @@ CMetaRenderTarget::ReadEnabledDisplays (
 //------------------------------------------------------------------------------
 
 STDMETHODIMP
-CMetaRenderTarget::GetType(__out DWORD *pRenderTargetType)
+CMetaRenderTarget::GetType(_Out_ DWORD *pRenderTargetType)
 {
     HRESULT hr = S_OK;
     
@@ -1388,7 +1388,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 STDMETHODIMP 
 CMetaRenderTarget::SetClearTypeHint(
-    __in bool forceClearType
+    _In_ bool forceClearType
     )
 {
     HRESULT hr = S_OK;

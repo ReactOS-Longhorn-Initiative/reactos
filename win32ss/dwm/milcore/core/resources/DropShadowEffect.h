@@ -45,26 +45,26 @@ public:
         );
 
     override HRESULT ApplyEffect(
-        __in CContextState *pContextState, 
-        __in CHwSurfaceRenderTarget *pDestRT,
-        __in CMILMatrix *pScaleTransform,
-        __in CD3DDeviceLevel1 *pDevice, 
+        _In_ CContextState *pContextState, 
+        _In_ CHwSurfaceRenderTarget *pDestRT,
+        _In_ CMILMatrix *pScaleTransform,
+        _In_ CD3DDeviceLevel1 *pDevice, 
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt CHwTextureRenderTarget *pImplicitInput
         );
 
     override HRESULT ApplyEffectSw(
-        __in CContextState *pContextState,
-        __in CSwRenderTargetSurface *pDestRT,
-        __in CMILMatrix *pScaleTransform, 
+        _In_ CContextState *pContextState,
+        _In_ CSwRenderTargetSurface *pDestRT,
+        _In_ CMILMatrix *pScaleTransform, 
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IWGXBitmap *pImplicitInput
         );
 
     override HRESULT PrepareSoftwarePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
         )
@@ -75,10 +75,10 @@ public:
     override HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
 
     override HRESULT GetLocalSpaceClipBounds(
-        __in CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
-        __in CRectF<CoordinateSpace::PageInPixels> clip,
-        __in const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
-        __out CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace
+        _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
+        _In_ CRectF<CoordinateSpace::PageInPixels> clip,
+        _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
+        _Out_ CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
@@ -119,17 +119,17 @@ private:
         );
 
     HRESULT SetupShader(
-        __in CD3DDeviceLevel1 *pDevice,
-        __in const CMILMatrix *pScaleTransform,
-        __in float destinationWidth,
-        __in float destinationHeight
+        _In_ CD3DDeviceLevel1 *pDevice,
+        _In_ const CMILMatrix *pScaleTransform,
+        _In_ float destinationWidth,
+        _In_ float destinationHeight
         );
 
     void CalculateOffset(
-        __in bool isScaled, 
+        _In_ bool isScaled, 
         __in_opt const CMILMatrix *pScaleTransform,
-        __out float *offsetX,
-        __out float *offsetY
+        _Out_ float *offsetX,
+        _Out_ float *offsetY
         );
 
     double GetBlurRadius();
@@ -143,7 +143,7 @@ private:
     MilColorF GetColor();
 
     HRESULT TransformBoundsInternal(
-        __in bool isForClipping,
+        _In_ bool isForClipping,
         __inout CMilRectF *pBounds);
 
 private:

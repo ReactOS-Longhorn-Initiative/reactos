@@ -37,8 +37,8 @@ public:
     static
     STDMETHODIMP
     Create(
-        __in            MediaInstance       *pMediaInstance,
-        __in            bool                canOpenAnyMedia,
+        _In_            MediaInstance       *pMediaInstance,
+        _In_            bool                canOpenAnyMedia,
         __deref_out     CWmpPlayer          **ppPlayer
         );
 
@@ -49,7 +49,7 @@ public:
     // IMILMedia
     //
     STDMETHOD(Open)(
-        __in LPCWSTR pwszURL
+        _In_ LPCWSTR pwszURL
         );
 
     STDMETHOD(Stop)();
@@ -57,68 +57,68 @@ public:
     STDMETHOD(Close)();
 
     STDMETHOD(GetPosition)(
-        __out    LONGLONG    *pllTime
+        _Out_    LONGLONG    *pllTime
         );
 
     STDMETHOD(SetPosition)(
-        __in    LONGLONG    llTime
+        _In_    LONGLONG    llTime
         );
 
     STDMETHOD(SetRate)(
-        __in    double      dblRate
+        _In_    double      dblRate
         );
 
     STDMETHOD(SetVolume)(
-        __in    double      dblVolume
+        _In_    double      dblVolume
         );
 
     STDMETHOD(SetBalance)(
-        __in    double      dblBalance
+        _In_    double      dblBalance
         );
 
     STDMETHOD(SetIsScrubbingEnabled)(
-        __in    bool        isScrubbingEnabled
+        _In_    bool        isScrubbingEnabled
         );
 
     /* Return whether or not we're currently buffering */
     STDMETHOD(IsBuffering)(
-        __out   bool        *pIsBuffering
+        _Out_   bool        *pIsBuffering
         );
 
     /* Return whether or not we can pause */
     STDMETHOD(CanPause)(
-        __out   bool        *pCanPause
+        _Out_   bool        *pCanPause
         );
 
     /* Get the download progress */
     STDMETHOD(GetDownloadProgress)(
-        __out   double      *pProgress
+        _Out_   double      *pProgress
         );
 
     /* Get the buffering progress */
     STDMETHOD(GetBufferingProgress)(
-        __out   double      *pProgress
+        _Out_   double      *pProgress
         );
 
     STDMETHOD(HasVideo)(
-        __out   bool        *pfHasVideo
+        _Out_   bool        *pfHasVideo
         );
 
     STDMETHOD(HasAudio)(
-        __out   bool        *pfHasAudio
+        _Out_   bool        *pfHasAudio
         );
 
     STDMETHOD(GetNaturalHeight)(
-        __out   UINT        *puiHeight
+        _Out_   UINT        *puiHeight
         );
 
     STDMETHOD(GetNaturalWidth)(
-        __out   UINT        *puiWidth
+        _Out_   UINT        *puiWidth
         );
 
     // Get the duration of the clip in 100 nanosecond ticks
     STDMETHOD(GetMediaLength)(
-        __out   LONGLONG    *pllLength
+        _Out_   LONGLONG    *pllLength
         );
 
     //
@@ -129,11 +129,11 @@ public:
         );
 
     STDMETHOD(RegisterResource)(
-        __in    CMilSlaveVideo *pSlaveVideo
+        _In_    CMilSlaveVideo *pSlaveVideo
         );
 
     STDMETHOD(UnregisterResource)(
-        __in    CMilSlaveVideo *pSlaveVideo
+        _In_    CMilSlaveVideo *pSlaveVideo
         );
 
     STDMETHOD(NeedUIFrameUpdate)(
@@ -154,14 +154,14 @@ protected:
 
 private:
     CWmpPlayer(
-        __in    MediaInstance       *pMediaInstance
+        _In_    MediaInstance       *pMediaInstance
         );
 
     virtual ~CWmpPlayer();
 
     HRESULT
     Init(
-        __in            bool                canOpenAnyMedia
+        _In_            bool                canOpenAnyMedia
         );
 
     SharedState         m_sharedState;

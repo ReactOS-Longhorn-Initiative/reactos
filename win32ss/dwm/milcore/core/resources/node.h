@@ -269,18 +269,18 @@ protected:
         );
 
     HRESULT InsertChildAt(
-        __in CMilVisual *pNewChild,
+        _In_ CMilVisual *pNewChild,
         UINT iPosition
         );
 
     HRESULT RemoveChild(
-        __in CMilVisual *pChild
+        _In_ CMilVisual *pChild
         );
 
     VOID RemoveAllChildren();
 
     static void PropagateFlags(
-        __in CMilVisual *pNode,
+        _In_ CMilVisual *pNode,
         BOOL fNeedsBoundingBoxUpdate,
         BOOL fDirtyForRender,
         BOOL fAdditionalDirtyRegion = FALSE,
@@ -316,14 +316,14 @@ protected:
     BOOL HasEffects();
     
     static void TransformAndSnapScrollableRect(
-        __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+        _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
         __in_opt CMilRectF *pClip,
-        __in CRectF<CoordinateSpace::LocalRendering> *pRectIn,
-        __out CRectF<CoordinateSpace::PageInPixels> *pRectOut
+        _In_ CRectF<CoordinateSpace::LocalRendering> *pRectIn,
+        _Out_ CRectF<CoordinateSpace::PageInPixels> *pRectOut
         );
 
     static HRESULT TransformAndSnapOffset(
-        __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+        _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
         __inout MilPoint2F *pOffset,
         bool fReturnToLocalSpace        
         );
