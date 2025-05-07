@@ -160,7 +160,7 @@ private:
 
 #if !RESOURCE_CACHE_SINGLE_THREADED || DBG
     volatile LONG m_cInCall;
-#endif !RESOURCE_CACHE_SINGLE_THREADED || DBG
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED || DBG */
 };
 
 

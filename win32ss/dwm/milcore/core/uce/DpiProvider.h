@@ -18,7 +18,7 @@
 #include "shared/DelegatingIUnknown.h"
 
 #include <combaseapi.h>
-#include <Unknwn.h>
+#include <unknwn.h>
 #include <windef.h>
 #include <ShellScalingApi.h>
 

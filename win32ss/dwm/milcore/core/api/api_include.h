@@ -52,7 +52,7 @@ class DpiProvider;
 
 // pixel jit
 
-#include "fxjit/public/public.h"
+#include "fxjit/Public/public.h"
 
 // DpiProvider
 #include "uce/DpiProvider.h"

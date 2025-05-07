@@ -886,7 +886,7 @@ void Put_sRGB_Alpha_In_D3DCOLOR_WithNoAlpha(
 UINT16 Convert_scRGB_float_To_sRGB_UINT16(float v);
 
 // Definition for Convert_scRGB_Channel_To_sRGB_Byte
-#include "gammaluts.inc"
+#include "GammaLUTs.inc"
 
 //+----------------------------------------------------------------------------
 //
