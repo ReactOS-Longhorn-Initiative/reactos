@@ -676,7 +676,7 @@ Cleanup:
 HRESULT CSwPresenter32bppGDI::Present(
     __in_ecount(1) CMILSurfaceRect const *prcSource,
     __in_ecount(1) CMILSurfaceRect const *prcDest,
-    __in RGNDATA *pDirtyRegion
+    _In_ RGNDATA *pDirtyRegion
     )
 {
     HRESULT hr = S_OK;

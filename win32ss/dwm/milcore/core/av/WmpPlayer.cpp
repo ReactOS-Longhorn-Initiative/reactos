@@ -21,7 +21,7 @@ MtDefine(UpdateState, Mem, "UpdateState");
 //------------------------------------------------------------------------------
 CWmpPlayer::
 CWmpPlayer(
-    __in    MediaInstance       *pMediaInstance
+    _In_    MediaInstance       *pMediaInstance
     ) : m_uiID(pMediaInstance->GetID()),
         m_pMediaInstance(NULL),
         m_pCWmpStateEngine(NULL),
@@ -66,8 +66,8 @@ CWmpPlayer::
 STDMETHODIMP
 CWmpPlayer::
 Create(
-    __in            MediaInstance       *pMediaInstance,
-    __in            bool                canOpenAnyMedia,
+    _In_            MediaInstance       *pMediaInstance,
+    _In_            bool                canOpenAnyMedia,
     __deref_out     CWmpPlayer          **ppPlayer
     )
 {
@@ -99,7 +99,7 @@ Cleanup:
 HRESULT
 CWmpPlayer::
 Init(
-    __in            bool                canOpenAnyMedia
+    _In_            bool                canOpenAnyMedia
     )
 {
     HRESULT         hr = S_OK;
@@ -144,7 +144,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 Open(
-    __in LPCWSTR pwszURL
+    _In_ LPCWSTR pwszURL
     )
 {
     HRESULT hr = S_OK;
@@ -269,7 +269,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 SetRate(
-    __in double dRate
+    _In_ double dRate
     )
 {
     HRESULT         hr = S_OK;
@@ -303,7 +303,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 GetNaturalHeight(
-    __out       UINT *puiHeight
+    _Out_       UINT *puiHeight
     )
 {
     TRACEF(NULL);
@@ -329,7 +329,7 @@ GetNaturalHeight(
 STDMETHODIMP
 CWmpPlayer::
 GetNaturalWidth(
-    __out       UINT    *puiWidth
+    _Out_       UINT    *puiWidth
     )
 {
     TRACEF(NULL);
@@ -355,7 +355,7 @@ GetNaturalWidth(
 STDMETHODIMP
 CWmpPlayer::
 SetVolume(
-    __in double dblVolume
+    _In_ double dblVolume
     )
 {
     HRESULT         hr = S_OK;
@@ -397,7 +397,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 SetBalance(
-    __in    double      dblBalance
+    _In_    double      dblBalance
     )
 {
     HRESULT         hr = S_OK;
@@ -435,7 +435,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 SetIsScrubbingEnabled(
-    __in    bool        isScrubbingEnabled
+    _In_    bool        isScrubbingEnabled
     )
 {
     HRESULT         hr = S_OK;
@@ -467,7 +467,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 GetMediaLength(
-    __out       LONGLONG        *pllLength
+    _Out_       LONGLONG        *pllLength
     )
 {
     TRACEF(NULL);
@@ -496,7 +496,7 @@ GetMediaLength(
 STDMETHODIMP
 CWmpPlayer::
 SetPosition(
-    __in    LONGLONG llTime
+    _In_    LONGLONG llTime
     )
 {
     HRESULT             hr = S_OK;
@@ -538,7 +538,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 GetPosition(
-    __out    LONGLONG *pllTime
+    _Out_    LONGLONG *pllTime
     )
 {
     HRESULT hr = S_OK;
@@ -596,7 +596,7 @@ GetSurfaceRenderer(
 STDMETHODIMP
 CWmpPlayer::
 RegisterResource(
-    __in    CMilSlaveVideo *pSlaveVideo
+    _In_    CMilSlaveVideo *pSlaveVideo
     )
 {
     HRESULT hr = S_OK;
@@ -620,7 +620,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 UnregisterResource(
-    __in    CMilSlaveVideo *pSlaveVideo
+    _In_    CMilSlaveVideo *pSlaveVideo
     )
 {
     TRACEF(NULL);
@@ -640,7 +640,7 @@ UnregisterResource(
 STDMETHODIMP
 CWmpPlayer::
 IsBuffering(
-    __out   bool    *pIsBuffering
+    _Out_   bool    *pIsBuffering
     )
 {
     TRACEF(NULL);
@@ -664,7 +664,7 @@ IsBuffering(
 STDMETHODIMP
 CWmpPlayer::
 CanPause(
-    __out   bool    *pCanPause
+    _Out_   bool    *pCanPause
     )
 {
     HRESULT hr = S_OK;
@@ -693,7 +693,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 GetDownloadProgress(
-    __out   double      *pProgress
+    _Out_   double      *pProgress
     )
 {
     HRESULT hr = S_OK;
@@ -730,7 +730,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 GetBufferingProgress(
-    __out   double      *pProgress
+    _Out_   double      *pProgress
     )
 {
     HRESULT hr = S_OK;
@@ -770,7 +770,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 HasVideo(
-    __out    bool *pfHasVideo
+    _Out_    bool *pfHasVideo
     )
 {
     HRESULT hr = S_OK;
@@ -802,7 +802,7 @@ Cleanup:
 STDMETHODIMP
 CWmpPlayer::
 HasAudio(
-    __out   bool *pfHasAudio
+    _Out_   bool *pfHasAudio
     )
 {
     HRESULT hr = S_OK;

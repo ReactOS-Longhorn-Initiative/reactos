@@ -39,7 +39,7 @@ public:
     static
     HRESULT
     Create(
-        __in        UINT             uiID,
+        _In_        UINT             uiID,
         __deref_out Wmp11ClientSite  **ppSetup
         );
 
@@ -56,8 +56,8 @@ public:
     //
     STDMETHOD(GetApplicationName)(BSTR *pName) NOTIMPL_METHOD; // not used for in-proc hosting
     STDMETHOD(GetCustomUIMode)(BSTR *pFile) NOTIMPL_METHOD;
-    STDMETHOD(GetScriptableObject)(__out BSTR *pName, __deref_out IDispatch **ppDispatch);
-    STDMETHOD(GetServiceType)(__out     BSTR    *pType);
+    STDMETHOD(GetScriptableObject)(_Out_ BSTR *pName, __deref_out IDispatch **ppDispatch);
+    STDMETHOD(GetServiceType)(_Out_     BSTR    *pType);
 
     //
     // IOleClientSite
@@ -78,7 +78,7 @@ protected:
 private:
 
     Wmp11ClientSite(
-        __in    UINT                uiID
+        _In_    UINT                uiID
         );
 
     virtual ~Wmp11ClientSite();

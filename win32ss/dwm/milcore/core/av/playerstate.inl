@@ -61,7 +61,7 @@ inline
 Optional<T> &
 Optional<T>::
 operator=(
-    __in  T value
+    _In_  T value
     )
 {
     m_value = value;
@@ -131,8 +131,8 @@ ApplyAsMask(
 //------------------------------------------------------------------------------
 template <class T>
 bool operator==(
-    __in    Optional<T>     &o1,
-    __in    Optional<T>     &o2
+    _In_    Optional<T>     &o1,
+    _In_    Optional<T>     &o2
     )
 {
     return (   (!o1.m_isValid && !o2.m_isValid)
@@ -150,8 +150,8 @@ bool operator==(
 //------------------------------------------------------------------------------
 template <class T>
 bool operator!=(
-    __in    Optional<T>     &o1,
-    __in    Optional<T>     &o2
+    _In_    Optional<T>     &o1,
+    _In_    Optional<T>     &o2
     )
 {
     return !(o1 == o2);

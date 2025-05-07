@@ -26,7 +26,7 @@
 bool
 EvrPresenter::
 IsSoftwareFallbackError(
-    __in    HRESULT                     hr
+    _In_    HRESULT                     hr
     )
 {
     return    hr == D3DERR_NOTAVAILABLE
@@ -45,7 +45,7 @@ IsSoftwareFallbackError(
 bool
 EvrPresenter::
 IsMandatorySoftwareFallbackError(
-    __in    HRESULT                     hr
+    _In_    HRESULT                     hr
     )
 {
     return hr == DDERR_SURFACELOST;
@@ -65,7 +65,7 @@ GetSampleScheduler(
 HRESULT
 EvrPresenter::
 CheckForShutdown(
-    __in    RenderState::Enum       renderState
+    _In_    RenderState::Enum       renderState
     )
 {
     if (renderState == RenderState::Shutdown)
@@ -93,7 +93,7 @@ inline
 HRESULT
 EvrPresenter::AVSurfaceRenderer::
 FallbackToSoftwareIfNecessary(
-    __in    HRESULT                     hr
+    _In_    HRESULT                     hr
     )
 {
     if (EvrPresenter::IsSoftwareFallbackError(hr))
@@ -108,7 +108,7 @@ FallbackToSoftwareIfNecessary(
 bool
 EvrPresenter::AVSurfaceRenderer::
 IsTransientError(
-    __in    HRESULT         hr
+    _In_    HRESULT         hr
     )
 {
     return    hr == WGXERR_AV_NOREADYFRAMES
@@ -119,7 +119,7 @@ IsTransientError(
 HRESULT
 EvrPresenter::
 TreatNonSoftwareFallbackErrorAsUnknownHardwareError(
-    __in    HRESULT         hr
+    _In_    HRESULT         hr
     )
 {
     if (   FAILED(hr)

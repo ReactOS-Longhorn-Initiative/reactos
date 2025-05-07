@@ -74,8 +74,8 @@ AvDllShutdown(
 HRESULT
 CMILAV::
 CreateMedia(
-    __in        CEventProxy *pEventProxy,
-    __in        bool        canOpenAnyMedia,
+    _In_        CEventProxy *pEventProxy,
+    _In_        bool        canOpenAnyMedia,
     __deref_out IMILMedia   **ppMedia
     )
 {
@@ -105,8 +105,8 @@ Cleanup:
 HRESULT
 CMILAV::
 ChoosePlayer(
-    __in            MediaInstance       *pMediaInstance,
-    __in            bool                canOpenAnyMedia,
+    _In_            MediaInstance       *pMediaInstance,
+    _In_            bool                canOpenAnyMedia,
     __deref_out     IMILMedia           **ppMedia
     )
 {

@@ -375,7 +375,7 @@ CSlaveHWndRenderTarget::NotifyDisplaySetChange(bool invalid , int oldDisplayCoun
 //------------------------------------------------------------------
 
 void CSlaveHWndRenderTarget::GetIntersectionWithDisplay(
-    __in UINT iDisplay,
+    _In_ UINT iDisplay,
     __out_ecount(1) CMILSurfaceRect &rcIntersection
     )
 {

@@ -30,10 +30,10 @@
 template <typename Class, typename Datatype>
 WmpStateEngineProxyItem<Class, Datatype>::
 WmpStateEngineProxyItem(
-    __in    UINT                uiID,
-    __in    CWmpStateEngine     *pCWmpStateEngine,
-    __in    Class               *pClass,
-    __in    Method              method,
+    _In_    UINT                uiID,
+    _In_    CWmpStateEngine     *pCWmpStateEngine,
+    _In_    Class               *pClass,
+    _In_    Method              method,
             Datatype            data
     ) : m_uiID(uiID),
         m_pCWmpStateEngine(pCWmpStateEngine),
@@ -160,7 +160,7 @@ __override
 bool
 WmpStateEngineProxyItem<Class, Datatype>::
 IsAnOwner(
-    __in    IUnknown    *pIUnknown
+    _In_    IUnknown    *pIUnknown
     )
 {
     HRESULT     hr = S_OK;
@@ -195,7 +195,7 @@ template <typename Class, typename Datatype>
 HRESULT
 WmpStateEngineProxyItem<Class, Datatype>::
 CallMethod(
-    __in    bool            waitForCompletion
+    _In_    bool            waitForCompletion
     )
 {
     HRESULT hr = S_OK;
@@ -272,7 +272,7 @@ template <typename Class, typename Datatype>
 STDMETHODIMP
 WmpStateEngineProxyItem<Class, Datatype>::
 HrFindInterface(
-    __in REFIID riid,
+    _In_ REFIID riid,
     __deref_out void **ppv
     )
 {
@@ -292,10 +292,10 @@ template <typename Class, typename Method, typename Datatype>
 HRESULT
 WmpStateEngineProxy::
 CallMethod(
-    __in        UINT                uiID,
-    __in        CWmpStateEngine     *pCWmpStateEngine,
-    __in        Class               *pClass,
-    __in        Method              method,
+    _In_        UINT                uiID,
+    _In_        CWmpStateEngine     *pCWmpStateEngine,
+    _In_        Class               *pClass,
+    _In_        Method              method,
                 Datatype            data
     )
 {
@@ -333,10 +333,10 @@ template <typename Class, typename Method, typename Datatype>
 HRESULT
 WmpStateEngineProxy::
 AsyncCallMethod(
-    __in        UINT                uiID,
-    __in        CWmpStateEngine     *pCWmpStateEngine,
-    __in        Class               *pClass,
-    __in        Method              method,
+    _In_        UINT                uiID,
+    _In_        CWmpStateEngine     *pCWmpStateEngine,
+    _In_        Class               *pClass,
+    _In_        Method              method,
                 Datatype            data
     )
 {

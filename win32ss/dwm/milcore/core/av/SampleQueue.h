@@ -36,7 +36,7 @@ class SampleQueue
 public:
 
     SampleQueue(
-        __in    UINT        uiID
+        _In_    UINT        uiID
         );
 
     ~SampleQueue(
@@ -55,56 +55,56 @@ public:
 
     HRESULT
     InvalidateDevice(
-        __in        CD3DDeviceLevel1    *pRenderDevice,
-        __in        CD3DDeviceLevel1    *pMixerDevice,
-        __in        D3DDEVTYPE          deviceType
+        _In_        CD3DDeviceLevel1    *pRenderDevice,
+        _In_        CD3DDeviceLevel1    *pMixerDevice,
+        _In_        D3DDEVTYPE          deviceType
         );
 
     HRESULT
     GetMixSample(
-        __in        LONGLONG            currentTime,
+        _In_        LONGLONG            currentTime,
         __deref_out IMFSample           **ppISample
         );
 
     HRESULT
     ReturnMixSample(
-        __in        LONGLONG            currentTime,
-        __in        IMFSample           *pISample
+        _In_        LONGLONG            currentTime,
+        _In_        IMFSample           *pISample
         );
 
     HRESULT
     GetNextSampleTime(
-        __in        LONGLONG            currentTime,
-        __out       LONGLONG            *pPrevTime,
-        __out       LONGLONG            *pNextTime
+        _In_        LONGLONG            currentTime,
+        _Out_       LONGLONG            *pPrevTime,
+        _Out_       LONGLONG            *pNextTime
         );
 
     HRESULT
     GetSmallestSampleTime(
-        __out       LONGLONG            *pSmallestTime
+        _Out_       LONGLONG            *pSmallestTime
         );
 
     void
     SignalFlush(
-        __in        LONGLONG            currentTime
+        _In_        LONGLONG            currentTime
         );
 
     HRESULT
     GetCompositionSample(
-        __in            bool                rechooseSample,
-        __in            LONGLONG            currentTime,
+        _In_            bool                rechooseSample,
+        _In_            LONGLONG            currentTime,
         __deref_out     IMFSample           **ppISample
         );
 
     HRESULT
     RechooseCompositionSampleFromMixerThread(
-        __in            LONGLONG            currentTime
+        _In_            LONGLONG            currentTime
         );
 
     void
     PauseCompositionSample(
-        __in            LONGLONG            currentTime,
-        __in            bool                allowForwardSamples
+        _In_            LONGLONG            currentTime,
+        _In_            bool                allowForwardSamples
         );
 
     void
@@ -114,7 +114,7 @@ public:
 
     HRESULT
     ReturnCompositionSample(
-        __out           bool                *pSignalMixer
+        _Out_           bool                *pSignalMixer
         );
 
 private:
@@ -134,12 +134,12 @@ private:
     // Cannot copy or assign a SampleQueue.
     //
     SampleQueue(
-        __in const SampleQueue &
+        _In_ const SampleQueue &
         );
 
     SampleQueue &
     operator=(
-        __in const SampleQueue &
+        _In_ const SampleQueue &
         );
 
     struct StateViewLogicalSample
@@ -158,51 +158,51 @@ private:
 
     HRESULT
     GetStateView(
-        __in        SampleThreads::Enum         thread,
-        __out       StateViewLogicalSample      *pStateView
+        _In_        SampleThreads::Enum         thread,
+        _Out_       StateViewLogicalSample      *pStateView
         );
 
     bool
     ApplyStateView(
-        __in        SampleThreads::Enum         thread,
-        __in        StateViewLogicalSample      basedOnStateView
+        _In_        SampleThreads::Enum         thread,
+        _In_        StateViewLogicalSample      basedOnStateView
         );
 
     HRESULT
     AllocateSample(
-        __out       IMFSample           **ppISample
+        _Out_       IMFSample           **ppISample
         );
 
     void
     CalculateNextTime(
-        __in        StateViewLogicalSample      sampleView,
-        __in        LONGLONG                    currentTime,
-        __out       LONGLONG                    *pLastTime,
-        __out       LONGLONG                    *pNextTime
+        _In_        StateViewLogicalSample      sampleView,
+        _In_        LONGLONG                    currentTime,
+        _Out_       LONGLONG                    *pLastTime,
+        _Out_       LONGLONG                    *pNextTime
         ) const;
 
     HRESULT
     ValidateAndGetMixSample(
-        __in        BYTE                        sampleToUse,
-        __out       IMFSample                   **ppISample
+        _In_        BYTE                        sampleToUse,
+        _Out_       IMFSample                   **ppISample
         );
 
     static inline
     StateViewLogicalSample
     TranslateViewState(
-        __in    LONG                        viewState
+        _In_    LONG                        viewState
         );
 
     static inline
     LONG
     TranslateViewState(
-        __in    StateViewLogicalSample      logicalSample
+        _In_    StateViewLogicalSample      logicalSample
         );
 
     static inline
     BYTE
     NextView(
-        __in    BYTE                        view
+        _In_    BYTE                        view
         );
 
     static
@@ -213,48 +213,48 @@ private:
 
     void
     DumpState(
-        __in    PCSTR               method,
-        __in    const StateView     &startStateView,
-        __in    const StateView     &endStateView,
-        __in    LONGLONG            currentTime
+        _In_    PCSTR               method,
+        _In_    const StateView     &startStateView,
+        _In_    const StateView     &endStateView,
+        _In_    LONGLONG            currentTime
         );
 
     void
     DumpSamples(
-        __in    const StateView     &startStateView,
-        __in    const StateView     &endStateView
+        _In_    const StateView     &startStateView,
+        _In_    const StateView     &endStateView
         );
 
     void
     DumpTime(
-        __in    PCSTR               method,
-        __in    LONGLONG            currentTime
+        _In_    PCSTR               method,
+        _In_    LONGLONG            currentTime
         );
 
     BYTE
     ChooseCompositionSample(
-        __in    bool                rechooseSample,
-        __in    bool                allowForwardSamples,
-        __in    LONGLONG            currentTime,
-        __in    const StateView     &stateView
+        _In_    bool                rechooseSample,
+        _In_    bool                allowForwardSamples,
+        _In_    LONGLONG            currentTime,
+        _In_    const StateView     &stateView
         );
 
     static inline
     bool
     IsPositiveSampleTime(
-        __in    LONGLONG            sampleTime
+        _In_    LONGLONG            sampleTime
         );
 
     static inline
     bool
     IsExpectedSampleTime(
-        __in    LONGLONG            sampleTime
+        _In_    LONGLONG            sampleTime
         );
 
     static inline
     bool
     IsValidSampleIndex(
-        __in    BYTE                sampleIndex
+        _In_    BYTE                sampleIndex
         );
 
 

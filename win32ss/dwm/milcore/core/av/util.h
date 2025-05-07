@@ -26,7 +26,7 @@
 inline
 HRESULT
 IsSupportedWmpReturn(
-    __in    HRESULT         hr
+    _In_    HRESULT         hr
     );
 
 HRESULT
@@ -36,14 +36,14 @@ GetLastErrorAsFailHR(
 
 DWORD
 Win32StatusFromHR(
-    __in    HRESULT         hr
+    _In_    HRESULT         hr
     );
 
 inline
 HRESULT
 SysAllocStringCheck(
-    __in    PCWSTR          pszString,
-    __out   BSTR            *pbstrString
+    _In_    PCWSTR          pszString,
+    _Out_   BSTR            *pbstrString
     );
 
 HRESULT
@@ -54,7 +54,7 @@ CopyHeapString(
 
 void
 GetUnderlyingDevice(
-    __in        CD3DDeviceLevel1    *pCD3DDeviceLevel1,
+    _In_        CD3DDeviceLevel1    *pCD3DDeviceLevel1,
     __deref_out IDirect3DDevice9    **ppIDirect3DDevice9
     );
 
@@ -62,14 +62,14 @@ class CMFMediaBuffer;
 
 HRESULT
 ConvertSampleToMediaBuffer(
-    __in    IMFSample       *pIMFSample,
-    __out   CMFMediaBuffer  **ppCMFMediaBuffer
+    _In_    IMFSample       *pIMFSample,
+    _Out_   CMFMediaBuffer  **ppCMFMediaBuffer
     );
 
 inline
 D3DFORMAT
 FormatFromMediaType(
-    __in        IMFVideoMediaType   *pIVideoMediaType
+    _In_        IMFVideoMediaType   *pIVideoMediaType
     );
 
 #ifndef COUNTOF

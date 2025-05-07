@@ -8,7 +8,7 @@ class PresenterWrapper
 {
 public:
     PresenterWrapper(
-        __in    UINT    id
+        _In_    UINT    id
         );
 
     ~PresenterWrapper(
@@ -77,7 +77,7 @@ public:
 
     void
     SetPresenter(
-        __in    EvrPresenterObj     *pEvrPresenter
+        _In_    EvrPresenterObj     *pEvrPresenter
         );
 
 private:

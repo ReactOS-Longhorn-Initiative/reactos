@@ -25,9 +25,9 @@
 
 AutoTrace::
 AutoTrace(
-    __in                UINT       uiID,
+    _In_                UINT       uiID,
     __in_opt            void       *pThisPointer,
-    __in                const char *functionName,
+    _In_                const char *functionName,
     __in_ecount_opt(1)  HRESULT    *phr
     )
     : m_uiID(uiID), m_pThisPointer(pThisPointer), m_functionName(functionName), m_phr(phr)

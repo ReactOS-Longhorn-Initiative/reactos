@@ -956,7 +956,7 @@ CMILBrushRadialGradient::HrFindInterface(
 //-------------------------------------------------------------------------
 
 CMILBrushShaderEffect::CMILBrushShaderEffect(
-    __in CMilEffectDuce *pShaderEffect
+    _In_ CMilEffectDuce *pShaderEffect
     )
     : CMILObject(NULL)
 {
@@ -981,7 +981,7 @@ CMILBrushShaderEffect::~CMILBrushShaderEffect()
 
 HRESULT
 CMILBrushShaderEffect::Create(
-    __in CMilEffectDuce *pShaderEffect,
+    _In_ CMilEffectDuce *pShaderEffect,
     __deref_out CMILBrushShaderEffect **ppShaderEffectBrush
     )
 {
@@ -1010,7 +1010,7 @@ Cleanup:
 
 HRESULT 
 CMILBrushShaderEffect::ConfigurePass(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::BaseSampling> &matBitmapToBaseSamplingSpace
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::BaseSampling> &matBitmapToBaseSamplingSpace
     )
 {
     m_matBitmapToBaseSamplingSpace = matBitmapToBaseSamplingSpace;
@@ -1028,8 +1028,8 @@ CMILBrushShaderEffect::ConfigurePass(
 
 void 
 CMILBrushShaderEffect::GetBitmapToSampleSpaceTransform(
-    __in const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &matBaseSamplingToSampleSpace, // Composition: local to device.
-    __out CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pMatBitmapToBaseSamplingSpace) // Composition: texture to local
+    _In_ const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &matBaseSamplingToSampleSpace, // Composition: local to device.
+    _Out_ CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pMatBitmapToBaseSamplingSpace) // Composition: texture to local
 {
     pMatBitmapToBaseSamplingSpace->SetToMultiplyResult(m_matBitmapToBaseSamplingSpace, matBaseSamplingToSampleSpace);
 }
@@ -1068,7 +1068,7 @@ CMILBrushShaderEffect::HrFindInterface(
 
 HRESULT 
 CMILBrushShaderEffect::PreparePass(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
     __inout CPixelShaderState *pPixelShaderState, 
     __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
     )

@@ -84,12 +84,12 @@ HRESULT
 CGradientBrushSpan::InitializeTexture(
     __in_ecount(1) const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
     __in_ecount(3) const MilPoint2F *pGradientPoints,
-    __in BOOL fRadialGradient,
+    _In_ BOOL fRadialGradient,
     __in_ecount(uCount) const MilColorF *pColors,
     __in_ecount(uCount) const FLOAT *pPositions,
-    __in UINT uCount,
-    __in MilGradientWrapMode::Enum wrapMode,
-    __in MilColorInterpolationMode::Enum colorInterpolationMode,
+    _In_ UINT uCount,
+    _In_ MilGradientWrapMode::Enum wrapMode,
+    _In_ MilColorInterpolationMode::Enum colorInterpolationMode,
     __out_ecount(1) CMILMatrix *pmatDeviceIPCtoGradientTextureHPC 
     )
 {
@@ -208,9 +208,9 @@ CLinearGradientBrushSpan::Initialize(
     __in_ecount(3) const MilPoint2F *pGradientPoints,
     __in_ecount(uCount) const MilColorF *pColors,
     __in_ecount(uCount) const FLOAT *pPositions,
-    __in UINT uCount,
-    __in MilGradientWrapMode::Enum wrapMode,
-    __in MilColorInterpolationMode::Enum colorInterpolationMode
+    _In_ UINT uCount,
+    _In_ MilGradientWrapMode::Enum wrapMode,
+    _In_ MilColorInterpolationMode::Enum colorInterpolationMode
     )
 {
     HRESULT hr = S_OK;
@@ -332,9 +332,9 @@ CLinearGradientBrushSpan::ReleaseExpensiveResources()
 
 void 
 CLinearGradientBrushSpan::GenerateColors(
-    __in INT nX, 
-    __in INT nY, 
-    __in INT nCount, 
+    _In_ INT nX, 
+    _In_ INT nY, 
+    _In_ INT nCount, 
     __out_ecount_full(nCount) ARGB *pArgbDest
     )
 {
@@ -440,9 +440,9 @@ CLinearGradientBrushSpan_MMX::Initialize(
     __in_ecount(3) const MilPoint2F *pGradientPoints,
     __in_ecount(uCount) const MilColorF *pColors,
     __in_ecount(uCount) const FLOAT *pPositions,
-    __in UINT uCount,
-    __in MilGradientWrapMode::Enum wrapMode,
-    __in MilColorInterpolationMode::Enum colorInterpolationMode
+    _In_ UINT uCount,
+    _In_ MilGradientWrapMode::Enum wrapMode,
+    _In_ MilColorInterpolationMode::Enum colorInterpolationMode
     )
 {
     HRESULT hr = S_OK;
@@ -536,9 +536,9 @@ FASTCALL ColorSource_LinearGradient_32bppPARGB_MMX(
 
 VOID 
 CLinearGradientBrushSpan_MMX::GenerateColors(
-    __in INT nX, 
-    __in INT nY, 
-    __in INT nCount, 
+    _In_ INT nX, 
+    _In_ INT nY, 
+    _In_ INT nCount, 
     __out_ecount_full(nCount) ARGB *pArgbDest
     )
 {
@@ -826,9 +826,9 @@ CRadialGradientBrushSpan::Initialize(
     __in_ecount(3) const MilPoint2F *pGradientPoints,
     __in_ecount(uCount) const MilColorF *pColors,
     __in_ecount(uCount) const FLOAT *pPositions,
-    __in UINT uCount,
-    __in MilGradientWrapMode::Enum wrapMode,
-    __in MilColorInterpolationMode::Enum colorInterpolationMode
+    _In_ UINT uCount,
+    _In_ MilGradientWrapMode::Enum wrapMode,
+    _In_ MilColorInterpolationMode::Enum colorInterpolationMode
     )
 {
     HRESULT hr = S_OK;
@@ -932,9 +932,9 @@ CRadialGradientBrushSpan::ReleaseExpensiveResources()
 template<typename TPlatform>
 VOID
 CRadialGradientBrushSpan::GenerateColors(
-    __in INT nX, 
-    __in INT nY, 
-    __in INT nCount, 
+    _In_ INT nX, 
+    _In_ INT nY, 
+    _In_ INT nCount, 
     __out_ecount_full(nCount) ARGB *pArgbDest
     )
 {
@@ -1136,9 +1136,9 @@ CFocalGradientBrushSpan::Initialize(
     __in_ecount(3) const MilPoint2F *pGradientPoints,
     __in_ecount(uCount) const MilColorF *pColors,
     __in_ecount(uCount) const FLOAT *pPositions,
-    __in UINT uCount,
-    __in MilGradientWrapMode::Enum wrapMode,
-    __in MilColorInterpolationMode::Enum colorInterpolationMode,
+    _In_ UINT uCount,
+    _In_ MilGradientWrapMode::Enum wrapMode,
+    _In_ MilColorInterpolationMode::Enum colorInterpolationMode,
     __in_ecount(1) const MilPoint2F *pFocalPoint
     )
 {
@@ -1418,9 +1418,9 @@ FASTCALL ColorSource_FocalGradient_32bppPARGB(
 //------------------------------------------------------------------------------
 VOID 
 CFocalGradientBrushSpan::GenerateColors(
-    __in INT nX, 
-    __in INT nY, 
-    __in INT nCount, 
+    _In_ INT nX, 
+    _In_ INT nY, 
+    _In_ INT nCount, 
     __out_ecount_full(nCount) ARGB *pArgbDest
     )
 {
@@ -1673,7 +1673,7 @@ CShaderEffectBrushSpan::ReleaseExpensiveResources()
 
 HRESULT 
 CShaderEffectBrushSpan::Initialize(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
     __inout CMILBrushShaderEffect* pShaderEffectBrush)
 {
     HRESULT hr = S_OK;
@@ -1704,9 +1704,9 @@ Cleanup:
 
 void
 CShaderEffectBrushSpan::GenerateColors(
-    __in INT nX, 
-    __in INT nY, 
-    __in INT nCount, 
+    _In_ INT nX, 
+    _In_ INT nY, 
+    _In_ INT nCount, 
     __out_ecount_full(nCount) ARGB *pArgbDest)
 {
     Assert(m_pfnGenerateColorsEffectWeakRef);

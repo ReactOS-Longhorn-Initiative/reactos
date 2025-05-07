@@ -200,7 +200,7 @@ private:
     BOOL m_fDbgClearOnPresent;
 
     override void ShowSteppedRendering(
-        __in LPCTSTR pszRenderDesc,
+        _In_ LPCTSTR pszRenderDesc,
         __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
         );
 #endif /* DBG_STEP_RENDERING */

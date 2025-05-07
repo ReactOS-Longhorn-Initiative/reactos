@@ -334,18 +334,18 @@ HRESULT WINAPI MilUtility_PathGeometryCombine(
         // Matrix applied to the final result
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix1,
         // Matrix applied to the pPathData1
-    __in MilFillMode::Enum fillRule1,
+    _In_ MilFillMode::Enum fillRule1,
     __in_bcount(nSize1) MilPathGeometry *pPathData1,
-    __in UINT32 nSize1,
+    _In_ UINT32 nSize1,
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix2,
         // Matrix applied to the pPathData2
-    __in MilFillMode::Enum fillRule2,
+    _In_ MilFillMode::Enum fillRule2,
     __in_bcount(nSize2) MilPathGeometry *pPathData2,
-    __in UINT32 nSize2,
-    __in double rTolerance, 
-    __in bool fRelative,
+    _In_ UINT32 nSize2,
+    _In_ double rTolerance, 
+    _In_ bool fRelative,
     __in_ecount(1) AddFigureToList fnAddFigureToList,
-    __in MilCombineMode::Enum combineMode,
+    _In_ MilCombineMode::Enum combineMode,
     __out_ecount(1) MilFillMode::Enum *pOutFillRule)
 {
     HRESULT hr = S_OK;
@@ -484,17 +484,17 @@ HRESULT WINAPI MilUtility_PolygonBounds(
         // Points defining the path
     __in_ecount(cSegments) byte *pTypes,
         // Types defining the path
-    __in UINT cPoints,
+    _In_ UINT cPoints,
         // Number of points
-    __in UINT cSegments,
+    _In_ UINT cSegments,
         // Number of segments
     __in_ecount_opt(1) MilMatrix3x2D *pGeometryMatrix,
         // Transformation matrix to be applied to the geometry but not to the pen
-    __in double rTolerance,
+    _In_ double rTolerance,
         // Approximation error tolerance
-    __in bool fRelative,
+    _In_ bool fRelative,
         // =true if the tolerance is relative
-    __in bool fSkipHollows,
+    _In_ bool fSkipHollows,
         // If true, skip non-fillable figures when computing fill bounds       
     __out_ecount(1) MilPointAndSizeD *pBounds)
         // The bounds
@@ -539,19 +539,19 @@ HRESULT WINAPI MilUtility_PathGeometryBounds(
         // Pen dash array
     __in_ecount_opt(1) MilMatrix3x2D *pWorldMatrix,
         // Transformation matrix to be applied to both pen and geometry
-    __in MilFillMode::Enum fillRule,
+    _In_ MilFillMode::Enum fillRule,
         // Fill rule       
     __in_bcount(nSize) MilPathGeometry *pPathData,
         // Geometry data
-    __in UINT32 nSize,
+    _In_ UINT32 nSize,
         // Size of the above
     __in_ecount_opt(1) MilMatrix3x2D *pGeometryMatrix,
         // Transformation matrix to be applied to the geometry but not to the pen
-    __in double rTolerance,
+    _In_ double rTolerance,
         // Approximation tolerance
-    __in bool fRelative,
+    _In_ bool fRelative,
         // =true if the tolerance is relative
-    __in bool fSkipHollows,
+    _In_ bool fSkipHollows,
         // If true, skip non-fillable figures when computing fill bounds       
     __out_ecount(1) MilRectD *pBounds)
         // The computed bounds
@@ -615,10 +615,10 @@ HRESULT WINAPI MilUtility_PolygonHitTest(
     __in_bcount_opt(pPenData->DashArraySize) double* pDashArray, // Dash array
     __in_ecount(cPoints) MilPoint2D       *pPoints,    // Points defining the path
     __in_ecount(cSegments) byte             *pTypes,     // Types defining the path
-    __in UINT                               cPoints,     // Number of points
-    __in UINT                               cSegments,   // Number of segments
-    __in double                             rThreshold,  // Distance considered a hit
-    __in bool                               fRelative,   // True if the threashold is relative       
+    _In_ UINT                               cPoints,     // Number of points
+    _In_ UINT                               cSegments,   // Number of segments
+    _In_ double                             rThreshold,  // Distance considered a hit
+    _In_ bool                               fRelative,   // True if the threashold is relative       
     __in_ecount(1) MilPoint2D             *pHitPoint,  // The point to hit with
     __out_ecount(1) BOOL                    *pfIsHit)    // True if hit
 {
@@ -685,11 +685,11 @@ HRESULT WINAPI MilUtility_PathGeometryHitTest(
     __in_ecount_opt(1) MilMatrix3x2D       *pMatrix,    // Transformation matrix  
     __in_ecount(1) MilPenData             *pPenData,   // Pen, hit test the stroke if not null
     __in_bcount_opt(pPenData->DashArraySize) double* pDashArray, // Dash array
-    __in MilFillMode::Enum                      fillRule,    // Fill mode
+    _In_ MilFillMode::Enum                      fillRule,    // Fill mode
     __in_bcount(nSize) MilPathGeometry     *pPathData,  // The path data 
-    __in UINT32                             nSize,       // The size of the above in bytes
-    __in double                             rThreshold,  // Distance considered a hit
-    __in bool                               fRelative,   // =true if the threshold is relative
+    _In_ UINT32                             nSize,       // The size of the above in bytes
+    _In_ double                             rThreshold,  // Distance considered a hit
+    _In_ bool                               fRelative,   // =true if the threshold is relative
     __in_ecount(1) MilPoint2D             *pHitPoint,  // The point to hit with
     __out_ecount(1) BOOL                    *pfIsHit)    // True if hit
 {
@@ -860,17 +860,17 @@ Cleanup:
 //------------------------------------------------------------------------------
 void
 MilUtility_ArcToBezier(
-    __in MilPoint2D ptStart,
+    _In_ MilPoint2D ptStart,
         // The arc's start point
-    __in MilPoint2D rRadii,
+    _In_ MilPoint2D rRadii,
         // The ellipse's X and Y radii
-    __in double rotation,
+    _In_ double rotation,
         // Rotation angle of the ellipse's x axis
-    __in bool fLargeArc,
+    _In_ bool fLargeArc,
         // Choose the larger of the 2 arcs if TRUE
-    __in bool fSweepUp,
+    _In_ bool fSweepUp,
         // Sweep the arc increasing the angle if TRUE
-    __in MilPoint2D ptEnd,
+    _In_ MilPoint2D ptEnd,
         // The arc's end point
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix,
         // Transformation matrix

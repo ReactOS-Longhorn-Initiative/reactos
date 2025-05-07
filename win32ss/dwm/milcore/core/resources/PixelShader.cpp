@@ -32,8 +32,8 @@ UINT  CMilPixelShaderDuce::m_cbPassThroughShaderBytecodeSize;
 HRESULT 
 CMilPixelShaderDuce::Create(
     __in_ecount(1) CComposition *pComposition,
-    __in ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
-    __in UINT cbBytecodeSize,
+    _In_ ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
+    _In_ UINT cbBytecodeSize,
     __in_bcount(cbBytecodeSize) BYTE* pBytecode, 
     __deref_out CMilPixelShaderDuce **ppOut)
 {
@@ -71,9 +71,9 @@ CMilPixelShaderDuce::CMilPixelShaderDuce()
 HRESULT
 CMilPixelShaderDuce::Initialize(
     __inout_ecount(1) CComposition *pComposition,
-    __in ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
-    __in UINT cbBytecodeSize, 
-    __in BYTE* pBytecode)
+    _In_ ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
+    _In_ UINT cbBytecodeSize, 
+    _In_ BYTE* pBytecode)
 {
     HRESULT hr = S_OK;
 
@@ -147,8 +147,8 @@ CMilPixelShaderDuce::GetShaderRenderMode() const
 
 HRESULT 
 CMilPixelShaderDuce::GetHwPixelShaderEffectFromCache(
-    __in CD3DDeviceLevel1 *pDevice,   
-    __out CHwPixelShaderEffect **ppPixelShaderEffect)
+    _In_ CD3DDeviceLevel1 *pDevice,   
+    _Out_ CHwPixelShaderEffect **ppPixelShaderEffect)
 {
     HRESULT hr = S_OK;
     IMILCacheableResource *pResource = NULL;
@@ -256,7 +256,7 @@ CMilPixelShaderDuce::GetHwPixelShaderEffectFromCache(
 
 HRESULT 
 CMilPixelShaderDuce::SetupShader(
-    __in CD3DDeviceLevel1* pDevice    
+    _In_ CD3DDeviceLevel1* pDevice    
     )
 {
     HRESULT hr = S_OK;

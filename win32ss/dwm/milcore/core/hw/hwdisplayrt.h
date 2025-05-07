@@ -221,7 +221,7 @@ protected:
 #if DBG_STEP_RENDERING
 public:
     override void ShowSteppedRendering(
-        __in LPCTSTR pszRenderDesc,
+        _In_ LPCTSTR pszRenderDesc,
         __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
         );
 

@@ -29,7 +29,7 @@ public:
 
     void
     SetNaturalWidth(
-        __in    UINT        width
+        _In_    UINT        width
         );
 
     UINT
@@ -39,7 +39,7 @@ public:
 
     void
     SetNaturalHeight(
-        __in    UINT        height
+        _In_    UINT        height
         );
 
     bool
@@ -49,7 +49,7 @@ public:
 
     void
     SetIsBuffering(
-        __in    bool        isBuffering
+        _In_    bool        isBuffering
         );
 
     bool
@@ -59,7 +59,7 @@ public:
 
     void
     SetCanPause(
-        __in    bool        canPause
+        _In_    bool        canPause
         );
 
     bool
@@ -69,7 +69,7 @@ public:
 
     void
     SetHasVideo(
-        __in    bool        hasVideo
+        _In_    bool        hasVideo
         );
 
     bool
@@ -79,7 +79,7 @@ public:
 
     void
     SetHasAudio(
-        __in    bool        hasAudio
+        _In_    bool        hasAudio
         );
 
     LONGLONG
@@ -89,7 +89,7 @@ public:
 
     void
     SetLength(
-        __in    LONGLONG    length
+        _In_    LONGLONG    length
         );
 
     double
@@ -99,7 +99,7 @@ public:
 
     void
     SetDownloadProgress(
-        __in    double      downloadProgress
+        _In_    double      downloadProgress
         );
 
     double
@@ -109,7 +109,7 @@ public:
 
     void
     SetBufferingProgress(
-        __in    double      bufferingProgress
+        _In_    double      bufferingProgress
         );
 
     LONGLONG
@@ -119,7 +119,7 @@ public:
 
     void
     SetPosition(
-        __in    LONGLONG    position
+        _In_    LONGLONG    position
         );
 
     LONGLONG
@@ -129,7 +129,7 @@ public:
 
     void
     SetTimedOutPosition(
-        __in    LONGLONG    position
+        _In_    LONGLONG    position
         );
 
     double
@@ -139,7 +139,7 @@ public:
 
     void
     SetTimedOutDownloadProgress(
-        __in    double      downloadProgress
+        _In_    double      downloadProgress
         );
 
     double
@@ -149,7 +149,7 @@ public:
 
     void
     SetTimedOutBufferingProgress(
-        __in    double      bufferingProgress
+        _In_    double      bufferingProgress
         );
 
 private:

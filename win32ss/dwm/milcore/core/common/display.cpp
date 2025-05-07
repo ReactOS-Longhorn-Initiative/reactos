@@ -148,8 +148,8 @@ bool IsMultiAdapterCodeEnabled()
 //
 //-------------------------------------------------------------------------
 CDisplayRegKey::CDisplayRegKey(
-    __in HKEY hKeyRoot,
-    __in PCTSTR pszDeviceName
+    _In_ HKEY hKeyRoot,
+    _In_ PCTSTR pszDeviceName
     )
 {
     HKEY hKeyAvalonGraphics = NULL;
@@ -198,7 +198,7 @@ CDisplayRegKey::CDisplayRegKey(
 //
 //-------------------------------------------------------------------------
 CDisplayRegKey::CDisplayRegKey(
-    __in PCTSTR pszDeviceKey
+    _In_ PCTSTR pszDeviceKey
     )
 {
     m_fOpened = TW32(0, ERROR_SUCCESS == RegOpenKeyEx(
@@ -236,7 +236,7 @@ CDisplayRegKey::~CDisplayRegKey()
 //-------------------------------------------------------------------------
 bool
 CDisplayRegKey::ReadDWORD(
-    __in PCTSTR pName,
+    _In_ PCTSTR pName,
     __out_ecount(1) DWORD *pValue
     )
 {
@@ -277,7 +277,7 @@ CDisplayRegKey::ReadDWORD(
 //-------------------------------------------------------------------------
 bool
 CDisplayRegKey::ReadString(
-    __in PCTSTR pName,
+    _In_ PCTSTR pName,
     DWORD cb,
     __out_bcount(cb) PTSTR pstr
     )
@@ -1157,7 +1157,7 @@ Cleanup:
 
 HRESULT
 CDisplaySet::GetDisplayIndexFromMonitor(
-    __in HMONITOR hMonitor,
+    _In_ HMONITOR hMonitor,
     __out_ecount(1) UINT &uDisplayIndex
     ) const
 {
@@ -1387,10 +1387,10 @@ Cleanup:
 //------------------------------------------------------------------------
 BOOL CALLBACK
 CDisplaySet::MonitorEnumProc(
-  __in HMONITOR hMonitor,  // handle to display monitor
-  __in HDC hdcMonitor,     // handle to monitor DC
-  __in LPRECT lprcMonitor, // monitor intersection rectangle
-  __in LPARAM lpData       // this pointer
+  _In_ HMONITOR hMonitor,  // handle to display monitor
+  _In_ HDC hdcMonitor,     // handle to monitor DC
+  _In_ LPRECT lprcMonitor, // monitor intersection rectangle
+  _In_ LPARAM lpData       // this pointer
 )
 {
     Assert(lpData);
@@ -1432,7 +1432,7 @@ Cleanup:
 //------------------------------------------------------------------------
 HRESULT
 CDisplaySet::GetMonitorDescription(
-    __in HMONITOR hMonitor,
+    _In_ HMONITOR hMonitor,
     __out_ecount(1) MONITORINFOEX *pMonitorInfo
     )
 {
@@ -1490,7 +1490,7 @@ CDisplaySet::FindDisplayByName(__in_ecount(1) const MONITORINFOEX *pmi)
 //
 //------------------------------------------------------------------------
 int
-CDisplaySet::FindDisplayByHMonitor(__in HMONITOR hMonitor) const
+CDisplaySet::FindDisplayByHMonitor(_In_ HMONITOR hMonitor) const
 {
     // DevDiv Servicing :
     // If this app has asked to disable the multi-adapter code, then just
@@ -1576,7 +1576,7 @@ HRESULT
 CDisplaySet::ValidateDeviceName(
     __in_bcount(cbBuffer) LPCTSTR pstrDeviceName,
         // Device name to validate
-    __in size_t cbBuffer
+    _In_ size_t cbBuffer
         // Size of pstrDeviceName, including NULL-terminator, in bytes
     )
 {
@@ -2307,7 +2307,7 @@ CDisplaySet::IsEquivalentTo(
 //-------------------------------------------------------------------------
 CDisplay::CDisplay(
     __in_ecount(1) const CDisplaySet * pDisplaySet,
-    __in UINT uDisplayIndex,
+    _In_ UINT uDisplayIndex,
     __in_ecount(1) const DISPLAY_DEVICE *pdd
     ) : 
     m_defaultDpiAwarenessContextValue(DpiAwarenessContext::GetThreadDpiAwarenessContextValue())
@@ -2408,7 +2408,7 @@ CMILSurfaceRect const & CDisplaySet::GetBounds() const
 
 HRESULT
 CDisplay::SetMonitorInfo(
-    __in HMONITOR hMonitor,
+    _In_ HMONITOR hMonitor,
     __in_ecount(1) LPCRECT prcMonitor
     )
 {
@@ -2775,7 +2775,7 @@ CDisplay::IsEquivalentTo(
 
 HRESULT
 GetDriverDate(
-    __in PCTSTR pstrDriver,
+    _In_ PCTSTR pstrDriver,
     __out_ecount(1) unsigned __int64 *pui64DriverDate
     )
 {
@@ -2856,7 +2856,7 @@ CDisplay::GetMode(
 
 bool
 CDisplay::CheckForRecentDriver(
-    __in PCTSTR pstrDriver
+    _In_ PCTSTR pstrDriver
     ) const
 {
     bool fDriverIsGood = true;

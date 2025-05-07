@@ -586,7 +586,7 @@ Cleanup:
 
 HRESULT
 CHwDeviceBitmapColorSource::UpdateSurface(
-    __in UINT cDirtyRects,
+    _In_ UINT cDirtyRects,
     __in_ecount(cDirtyRects) const CMilRectU *prgDirtyRects,
     __in_ecount(1) IDirect3DSurface9 *pISrcSurface
     )

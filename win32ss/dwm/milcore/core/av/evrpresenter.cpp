@@ -44,10 +44,10 @@ MtDefine(EvrPresenter, Mem, "EvrPresenter");
 /*static*/
 HRESULT
 EvrPresenter::Create(
-    __in    MediaInstance           *pMediaInstance,
-    __in    UINT                    resetToken,
-    __in    CWmpStateEngine         *pWmpStateEngine,
-    __in    CDXVAManagerWrapper     *pDXVAManagerWrapper,
+    _In_    MediaInstance           *pMediaInstance,
+    _In_    UINT                    resetToken,
+    _In_    CWmpStateEngine         *pWmpStateEngine,
+    _In_    CDXVAManagerWrapper     *pDXVAManagerWrapper,
     __deref_out EvrPresenterObj     **ppEvrPresenter
     )
 {
@@ -263,7 +263,7 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::
 InitServicePointers(
-    __in    IMFTopologyServiceLookup    *pILookup
+    _In_    IMFTopologyServiceLookup    *pILookup
         //  The interface that allows us to retrieve our data from the topology.
     )
 {
@@ -684,7 +684,7 @@ EvrPresenter::
 GetSlowestRate(
     MFRATE_DIRECTION    direction,
     BOOL                fAllowThinning,
-    __out               float *pflRate
+    _Out_               float *pflRate
     )
 {
     HRESULT hr = S_OK;
@@ -729,7 +729,7 @@ EvrPresenter::
 GetFastestRate(
     MFRATE_DIRECTION    direction,
     BOOL                fAllowThinning,
-    __out               float *pflRate
+    _Out_               float *pflRate
     )
 {
     HRESULT hr = S_OK;
@@ -847,8 +847,8 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::
 GetService(
-    __in        REFGUID guidService,
-    __in        REFIID  riid,
+    _In_        REFGUID guidService,
+    _In_        REFIID  riid,
     __deref_out LPVOID  *ppvObject
     )
 {
@@ -1009,7 +1009,7 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::
 SetAspectRatioMode(
-    __in        DWORD                dwAspectRatioMode
+    _In_        DWORD                dwAspectRatioMode
     )
 {
     HRESULT     hr = S_OK;
@@ -1052,7 +1052,7 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::
 GetAspectRatioMode(
-    __out       DWORD                *pdwAspectRatioMode
+    _Out_       DWORD                *pdwAspectRatioMode
     )
 {
     HRESULT hr = S_OK;
@@ -1088,7 +1088,7 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::
 SetFullscreen(
-    __in        BOOL                fFullscreen
+    _In_        BOOL                fFullscreen
     )
 {
     HRESULT     hr = S_OK;
@@ -1115,7 +1115,7 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::
 GetFullscreen(
-    __out       BOOL                *pfFullscreen
+    _Out_       BOOL                *pfFullscreen
     )
 {
     HRESULT hr = S_OK;
@@ -1293,8 +1293,8 @@ AvalonShutdown(
 HRESULT
 EvrPresenter::
 SignalMixer(
-    __in    DWORD               continuityKey,
-    __in    LONGLONG            timeToSignal
+    _In_    DWORD               continuityKey,
+    _In_    LONGLONG            timeToSignal
     )
 {
     HRESULT     hr = S_OK;
@@ -1344,11 +1344,11 @@ CancelTimer(
 HRESULT
 EvrPresenter::
 NewMixerDevice(
-    __in    CD3DDeviceLevel1        *pRenderDevice,
+    _In_    CD3DDeviceLevel1        *pRenderDevice,
         // The device on which we are going to render
-    __in    CD3DDeviceLevel1        *pMixerDevice,
+    _In_    CD3DDeviceLevel1        *pMixerDevice,
         // The mixer device
-    __in    D3DDEVTYPE              devType
+    _In_    D3DDEVTYPE              devType
         // The new Direct3D device we want to use for video processing.
     )
 {
@@ -1413,7 +1413,7 @@ Cleanup:
 HRESULT
 EvrPresenter::
 TimeCallback(
-    __in    IMFAsyncResult          *pIAsyncResult
+    _In_    IMFAsyncResult          *pIAsyncResult
     )
 {
     HRESULT     hr = S_OK;
@@ -1469,10 +1469,10 @@ Cleanup:
 // +---------------------------------------------------------------------------
 EvrPresenter::
 EvrPresenter(
-    __in    MediaInstance           *pMediaInstance,
-    __in    UINT                    resetToken,
-    __in    CWmpStateEngine         *pWmpStateEngine,
-    __in    CDXVAManagerWrapper     *pDXVAManagerWrapper
+    _In_    MediaInstance           *pMediaInstance,
+    _In_    UINT                    resetToken,
+    _In_    CWmpStateEngine         *pWmpStateEngine,
+    _In_    CDXVAManagerWrapper     *pDXVAManagerWrapper
     ) : m_uiID(pMediaInstance->GetID()),
         m_ResetToken(resetToken),
         m_pDXVAManagerWrapper(NULL),
@@ -1521,7 +1521,7 @@ EvrPresenter::
 void *
 EvrPresenter::
 GetInterface(
-    __in    REFIID riid
+    _In_    REFIID riid
     )
 {
     TRACEF(NULL);
@@ -1769,7 +1769,7 @@ Cleanup:
 HRESULT
 EvrPresenter::
 GetBestMediaType(
-    __out   IMFMediaType    **ppIBestMediaType
+    _Out_   IMFMediaType    **ppIBestMediaType
     )
 {
     HRESULT             hr = S_OK;
@@ -1874,7 +1874,7 @@ Cleanup:
 HRESULT
 EvrPresenter::
 ProcessOneSample(
-    __in    LONGLONG    currentTime
+    _In_    LONGLONG    currentTime
     )
 {
     HRESULT                 hr = S_OK;
@@ -2019,7 +2019,7 @@ EvrPresenter::
 ProcessSamples(
     __inout       ProcessSamplesData  *pProcessSamplesData,
         // Return data for the samples that must be handled
-    __in        LONGLONG            currentTime
+    _In_        LONGLONG            currentTime
     )
 {
     HRESULT     hr = S_OK;
@@ -2106,7 +2106,7 @@ Cleanup:
 void
 EvrPresenter::
 ProcessSampleDataOutsideOfLock(
-    __in        const ProcessSamplesData    &processSamplesData
+    _In_        const ProcessSamplesData    &processSamplesData
     )
 {
     TRACEF(NULL);
@@ -2288,7 +2288,7 @@ Cleanup:
 HRESULT
 EvrPresenter::
 Step(
-    __in        DWORD               stepCount
+    _In_        DWORD               stepCount
         // The step count that is being requested.
     )
 {
@@ -2351,7 +2351,7 @@ CancelStep(
 HRESULT
 EvrPresenter::
 ValidateMixerHasCorrectType(
-    __in        IMFTransform        *pIMixer
+    _In_        IMFTransform        *pIMixer
         // The mixer
     )
 {
@@ -2609,8 +2609,8 @@ Cleanup:
 //------------------------------------------------------------------------------
 EvrPresenter::AVSurfaceRenderer::
 AVSurfaceRenderer(
-    __in    UINT                uiID,
-    __in    CWmpStateEngine     *pWmpStateEngine
+    _In_    UINT                uiID,
+    _In_    CWmpStateEngine     *pWmpStateEngine
     ) : m_uiID(uiID),
         m_pEvrPresenter(NULL),
         m_pCurrentRenderDevice(NULL),
@@ -2662,8 +2662,8 @@ EvrPresenter::AVSurfaceRenderer::
 //------------------------------------------------------------------------------
 HRESULT
 EvrPresenter::AVSurfaceRenderer::Init(
-    __in    EvrPresenter        *pEvrPresenter,
-    __in    RenderClock         *pRenderClock
+    _In_    EvrPresenter        *pEvrPresenter,
+    _In_    RenderClock         *pRenderClock
     )
 {
     HRESULT hr = S_OK;
@@ -2713,7 +2713,7 @@ Cleanup:
 STDMETHODIMP
 EvrPresenter::AVSurfaceRenderer::
 QueryInterface(
-    __in        REFIID      riid,
+    _In_        REFIID      riid,
     __deref_out void        **ppvObject
     )
 {
@@ -2783,11 +2783,11 @@ Release(
 STDMETHODIMP
 EvrPresenter::AVSurfaceRenderer::
 BeginComposition(
-    __in    CMilSlaveVideo  *pCaller,
-    __in    BOOL            displaySetChanged,
-    __in    BOOL            syncChannel,
+    _In_    CMilSlaveVideo  *pCaller,
+    _In_    BOOL            displaySetChanged,
+    _In_    BOOL            syncChannel,
     __inout LONGLONG        *pLastCompositionSampleTime,
-    __out   BOOL            *pIsNewFrameReady
+    _Out_   BOOL            *pIsNewFrameReady
     )
 {
     HRESULT             hr                  = S_OK;
@@ -3004,7 +3004,7 @@ EndRender(
 STDMETHODIMP
 EvrPresenter::AVSurfaceRenderer::
 EndComposition(
-    __in    CMilSlaveVideo  *pCaller
+    _In_    CMilSlaveVideo  *pCaller
     )
 {
     HRESULT         hr = S_OK;
@@ -3310,7 +3310,7 @@ Shutdown(
 void
 EvrPresenter::AVSurfaceRenderer::
 SignalFallbackFailure(
-    __in        HRESULT                 hr
+    _In_        HRESULT                 hr
     )
 {
     TRACEF(NULL);
@@ -3374,8 +3374,8 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 EvrPresenter::AVSurfaceRenderer::GetHWDevice(
-    __in        UINT                        adapter,
-    __in        bool                        forceMultithreaded,
+    _In_        UINT                        adapter,
+    _In_        bool                        forceMultithreaded,
     __deref_out CD3DDeviceLevel1            **ppD3DDevice
         // The returned device
     )
@@ -3455,7 +3455,7 @@ Cleanup:
 HRESULT
 EvrPresenter::AVSurfaceRenderer::
 NewRenderDevice(
-    __in    CD3DDeviceLevel1            *pNewRenderDevice
+    _In_    CD3DDeviceLevel1            *pNewRenderDevice
         // The new device we are going to use.
     )
 {
@@ -3580,7 +3580,7 @@ Cleanup:
 HRESULT
 EvrPresenter::AVSurfaceRenderer::
 AddCompositingResource(
-    __in    CMilSlaveVideo  *pCMilSlaveVideo
+    _In_    CMilSlaveVideo  *pCMilSlaveVideo
     )
 {
     HRESULT hr = S_OK;
@@ -3597,7 +3597,7 @@ Cleanup:
 void
 EvrPresenter::AVSurfaceRenderer::
 RemoveCompositingResource(
-    __in    CMilSlaveVideo  *pCMilSlaveVideo
+    _In_    CMilSlaveVideo  *pCMilSlaveVideo
     )
 {
     TRACEF(NULL);
@@ -3648,7 +3648,7 @@ ProcessSamplesData(
 HRESULT
 EvrPresenter::
 SetVideoWindow(
-    __in        HWND                 hwndVideo
+    _In_        HWND                 hwndVideo
     )
 {
     TRACEF(NULL);
@@ -3705,7 +3705,7 @@ HRESULT
 EvrPresenter::
 GetVideoPosition(
     __inout_opt MFVideoNormalizedRect *pnrcSource,
-    __out       LPRECT               prcDest
+    _Out_       LPRECT               prcDest
     )
 {
     TRACEF(NULL);
@@ -3723,7 +3723,7 @@ GetVideoPosition(
 HRESULT
 EvrPresenter::
 SetRenderingPrefs(
-    __in        DWORD               dwRenderFlags
+    _In_        DWORD               dwRenderFlags
     )
 {
     TRACEF(NULL);
@@ -3733,7 +3733,7 @@ SetRenderingPrefs(
 HRESULT
 EvrPresenter::
 GetRenderingPrefs(
-    __out       DWORD               *pdwRenderFlags
+    _Out_       DWORD               *pdwRenderFlags
     )
 {
     TRACEF(NULL);

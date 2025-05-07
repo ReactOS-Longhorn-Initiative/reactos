@@ -28,12 +28,12 @@
 // +---------------------------------------------------------------------------
 CMFMediaBuffer::
 CMFMediaBuffer(
-    __in    UINT                uiID,
-    __in    LONG                continuity,
-    __in    UINT                uiWidth,
-    __in    UINT                uiHeight,
-    __in    D3DFORMAT           format,
-    __in    CD3DDeviceLevel1    *pRenderDevice
+    _In_    UINT                uiID,
+    _In_    LONG                continuity,
+    _In_    UINT                uiWidth,
+    _In_    UINT                uiHeight,
+    _In_    D3DFORMAT           format,
+    _In_    CD3DDeviceLevel1    *pRenderDevice
     ) :
     m_uiID(uiID),
     m_uiWidth(uiWidth),
@@ -85,7 +85,7 @@ CMFMediaBuffer::~CMFMediaBuffer()
 HRESULT
 CMFMediaBuffer::
 Init(
-    __in    IDirect3DSurface9       *pIDecodeSurface
+    _In_    IDirect3DSurface9       *pIDecodeSurface
     )
 {
     HRESULT hr = S_OK;
@@ -117,14 +117,14 @@ Cleanup:
 HRESULT
 CMFMediaBuffer::
 Create(
-    __in            UINT                uiID,
-    __in            LONG                continuity,
-    __in            UINT                uiWidth,
-    __in            UINT                uiHeight,
-    __in            D3DFORMAT           format,
-    __in            CD3DDeviceLevel1    *pRenderDevice,
-    __in            CD3DDeviceLevel1    *pMixerDevice,
-    __in            D3DDEVTYPE          deviceType,
+    _In_            UINT                uiID,
+    _In_            LONG                continuity,
+    _In_            UINT                uiWidth,
+    _In_            UINT                uiHeight,
+    _In_            D3DFORMAT           format,
+    _In_            CD3DDeviceLevel1    *pRenderDevice,
+    _In_            CD3DDeviceLevel1    *pMixerDevice,
+    _In_            D3DDEVTYPE          deviceType,
     __deref_out     CMFMediaBuffer      **ppMFMediaBuffer
     )
 {
@@ -356,7 +356,7 @@ Cleanup:
 HRESULT
 CMFMediaBuffer::
 GetDevice(
-    __out   CD3DDeviceLevel1        **ppD3DDevice
+    _Out_   CD3DDeviceLevel1        **ppD3DDevice
     )
 {
     *ppD3DDevice = m_pRenderDevice;

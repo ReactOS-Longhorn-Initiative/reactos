@@ -38,9 +38,9 @@ public:
     static
     HRESULT
     Create(
-        __in    UINT                uiID,
+        _In_    UINT                uiID,
         __deref_out CWmpClientSite  **ppSetup,
-        __in    CWmpStateEngine     *pPlayerState
+        _In_    CWmpStateEngine     *pPlayerState
         );
 
     // Declares IUnknown functions
@@ -77,8 +77,8 @@ protected:
 private:
 
     CWmpClientSite(
-        __in    UINT                uiID,
-        __in    CWmpStateEngine     *pPlayerState
+        _In_    UINT                uiID,
+        _In_    CWmpStateEngine     *pPlayerState
         );
 
     virtual ~CWmpClientSite();

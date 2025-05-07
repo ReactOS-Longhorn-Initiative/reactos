@@ -26,7 +26,7 @@
 SampleQueue::StateViewLogicalSample
 SampleQueue::
 TranslateViewState(
-    __in    LONG                        viewState
+    _In_    LONG                        viewState
     )
 {
     StateViewLogicalSample fields =
@@ -46,7 +46,7 @@ TranslateViewState(
 LONG
 SampleQueue::
 TranslateViewState(
-    __in    SampleQueue::StateViewLogicalSample      logicalSample
+    _In_    SampleQueue::StateViewLogicalSample      logicalSample
     )
 {
     Assert((logicalSample.currentView & msc_fieldMask) == logicalSample.currentView);
@@ -68,7 +68,7 @@ TranslateViewState(
 BYTE
 SampleQueue::
 NextView(
-    __in    BYTE                        view
+    _In_    BYTE                        view
     )
 {
     view++;
@@ -82,7 +82,7 @@ NextView(
 bool
 SampleQueue::
 IsPositiveSampleTime(
-    __in    LONGLONG            sampleTime
+    _In_    LONGLONG            sampleTime
     )
 {
     return sampleTime >= 0;
@@ -92,7 +92,7 @@ IsPositiveSampleTime(
 bool
 SampleQueue::
 IsValidSampleIndex(
-    __in    BYTE                sampleIndex
+    _In_    BYTE                sampleIndex
     )
 {
     //
@@ -108,7 +108,7 @@ IsValidSampleIndex(
 bool
 SampleQueue::
 IsExpectedSampleTime(
-    __in    LONGLONG            sampleTime
+    _In_    LONGLONG            sampleTime
     )
 {
     return sampleTime >= 0 || sampleTime == kInvalidTime || sampleTime == kReservedForCompositionTime;

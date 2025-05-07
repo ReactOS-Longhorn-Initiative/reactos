@@ -148,8 +148,8 @@ Cleanup:
 
 HRESULT
 ReadRenderTargetIntoSysMemBuffer(
-    __in IDirect3DSurface9 *pSourceSurface,
-    __in const CMilRectU &rcCopy,
+    _In_ IDirect3DSurface9 *pSourceSurface,
+    _In_ const CMilRectU &rcCopy,
     MilPixelFormat::Enum fmtOut,
     UINT uStrideOut,
     DBG_ANALYSIS_PARAM_COMMA(UINT cbBufferOut)

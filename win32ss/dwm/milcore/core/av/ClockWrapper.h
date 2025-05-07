@@ -26,7 +26,7 @@ interface RenderClock
     virtual
     HRESULT
     GetRenderTime(
-        __out       LONGLONG    *pCurrentTime,
+        _Out_       LONGLONG    *pCurrentTime,
         __out_opt   DWORD       *pContinuityKey = NULL
         ) = 0;
 };
@@ -37,7 +37,7 @@ public:
     typedef
     HRESULT
     (EvrPresenter::*InvokeMethod)(
-        __in    IMFAsyncResult      *pIResult
+        _In_    IMFAsyncResult      *pIResult
         );
 
     TimerWrapper(
@@ -51,9 +51,9 @@ public:
 
     HRESULT
     Init(
-        __in    UINT                uiID,
-        __in    EvrPresenter        *pEvrPresenter,
-        __in    InvokeMethod        method
+        _In_    UINT                uiID,
+        _In_    EvrPresenter        *pEvrPresenter,
+        _In_    InvokeMethod        method
         );
 
     __override
@@ -64,7 +64,7 @@ public:
 
     void
     SetUnderlyingClock(
-        __in    IMFClock    *pIMFClock
+        _In_    IMFClock    *pIMFClock
         );
 
     IMFClock*
@@ -74,7 +74,7 @@ public:
 
     void
     SetUnderlyingTimer(
-        __in    IMFTimer    *pIMFTimer
+        _In_    IMFTimer    *pIMFTimer
         );
 
     IMFTimer*
@@ -99,19 +99,19 @@ public:
 
     HRESULT
     GetMixTime(
-        __out       LONGLONG    *pCurrentTime,
+        _Out_       LONGLONG    *pCurrentTime,
         __out_opt   DWORD       *pContinuityKey = NULL
         );
 
     HRESULT
     GetRenderTime(
-        __out       LONGLONG    *pCurrentTime,
+        _Out_       LONGLONG    *pCurrentTime,
         __out_opt   DWORD       *pContinuityKey = NULL
         );
 
     HRESULT SetTimer(
-        __in        DWORD               continuityKey,
-        __in        LONGLONG            clockTime
+        _In_        DWORD               continuityKey,
+        _In_        LONGLONG            clockTime
         );
 
 private:
@@ -130,17 +130,17 @@ private:
 
         HRESULT
         Init(
-            __in    UINT                uiID,
-            __in    EvrPresenter        *pPresenter,
-            __in    TimerWrapper        *pTimerWrapper,
-            __in    InvokeMethod        method
+            _In_    UINT                uiID,
+            _In_    EvrPresenter        *pPresenter,
+            _In_    TimerWrapper        *pTimerWrapper,
+            _In_    InvokeMethod        method
             );
 
         //
         // IUnknown
         //
         STDMETHOD(QueryInterface)(
-            __in        REFIID      riid,
+            _In_        REFIID      riid,
             __deref_out void        **ppvObject
             );
 
@@ -161,7 +161,7 @@ private:
             );
 
         STDMETHOD(Invoke)(
-            __in        IMFAsyncResult* pResult
+            _In_        IMFAsyncResult* pResult
             );
 
     protected:
@@ -175,7 +175,7 @@ private:
         __override
         bool
         IsAnOwner(
-            __in    IUnknown    *pIUnknown
+            _In_    IUnknown    *pIUnknown
             );
 
     private:
@@ -184,12 +184,12 @@ private:
         // Cannot copy or assign a PresenterInvoker
         //
         PresenterInvoker(
-            __in    const PresenterInvoker &
+            _In_    const PresenterInvoker &
             );
 
         PresenterInvoker &
         operator=(
-            __in    const PresenterInvoker &
+            _In_    const PresenterInvoker &
             );
 
         UINT                m_uiID;
@@ -202,18 +202,18 @@ private:
     // Cannot copy or assign a TimerWrapper
     //
     TimerWrapper(
-        __in const TimerWrapper        &
+        _In_ const TimerWrapper        &
         );
 
     TimerWrapper &
     operator=(
-        __in const TimerWrapper &
+        _In_ const TimerWrapper &
         );
 
     HRESULT
     GetTime(
-        __in        LONGLONG    defaultTime,
-        __out       LONGLONG    *pCurrentTime,
+        _In_        LONGLONG    defaultTime,
+        _Out_       LONGLONG    *pCurrentTime,
         __out_opt   DWORD       *pContinuityKey = NULL
        );
 

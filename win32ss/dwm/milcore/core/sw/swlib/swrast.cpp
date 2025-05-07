@@ -1269,7 +1269,7 @@ CColorSourceCreator_sRGB::GetCS_Constant(
 
 HRESULT 
 CColorSourceCreator_sRGB::GetCS_EffectShader(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
     __inout CMILBrushShaderEffect* pShaderEffectBrush,
     __deref_out CColorSource **ppColorSource
     )
@@ -1546,7 +1546,7 @@ CColorSourceCreator_scRGB::GetCS_Constant(
 
 HRESULT 
 CColorSourceCreator_scRGB::GetCS_EffectShader(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
     __inout CMILBrushShaderEffect* pShaderEffectBrush,
     __deref_out CColorSource **ppColorSource
     )

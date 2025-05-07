@@ -37,11 +37,11 @@ public:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CFakePP));
 
     static HRESULT Create(
-        __in MediaInstance* pMediaInstance,
-        __in DWORD dwFrameDuration,
-        __in UINT uiFrames,
-        __in UINT uiVideoWidth,
-        __in UINT uiVideoHeight,
+        _In_ MediaInstance* pMediaInstance,
+        _In_ DWORD dwFrameDuration,
+        _In_ UINT uiFrames,
+        _In_ UINT uiVideoWidth,
+        _In_ UINT uiVideoHeight,
         __deref_out_ecount(1) CFakePP** ppFake
         );
 
@@ -52,11 +52,11 @@ public:
     // IAVSurfaceRenderer
     //
     STDMETHOD(BeginComposition)(
-        __in    CMilSlaveVideo  *pCaller,
-        __in    BOOL            displaySetChanged,
-        __in    BOOL            syncChannel,
+        _In_    CMilSlaveVideo  *pCaller,
+        _In_    BOOL            displaySetChanged,
+        _In_    BOOL            syncChannel,
         __inout LONGLONG        *pLastCompositionSampleTime,
-        __out   BOOL            *pbFrameReady
+        _Out_   BOOL            *pbFrameReady
         );
 
     STDMETHOD(BeginRender)(
@@ -68,7 +68,7 @@ public:
         );
 
     STDMETHOD(EndComposition)(
-        __in    CMilSlaveVideo  *pCaller
+        _In_    CMilSlaveVideo  *pCaller
         );
 
     STDMETHOD(GetContentRect)(
@@ -82,11 +82,11 @@ public:
     STDMETHOD_(BOOL, CanUseBackBuffer)() { return false; };
 
     STDMETHOD(RegisterResource)(
-        __in CMilSlaveVideo *pSlaveVideo
+        _In_ CMilSlaveVideo *pSlaveVideo
         );
 
     STDMETHOD(UnregisterResource)(
-        __in CMilSlaveVideo *pSlaveVideo
+        _In_ CMilSlaveVideo *pSlaveVideo
         );
 
     //
@@ -94,7 +94,7 @@ public:
     //
 
     STDMETHOD(Open)(
-        __in LPCWSTR pwszURL
+        _In_ LPCWSTR pwszURL
         );
 
     STDMETHOD(Close)();
@@ -184,7 +184,7 @@ private:
     HRESULT VerifyConsistency();
     void NotifyVideoResource();
     void ThreadProc();
-    HRESULT RaiseEvent(__in AVEvent avEventType);
+    HRESULT RaiseEvent(_In_ AVEvent avEventType);
 
     void SetFrameDuration(DWORD dwFrameDuration) { m_dwFrameDuration = dwFrameDuration; };
     void SetFrames(UINT uiFrames) { m_uiFrames = uiFrames; };

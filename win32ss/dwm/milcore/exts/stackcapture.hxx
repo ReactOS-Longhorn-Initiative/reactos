@@ -50,7 +50,7 @@ HRESULT DumpCaptureImpl(
     DWORD StackOutputFlags,
     __in_ecount(1) DEBUG_VALUE const &ThreadIdFilter,
     __in_ecount(1) DEBUG_VALUE const &HRESULTFilter,
-    __in PCSTR szModuleName,
+    _In_ PCSTR szModuleName,
     ULONG uNumberOfCaptureCollections,
     __out_ecount_opt(1) StackCaptureFrame *pLastCapturedFrame
     );

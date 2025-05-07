@@ -98,7 +98,7 @@ DoesMatch(
 HRESULT
 OptionalString::
 ApplyAsMask(
-    __in  PCWSTR            uri,
+    _In_  PCWSTR            uri,
     __deref_out PWSTR       *pRet
     ) const
 {
@@ -197,7 +197,7 @@ Clear(
 HRESULT
 PlayerState::
 Copy(
-    __out     PlayerState     *dst
+    _Out_     PlayerState     *dst
     )
     const
 {
@@ -220,8 +220,8 @@ Cleanup:
 void
 PlayerState::
 DumpPlayerState(
-    __in UINT       uiID,
-    __in char       *description
+    _In_ UINT       uiID,
+    _In_ char       *description
     ) const
 {
     LogAVDataX(
@@ -250,8 +250,8 @@ DumpPlayerState(
 //
 //------------------------------------------------------------------------------
 bool operator==(
-    __in            PlayerState     &ps1,
-    __in            PlayerState     &ps2
+    _In_            PlayerState     &ps1,
+    _In_            PlayerState     &ps2
     )
 {
     return (   (ps1.m_isOcxCreated == ps2.m_isOcxCreated)
@@ -272,8 +272,8 @@ bool operator==(
 //
 //------------------------------------------------------------------------------
 bool operator!=(
-    __in    PlayerState     &ps1,
-    __in    PlayerState     &ps2
+    _In_    PlayerState     &ps1,
+    _In_    PlayerState     &ps2
     )
 {
     return !(ps1 == ps2);

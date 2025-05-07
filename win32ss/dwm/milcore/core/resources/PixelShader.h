@@ -42,8 +42,8 @@ public:
 
     static HRESULT Create(
         __in_ecount(1) CComposition *pComposition,
-        __in ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
-        __in UINT cbBytecodeSize,
+        _In_ ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
+        _In_ UINT cbBytecodeSize,
         __in_bcount(cbBytecodeSize) BYTE* pBytecode, 
         __deref_out CMilPixelShaderDuce **ppOut);
 
@@ -67,7 +67,7 @@ public:
     override CMilSlaveResource* GetResource();
 
     // Gets the right effect for the device and sets it in.
-    HRESULT SetupShader(__in CD3DDeviceLevel1* pDevice);
+    HRESULT SetupShader(_In_ CD3DDeviceLevel1* pDevice);
 
     HRESULT GetSwPixelShader(__deref_out CPixelShaderCompiler **ppPixelShaderCompiler);
 
@@ -87,13 +87,13 @@ private:
 
     HRESULT Initialize(
         __inout_ecount(1) CComposition *pComposition,
-        __in ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
-        __in UINT cbBytecodeSize, 
-        __in BYTE* pBytecode);
+        _In_ ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
+        _In_ UINT cbBytecodeSize, 
+        _In_ BYTE* pBytecode);
         
     HRESULT GetHwPixelShaderEffectFromCache(
-        __in CD3DDeviceLevel1 *pDevice,   
-        __out CHwPixelShaderEffect **ppPixelShaderEffect);
+        _In_ CD3DDeviceLevel1 *pDevice,   
+        _Out_ CHwPixelShaderEffect **ppPixelShaderEffect);
 
     static HRESULT EnsurePassThroughShaderResourceRead();
 

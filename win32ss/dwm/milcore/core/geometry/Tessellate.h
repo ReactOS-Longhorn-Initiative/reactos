@@ -192,7 +192,7 @@ public:
     CTessellator(
         __inout_ecount(1) IGeometrySink &sink,
             // Tessellation sink
-        __in double rTolerance)
+        _In_ double rTolerance)
             // Flattening tolerance
             
         : CScanner(rTolerance),

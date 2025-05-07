@@ -101,7 +101,7 @@ HRESULT ResolveHMilResource(
     PDEBUG_CLIENT Client,
     ULONG64 ulhResource,
     ULONG64 ulpMilChannel,
-    __out ULONG64* pulpHANDLE_ENTRY
+    _Out_ ULONG64* pulpHANDLE_ENTRY
     );
 
 

@@ -37,7 +37,7 @@
 //------------------------------------------------------------------------------
 SampleQueue::
 SampleQueue(
-    __in    UINT        uiID
+    _In_    UINT        uiID
     ) : m_uiID(uiID),
         m_viewState(0),
         m_pRenderDevice(NULL),
@@ -180,11 +180,11 @@ ChangeMediaType(
 HRESULT
 SampleQueue::
 InvalidateDevice(
-    __in    CD3DDeviceLevel1    *pRenderDevice,
+    _In_    CD3DDeviceLevel1    *pRenderDevice,
         // The new avalon render device wrapper
-    __in    CD3DDeviceLevel1    *pMixerDevice,
+    _In_    CD3DDeviceLevel1    *pMixerDevice,
         // The corresponding avalon mixer device wrapper
-    __in    D3DDEVTYPE          deviceType
+    _In_    D3DDEVTYPE          deviceType
         // The type of we are using, either D3DDEVTYPE_HAL, or D3DDEVTYPE_SW
     )
 {
@@ -235,7 +235,7 @@ InvalidateDevice(
 HRESULT
 SampleQueue::
 GetMixSample(
-    __in        LONGLONG            currentTime,
+    _In_        LONGLONG            currentTime,
         // The current time
     __deref_out IMFSample           **ppISample
         // The returned sample
@@ -434,9 +434,9 @@ Cleanup:
 HRESULT
 SampleQueue::
 ReturnMixSample(
-    __in        LONGLONG            currentTime,
+    _In_        LONGLONG            currentTime,
         // The current time
-    __in        IMFSample           *pISample
+    _In_        IMFSample           *pISample
         // The sample being returned
     )
 {
@@ -529,11 +529,11 @@ Cleanup:
 HRESULT
 SampleQueue::
 GetNextSampleTime(
-    __in        LONGLONG            currentTime,
+    _In_        LONGLONG            currentTime,
         // The current time
-    __out       LONGLONG            *pLastTime,
+    _Out_       LONGLONG            *pLastTime,
         // The time of the sample that should currently be displaying
-    __out       LONGLONG            *pNextTime
+    _Out_       LONGLONG            *pNextTime
         // The time of the sample after the current sample.
     )
 {
@@ -594,7 +594,7 @@ Cleanup:
 HRESULT
 SampleQueue::
 GetSmallestSampleTime(
-    __out       LONGLONG            *pSmallestTime
+    _Out_       LONGLONG            *pSmallestTime
     )
 {
     HRESULT                   hr          = S_OK;
@@ -666,7 +666,7 @@ Cleanup:
 void
 SampleQueue::
 SignalFlush(
-    __in        LONGLONG            currentTime
+    _In_        LONGLONG            currentTime
     )
 {
     HRESULT                   hr          = S_OK;
@@ -757,8 +757,8 @@ Cleanup:
 HRESULT
 SampleQueue::
 GetCompositionSample(
-    __in            bool                rechooseSample,
-    __in            LONGLONG            currentTime,
+    _In_            bool                rechooseSample,
+    _In_            LONGLONG            currentTime,
         // The current time
     __deref_out     IMFSample           **ppISample
         // The next sample to return
@@ -868,7 +868,7 @@ Cleanup:
 HRESULT
 SampleQueue::
 RechooseCompositionSampleFromMixerThread(
-    __in            LONGLONG            currentTime
+    _In_            LONGLONG            currentTime
     )
 {
     HRESULT                   hr          = S_OK;
@@ -945,8 +945,8 @@ Cleanup:
 void
 SampleQueue::
 PauseCompositionSample(
-    __in            LONGLONG        currentTime,
-    __in            bool            allowForwardSamples
+    _In_            LONGLONG        currentTime,
+    _In_            bool            allowForwardSamples
     )
 {
     HRESULT hr = S_OK;
@@ -1098,7 +1098,7 @@ Cleanup:
 HRESULT
 SampleQueue::
 ReturnCompositionSample(
-    __out           bool                *pSignalMixer
+    _Out_           bool                *pSignalMixer
         // If true, we returned a frame that the mixer wanted, it should be
         // signalled.
     )
@@ -1193,9 +1193,9 @@ Cleanup:
 HRESULT
 SampleQueue::
 GetStateView(
-    __in        SampleThreads::Enum         thread,
+    _In_        SampleThreads::Enum         thread,
         // The thread that is requesting the state view.
-    __out       StateViewLogicalSample      *pStateView
+    _Out_       StateViewLogicalSample      *pStateView
         // The returned state view
     )
 {
@@ -1296,9 +1296,9 @@ Cleanup:
 bool
 SampleQueue::
 ApplyStateView(
-    __in        SampleThreads::Enum         thread,
+    _In_        SampleThreads::Enum         thread,
         // Which state view is being applied
-    __in        StateViewLogicalSample      basedOnStateView
+    _In_        StateViewLogicalSample      basedOnStateView
         // What the state view is based on
     )
 {
@@ -1366,7 +1366,7 @@ ApplyStateView(
 HRESULT
 SampleQueue::
 AllocateSample(
-    __out           IMFSample           **ppISample
+    _Out_           IMFSample           **ppISample
     )
 {
     HRESULT     hr = S_OK;
@@ -1457,13 +1457,13 @@ ReleaseSample(
 void
 SampleQueue::
 CalculateNextTime(
-    __in        StateViewLogicalSample      sampleView,
+    _In_        StateViewLogicalSample      sampleView,
         // The logical view sample.
-    __in        LONGLONG                    currentTime,
+    _In_        LONGLONG                    currentTime,
         // The current time
-    __out       LONGLONG                    *pLastTime,
+    _Out_       LONGLONG                    *pLastTime,
         // The largest sample time less than or equal to currentTime
-    __out       LONGLONG                    *pNextTime
+    _Out_       LONGLONG                    *pNextTime
         // The smallest sample time greater than or equal to currentTime
     ) const
 {
@@ -1511,8 +1511,8 @@ CalculateNextTime(
 HRESULT
 SampleQueue::
 ValidateAndGetMixSample(
-    __in        BYTE                        sampleToUse,
-    __out       IMFSample                   **ppISample
+    _In_        BYTE                        sampleToUse,
+    _Out_       IMFSample                   **ppISample
     )
 {
     HRESULT                   hr = S_OK;
@@ -1611,10 +1611,10 @@ Cleanup:
 void
 SampleQueue::
 DumpState(
-    __in    PCSTR               method,
-    __in    const StateView     &startStateView,
-    __in    const StateView     &endStateView,
-    __in    LONGLONG            currentTime
+    _In_    PCSTR               method,
+    _In_    const StateView     &startStateView,
+    _In_    const StateView     &endStateView,
+    _In_    LONGLONG            currentTime
     )
 {
     DumpTime(method, currentTime);
@@ -1633,8 +1633,8 @@ DumpState(
 void
 SampleQueue::
 DumpSamples(
-    __in    const StateView     &startStateView,
-    __in    const StateView     &endStateView
+    _In_    const StateView     &startStateView,
+    _In_    const StateView     &endStateView
     )
 {
     LogAVDataM(
@@ -1670,8 +1670,8 @@ DumpSamples(
 void
 SampleQueue::
 DumpTime(
-    __in    PCSTR               method,
-    __in    LONGLONG            currentTime
+    _In_    PCSTR               method,
+    _In_    LONGLONG            currentTime
     )
 {
     LogAVDataM(
@@ -1694,10 +1694,10 @@ DumpTime(
 BYTE
 SampleQueue::
 ChooseCompositionSample(
-    __in    bool                rechooseSample,
-    __in    bool                allowForwardSamples,
-    __in    LONGLONG            currentTime,
-    __in    const StateView     &stateView
+    _In_    bool                rechooseSample,
+    _In_    bool                allowForwardSamples,
+    _In_    LONGLONG            currentTime,
+    _In_    const StateView     &stateView
     )
 {
     LONGLONG    smallestTimeDelta = gc_invalidTimerTime;

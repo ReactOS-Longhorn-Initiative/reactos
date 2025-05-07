@@ -152,9 +152,9 @@ public:
             // Path types
     
     HRESULT AddFigureFromRawData(
-        __in UINT cPoints,
+        _In_ UINT cPoints,
             // Point count
-        __in UINT cSegments,
+        _In_ UINT cSegments,
             // Segment count
         __in_ecount(cPoints) MilPoint2D *pPoints,
             // Points

@@ -34,8 +34,8 @@ volatile LONG g_nCurrentStackCaptureIndex = -1;
 //
 
 typedef HRESULT (WINAPI *PFNWERREGISTERMEMORYBLOCK)(
-    __in  PVOID pvAddress,
-    __in  DWORD dwSize
+    _In_  PVOID pvAddress,
+    _In_  DWORD dwSize
     );
 
 

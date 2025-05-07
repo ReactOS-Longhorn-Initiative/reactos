@@ -161,9 +161,9 @@ Cleanup:
 COutline::COutline(
     __inout_ecount_opt(1) IShapeBuilder *pResult,
         // The recepient of the resulting shape
-    __in bool fRetrieveCurves,
+    _In_ bool fRetrieveCurves,
             // Retrieve curves if true
-    __in double rTolerance)
+    _In_ double rTolerance)
             // Curve retrieval error tolerance
     :CScanner(rTolerance),
      m_pShape(pResult), 

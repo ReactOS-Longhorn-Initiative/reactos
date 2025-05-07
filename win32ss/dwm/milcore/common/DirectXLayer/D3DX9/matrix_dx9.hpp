@@ -105,7 +105,7 @@ namespace dxlayer
         }
 
         // D3DXMatrixInverse
-        inline matrix_t<dxapi::d3dx9> inverse(__out float& determinant) const
+        inline matrix_t<dxapi::d3dx9> inverse(_Out_ float& determinant) const
         {
             matrix_t<dxapi::d3dx9> result;
             if (D3DXMatrixInverse(&result, &determinant, this) == nullptr)

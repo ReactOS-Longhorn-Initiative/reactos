@@ -190,8 +190,8 @@ Cleanup:
 //-----------------------------------------------------------------------------
 void 
 CMilBlurEffectDuce::GetScaledRadius(
-    __in const CMILMatrix *pScaleTransform,
-    __out UINT* pRadius
+    _In_ const CMILMatrix *pScaleTransform,
+    _Out_ UINT* pRadius
     )
 {    
     // Determine the current radius.
@@ -240,9 +240,9 @@ CMilBlurEffectDuce::GetRadius()
 
 void
 CMilBlurEffectDuce::ApplyRadiusScaling(
-    __in const CMILMatrix *pScaleTransform,
-    __in UINT localSpaceRadius,
-    __out UINT *scaledRadiusOut
+    _In_ const CMILMatrix *pScaleTransform,
+    _In_ UINT localSpaceRadius,
+    _Out_ UINT *scaledRadiusOut
     )
 {
     Assert(pScaleTransform->IsPure2DScale());
@@ -285,7 +285,7 @@ CMilBlurEffectDuce::ApplyRadiusScaling(
 //-----------------------------------------------------------------------------
 HRESULT
 CMilBlurEffectDuce::CalculateGaussianSamplingWeightsFullKernel(
-    __in UINT radius,
+    _In_ UINT radius,
     __deref_out_xcount(2*radius+1) float **ppSamplingWeightsReplicate
     )
 {        
@@ -326,9 +326,9 @@ Cleanup:
 //-----------------------------------------------------------------------------
 void
 CMilBlurEffectDuce::CalculateSamplingWeights(
-    __in UINT radius,
+    _In_ UINT radius,
     __deref_out_xcount(radius+1) float **ppSamplingWeights,
-    __in MilKernelType::Enum kernelType
+    _In_ MilKernelType::Enum kernelType
     )
 {
 
@@ -481,10 +481,10 @@ Cleanup:
 
 HRESULT
 CMilBlurEffectDuce::ApplyEffect(
-    __in CContextState *pContextState, 
-    __in CHwSurfaceRenderTarget *pDestRT,
-    __in CMILMatrix *pScaleTransform,
-    __in CD3DDeviceLevel1 *pDevice, 
+    _In_ CContextState *pContextState, 
+    _In_ CHwSurfaceRenderTarget *pDestRT,
+    _In_ CMILMatrix *pScaleTransform,
+    _In_ CD3DDeviceLevel1 *pDevice, 
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
     __in_opt CHwTextureRenderTarget *pImplicitInput
@@ -511,9 +511,9 @@ CMilBlurEffectDuce::ApplyEffect(
 
 HRESULT
 CMilBlurEffectDuce::ApplyEffectSw(
-    __in CContextState *pContextState,
-    __in CSwRenderTargetSurface *pDestRT,
-    __in CMILMatrix *pScaleTransform,
+    _In_ CContextState *pContextState,
+    _In_ CSwRenderTargetSurface *pDestRT,
+    _In_ CMILMatrix *pScaleTransform,
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
     __in_opt IWGXBitmap *pImplicitInput
@@ -851,13 +851,13 @@ Cleanup:
 
 HRESULT
 CMilBlurEffectDuce::ApplyEffectInPipeline(
-    __in const CContextState *pContextState, 
-    __in const CMILMatrix *pScaleTransform,
-    __in CD3DDeviceLevel1 *pDevice,
+    _In_ const CContextState *pContextState, 
+    _In_ const CMILMatrix *pScaleTransform,
+    _In_ CD3DDeviceLevel1 *pDevice,
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
-    __in CHwTextureRenderTarget *pSourceRT, 
-    __in CD3DVidMemOnlyTexture *pDestRT
+    _In_ CHwTextureRenderTarget *pSourceRT, 
+    _In_ CD3DVidMemOnlyTexture *pDestRT
     )
 {
    RRETURN(ApplyEffectImpl(pContextState, pScaleTransform, pDevice, uIntermediateWidth, uIntermediateHeight, pSourceRT, NULL, pDestRT));
@@ -879,12 +879,12 @@ CMilBlurEffectDuce::ApplyEffectInPipeline(
 
 HRESULT
 CMilBlurEffectDuce::ApplyEffectImpl(
-    __in const CContextState *pContextState,
-    __in const CMILMatrix *pScaleTransform,
-    __in CD3DDeviceLevel1 *pDevice, 
+    _In_ const CContextState *pContextState,
+    _In_ const CMILMatrix *pScaleTransform,
+    _In_ CD3DDeviceLevel1 *pDevice, 
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
-    __in CHwTextureRenderTarget *pSourceRTNoRef, 
+    _In_ CHwTextureRenderTarget *pSourceRTNoRef, 
     __in_opt CHwSurfaceRenderTarget *pFinalDestRT,
     __in_opt CD3DVidMemOnlyTexture *pPipelineDestRT
     )
@@ -1359,15 +1359,15 @@ Cleanup:
 
 HRESULT
 CMilBlurEffectDuce::ExecutePasses(
-    __in CD3DDeviceLevel1 *pDevice, 
-    __in bool isHorizontal,
-    __in bool isQuality,
-    __in UINT radius,
-    __in float destinationSize,
-    __in float* pSamplingWeights,
-    __in CD3DVidMemOnlyTexture* pTextureNoRef_A,
-    __in CD3DVidMemOnlyTexture* pTexture_B,
-    __in CD3DSurface* pSurface_B,
+    _In_ CD3DDeviceLevel1 *pDevice, 
+    _In_ bool isHorizontal,
+    _In_ bool isQuality,
+    _In_ UINT radius,
+    _In_ float destinationSize,
+    _In_ float* pSamplingWeights,
+    _In_ CD3DVidMemOnlyTexture* pTextureNoRef_A,
+    _In_ CD3DVidMemOnlyTexture* pTexture_B,
+    _In_ CD3DSurface* pSurface_B,
     __in_opt CD3DVidMemOnlyTexture* pTexture_C,
     __in_opt CD3DSurface* pSurface_C
     )
@@ -1487,10 +1487,10 @@ CMilBlurEffectDuce::TransformBoundsForInflation(__inout CMilRectF *bounds)
 
 HRESULT 
 CMilBlurEffectDuce::GetLocalSpaceClipBounds(
-        __in CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
-        __in CRectF<CoordinateSpace::PageInPixels> clip,
-        __in const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
-        __out CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace)
+        _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
+        _In_ CRectF<CoordinateSpace::PageInPixels> clip,
+        _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
+        _Out_ CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace)
 {
     HRESULT hr = S_OK;
 
@@ -1547,13 +1547,13 @@ Cleanup:
 
 HRESULT 
 CMilBlurEffectDuce::SetupShader(
-    __in CD3DDeviceLevel1 *pDevice, 
+    _In_ CD3DDeviceLevel1 *pDevice, 
     bool isHorizontalPass,
     bool isMultiInputPass,
     float destinationSize,
     UINT cSamples,
     int samplingIndex,
-    __in float *arrSamplingWeights)
+    _In_ float *arrSamplingWeights)
 {
     HRESULT hr = S_OK;
     CHwPixelShaderEffect *pHwPixelShaderEffect = NULL;

@@ -393,18 +393,18 @@ InterlockedDecrementULONG(
 }
 
 
-inline int RectWidth(__in const RECT &rc)
+inline int RectWidth(_In_ const RECT &rc)
 {
     return max(0L, rc.right - rc.left);
 }
 
-inline int RectHeight(__in const RECT &rc)
+inline int RectHeight(_In_ const RECT &rc)
 {
     return max(0L, rc.bottom - rc.top);
 }
 
 
-inline bool IsRectEmpty(__in const RECT &rc)
+inline bool IsRectEmpty(_In_ const RECT &rc)
 {
     return ((rc.right <= rc.left) || (rc.bottom <= rc.top));
 }

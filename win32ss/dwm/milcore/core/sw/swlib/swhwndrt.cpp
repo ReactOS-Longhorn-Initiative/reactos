@@ -543,7 +543,7 @@ volatile BOOL g_fStepSWRendering = false;
 #endif
 
 void CSwRenderTargetHWND::ShowSteppedRendering(
-    __in LPCTSTR pszRenderDesc,
+    _In_ LPCTSTR pszRenderDesc,
     __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
     )
 {

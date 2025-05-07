@@ -29,7 +29,7 @@ int AvalonStrCmpICW(LPCWSTR pch1, LPCWSTR pch2);
 
 HRESULT DuplicateStringW(
     __range(1, STRSAFE_MAX_CCH) size_t cchMax,
-    __in STRSAFE_LPCWSTR pSource,
+    _In_ STRSAFE_LPCWSTR pSource,
     __deref_out STRSAFE_LPWSTR *ppDest,
     PERFMETERTAG mt
     );
@@ -53,7 +53,7 @@ HRESULT DuplicateStringW(
 
 __forceinline HRESULT DuplicateStringWAnnotationHelper(
     __range(1, STRSAFE_MAX_CCH) size_t cchMax,
-    __in STRSAFE_LPCWSTR pSource,
+    _In_ STRSAFE_LPCWSTR pSource,
     __deref_out STRSAFE_LPWSTR *ppDest,
     PERFMETERTAG mt
     )

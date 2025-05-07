@@ -122,9 +122,9 @@ __drv_functionClass(RTL_GENERIC_COMPARE_ROUTINE)
 RTL_GENERIC_COMPARE_RESULTS
 NTAPI
 RTL_GENERIC_COMPARE_ROUTINE (
-    __in struct _RTL_GENERIC_TABLE *Table,
-    __in PVOID FirstStruct,
-    __in PVOID SecondStruct
+    _In_ struct _RTL_GENERIC_TABLE *Table,
+    _In_ PVOID FirstStruct,
+    _In_ PVOID SecondStruct
     );
 typedef RTL_GENERIC_COMPARE_ROUTINE *PRTL_GENERIC_COMPARE_ROUTINE;
 
@@ -137,8 +137,8 @@ __drv_allocatesMem(Mem)
 PVOID
 NTAPI
 RTL_GENERIC_ALLOCATE_ROUTINE (
-    __in struct _RTL_GENERIC_TABLE *Table,
-    __in CLONG ByteSize
+    _In_ struct _RTL_GENERIC_TABLE *Table,
+    _In_ CLONG ByteSize
     );
 typedef RTL_GENERIC_ALLOCATE_ROUTINE *PRTL_GENERIC_ALLOCATE_ROUTINE;
 
@@ -148,8 +148,8 @@ __drv_functionClass(RTL_GENERIC_FREE_ROUTINE)
 VOID
 NTAPI
 RTL_GENERIC_FREE_ROUTINE (
-    __in struct _RTL_GENERIC_TABLE *Table,
-    __in __drv_freesMem(Mem) __post_invalid PVOID Buffer
+    _In_ struct _RTL_GENERIC_TABLE *Table,
+    _In_ __drv_freesMem(Mem) __post_invalid PVOID Buffer
     );
 typedef RTL_GENERIC_FREE_ROUTINE *PRTL_GENERIC_FREE_ROUTINE;
 
@@ -173,7 +173,7 @@ extern "C" {
 FORCEINLINE
 VOID
 InitializeListHead(
-    __out PLIST_ENTRY ListHead
+    _Out_ PLIST_ENTRY ListHead
     )
 {
     ListHead->Flink = ListHead->Blink = ListHead;
@@ -261,7 +261,7 @@ RemoveTailList(
 FORCEINLINE
 BOOLEAN
 RemoveEntryList(
-    __in PLIST_ENTRY Entry
+    _In_ PLIST_ENTRY Entry
     )
 {
     PLIST_ENTRY Blink;
@@ -278,7 +278,7 @@ __checkReturn
 BOOLEAN
 FORCEINLINE
 IsListEmpty(
-    __in const LIST_ENTRY * ListHead
+    _In_ const LIST_ENTRY * ListHead
     )
 {
     return (BOOLEAN)(ListHead->Flink == ListHead);
@@ -288,9 +288,9 @@ NTSYSAPI
 VOID
 NTAPI
 RtlAssert(
-    __in PVOID VoidFailedAssertion,
-    __in PVOID VoidFileName,
-    __in ULONG LineNumber,
+    _In_ PVOID VoidFailedAssertion,
+    _In_ PVOID VoidFileName,
+    _In_ ULONG LineNumber,
     __in_opt PSTR MutableMessage
     );
 
@@ -317,11 +317,11 @@ RtlAssert(
 #ifdef _PREFIX_
     // __pfx_assume and __pfx_assert are not automatically declared
     #if __cplusplus
-        extern "C" void __pfx_assert(bool, __in PCSTR);
-        extern "C" void __pfx_assume(bool, __in PCSTR);
+        extern "C" void __pfx_assert(bool, _In_ PCSTR);
+        extern "C" void __pfx_assume(bool, _In_ PCSTR);
     #else
-        void __pfx_assert(int, __in PCSTR);
-        void __pfx_assume(int, __in PCSTR);
+        void __pfx_assert(int, _In_ PCSTR);
+        void __pfx_assume(int, _In_ PCSTR);
     #endif
 #else
     #define __pfx_assert(Exp, Msg) do {} while ( UNCONDITIONAL_EXPR(false) )

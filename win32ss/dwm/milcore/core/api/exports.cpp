@@ -110,7 +110,7 @@ MILFactoryCreateSWRenderTargetForBitmap(
 ***************************************************************************************/
 HRESULT
 MILLoadResource(
-    __in LPCWSTR src,
+    _In_ LPCWSTR src,
     __deref_out_bcount(*size) LPBYTE *memPtr,
     __out_ecount(1) long *size
     )
@@ -200,7 +200,7 @@ MILRenderTargetBitmapClear(
 HRESULT
 MILMediaOpen(
     __inout_ecount(1) IMILMedia* THIS_PTR,
-    __in LPOLESTR src
+    _In_ LPOLESTR src
     )
 {
     if (THIS_PTR == NULL) RRETURN(E_INVALIDARG);
@@ -427,7 +427,7 @@ MILSwDoubleBufferedBitmapCreate(
     UINT height,
     double dpiX,
     double dpiY,
-    __in REFWICPixelFormatGUID pixelFormat,
+    _In_ REFWICPixelFormatGUID pixelFormat,
     __in_opt IWICPalette *pPalette,
     __deref_out CSwDoubleBufferedBitmap ** const ppSwDoubleBufferedBitmap
     )
@@ -456,9 +456,9 @@ Cleanup:
 
 HRESULT
 MILSwDoubleBufferedBitmapGetBackBuffer(
-    __in CSwDoubleBufferedBitmap const * THIS_PTR,
+    _In_ CSwDoubleBufferedBitmap const * THIS_PTR,
     __deref_out IWICBitmap **ppBackBuffer,
-    __out UINT * pBackBufferSize
+    _Out_ UINT * pBackBufferSize
     )
 {
     HRESULT hr = S_OK;
@@ -475,8 +475,8 @@ Cleanup:
 
 HRESULT
 MILSwDoubleBufferedBitmapAddDirtyRect(
-    __in CSwDoubleBufferedBitmap * THIS_PTR,
-    __in const MILRect *pRect
+    _In_ CSwDoubleBufferedBitmap * THIS_PTR,
+    _In_ const MILRect *pRect
     )
 {
     HRESULT hr = S_OK;
@@ -508,7 +508,7 @@ Cleanup:
 
 HRESULT
 MILSwDoubleBufferedBitmapProtectBackBuffer(
-    __in CSwDoubleBufferedBitmap * THIS_PTR
+    _In_ CSwDoubleBufferedBitmap * THIS_PTR
     )
 {
     HRESULT hr = S_OK;

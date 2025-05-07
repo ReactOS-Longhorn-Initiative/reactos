@@ -769,7 +769,7 @@ Cleanup:
 STDMETHODIMP CDesktopHWNDRenderTarget::GetInvalidRegions(
     __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
     __out_ecount(1) UINT *pNumRegions,
-    __out bool *fWholeTargetInvalid    
+    _Out_ bool *fWholeTargetInvalid    
     )
 {
     bool fWholeTargetInvalidLocal = false;

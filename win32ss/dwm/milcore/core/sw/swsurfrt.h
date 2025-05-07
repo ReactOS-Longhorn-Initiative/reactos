@@ -146,7 +146,7 @@ public:
     // This method is used to determine if the render target is being
     // used to render hardware or software, or if it's merely being used 
     // for bounds accumulation, hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType) 
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType) 
     { 
         *pRenderTargetType = SWRasterRenderTarget; 
         RRETURN(S_OK);

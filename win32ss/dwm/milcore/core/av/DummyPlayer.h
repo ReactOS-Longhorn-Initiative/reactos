@@ -35,7 +35,7 @@ public:
     static
     HRESULT
     Create(
-        __in        MediaInstance           *pMediaInstance,
+        _In_        MediaInstance           *pMediaInstance,
         __deref_out DummySurfaceRenderer    **ppDummySurfaceRenderer
         );
 
@@ -45,11 +45,11 @@ public:
     // IAVSurfaceRenderer
     //
     STDMETHOD(BeginComposition)(
-        __in    CMilSlaveVideo  *pCaller,
-        __in    BOOL            displaySetChanged,
-        __in    BOOL            syncChannel,
+        _In_    CMilSlaveVideo  *pCaller,
+        _In_    BOOL            displaySetChanged,
+        _In_    BOOL            syncChannel,
         __inout LONGLONG        *pLastCompositionSampleTime,
-        __out   BOOL            *pbFrameReady
+        _Out_   BOOL            *pbFrameReady
         );
 
     STDMETHOD(BeginRender)(
@@ -61,7 +61,7 @@ public:
         );
 
     STDMETHOD(EndComposition)(
-        __in    CMilSlaveVideo  *pCaller
+        _In_    CMilSlaveVideo  *pCaller
         );
 
     STDMETHOD(GetContentRect)(
@@ -73,7 +73,7 @@ public:
         );
 
     STDMETHOD_(void, SetIDirect3DDevice9)(
-        __in IDirect3DDevice9 *pIDirect3DDevice9
+        _In_ IDirect3DDevice9 *pIDirect3DDevice9
         );
 
     //
@@ -81,8 +81,8 @@ public:
     //
     void
     ForceFrameUpdate(
-        __in    UINT    width,
-        __in    UINT    height
+        _In_    UINT    width,
+        _In_    UINT    height
         );
 
 protected:
@@ -100,16 +100,16 @@ private:
     // Cannot copy or assign a Dummy Player
     //
     DummySurfaceRenderer(
-        __in    const DummySurfaceRenderer  &
+        _In_    const DummySurfaceRenderer  &
         );
 
     DummySurfaceRenderer &
     operator=(
-        __in    const DummySurfaceRenderer &
+        _In_    const DummySurfaceRenderer &
         );
 
     DummySurfaceRenderer(
-        __in        MediaInstance       *pMediaInstance
+        _In_        MediaInstance       *pMediaInstance
         );
 
     ~DummySurfaceRenderer(
@@ -118,8 +118,8 @@ private:
 
     HRESULT
     InitializeDummySource(
-        __in        UINT                width,
-        __in        UINT                height
+        _In_        UINT                width,
+        _In_        UINT                height
         );
 
     UINT                m_uiID;

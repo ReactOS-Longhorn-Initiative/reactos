@@ -170,9 +170,9 @@ NTSYSCALLAPI
 NTSTATUS
 NTAPI
 NtQuerySystemInformation (
-    __in SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    _In_ SYSTEM_INFORMATION_CLASS SystemInformationClass,
     __out_bcount_part_opt(SystemInformationLength, *ReturnLength) PVOID SystemInformation,
-    __in ULONG SystemInformationLength,
+    _In_ ULONG SystemInformationLength,
     __out_opt PULONG ReturnLength
     );
 
@@ -195,8 +195,8 @@ NTSYSAPI
 ULONG
 __cdecl
 DbgPrintEx (
-    __in ULONG ComponentId,
-    __in ULONG Level,
+    _In_ ULONG ComponentId,
+    _In_ ULONG Level,
     __in_z __drv_formatString(printf) PCSTR Format,
     ...
     );
@@ -209,7 +209,7 @@ NTAPI
 DbgPrompt (
     __in_z PCCH Prompt,
     __out_bcount(Length) PCH Response,
-    __in ULONG Length
+    _In_ ULONG Length
     );
 
 #ifdef __cplusplus
@@ -438,8 +438,8 @@ VOID
 AssertA(
     __in_opt PCSTR Message,
     __in_opt PCWSTR FailedAssertion,
-    __in PCWSTR Function,
-    __in PCWSTR FileName,
+    _In_ PCWSTR Function,
+    _In_ PCWSTR FileName,
     ULONG LineNumber
     )
 {
@@ -476,8 +476,8 @@ VOID
 AssertW(
     __in_opt PCWSTR Message,
     __in_opt PCWSTR FailedAssertion,
-    __in PCWSTR Function,
-    __in PCWSTR FileName,
+    _In_ PCWSTR Function,
+    _In_ PCWSTR FileName,
     ULONG LineNumber
     )
 {

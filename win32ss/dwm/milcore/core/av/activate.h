@@ -56,12 +56,12 @@ private:
     // Cannot copy or assign an MFLockWrapper
     //
     MFLockWrapper(
-        __in const MFLockWrapper &
+        _In_ const MFLockWrapper &
         );
 
     MFLockWrapper &
     operator=(
-        __in const MFLockWrapper &
+        _In_ const MFLockWrapper &
         );
 
     HRESULT     m_hr;
@@ -80,8 +80,8 @@ public:
     static
     HRESULT
     Create(
-        __in        UINT                uiID,
-        __in        CWmpStateEngine     *pWmpStateEngine,
+        _In_        UINT                uiID,
+        _In_        CWmpStateEngine     *pWmpStateEngine,
         __deref_out MFActivateObj       **ppMFActivateObj
         );
 
@@ -92,7 +92,7 @@ public:
         );
 
     STDMETHOD(ActivateObject)(
-        __in        REFIID  riid,
+        _In_        REFIID  riid,
         __deref_out void    **ppv
         );
 
@@ -100,12 +100,12 @@ protected:
 
     void *
     GetInterface(
-        __in    REFIID      riid
+        _In_    REFIID      riid
         );
 
     MFActivate(
-        __in    UINT                uiID,
-        __in    CWmpStateEngine     *pWmpStateEngine
+        _In_    UINT                uiID,
+        _In_    CWmpStateEngine     *pWmpStateEngine
         );
 
     ~MFActivate(
@@ -118,12 +118,12 @@ private:
     // Cannot copy or assign an MFActivate object.
     //
     MFActivate(
-        __in const MFActivate &
+        _In_ const MFActivate &
         );
 
     MFActivate &
     operator=(
-        __in const MFActivate &
+        _In_ const MFActivate &
         );
 
     HRESULT

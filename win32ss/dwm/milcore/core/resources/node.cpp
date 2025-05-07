@@ -96,7 +96,7 @@ CMilVisual::ScheduleRender()
 
 void
 CMilVisual::PropagateFlags(
-    __in CMilVisual* pNode,
+    _In_ CMilVisual* pNode,
     BOOL fNeedsBoundingBoxUpdate,
     BOOL fDirtyForRender,
     BOOL fAdditionalDirtyRegion,  // Default value FALSE.
@@ -285,7 +285,7 @@ CMilVisual::SetParent(
 
 HRESULT
 CMilVisual::InsertChildAt(
-    __in CMilVisual *pNewChild, 
+    _In_ CMilVisual *pNewChild, 
     UINT iPosition
     )
 {
@@ -313,7 +313,7 @@ Cleanup:
 
 HRESULT
 CMilVisual::RemoveChild(
-    __in CMilVisual *pChild
+    _In_ CMilVisual *pChild
     )
 {
     HRESULT hr = S_OK;
@@ -1094,10 +1094,10 @@ CMilVisual::HasEffects()
 
 void
 CMilVisual::TransformAndSnapScrollableRect(
-    __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+    _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
     __in_opt CMilRectF *pClip,
-    __in CRectF<CoordinateSpace::LocalRendering> *pRectIn,
-    __out CRectF<CoordinateSpace::PageInPixels> *pRectOut
+    _In_ CRectF<CoordinateSpace::LocalRendering> *pRectIn,
+    _Out_ CRectF<CoordinateSpace::PageInPixels> *pRectOut
     )
 {
     pTransform->Transform2DBoundsConservative(*pRectIn, *pRectOut);
@@ -1125,7 +1125,7 @@ CMilVisual::TransformAndSnapScrollableRect(
 
 HRESULT
 CMilVisual::TransformAndSnapOffset(
-    __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+    _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
     __inout MilPoint2F *pOffset,
     bool fReturnToLocalSpace        
     )

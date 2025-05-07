@@ -150,7 +150,7 @@ struct GenerateColorsEffectParams
 };
 
 typedef void (__stdcall GenerateColorsEffect)(
-    __in GenerateColorsEffectParams *pParams
+    _In_ GenerateColorsEffectParams *pParams
     );
 
 

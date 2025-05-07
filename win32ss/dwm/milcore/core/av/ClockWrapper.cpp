@@ -18,7 +18,7 @@
 void
 TimerWrapper::
 SetUnderlyingClock(
-    __in    IMFClock    *pIMFClock
+    _In_    IMFClock    *pIMFClock
     )
 {
     TRACEF(NULL);
@@ -109,8 +109,8 @@ ClockStopped(
 HRESULT
 TimerWrapper::
 GetTime(
-    __in        LONGLONG    defaultTime,
-    __out       LONGLONG    *pCurrentTime,
+    _In_        LONGLONG    defaultTime,
+    _Out_       LONGLONG    *pCurrentTime,
     __out_opt   DWORD       *pContinuityKey
     )
 {
@@ -216,7 +216,7 @@ Cleanup:
 HRESULT
 TimerWrapper::
 GetRenderTime(
-    __out       LONGLONG    *pCurrentTime,
+    _Out_       LONGLONG    *pCurrentTime,
     __out_opt   DWORD       *pContinuityKey
     )
 {
@@ -248,7 +248,7 @@ GetRenderTime(
 HRESULT
 TimerWrapper::
 GetMixTime(
-    __out       LONGLONG    *pCurrentTime,
+    _Out_       LONGLONG    *pCurrentTime,
     __out_opt   DWORD       *pContinuityKey
     )
 {
@@ -293,9 +293,9 @@ TimerWrapper::
 HRESULT
 TimerWrapper::
 Init(
-    __in    UINT                uiID,
-    __in    EvrPresenter        *pEvrPresenter,
-    __in    InvokeMethod        method
+    _In_    UINT                uiID,
+    _In_    EvrPresenter        *pEvrPresenter,
+    _In_    InvokeMethod        method
     )
 {
     HRESULT hr = S_OK;
@@ -324,7 +324,7 @@ Cleanup:
 void
 TimerWrapper::
 SetUnderlyingTimer(
-    __in    IMFTimer    *pIMFTimer
+    _In_    IMFTimer    *pIMFTimer
     )
 {
     TRACEF(NULL);
@@ -500,8 +500,8 @@ Shutdown(
 HRESULT
 TimerWrapper::
 SetTimer(
-    __in        DWORD               continuityKey,
-    __in        LONGLONG            clockTime
+    _In_        DWORD               continuityKey,
+    _In_        LONGLONG            clockTime
     )
 {
     HRESULT     hr = S_OK;
@@ -848,12 +848,12 @@ TimerWrapper::PresenterInvoker::
 HRESULT
 TimerWrapper::PresenterInvoker::
 Init(
-    __in    UINT                uiID,
-    __in    EvrPresenter        *pPresenter,
+    _In_    UINT                uiID,
+    _In_    EvrPresenter        *pPresenter,
         // Presenter instance.
-    __in    TimerWrapper        *pTimerWrapper,
+    _In_    TimerWrapper        *pTimerWrapper,
         // TimerWrapper instance
-    __in    InvokeMethod        method
+    _In_    InvokeMethod        method
         // callback method
     )
 {
@@ -875,7 +875,7 @@ Init(
 STDMETHODIMP
 TimerWrapper::PresenterInvoker::
 QueryInterface(
-    __in        REFIID      riid,
+    _In_        REFIID      riid,
     __deref_out void        **ppvObject
     )
 {
@@ -955,7 +955,7 @@ __override
 bool
 TimerWrapper::PresenterInvoker::
 IsAnOwner(
-    __in    IUnknown    *pIUnknown
+    _In_    IUnknown    *pIUnknown
     )
 {
     return static_cast<IUnknown*>(static_cast<IMFAsyncCallback*>(this)) == pIUnknown;
@@ -977,7 +977,7 @@ GetParameters(
 STDMETHODIMP
 TimerWrapper::PresenterInvoker::
 Invoke(
-    __in        IMFAsyncResult* pResult
+    _In_        IMFAsyncResult* pResult
     )
 {
     HRESULT hr = S_OK;

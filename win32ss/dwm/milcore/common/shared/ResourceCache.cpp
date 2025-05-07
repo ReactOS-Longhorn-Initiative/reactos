@@ -38,16 +38,16 @@ NTSYSAPI
 VOID
 NTAPI
 RtlInitializeBitMap (
-    __out PRTL_BITMAP BitMapHeader,
-    __in __drv_aliasesMem PULONG BitMapBuffer,
-    __in ULONG SizeOfBitMap
+    _Out_ PRTL_BITMAP BitMapHeader,
+    _In_ __drv_aliasesMem PULONG BitMapBuffer,
+    _In_ ULONG SizeOfBitMap
     );
 
 NTSYSAPI
 VOID
 NTAPI
 RtlSetBits (
-    __in PRTL_BITMAP BitMapHeader,
+    _In_ PRTL_BITMAP BitMapHeader,
     __in_range(0, BitMapHeader->SizeOfBitMap - NumberToSet) ULONG StartingIndex,
     __in_range(0, BitMapHeader->SizeOfBitMap - StartingIndex) ULONG NumberToSet
     );
@@ -57,16 +57,16 @@ NTSYSAPI
 ULONG
 NTAPI
 RtlFindClearBitsAndSet (
-    __in PRTL_BITMAP BitMapHeader,
-    __in ULONG NumberToFind,
-    __in ULONG HintIndex
+    _In_ PRTL_BITMAP BitMapHeader,
+    _In_ ULONG NumberToFind,
+    _In_ ULONG HintIndex
     );
 
 NTSYSAPI
 ULONG
 NTAPI
 RtlNumberOfSetBits (
-    __in PRTL_BITMAP BitMapHeader
+    _In_ PRTL_BITMAP BitMapHeader
     );
 
 __checkReturn
@@ -74,16 +74,16 @@ NTSYSAPI
 BOOLEAN
 NTAPI
 RtlAreBitsSet (
-    __in PRTL_BITMAP BitMapHeader,
-    __in ULONG StartingIndex,
-    __in ULONG Length
+    _In_ PRTL_BITMAP BitMapHeader,
+    _In_ ULONG StartingIndex,
+    _In_ ULONG Length
     );
 
 NTSYSAPI
 VOID
 NTAPI
 RtlClearBits (
-    __in PRTL_BITMAP BitMapHeader,
+    _In_ PRTL_BITMAP BitMapHeader,
     __in_range(0, BitMapHeader->SizeOfBitMap - NumberToClear) ULONG StartingIndex,
     __in_range(0, BitMapHeader->SizeOfBitMap - StartingIndex) ULONG NumberToClear
     );
@@ -955,7 +955,7 @@ CMILResourceIndex::AcquireIndex(
 
 HRESULT 
 CMILSimpleResourceCache::GetResource(
-    __in ValidIndex uIndex, 
+    _In_ ValidIndex uIndex, 
     __out_opt IMILCacheableResource **ppResource)
 {
     UINT count = m_resources.GetCount();
@@ -1027,7 +1027,7 @@ CMILSimpleResourceCache::~CMILSimpleResourceCache()
 
 HRESULT 
 CMILSimpleResourceCache::SetResource(
-    __in ValidIndex uIndex, 
+    _In_ ValidIndex uIndex, 
     __in_opt IMILCacheableResource *pResource)
 {
     HRESULT hr = S_OK;

@@ -65,7 +65,7 @@ typedef struct _EnumFlagField {
         FLAGDEF        *FlagDef;
         ENUMDEF        *EnumDef;
         EnumFlagEntry  *Parent;
-        HRESULT       (*EFFunc)(__inout OutputControl*, __inout PDEBUG_CLIENT, __in const DEBUG_VALUE *);
+        HRESULT       (*EFFunc)(__inout OutputControl*, __inout PDEBUG_CLIENT, _In_ const DEBUG_VALUE *);
     };
 
 } EnumFlagField;
@@ -85,7 +85,7 @@ typedef struct _EnumFlagEntry {
 ULONG64
 OutputFlags(
     __inout OutputControl *OutCtl,
-    __in __nullterminated const FLAGDEF *pFlagDef,
+    _In_ __nullterminated const FLAGDEF *pFlagDef,
     ULONG64 fl,
     BOOL SingleLine
     );
@@ -93,23 +93,23 @@ OutputFlags(
 BOOL
 OutputEnum(
     __inout OutputControl *OutCtl,
-    __in __nullterminated const ENUMDEF *pEnumDef,
+    _In_ __nullterminated const ENUMDEF *pEnumDef,
     ULONG64 ul
     );
 
 BOOL
 OutputEnumWithParenthesis(
     __inout OutputControl *OutCtl,
-    __in __nullterminated const ENUMDEF *pEnumDef,
+    _In_ __nullterminated const ENUMDEF *pEnumDef,
     ULONG64 ul
     );
 
 BOOL
 OutputFieldValue(
     __inout OutputControl *OutCtl,
-    __in const EnumFlagEntry *pEFEntry,
-    __in PCSTR pszField,
-    __in const DEBUG_VALUE *Value,
+    _In_ const EnumFlagEntry *pEFEntry,
+    _In_ PCSTR pszField,
+    _In_ const DEBUG_VALUE *Value,
     __inout PDEBUG_CLIENT Client,
     BOOL Compact
     );
@@ -124,12 +124,12 @@ extern EnumFlagEntry EFDatabase[];
 BOOL
 OutputTypeFieldValue(
     __inout OutputControl *OutCtl,
-    __in PCSTR pszType,
-    __in PCSTR pszField,
-    __in const DEBUG_VALUE *Value,
+    _In_ PCSTR pszType,
+    _In_ PCSTR pszField,
+    _In_ const DEBUG_VALUE *Value,
     __inout PDEBUG_CLIENT Client,
     BOOL Compact,
-    __in __nullterminated const EnumFlagEntry *pEFDatabase = EFDatabase
+    _In_ __nullterminated const EnumFlagEntry *pEFDatabase = EFDatabase
     );
 
 

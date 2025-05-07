@@ -36,8 +36,8 @@ SIZE_T
 NTAPI
 RtlCompareMemoryUlong (
     __in_bcount(Length) PVOID Source,
-    __in SIZE_T Length,
-    __in ULONG Pattern
+    _In_ SIZE_T Length,
+    _In_ ULONG Pattern
     );
 
 #if defined(_M_AMD64)
@@ -46,8 +46,8 @@ FORCEINLINE
 VOID
 RtlFillMemoryUlong (
     __out_bcount_full(Length) PVOID Destination,
-    __in SIZE_T Length,
-    __in ULONG Pattern
+    _In_ SIZE_T Length,
+    _In_ ULONG Pattern
     )
 
 {
@@ -99,8 +99,8 @@ VOID
 NTAPI
 RtlFillMemoryUlong (
     __out_bcount_full(Length) PVOID Destination,
-    __in SIZE_T Length,
-    __in ULONG Pattern
+    _In_ SIZE_T Length,
+    _In_ ULONG Pattern
    );
 
 #endif

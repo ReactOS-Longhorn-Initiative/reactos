@@ -29,13 +29,13 @@ MtDefine(CHWMFMediaBuffer, Mem, "CHWMFMediaBuffer");
 //
 CHWMFMediaBuffer::
 CHWMFMediaBuffer(
-    __in    UINT             uiID,
-    __in    LONG             continuity,
-    __in    UINT             uiWidth,
-    __in    UINT             uiHeight,
-    __in    D3DFORMAT        format,
-    __in    CD3DDeviceLevel1 *pRenderDevice,
-    __in    CD3DDeviceLevel1 *pMixerDevice
+    _In_    UINT             uiID,
+    _In_    LONG             continuity,
+    _In_    UINT             uiWidth,
+    _In_    UINT             uiHeight,
+    _In_    D3DFORMAT        format,
+    _In_    CD3DDeviceLevel1 *pRenderDevice,
+    _In_    CD3DDeviceLevel1 *pMixerDevice
     ) : CMFMediaBuffer(
             uiID,
             continuity,
@@ -96,7 +96,7 @@ __override
 HRESULT
 CHWMFMediaBuffer::
 GetBitmapSource(
-    __in            bool                syncChannel,
+    _In_            bool                syncChannel,
         // Whether this is a synchronous channel (normally a bitmap effect),
         // if this is the case, we can't create all of our composition objects.
         // (The cached bitmap requires a locked device).
@@ -365,9 +365,9 @@ Cleanup:
 HRESULT
 CHWMFMediaBuffer::
 GetSurfaceDescription(
-    __in    D3DPOOL             d3dPool,
+    _In_    D3DPOOL             d3dPool,
         // Memory pool to use
-    __out   D3DSURFACE_DESC     *pD3DSurfaceDesc
+    _Out_   D3DSURFACE_DESC     *pD3DSurfaceDesc
         // populated surface description.
     )
 {
@@ -419,7 +419,7 @@ Cleanup:
 HRESULT
 CHWMFMediaBuffer::
 CopyBitmap(
-    __in    bool                fetchData
+    _In_    bool                fetchData
         // Whether we should actually fetch the data to populate the surface
         // or whether we should just alias the un-initialized buffer.
     )

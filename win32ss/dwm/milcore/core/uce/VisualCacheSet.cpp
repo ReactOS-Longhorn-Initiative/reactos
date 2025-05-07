@@ -295,7 +295,7 @@ CMilVisualCacheSet::IsNodeCacheValid() const
 HRESULT 
 CMilVisualCacheSet::GetNodeCacheRenderTargetBitmap (
     __deref_out_opt IMILRenderTargetBitmap ** ppIRTB,
-    __in IRenderTargetInternal *pDestRT
+    _In_ IRenderTargetInternal *pDestRT
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
 {
@@ -339,8 +339,8 @@ CMilVisualCacheSet::GetNodeCacheScaleInflation()
 
 HRESULT
 CMilVisualCacheSet::RenderNodeCache(
-    __in CDrawingContext *pDC,
-    __in IRenderTargetInternal *pDestRT,
+    _In_ CDrawingContext *pDC,
+    _In_ IRenderTargetInternal *pDestRT,
     float opacity
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
@@ -396,7 +396,7 @@ CMilVisualCacheSet::IsValid() const
 
 void
 CMilVisualCacheSet::BeginPartialInvalidate(
-    __in float allowedDirtyRegionOverhead,
+    _In_ float allowedDirtyRegionOverhead,
     __deref_out CDirtyRegion2 **ppDirtyRegionsNoRef
     )
 {        
@@ -417,7 +417,7 @@ CMilVisualCacheSet::BeginPartialInvalidate(
 
 HRESULT
 CMilVisualCacheSet::EndPartialInvalidate(
-    __in MilRectF const *prcLocalBounds
+    _In_ MilRectF const *prcLocalBounds
     )
 {
     HRESULT hr = S_OK;
@@ -467,7 +467,7 @@ Cleanup:
 
 HRESULT
 CMilVisualCacheSet::FullInvalidate(
-    __in MilRectF const *prcLocalBounds
+    _In_ MilRectF const *prcLocalBounds
     )
 {
     HRESULT hr = S_OK;
@@ -529,7 +529,7 @@ CMilVisualCacheSet::NotifyDeviceLost()
 
 HRESULT
 CMilVisualCacheSet::Update(
-    __in IRenderTargetInternal* pIRTInternal
+    _In_ IRenderTargetInternal* pIRTInternal
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
 {
@@ -587,7 +587,7 @@ CMilVisualCacheSet::AddCache(
 HRESULT
 CMilVisualCacheSet::AddCacheInternal(
     __in_opt CMilBitmapCacheDuce *pBitmapCacheMode,
-    __in UINT refCount
+    _In_ UINT refCount
     )
 {
     HRESULT hr = S_OK;
@@ -696,7 +696,7 @@ CMilVisualCacheSet::RemoveCache(
 bool
 CMilVisualCacheSet::RemoveCacheInternal(
     __in_opt CMilBitmapCacheDuce const *pBitmapCacheMode,
-    __in UINT refCount
+    _In_ UINT refCount
     )
 {
     bool fFoundCache = false;
@@ -765,7 +765,7 @@ CMilVisualCacheSet::RemoveCacheInternal(
 HRESULT 
 CMilVisualCacheSet::GetBitmapSource (
     __in_opt CMilBitmapCacheDuce const *pCacheMode,
-    __in IRenderTargetInternal *pIRT,
+    _In_ IRenderTargetInternal *pIRT,
     __deref_out_opt IWGXBitmapSource ** const ppIBitmapSource
     )
 {
@@ -832,7 +832,7 @@ HRESULT
 CMilVisualCacheSet::GetRenderTargetBitmap (
     __in_opt CMilBitmapCacheDuce const *pCacheMode,
     __deref_out_opt IMILRenderTargetBitmap ** ppIRTB,
-    __in IRenderTargetInternal *pDestRT
+    _In_ IRenderTargetInternal *pDestRT
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
 {
@@ -897,7 +897,7 @@ Cleanup:
 
 __out_opt BrushCacheToken*
 CMilVisualCacheSet::LookupCache (
-    __in CMilBitmapCacheDuce const *pCacheModeForLookup
+    _In_ CMilBitmapCacheDuce const *pCacheModeForLookup
     )
 {
     for (UINT i = 0; i < m_arrBrushCaches.GetCount(); i++)

@@ -76,7 +76,7 @@ HRESULT OnExtensionInitialize(
 void OnExtensionUninitialize();
 
 HRESULT OnSymbolInitialize(
-    __in HRESULT hrCurrent,
+    _In_ HRESULT hrCurrent,
     __inout PDEBUG_CLIENT Client
     );
 
@@ -108,7 +108,7 @@ extern ModuleParameters Type_Module;
 #undef DECLARE_API
 
 #define DECLARE_API(extension)                                  \
-CPPMOD HRESULT CALLBACK extension(__inout PDEBUG_CLIENT Client, __in PCSTR args)
+CPPMOD HRESULT CALLBACK extension(__inout PDEBUG_CLIENT Client, _In_ PCSTR args)
 
 #define BEGIN_API(extension) InitAPI(Client, #extension);
 
@@ -121,7 +121,7 @@ CPPMOD HRESULT CALLBACK extension(__inout PDEBUG_CLIENT Client, __in PCSTR args)
 HRESULT
 InitAPI(
     __inout PDEBUG_CLIENT Client,
-    __in PCSTR ExtName
+    _In_ PCSTR ExtName
     );
 
 
@@ -138,15 +138,15 @@ SymbolInit(
 HRESULT
 GetModuleParameters(
     __inout PDEBUG_CLIENT Client,
-    __out ModuleParameters *Module,
+    _Out_ ModuleParameters *Module,
     BOOL TryReload
     );
 
 HRESULT
 GetTypeId(
     __inout PDEBUG_CLIENT Client,
-    __in PCSTR Type,
-    __out PULONG TypeId,
+    _In_ PCSTR Type,
+    _Out_ PULONG TypeId,
     __out_opt PULONG64 Module
     );
 
@@ -160,10 +160,10 @@ GetTypeId(
 HRESULT
 Evaluate(
     __inout PDEBUG_CLIENT Client,
-    __in PCSTR Expression,
+    _In_ PCSTR Expression,
     ULONG DesiredType,
     ULONG Radix,
-    __out PDEBUG_VALUE Value,
+    _Out_ PDEBUG_VALUE Value,
     __out_opt PULONG RemainderIndex = NULL,
     __out_opt PULONG StartIndex = NULL,
     FLONG Flags = EVALUATE_DEFAULT_FLAGS

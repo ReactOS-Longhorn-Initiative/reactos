@@ -355,17 +355,17 @@ public:
     //  Non-Enumerator related CPtrMultiset<T> Methods
     //--------------------------------------------------------------------------
 
-    inline HRESULT Add(__in T *p)
+    inline HRESULT Add(_In_ T *p)
     {
         return CPtrMultisetBase::Add(reinterpret_cast<UINT_PTR>(p));
     }
 
-    inline bool Remove(__in T *p)
+    inline bool Remove(_In_ T *p)
     {
         return CPtrMultisetBase::Remove(reinterpret_cast<UINT_PTR>(p));
     }
 
-    inline bool Contains(__in T *p)
+    inline bool Contains(_In_ T *p)
     {
         return CPtrMultisetBase::Contains(reinterpret_cast<UINT_PTR>(p));
     }

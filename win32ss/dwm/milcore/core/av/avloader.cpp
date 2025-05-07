@@ -40,19 +40,19 @@ public:
         );
 
     HRESULT GetEVRLoadRefAndCreateDXSurfaceBuffer(
-        __in    REFIID riid,
-        __in    IUnknown* punkSurface,
-        __in    BOOL fBottomUpWhenLinear,
+        _In_    REFIID riid,
+        _In_    IUnknown* punkSurface,
+        _In_    BOOL fBottomUpWhenLinear,
         __deref_out IMFMediaBuffer** ppBuffer
         );
 
     HRESULT GetDXVA2LoadRefAndCreateVideoAccelerationManager(
-        __out UINT* resetToken,
+        _Out_ UINT* resetToken,
         __deref_out_ecount(1) IDirect3DDeviceManager9** ppDXVAManager
         );
 
     HRESULT GetEVRLoadRefAndCreateEnhancedVideoRendererForDShow(
-        __in                  IUnknown              *pOuterIUnknown,
+        _In_                  IUnknown              *pOuterIUnknown,
         __deref_out_ecount(1) IUnknown              **ppInnerIUnknown
         );
 
@@ -93,7 +93,7 @@ private:
     
     typedef HRESULT (WINAPI *MFCREATEMEDIAFUNCTION)(__in_opt IUnknown *pSurf, __deref_out_ecount(1) IMFSample **ppIMFSample);
     
-    typedef HRESULT (WINAPI *DXVA2CREATEVIDEOACCELERATIONMANAGER)(__out UINT* resetToken, __deref_out_ecount(1) IDirect3DDeviceManager9** ppDXVAManager);
+    typedef HRESULT (WINAPI *DXVA2CREATEVIDEOACCELERATIONMANAGER)(_Out_ UINT* resetToken, __deref_out_ecount(1) IDirect3DDeviceManager9** ppDXVAManager);
 
     CCriticalSection m_csManagement;
 
@@ -183,9 +183,9 @@ CAVLoader::GetEVRLoadRefAndCreateMedia(
 /*static*/
 HRESULT
 CAVLoader::GetEVRLoadRefAndCreateDXSurfaceBuffer(
-    __in    REFIID riid,
-    __in    IUnknown* punkSurface,
-    __in    BOOL fBottomUpWhenLinear,
+    _In_    REFIID riid,
+    _In_    IUnknown* punkSurface,
+    _In_    BOOL fBottomUpWhenLinear,
     __deref_out IMFMediaBuffer  **ppIMFBuffer
     )
 {
@@ -210,7 +210,7 @@ CAVLoader::GetEVRLoadRefAndCreateDXSurfaceBuffer(
 //------------------------------------------------------------------------------
 HRESULT
 CAVLoader::GetDXVA2LoadRefAndCreateVideoAccelerationManager(
-    __out UINT* resetToken,
+    _Out_ UINT* resetToken,
     __deref_out_ecount(1)IDirect3DDeviceManager9** ppDXVAManager
     )
 {
@@ -229,7 +229,7 @@ CAVLoader::GetDXVA2LoadRefAndCreateVideoAccelerationManager(
 //------------------------------------------------------------------------------
 HRESULT
 CAVLoader::GetEVRLoadRefAndCreateEnhancedVideoRendererForDShow(
-        __in                  IUnknown              *pOuterIUnknown,
+        _In_                  IUnknown              *pOuterIUnknown,
         __deref_out_ecount(1) IUnknown              **ppInnerIUnknown
     )
 {
@@ -485,9 +485,9 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CAVLoaderInternal::GetEVRLoadRefAndCreateDXSurfaceBuffer(
-    __in    REFIID riid,
-    __in    IUnknown* punkSurface,
-    __in    BOOL fBottomUpWhenLinear,
+    _In_    REFIID riid,
+    _In_    IUnknown* punkSurface,
+    _In_    BOOL fBottomUpWhenLinear,
     __deref_out IMFMediaBuffer  **ppIMFBuffer
     )
 {
@@ -545,7 +545,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CAVLoaderInternal::GetDXVA2LoadRefAndCreateVideoAccelerationManager(
-    __out UINT* resetToken,
+    _Out_ UINT* resetToken,
     __deref_out_ecount(1) IDirect3DDeviceManager9** ppDXVAManager
     )
 {
@@ -617,7 +617,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CAVLoaderInternal::GetEVRLoadRefAndCreateEnhancedVideoRendererForDShow(
-        __in                  IUnknown              *pOuterIUnknown,
+        _In_                  IUnknown              *pOuterIUnknown,
         __deref_out_ecount(1) IUnknown              **ppInnerIUnknown
     )
 {

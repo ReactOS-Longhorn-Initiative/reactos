@@ -35,17 +35,17 @@ public:
 
     HRESULT
     Init(
-        __in    MediaInstance   *pMediaInstance
+        _In_    MediaInstance   *pMediaInstance
         );
 
     HRESULT
     RegisterResource(
-        __in    CMilSlaveVideo  *pCMilSlaveVideo
+        _In_    CMilSlaveVideo  *pCMilSlaveVideo
         );
 
     void
     UnregisterResource(
-        __in    CMilSlaveVideo  *pCMilSlaveVideo
+        _In_    CMilSlaveVideo  *pCMilSlaveVideo
         );
 
     void
@@ -68,12 +68,12 @@ private:
     // Cannot copy or assign a CompositionNotifier
     //
     CompositionNotifier(
-        __in const CompositionNotifier        &
+        _In_ const CompositionNotifier        &
         );
 
     CompositionNotifier &
     operator=(
-        __in const CompositionNotifier &
+        _In_ const CompositionNotifier &
         );
 
     UINT                m_uiID;

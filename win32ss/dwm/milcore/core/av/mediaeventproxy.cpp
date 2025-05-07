@@ -40,9 +40,9 @@ MtDefine(EventItem,         Mem, "EventItem");
 HRESULT
 CMediaEventProxy::
 RaiseEvent(
-    __in AVEvent eventType,
+    _In_ AVEvent eventType,
         //  The type of the event to raise
-    __in HRESULT failureHr
+    _In_ HRESULT failureHr
         // The failure code (if any) associated with it.
     )
  {
@@ -80,10 +80,10 @@ Cleanup:
 HRESULT
 CMediaEventProxy::
 RaiseEvent(
-    __in        AVEvent    eventType,
+    _In_        AVEvent    eventType,
     __in_opt    PCWSTR     type,
     __in_opt    PCWSTR     param,
-    __in        HRESULT    failureHr
+    _In_        HRESULT    failureHr
     )
 {
     HRESULT hr = S_OK;
@@ -138,7 +138,7 @@ Shutdown(
 //
 CMediaEventProxy::
 CMediaEventProxy(
-    __in        UINT                    uiID,
+    _In_        UINT                    uiID,
     __in_opt    CEventProxy             *pCEventProxy
     ) : m_uiID(uiID),
         m_pCEventProxy(NULL)
@@ -204,12 +204,12 @@ Cleanup:
 HRESULT
 CMediaEventProxy::EventItem::
 Create(
-    __in        UINT                    id,
-    __in        CEventProxy             *pCEventProxy,
-    __in        AVEvent                 eventType,
+    _In_        UINT                    id,
+    _In_        CEventProxy             *pCEventProxy,
+    _In_        AVEvent                 eventType,
     __in_opt    PCWSTR                  type,
     __in_opt    PCWSTR                  param,
-    __in        HRESULT                 failureHr,
+    _In_        HRESULT                 failureHr,
     __deref_out EventItem               **ppEventItem
     )
 {
@@ -377,10 +377,10 @@ Cleanup:
 
 CMediaEventProxy::EventItem::
 EventItem(
-    __in        UINT                    uiID,
-    __in        CEventProxy             *pCEventProxy,
-    __in        AVEvent                 eventType,
-    __in        HRESULT                 failureHr
+    _In_        UINT                    uiID,
+    _In_        CEventProxy             *pCEventProxy,
+    _In_        AVEvent                 eventType,
+    _In_        HRESULT                 failureHr
     ) : m_uiID(uiID),
         m_pCEventProxy(NULL),
         m_eventType(eventType),

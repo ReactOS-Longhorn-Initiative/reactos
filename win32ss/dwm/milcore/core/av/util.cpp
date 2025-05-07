@@ -62,7 +62,7 @@ GetLastErrorAsFailHR(
 //------------------------------------------------------------------------------
 DWORD
 Win32StatusFromHR(
-    __in    HRESULT     hr
+    _In_    HRESULT     hr
     )
 {
     DWORD   Status = ERROR_INVALID_FUNCTION;
@@ -149,7 +149,7 @@ public:
     }
 
     STDMETHOD_(void, SetIDirect3DDevice9)(
-        __in    IDirect3DDevice9    *pIDirect3DDevice9
+        _In_    IDirect3DDevice9    *pIDirect3DDevice9
         )
     {
         ReplaceInterface(m_pIDirect3DDevice9, pIDirect3DDevice9);
@@ -167,7 +167,7 @@ public:
 
 void
 GetUnderlyingDevice(
-    __in        CD3DDeviceLevel1    *pCD3DDeviceLevel1,
+    _In_        CD3DDeviceLevel1    *pCD3DDeviceLevel1,
     __deref_out IDirect3DDevice9    **ppIDirect3DDevice9
     )
 {
@@ -180,8 +180,8 @@ GetUnderlyingDevice(
 
 HRESULT
 ConvertSampleToMediaBuffer(
-    __in    IMFSample       *pIMFSample,
-    __out   CMFMediaBuffer  **ppCMFMediaBuffer
+    _In_    IMFSample       *pIMFSample,
+    _Out_   CMFMediaBuffer  **ppCMFMediaBuffer
     )
 {
     HRESULT         hr = S_OK;

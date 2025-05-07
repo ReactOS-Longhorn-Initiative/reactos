@@ -10,8 +10,8 @@
 
 namespace WPFUtils {
 
-    LONG ReadRegistryString(__in HKEY rootKey, __in LPCWSTR keyName, __in LPCWSTR valueName,
-                                     __out LPWSTR value, size_t cchMax);
+    LONG ReadRegistryString(_In_ HKEY rootKey, _In_ LPCWSTR keyName, _In_ LPCWSTR valueName,
+                                     _Out_ LPWSTR value, size_t cchMax);
 
     HRESULT GetWPFInstallPath(__out_ecount(cchMaxPath) LPWSTR pszPath, size_t cchMaxPath);
 }

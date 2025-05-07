@@ -94,11 +94,11 @@ public:
         );
 
     HRESULT EnableVBlankSync(
-        __in CMilServerChannel* pChannel
+        _In_ CMilServerChannel* pChannel
         );
 
     void DisableVBlankSync(
-        __in CMilServerChannel* pChannel
+        _In_ CMilServerChannel* pChannel
         );
 
     // Advances frame count on hwnds
@@ -143,14 +143,14 @@ private:
         __inout_ecount(1) UINT *puiRefreshRate,
         __inout_ecount(1) MilPresentationResults::Enum *pePresentationResults,
         __inout_ecount(1) QPC_TIME *pqpcPresentationTime,
-        __in              QPC_TIME qpcCurrentTime
+        _In_              QPC_TIME qpcCurrentTime
         );
 
     HRESULT WaitForTarget(
         __inout_ecount(1) UINT *puiRefreshRate,
         __inout_ecount(1) MilPresentationResults::Enum *pePresentationResults,
         __inout_ecount(1) QPC_TIME *pqpcPresentationTime,
-        __in              QPC_TIME qpcCurrentTime
+        _In_              QPC_TIME qpcCurrentTime
         );
 
 private:

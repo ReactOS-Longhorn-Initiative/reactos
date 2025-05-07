@@ -16,7 +16,7 @@
 
 // Enumerates available graphics stream clients.
 HRESULT GetGraphicsStreamClient(
-    __in UINT client,
+    _In_ UINT client,
     __out_ecount(1) UUID *pUuid
     );
 

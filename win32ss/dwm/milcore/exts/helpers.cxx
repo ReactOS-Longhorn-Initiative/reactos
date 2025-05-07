@@ -27,7 +27,7 @@
 
 HRESULT GetFirstSymbolEntry(
     __inout_ecount(1) IDebugSymbols3 *Symbols,
-    __in PCSTR szName,
+    _In_ PCSTR szName,
     __out_ecount(1) PDEBUG_SYMBOL_ENTRY pInfo,
     __inout_ecount_opt(1) OutputControl *pOutCtl
     )
@@ -75,7 +75,7 @@ Cleanup:
 HRESULT GetOffsetByNameAndPrintErrors(
     __inout_ecount(1) OutputControl *pOutCtl,
     __inout_ecount(1) IDebugSymbols3 *Symbols,
-    __in PCSTR szName,
+    _In_ PCSTR szName,
     __out_ecount(1) ULONG64* puOffset
     )
 {
@@ -149,7 +149,7 @@ HRESULT GetNameByOffset(
 HRESULT GetModuleByModuleNameAndPrintErrors(
     __inout_ecount(1) OutputControl *pOutCtl,
     __inout_ecount(1) IDebugSymbols3 *Symbols,
-    __in PCSTR szModuleName,
+    _In_ PCSTR szModuleName,
     __out_ecount(1) ULONG64 *puModule
     )
 {
@@ -190,7 +190,7 @@ HRESULT GetFieldEntry(
     __inout_ecount(1) IDebugSymbols3 *Symbols,
     ULONG64 ContainerModuleBase,
     ULONG ContainerTypeId,
-    __in PCSTR szFieldName,
+    _In_ PCSTR szFieldName,
     __out_ecount(1) PDEBUG_FIELD_ENTRY pFieldInfo,
     __inout_ecount_opt(1) OutputControl *pOutCtl
     )

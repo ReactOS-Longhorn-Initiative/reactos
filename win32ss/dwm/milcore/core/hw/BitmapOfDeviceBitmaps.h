@@ -93,8 +93,8 @@ public:
         );
 
     virtual bool TryCreateDependentDeviceColorSource(
-        __in const LUID &luidNewDevice,
-        __in CHwBitmapCache *pNewCache
+        _In_ const LUID &luidNewDevice,
+        _In_ CHwBitmapCache *pNewCache
         );
 
     __out_opt CHwDeviceBitmapColorSource *GetDeviceColorSourceNoRef();

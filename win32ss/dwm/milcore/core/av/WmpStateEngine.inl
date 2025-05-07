@@ -24,9 +24,9 @@
 bool
 CWmpStateEngine::
 IsStatePartOfSet(
-    __in                        ActionState::Enum           playerState,
+    _In_                        ActionState::Enum           playerState,
     __in_ecount(cPlayerState)   const ActionState::Enum     *aPlayerState,
-    __in                        int                         cPlayerState
+    _In_                        int                         cPlayerState
     )
 {
     bool    inSet = false;
@@ -48,7 +48,7 @@ IsStatePartOfSet(
 bool
 CWmpStateEngine::
 EvrStateToIsEvrClockRunning(
-    __in      RenderState::Enum                    renderState
+    _In_      RenderState::Enum                    renderState
     )
 {
     if (renderState == RenderState::Stopped)
@@ -74,7 +74,7 @@ EvrStateToIsEvrClockRunning(
 LONGLONG
 CWmpStateEngine::
 SecondsToTicks(
-    __in                        double                      seconds
+    _In_                        double                      seconds
     )
 {
     return LONGLONG((seconds * gc_ticksPerSecond) + 0.5);
@@ -84,7 +84,7 @@ inline
 HRESULT
 CWmpStateEngine::
 AddItem(
-    __in    CStateThreadItem    *pItem
+    _In_    CStateThreadItem    *pItem
     )
 {
     //

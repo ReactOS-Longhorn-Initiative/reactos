@@ -38,7 +38,7 @@ class CCrossThreadComposition : public CComposition
 protected:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CCrossThreadComposition));
 
-    CCrossThreadComposition(__in MilMarshalType::Enum marshalType);
+    CCrossThreadComposition(_In_ MilMarshalType::Enum marshalType);
 
     virtual ~CCrossThreadComposition();
 
@@ -47,7 +47,7 @@ public:
 
     // Creates a new instance of the CCrossThreadComposition class.
     static HRESULT Create(
-        __in MilMarshalType::Enum marshalType,
+        _In_ MilMarshalType::Enum marshalType,
         __out_ecount(1) CCrossThreadComposition **ppCrossThreadComposition
         );
 
@@ -60,7 +60,7 @@ public:
     // it's done processing it.
     //
     override HRESULT SubmitBatch(
-        __in CMilCommandBatch *pBatch
+        _In_ CMilCommandBatch *pBatch
         );
 
     // Enqueue the batch for processing by worker thread.

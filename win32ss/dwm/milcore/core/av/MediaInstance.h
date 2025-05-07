@@ -35,7 +35,7 @@ public:
     static
     HRESULT
     Create(
-        __in            CEventProxy         *pCEventProxy,
+        _In_            CEventProxy         *pCEventProxy,
         __deref_out     MediaInstance       **ppMediaInstance
         );
 
@@ -71,8 +71,8 @@ protected:
 private:
 
     MediaInstance(
-        __in        UINT        uiID,
-        __in        CEventProxy *pCEventProxy
+        _In_        UINT        uiID,
+        _In_        CEventProxy *pCEventProxy
         );
 
     ~MediaInstance(
@@ -83,12 +83,12 @@ private:
     // Cannot copy or assign a MediaInstance
     //
     MediaInstance(
-        __in    const MediaInstance &
+        _In_    const MediaInstance &
         );
 
     MediaInstance &
     operator=(
-        __in    const MediaInstance &
+        _In_    const MediaInstance &
         );
 
     UINT                    m_uiID;

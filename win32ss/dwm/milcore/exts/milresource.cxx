@@ -28,7 +28,7 @@ HRESULT
 GetClientChannelHandle(
     PDEBUG_CLIENT Client, 
     ULONG64 ulpMilChannel, 
-    __out ULONG64* pulhMilChannel
+    _Out_ ULONG64* pulhMilChannel
     )
 {
     HRESULT hr = S_OK;
@@ -149,7 +149,7 @@ HRESULT
 GetConnectionContextPointer(
     PDEBUG_CLIENT Client, 
     ULONG64 ulpMilChannel, 
-    __out ULONG64* pulpConnectionContext
+    _Out_ ULONG64* pulpConnectionContext
     )
 {
     HRESULT hr = S_OK;
@@ -216,7 +216,7 @@ GetMILHandleTableEntry(
     PDEBUG_CLIENT Client,
     ULONG64 ulpHandleTable,
     ULONG64 ulhEntry,
-    __out ULONG64 *pulpEntry
+    _Out_ ULONG64 *pulpEntry
     )
 {
     HRESULT hr = S_OK;
@@ -267,7 +267,7 @@ GetServerChannelPointer(
     PDEBUG_CLIENT Client,
     ULONG64 ulpConnectionContext,
     ULONG64 ulhMilChannel,
-    __out ULONG64 *pulpServerChannel
+    _Out_ ULONG64 *pulpServerChannel
     )
 {
     HRESULT hr = S_OK;
@@ -315,7 +315,7 @@ HRESULT
 GetServerHandleTablePointer(
     PDEBUG_CLIENT Client,
     ULONG64 ulpServerChannel,
-    __out ULONG64 *pulpServerChannelHandleTable
+    _Out_ ULONG64 *pulpServerChannelHandleTable
     )
 {
     HRESULT hr = S_OK;
@@ -367,7 +367,7 @@ HRESULT ResolveHMilResource(
     PDEBUG_CLIENT Client, 
     ULONG64 ulhResource, 
     ULONG64 ulpMilChannel, 
-    __out ULONG64* pulpHANDLE_ENTRY)
+    _Out_ ULONG64* pulpHANDLE_ENTRY)
 {
     HRESULT hr = S_OK;
     OutputControl OutCtl(Client);

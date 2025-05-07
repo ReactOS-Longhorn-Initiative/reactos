@@ -160,9 +160,9 @@ public:
     }
 
     HRESULT GetExtents(
-        __in REAL rOwnersThickness,
+        _In_ REAL rOwnersThickness,
             // The extents of the owner pen
-        __in REAL rOwnerExtents,
+        _In_ REAL rOwnerExtents,
             // The owner's extents
         __out_ecount(1) REAL &rExtents) const;
             // The extents

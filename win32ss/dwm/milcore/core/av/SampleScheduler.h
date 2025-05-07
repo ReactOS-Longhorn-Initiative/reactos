@@ -26,8 +26,8 @@ class SampleScheduler
 public:
 
     SampleScheduler(
-        __in    MediaInstance   *pMediaInstance,
-        __in    CWmpStateEngine *pCWmpStateEngine
+        _In_    MediaInstance   *pMediaInstance,
+        _In_    CWmpStateEngine *pCWmpStateEngine
         );
 
     ~SampleScheduler(
@@ -50,55 +50,55 @@ public:
 
     HRESULT
     ClockPaused(
-        __in        LONGLONG        currentTime
+        _In_        LONGLONG        currentTime
         );
 
 
 
     HRESULT
     GetCompositionSample(
-        __in        LONGLONG        currentTime,
+        _In_        LONGLONG        currentTime,
         __inout     LONGLONG        *pLastCompositionSampleTime,
         __deref_out CMFMediaBuffer  **ppCMFMediaBuffer,
-        __out       BOOL            *pIsNewFrame
+        _Out_       BOOL            *pIsNewFrame
         );
 
     HRESULT
     ReturnCompositionSample(
-        __out       bool            *pShouldSignalMixer
+        _Out_       bool            *pShouldSignalMixer
         );
 
     HRESULT
     GetMixSample(
-        __in        LONGLONG        currentTime,
-        __out       IMFSample       **ppIMFSample
+        _In_        LONGLONG        currentTime,
+        _Out_       IMFSample       **ppIMFSample
         );
 
     HRESULT
     ReturnMixSample(
-        __in        LONGLONG        currentTime
+        _In_        LONGLONG        currentTime
         );
 
     void
     Flush(
-        __in        LONGLONG        currentTime
+        _In_        LONGLONG        currentTime
         );
 
     LONGLONG
     CalculateNextCallbackTime(
-        __in        LONGLONG        currentTime
+        _In_        LONGLONG        currentTime
         );
 
     void
     NotifyCompositionIfNecessary(
-        __in        LONGLONG        currentTime
+        _In_        LONGLONG        currentTime
         );
 
     HRESULT
     InvalidateDevice(
-        __in        CD3DDeviceLevel1    *pRenderDevice,
-        __in        CD3DDeviceLevel1    *pMixerDevice,
-        __in        D3DDEVTYPE          deviceType
+        _In_        CD3DDeviceLevel1    *pRenderDevice,
+        _In_        CD3DDeviceLevel1    *pMixerDevice,
+        _In_        D3DDEVTYPE          deviceType
         );
 
     HRESULT
@@ -150,17 +150,17 @@ private:
     // Cannot copy or assign a SampleScheduler
     //
     SampleScheduler(
-        __in const SampleScheduler &
+        _In_ const SampleScheduler &
         );
 
     SampleScheduler &
     operator=(
-        __in const SampleScheduler &
+        _In_ const SampleScheduler &
         );
 
     HRESULT
     GetCompositionSampleFromQueue(
-        __in            LONGLONG        currentTime,
+        _In_            LONGLONG        currentTime,
         __deref_out     IMFSample       **ppIMFSample
         );
 

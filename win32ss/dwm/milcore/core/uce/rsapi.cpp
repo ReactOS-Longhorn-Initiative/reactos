@@ -16,12 +16,12 @@
 #include "precomp.hpp"
 
 typedef HRESULT (WINAPI *PFNDWMGETGRAPHICSSTREAMTRANSFORMHINT)(
-    __in UINT uIndex,
+    _In_ UINT uIndex,
     __out_ecount(1) MilMatrix3x2D *pTransform
     );
 
 typedef HRESULT (WINAPI *PFNDWMGETGRAPHICSSTREAMCLIENT)(
-    __in UINT uIndex,
+    _In_ UINT uIndex,
     __out_ecount(1) UUID *pClientUuid
     );
 
@@ -48,7 +48,7 @@ CCriticalSection g_csGraphicsStream;
 
 HRESULT
 GetGraphicsStreamClient(
-    __in UINT uIndex,
+    _In_ UINT uIndex,
     __out_ecount(1) UUID* pUuid
     )
 {

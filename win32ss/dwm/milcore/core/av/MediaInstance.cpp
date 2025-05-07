@@ -32,7 +32,7 @@ MtDefine(MediaInstance, Mem, "MediaInstance");
 HRESULT
 MediaInstance::
 Create(
-    __in            CEventProxy         *pCEventProxy,
+    _In_            CEventProxy         *pCEventProxy,
     __deref_out     MediaInstance       **ppMediaInstance
     )
 {
@@ -93,8 +93,8 @@ HrFindInterface(__in_ecount(1) REFIID riid, __deref_out void **ppv)
 
 MediaInstance::
 MediaInstance(
-    __in        UINT        uiID,
-    __in        CEventProxy *pCEventProxy
+    _In_        UINT        uiID,
+    _In_        CEventProxy *pCEventProxy
     ) : m_uiID(uiID),
         m_mediaEventProxy(uiID, pCEventProxy)
 {

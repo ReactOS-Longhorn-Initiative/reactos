@@ -13,8 +13,8 @@
 #include "precomp.hpp"
 
 typedef BOOL (WINAPI* UpdateLayeredWindowIndirectPtr)(
-    __in HWND hWnd,
-    __in const UPDATELAYEREDWINDOWINFO* pULWInfo);
+    _In_ HWND hWnd,
+    _In_ const UPDATELAYEREDWINDOWINFO* pULWInfo);
 
 static volatile UpdateLayeredWindowIndirectPtr s_pfnUpdateLayeredWindowIndirect = NULL;
 static HRESULT volatile s_hrULWFound = WGXERR_NOTINITIALIZED;
@@ -102,7 +102,7 @@ OSSupportsUpdateLayeredWindowIndirect(
 //-----------------------------------------------------------------------------
 HRESULT
 UpdateLayeredWindowEx(
-    __in HWND hWnd,
+    _In_ HWND hWnd,
     __in_opt HDC hdcDst,
     __in_ecount_opt(1) CONST POINT *pptDst,
     __in_ecount_opt(1) CONST SIZE *psize,

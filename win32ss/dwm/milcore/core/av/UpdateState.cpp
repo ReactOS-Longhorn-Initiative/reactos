@@ -10,9 +10,9 @@
 HRESULT
 UpdateState::
 Create(
-    __in    MediaInstance       *pMediaInstance,
-    __in    CWmpStateEngine     *pCWmpStateEngine,
-    __in    UpdateState         **ppUpdateState
+    _In_    MediaInstance       *pMediaInstance,
+    _In_    CWmpStateEngine     *pCWmpStateEngine,
+    _In_    UpdateState         **ppUpdateState
     )
 {
     HRESULT         hr = S_OK;
@@ -46,7 +46,7 @@ Cleanup:
 void
 UpdateState::
 OpenHelper(
-    __in LPCWSTR pwszURL
+    _In_ LPCWSTR pwszURL
     )
 {
     TRACEF(NULL);
@@ -89,7 +89,7 @@ OpenHelper(
 void
 UpdateState::
 SetRateHelper(
-    __in double dRate
+    _In_ double dRate
     )
 {
     TRACEF(NULL);
@@ -110,7 +110,7 @@ SetRateHelper(
 void
 UpdateState::
 SetTargetActionState(
-    __in    ActionState::Enum   targetActionState
+    _In_    ActionState::Enum   targetActionState
     )
 {
     TRACEF(NULL);
@@ -123,7 +123,7 @@ SetTargetActionState(
 void
 UpdateState::
 SetTargetVolume(
-    __in    long                targetVolume
+    _In_    long                targetVolume
     )
 {
     TRACEF(NULL);
@@ -136,7 +136,7 @@ SetTargetVolume(
 void
 UpdateState::
 SetTargetBalance(
-    __in    long                targetBalance
+    _In_    long                targetBalance
     )
 {
     TRACEF(NULL);
@@ -149,7 +149,7 @@ SetTargetBalance(
 void
 UpdateState::
 SetTargetSeekTo(
-    __in    double              targetSeekTo
+    _In_    double              targetSeekTo
     )
 {
     TRACEF(NULL);
@@ -162,7 +162,7 @@ SetTargetSeekTo(
 void
 UpdateState::
 SetTargetIsScrubbingEnabled(
-    __in    bool                isScrubbingEnabled
+    _In_    bool                isScrubbingEnabled
     )
 {
     TRACEF(NULL);
@@ -218,8 +218,8 @@ Close(
 HRESULT
 UpdateState::
 UpdateTransientsSync(
-    __in    DWORD       timeOutInMilliseconds,
-    __out   bool        *pDidTimeOut
+    _In_    DWORD       timeOutInMilliseconds,
+    _Out_   bool        *pDidTimeOut
     )
 {
     HRESULT     hr = S_OK;
@@ -481,8 +481,8 @@ Cleanup:
 
 UpdateState::
 UpdateState(
-    __in    MediaInstance   *pMediaInstance,
-    __in    CWmpStateEngine *pCWmpStateEngine
+    _In_    MediaInstance   *pMediaInstance,
+    _In_    CWmpStateEngine *pCWmpStateEngine
     ) : m_uiID(pMediaInstance->GetID()),
         m_pMediaInstance(NULL),
         m_pCWmpStateEngine(NULL),

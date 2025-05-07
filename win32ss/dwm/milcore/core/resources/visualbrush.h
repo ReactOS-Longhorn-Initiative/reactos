@@ -89,8 +89,8 @@ public:
     }
 
     static HRESULT PreComputeHelper(
-        __in CPreComputeContext *pPreComputeContext,
-        __in CMilVisual *pVisual
+        _In_ CPreComputeContext *pPreComputeContext,
+        _In_ CMilVisual *pVisual
         );
 
 protected:    

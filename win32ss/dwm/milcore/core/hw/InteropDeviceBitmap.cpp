@@ -27,15 +27,15 @@ MtDefine(CInteropDeviceBitmap, MILRender, "CInteropDeviceBitmap");
 //------------------------------------------------------------------------------
 HRESULT WINAPI
 InteropDeviceBitmap_Create(
-    __in IUnknown *pIUserD3DResource,
+    _In_ IUnknown *pIUserD3DResource,
     __in_range(0, DBL_MAX) double dpiX,
     __in_range(0, DBL_MAX) double dpiY,
     UINT uVersion,
-    __in CInteropDeviceBitmap::FrontBufferAvailableCallbackPtr pfnAvailable,
+    _In_ CInteropDeviceBitmap::FrontBufferAvailableCallbackPtr pfnAvailable,
     BOOL isSoftwareFallbackEnabled,
     __deref_out CInteropDeviceBitmap **ppInteropDeviceBitmap,
-    __out UINT *puWidth,
-    __out UINT *puHeight
+    _Out_ UINT *puWidth,
+    _Out_ UINT *puHeight
     )
 {
     HRESULT hr = S_OK;
@@ -88,7 +88,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 void WINAPI
 InteropDeviceBitmap_Detach(
-    __in CInteropDeviceBitmap *pInteropDeviceBitmap
+    _In_ CInteropDeviceBitmap *pInteropDeviceBitmap
     )
 {
     if (pInteropDeviceBitmap)
@@ -115,7 +115,7 @@ InteropDeviceBitmap_AddDirtyRect(
     int iY, 
     int iW, 
     int iH,
-    __in CInteropDeviceBitmap *pInteropDeviceBitmap
+    _In_ CInteropDeviceBitmap *pInteropDeviceBitmap
     )
 {
     HRESULT hr = S_OK;
@@ -160,7 +160,7 @@ Cleanup:
 
 HRESULT WINAPI
 InteropDeviceBitmap_GetAsSoftwareBitmap(
-    __in CInteropDeviceBitmap *pInteropDeviceBitmap,
+    _In_ CInteropDeviceBitmap *pInteropDeviceBitmap,
     __deref_out IWICBitmapSource **ppIWICBitmapSource
     )
 {
@@ -203,9 +203,9 @@ Cleanup:
 
 /* static */ CInteropDeviceBitmap::FrontBufferUpdateMethod 
 CInteropDeviceBitmap::GetUpdateMethod(
-    __in IDirect3DDevice9 *pID3DDevice,
+    _In_ IDirect3DDevice9 *pID3DDevice,
     __in_opt const IDirect3DDevice9Ex *pID3DDeviceEx,
-    __in IDirect3DSurface9 *pID3DSurface
+    _In_ IDirect3DSurface9 *pID3DSurface
     )
 {   
     HRESULT hr = S_OK;
@@ -249,11 +249,11 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT 
 CInteropDeviceBitmap::Create(
-    __in IUnknown *pIUserSurface,
+    _In_ IUnknown *pIUserSurface,
     __in_range(0, DBL_MAX) double dpiX,
     __in_range(0, DBL_MAX) double dpiY,
     UINT uVersion,
-    __in FrontBufferAvailableCallbackPtr pfnAvailable,
+    _In_ FrontBufferAvailableCallbackPtr pfnAvailable,
     bool isSoftwareFallbackEnabled,
     __deref_out CInteropDeviceBitmap **ppInteropDeviceBitmap
     )
@@ -399,14 +399,14 @@ Cleanup:
 //------------------------------------------------------------------------------
 CInteropDeviceBitmap::CInteropDeviceBitmap(
     UINT uVersion,
-    __in FrontBufferAvailableCallbackPtr pfnAvailable,
+    _In_ FrontBufferAvailableCallbackPtr pfnAvailable,
     bool isSoftwareFallbackEnabled,
     __in_range(0, SURFACE_RECT_MAX) UINT uWidth,
     __in_range(0, SURFACE_RECT_MAX) UINT uHeight,
     MilPixelFormat::Enum fmtPixel,
     FrontBufferUpdateMethod oUpdateMethod,
     UINT uAdapter,
-    __in IDirect3DSurface9 *pUserSurface
+    _In_ IDirect3DSurface9 *pUserSurface
     )
     : 
     CDeviceBitmap(uWidth, uHeight, fmtPixel),
@@ -573,7 +573,7 @@ CInteropDeviceBitmap::NotifyAdapterStatusInternal(UINT uAdapter, bool fIsValid)
 //
 //------------------------------------------------------------------------------
 HRESULT
-CInteropDeviceBitmap::AddUserDirtyRect(__in const CMilRectU &rc)
+CInteropDeviceBitmap::AddUserDirtyRect(_In_ const CMilRectU &rc)
 {
     CGuard<CCriticalSection> oGuard(m_cs);
 
@@ -922,8 +922,8 @@ Cleanup:
 //------------------------------------------------------------------------------
 bool 
 CInteropDeviceBitmap::TryCreateDependentDeviceColorSource(
-    __in const LUID &luidNewDevice,
-    __in CHwBitmapCache *pNewCache
+    _In_ const LUID &luidNewDevice,
+    _In_ CHwBitmapCache *pNewCache
     )
 {
     CGuard<CCriticalSection> oGuard(m_cs);

@@ -37,19 +37,19 @@ public:
         );
 
     static HRESULT GetEVRLoadRefAndCreateDXSurfaceBuffer(
-        __in    REFIID riid,
-        __in    IUnknown* punkSurface,
-        __in    BOOL fBottomUpWhenLinear,
+        _In_    REFIID riid,
+        _In_    IUnknown* punkSurface,
+        _In_    BOOL fBottomUpWhenLinear,
         __deref_out IMFMediaBuffer** ppBuffer
         );
 
     static HRESULT GetEVRLoadRefAndCreateEnhancedVideoRendererForDShow(
-        __in                  IUnknown              *pOuterIUnknown,
+        _In_                  IUnknown              *pOuterIUnknown,
         __deref_out_ecount(1) IUnknown              **ppInnerIUnknown
         );
 
     static HRESULT GetDXVA2LoadRefAndCreateVideoAccelerationManager(
-        __out UINT* resetToken,
+        _Out_ UINT* resetToken,
         __deref_out_ecount(1) IDirect3DDeviceManager9** ppDXVAManager
         );
 

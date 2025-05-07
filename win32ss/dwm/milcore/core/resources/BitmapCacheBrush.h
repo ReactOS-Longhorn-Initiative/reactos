@@ -69,8 +69,8 @@ public:
     override CMilSlaveResource* GetResource();
 
     HRESULT  GetRenderTargetBitmap(
-        __in CComposition *pComposition,
-        __in IRenderTargetInternal *pDestRT,
+        _In_ CComposition *pComposition,
+        _In_ IRenderTargetInternal *pDestRT,
         __deref_out_opt IMILRenderTargetBitmap **ppRTB
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );

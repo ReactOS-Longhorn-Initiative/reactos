@@ -130,7 +130,7 @@ HANDLE_TABLE::~HANDLE_TABLE()
 
 HRESULT
 HANDLE_TABLE::ResizeToFit(
-    __in HMIL_OBJECT hObject  // the handle that needs to be made addressable
+    _In_ HMIL_OBJECT hObject  // the handle that needs to be made addressable
     )
 {
     HRESULT hr = S_OK;
@@ -388,7 +388,7 @@ Return Value:
 --*/
 
 HRESULT HANDLE_TABLE::AssignEntry(
-    __in HMIL_OBJECT object,
+    _In_ HMIL_OBJECT object,
     DWORD type
     )
 {
@@ -458,7 +458,7 @@ Return Value:
 
 BOOL HANDLE_TABLE::ValidEntry(
     DWORD type,
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     ) const
 {
     //
@@ -505,7 +505,7 @@ Return Value:
 --*/
 
 BOOL HANDLE_TABLE::ValidEntry(
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     ) const
 {
     //
@@ -536,7 +536,7 @@ Routine Description:
 --*/
 
 DWORD HANDLE_TABLE::GetObjectType(
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     )
 {
     if (object > 0 && object < m_cHandleCount)
@@ -558,7 +558,7 @@ Routine Description:
 --*/
 
 VOID HANDLE_TABLE::DestroyHandle(
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     )
 {
     //

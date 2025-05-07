@@ -54,9 +54,9 @@ public:
     static
     HRESULT
     Create(
-        __in        MediaInstance       *pMediaInstance,
-        __in        bool                canOpenAnyMedia,
-        __in        SharedState         *pSharedState,
+        _In_        MediaInstance       *pMediaInstance,
+        _In_        bool                canOpenAnyMedia,
+        _In_        SharedState         *pSharedState,
         __deref_out CWmpStateEngine     **ppPlayerState
         );
 
@@ -67,7 +67,7 @@ public:
     inline
     HRESULT
     AddItem(
-        __in    CStateThreadItem    *pItem
+        _In_    CStateThreadItem    *pItem
         );
 
     //
@@ -75,12 +75,12 @@ public:
     //
     void
     SetHasAudio(
-        __in    bool            hasAudio
+        _In_    bool            hasAudio
         );
 
     void
     SetHasVideo(
-        __in    bool            hasVideo
+        _In_    bool            hasVideo
         );
 
     HRESULT
@@ -93,27 +93,27 @@ public:
     //
     void
     PlayerReachedPosition(
-        __in    double                  newPosition
+        _In_    double                  newPosition
         );
 
     void
     PlayerReachedActionState(
-        __in    WMPPlayState            state
+        _In_    WMPPlayState            state
         );
 
     void
     PlayerReachedOpenState(
-        __in    WMPOpenState            state
+        _In_    WMPOpenState            state
         );
 
     HRESULT
     EvrReachedState(
-        __in    RenderState::Enum       renderState
+        _In_    RenderState::Enum       renderState
         );
 
     HRESULT
     ScrubSampleComposited(
-        __in    int                     placeholder
+        _In_    int                     placeholder
         );
 
     //
@@ -126,42 +126,42 @@ public:
 
     HRESULT
     SetTargetOcx(
-        __in    bool                isOcxCreated
+        _In_    bool                isOcxCreated
         );
 
     HRESULT
     SetTargetUrl(
-        __in    LPCWSTR             url
+        _In_    LPCWSTR             url
         );
 
     HRESULT
     SetTargetActionState(
-        __in    ActionState::Enum   actionState
+        _In_    ActionState::Enum   actionState
         );
 
     HRESULT
     SetTargetVolume(
-        __in    long                volume
+        _In_    long                volume
         );
 
     HRESULT
     SetTargetBalance(
-        __in    long                balance
+        _In_    long                balance
         );
 
     HRESULT
     SetTargetRate(
-        __in    double              rate
+        _In_    double              rate
         );
 
     HRESULT
     SetTargetSeekTo(
-        __in    Optional<double>    seekTo
+        _In_    Optional<double>    seekTo
         );
 
     HRESULT
     SetTargetIsScrubbingEnabled(
-        __in    bool                isScrubbingEnabled
+        _In_    bool                isScrubbingEnabled
         );
 
     HRESULT
@@ -196,7 +196,7 @@ public:
 
     HRESULT
     Shutdown(
-        __in    int     placeholder
+        _In_    int     placeholder
         );
 
     //
@@ -239,9 +239,9 @@ private:
         );
 
     CWmpStateEngine(
-        __in        MediaInstance           *pMediaInstance,
-        __in        bool                    canOpenAnyMedia,
-        __in        SharedState             *pSharedState
+        _In_        MediaInstance           *pMediaInstance,
+        _In_        bool                    canOpenAnyMedia,
+        _In_        SharedState             *pSharedState
         );
 
     virtual
@@ -257,12 +257,12 @@ private:
     // Cannot copy or assign a CWmpStateEngine
     //
     CWmpStateEngine(
-        __in const CWmpStateEngine &
+        _In_ const CWmpStateEngine &
         );
 
     CWmpStateEngine &
     operator=(
-        __in const CWmpStateEngine &
+        _In_ const CWmpStateEngine &
         );
 
     HRESULT
@@ -282,7 +282,7 @@ private:
 
     void
     ErrorInTransition(
-        __in    HRESULT                 hr
+        _In_    HRESULT                 hr
         );
 
     HRESULT
@@ -295,7 +295,7 @@ private:
 
     HRESULT
     CheckPlayerVersion(
-        __in            IWMPPlayer          *pIWmpPlayer
+        _In_            IWMPPlayer          *pIWmpPlayer
         );
 
     void
@@ -502,22 +502,22 @@ private:
 
     void
     SetCanPause(
-        __in    bool        canPause
+        _In_    bool        canPause
         );
 
     void
     SetIsBuffering(
-        __in    bool        isBuffering
+        _In_    bool        isBuffering
         );
 
     void
     SetDownloadProgress(
-        __in    double      downloadProgress
+        _In_    double      downloadProgress
         );
 
     void
     SetBufferingProgress(
-        __in    double      bufferingProgress
+        _In_    double      bufferingProgress
         );
 
     HRESULT
@@ -542,13 +542,13 @@ private:
 
     void
     SetMediaLength(
-        __in    double      mediaLength
+        _In_    double      mediaLength
         );
 
     HRESULT
     RaiseEvent(
-        __in    AVEvent     event,
-        __in    HRESULT     failureHr = S_OK
+        _In_    AVEvent     event,
+        _In_    HRESULT     failureHr = S_OK
         );
 
     void
@@ -563,7 +563,7 @@ private:
 
     HRESULT
     SetSafeForScripting(
-        __in        IWMPPlayer      *pIWMPMedia
+        _In_        IWMPPlayer      *pIWMPMedia
         );
 
     HRESULT
@@ -574,35 +574,35 @@ private:
     static inline
     bool
     EvrStateToIsEvrClockRunning(
-        __in      RenderState::Enum                    renderState
+        _In_      RenderState::Enum                    renderState
         );
 
     static inline
     bool
     IsStatePartOfSet(
-        __in                        ActionState::Enum           playerState,
+        _In_                        ActionState::Enum           playerState,
         __in_ecount(cPlayerState)   const ActionState::Enum     *aPlayerState,
-        __in                        int                         cPlayerState
+        _In_                        int                         cPlayerState
         );
 
     static inline
     bool
     IsStatePartOfSet(
-        __in                        WMPPlayState                playerState,
+        _In_                        WMPPlayState                playerState,
         __in_ecount(cPlayerState)   const WMPPlayState          *aPlayerState,
-        __in                        int                         cPlayerState
+        _In_                        int                         cPlayerState
         );
 
     static
     Optional<ActionState::Enum>
     MapWmpStateEngine(
-        __in                        WMPPlayState                playerState
+        _In_                        WMPPlayState                playerState
         );
 
     static inline
     LONGLONG
     SecondsToTicks(
-        __in                        double                      seconds
+        _In_                        double                      seconds
         );
 
     //

@@ -36,15 +36,10 @@ extern "C" {
 #define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
 #define STATUS_COMMITMENT_LIMIT          ((NTSTATUS)0xC000012DL)
 
-#ifndef __out
-#define __out
-#define __in
-#endif
-
 FORCEINLINE
 VOID
 InitializeListHead(
-    __out PLIST_ENTRY ListHead
+    _Out_ PLIST_ENTRY ListHead
     )
 {
     ListHead->Flink = ListHead->Blink = ListHead;
@@ -54,7 +49,7 @@ __checkReturn
 BOOLEAN
 FORCEINLINE
 IsListEmpty(
-    __in const LIST_ENTRY * ListHead
+    _In_ const LIST_ENTRY * ListHead
     )
 {
     return (BOOLEAN)(ListHead->Flink == ListHead);
@@ -63,7 +58,7 @@ IsListEmpty(
 FORCEINLINE
 BOOLEAN
 RemoveEntryList(
-    __in PLIST_ENTRY Entry
+    _In_ PLIST_ENTRY Entry
     )
 {
     PLIST_ENTRY Blink;

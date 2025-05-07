@@ -24,8 +24,8 @@
 HRESULT
 SaveBitmap(
     PDEBUG_CLIENT Client,
-    __in PCSTR pszFileName,
-    __in const BITMAPINFOHEADER& bmih,
+    _In_ PCSTR pszFileName,
+    _In_ const BITMAPINFOHEADER& bmih,
     ULONG64 ulpvPixels
     )
 {

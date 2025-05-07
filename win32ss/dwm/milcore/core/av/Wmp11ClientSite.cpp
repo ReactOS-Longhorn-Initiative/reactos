@@ -18,7 +18,7 @@ MtDefine(Wmp11ClientSite, Mem, "Wmp11ClientSite");
 //
 //------------------------------------------------------------------------------
 Wmp11ClientSite::Wmp11ClientSite(
-    __in    UINT                uiID
+    _In_    UINT                uiID
     ) : m_uiID(uiID)
 {
     TRACEF(NULL);
@@ -46,7 +46,7 @@ Wmp11ClientSite::~Wmp11ClientSite()
 //------------------------------------------------------------------------------
 HRESULT
 Wmp11ClientSite::Create(
-    __in        UINT            uiID,
+    _In_        UINT            uiID,
     __deref_out Wmp11ClientSite **ppSetup
     )
 {
@@ -154,7 +154,7 @@ Cleanup:
 STDMETHODIMP
 Wmp11ClientSite::
 GetServiceType(
-    __out   BSTR    *pType
+    _Out_   BSTR    *pType
     )
 {
     HRESULT hr = S_OK;
@@ -170,7 +170,7 @@ Cleanup:
 STDMETHODIMP
 Wmp11ClientSite::
 GetScriptableObject(
-    __out       BSTR        *pName,
+    _Out_       BSTR        *pName,
     __deref_out IDispatch   **ppDispatch
     )
 {

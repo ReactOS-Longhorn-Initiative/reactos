@@ -39,14 +39,14 @@ class CSameThreadComposition : public CComposition
 protected:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CSameThreadComposition));
 
-    CSameThreadComposition(__in MilMarshalType::Enum marshalType);
+    CSameThreadComposition(_In_ MilMarshalType::Enum marshalType);
 
     virtual ~CSameThreadComposition();
 
 public:
     // Creates a new instance of the CSameThreadComposition class.
     static HRESULT Create(
-        __in MilMarshalType::Enum marshalType,
+        _In_ MilMarshalType::Enum marshalType,
         __out_ecount(1) CSameThreadComposition **ppSynchronousComposition
         );
 
@@ -59,7 +59,7 @@ public:
     // it's done processing it.
     //
     override HRESULT SubmitBatch(
-        __in CMilCommandBatch *pBatch
+        _In_ CMilCommandBatch *pBatch
         );
 
     // Enqueue the batch for processing by worker thread.

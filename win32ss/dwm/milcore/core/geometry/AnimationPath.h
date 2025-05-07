@@ -64,7 +64,7 @@ protected:
         }
 
         virtual void GetValueAndDerivative(
-            __in double t,
+            _In_ double t,
                 // Where on the curve
             __out_ecount(1) double &f,
                 // The derivative of the distance at t
@@ -186,7 +186,7 @@ protected:
 
     // CIncreasingFunction override
     void GetValueAndDerivative(
-        __in double t,
+        _In_ double t,
             // Where on the curve
         __out_ecount(1) double &f,
             // The derivative of the distance at t

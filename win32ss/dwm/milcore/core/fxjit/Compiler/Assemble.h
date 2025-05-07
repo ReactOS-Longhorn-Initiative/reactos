@@ -44,8 +44,8 @@ class CAssembleContext : public CCoder86
 public:
     CAssembleContext(CMapper const & mapper, bool fUseNegativeStackOffsets);
     void AssemblePrologue(
-        __in UINT32 uFrameSize,
-        __in UINT32 uFrameAlignment
+        _In_ UINT32 uFrameSize,
+        _In_ UINT32 uFrameAlignment
         );
 
 #if DBG_DUMP

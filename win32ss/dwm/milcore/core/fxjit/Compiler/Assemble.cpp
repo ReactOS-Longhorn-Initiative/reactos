@@ -27,8 +27,8 @@ CAssembleContext::CAssembleContext(CMapper const & mapper, bool fUseNegativeStac
 
 void
 CAssembleContext::AssemblePrologue(
-    __in UINT32 uFrameSize,
-    __in UINT32 uFrameAlignment
+    _In_ UINT32 uFrameSize,
+    _In_ UINT32 uFrameAlignment
     )
 {
     push (reg_ebp);
@@ -67,8 +67,8 @@ CAssembleContext::AssemblePrologue(
 
 void
 CAssembleContext::AssemblePrologue(
-    __in UINT32 uFrameSize,
-    __in UINT32 /*uFrameAlignment*/
+    _In_ UINT32 uFrameSize,
+    _In_ UINT32 /*uFrameAlignment*/
     )
 {
     //

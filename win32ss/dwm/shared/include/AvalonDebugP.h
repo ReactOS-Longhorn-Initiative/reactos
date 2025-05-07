@@ -11,9 +11,6 @@
 
 
 #pragma once
-#ifndef __in
-#define __in
-#endif
 #ifdef _MANAGED
 #pragma unmanaged
 #endif
@@ -94,7 +91,7 @@ BOOL        WINAPI  DbgExEnableTag(TRACETAG tag, BOOL fEnable);
 BOOL        WINAPI  DbgExSetDiskFlag(TRACETAG tag, BOOL fSendToDisk);
 BOOL        WINAPI  DbgExSetBreakFlag(TRACETAG tag, BOOL fBreak);
 BOOL        WINAPI  DbgExIsTagEnabled(TRACETAG tag);
-TRACETAG    WINAPI  DbgExFindTag(__in PCSTR szTagDesc);
+TRACETAG    WINAPI  DbgExFindTag(_In_ PCSTR szTagDesc);
 
 TRACETAG    WINAPI  DbgExTagError();
 TRACETAG    WINAPI  DbgExTagWarning();
@@ -106,18 +103,18 @@ TRACETAG    WINAPI  DbgExTagCoMemoryStrict();
 TRACETAG    WINAPI  DbgExTagMemoryStrictTail();
 TRACETAG    WINAPI  DbgExTagMemoryStrictAlign();
 TRACETAG    WINAPI  DbgExTagOLEWatch();
-TRACETAG    WINAPI  DbgExTagRegisterTrace(__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, BOOL fEnabled); 
+TRACETAG    WINAPI  DbgExTagRegisterTrace(_In_ PCSTR szTag, _In_ PCSTR szOwner, _In_ PCSTR szDescrip, BOOL fEnabled); 
 
-BOOL        __cdecl DbgExTaggedTrace(TRACETAG tag, __in PCSTR szFmt, ...);
-BOOL        __cdecl DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...);
-BOOL        WINAPI  DbgExTaggedTraceListEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, __in va_list valMarker);
+BOOL        __cdecl DbgExTaggedTrace(TRACETAG tag, _In_ PCSTR szFmt, ...);
+BOOL        __cdecl DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, _In_ PCSTR szFmt, ...);
+BOOL        WINAPI  DbgExTaggedTraceListEx(TRACETAG tag, USHORT usFlags, _In_ PCSTR szFmt, _In_ va_list valMarker);
 void        WINAPI  DbgExTaggedTraceCallers(TRACETAG tag, int iStart, int cTotal);
 
 // Tracing --------------------------------------------------
 
-LONG_PTR    WINAPI  DbgExTraceFailL(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line);
-LONG_PTR    WINAPI  DbgExTraceWin32L(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line);
-HRESULT     WINAPI  DbgExTraceHR(HRESULT hrTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line);
+LONG_PTR    WINAPI  DbgExTraceFailL(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line);
+LONG_PTR    WINAPI  DbgExTraceWin32L(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line);
+HRESULT     WINAPI  DbgExTraceHR(HRESULT hrTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line);
 void        WINAPI  DbgExSetSimFailCounts(int firstFailure, int cInterval);
 void        WINAPI  DbgExShowSimFailDlg();
 BOOL        WINAPI  DbgExFFail();
@@ -133,7 +130,7 @@ size_t      WINAPI  DbgExPreAlloc(size_t cbRequest, PERFMETERTAG mt);
 void *      WINAPI  DbgExPostAlloc(void *pv);
 void *      WINAPI  DbgExPreFree(void *pv);
 void        WINAPI  DbgExPostFree();
-size_t      WINAPI  DbgExPreRealloc(__in void *pvRequest, size_t cbRequest, __deref_out void **ppv, PERFMETERTAG mt);
+size_t      WINAPI  DbgExPreRealloc(_In_ void *pvRequest, size_t cbRequest, __deref_out void **ppv, PERFMETERTAG mt);
 void *      WINAPI  DbgExPostRealloc(void *pv);
 void *      WINAPI  DbgExPreGetSize(void *pvRequest);
 size_t      WINAPI  DbgExPostGetSize(size_t cb);
@@ -156,7 +153,7 @@ BOOL        WINAPI  DbgExValidateKnownAllocations();
 void        WINAPI  DbgExDumpProcessHeaps();
 
 // Metering support ------------------------------------------------------------
-PERFMETERTAG WINAPI  DbgExMtRegister(__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, DWORD dwFlags);
+PERFMETERTAG WINAPI  DbgExMtRegister(_In_ PCSTR szTag, _In_ PCSTR szOwner, _In_ PCSTR szDescrip, DWORD dwFlags);
 void        WINAPI  DbgExMtAdd(PERFMETERTAG mt, LONG lCnt, LONG lVal);
 void        WINAPI  DbgExMtSet(PERFMETERTAG mt, LONG lCnt, LONG lVal);
 const char *      WINAPI  DbgExMtGetName(PERFMETERTAG mt);
@@ -166,8 +163,8 @@ DWORD       WINAPI  DbgExMtGetFlags(PERFMETERTAG mt);
 void        WINAPI  DbgExMtSetFlags(PERFMETERTAG mt, DWORD dwFlags);
 BOOL        WINAPI  DbgExMtSimulateOutOfMemory(PERFMETERTAG mt, LONG lNewValue);
 void        WINAPI  DbgExMtOpenMonitor();
-void        WINAPI  DbgExMtLogDump(__in PCSTR pchFile);
-PERFMETERTAG WINAPI DbgExMtLookupMeter(__in PCSTR szTag);
+void        WINAPI  DbgExMtLogDump(_In_ PCSTR pchFile);
+PERFMETERTAG WINAPI DbgExMtLookupMeter(_In_ PCSTR szTag);
 long        WINAPI  DbgExMtGetMeterCnt(PERFMETERTAG mt, BOOL fExclusive);
 long        WINAPI  DbgExMtGetMeterVal(PERFMETERTAG mt, BOOL fExclusive);
 PERFMETERTAG WINAPI DbgExMtGetDefaultMeter();
@@ -271,19 +268,19 @@ BOOL IsKernelDebuggerPresent();
 
 VOID
 AssertA(
-    __in_opt PCSTR Message,
-    __in_opt PCWSTR FailedAssertion,
-    __in PCWSTR Function,
-    __in PCWSTR FileName,
+    _In_opt_ PCSTR Message,
+    _In_opt_ PCWSTR FailedAssertion,
+    _In_ PCWSTR Function,
+    _In_ PCWSTR FileName,
     ULONG LineNumber
     );
 
 VOID
 AssertW(
-    __in_opt PCWSTR Message,
-    __in_opt PCWSTR FailedAssertion,
-    __in PCWSTR Function,
-    __in PCWSTR FileName,
+    _In_opt_ PCWSTR Message,
+    _In_opt_ PCWSTR FailedAssertion,
+    _In_ PCWSTR Function,
+    _In_ PCWSTR FileName,
     ULONG LineNumber
     );
 
@@ -702,7 +699,7 @@ SetDbgPrintFilterID(
 #define TraceHR             DbgExTraceHR
 
 template <class t> inline t
-TraceFail(t errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+TraceFail(t errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return (t) DbgExTraceFailL((LONG_PTR) errExpr, errTest, fIgnore, pstrExpr, pstrFile, line);
 }
@@ -710,13 +707,13 @@ TraceFail(t errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in P
 // Specialization for T = bool that would prevent warning 
 // C4800: type': forcing value to bool 'true' or 'false' (performance warning)
 template<> inline bool
-TraceFail<bool>(bool errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+TraceFail<bool>(bool errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return DbgExTraceFailL((LONG_PTR)errExpr, errTest, fIgnore, pstrExpr, pstrFile, line) ? true : false;
 }
 
 template <class t> inline t
-TraceWin32(t errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+TraceWin32(t errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return (t) DbgExTraceWin32L((LONG_PTR) errExpr, errTest, fIgnore, pstrExpr, pstrFile, line);
 }
@@ -724,7 +721,7 @@ TraceWin32(t errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in 
 // Specialization for T = bool that would prevent warning 
 // C4800: type': forcing value to bool 'true' or 'false' (performance warning)
 template <> inline bool
-TraceWin32<bool>(bool errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+TraceWin32<bool>(bool errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return DbgExTraceWin32L((LONG_PTR)errExpr, errTest, fIgnore, pstrExpr, pstrFile, line) ? true : false;
 }

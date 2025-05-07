@@ -30,7 +30,7 @@ public:
     static
     HRESULT
     Create(
-        __in        UINT                id,
+        _In_        UINT                id,
         __deref_out CEvrFilterWrapper   **ppCEvrFilterWrapper
         );
 
@@ -44,51 +44,51 @@ public:
     //
     STDMETHOD_(ULONG, AddRef)(void);
     STDMETHOD_(ULONG,Release)(void);
-    STDMETHOD(QueryInterface)(__in REFIID riid, __deref_out void **ppvObject);
+    STDMETHOD(QueryInterface)(_In_ REFIID riid, __deref_out void **ppvObject);
 
     //
     // IMediaSeeking
     //
     STDMETHOD(GetCapabilities)(
-        __out       DWORD       *pCapabilities
+        _Out_       DWORD       *pCapabilities
         );
 
     STDMETHOD(CheckCapabilities)(
-        __in        DWORD       *pCapabilities
+        _In_        DWORD       *pCapabilities
         );
 
     STDMETHOD(SetTimeFormat)(
-        __in        const GUID  *pFormat
+        _In_        const GUID  *pFormat
         );
 
     STDMETHOD(GetTimeFormat)(
-        __out       GUID        *pFormat
+        _Out_       GUID        *pFormat
         );
 
     STDMETHOD(IsUsingTimeFormat)(
-        __in        const GUID  *pFormat
+        _In_        const GUID  *pFormat
         );
 
     STDMETHOD(IsFormatSupported)(
-        __in        const GUID  *pFormat
+        _In_        const GUID  *pFormat
         );
 
     STDMETHOD(QueryPreferredFormat)(
-        __out       GUID        *pFormat
+        _Out_       GUID        *pFormat
         );
 
     STDMETHOD(ConvertTimeFormat)(
-        __out       LONGLONG    *pTarget,
+        _Out_       LONGLONG    *pTarget,
         __in_opt    const GUID  *pTargetFormat,
-        __in        LONGLONG    Source,
+        _In_        LONGLONG    Source,
         __in_opt    const GUID  *pSourceFormat
         );
 
     STDMETHOD(SetPositions)(
         __in_opt    LONGLONG    *pCurrent,
-        __in        DWORD       CurrentFlags,
+        _In_        DWORD       CurrentFlags,
         __in_opt    LONGLONG    *pStop,
-        __in        DWORD       StopFlags
+        _In_        DWORD       StopFlags
         );
 
     STDMETHOD(GetPositions)(
@@ -97,23 +97,23 @@ public:
         );
 
     STDMETHOD(GetCurrentPosition)(
-        __out       LONGLONG    *pCurrent
+        _Out_       LONGLONG    *pCurrent
         );
 
     STDMETHOD(GetStopPosition)(
-        __out       LONGLONG    *pStop
+        _Out_       LONGLONG    *pStop
         );
 
     STDMETHOD(SetRate)(
-        __in        double      dRate
+        _In_        double      dRate
         );
 
     STDMETHOD(GetRate)(
-        __out       double      *pdRate
+        _Out_       double      *pdRate
         );
 
     STDMETHOD(GetDuration)(
-        __out       LONGLONG    *pDuration
+        _Out_       LONGLONG    *pDuration
         );
 
     STDMETHOD(GetAvailable)(
@@ -122,13 +122,13 @@ public:
         );
 
     STDMETHOD(GetPreroll)(
-        __out       LONGLONG    *pllPreroll
+        _Out_       LONGLONG    *pllPreroll
         );
 
 private:
 
     CEvrFilterWrapper(
-        __in        UINT                    uiID
+        _In_        UINT                    uiID
         );
 
     virtual

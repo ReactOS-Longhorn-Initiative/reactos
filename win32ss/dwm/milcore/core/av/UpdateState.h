@@ -23,44 +23,44 @@ public:
     static
     HRESULT
     Create(
-        __in    MediaInstance       *pMediaInstance,
-        __in    CWmpStateEngine     *pCWmpStateEngine,
-        __in    UpdateState         **ppUpdateState
+        _In_    MediaInstance       *pMediaInstance,
+        _In_    CWmpStateEngine     *pCWmpStateEngine,
+        _In_    UpdateState         **ppUpdateState
         );
 
     void
     OpenHelper(
-        __in LPCWSTR pwszURL
+        _In_ LPCWSTR pwszURL
         );
 
     void
     SetRateHelper(
-        __in double dRate
+        _In_ double dRate
         );
 
     void
     SetTargetActionState(
-        __in    ActionState::Enum   targetActionState
+        _In_    ActionState::Enum   targetActionState
         );
 
     void
     SetTargetVolume(
-        __in    long                targetVolume
+        _In_    long                targetVolume
         );
 
     void
     SetTargetBalance(
-        __in    long                targetBalance
+        _In_    long                targetBalance
         );
 
     void
     SetTargetSeekTo(
-        __in    double              targetSeekTo
+        _In_    double              targetSeekTo
         );
 
     void
     SetTargetIsScrubbingEnabled(
-        __in    bool                isScrubbingEnabled
+        _In_    bool                isScrubbingEnabled
         );
 
     void
@@ -75,8 +75,8 @@ public:
 
     HRESULT
     UpdateTransientsSync(
-        __in    DWORD       timeOutInMilliseconds,
-        __out   bool        *pDidTimeOut
+        _In_    DWORD       timeOutInMilliseconds,
+        _Out_   bool        *pDidTimeOut
         );
 
 protected:
@@ -99,8 +99,8 @@ protected:
 
 private:
     UpdateState(
-        __in    MediaInstance   *pMediaInstance,
-        __in    CWmpStateEngine *pCWmpStateEngine
+        _In_    MediaInstance   *pMediaInstance,
+        _In_    CWmpStateEngine *pCWmpStateEngine
         );
 
     ~UpdateState(

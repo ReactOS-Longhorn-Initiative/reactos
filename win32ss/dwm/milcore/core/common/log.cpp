@@ -87,7 +87,7 @@ HRESULT CLogger::Initialize()
     return hr;
 }
 
-HRESULT CLogger::Print(__in PCSTR pFormat, ...)
+HRESULT CLogger::Print(_In_ PCSTR pFormat, ...)
 {
     HRESULT hr = S_OK;
 

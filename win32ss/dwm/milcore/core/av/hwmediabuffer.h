@@ -30,13 +30,13 @@ public:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CHWMFMediaBuffer));
 
     CHWMFMediaBuffer(
-        __in    UINT             uiID,
-        __in    LONG             continuity,
-        __in    UINT             uiWidth,
-        __in    UINT             uiHeight,
-        __in    D3DFORMAT        format,
-        __in    CD3DDeviceLevel1 *pRenderDevice,
-        __in    CD3DDeviceLevel1 *pMixerDevice
+        _In_    UINT             uiID,
+        _In_    LONG             continuity,
+        _In_    UINT             uiWidth,
+        _In_    UINT             uiHeight,
+        _In_    D3DFORMAT        format,
+        _In_    CD3DDeviceLevel1 *pRenderDevice,
+        _In_    CD3DDeviceLevel1 *pMixerDevice
         );
 
     __override
@@ -47,7 +47,7 @@ public:
     __override
     HRESULT
     GetBitmapSource(
-        __in            bool                syncChannel,
+        _In_            bool                syncChannel,
         __in_opt        CD3DDeviceLevel1    *pDisplayDevice,
         __deref_out     IWGXBitmapSource    **ppIBitmapSource
         );
@@ -74,8 +74,8 @@ protected:
 
     HRESULT
     GetSurfaceDescription(
-        __in    D3DPOOL             d3dPool,
-        __out   D3DSURFACE_DESC     *pD3DSurfaceDesc
+        _In_    D3DPOOL             d3dPool,
+        _Out_   D3DSURFACE_DESC     *pD3DSurfaceDesc
         );
 
     CD3DDeviceLevel1        *m_pMixerDevice;
@@ -87,12 +87,12 @@ private:
     // Cannot copy or assign a Hardware media buffer
     //
     CHWMFMediaBuffer(
-        __in    const CHWMFMediaBuffer &
+        _In_    const CHWMFMediaBuffer &
         );
 
     CHWMFMediaBuffer &
     operator=(
-        __in    const CHWMFMediaBuffer &
+        _In_    const CHWMFMediaBuffer &
         );
 
     HRESULT
@@ -102,7 +102,7 @@ private:
 
     HRESULT
     CopyBitmap(
-        __in    bool                fetchData = true
+        _In_    bool                fetchData = true
         );
 
     //
