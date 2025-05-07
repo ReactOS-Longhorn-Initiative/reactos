@@ -42,8 +42,8 @@
 
 #include <intsafe.h>
 
-#include "..\DbgXHelper\minnt.h"
-#include "..\DbgXHelper\DbgXHelper.h"
+#include "../DbgXHelper/minnt.h"
+#include "../DbgXHelper/DbgXHelper.h"
 
 //
 // UNCONDITIONAL_EXPR suppresses warning 4127
@@ -64,7 +64,7 @@
 
 #include "argparse.hxx"
 #include "mildbglib.hxx"
-#include "..\DbgXHelper\dbghelpers.hxx"
+#include "../DbgXHelper/dbghelpers.hxx"
 #include "helpers.hxx"
 #include "stackcapture.hxx"
 

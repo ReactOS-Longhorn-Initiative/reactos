@@ -13,9 +13,9 @@
 //-----------------------------------------------------------------------------
 
 #pragma once 
-#include "shared\DpiUtil.h"
-#include "shared\DpiScale.h"
-#include "shared\DelegatingIUnknown.h"
+#include "shared/DpiUtil.h"
+#include "shared/DpiScale.h"
+#include "shared/DelegatingIUnknown.h"
 
 #include <combaseapi.h>
 #include <Unknwn.h>

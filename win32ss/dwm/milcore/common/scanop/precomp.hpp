@@ -10,7 +10,7 @@
 #include <ole2.h>
 
 #include "internalguids.h"
-#include "shared\shared.h"
+#include "shared/shared.h"
 
 #include "scanop.h"
 

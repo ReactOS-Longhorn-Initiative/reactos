@@ -11,7 +11,7 @@
 
 #include "precomp.hpp"
 
-#include "effects\effectlist.h"
+#include "effects/effectlist.h"
 
 
 MtDefine(CSwRenderTargetSurface, MILRender, "CSwRenderTargetSurface");

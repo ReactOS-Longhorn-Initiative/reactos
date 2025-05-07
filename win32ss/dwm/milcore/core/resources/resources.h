@@ -35,15 +35,15 @@ Environment:
 // JIT  headers
 //
 
-#include "fxjit\public\warpplatform.h"
+#include "fxjit/public/warpplatform.h"
 
-#include "fxjit\Public\SIMDJit.h"
+#include "fxjit/Public/SIMDJit.h"
 
-#include "fxjit\Compiler\FlushMemory.h"
-#include "fxjit\Compiler\Register.h"
-#include "fxjit\Compiler\Operator.h"
-#include "fxjit\Compiler\Locator.h"
-#include "fxjit\Compiler\Program.h"
+#include "fxjit/Compiler/FlushMemory.h"
+#include "fxjit/Compiler/Register.h"
+#include "fxjit/Compiler/Operator.h"
+#include "fxjit/Compiler/Locator.h"
+#include "fxjit/Compiler/Program.h"
 
 #endif
 

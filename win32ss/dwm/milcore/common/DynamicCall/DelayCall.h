@@ -11,8 +11,8 @@
 #include <map>
 
 #include "ModuleHandle.h"
-#include "shared\SehException.h"
-#include "shared\win32error.h"
+#include "shared/SehException.h"
+#include "shared/win32error.h"
 
 using SehGuard = wpf::util::exceptions::SehGuard;
 using SehException = wpf::util::exceptions::SehException;

@@ -26,7 +26,7 @@ interface IMediaDeviceConsumer;
 
 MtExtern(CD3DDeviceLevel1);
 
-#include "uce\global.h"
+#include "uce/global.h"
 
 #define NUM_PRESENTS_BEFORE_GPU_MARKER_FLUSH 3
 

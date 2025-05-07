@@ -16,8 +16,8 @@
 
 #include "strsafe.h"
 
-#include "hw\D3DDeviceManager.h"
-#include "hw\HwGraphicsCards.h"
+#include "hw/D3DDeviceManager.h"
+#include "hw/HwGraphicsCards.h"
 
 using DpiAwarenessContext = wpf::util::DpiAwarenessContext;
 using DpiAwarenssContextValue = wpf::util::DpiAwarenessContextValue;

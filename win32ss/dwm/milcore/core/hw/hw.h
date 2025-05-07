@@ -105,6 +105,6 @@
 #include "HwUtils.h"
 
 #include "HwShaderEffect.h"
-#include "ShaderAssemblies\Shaders.h"
+#include "ShaderAssemblies/Shaders.h"
 
 

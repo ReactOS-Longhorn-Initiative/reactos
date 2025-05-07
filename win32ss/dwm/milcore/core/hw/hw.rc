@@ -7,6 +7,6 @@
 
 #include "Shaders.h"
 #include "Shaders.rc"
-#include "ShaderAssemblies\Shaders.h"
-#include "ShaderAssemblies\EmbeddedShaders.RC"
+#include "ShaderAssemblies/Shaders.h"
+#include "ShaderAssemblies/EmbeddedShaders.RC"
 

@@ -38,7 +38,7 @@ Environment:
 #include "serverchannel.h"
 
 #include "resslave.h"
-#include "resources\valueres.h"
+#include "resources/valueres.h"
 #include "idrawingcontext.h"
 #include "schedulemanager.h"
 
@@ -65,7 +65,7 @@ Environment:
 //
 
 #include "UceTypes.h"
-#include "resources\brushcontext.h"
+#include "resources/brushcontext.h"
 
 #include "graphwalker.h"
 

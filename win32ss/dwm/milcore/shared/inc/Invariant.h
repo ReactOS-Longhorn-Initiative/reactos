@@ -9,6 +9,6 @@
 //  File:       Invariant.h
 //------------------------------------------------------------------------------
 
-#include "..\Util\UtilLib\Invariant.h"
+#include "../Util/UtilLib\Invariant.h"
 
 

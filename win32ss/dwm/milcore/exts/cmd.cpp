@@ -15,7 +15,7 @@
 #include "precomp.hxx"
 
 #include "cmdstruct.h"
-#include "..\core\common\memreader.h"
+#include "../core/common\memreader.h"
 
 
 VOID CopyPointer(ULONG64 *pDestination, VOID *pSource, UINT cbPointer)

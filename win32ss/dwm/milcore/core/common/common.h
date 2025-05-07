@@ -22,7 +22,7 @@
 #include "ptrarray.h"
 #include "ptrset.h"
 
-#include "shared\shared.h"
+#include "shared/shared.h"
 #include "basetypes.h"
 #include "CoordinateSpace.h"
 #include "fix.h"
@@ -30,8 +30,8 @@
 #include "milboxf.h"
 #include "utils.h"
 #include "SortAlgorithms.h"
-#include "shared\DpiScale.h"
-#include "shared\DpiUtil.h"
+#include "shared/DpiScale.h"
+#include "shared/DpiUtil.h"
 
 #include "stackalign.h"
 #include "BufferDispenser.h"

@@ -22,18 +22,18 @@
 
 // debug output, allocator, etc.
 
-#include "common\common.h"
-#include "geometry\geometry.h"
-#include "api\api_include.h"
+#include "common/common.h"
+#include "geometry/geometry.h"
+#include "api/api_include.h"
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // local headers
 
 #include "targets.h"
 
-#include "control\util\control.h"
+#include "control/util/control.h"
 
 

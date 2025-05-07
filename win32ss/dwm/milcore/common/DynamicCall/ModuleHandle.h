@@ -11,7 +11,7 @@
 #include <functional>
 #include <type_traits>
 #include "DelayCall.h"
-#include "shared\win32error.h"
+#include "shared/win32error.h"
 
 namespace wpf {
     namespace util {

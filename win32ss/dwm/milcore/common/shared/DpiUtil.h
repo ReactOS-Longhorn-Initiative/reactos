@@ -15,7 +15,7 @@
 #pragma once
 
 #include <Windows.h>
-#include "DynamicCall\DelayCall.h"
+#include "DynamicCall/DelayCall.h"
 
 /// <summary>
 /// Generates a string literal representation

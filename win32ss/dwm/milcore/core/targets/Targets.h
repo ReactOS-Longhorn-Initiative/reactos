@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "resources\brushcontext.h"
-#include "resources\BrushRealizer.h"
+#include "resources/brushcontext.h"
+#include "resources/BrushRealizer.h"
 
 // Targets includes
 

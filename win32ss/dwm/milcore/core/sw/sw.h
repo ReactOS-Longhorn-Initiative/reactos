@@ -28,8 +28,8 @@
 
 // pixel jit
 
-#include "fxjit\public\effectparams.h"
-#include "fxjit\public\pshader.h"
+#include "fxjit/public/effectparams.h"
+#include "fxjit/public/pshader.h"
 
 // Color format conversion and scanline blending operations.
 
@@ -53,7 +53,7 @@
 
 // Utility functions.
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // Clip
 
