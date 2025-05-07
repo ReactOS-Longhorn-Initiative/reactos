@@ -27,7 +27,7 @@
 // Format converter, palette etc.
 
 
-#include "internalGuids.h"
+#include "InternalGUIDs.h"
 #include "effectlist.h"
 
 
