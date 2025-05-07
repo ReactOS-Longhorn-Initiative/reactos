@@ -28,7 +28,7 @@ typedef struct _D3DCOLORVALUE {
 
   
 #define D3DCOLORVALUE_DEFINED
-#endif D3DCOLORVALUE_DEFINED
+#endif /* D3DCOLORVALUE_DEFINED */
 
 typedef D3DCOLORVALUE MilColorF;
 
@@ -3365,7 +3365,7 @@ struct MILCMD_POP
 
 const MilPointAndSizeD MilEmptyPointAndSizeD = {0.0, 0.0, -1.0, -1.0 };
 
-#endif _MILCORETYPES_
+#endif /*_MILCORETYPES_ */
 
 
 

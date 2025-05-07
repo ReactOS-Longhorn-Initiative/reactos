@@ -311,7 +311,7 @@ RtlAssert(
 // Include the avalon debug stuff. This is for Mt, TraceTag and meter heap.
 //
 
-#include "avalondebugp.h"
+#include "AvalonDebugP.h"
 
 
 #ifdef _PREFIX_
@@ -366,7 +366,7 @@ extern "C" {
 }
 #endif
 
-#include <Wincodec_private.h>
+#include <wincodec_private.h>
 #include <wincodecsdk.h>
 #include <wgx_core_types.h>
 #include <wgx_render.h>

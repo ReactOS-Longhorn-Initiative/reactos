@@ -72,6 +72,6 @@ protected:
 
 extern CLogger *g_pLog;
 
-#endif MIL_LOGGER
+#endif /* MIL_LOGGER */
 
 
