@@ -9,6 +9,13 @@
 //------------------------------------------------------------------------------
 #pragma once
 
+#undef DUMMYUNIONNAME
+#undef DUMMYUNIONNAME2
+#undef DUMMYUNIONNAME3
+#undef DUMMYUNIONNAME4
+#undef DUMMYSTRUCTNAME
+#undef DUMMYSTRUCTNAME2
+
 #define DUMMYUNIONNAME
 #define DUMMYUNIONNAME2
 #define DUMMYUNIONNAME3

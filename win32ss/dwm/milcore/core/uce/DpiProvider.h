@@ -20,7 +20,7 @@
 #include <combaseapi.h>
 #include <unknwn.h>
 #include <windef.h>
-#include <ShellScalingApi.h>
+#include <shellscalingapi.h>
 
 #if !defined(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 (DPI_AWARENESS_CONTEXT)-4
