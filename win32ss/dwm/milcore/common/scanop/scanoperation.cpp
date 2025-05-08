@@ -160,11 +160,11 @@ ScanOpFunc GetOp_SrcOver_or_SrcOverAL(
 
         case MilPixelFormat::BGR32bpp:    // See Notes above
         case MilPixelFormat::PBGRA32bpp:
-            if (CCPUInfo::HasSSE2())    
-            {
-                return SrcOverAL_32bppPARGB_32bppPARGB_SSE2;
-            }
-            else
+            //if (CCPUInfo::HasSSE2())    
+            //{
+            //    return SrcOverAL_32bppPARGB_32bppPARGB_SSE2;
+            //}
+            //else
             {
                 return CCPUInfo::HasMMX() ? 
                     SrcOverAL_32bppPARGB_32bppPARGB_MMX :
