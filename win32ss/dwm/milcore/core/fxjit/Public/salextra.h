@@ -45,7 +45,7 @@
 #endif
 
 #ifndef __in_xcount
-#define __in_xcount(x)            _In_ __pre __inexpressible_readableTo(size)
+#define _In_reads_(x)            _In_ __pre __inexpressible_readableTo(size)
 #endif
 
 #ifndef __RPC_unique_pointer
@@ -188,7 +188,7 @@
 #endif
 
 #ifndef __in_xcount
-#define __in_xcount(x)        
+#define _In_reads_(x)        
 #endif
 
 #ifndef __RPC__in_ecount_full

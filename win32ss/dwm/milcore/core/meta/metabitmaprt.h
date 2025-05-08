@@ -67,7 +67,7 @@ protected:
         UINT uHeight,
         IntermediateRTUsage usageInfo,
         MilRTInitialization::Flags dwFlags,
-        __in_xcount(m_cRTs) MetaData const *pMetaData
+        _In_reads_(m_cRTs) MetaData const *pMetaData
         );
 
 
