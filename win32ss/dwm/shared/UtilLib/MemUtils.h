@@ -158,8 +158,8 @@ inline void Free(__inout_ecount(1) Heap* pheap, void * pv);
 //  }
 _Ret_notnull_ _Post_writable_byte_size_(cbSize) __allocator inline __bcount(cbSize) void * __cdecl operator new(size_t cbSize);
 _Ret_notnull_ _Post_writable_byte_size_(cbSize) __allocator inline __bcount(cbSize) void * __cdecl operator new[](size_t cbSize);
-inline void __cdecl operator delete(void * pv);
-inline void __cdecl operator delete[](void *pv);
+void __cdecl operator delete(void * pv);
+void __cdecl operator delete[](void *pv);
 
 //------------------------------------------------------------------------------
 // Alternatives to new and delete ----------------------------------------------

@@ -23,7 +23,7 @@
 class CETWTraceProvider
 {
   public:
-    static const TRACEHANDLE INVALID_TRACEHANDLE_VALUE = reinterpret_cast<TRACEHANDLE>(INVALID_HANDLE_VALUE);
+    static const TRACEHANDLE INVALID_TRACEHANDLE_VALUE = (TRACEHANDLE)-1;
     
     CETWTraceProvider(GUID guidProvider,
                   __in_ecount(cGuids) TRACE_GUID_REGISTRATION *pguidTrace,
