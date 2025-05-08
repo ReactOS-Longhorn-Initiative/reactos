@@ -37,7 +37,7 @@ STDMETHODIMP
 CEffectList::HrFindInterface(
     __in_ecount(1) REFIID riid,
     __deref_out void **ppvObject
-    ) override
+    )
 {
     HRESULT hr = E_INVALIDARG;
 
@@ -111,7 +111,7 @@ CEffectList::~CEffectList()
 STDMETHODIMP 
 CEffectList::GetCount(
     __out_ecount(1) UINT *pCount
-    )  const override
+    )  const
 {
     API_ENTRY_NOFPU(IMILEffectList::Add);
     HRESULT hr = S_OK;
@@ -145,7 +145,7 @@ CEffectList::Add(
     __in_ecount(1) REFCLSID clsid,
     UINT size,
     __in_bcount_opt(size) const EffectParams *pData
-    ) override
+    )
 {
     return AddWithResources(clsid, size, pData, 0, NULL);
 }
@@ -169,7 +169,7 @@ CEffectList::AddWithResources(
     __in_bcount_opt(size) const EffectParams *pData,
     UINT cResources,
     __in_pcount_opt_inout(cResources) IUnknown * const *rgpIUnknown
-    ) override
+    )
 {
     API_ENTRY_NOFPU(IMILEffectList::AddWithResources);
     HRESULT hr = S_OK;
@@ -246,7 +246,7 @@ STDMETHODIMP
 CEffectList::GetCLSID(
     UINT idxEffect,
     __out_ecount(1) CLSID *pClsid
-    ) const override
+    ) const
 {
     API_ENTRY_NOFPU(IMILEffectList::GetCLSID);
     
@@ -280,7 +280,7 @@ STDMETHODIMP
 CEffectList::GetParameterSize(
     UINT idxEffect,
     __out_ecount(1) UINT *pSize
-    ) const override
+    ) const
 {
     API_ENTRY_NOFPU(IMILEffectList::GetParameterSize);
 
@@ -315,10 +315,11 @@ CEffectList::GetParameters(
     UINT idxEffect,
     UINT size,
     __out_bcount_full(size) EffectParams *pData
-    ) const override
+    ) const
 {
     API_ENTRY_NOFPU(IMILEffectList::GetParameters);
     HRESULT hr = S_OK;
+    void* pParamData;
     
     UINT uiSize = m_rgParamBlock[idxEffect].cbParamSize;
     if (idxEffect >= (UINT)m_rgParamBlock.GetCount() ||
@@ -328,7 +329,7 @@ CEffectList::GetParameters(
         IFC(E_INVALIDARG);
     }
 
-    void* pParamData = m_rgDataBlock.GetDataBuffer() + m_rgParamBlock[idxEffect].cbParamOffset;
+    pParamData = m_rgDataBlock.GetDataBuffer() + m_rgParamBlock[idxEffect].cbParamOffset;
     GpMemcpy(pData, pParamData, uiSize);
 
 Cleanup:
@@ -352,7 +353,7 @@ STDMETHODIMP
 CEffectList::GetResourceCount(
     UINT idxEffect,
     __out_ecount(1) UINT *pcResources
-    ) const override
+    ) const
 {
     API_ENTRY_NOFPU(IMILEffectList::GetResourceCount);
     HRESULT hr = S_OK;
@@ -385,10 +386,11 @@ CEffectList::GetResources(
     UINT idxEffect,
     UINT cResources,
     __out_pcount_full_out(cResources) IUnknown **rgpResources
-    ) const override
+    ) const
 {
     API_ENTRY_NOFPU(IMILEffectList::GetResources);
     HRESULT hr = S_OK;
+    void* ppResourceData;
 
     if (idxEffect >= m_rgParamBlock.GetCount() ||
         cResources != m_rgParamBlock[idxEffect].cResources ||
@@ -397,7 +399,7 @@ CEffectList::GetResources(
         IFC(E_INVALIDARG);
     }
 
-    void* ppResourceData = m_rgResourceBlock.GetDataBuffer() + m_rgParamBlock[idxEffect].uResourceOffset;
+    ppResourceData = m_rgResourceBlock.GetDataBuffer() + m_rgParamBlock[idxEffect].uResourceOffset;
     GpMemcpy(rgpResources, ppResourceData, cResources * sizeof(*rgpResources));
 
     for (UINT i = 0; i < cResources; i++)
@@ -422,7 +424,7 @@ Cleanup:
 **************************************************************************/
 
 STDMETHODIMP_(void)
-CEffectList::Clear(void) override
+CEffectList::Clear(void)
 {
     m_rgParamBlock.SetCount(0);
     m_rgDataBlock.SetCount(0);
@@ -450,7 +452,7 @@ STDMETHODIMP_(void)
 CEffectList::GetParamRef(
     UINT idxEffect,
     __deref_out_xcount_full(m_rgParamBlock[idxEffect].cbParamSize) const void **ppvData
-    ) const override
+    ) const
 {
     Assert(idxEffect < m_rgParamBlock.GetCount());
     Assert(*ppvData == NULL);
@@ -474,7 +476,7 @@ CEffectList::GetResourcesNoAddRef(
     UINT idxEffect,
     UINT cResources,
     __out_pcount_full_out(cResources) IUnknown **rgpResources
-    ) const override
+    ) const
 {
     Assert(idxEffect < m_rgParamBlock.GetCount());
     Assert(cResources == m_rgParamBlock[idxEffect].cResources);
@@ -497,7 +499,7 @@ CEffectList::GetResourcesNoAddRef(
 STDMETHODIMP
 CEffectList::GetTotalResourceCount(
     __out_ecount(1) UINT *pcResources
-    ) const override
+    ) const
 {
     HRESULT hr = S_OK;
 
@@ -528,7 +530,7 @@ STDMETHODIMP
 CEffectList::GetResource(
     UINT idxResource,
     __deref_out_ecount(1) IUnknown **ppIUnknown
-    ) const override
+    ) const
 {
     HRESULT hr = S_OK;
 
@@ -561,16 +563,18 @@ STDMETHODIMP
 CEffectList::ReplaceResource(
     UINT idxResource,
     __inout_ecount(1) IUnknown *pIUnknown
-    ) override
+    )
 {
     HRESULT hr = S_OK;
+    IUnknown* pTemp = nullptr;
+    IUnknown*& pICurrent = pTemp;
 
     if (idxResource >= m_rgResourceBlock.GetCount())
     {
         IFC(E_INVALIDARG);
     }
 
-    IUnknown * &pICurrent = m_rgResourceBlock[idxResource];
+    pICurrent = m_rgResourceBlock[idxResource];
     ReplaceInterface(pICurrent, pIUnknown);
 
 Cleanup:
