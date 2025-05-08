@@ -16,6 +16,6 @@ WINAPI
 D3DKMTOpenAdapterFromGdiDisplayName(_Inout_ D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME* unnamedParam1)
 {
     //__debugbreak();
-    UNIMPLEMENTED;
+   // UNIMPLEMENTED;
     return 0;
 }

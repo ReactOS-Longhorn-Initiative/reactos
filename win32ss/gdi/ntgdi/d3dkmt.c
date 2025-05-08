@@ -21,6 +21,7 @@ static REACTOS_WIN32K_DXGKRNL_INTERFACE DxgAdapterCallbacks = {0};
  * Dxg gets start inevitably anyway it seems at least on vista.
  */
 VOID
+APIENTRY
 DxStartupDxgkInt()
 {
     DPRINT("DxStartupDxgkInt: Entry\n");
