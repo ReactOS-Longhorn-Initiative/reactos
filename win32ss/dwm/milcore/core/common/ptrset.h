@@ -67,9 +67,9 @@ protected:
     // Functions to add and remove entries in the set.
     //
 
-    HRESULT Add(__in_xcount(sizeof(T)) UINT_PTR p);
-    bool Remove(__in_xcount(sizeof(T)) UINT_PTR p);
-    bool Contains(__in_xcount(sizeof(T)) UINT_PTR p);
+    HRESULT Add(_In_reads_(sizeof(T)) UINT_PTR p);
+    bool Remove(_In_reads_(sizeof(T)) UINT_PTR p);
+    bool Contains(_In_reads_(sizeof(T)) UINT_PTR p);
 
     void Clear();
 
@@ -111,7 +111,7 @@ protected:
         return ((GetRawDataArray()[2] & 0x80000000) != 0);
     }
 
-    inline static bool IsTaggedForRemoval(__in_xcount(sizeof(T)) UINT_PTR p)
+    inline static bool IsTaggedForRemoval(_In_reads_(sizeof(T)) UINT_PTR p)
     {
         return ((p & 0x3) == 0x3);
     }

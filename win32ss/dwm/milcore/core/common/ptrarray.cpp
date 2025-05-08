@@ -36,7 +36,7 @@ void CPtrArrayBase::Clear()
     m_data = 0;
 }
 
-HRESULT CPtrArrayBase::InsertAt(__in_xcount(sizeof(T)) UINT_PTR p, size_t index)
+HRESULT CPtrArrayBase::InsertAt(_In_reads_(sizeof(T)) UINT_PTR p, size_t index)
 {
     HRESULT     hr = S_OK;
     size_t      cEntries = GetCount();
@@ -194,7 +194,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-bool CPtrArrayBase::Remove(__in_xcount(sizeof(T)) UINT_PTR p)
+bool CPtrArrayBase::Remove(_In_reads_(sizeof(T)) UINT_PTR p)
 {
     size_t  cEntries = GetCount();
     bool    fRemoved = false;

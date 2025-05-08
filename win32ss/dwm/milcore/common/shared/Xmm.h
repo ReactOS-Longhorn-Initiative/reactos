@@ -182,7 +182,7 @@ protected:
     };
 
 private:
-    struct __declspec(align(16)) QWords
+    struct DECLSPEC_ALIGN(16) QWords
     {
         __int64 qwords[2];
     };
@@ -244,7 +244,7 @@ public:
     static CXmmWords Half8dot8();
 
 private:
-    struct __declspec(align(16)) Words
+    struct DECLSPEC_ALIGN(16) Words
     {
         __int16 words[8];
     };

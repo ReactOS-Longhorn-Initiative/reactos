@@ -9,4 +9,3 @@
 #define _SDL_BANNED_RECOMMENDED 1
 
 #include <vadefs.h>
-#include <sal.h>

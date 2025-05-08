@@ -29,7 +29,7 @@ enum AVEvent
 //
 // Align(4) guarantees that this will be preserved as two sequential double words.
 //
-struct __declspec(align(4)) AVEventData
+struct DECLSPEC_ALIGN(4) AVEventData
 {
     DWORD       avEvent;
     HRESULT     errorHResult;

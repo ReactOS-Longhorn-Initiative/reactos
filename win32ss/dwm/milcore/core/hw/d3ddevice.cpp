@@ -2510,7 +2510,7 @@ Cleanup:
 HRESULT
 CD3DDeviceLevel1::CreateSysMemReferenceTexture(
     __in_ecount(1) const D3DSURFACE_DESC *pSurfDesc,
-    __in_xcount(
+    _In_reads_(
         pSurfDesc->Width * pSurfDesc->Height
         * D3DFormatSize(pSurfDesc->Format)
         ) void *pvPixels,
@@ -5286,7 +5286,7 @@ HRESULT
 CD3DDeviceLevel1::DrawIndexedTriangleListUP(
     __range(1, UINT_MAX) UINT uNumVertices,
     __range(1, UINT_MAX) UINT uPrimitiveCount,
-    __in_xcount(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
+    _In_reads_(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
     _In_ const void* pVertexStreamZeroData,
     __range(1, UINT_MAX) UINT uVertexStreamZeroStride
     )
@@ -5567,7 +5567,7 @@ HRESULT
 CD3DDeviceLevel1::DrawLargePrimitiveUP(
     D3DPRIMITIVETYPE primitiveType,
     UINT uPrimitiveCount,
-    __in_xcount(
+    _In_reads_(
         //
         // Vertex counts are:
         //
@@ -5753,7 +5753,7 @@ HRESULT
 CD3DDeviceLevel1::DrawPrimitiveUP(
     D3DPRIMITIVETYPE primitiveType,
     UINT uPrimitiveCount,
-    __in_xcount(
+    _In_reads_(
         //
         // Vertex counts are:
         //

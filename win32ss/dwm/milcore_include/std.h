@@ -42,16 +42,17 @@
 // "NTAPI" macro removed since it is ignored: "warning C4229: anachronism used : modifiers on data are ignored" 
 typedef void (__stdcall *PFLS_CALLBACK_FUNCTION)(void *lpFlsData);
 
-#ifndef __notnull
-#define __notnull
-#endif
-
 
 // </winnt copying>
 
 //
 // Get NT headers.
 //
+
+#include <sal.h>
+#ifndef __notnull
+#define __notnull
+#endif
 
 #include <windef.h>
 
