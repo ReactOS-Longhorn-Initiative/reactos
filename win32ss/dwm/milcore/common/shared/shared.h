@@ -14,6 +14,7 @@
 #include <emmintrin.h>
 #endif
 #pragma warning (pop)
+#include "common/Dump.h"
 #include "milcom.h"
 #include "basetypes.h"
 #include "utc.h"
