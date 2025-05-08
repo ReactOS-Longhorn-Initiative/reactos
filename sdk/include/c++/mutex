@@ -1,0 +1,41 @@
+#ifndef _MUTEX_
+#define _MUTEX_
+
+#include <ntdef.h>
+#include <ntifs.h>
+
+namespace std {
+
+class mutex {
+private:
+    RTL_CRITICAL_SECTION m_critical_section;
+
+public:
+    mutex() {
+        RtlInitializeCriticalSection(&m_critical_section);
+    }
+
+    ~mutex() {
+        RtlDeleteCriticalSection(&m_critical_section);
+    }
+
+    void lock() {
+        RtlEnterCriticalSection(&m_critical_section);
+    }
+
+    bool try_lock() {
+        return RtlTryEnterCriticalSection(&m_critical_section) == STATUS_SUCCESS;
+    }
+
+    void unlock() {
+        RtlLeaveCriticalSection(&m_critical_section);
+    }
+
+    // Non-copyable
+    mutex(const mutex&) = delete;
+    mutex& operator=(const mutex&) = delete;
+};
+
+} // namespace std
+
+#endif // _MUTEX_
