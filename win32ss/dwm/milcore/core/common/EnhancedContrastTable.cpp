@@ -68,7 +68,7 @@ EnhancedContrastTable::ReInit(
 
     // Since we cast to and index into the table using BYTEs, ensure our max alpha
     // is 255.
-    C_ASSERT(s_MaxAlpha == 255);
+    static_assert(s_MaxAlpha == 255, "s_MaxAlpha == 255");
 
     //
     // Zero always maps to zero.

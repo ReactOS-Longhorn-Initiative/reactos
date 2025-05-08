@@ -153,7 +153,7 @@ HANDLE_TABLE::ResizeToFit(
     // than requested:
     //
 
-    C_ASSERT(MIL_HANDLE_TABLE_SIZE_INC > 0);
+    static_assert(MIL_HANDLE_TABLE_SIZE_INC > 0, "MIL_HANDLE_TABLE_SIZE_INC > 0");
 
     IFC(UIntAdd(
             hObject, 

@@ -275,7 +275,7 @@ CInteropDeviceBitmap::Create(
 
     // Ensuring that the surface isn't bigger than SURFACE_RECT_MAX will allow us to cast unsigned 
     // bounds rects to signed bound rects safely 
-    C_ASSERT(SURFACE_RECT_MAX <= INT_MAX);
+    static_assert(SURFACE_RECT_MAX <= INT_MAX, "SURFACE_RECT_MAX <= INT_MAX");
     if (desc.Width > SURFACE_RECT_MAX || desc.Height > SURFACE_RECT_MAX)
     {
         IFC(WGXERR_D3DI_INVALIDSURFACESIZE);

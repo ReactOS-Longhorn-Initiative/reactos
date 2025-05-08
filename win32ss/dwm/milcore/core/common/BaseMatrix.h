@@ -84,7 +84,7 @@ public:
         __in_ecount(1) dxlayer::basetypes<dxlayer::dx_apiset>::matrix_base_t const *pm
         )
     {
-        C_ASSERT(sizeof(*pm) == sizeof(CBaseMatrix));
+        static_assert(sizeof(*pm) == sizeof(CBaseMatrix), "sizeof(*pm) == sizeof(CBaseMatrix)");
         return static_cast<CBaseMatrix const *>(pm);
     }
 

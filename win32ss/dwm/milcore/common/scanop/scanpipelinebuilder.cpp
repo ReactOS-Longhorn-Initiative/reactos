@@ -83,8 +83,8 @@ ScanPipelineBuilder::ScanPipelineBuilder(
         break;
     }
 
-    C_ASSERT(BM_NUM == 2);
-    C_ASSERT(SP_NUM == 2);  // This initialization code will need to be
+    static_assert(BM_NUM == 2, "BM_NUM == 2");
+    static_assert(SP_NUM == 2, "SP_NUM == 2");  // This initialization code will need to be
                             // updated if SP_NUM or BM_NUM changes.
 }
 

@@ -146,7 +146,7 @@ HRESULT CMilMeshGeometry3DDuce::Realize(
     size_t cbNewPositionBufferSize = cVertices * sizeof(m_data.m_pPositionsData[0]);
     Assert(cbNewPositionBufferSize <= m_data.m_cbPositionsSize);
 
-    C_ASSERT(sizeof(vector3) == sizeof(m_data.m_pPositionsData[0]));
+    static_assert(sizeof(vector3) == sizeof(m_data.m_pPositionsData[0]), "sizeof(vector3) == sizeof(m_data.m_pPositionsData[0])");
     IFC(pMesh->CopyPositionsFrom(
         reinterpret_cast<const vector3*>(m_data.m_pPositionsData),
         cbNewPositionBufferSize
@@ -167,7 +167,7 @@ HRESULT CMilMeshGeometry3DDuce::Realize(
 
     // We don't trust the user to normalize all of the normals they provided, so
     // we will do so here.
-    C_ASSERT(sizeof(vector3) == sizeof(m_data.m_pNormalsData[0]));
+    static_assert(sizeof(vector3) == sizeof(m_data.m_pNormalsData[0]), "sizeof(vector3) == sizeof(m_data.m_pNormalsData[0])");
     auto pvec3NormalsData = reinterpret_cast<vector3*>(m_data.m_pNormalsData);
     for (UINT i = 0; i < GetNormalsCount(); i++)
     {     

@@ -2321,7 +2321,7 @@ CDisplay::CDisplay(
     m_luidD3DAdapter.HighPart = 0;
     m_dwStateFlags = pdd->StateFlags;
 
-    C_ASSERT( sizeof(m_szDeviceName) == sizeof(pdd->DeviceName) );
+    static_assert( sizeof(m_szDeviceName) == sizeof(pdd->DeviceName) , " sizeof(m_szDeviceName) == sizeof(pdd->DeviceName) ");
     memcpy( m_szDeviceName, pdd->DeviceName, sizeof(m_szDeviceName) );
 
     m_hMonitor = NULL;
@@ -2599,10 +2599,10 @@ CDisplay::ReadMode(
         if (   (m_DisplayRotation == static_cast<D3DDISPLAYROTATION>(0))
             && (displayModeGDI.dmFields & DM_DISPLAYORIENTATION))
         {
-            C_ASSERT(DMDO_DEFAULT+1 == D3DDISPLAYROTATION_IDENTITY);
-            C_ASSERT(DMDO_90+1 == D3DDISPLAYROTATION_90);
-            C_ASSERT(DMDO_180+1 == D3DDISPLAYROTATION_180);
-            C_ASSERT(DMDO_270+1 == D3DDISPLAYROTATION_270);
+            static_assert(DMDO_DEFAULT+1 == D3DDISPLAYROTATION_IDENTITY, "DMDO_DEFAULT+1 == D3DDISPLAYROTATION_IDENTITY");
+            static_assert(DMDO_90+1 == D3DDISPLAYROTATION_90, "DMDO_90+1 == D3DDISPLAYROTATION_90");
+            static_assert(DMDO_180+1 == D3DDISPLAYROTATION_180, "DMDO_180+1 == D3DDISPLAYROTATION_180");
+            static_assert(DMDO_270+1 == D3DDISPLAYROTATION_270, "DMDO_270+1 == D3DDISPLAYROTATION_270");
             m_DisplayRotation = static_cast<D3DDISPLAYROTATION>
                 (displayModeGDI.dmDisplayOrientation+1);
         }

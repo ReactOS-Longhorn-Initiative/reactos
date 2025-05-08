@@ -574,7 +574,7 @@ CProgram::RemoveLink(Link *pLink)
 SpanLink*
 CProgram::AllocSpanLink()
 {
-    C_ASSERT(sizeof(Link) == sizeof(SpanLink));
+    static_assert(sizeof(Link) == sizeof(SpanLink), "sizeof(Link) == sizeof(SpanLink)");
     return ((SpanLink*)AllocLink());
 }
 
@@ -1290,7 +1290,7 @@ Cleanup:
 InstructionHook *
 CProgram::AllocInstructionHook()
 {
-    C_ASSERT(sizeof(InstructionHook) == sizeof(Hook));
+    static_assert(sizeof(InstructionHook) == sizeof(Hook), "sizeof(InstructionHook) == sizeof(Hook)");
     return ((InstructionHook*)AllocHook());
 }
 

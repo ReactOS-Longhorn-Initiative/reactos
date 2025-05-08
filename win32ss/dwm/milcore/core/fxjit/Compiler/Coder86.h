@@ -644,7 +644,7 @@ private:
 
         // if any of base & index are not in use,
         // following logic should not be broken
-        C_ASSERT((gpr_none & 8) == 0);
+        static_assert((gpr_none & 8) == 0, "(gpr_none & 8) == 0");
 
         if (base  & 8) { base  &= 7; opcode |= REX_B; }
         if (index & 8) { index &= 7; opcode |= REX_X; }

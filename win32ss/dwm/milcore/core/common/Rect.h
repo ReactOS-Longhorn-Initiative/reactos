@@ -76,7 +76,7 @@ public:
 
         // This is a compile time assert so we only need it once here, but no
         // where else.
-        C_ASSERT( sizeof(BaseMILRectType) == sizeof(TRect_) );
+        static_assert( sizeof(BaseMILRectType) == sizeof(TRect_) , " sizeof(BaseMILRectType) == sizeof(TRect_) ");
     }
 
 
@@ -224,7 +224,7 @@ public:
         // To achieve this, CRectF must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(MilRectF) == sizeof(CRectF) );
+        static_assert( sizeof(MilRectF) == sizeof(CRectF) , " sizeof(MilRectF) == sizeof(CRectF) ");
     }
 
 
@@ -313,8 +313,8 @@ public:
     __returnro CRectF<CoordinateSpace::Variant> const &ReinterpretAsVariant(
         ) const
     {
-        C_ASSERT(Space::Id != CoordinateSpaceId::Invalid);
-        C_ASSERT(sizeof(*this) == sizeof(CRectF<CoordinateSpace::Variant>));
+        static_assert(Space::Id != CoordinateSpaceId::Invalid, "Space::Id != CoordinateSpaceId::Invalid");
+        static_assert(sizeof(*this) == sizeof(CRectF<CoordinateSpace::Variant>), "sizeof(*this) == sizeof(CRectF<CoordinateSpace::Variant>)");
         return reinterpret_cast<CRectF<CoordinateSpace::Variant> const &>(*this);
     }
 
@@ -362,7 +362,7 @@ public:
         __in_ecount_opt(1) const MilRectF *prc
         )
     {
-        C_ASSERT(sizeof(*prc) == sizeof(CRectF));
+        static_assert(sizeof(*prc) == sizeof(CRectF), "sizeof(*prc) == sizeof(CRectF)");
         return static_cast<const CRectF *>(prc);
     }
 
@@ -370,7 +370,7 @@ public:
         __in_ecount_opt(1) const MilRectF &rc
         )
     {
-        C_ASSERT(sizeof(rc) == sizeof(CRectF));
+        static_assert(sizeof(rc) == sizeof(CRectF), "sizeof(rc) == sizeof(CRectF)");
         return static_cast<const CRectF &>(rc);
     }
 };
@@ -396,7 +396,7 @@ ReinterpretPageInPixelsAsDevice(
     __in_ecount(1) const CRectF<CoordinateSpace::PageInPixels> &rc
     )
 {
-    C_ASSERT(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Device>));
+    static_assert(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Device>), "sizeof(rc) == sizeof(CRectF<CoordinateSpace::Device>)");
     return reinterpret_cast<const CRectF<CoordinateSpace::Device> &>(rc);
 }
 
@@ -405,7 +405,7 @@ ReinterpretRealizationSamplingAsLocalRendering(
     __in_ecount(1) const CRectF<CoordinateSpace::RealizationSampling> &rc
     )
 {
-    C_ASSERT(sizeof(rc) == sizeof(CRectF<CoordinateSpace::LocalRendering>));
+    static_assert(sizeof(rc) == sizeof(CRectF<CoordinateSpace::LocalRendering>), "sizeof(rc) == sizeof(CRectF<CoordinateSpace::LocalRendering>)");
     return reinterpret_cast<const CRectF<CoordinateSpace::LocalRendering> &>(rc);
 }
 
@@ -428,11 +428,11 @@ ReinterpretNonSpaceTypeDUCERectAsLocalRenderingRect(
     __ecount(1) MilRectF *prc
     )
 {
-    C_ASSERT(sizeof(*prc) == sizeof(CRectF<CoordinateSpace::LocalRendering>));
-    C_ASSERT(offsetof(MilRectF, left) == offsetof(CRectF<CoordinateSpace::LocalRendering>, left));
-    C_ASSERT(offsetof(MilRectF, top) == offsetof(CRectF<CoordinateSpace::LocalRendering>, top));
-    C_ASSERT(offsetof(MilRectF, right) == offsetof(CRectF<CoordinateSpace::LocalRendering>, right));
-    C_ASSERT(offsetof(MilRectF, bottom) == offsetof(CRectF<CoordinateSpace::LocalRendering>, bottom));
+    static_assert(sizeof(*prc) == sizeof(CRectF<CoordinateSpace::LocalRendering>), "sizeof(*prc) == sizeof(CRectF<CoordinateSpace::LocalRendering>)");
+    static_assert(offsetof(MilRectF, left) == offsetof(CRectF<CoordinateSpace::LocalRendering>, left), "offsetof(MilRectF, left) == offsetof(CRectF<CoordinateSpace::LocalRendering>, left)");
+    static_assert(offsetof(MilRectF, top) == offsetof(CRectF<CoordinateSpace::LocalRendering>, top), "offsetof(MilRectF, top) == offsetof(CRectF<CoordinateSpace::LocalRendering>, top)");
+    static_assert(offsetof(MilRectF, right) == offsetof(CRectF<CoordinateSpace::LocalRendering>, right), "offsetof(MilRectF, right) == offsetof(CRectF<CoordinateSpace::LocalRendering>, right)");
+    static_assert(offsetof(MilRectF, bottom) == offsetof(CRectF<CoordinateSpace::LocalRendering>, bottom), "offsetof(MilRectF, bottom) == offsetof(CRectF<CoordinateSpace::LocalRendering>, bottom)");
     return reinterpret_cast<CRectF<CoordinateSpace::LocalRendering> *>(prc);
 }
 

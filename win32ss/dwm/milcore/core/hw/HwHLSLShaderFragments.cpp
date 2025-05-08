@@ -1619,6 +1619,6 @@ const ShaderFunction *g_pHwHLSLShaderFunctions[] =
     &g_Specular_Spot_Lighting_Function
 };
 
-C_ASSERT(ARRAYSIZE(g_pHwHLSLShaderFunctions)==ShaderFunctions::Total);
+static_assert(ARRAYSIZE(g_pHwHLSLShaderFunctions)==ShaderFunctions::Total, "ARRAYSIZE(g_pHwHLSLShaderFunctions)==ShaderFunctions::Total");
 
 

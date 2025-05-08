@@ -62,7 +62,7 @@ void CDesktopHWNDRenderTarget::ComputeRenderAndAdjustPresentBounds(
     //
     // Assert to validate that RENDER_INFLATION_MARGIN may be safely added to
     // or subtracted from starting rectangle without worry of overflow.
-    C_ASSERT(RENDER_INFLATION_MARGIN <= INT_MAX);
+    static_assert(RENDER_INFLATION_MARGIN <= INT_MAX, "RENDER_INFLATION_MARGIN <= INT_MAX");
     Assert(oDevData.rcLocalDevicePresentBounds.left >= 0);
     Assert(oDevData.rcLocalDevicePresentBounds.top  >= 0);
     Assert(oDevData.rcLocalDevicePresentBounds.right  > 0);
@@ -846,7 +846,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::GetInvalidRegions(
             }
             else
             {
-                C_ASSERT(MAX_INVALID_REGIONS_PER_DEVICE == 4);
+                static_assert(MAX_INVALID_REGIONS_PER_DEVICE == 4, "MAX_INVALID_REGIONS_PER_DEVICE == 4");
                 //
                 // Generate up to four invalid rectangles by subtracting valid
                 // rectangle from render bounds.  Present bounds must contain

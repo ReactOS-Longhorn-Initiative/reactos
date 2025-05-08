@@ -47,13 +47,13 @@ class CMilVisualCacheSet;
 #define MIL_RENDEROPTIONSFLAGS_BITS 6
 
 
-C_ASSERT((1 << MIL_EDGE_MODE_BITS) >= MilEdgeMode::Last);
-C_ASSERT((1 << MIL_CLEARTYPEHINT_BITS) >= MilClearTypeHint::Last);
-C_ASSERT((1 << MIL_COMPOSITING_MODE_BITS) >= MilCompositingMode::Last);
-C_ASSERT((1 << MIL_BITMAPSCALING_MODE_BITS) >= MilBitmapScalingMode::Last);
-C_ASSERT((1 << MIL_TEXTRENDERINGMODE_BITS) >= MilTextRenderingMode::Last);
-C_ASSERT((1 << MIL_TEXTHINTINGMODE_BITS) >= MilTextHintingMode::Last);
-C_ASSERT((1 << (MIL_RENDEROPTIONSFLAGS_BITS-1)) + 1 == MilRenderOptionFlags::Last);
+static_assert((1 << MIL_EDGE_MODE_BITS) >= MilEdgeMode::Last, "(1 << MIL_EDGE_MODE_BITS) >= MilEdgeMode::Last");
+static_assert((1 << MIL_CLEARTYPEHINT_BITS) >= MilClearTypeHint::Last, "(1 << MIL_CLEARTYPEHINT_BITS) >= MilClearTypeHint::Last");
+static_assert((1 << MIL_COMPOSITING_MODE_BITS) >= MilCompositingMode::Last, "(1 << MIL_COMPOSITING_MODE_BITS) >= MilCompositingMode::Last");
+static_assert((1 << MIL_BITMAPSCALING_MODE_BITS) >= MilBitmapScalingMode::Last, "(1 << MIL_BITMAPSCALING_MODE_BITS) >= MilBitmapScalingMode::Last");
+static_assert((1 << MIL_TEXTRENDERINGMODE_BITS) >= MilTextRenderingMode::Last, "(1 << MIL_TEXTRENDERINGMODE_BITS) >= MilTextRenderingMode::Last");
+static_assert((1 << MIL_TEXTHINTINGMODE_BITS) >= MilTextHintingMode::Last, "(1 << MIL_TEXTHINTINGMODE_BITS) >= MilTextHintingMode::Last");
+static_assert((1 << (MIL_RENDEROPTIONSFLAGS_BITS-1)) + 1 == MilRenderOptionFlags::Last, "(1 << (MIL_RENDEROPTIONSFLAGS_BITS-1)) + 1 == MilRenderOptionFlags::Last");
 
 typedef struct ScrollableAreaPropertyBagStruct
 {

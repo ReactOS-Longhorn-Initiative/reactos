@@ -4624,7 +4624,7 @@ CHitTestSink::QuadTo(
 {
     HRESULT hr = S_OK;
 
-    C_ASSERT(0 == RAIL_LEFT && 1 == RAIL_RIGHT);
+    static_assert(0 == RAIL_LEFT && 1 == RAIL_RIGHT, "0 == RAIL_LEFT && 1 == RAIL_RIGHT");
 
     // Test the edges of the quadrangle
     QUIT_IF_INSIDE(m_refTester.StartAtR(m_ptCurrent[RAIL_RIGHT]));

@@ -410,7 +410,7 @@ CBaseSurfaceRenderTarget<TRenderTargetLayerData>::GetPartialLayerCaptureRects(
             goto Cleanup;
         }
 
-        C_ASSERT(4 == MAX_NUM_PARTIAL_LAYER_CAPTURE_RECTS);
+        static_assert(4 == MAX_NUM_PARTIAL_LAYER_CAPTURE_RECTS, "4 == MAX_NUM_PARTIAL_LAYER_CAPTURE_RECTS");
 
         *pcCopyRects =
             pNewLayer->rcLayerBounds.CalculateSubtractionRectangles(

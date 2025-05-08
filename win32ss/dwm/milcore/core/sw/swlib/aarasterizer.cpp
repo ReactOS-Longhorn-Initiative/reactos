@@ -658,8 +658,8 @@ static VOID MIL_FORCEINLINE ScalePPAACoverage_32bppPBGRA_Out_Slow(
 
             // Convert our coverage from [0, c_nShiftSize*c_nShiftSize] to [0, 256]
             Assert(c_nShiftSize <= 16);
-            C_ASSERT(256 % (c_nShiftSize*c_nShiftSize) == 0);
-            C_ASSERT(c_nShiftSize == 8);
+            static_assert(256 % (c_nShiftSize*c_nShiftSize) == 0, "256 % (c_nShiftSize*c_nShiftSize) == 0");
+            static_assert(c_nShiftSize == 8, "c_nShiftSize == 8");
 
             // NOTE (EXTREMELY TRICKY) coverage values are 1/256ths, while color values
             // are 1/255ths.  The math in this function handles this correctly.

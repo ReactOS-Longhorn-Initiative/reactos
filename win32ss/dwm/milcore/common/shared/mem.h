@@ -57,8 +57,8 @@ void GpFree(void *memblock);
     (((value & (alignment-1)) & (alignment-1)) == 0)
 
 #define C_ASSERT_IS_ALIGNED_TO(value, alignment) \
-    C_ASSERT(alignment > 0);                     \
-    C_ASSERT(IS_POWER_OF_2(alignment));          \
+    static_assert(alignment > 0, "alignment > 0");                     \
+    static_assert(IS_POWER_OF_2(alignment), "IS_POWER_OF_2(alignment)");          \
     C_ASSERT(IS_ALIGNED_TO(value, alignment))
 
 template <class T>

@@ -125,7 +125,7 @@ public:
         // To achieve this, TMilRect must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(TBaseRect) == sizeof(TMilRect) );
+        static_assert( sizeof(TBaseRect) == sizeof(TMilRect) , " sizeof(TBaseRect) == sizeof(TMilRect) ");
     }
 
     //+------------------------------------------------------------------------
@@ -1063,7 +1063,7 @@ public:
         // To achieve this, TMilRect must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(TBaseRect) == sizeof(TMilRect_) );
+        static_assert( sizeof(TBaseRect) == sizeof(TMilRect_) , " sizeof(TBaseRect) == sizeof(TMilRect_) ");
     }
 
     //+------------------------------------------------------------------------

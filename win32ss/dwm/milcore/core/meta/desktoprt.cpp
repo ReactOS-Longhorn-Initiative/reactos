@@ -1208,7 +1208,7 @@ CDesktopRenderTarget::TransitionToState(
             "NeedRecreate",
         };
 
-        C_ASSERT(ARRAY_SIZE(rgStateName) == NeedRecreate + 1);
+        static_assert(ARRAY_SIZE(rgStateName) == NeedRecreate + 1, "ARRAY_SIZE(rgStateName) == NeedRecreate + 1");
 
         #if DBG
         TraceTag((tagMILTraceDesktopState,

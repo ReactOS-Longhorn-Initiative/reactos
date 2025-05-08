@@ -119,7 +119,7 @@ CD3DSurface::Init(
     
         if (m_d3dsd.MultiSampleType >= D3DMULTISAMPLE_2_SAMPLES)
         {
-            C_ASSERT(D3DMULTISAMPLE_2_SAMPLES == 2);
+            static_assert(D3DMULTISAMPLE_2_SAMPLES == 2, "D3DMULTISAMPLE_2_SAMPLES == 2");
             uSamplesPerPixel = static_cast<UINT>(m_d3dsd.MultiSampleType);
         }
     

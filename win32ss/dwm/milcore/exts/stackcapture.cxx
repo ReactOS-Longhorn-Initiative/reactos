@@ -52,7 +52,7 @@ static const struct {
 
 static const size_t s_cFirstAddressField = 3;
 
-C_ASSERT(sizeof(StackCaptureFrame) == offsetof(StackCaptureFrame,rgCapturedFrame) + 3 * sizeof(ULONG64));
+static_assert(sizeof(StackCaptureFrame) == offsetof(StackCaptureFrame,rgCapturedFrame) + 3 * sizeof(ULONG64), "sizeof(StackCaptureFrame) == offsetof(StackCaptureFrame,rgCapturedFrame) + 3 * sizeof(ULONG64)");
 
 
 //+----------------------------------------------------------------------------
@@ -172,7 +172,7 @@ public:
 
         #endif
 
-        C_ASSERT(ARRAYSIZE(reinterpret_cast<StackCaptureFrame*>(NULL)->rgCapturedFrame) == ARRAYSIZE(pConverter->m_rgTargetField)-3);
+        static_assert(ARRAYSIZE(reinterpret_cast<StackCaptureFrame*>(NULL)->rgCapturedFrame) == ARRAYSIZE(pConverter->m_rgTargetField)-3, "ARRAYSIZE(reinterpret_cast<StackCaptureFrame*>(NULL)->rgCapturedFrame) == ARRAYSIZE(pConverter->m_rgTargetField)-3");
 
         if (pConverter->m_cAddresses > ARRAYSIZE(reinterpret_cast<StackCaptureFrame*>(NULL)->rgCapturedFrame))
         {

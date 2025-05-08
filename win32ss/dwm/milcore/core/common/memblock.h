@@ -190,7 +190,7 @@ private:
         // (Stored as a byte array, since we do not want TElement's
         // constructor to be called.)
         //
-        C_ASSERT(__alignof(TElement) <= 8);
+        static_assert(__alignof(TElement) <= 8, "__alignof(TElement) <= 8");
 
 // 'TMemBlockBase<TElement>::TMemBlock' : structure was padded due to __declspec(align())
 #pragma warning(push)
@@ -231,10 +231,10 @@ template <class TElement>
 TMemBlockBase<TElement>::TMemBlock::TMemBlock()
 {
     // A MemBlock that has no capacity is useless
-    C_ASSERT(sc_uCapacity != 0);
+    static_assert(sc_uCapacity != 0, "sc_uCapacity != 0");
 
     // We cast TElements to CStackEntry when storing free'd elements.
-    C_ASSERT(sizeof(TElement) >= sizeof(CStackEntry));
+    static_assert(sizeof(TElement) >= sizeof(CStackEntry), "sizeof(TElement) >= sizeof(CStackEntry)");
 
 #if DBG
     //
@@ -245,8 +245,8 @@ TMemBlockBase<TElement>::TMemBlock::TMemBlock()
     // Hence, we need to ensure that TElement and CStackEntry are both a
     // multiple of 4 bytes in size.
     //
-    C_ASSERT(sizeof(TElement) % sizeof(ULONG) == 0);
-    C_ASSERT(sizeof(CStackEntry) % sizeof(ULONG) == 0);
+    static_assert(sizeof(TElement) % sizeof(ULONG) == 0, "sizeof(TElement) % sizeof(ULONG) == 0");
+    static_assert(sizeof(CStackEntry) % sizeof(ULONG) == 0, "sizeof(CStackEntry) % sizeof(ULONG) == 0");
 
     RtlFillMemoryUlong(m_rgStorage, sizeof(m_rgStorage), TMEMBLOCK_FILL_DWORD);
 #endif

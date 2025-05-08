@@ -163,7 +163,7 @@ public:
 #if DBG
         UINT32 uNextCount = m_uCount + ((opcode & OpcSize) >> OpcShiftSize);
 #endif
-        C_ASSERT(Prefix_None == 0 && Prefix_F20F == 1 && Prefix_F30F == 2 && Prefix_660F == 3);
+        static_assert(Prefix_None == 0 && Prefix_F20F == 1 && Prefix_F30F == 2 && Prefix_660F == 3, "Prefix_None == 0 && Prefix_F20F == 1 && Prefix_F30F == 2 && Prefix_660F == 3");
         static const UINT32 prefixes[4] = { 0, 0xF20F, 0xF30F, 0x660F };
         UINT32 prefix = prefixes[(opcode & OpcPrefix) >> OpcShiftPrefix];
         if (prefix)

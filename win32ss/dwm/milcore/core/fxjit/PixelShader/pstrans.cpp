@@ -1036,7 +1036,7 @@ void CPSTrans::Initialize(  const DWORD *pCode,
                     
                     if( pDclInfo->RegNum>2 )
                     {
-                        C_ASSERT((RDATTR_DIFFUSE+4) == RDATTR_SPECULAR);
+                        static_assert((RDATTR_DIFFUSE+4) == RDATTR_SPECULAR, "(RDATTR_DIFFUSE+4) == RDATTR_SPECULAR");
                         WarpError("CPSTrans::Initialize - Unexpected input register number");
                     }
                 }

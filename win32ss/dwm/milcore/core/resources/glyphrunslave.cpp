@@ -848,8 +848,8 @@ CGlyphRunResource::CreateRealization(
     // our encoding of [X0, Y0, X1, Y1, ...] 
     // matches an array of DWRITE_GLYPH_OFFSET
     //
-    C_ASSERT(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, advanceOffset) == 0);
-    C_ASSERT(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, ascenderOffset) == 4);
+    static_assert(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, advanceOffset) == 0, "FIELD_OFFSET(DWRITE_GLYPH_OFFSET, advanceOffset) == 0");
+    static_assert(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, ascenderOffset) == 4, "FIELD_OFFSET(DWRITE_GLYPH_OFFSET, ascenderOffset) == 4");
 
     glyphRun.glyphOffsets = reinterpret_cast<const DWRITE_GLYPH_OFFSET *>(m_pGlyphOffsets);
 
