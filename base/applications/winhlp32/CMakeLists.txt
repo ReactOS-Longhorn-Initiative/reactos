@@ -1,5 +1,8 @@
 
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+
 add_definitions(
+    -D__WINESRC__
     -D__ROS_LONG64__
     -Dstrcasecmp=_stricmp
 )
@@ -28,4 +31,3 @@ target_link_libraries(winhlp32 wine oldnames)
 add_importlibs(winhlp32 user32 gdi32 shell32 comctl32 comdlg32 msvcrt kernel32 ntdll)
 add_pch(winhlp32 precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET winhlp32 DESTINATION reactos FOR all)
-set_wine_module_FIXME(winhlp32) # CORE-5743: No ARRAY_SIZE macro

@@ -1,4 +1,6 @@
 
+add_definitions(-D__WINESRC__)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 spec2def(msimtf.dll msimtf.spec)
 
 list(APPEND SOURCE
@@ -17,4 +19,3 @@ target_link_libraries(msimtf uuid wine)
 add_importlibs(msimtf imm32 msvcrt kernel32 ntdll)
 add_pch(msimtf precomp.h SOURCE)
 add_cd_file(TARGET msimtf DESTINATION reactos/system32 FOR all)
-set_wine_module_FIXME(msimtf) # CORE-5743: No CONST_VTABLE

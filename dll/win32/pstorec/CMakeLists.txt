@@ -1,4 +1,5 @@
 
+add_definitions(-D__WINESRC__)
 spec2def(pstorec.dll pstorec.spec)
 
 list(APPEND SOURCE
@@ -14,4 +15,3 @@ target_link_libraries(pstorec uuid wine)
 add_importlibs(pstorec msvcrt kernel32 ntdll)
 add_dependencies(pstorec stdole2)
 add_cd_file(TARGET pstorec DESTINATION reactos/system32 FOR all)
-set_wine_module_FIXME(pstorec) # CORE-5743: No CONST_VTABLE
