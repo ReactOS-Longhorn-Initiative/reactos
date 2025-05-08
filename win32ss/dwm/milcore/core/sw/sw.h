@@ -28,8 +28,8 @@
 
 // pixel jit
 
-#include "fxjit/public/effectparams.h"
-#include "fxjit/public/pshader.h"
+#include "fxjit/Public/effectparams.h"
+#include "fxjit/Public/pshader.h"
 
 // Color format conversion and scanline blending operations.
 
@@ -79,6 +79,6 @@
 #include "swinit.h"
 
 
-#include "DoubleBufferedBitmap.h"
+#include "doublebufferedbitmap.h"
 
 

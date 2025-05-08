@@ -218,7 +218,7 @@ AssertOrderedDiffValid(
     TBase end
     )
 {
-#if DBG
+#if 0 // TODO remove __if_exists
     typedef TypeProperties<TBase> TBaseTraitMap;
 
     // This assert is only for overflow and not underflow; so assert that

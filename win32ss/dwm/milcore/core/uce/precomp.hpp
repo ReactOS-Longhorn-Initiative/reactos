@@ -66,7 +66,7 @@ Environment:
 // Rendering resources.
 //
 
-#include "targets/targets.h"
+#include "targets/Targets.h"
 #include "sw/sw.h"
 #include "hw/hw.h"
 #include "av/av.h"

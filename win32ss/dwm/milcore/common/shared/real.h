@@ -401,7 +401,7 @@ public:
     static const UINT32 sc_uBinaryFloatSmallMax = 0x497ffff0;
 };
 
-#if defined(_X86_)
+#if 0 //defined(_X86_)
 //+----------------------------------------------------------------------------
 //
 //  Method:
@@ -466,7 +466,7 @@ CFloatFPU::RoundWithHalvesToEven(float x)
 MIL_FORCEINLINE int
 CFloatFPU::RoundWithHalvesUp(float x)
 {
-#if defined(_X86_)
+#if 0
 
     int i = RoundWithHalvesToEven(x);
 
@@ -502,7 +502,7 @@ CFloatFPU::RoundWithHalvesUp(float x)
 MIL_FORCEINLINE int
 CFloatFPU::RoundWithHalvesDown(float x)
 {
-#if defined(_X86_)
+#if 0
 
     int i = RoundWithHalvesToEven(x);
 
@@ -538,7 +538,7 @@ CFloatFPU::RoundWithHalvesDown(float x)
 MIL_FORCEINLINE int
 CFloatFPU::FloorFPU(float x)
 {
-#if defined(_X86_)
+#if 0
     int i = RoundWithHalvesToEven(x);
 
     if (static_cast<float>(i) > x)
@@ -663,7 +663,7 @@ CFloatFPU::Ceiling(float x)
 //-------------------------------------------------------------------------
 MIL_FORCEINLINE int CFloatFPU::Trunc(float x)
 {
-#if defined(_X86_)
+#if 0
     if (CCPUInfo::HasSSE())
     {
         __asm cvttss2si eax, x;
@@ -1016,7 +1016,7 @@ MIL_FORCEINLINE float FASTCALL CFloatFPU::OffsetToRounded(float x)
         return 0;
     }
 
-#if defined(_X86_)
+#if 0
 
     float rounded;
 
@@ -1192,7 +1192,7 @@ private:
 
 MIL_FORCEINLINE INT FASTCALL CDoubleFPU::InternalRound(double x)
 {
-#if defined(_X86_)
+#if 0
 
     INT i;
 
@@ -1297,7 +1297,7 @@ public:
         // FPUStateSaver block, so that the CTRL word is set to
         // our preferred state.
         
-        #if defined(_X86_)
+        #if 0
         
             #if DBG
                 //
@@ -1345,7 +1345,7 @@ public:
 
     ~FPUStateSandbox()
     {
-        #if defined(_X86_)
+        #if 0
             //
             // This code is called on returning from sandboxed code.
             // It detects possible FPU state mismatches and re-initializes

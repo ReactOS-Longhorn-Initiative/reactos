@@ -41,7 +41,7 @@
 #include "C_s32x4.h"
 #include "C_LazyVar.h"
 #include "Branch.h"
-#include "PVoid.h"
+#include "PVOID.h"
 #include "P_u8.h"
 #include "P_u16.h"
 #include "P_u32.h"

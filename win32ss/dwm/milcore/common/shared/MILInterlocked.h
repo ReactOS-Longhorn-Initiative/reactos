@@ -66,7 +66,7 @@ __int64 MILInterlockedCompareExchange64(
 __inline BOOL
 MILInterlockedAvailable()
 {
-    return CCPUInfo::HasCompareExchangeDouble();
+    return TRUE;
 }
 
 //+----------------------------------------------------------------------------
@@ -89,20 +89,11 @@ MILInterlockedCompareExchange64(
     __int64 comperand
     )
 {
-    __asm
-    {
-        mov esi, pDestination
-
-        mov eax, DWORD PTR comperand[0]
-        mov edx, DWORD PTR comperand[4]
-
-        mov ebx, DWORD PTR exchange[0]
-        mov ecx, DWORD PTR exchange[4]
-
-        lock cmpxchg8b qword ptr [esi]
-
-        // result is in edx:eax
-    }
+    return reinterpret_cast<__int64>(InterlockedCompareExchangePointer(
+        reinterpret_cast<PVOID volatile *>(pDestination), 
+        reinterpret_cast<PVOID>(exchange), 
+        reinterpret_cast<PVOID>(comperand)
+        ));
 }
 #pragma warning( pop )
 
