@@ -2952,7 +2952,7 @@ CHwBitmapColorSource::FillTextureWithTransformedSource(
 
     if (!fCompletelyInvalid)
     {
-        C_ASSERT(IWGXBitmap::c_maxBitmapDirtyListSize < ARRAYSIZE(rgDestDirtyRects));
+        static_assert(IWGXBitmap::c_maxBitmapDirtyListSize < ARRAYSIZE(rgDestDirtyRects), "IWGXBitmap::c_maxBitmapDirtyListSize < ARRAYSIZE(rgDestDirtyRects)");
 
         cPrefilteredDirtyRects = ComputePrefilteredDirtyRects(
             rgDirtyRects,

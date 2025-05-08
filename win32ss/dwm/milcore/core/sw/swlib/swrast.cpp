@@ -155,7 +155,7 @@ HRESULT CSoftwareRasterizer::Clear(
         {
             // Fill the path.
 
-            C_ASSERT(ARRAY_SIZE(points) == ARRAY_SIZE(types));
+            static_assert(ARRAY_SIZE(points) == ARRAY_SIZE(types), "ARRAY_SIZE(points) == ARRAY_SIZE(types)");
 
             MilPointAndSizeL rcMilPointAndSizeL = {rc.left, rc.top, rc.Width(), rc.Height()};
 
@@ -341,7 +341,7 @@ HRESULT CSoftwareRasterizer::DrawBitmap(
 
             // fill the path.
 
-            C_ASSERT(ARRAY_SIZE(points) == ARRAY_SIZE(types));            
+            static_assert(ARRAY_SIZE(points) == ARRAY_SIZE(types), "ARRAY_SIZE(points) == ARRAY_SIZE(types)");            
 
             MIL_THR(RasterizePath(
                 points,

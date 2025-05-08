@@ -1588,7 +1588,7 @@ DbgReinterpretDeviceAsShape(
     __in_ecount(1) const CRectF<CoordinateSpace::Device> &rc
     )
 {
-    C_ASSERT(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Shape>));
+    static_assert(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Shape>), "sizeof(rc) == sizeof(CRectF<CoordinateSpace::Shape>)");
     return reinterpret_cast<const CRectF<CoordinateSpace::Shape> &>(rc);
 }
 

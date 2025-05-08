@@ -119,7 +119,7 @@ TMilSlaveValue<TValue, TCommand, ResType>::ProcessUpdate(
     __in_ecount(1) const TCommand* pCmd
     )
 {
-    C_ASSERT(sizeof(pCmd->Value) == sizeof(TValue));
+    static_assert(sizeof(pCmd->Value) == sizeof(TValue), "sizeof(pCmd->Value) == sizeof(TValue)");
 
     RtlCopyMemory(&m_value, &pCmd->Value, sizeof(TValue));
 

@@ -439,7 +439,7 @@ inline bool operator!=(const LUID &l1, const LUID &l2)
 inline UINT64 WrapHandleInUInt64(HANDLE handle)
 {
     // Note: this conversion is always safe by the assertion below
-    C_ASSERT(sizeof(HANDLE) <= sizeof(UINT64));
+    static_assert(sizeof(HANDLE) <= sizeof(UINT64), "sizeof(HANDLE) <= sizeof(UINT64)");
 
     return static_cast<UINT64>(reinterpret_cast<UINT_PTR>(handle));
 }
@@ -458,7 +458,7 @@ inline UINT64 WrapHandleInUInt64(HANDLE handle)
 inline HANDLE UnwrapHandleFromUInt64(UINT64 handle)
 {
     // Note: Win32 handles take 32-bit values only. Convert larger values to INVALID_HANDLE_VALUE...
-    C_ASSERT((sizeof(HANDLE) == sizeof(UINT32)) || (sizeof(HANDLE) == sizeof(UINT64)));
+    static_assert((sizeof(HANDLE) == sizeof(UINT32)) || (sizeof(HANDLE) == sizeof(UINT64)), "(sizeof(HANDLE) == sizeof(UINT32)) || (sizeof(HANDLE) == sizeof(UINT64))");
 
     return (handle <= UINT_MAX)
         ? reinterpret_cast<HANDLE>(static_cast<UINT_PTR>(handle))

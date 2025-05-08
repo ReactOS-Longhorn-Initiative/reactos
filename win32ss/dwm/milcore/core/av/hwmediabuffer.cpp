@@ -490,7 +490,7 @@ CopyBitmap(
         // multi-threaded resource caches. This is a compile time assert to
         // ensure that the resource cache is truly multi-threaded.
         //
-        C_ASSERT(!RESOURCE_CACHE_SINGLE_THREADED);
+        static_assert(!RESOURCE_CACHE_SINGLE_THREADED, "!RESOURCE_CACHE_SINGLE_THREADED");
     }
 
     //

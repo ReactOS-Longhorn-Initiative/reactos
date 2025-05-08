@@ -72,7 +72,7 @@ struct BlendOperationProperties {
     },
 };
 
-C_ASSERT(ARRAYSIZE(sc_BlendOpProperties)==HBO_Total);
+static_assert(ARRAYSIZE(sc_BlendOpProperties)==HBO_Total, "ARRAYSIZE(sc_BlendOpProperties)==HBO_Total");
 
 //+-----------------------------------------------------------------------------
 //

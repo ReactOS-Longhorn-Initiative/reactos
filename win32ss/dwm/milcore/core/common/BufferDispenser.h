@@ -86,8 +86,8 @@ public:
     C_ASSERT_IS_ALIGNED_TO(kExtraSpacePreAllocation, kMinBufferAllocationAlignment);
     C_ASSERT_IS_ALIGNED_TO(kExtraSpacePostAllocation, kMinBufferAllocationAlignment);
     C_ASSERT_IS_ALIGNED_TO((size_t)kOverheadPerBufferAllocation, kMinBufferAllocationAlignment);
-    C_ASSERT(MEMORY_ALLOCATION_ALIGNMENT >= kMinBufferAllocationAlignment);
-    C_ASSERT((MEMORY_ALLOCATION_ALIGNMENT & AllocatedFromHeap) == 0);
+    static_assert(MEMORY_ALLOCATION_ALIGNMENT >= kMinBufferAllocationAlignment, "MEMORY_ALLOCATION_ALIGNMENT >= kMinBufferAllocationAlignment");
+    static_assert((MEMORY_ALLOCATION_ALIGNMENT & AllocatedFromHeap) == 0, "(MEMORY_ALLOCATION_ALIGNMENT & AllocatedFromHeap) == 0");
 
     CBufferDispenser(
         __inout_bcount(size) void *pvBuffer,

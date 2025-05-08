@@ -163,7 +163,7 @@ CGradientBrushSpan::InitializeTexture(
     // Generate the gradient texture
     if (SUCCEEDED(hr))
     {
-        C_ASSERT(ARRAYSIZE(m_rgStartTexelAgrb) == ARRAYSIZE(m_rgEndTexelAgrb));
+        static_assert(ARRAYSIZE(m_rgStartTexelAgrb) == ARRAYSIZE(m_rgEndTexelAgrb), "ARRAYSIZE(m_rgStartTexelAgrb) == ARRAYSIZE(m_rgEndTexelAgrb)");
 
         hr = THR(CGradientTextureGenerator::GenerateGradientTexture(
             pColors,

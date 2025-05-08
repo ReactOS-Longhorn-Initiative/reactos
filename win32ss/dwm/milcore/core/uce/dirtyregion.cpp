@@ -452,7 +452,7 @@ CDirtyRegion2::UpdateOverhead(UINT regionIndex)
 __out_ecount(m_regionCount) const MilRectF* 
 CDirtyRegion2::GetUninflatedDirtyRegions()
 {
-    C_ASSERT(sizeof(m_dirtyRegions) == sizeof(m_resolvedRegions));
+    static_assert(sizeof(m_dirtyRegions) == sizeof(m_resolvedRegions), "sizeof(m_dirtyRegions) == sizeof(m_resolvedRegions)");
 
     if (m_fMaxSurfaceFallback)
     {

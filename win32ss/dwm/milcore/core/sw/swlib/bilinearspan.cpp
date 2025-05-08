@@ -1448,7 +1448,7 @@ void CBilinearSpan::GenerateColors(
     //      2^32 * 2^28 + 2^32 + 2^28 + 2^32
     // This only requires 62 bits of precision and we have 63 available.
     //
-    C_ASSERT(SURFACE_RECT_MAX <= (1 << 27));
+    static_assert(SURFACE_RECT_MAX <= (1 << 27), "SURFACE_RECT_MAX <= (1 << 27)");
     Assert(x >= 0); // overagressive- routine could work with values as low as SURFACE_RECT_MIN
     Assert(y >= 0); // overagressive- routine could work with values as low as SURFACE_RECT_MIN
     Assert(x <= SURFACE_RECT_MAX);
@@ -2437,7 +2437,7 @@ void CBilinearSpan::InTile_Interpolation_SSE2(
 
     // Set up uv_inc with following: (2*VIncrement, 2*UIncrement, 2*VIncrement, 2*UIncrement).
     // Ensure that VIncrement follows UIncrement so we can fetch them together
-    C_ASSERT(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement));
+    static_assert(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement), "offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement)");
     uv_inc.LoadQWord(reinterpret_cast<__int64 const *>(&UIncrement));
     uv_inc.DuplicateLowQWord();
     uv_inc <<= 1;
@@ -2602,7 +2602,7 @@ void CBilinearSpan::FlippedTile_Interpolation_SSE2(
     uv.Load4DWords(0,0,v,u);    // [0,0,vIntvFrac,uIntuFrac]
 
     // Ensure that VIncrement follows UIncrement so we can fetch them together
-    C_ASSERT(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement));
+    static_assert(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement), "offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement)");
     uv_inc.LoadQWord(reinterpret_cast<__int64 const *>(&UIncrement)); //(0,0,vInc, uInc)
 
     INT x = u >> 16;    // x offset of A

@@ -566,7 +566,7 @@ GetSwRastModuleName(
 {
     // Future Consideration:   Key RGBRast module name off secure reg key
     //  because OSVersion may be shimmed for app compat.
-    C_ASSERT( WIN32_VISTA_MINORVERSION == 0 );
+    static_assert( WIN32_VISTA_MINORVERSION == 0 , " WIN32_VISTA_MINORVERSION == 0 ");
     return (WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater()) ?
         TEXT("RGB9Rast.dll") :
         TEXT("RGB9Rast_2.dll");

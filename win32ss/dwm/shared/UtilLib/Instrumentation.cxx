@@ -409,8 +409,8 @@ CheckGUIHandleQuota(
     HRESULT hrOtherwise     // HRESULT to return when count is NOT near quota
     )
 {
-    C_ASSERT(GR_GDIOBJECTS == 0);
-    C_ASSERT(GR_USEROBJECTS == 1);
+    static_assert(GR_GDIOBJECTS == 0, "GR_GDIOBJECTS == 0");
+    static_assert(GR_USEROBJECTS == 1, "GR_USEROBJECTS == 1");
 
     Assert(dwGUIHandleType < ARRAY_SIZE(g_GUIHandleQuota));
 

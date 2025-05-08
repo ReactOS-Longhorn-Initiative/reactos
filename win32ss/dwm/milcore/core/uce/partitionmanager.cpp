@@ -1038,7 +1038,7 @@ HRESULT CPartitionManager::UpdateSchedulerSettings(
 
     if (GetWorkerThreadPriority() != nPriority) 
     {
-        C_ASSERT(NUM_WORKER_THREADS == 1);
+        static_assert(NUM_WORKER_THREADS == 1, "NUM_WORKER_THREADS == 1");
 
         Assert(GetWorkerThreadCount() == 0);
         

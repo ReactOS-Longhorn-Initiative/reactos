@@ -870,7 +870,7 @@ CMilVisual::AddAdditionalDirtyRects(
     __in_ecount(1) MilRectF const *pRegion
     )
 {
-    C_ASSERT(c_maxAdditionalDirtyRects > 1);
+    static_assert(c_maxAdditionalDirtyRects > 1, "c_maxAdditionalDirtyRects > 1");
     
     HRESULT hr = S_OK;
     

@@ -64,7 +64,7 @@ public:
         __in_ecount(1) CMatrix<InCoordSpace, OutCoordSpace> const &matRef
         )
     {
-        C_ASSERT(sizeof(CMultiOutSpaceMatrix) == sizeof(matRef));
+        static_assert(sizeof(CMultiOutSpaceMatrix) == sizeof(matRef), "sizeof(CMultiOutSpaceMatrix) == sizeof(matRef)");
         return reinterpret_cast<CMultiOutSpaceMatrix const &>(matRef);
     }
 #endif
@@ -205,7 +205,7 @@ public:
         __deref_out_range(>=, 1) UINT &uDesiredHeight
         ) const
     {
-        C_ASSERT(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling);
+        static_assert(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling, "InCoordSpace::Id == CoordinateSpaceId::RealizationSampling");
         Assert(   (m_eDbgCurrentOutCoordSpaceId == CoordinateSpaceId::Device)
                || (m_eDbgCurrentOutCoordSpaceId == CoordinateSpaceId::IdealSampling));
 
@@ -244,7 +244,7 @@ ReinterpretLocalRenderingAsBaseSampling(
     __in_ecount(1) const CMultiOutSpaceMatrix<CoordinateSpace::LocalRendering> &m
     )
 {
-    C_ASSERT(sizeof(m) == sizeof( CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> ));
+    static_assert(sizeof(m) == sizeof( CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> ), "sizeof(m) == sizeof( CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> )");
     return reinterpret_cast<const CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> &>(m);
 }
 
