@@ -1211,7 +1211,7 @@ static inline D3DXMATRIX* D3DXMatrixIdentity(D3DXMATRIX *pout)
     return pout;
 }
 
-static inline BOOL D3DXMatrixIsIdentity(D3DXMATRIX *pm)
+static inline BOOL D3DXMatrixIsIdentity(const D3DXMATRIX *pm)
 {
     int i,j;
     D3DXMATRIX testmatrix;
