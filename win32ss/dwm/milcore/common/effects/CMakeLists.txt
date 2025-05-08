@@ -22,11 +22,11 @@ precomp.cpp
 effectlist.cpp
     )
 
-add_library(common ${SOURCE})
-add_dependencies(common xdk)
+add_library(effects ${SOURCE})
+add_dependencies(effects xdk)
 
 if(NOT MSVC)
-    target_compile_options(common PRIVATE -fexceptions)
+    target_compile_options(effects PRIVATE -fexceptions -frtti)
 endif()
 
-target_link_libraries(common PRIVATE cppstl)
+target_link_libraries(effects PRIVATE cppstl)

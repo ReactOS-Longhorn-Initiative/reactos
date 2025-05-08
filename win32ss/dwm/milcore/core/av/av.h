@@ -26,7 +26,7 @@
 //------------------------------------------------------------------------------
 
 #include <strmif.h>
-#include <Vmr9.h>
+#include <vmr9.h>
 #include <nserror.h>
 #include <oleauto.h>
 

@@ -128,15 +128,6 @@ namespace dxlayer
         template<typename ID3DDevice>
         static std::string get_pixel_shader_profile_name(ID3DDevice* pD3DDevice);
 
-        // Specialization of get_pixel_shader_profile_name with 
-        // ID3DDevice = IDirect3DDevice9
-        template<>
-        inline static std::string get_pixel_shader_profile_name<IDirect3DDevice9>(
-            IDirect3DDevice9* pD3DDevice)
-        {
-            return D3DXGetPixelShaderProfile(pD3DDevice);
-        }
-
 #pragma endregion 
 
 #pragma region get_vertex_shader_profile_name
@@ -145,15 +136,6 @@ namespace dxlayer
         // profile supported by a given device.
         template<typename ID3DDevice>
         static std::string get_vertex_shader_profile_name(ID3DDevice* pD3DDevice);
-
-        // Specialization of get_vertex_shader_profile_name with 
-        // ID3DDevice = IDirect3DDevice9
-        template<>
-        static std::string get_vertex_shader_profile_name<IDirect3DDevice9>(
-            IDirect3DDevice9* pD3DDevice)
-        {
-            return D3DXGetVertexShaderProfile(pD3DDevice);
-        }
 
 #pragma endregion
 
@@ -177,6 +159,8 @@ namespace dxlayer
                 retval = WGXERR_SHADER_COMPILE_FAILED;
             }
 
+            (HRESULT)retval; // TODO: Microsoft bug?
+
 #if defined(DBG) || defined(DEBUG) || defined(_DEBUG)
 
             //
@@ -193,5 +177,23 @@ namespace dxlayer
         }
 
     };
+
+    // Specialization of get_pixel_shader_profile_name with 
+    // ID3DDevice = IDirect3DDevice9
+    template<>
+    inline std::string dxlayer::shader_t<dxlayer::dxapi::d3dx9>::get_pixel_shader_profile_name<IDirect3DDevice9>(
+        IDirect3DDevice9* pD3DDevice)
+    {
+        return D3DXGetPixelShaderProfile(pD3DDevice);
+    }
+
+    // Specialization of get_vertex_shader_profile_name with 
+    // ID3DDevice = IDirect3DDevice9
+    template<>
+    std::string dxlayer::shader_t<dxlayer::dxapi::d3dx9>::get_vertex_shader_profile_name<IDirect3DDevice9>(
+       IDirect3DDevice9* pD3DDevice)
+    {
+        return D3DXGetVertexShaderProfile(pD3DDevice);
+    }
 }
 
