@@ -2,6 +2,7 @@
 spec2def(uxsms.dll uxsms.spec ADD_IMPORTLIB)
 
 add_library(uxsms MODULE
+    dwmsession.c
     uxsms.c
     serv.c
     port.c
@@ -10,5 +11,5 @@ add_library(uxsms MODULE
 
 set_module_type(uxsms win32dll UNICODE)
 target_link_libraries(uxsms wine)
-add_importlibs(uxsms uxtheme advapi32 msvcrt kernel32 ntdll)
+add_importlibs(uxsms uxtheme wtsapi32 advapi32 msvcrt kernel32 ntdll)
 add_cd_file(TARGET uxsms DESTINATION reactos/system32 FOR all)

@@ -768,6 +768,7 @@
 @ stdcall UpdateLayeredWindowIndirect(long ptr)
 @ stdcall UpdatePerUserSystemParameters(long long)
 @ stdcall UpdateWindow(long)
+@ stdcall -version=0x600+ UpdateWindowTransform(ptr ptr long) NtUserUpdateWindowTransform
 @ stdcall User32InitializeImmEntryTable(ptr)
 @ stdcall UserClientDllInitialize(ptr long ptr) DllMain
 @ stdcall UserHandleGrantAccess(ptr ptr long) NtUserUserHandleGrantAccess
@@ -800,3 +801,10 @@
 @ varargs wsprintfW(ptr wstr)
 @ stdcall wvsprintfA(ptr str ptr)
 @ stdcall wvsprintfW(ptr wstr ptr)
+
+;Longhorn 5048-5112 (These became other things lmao)
+
+@ stdcall -version=0x600+ DwmGetSurfaceData(ptr ptr) NtUserDwmGetSurfaceData ; 3 param in vista+
+@ stdcall -version=0x600+ SetWindowRgnEx(ptr ptr long) NtUserSetWindowRgnEx
+@ stdcall -version=0x600+ DwmShutdown() NtUserDwmShutdown
+@ stdcall -version=0x600+ DwmStartup(ptr) NtUserDwmStartup

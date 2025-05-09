@@ -68,6 +68,14 @@ ServiceHandleSessionEvents(DWORD dwEventType,
                            LPVOID lpEventData,
                            LPVOID lpContext)
 {
+    /*
+     * ReactOS win32ss doesn't support this behavior
+     * A huge part of what this file does is deal with the events below.
+     * Realistically these won't matter for ReactOS till we have Vista+ style
+     * Multisession support. Sadly in order to Really get this file working on
+     * Vista we need a impl.
+     */
+
     switch (dwEventType)
     {
         case WTS_CONSOLE_CONNECT:
@@ -103,7 +111,7 @@ ServiceControlHandler(DWORD dwControl,
                       LPVOID lpContext)
 {
     DPRINT1("ServiceControlHandler() called\n");
-    
+
     switch (dwControl)
     {
         case SERVICE_CONTROL_STOP:
@@ -144,9 +152,14 @@ ServiceStartup()
         return HRESULT_FROM_WIN32(GetLastError());
     }
     DPRINT1("RegisterServiceCtrlHandlerExW succeeded\n");
-    
+
     UpdateServiceStatus(SERVICE_START_PENDING);
+    /* Start UX.SS/DWM.EXE */
+    SessionBypassInitializeDWM();
     /* Start port here */
+    // TODO; ReactOS has no support for Multisession, so let's indefinietly start 
+    // The DWM and move on.
+
     UpdateServiceStatus(SERVICE_RUNNING);
     return S_OK;
 }
