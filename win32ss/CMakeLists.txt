@@ -124,6 +124,7 @@ list(APPEND SOURCE
     user/ntuser/desktop.c
     user/ntuser/display.c
     user/ntuser/draw.c
+    user/ntuser/dwm.c
     user/ntuser/event.c
     user/ntuser/focus.c
     user/ntuser/ghost.c

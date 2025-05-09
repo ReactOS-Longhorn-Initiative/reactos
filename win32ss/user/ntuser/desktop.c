@@ -25,6 +25,10 @@ IntUnmapDesktopView(IN PDESKTOP pdesk);
 static VOID
 IntFreeDesktopHeap(IN PDESKTOP pdesk);
 
+VOID
+WINAPI
+IntLpcStyleDwmRenderDesktop(PWND Pwnd, BOOLEAN Add);
+
 /* GLOBALS *******************************************************************/
 
 /* These can be changed via registry settings.
@@ -50,6 +54,7 @@ DWORD gdwWinlogonSectionSize = 128;
 
 /* Currently active desktop */
 PDESKTOP gpdeskInputDesktop = NULL;
+extern BOOLEAN IsCompositionEnabled;
 HDC ScreenDeviceContext = NULL;
 PTHREADINFO gptiDesktopThread = NULL;
 HCURSOR gDesktopCursor = NULL;
@@ -3063,6 +3068,15 @@ NtUserSwitchDesktop(HDESK hdesk)
 
     /* Set the global state. */
     gpdeskInputDesktop = pdesk;
+
+    /* DWM */
+    PWND DesktopWindow = ValidateHwndNoErr(gpdeskInputDesktop->DesktopWindow);
+    if (DesktopWindow && IsCompositionEnabled)
+    {
+       /* DWM: Notify the desktop window to redraw itself */
+       IntLpcStyleDwmNewDesktop();
+       IntLpcStyleDwmRenderDesktop(DesktopWindow, TRUE);
+    }
 
     /* Show the new desktop window */
     co_IntShowDesktop(pdesk, UserGetSystemMetrics(SM_CXSCREEN), UserGetSystemMetrics(SM_CYSCREEN), bRedrawDesktop);

@@ -3659,6 +3659,26 @@ NtUserSetScrollBarInfo(
 ULONG
 RtlGetExpWinVer(_In_ PVOID BaseAddress);
 
+NTSTATUS
+APIENTRY
+NtUserDwmShutdown();
+
+BOOLEAN
+APIENTRY
+NtUserDwmStartup(HANDLE Handle);
+
+NTSTATUS
+APIENTRY
+NtUserUpdateWindowTransform(HWND Hwnd, PVOID pTransform);
+
+NTSTATUS
+APIENTRY
+NtUserDwmGetSurfaceData(PVOID Hdev, PVOID Surface);
+
+NTSTATUS
+APIENTRY
+NtUserSetWindowRgnEx(HWND Hwnd, HRGN Rgn, UINT32 Flags);
+
 #endif /* __WIN32K_NTUSER_H */
 
 /* EOF */

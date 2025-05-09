@@ -116,3 +116,4 @@
 @ stub WICMatchMetadataContent
 @ stub WICSerializeMetadataContent
 @ stdcall WICSetEncoderFormat_Proxy(ptr ptr ptr ptr)
+@ stdcall -stub WICCreateImagingFactory(ptr)

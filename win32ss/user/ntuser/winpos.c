@@ -2829,7 +2829,7 @@ co_WinPosShowWindow(PWND Wnd, INT Cmd)
       Swp |= SWP_NOACTIVATE | SWP_NOZORDER;
    }
 #endif
-
+    //TODO: DWM
    if (IsChildVisible(Wnd) || Swp & SWP_STATECHANGED)
    {
        TRACE("Child is Vis %s or State changed %s. ShowFlag %s Swp %04x\n",
@@ -2848,6 +2848,7 @@ co_WinPosShowWindow(PWND Wnd, INT Cmd)
       TRACE("Parent Vis?\n");
       /* if parent is not visible simply toggle WS_VISIBLE and return */
       if (ShowFlag) IntSetStyle( Wnd, WS_VISIBLE, 0 );
+      //TODO: DWM
       else IntSetStyle( Wnd, 0, WS_VISIBLE );
    }
 

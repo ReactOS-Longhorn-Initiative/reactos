@@ -109,6 +109,8 @@ extern "C" {
 /* Undocumented user definitions */
 #include <undocuser.h>
 
+#include <dwmundoc.h>
+
 /* Freetype headers */
 #include <ft2build.h>
 #include FT_FREETYPE_H
