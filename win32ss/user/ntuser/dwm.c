@@ -90,7 +90,7 @@ InternalDwmStartup()
 
 NTSTATUS
 APIENTRY
-NtUserDwmShutdown()
+NtUserDwmShutdown(VOID)
 {
     UNIMPLEMENTED;
     __debugbreak();

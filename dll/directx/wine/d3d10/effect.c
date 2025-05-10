@@ -1688,7 +1688,7 @@ static HRESULT d3d10_effect_parse_stream_output_declaration(const char *decl,
                 goto failed;
             }
 
-            e.ComponentCount = strlen(mask);
+            e.ComponentCount = (BYTE)strlen(mask);
         }
         else
         {
