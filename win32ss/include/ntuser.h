@@ -3661,7 +3661,7 @@ RtlGetExpWinVer(_In_ PVOID BaseAddress);
 
 NTSTATUS
 APIENTRY
-NtUserDwmShutdown();
+NtUserDwmShutdown(VOID);
 
 BOOLEAN
 APIENTRY
