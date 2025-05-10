@@ -51,7 +51,7 @@ SessionBypassInitializeDWM()
     }
 
     StartupInfo.cb = sizeof(STARTUPINFOW);
-    StartupInfo.lpDesktop = L"WinSta0\\Default";
+    StartupInfo.lpDesktop = (LPWSTR)L"WinSta0\\Default";
     if (!CreateProcessW(ProcessPath,
                         NULL,
                         NULL,

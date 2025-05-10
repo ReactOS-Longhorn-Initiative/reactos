@@ -337,10 +337,10 @@ protected:
         __in_ecount(1) const TBaseRect &rc
         ) const
     {
-        return (   (this->left == this->rc.left)
-                && (this->top  == this->rc.top )
-                && (this->right  == this->rc.right )
-                && (this->bottom == this->rc.bottom)
+        return (   (this->left == rc.left)
+                && (this->top  == rc.top )
+                && (this->right  == rc.right )
+                && (this->bottom == rc.bottom)
                );
     }
 
