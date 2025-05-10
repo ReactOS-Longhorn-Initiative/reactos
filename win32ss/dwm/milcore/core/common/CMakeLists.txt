@@ -64,4 +64,8 @@ WatermarkStack.cpp
 add_library(common ${SOURCE})
 add_dependencies(common xdk)
 
+if(NOT MSVC)
+    target_compile_options(common PRIVATE -fexceptions -frtti -Wno-sequence-point -Wno-unused-function -Wno-unused-but-set-variable -Wno-error -Wno-delete-non-virtual-dtor) # Our favourite compiler :)
+endif()
+
 target_link_libraries(common PRIVATE cppstl)

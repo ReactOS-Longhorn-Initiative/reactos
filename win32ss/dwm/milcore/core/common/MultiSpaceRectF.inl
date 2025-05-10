@@ -136,8 +136,8 @@ public:
 private:
 
     union {
-        TRect_<BaseMILRect::BaseRectType, CoordinateSpace::CoordSpace1> CoordSpace1;
-        TRect_<BaseMILRect::BaseRectType, CoordinateSpace::CoordSpace2> CoordSpace2;
+        TRect_<CMilRectF::BaseRectType, CoordinateSpace::CoordSpace1> CoordSpace1;
+        TRect_<CMilRectF::BaseRectType, CoordinateSpace::CoordSpace2> CoordSpace2;
     } m_rc;
 
     WHEN_DBG_ANALYSIS(CoordinateSpaceId::Enum m_currentSpace);

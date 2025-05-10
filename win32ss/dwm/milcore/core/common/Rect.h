@@ -36,9 +36,6 @@
 template <typename TBaseMILRect, typename Space>
 class TRect_ : public TBaseMILRect
 {
-  __if_exists (TBaseMILRect::HasBaseType)
-  {
-protected:
 
     //+------------------------------------------------------------------------
     //
@@ -51,9 +48,10 @@ protected:
     //
     //-------------------------------------------------------------------------
 
-    typedef TBaseMILRect BaseMILRectType;
-
+   
 public:
+ typedef TBaseMILRect BaseMILRectType;
+
     //=========================================================================
     // Constructors
     //
@@ -76,7 +74,7 @@ public:
 
         // This is a compile time assert so we only need it once here, but no
         // where else.
-        static_assert( sizeof(BaseMILRectType) == sizeof(TRect_) , " sizeof(BaseMILRectType) == sizeof(TRect_) ");
+        static_assert( sizeof(TBaseMILRect) == sizeof(TRect_) , " sizeof(BaseMILRectType) == sizeof(TRect_) ");
     }
 
 
@@ -89,33 +87,33 @@ public:
     //-------------------------------------------------------------------------
 
     TRect_(
-        typename BaseMILRectType::BaseUnitType _left,
-        typename BaseMILRectType::BaseUnitType _top,
-        typename BaseMILRectType::BaseUnitType _right,
-        typename BaseMILRectType::BaseUnitType _bottom,
+        typename TBaseMILRect::BaseUnitType _left,
+        typename TBaseMILRect::BaseUnitType _top,
+        typename TBaseMILRect::BaseUnitType _right,
+        typename TBaseMILRect::BaseUnitType _bottom,
         LTRB ltrb
         )
 //
 // [pfx_parse] - workaround for PREfix parse problems with initializing
 //
 #if (!defined(_PREFIX_)) && (!defined(_PREFAST_))
-    : BaseMILRectType(_left, _top, _right, _bottom, ltrb)
+    : TBaseMILRect(_left, _top, _right, _bottom, ltrb)
 #endif // !_PREFIX_
     {}
 
 
     TRect_(
-        typename BaseMILRectType::BaseUnitType x,
-        typename BaseMILRectType::BaseUnitType y,
-        typename BaseMILRectType::BaseUnitType width,
-        typename BaseMILRectType::BaseUnitType height,
+        typename TBaseMILRect::BaseUnitType x,
+        typename TBaseMILRect::BaseUnitType y,
+        typename TBaseMILRect::BaseUnitType width,
+        typename TBaseMILRect::BaseUnitType height,
         XYWH xywh
         )
 //
 // [pfx_parse] - workaround for PREfix parse problems with initializing
 //
 #if (!defined(_PREFIX_)) && (!defined(_PREFAST_))
-    : BaseMILRectType(x, y, width, height, xywh)
+    : TBaseMILRect(x, y, width, height, xywh)
 #endif // !_PREFIX_
     {}
 
@@ -124,7 +122,7 @@ public:
     // !!! No automatic conversion from generic rectangle of the base type !!!
     //
 #if NEVER
-    TRect_(__in_ecount(1) const typename BaseMILRectType::BaseRectType &rc)
+    TRect_(__in_ecount(1) const typename TBaseMILRect::BaseRectType &rc)
 //
 // [pfx_parse] - workaround for PREfix parse problems with initializing
 //
@@ -176,8 +174,6 @@ public:
     {
         return reinterpret_cast<const TRect_ *>(base);
     }
-
-  }
 
 };
 
@@ -237,10 +233,10 @@ public:
     //-------------------------------------------------------------------------
 
     CRectF(
-        typename BaseMILRectType::BaseUnitType _left,
-        typename BaseMILRectType::BaseUnitType _top,
-        typename BaseMILRectType::BaseUnitType _right,
-        typename BaseMILRectType::BaseUnitType _bottom,
+        typename CMilRectF::BaseUnitType _left,
+        typename CMilRectF::BaseUnitType _top,
+        typename CMilRectF::BaseUnitType _right,
+        typename CMilRectF::BaseUnitType _bottom,
         LTRB ltrb
         )
 //
@@ -253,10 +249,10 @@ public:
 
 
     CRectF(
-        typename BaseMILRectType::BaseUnitType x,
-        typename BaseMILRectType::BaseUnitType y,
-        typename BaseMILRectType::BaseUnitType width,
-        typename BaseMILRectType::BaseUnitType height,
+        typename CMilRectF::BaseUnitType x,
+        typename CMilRectF::BaseUnitType y,
+        typename CMilRectF::BaseUnitType width,
+        typename CMilRectF::BaseUnitType height,
         XYWH xywh
         )
 //
@@ -332,12 +328,12 @@ public:
     //
     //-------------------------------------------------------------------------
 
-    static CRectF * ReinterpretBaseType(__in_ecount_opt(1) TRect_<typename BaseMILRectType::BaseRectType, Space> *base)
+    static CRectF * ReinterpretBaseType(__in_ecount_opt(1) TRect_<typename CMilRectF::BaseRectType, Space> *base)
     {
         return reinterpret_cast<CRectF *>(base);
     }
 
-    static const CRectF * ReinterpretBaseType(__in_ecount_opt(1) const TRect_<typename BaseMILRectType::BaseRectType, Space> *base)
+    static const CRectF * ReinterpretBaseType(__in_ecount_opt(1) const TRect_<typename CMilRectF::BaseRectType, Space> *base)
     {
         return reinterpret_cast<const CRectF *>(base);
     }

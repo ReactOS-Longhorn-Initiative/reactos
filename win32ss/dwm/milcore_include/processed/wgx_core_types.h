@@ -1273,6 +1273,8 @@ struct MilPointAndSizeF
 //------------------------------------------------------------------------------
 struct MilRectF
 {
+    typedef FLOAT BaseUnitType; 
+    typedef MilRectF BaseRectType;
     FLOAT left;
     FLOAT top;
     FLOAT right;
