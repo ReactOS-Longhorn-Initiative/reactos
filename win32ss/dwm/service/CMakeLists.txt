@@ -2,10 +2,10 @@
 spec2def(uxsms.dll uxsms.spec ADD_IMPORTLIB)
 
 add_library(uxsms MODULE
-    dwmsession.c
-    uxsms.c
-    serv.c
-    port.c
+    dwmsession.cpp
+    uxsms.cpp
+    serv.cpp
+    port.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/uxsms_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/uxsms.def)
 

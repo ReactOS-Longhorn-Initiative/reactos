@@ -11,6 +11,7 @@
 
 /* FUNCTIONS *****************************************************************/
 
+EXTERN_C
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL,
         DWORD fdwReason,
@@ -29,6 +30,7 @@ DllMain(HINSTANCE hinstDLL,
     return TRUE;
 }
 
+EXTERN_C
 VOID
 WINAPI
 ServiceMain(DWORD argc, LPTSTR *argv)
