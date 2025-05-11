@@ -49,6 +49,7 @@ LpcRequestPort(
 //
 // Native calls
 //
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -61,6 +62,7 @@ NtAcceptConnectPort(
     _Out_opt_ PREMOTE_PORT_VIEW ClientView
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -68,6 +70,7 @@ NtCompleteConnectPort(
     _In_ HANDLE PortHandle
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -82,6 +85,7 @@ NtConnectPort(
     _Inout_opt_ PULONG ConnectionInformationLength
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -93,6 +97,7 @@ NtCreatePort(
     _In_ ULONG MaxPoolUsage
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -104,6 +109,7 @@ NtCreateWaitablePort(
     _In_opt_ ULONG NPMessageQueueSize
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -112,6 +118,7 @@ NtImpersonateClientOfPort(
     _In_ PPORT_MESSAGE ClientMessage
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -120,6 +127,7 @@ NtListenPort(
     _In_ PPORT_MESSAGE ConnectionRequest
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -131,12 +139,14 @@ NtQueryInformationPort(
     _Out_ PULONG ReturnLength
 );
 
+EXTERN_C
 NTSTATUS
 NTAPI
 NtQueryPortInformationProcess(
     VOID
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -149,6 +159,7 @@ NtReadRequestData(
     _Out_ PULONG ReturnLength
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -157,6 +168,7 @@ NtReplyPort(
     _In_ PPORT_MESSAGE LpcReply
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -167,6 +179,7 @@ NtReplyWaitReceivePort(
     _Out_ PPORT_MESSAGE ReceiveMessage
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -178,6 +191,7 @@ NtReplyWaitReceivePortEx(
     _In_opt_ PLARGE_INTEGER Timeout
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -186,6 +200,7 @@ NtReplyWaitReplyPort(
     _Out_ PPORT_MESSAGE ReplyMessage
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -194,6 +209,7 @@ NtRequestPort(
     _In_ PPORT_MESSAGE LpcMessage
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -203,6 +219,7 @@ NtRequestWaitReplyPort(
     _In_ PPORT_MESSAGE LpcRequest
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -218,6 +235,7 @@ NtSecureConnectPort(
     _Inout_opt_ PULONG ConnectionInformationLength
 );
 
+EXTERN_C
 NTSYSCALLAPI
 NTSTATUS
 NTAPI

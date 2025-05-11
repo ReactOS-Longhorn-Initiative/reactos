@@ -32,7 +32,8 @@ SessionBypassHandleDwmExit(void *p, BOOLEAN timeout)
 }
 
 /*
- * This is a massive hack.
+ * This is a massive hack..
+ * This should happen
  */
 NTSTATUS
 WINAPI

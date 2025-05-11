@@ -30,3 +30,9 @@ uxss.exe startup
 -> connect to\\UxSmsApiPort
 -> send thicc sync lpc request.
 -> Create dwm invisible window.
+
+
+uxsms.dll
+-> Init session amanger
+-> init port.
+-> start port thread

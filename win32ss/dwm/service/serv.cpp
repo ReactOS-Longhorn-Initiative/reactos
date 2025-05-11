@@ -92,6 +92,7 @@ ServiceHandleSessionEvents(DWORD dwEventType,
             break;
         case WTS_SESSION_LOGON:
             DPRINT1("Session logon event received\n");
+            // THis is where you would start the DWM process
             break;
         case WTS_SESSION_LOGOFF:
             DPRINT1("Session logoff event received\n");
@@ -154,12 +155,28 @@ ServiceStartup()
     DPRINT1("RegisterServiceCtrlHandlerExW succeeded\n");
 
     UpdateServiceStatus(SERVICE_START_PENDING);
-    /* Start UX.SS/DWM.EXE */
-    SessionBypassInitializeDWM();
-    /* Start port here */
-    // TODO; ReactOS has no support for Multisession, so let's indefinietly start 
-    // The DWM and move on.
+
+    /* Start port here (UxSmsApiPort)*/
+    InitializeServicePort();
 
     UpdateServiceStatus(SERVICE_RUNNING);
+    // TODO: HACK: ReactOS has no support for Multisession, so let's indefinietly start 
+    /* Start UX.SS/DWM.EXE
+     * This is actually NOT correct. 
+     * The DWM service should be started  at the logon event
+     * Here we are just starting it as a hack.
+     * The act of declerating the service running SHOULD result in the thing begin done at logon
+     * 
+     * 
+     * Some weird observations:
+     * -> This is probably the result of the black fade to desktop functionality. and is why
+     * this is even possible. 
+     * -> Logonui, putting the passwords in, then right when logon is accepted is likely
+     * when this is fired.
+     * -> So DWM startsup at this point if all lights are green behind the screen and fade in 
+     * only occurs after it finishes.
+     */
+    __debugbreak();
+    SessionBypassInitializeDWM();
     return S_OK;
 }
