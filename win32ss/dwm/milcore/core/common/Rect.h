@@ -438,14 +438,18 @@ template <typename CoordSpace1, typename CoordSpace2>
 class CMultiSpaceRectF;
 
 // define CMultiSpaceRectF<BaseSampling, Device>
-#define CoordSpace1 BaseSampling
-#define CoordSpace2 Device
-#include "MultiSpaceRectF.inl"
+//#undef CoordSpace1
+//#undef CoordSpace2
+//#define CoordSpace1 BaseSampling
+//#define CoordSpace2 Device
+//#include "MultiSpaceRectF.inl"
 
 // define CMultiSpaceRectF<PageInPixels, Device>
-#define CoordSpace1 PageInPixels
-#define CoordSpace2 Device
-#include "MultiSpaceRectF.inl"
+//#undef CoordSpace1
+//#undef CoordSpace2
+//#define CoordSpace1 PageInPixels
+//#define CoordSpace2 Device
+//#include "MultiSpaceRectF.inl"
 
 
 

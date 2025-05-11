@@ -68,39 +68,39 @@ class CMultiSpaceRectF<CoordinateSpace::CoordSpace1, CoordinateSpace::CoordSpace
 public:
 
     CMultiSpaceRectF()
-    WHEN_DBG_ANALYSIS(: m_currentSpace(CoordinateSpaceId::Invalid))
     {
+        WHEN_DBG_ANALYSIS(m_currentSpace(CoordinateSpaceId::Invalid));
     }
 
     CRectSpace1 const &CoordSpace1() const
     {
         Assert(m_currentSpace == CoordinateSpace::CoordSpace1::Id);
-        return *CRectSpace1::ReinterpretBaseType(&m_rc.CoordSpace1);
+        return *CRectSpace1::ReinterpretBaseType(CoordSpace1);
     };
 
     CRectSpace1 &CoordSpace1()
     {
         WHEN_DBG_ANALYSIS(m_currentSpace = CoordinateSpace::CoordSpace1::Id);
-        return *CRectSpace1::ReinterpretBaseType(&m_rc.CoordSpace1);
+        return *CRectSpace1::ReinterpretBaseType(CoordSpace1);
     };
 
     CRectSpace1 const & operator=(CRectSpace1 const &rc)
     {
         WHEN_DBG_ANALYSIS(m_currentSpace = CoordinateSpace::CoordSpace1::Id);
-        return (*CRectSpace1::ReinterpretBaseType(&m_rc.CoordSpace1) = rc);
+        return (*CRectSpace1::ReinterpretBaseType(CoordSpace1) = rc);
     };
 
 
     CRectSpace2 const &CoordSpace2() const
     {
         Assert(m_currentSpace == CoordinateSpace::CoordSpace2::Id);
-        return *CRectSpace2::ReinterpretBaseType(&m_rc.CoordSpace2);
+        return *CRectSpace2::ReinterpretBaseType(CoordSpace2);
     };
 
     CRectSpace2 &CoordSpace2()
     {
         WHEN_DBG_ANALYSIS(m_currentSpace = CoordinateSpace::CoordSpace2::Id);
-        return *CRectSpace2::ReinterpretBaseType(&m_rc.CoordSpace2);
+        return *CRectSpace2::ReinterpretBaseType(CoordSpace2);
     };
 
 
@@ -117,13 +117,13 @@ public:
     BaseMILRect const &AnySpace() const
     {
         Assert(m_currentSpace != CoordinateSpaceId::Invalid);
-        return *CRectSpace1::ReinterpretBaseType(&m_rc.CoordSpace1);
+        return *CRectSpace1::ReinterpretBaseType(CoordSpace1);
     }
 
     BaseMILRect &AnySpace()
     {
         Assert(m_currentSpace != CoordinateSpaceId::Invalid);
-        return *CRectSpace1::ReinterpretBaseType(&m_rc.CoordSpace1);
+        return *CRectSpace1::ReinterpretBaseType(CoordSpace1);
     }
 
 #if DBG_ANALYSIS
@@ -135,10 +135,11 @@ public:
 
 private:
 
-    union {
+    // TODO use union
+    //union {
         TRect_<CMilRectF::BaseRectType, CoordinateSpace::CoordSpace1> CoordSpace1;
         TRect_<CMilRectF::BaseRectType, CoordinateSpace::CoordSpace2> CoordSpace2;
-    } m_rc;
+    //} m_rc;
 
     WHEN_DBG_ANALYSIS(CoordinateSpaceId::Enum m_currentSpace);
 };

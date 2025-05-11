@@ -1,8 +1,10 @@
 #ifndef _MUTEX_
 #define _MUTEX_
 
+#ifndef FASTCALL
 #include <ntdef.h>
 #include <ntifs.h>
+#endif
 
 namespace std {
 
