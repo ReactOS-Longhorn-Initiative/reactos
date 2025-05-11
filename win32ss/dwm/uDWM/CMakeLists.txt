@@ -9,9 +9,6 @@ spec2def(uDWM.dll uDWM.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
     entry.c
-    CppEntry.cpp
-    classes/CWindowList.cpp
-    CDesktopManager.cpp
     stubs.c)
 
 add_library(uDWM MODULE
@@ -23,4 +20,4 @@ add_library(uDWM MODULE
 set_module_type(uDWM win32dll)
 add_importlibs(uDWM msvcrt kernel32 ntdll user32)
 add_dependencies(uDWM psdk)
-#add_cd_file(TARGET uDWM DESTINATION reactos/system32 FOR all)
+add_cd_file(TARGET uDWM DESTINATION reactos/system32 FOR all)

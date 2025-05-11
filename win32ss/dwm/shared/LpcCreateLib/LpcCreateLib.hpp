@@ -15,3 +15,17 @@
 #include <ndk/rtlfuncs.h>
 
 #include <ndk/kefuncs.h>
+
+class LpcCreateLib
+{
+private:
+    HANDLE InstancePort;
+
+public:
+    LpcCreateLib();
+    ~LpcCreateLib();
+
+    NTSTATUS StartPortThread(HANDLE hSourceHandle);
+    NTSTATUS StopPortThread();
+    NTSTATUS WaitOnPortThread();
+};

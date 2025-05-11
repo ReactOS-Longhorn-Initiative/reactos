@@ -1,2 +1,2 @@
-101 stdcall -noname DwmClientStartup(ptr ptr)
-102 stdcall -noname DwmClientShutdown()
+101 stdcall DwmClientStartup()
+102 stdcall DwmClientShutdown()
