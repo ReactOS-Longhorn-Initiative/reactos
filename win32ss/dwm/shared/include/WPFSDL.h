@@ -8,4 +8,5 @@
 #define _DEFINE_DEPRECATED_HASH_CLASSES 0
 #define _SDL_BANNED_RECOMMENDED 1
 
-#include <vadefs.h>
+//#include <sal.h>
+//#include <vadefs.h>

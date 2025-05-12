@@ -1,0 +1,37 @@
+#pragma once
+#include "../../../sdk/include/c++/stlport/utility"
+
+namespace std
+{
+// Remove reference utility
+template<typename T>
+struct remove_reference {
+    using type = T;
+};
+
+template<typename T>
+struct remove_reference<T&> {
+    using type = T;
+};
+
+template<typename T>
+struct remove_reference<T&&> {
+    using type = T;
+};
+
+template<typename T>
+using remove_reference_t = typename remove_reference<T>::type;
+
+// Forward implementation
+template<typename T>
+constexpr T&& forward(remove_reference_t<T>& t) noexcept {
+    return static_cast<T&&>(t);
+}
+
+template<typename T>
+constexpr T&& forward(remove_reference_t<T>&& t) noexcept {
+    static_assert(!std::is_lvalue_reference<T>::value,
+                  "forward<T>(T&&) called with lvalue");
+    return static_cast<T&&>(t);
+}
+}

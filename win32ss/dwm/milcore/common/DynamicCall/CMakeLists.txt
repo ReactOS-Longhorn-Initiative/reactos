@@ -16,23 +16,15 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/Generated)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/dxmath/Inc)
 
-# DIRECTXMATH requires SSE
-add_definitions(-DD3D9EXTENSIONS) # todo should DD3D9EXTENSIONS / DIRECTXMATH be used?
+add_definitions(-DDIRECTXMATH) # todo should DIRECTXMATH be used?
 
-list(APPEND SOURCE
-precomp.cpp
-effectlist.cpp
-    )
+list(APPEND SOURCE DelayCall.cpp)
 
-add_library(effects ${SOURCE})
-add_dependencies(effects xdk)
+add_library(DynamicCall ${SOURCE})
+add_dependencies(DynamicCall xdk)
 
-if(MSVC)
-include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
-# disable exception specification does not match previous declaration
-target_compile_options(effects PRIVATE /wd5043)
+if(NOT MSVC)
+    target_compile_options(DynamicCall PRIVATE -fexceptions -frtti)
 endif()
 
-set_target_cpp_properties(effects WITH_EXCEPTIONS WITH_RTTI)
-
-target_link_libraries(effects PRIVATE cppstl)
+target_link_libraries(DynamicCall PRIVATE cppstl)

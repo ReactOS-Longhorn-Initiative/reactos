@@ -79,9 +79,9 @@ namespace dxlayer
     public:
         // Compile a shader file using D3DXCompileShader
         static inline HRESULT compile(
-            std::string src_data,
-            std::string entry_point_name,
-            std::string shader_profile_target,
+            const char* src_data,
+            const char* entry_point_name,
+            const char* shader_profile_target,
             unsigned long flags1, unsigned long /*flags2*/,
             std::shared_ptr<buffer>& shader,
             std::shared_ptr<buffer>& err_msgs)
@@ -92,11 +92,11 @@ namespace dxlayer
 
             HRESULT hResult = 
                 D3DXCompileShader(
-                    src_data.c_str(), static_cast<UINT>(src_data.length()),
+                    src_data, static_cast<UINT>(strlen(src_data)),
                     nullptr,
                     nullptr,
-                    entry_point_name.c_str(),
-                    shader_profile_target.c_str(),
+                    entry_point_name,
+                    shader_profile_target,
                     flags1,
                     &pShader,
                     &pErrorMessages,
@@ -126,7 +126,7 @@ namespace dxlayer
         // Returns the name of the highest high-level shader language(HLSL) pixel-shader 
         // profile supported by a given device.
         template<typename ID3DDevice>
-        static std::string get_pixel_shader_profile_name(ID3DDevice* pD3DDevice);
+        static const char* get_pixel_shader_profile_name(ID3DDevice* pD3DDevice);
 
 #pragma endregion 
 
@@ -135,7 +135,7 @@ namespace dxlayer
         // Returns the name of the highest high-level shader language(HLSL) vertex-shader 
         // profile supported by a given device.
         template<typename ID3DDevice>
-        static std::string get_vertex_shader_profile_name(ID3DDevice* pD3DDevice);
+        static const char* get_vertex_shader_profile_name(ID3DDevice* pD3DDevice);
 
 #pragma endregion
 
@@ -181,7 +181,7 @@ namespace dxlayer
     // Specialization of get_pixel_shader_profile_name with 
     // ID3DDevice = IDirect3DDevice9
     template<>
-    inline std::string dxlayer::shader_t<dxlayer::dxapi::d3dx9>::get_pixel_shader_profile_name<IDirect3DDevice9>(
+    inline const char* dxlayer::shader_t<dxlayer::dxapi::d3dx9>::get_pixel_shader_profile_name<IDirect3DDevice9>(
         IDirect3DDevice9* pD3DDevice)
     {
         return D3DXGetPixelShaderProfile(pD3DDevice);
@@ -190,7 +190,7 @@ namespace dxlayer
     // Specialization of get_vertex_shader_profile_name with 
     // ID3DDevice = IDirect3DDevice9
     template<>
-    std::string dxlayer::shader_t<dxlayer::dxapi::d3dx9>::get_vertex_shader_profile_name<IDirect3DDevice9>(
+    inline const char* dxlayer::shader_t<dxlayer::dxapi::d3dx9>::get_vertex_shader_profile_name<IDirect3DDevice9>(
        IDirect3DDevice9* pD3DDevice)
     {
         return D3DXGetVertexShaderProfile(pD3DDevice);

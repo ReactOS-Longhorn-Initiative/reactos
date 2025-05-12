@@ -261,7 +261,7 @@ class numeric_limits<unsigned long>
   : public _STLP_PRIV _Integer_limits<unsigned long, 0, ULONG_MAX, -1, true>
 {};
 
-#if defined (_STLP_LONG_LONG)
+#if defined (_STLP_LONG_LONG) && !defined (LONGLONG_MAX)
 
 #  if defined (_STLP_MSVC) || defined (__BORLANDC__)
 #    define LONGLONG_MAX     0x7fffffffffffffffi64

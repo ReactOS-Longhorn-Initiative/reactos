@@ -190,7 +190,8 @@ namespace dxlayer
         {
             if (!expr)
             {
-                std::terminate();
+                DebugBreak();
+                //std::terminate();
             }
         }
     };
