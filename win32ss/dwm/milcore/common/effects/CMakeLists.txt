@@ -25,6 +25,8 @@ effectlist.cpp
 add_library(effects ${SOURCE})
 add_dependencies(effects xdk)
 
-set_target_cpp_properties(effects WITH_EXCEPTIONS WITH_RTTI)
+if(NOT MSVC)
+    target_compile_options(effects PRIVATE -fexceptions -frtti)
+endif()
 
 target_link_libraries(effects PRIVATE cppstl)

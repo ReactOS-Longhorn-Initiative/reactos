@@ -316,9 +316,6 @@ Enable this if the module uses typeid or dynamic_cast. You will probably need to
     # We're using widl now for both MSVC and GCC builds
     include(sdk/cmake/widl-support.cmake)
 
-    # Add C++ STL definitions
-    add_definitions(-DNATIVE_CPP_INCLUDE=${REACTOS_SOURCE_DIR}/sdk/include/c++)
-
     include_directories(
         sdk/include
         sdk/include/crt
@@ -337,8 +334,6 @@ Enable this if the module uses typeid or dynamic_cast. You will probably need to
         ${REACTOS_BINARY_DIR}/sdk/include/reactos/mc
         sdk/include/dxsdk
         sdk/lib/pseh/include
-        sdk/include/c++
-        sdk/include/c++/stlport
     )
 
     if(ARCH STREQUAL "arm")

@@ -166,11 +166,7 @@ namespace dxlayer
         // Type-cast operator to convert to an array of floats
         inline operator const std::array<float, 3>() const
         {
-            std::array<float, 3> arr;
-            arr[0] = x;
-            arr[1] = y;
-            arr[2] = z;
-            return arr;
+            return {x, y, z};
         }
     };
 }
