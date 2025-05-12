@@ -11,6 +11,9 @@ DwmEntry(HINSTANCE hInstance,
     UINT32 ExitCode;
     DWRUserFace AppHostInstance;
 
+    RWMCreateSessionPort();
+    RWMConnectToUxServ();
+    /* Now let's create a window */
     ExitCode = AppHostInstance.Initialize(hInstance);
     DPRINT1("CDwmAppHost::Initialize -> Exit code: %d\n", ExitCode);
     AppHostInstance.Run();

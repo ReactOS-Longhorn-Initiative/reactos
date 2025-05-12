@@ -9,6 +9,8 @@ list(APPEND SOURCE
 DWRUserFace.cpp
     dwr.cpp
     entry.c
+    sess.cpp
+    servconnect.cpp
     dwr.h)
 
 add_executable(uxss ${SOURCE} dwm.rc)
@@ -19,6 +21,6 @@ if(NOT MSVC)
 endif()
 
 set_module_type(uxss win32gui UNICODE)
-target_link_libraries(uxss evtlib)
+target_link_libraries(uxss evtlib LpcConnectLib)
 add_importlibs(uxss user32 gdi32 advapi32 rpcrt4 msvcrt kernel32 ntdll)
 add_cd_file(TARGET uxss DESTINATION reactos/system32 FOR all)
