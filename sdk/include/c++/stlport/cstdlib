@@ -25,7 +25,7 @@
 /* Native cstdlib includes stdlib.h using an include_next so STLport stdlib.h
  * is not used and the workaround in this file must be duplicated here
  * (see stdlib.h). */
-#    include "errno.h"
+//#    include "errno.h"
 #  endif
 
 #if (_STLP_OUTERMOST_HEADER_ID == 0x116)

@@ -1,0 +1,99 @@
+#ifndef ROS_STD_TYPE_TRAITS_HPP
+#define ROS_STD_TYPE_TRAITS_HPP
+
+#include "stlport/type_traits"
+
+extern "C++"
+{
+    namespace std {
+
+    // enable_if
+    template<bool B, typename T = void>
+    struct enable_if {};
+
+    template<typename T>
+    struct enable_if<true, T> {
+        typedef T type;
+    };
+
+    // C++14 alias
+    template<bool B, typename T = void>
+    using enable_if_t = typename enable_if<B, T>::type;
+
+    // is_floating_point
+    template<typename T> struct is_floating_point       { static const bool value = false; };
+    template<> struct is_floating_point<float>          { static const bool value = true; };
+    template<> struct is_floating_point<double>         { static const bool value = true; };
+    template<> struct is_floating_point<long double>    { static const bool value = true; };
+
+    // remove_reference
+    template<typename T>
+    struct remove_reference { typedef T type; };
+
+    template<typename T>
+    struct remove_reference<T&> { typedef T type; };
+
+    template<typename T>
+    struct remove_reference<T&&> { typedef T type; };
+
+// Step 2: Remove const and volatile
+template <typename T>
+struct remove_cv {
+    using type = T;
+};
+
+template <typename T>
+struct remove_cv<const T> {
+    using type = T;
+};
+
+template <typename T>
+struct remove_cv<volatile T> {
+    using type = T;
+};
+
+template <typename T>
+struct remove_cv<const volatile T> {
+    using type = T;
+};
+
+// Step 3: Convert arrays to pointers and functions to function pointers
+template <typename T>
+struct decay_impl {
+    using type = T;
+};
+
+// Specialization for arrays
+template <typename T, std::size_t N>
+struct decay_impl<T[N]> {
+    using type = T*;
+};
+
+// Specialization for function pointers
+template <typename Ret, typename... Args>
+struct decay_impl<Ret(Args...)> {
+    using type = Ret(*)(Args...);
+};
+
+template <typename Ret, typename... Args>
+struct decay_impl<Ret(Args...) &> {
+    using type = Ret(&)(Args...);
+};
+
+template <typename Ret, typename... Args>
+struct decay_impl<Ret(Args...) &&> {
+    using type = Ret(&&)(Args...);
+};
+
+// Step 4: Combine all transformations into decay
+template <typename T>
+struct decay : public decay_impl<typename remove_cv<typename remove_reference<T>::type>::type> {};
+
+// Step 5: Define std::decay_t
+template <typename T>
+using decay_t = typename decay<T>::type;
+
+    } // namespace std
+}
+
+#endif // ROS_STD_TYPE_TRAITS_HPP

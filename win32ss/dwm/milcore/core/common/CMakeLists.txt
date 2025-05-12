@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 remove_definitions(-D_WIN32_WINNT=0x502)
 add_definitions(-D_WIN32_WINNT=0x600)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/c++)
+
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/UtilLib)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore/common/DirectXLayer/)
@@ -62,6 +62,7 @@ utils.cpp
 WatermarkStack.cpp
     )
 
+add_pch(common precomp.cpp SOURCE)
 add_library(common ${SOURCE})
 add_dependencies(common xdk)
 

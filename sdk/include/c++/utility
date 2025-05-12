@@ -1,0 +1,39 @@
+#ifndef ROS_STD_UTILITY_HPP
+#define ROS_STD_UTILITY_HPP
+
+#include <type_traits>
+
+namespace std {
+
+    // is_lvalue_reference
+    template<typename T> struct is_lvalue_reference     { static const bool value = false; };
+    template<typename T> struct is_lvalue_reference<T&> { static const bool value = true; };
+
+    // move
+    template<typename T>
+    inline typename remove_reference<T>::type&& move(T&& t) noexcept {
+        return static_cast<typename remove_reference<T>::type&&>(t);
+    }
+
+    // forward
+    template<typename T>
+    inline T&& forward(typename remove_reference<T>::type& t) noexcept {
+        return static_cast<T&&>(t);
+    }
+
+    template<typename T>
+    inline T&& forward(typename remove_reference<T>::type&& t) noexcept {
+        static_assert(!is_lvalue_reference<T>::value, "Cannot forward an rvalue as an lvalue");
+        return static_cast<T&&>(t);
+    }
+
+    template <typename T, typename U = T>
+    inline T exchange(T& obj, U&& new_value) {
+        T old_value = static_cast<T&&>(obj);
+        obj = static_cast<U&&>(new_value);
+        return old_value;
+    }
+
+} // namespace std
+
+#endif // ROS_STD_UTILITY_HPP

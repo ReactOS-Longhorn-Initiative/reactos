@@ -301,7 +301,9 @@ RtlAssert(
 #endif
 
 #include <time.h>
-//#include <cmath>
+#include <cmath>
+#include <math.h>
+#include <utility>
 #include <float.h>
 #include <stdio.h>
 #include <fcntl.h>

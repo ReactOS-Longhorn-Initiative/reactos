@@ -58,7 +58,7 @@
 // #  define _STLP_WCHAR_T_IS_USHORT 1
 
 // Uncomment if long long is available
-#  define _STLP_LONG_LONG __int64
+//#  define _STLP_LONG_LONG __int64
 // Uncomment if long double is not available
 // #  define _STLP_NO_LONG_DOUBLE 1
 
@@ -125,7 +125,7 @@
 
 // Header <new> that comes with the compiler
 // does not define bad_alloc exception
-// #  define _STLP_NO_BAD_ALLOC  1
+#  define _STLP_NO_BAD_ALLOC  1
 
 // Define this if your compiler do not throw bad_alloc from the new operator
 // #  define _STLP_NEW_DONT_THROW_BAD_ALLOC  1
@@ -241,7 +241,7 @@
 // #  define   _STLP_NO_AT_MEMBER_FUNCTION 1
 
 // Define this if compiler lacks <exception> header
-// #  define _STLP_NO_EXCEPTION_HEADER 1
+#  define _STLP_NO_EXCEPTION_HEADER 1
 
 // Uncomment this if your C library has lrand48() function
 // #  define _STLP_RAND48 1

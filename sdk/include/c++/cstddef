@@ -8,4 +8,24 @@ namespace std
 {
   using ::ptrdiff_t;
   using ::size_t;
+
+  struct nullptr_t {
+    template<typename T>
+    constexpr operator T*() const noexcept {
+        return 0;
+    }
+
+    template<typename C, typename T>
+    constexpr operator T C::*() const noexcept {
+        return 0;
+    }
+
+    constexpr nullptr_t() = default;
+    constexpr nullptr_t(int) {}
+
+private:
+    void operator&() const = delete;
+};
+
+constexpr nullptr_t nullptr_instance = {};
 }
