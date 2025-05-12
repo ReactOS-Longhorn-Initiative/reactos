@@ -17,18 +17,18 @@ namespace dxlayer
     struct macro
     {
     public:
-        std::string definition;
-        std::string name;
+        const char* definition;
+        const char* name;
     };
 
 
     // Encapsulates a void* buffer along with the data buffer size
     struct data
     {
-        void far* buffer;
+        void* buffer;
         int64_t  buffer_size;
 
-        inline data(void far* buffer, int64_t buffer_size)
+        inline data(void* buffer, int64_t buffer_size)
             : buffer(buffer), buffer_size(buffer_size) {}
     };
 
@@ -48,9 +48,9 @@ namespace dxlayer
     public:
         // Compile a shader file
         static HRESULT compile(
-            std::string src_data,
-            std::string entry_point_name,
-            std::string shader_profile_target,
+            const char* src_data,
+            const char* entry_point_name,
+            const char* shader_profile_target,
             unsigned long flags1, unsigned long flags2,
             std::shared_ptr<buffer>& shader,
             std::shared_ptr<buffer>& err_msgs);
@@ -63,12 +63,12 @@ namespace dxlayer
         // Returns the name of the highest high-level shader language(HLSL) pixel-shader 
         // profile supported by a given device.
         template<typename ID3DDevice>
-        static std::string get_pixel_shader_profile_name(ID3DDevice* pD3DDevice);
+        static const char* get_pixel_shader_profile_name(ID3DDevice* pD3DDevice);
 
         // Returns the name of the highest high-level shader language(HLSL) vertex-shader 
         // profile supported by a given device.
         template<typename ID3DDevice>
-        static std::string get_vertex_shader_profile_name(ID3DDevice* pD3DDevice);
+        static const char* get_vertex_shader_profile_name(ID3DDevice* pD3DDevice);
     };
 
 }

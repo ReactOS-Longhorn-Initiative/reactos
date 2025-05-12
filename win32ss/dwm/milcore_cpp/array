@@ -1,0 +1,115 @@
+#ifndef _ARRAY_
+#define _ARRAY_
+
+#include <windows.h>
+//#include <cstddef>
+//#include <type_traits>
+//#include <utility>
+
+namespace std {
+
+template <typename T, size_t N>
+class array {
+private:
+    T* m_data;
+
+public:
+    array() {
+        m_data = static_cast<T*>(HeapAlloc(GetProcessHeap(), 0, N * sizeof(T)));
+        for (size_t i = 0; i < N; ++i) {
+            new (m_data + i) T(); // Placement new to construct elements
+        }
+    }
+
+    ~array() {
+        for (size_t i = 0; i < N; ++i) {
+            m_data[i].~T(); // Explicitly call destructors
+        }
+        HeapFree(GetProcessHeap(), 0, m_data);
+    }
+
+    T& operator[](size_t index) {
+        return m_data[index];
+    }
+
+    const T& operator[](size_t index) const {
+        return m_data[index];
+    }
+
+    constexpr size_t size() const {
+        return N;
+    }
+
+    T* data() noexcept {
+        return m_data;
+    }
+
+    const T* data() const noexcept {
+        return m_data;
+    }
+
+    T* begin() noexcept {
+        return m_data;
+    }
+
+    const T* begin() const noexcept {
+        return m_data;
+    }
+
+    T* end() noexcept {
+        return m_data + N;
+    }
+
+    const T* end() const noexcept {
+        return m_data + N;
+    }
+
+    void fill(const T& value) {
+        for (size_t i = 0; i < N; ++i) {
+            m_data[i] = value;
+        }
+    }
+
+    // Non-copyable
+    array(const array&) = delete;
+    array& operator=(const array&) = delete;
+
+    // Movable
+    array(array&& other) noexcept : m_data(other.m_data) {
+        other.m_data = nullptr;
+    }
+
+    array& operator=(array&& other) noexcept {
+        if (this != &other) {
+            this->~array();
+            m_data = other.m_data;
+            other.m_data = nullptr;
+        }
+        return *this;
+    }
+};
+
+/*// Support for structured bindings
+template <typename T, size_t N>
+struct tuple_size<array<T, N>> : integral_constant<size_t, N> {};
+
+template <size_t I, typename T, size_t N>
+struct tuple_element<I, array<T, N>> {
+    using type = T;
+};*/
+
+template <size_t I, typename T, size_t N>
+T& get(array<T, N>& arr) noexcept {
+    static_assert(I < N, "Index out of bounds");
+    return arr[I];
+}
+
+template <size_t I, typename T, size_t N>
+const T& get(const array<T, N>& arr) noexcept {
+    static_assert(I < N, "Index out of bounds");
+    return arr[I];
+}
+
+} // namespace std
+
+#endif // _ARRAY_

@@ -11,6 +11,8 @@
 
 // TODO better place for this
 
+#ifndef _MSC_VER
+
 #if defined(__cplusplus) && (USE___UUIDOF == 0)
 extern "C++" {
 #if __cpp_constexpr >= 200704l && __cpp_inline_variables >= 201606L
@@ -59,6 +61,7 @@ __extension__ template<typename T> const GUID &__mingw_uuidof();
 
 #define __CRT_UUID_DECL(type,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8)
 
+#endif
 #endif
 
 namespace Microsoft {
