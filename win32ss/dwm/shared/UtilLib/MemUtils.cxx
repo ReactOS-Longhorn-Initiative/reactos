@@ -741,13 +741,13 @@ operator delete[](void * pv)
     WPFFree(ProcessHeap, pv);
 }
 #else
-__allocator inline __bcount(cbSize) void * __cdecl
+__allocator __bcount(cbSize) void * __cdecl
 operator new(size_t cbSize)
 {
     return WPFAlloc(ProcessHeap, Mt(OpNew), cbSize);
 }
 
-__allocator inline __bcount(cbSize) void * __cdecl
+__allocator __bcount(cbSize) void * __cdecl
 operator new[](size_t cbSize)
 {
     return WPFAlloc(ProcessHeap, Mt(OpNew), cbSize);
