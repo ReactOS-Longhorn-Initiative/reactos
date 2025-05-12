@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <string.h>
+#include <strsafe.h>
 
 // Get rid of those macros defined in <string.h> in lieu of real functions.
 #undef memchr

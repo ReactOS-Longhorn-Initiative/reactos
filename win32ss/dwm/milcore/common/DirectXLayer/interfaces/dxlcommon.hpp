@@ -9,6 +9,8 @@
 // used by the DX abstraction layer
 
 #include <memory>
+#include <type_traits>
+#include <math.h>
 
 #include <windows.h>
 
@@ -204,10 +206,13 @@ namespace dxlayer
         }
     };
 
+    template<bool B, typename T = void>
+    using enable_if_t = typename std::enable_if<B, T>::type;
+
     // Definition for floating point equality comparisons
     // This is based on The Art of Computer Programming by Donald Knuth, 
     // Vol 2. Section 4.2.2.A. 
-    template<typename Floating, typename = std::enable_if_t<std::is_floating_point<Floating>::value>>
+    template<typename Floating, typename = enable_if_t<std::is_floating_point<Floating>::value>>
     struct comparer
     {
         inline bool operator()(const Floating& a, const Floating& b) const

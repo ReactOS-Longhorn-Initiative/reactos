@@ -41,7 +41,6 @@ namespace std
   using ::ldiv_t;
 
   using ::abort;
-  using ::abs;
   using ::atexit;
   using ::atof;
   using ::atoi;
@@ -68,9 +67,6 @@ namespace std
   using ::system;
   using ::wcstombs;
   using ::wctomb;
-
-  inline long
-  abs(long __i) { return labs(__i); }
 
   inline ldiv_t
   div(long __i, long __j) { return ldiv(__i, __j); }

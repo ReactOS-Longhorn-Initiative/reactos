@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <exception>
 
-extern "C++" {
+/*extern "C++" {
 
 class bad_alloc : public exception
 {
@@ -43,5 +43,6 @@ void operator delete[] (void* ptr, const std::nothrow_t& nothrow_constant) throw
 inline void operator delete[] (void* ptr, void* voidptr2) throw() { }
 
 } // extern "C++"
+ */
 
 #endif

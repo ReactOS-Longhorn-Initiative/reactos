@@ -209,8 +209,7 @@ __get_integer(_InputIter& __first, _InputIter& __last,
       __ovflow = true;  //don't need to keep accumulating
     else {
       _Integer __next = __STATIC_CAST(_Integer, __base * __result + __n);
-      if (__result != 0)
-        __ovflow = __ovflow || __next <= __result;
+      if (__result != 0) __ovflow = __ovflow || __next <= __result;
         __result = __next;
       }
   }

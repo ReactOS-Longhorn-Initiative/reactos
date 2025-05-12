@@ -5,8 +5,12 @@
 
 #include <crtdefs.h>
 
-extern "C++" {
 
+extern "C++" {
+namespace std
+{
+
+/*
 class exception
 {
 public:
@@ -44,11 +48,12 @@ namespace std
 
     bool uncaught_exception() throw();
 } // namespace std
-
+*/
 typedef void (*terminate_handler) ();
 terminate_handler set_terminate(terminate_handler) throw();
 __MINGW_ATTRIB_NORETURN void terminate() throw();
-
+    
+}
 } // extern "C++"
 
 #endif

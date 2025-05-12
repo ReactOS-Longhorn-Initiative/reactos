@@ -39,7 +39,7 @@ namespace dxlayer
         float operator[](int index) const;
 
         // Type-cast operator to convert to an array of floats
-        operator const std::array<float, 2>() const;
+        operator std::array<float, 2>() const;
     };
 }
 
