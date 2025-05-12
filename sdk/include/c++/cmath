@@ -3,10 +3,7 @@
 #pragma once
 #define _CMATH_
 
-#define _STLP_INTERNAL_CMATH // disable stlport internal header
-#include <limits>
 #include <math.h>
-
 
 // Get rid of those macros defined in <math.h> in lieu of real functions.
 #undef abs

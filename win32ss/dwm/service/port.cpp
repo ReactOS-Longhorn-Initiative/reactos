@@ -9,7 +9,7 @@
 
 /* GLOBALS ******************************************************************/
 
-//static WCHAR PortName[] = L"\\UxSmsApiPort";
+static WCHAR PortName[] = L"\\UxSmsApiPort";
 
 /* FUNCTIONS ****************************************************************/
 

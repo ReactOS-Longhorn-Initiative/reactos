@@ -89,10 +89,6 @@ const ios_base::seekdir ios_base::end;
 // initialized to zero.  Returns a pointer to the new array, and the new
 // size.
 
-#if defined(__GNUC__) && __GNUC__ >= 8
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
 template <class PODType>
 static pair<PODType*, size_t>
 _Stl_expand_array(PODType* __array, size_t N, int index) {
@@ -110,9 +106,6 @@ _Stl_expand_array(PODType* __array, size_t N, int index) {
   else
     return pair<PODType*, size_t>(__array, N);
 }
-#if defined(__GNUC__) && __GNUC__ >= 8
-    #pragma GCC diagnostic pop
-#endif
 
 // array is a pointer to N elements of type PODType.  Allocate a new
 // array of N elements, copying the values from the old array to the new.
