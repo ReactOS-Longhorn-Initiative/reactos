@@ -1,5 +1,7 @@
 #pragma once
 #include "../../../sdk/include/c++/stlport/utility"
+#include <type_traits>
+#include <vector>
 
 namespace std
 {
@@ -34,4 +36,58 @@ constexpr T&& forward(remove_reference_t<T>&& t) noexcept {
                   "forward<T>(T&&) called with lvalue");
     return static_cast<T&&>(t);
 }
+
+
+template<typename T>
+typename std::add_rvalue_reference<T>::type declval() noexcept
+{
+    static_assert(false, "declval not allowed in an evaluated context");
+}
+
+template <typename T, typename Alloc>
+T* begin(std::vector<T, Alloc>& v)
+{
+    return v.empty() ? nullptr : &v[0];
+}
+
+template <typename T, typename Alloc>
+T* end(std::vector<T, Alloc>& v)
+{
+    return v.empty() ? nullptr : &v[0] + v.size();
+}
+
+template <typename T, typename Alloc>
+const T* begin(const std::vector<T, Alloc>& v)
+{
+    return v.empty() ? nullptr : &v[0];
+}
+
+template <typename T, typename Alloc>
+const T* end(const std::vector<T, Alloc>& v)
+{
+    return v.empty() ? nullptr : &v[0] + v.size();
+}
+
+// begin for raw arrays
+template <typename T, size_t N>
+T* begin(T (&arr)[N]) {
+    return arr;
+}
+
+template <typename T, size_t N>
+T* end(T (&arr)[N]) {
+    return arr + N;
+}
+
+// const-qualified versions
+template <typename T, size_t N>
+const T* begin(const T (&arr)[N]) {
+    return arr;
+}
+
+template <typename T, size_t N>
+const T* end(const T (&arr)[N]) {
+    return arr + N;
+}
+
 }

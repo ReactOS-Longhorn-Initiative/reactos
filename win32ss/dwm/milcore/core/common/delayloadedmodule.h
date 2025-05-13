@@ -71,12 +71,12 @@ public:
 
         if (hr == WGXERR_NOTINITIALIZED)
         {
-            __if_exists (ModuleInfo::CheckLoadAvailability)
+            //__if_exists (ModuleInfo::CheckLoadAvailability)
             {
                 hr = ModuleInfo::CheckLoadAvailability();
             }
             // else
-            __if_not_exists (ModuleInfo::CheckLoadAvailability)
+            //__if_not_exists (ModuleInfo::CheckLoadAvailability)
             {
                 hr = S_OK;
             }

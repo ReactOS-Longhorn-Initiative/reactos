@@ -196,7 +196,7 @@ public:
         __in_ecount(1) const CBaseMatrix &m1,
         __in_ecount(1) const CBaseMatrix &m2
         );
-#ifdef DBG
+#if 0
     VOID Dump() const;
 #endif
 

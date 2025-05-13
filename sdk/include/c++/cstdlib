@@ -41,14 +41,18 @@ namespace std
   using ::ldiv_t;
 
   using ::abort;
+  #ifdef _MSC_VER
   using ::abs;
+  #endif
   using ::atexit;
   using ::atof;
   using ::atoi;
   using ::atol;
   using ::bsearch;
   using ::calloc;
+  #ifdef _MSC_VER
   using ::div;
+  #endif
   using ::exit;
   using ::free;
   using ::getenv;
@@ -69,9 +73,11 @@ namespace std
   using ::wcstombs;
   using ::wctomb;
 
+  #ifdef _MSC_VER
   inline long
   abs(long __i) { return labs(__i); }
 
   inline ldiv_t
   div(long __i, long __j) { return ldiv(__i, __j); }
+  #endif
 }

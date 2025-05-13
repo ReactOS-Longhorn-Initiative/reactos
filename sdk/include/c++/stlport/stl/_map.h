@@ -184,6 +184,24 @@ public:
   void _M_swap_workaround(_Self& __x) { swap(__x); }
 #endif
 
+#ifdef __REACTOS__
+_Tp& at(const _Key& __k) {
+  typename map::iterator __i = this->find(__k);
+  if (__i == this->end()) {
+      __stl_throw_out_of_range("map::at");
+  }
+  return (*__i).second;
+}
+
+const _Tp& at(const _Key& __k) const {
+  typename map::const_iterator __i = this->find(__k);
+  if (__i == this->end()) {
+      __stl_throw_out_of_range("map::at");
+  }
+  return (*__i).second;
+}
+#endif
+
   // insert/erase
   pair<iterator,bool> insert(const value_type& __x)
   { return _M_t.insert_unique(__x); }

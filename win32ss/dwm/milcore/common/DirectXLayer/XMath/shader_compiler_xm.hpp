@@ -73,9 +73,9 @@ namespace dxlayer
     public:
         // Compile a shader file using D3DCompile
         static inline HRESULT compile(
-            std::string src_data,
-            std::string entry_point_name,
-            std::string shader_profile_target,
+            const char* src_data,
+            const char* entry_point_name,
+            const char* shader_profile_target,
             unsigned long flags1, unsigned long flags2,
             std::shared_ptr<buffer>& shader,
             std::shared_ptr<buffer>& err_msgs)
@@ -85,12 +85,12 @@ namespace dxlayer
 
             auto hResult =
                 D3DCompile(
-                    src_data.c_str(), src_data.size() * sizeof(std::string::value_type),
+                    src_data, strlen(src_data),
                     nullptr,
                     nullptr,
                     nullptr,
-                    entry_point_name.c_str(),
-                    shader_profile_target.c_str(),
+                    entry_point_name,
+                    shader_profile_target,
                     flags1, flags2,
                     &pShader, &pErrorMsgs);
 

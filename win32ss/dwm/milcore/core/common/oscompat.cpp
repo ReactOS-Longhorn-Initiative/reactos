@@ -186,12 +186,12 @@ UpdateLayeredWindowEx(
         IFCW32(UpdateLayeredWindow(
             hWnd,
             hdcDst,
-            (pXY) ? &POINT(*pXY) : NULL,
-            (psize) ? &SIZE(*psize) : NULL,
+            (POINT*)pXY,
+            (SIZE*)psize,
             hdcSrc,
-            (pptSrc) ? &POINT(*pptSrc) : NULL,
+            (POINT*)pptSrc,
             crKey,
-            (pblend) ? &BLENDFUNCTION(*pblend) : NULL,
+            (BLENDFUNCTION*)pblend,
             dwFlags
             ));
         #pragma warning( pop )

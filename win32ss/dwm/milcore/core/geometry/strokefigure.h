@@ -143,7 +143,7 @@ public:
 
     void Reset();
 
-    void CMatrix22::Set(
+    void Set(
         GpReal rM11,
             // In: The value to set for M11
         GpReal rM12,
@@ -1379,7 +1379,7 @@ protected:
                                              // of the last PrepareForNewEdge()
         GpReal          m_rLength;           // Sequence's total length
         UINT            m_uStartDash;        // The dash/space where the dash sequence starts
-        DynArrayIA<GpReal, 16> m_rgDashes;   // Dash/space ends array
+        DynArrayIA<double, 16> m_rgDashes;   // Dash/space ends array
     };
 
     // Data

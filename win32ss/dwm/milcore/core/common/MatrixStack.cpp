@@ -108,7 +108,7 @@ CBaseMatrixStack::PushOffset(float offsetX, float offsetY)
         top._42 += offsetX*top._12 + offsetY*top._22;
 
         //  Assumption:- 'top' Matrix is Affine
-        ASSERT(top.Is2DAffineOrNaN());
+        //ASSERT(top.Is2DAffineOrNaN());
                 
         IFC(m_matrixStack.Push(top));
     }

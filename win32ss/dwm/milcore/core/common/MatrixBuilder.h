@@ -32,7 +32,7 @@
 template <typename ResultInCoordSpace, typename ResultOutCoordSpace>
 class CMatrixBuilder
 {
-    typedef CMatrix<typename ResultInCoordSpace, typename ResultOutCoordSpace> ResultMatrix_t;
+    typedef CMatrix<ResultInCoordSpace, ResultOutCoordSpace> ResultMatrix_t;
 
 public:
 
@@ -76,8 +76,8 @@ public:
         Assert(m_eDbgCurrentInCoordSpaceId == ResultInCoordSpace::Id); /*  Not required, but expected. */
         Assert(m_eDbgCurrentOutCoordSpaceId == ResultOutCoordSpace::Id); /*  Not required, but expected. */
         m_matTarget = matCopyFrom;
-        WHEN_DBG_ANALYSIS(m_eDbgCurrentInCoordSpaceId = InCoordSpace);
-        WHEN_DBG_ANALYSIS(m_eDbgCurrentOutCoordSpaceId = ResultOutCoordSpace::Id);
+        //WHEN_DBG_ANALYSIS(m_eDbgCurrentInCoordSpaceId = InCoordSpace);
+        //WHEN_DBG_ANALYSIS(m_eDbgCurrentOutCoordSpaceId = ResultOutCoordSpace::Id);
     }
 
     template <typename InCoordSpace, typename OutCoordSpace>
@@ -117,9 +117,9 @@ public:
         BOOL fSuccess = m_matTarget.Invert(m_matTarget);
         if (fSuccess)
         {
-            WHEN_DBG_ANALYSIS(CoordinateSpaceId eDbgInOrg = m_eDbgCurrentInCoordSpaceId);
+            /*WHEN_DBG_ANALYSIS(CoordinateSpaceId eDbgInOrg = m_eDbgCurrentInCoordSpaceId);
             WHEN_DBG_ANALYSIS(m_eDbgCurrentInCoordSpaceId = m_eDbgCurrentOutCoordSpaceId);
-            WHEN_DBG_ANALYSIS(m_eDbgCurrentOutCoordSpaceId = eDbgInOrg);
+            WHEN_DBG_ANALYSIS(m_eDbgCurrentOutCoordSpaceId = eDbgInOrg);*/
         }
         return fSuccess;
     }

@@ -838,7 +838,7 @@ HRESULT HrGetRequiredBufferSize(
 
         if (cbStride < tmp)
         {
-            IFC(WINCODEC_ERR_INVALIDPARAMETER);
+            IFC(E_INVALIDARG);
         }
 
         IFC(UIntMult(requiredSize, cbStride, &requiredSize));
@@ -875,7 +875,7 @@ HRESULT HrGetRequiredBufferSize(
 
     if (!prc || prc->Height < 0 || prc->Width < 0)
     {
-        IFC(WINCODEC_ERR_INVALIDPARAMETER);
+        IFC(E_INVALIDARG);
     }
 
     IFC(HrGetRequiredBufferSize(
@@ -901,7 +901,7 @@ HRESULT HrGetRequiredBufferSize(
 
     if (!prc || prc->Height < 0 || prc->Width < 0)
     {
-        IFC(WINCODEC_ERR_INVALIDPARAMETER);
+        IFC(E_INVALIDARG);
     }
 
     IFC(HrGetRequiredBufferSize(

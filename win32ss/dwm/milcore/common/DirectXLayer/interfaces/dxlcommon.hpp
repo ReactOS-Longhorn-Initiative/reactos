@@ -202,6 +202,7 @@ namespace dxlayer
         inline static void __declspec(noreturn) terminate()
         {
             check(false);
+            while(1){}
         }
     };
 

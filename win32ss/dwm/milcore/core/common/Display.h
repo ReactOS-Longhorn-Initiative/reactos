@@ -239,7 +239,10 @@ private:
             return DpiAwarenessContext::GetValidDpiAwarenessContextValues();
         }
 
-        return { m_defaultDpiAwarenessContextValue };
+        std::vector<DpiAwarenessContextValue> result;
+        result.push_back(m_defaultDpiAwarenessContextValue);
+
+        return result;
     }
 
 public:
@@ -427,7 +430,10 @@ private:
             return DpiAwarenessContext::GetValidDpiAwarenessContextValues();
         }
 
-        return { m_defaultDpiAwarenessContextValue };
+        std::vector<DpiAwarenessContextValue> result;
+        result.push_back(m_defaultDpiAwarenessContextValue);
+
+        return result;
     }
 
 public:

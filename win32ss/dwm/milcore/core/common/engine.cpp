@@ -222,7 +222,7 @@ CCommonRegistryData::InitializeFromRegistry()
     {
         DWORD dwTemp = 0;
 
-        if (   RegReadDWORD(hRegAvalonGraphicsLocalMachine, _T("DisableGpuThrottling"), &dwTemp)
+        if (   RegReadDWORD(hRegAvalonGraphicsLocalMachine, L"DisableGpuThrottling", &dwTemp)
             && dwTemp != 0
                )
         {

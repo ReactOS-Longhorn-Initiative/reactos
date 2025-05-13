@@ -64,7 +64,10 @@ public:
             // The remaining 3 Bezier points
     {
         m_ptB[0] = ptFirst;
-        memcpy(m_ptB + 1, pPt, 3 * sizeof(GpPointR)); 
+        for (int i = 0; i < 3; ++i)
+        {
+            m_ptB[i + 1] = pPt[i];
+        }
     }
 
     __outro_ecount(1) const GpPointR &GetControlPoint(__range(0, 3) UINT i) const

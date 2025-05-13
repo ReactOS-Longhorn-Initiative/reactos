@@ -13,7 +13,7 @@
 
 #ifndef _MSC_VER
 
-#if defined(__cplusplus) && (USE___UUIDOF == 0)
+#if defined(__cplusplus)
 extern "C++" {
 #if __cpp_constexpr >= 200704l && __cpp_inline_variables >= 201606L
 __extension__ template<typename T> struct __mingw_uuidof_s;
@@ -25,7 +25,7 @@ __extension__ template<typename T> const GUID &__mingw_uuidof();
 #endif
 
 /* Macros for __uuidof template-based emulation */
-#if defined(__cplusplus) && (USE___UUIDOF == 0)
+#if defined(__cplusplus)
 
 #if __cpp_constexpr >= 200704l && __cpp_inline_variables >= 201606L
 #define __CRT_UUID_DECL(type,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8)    \

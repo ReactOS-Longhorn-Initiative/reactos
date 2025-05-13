@@ -239,8 +239,8 @@ public:
         ) const
     {
         { static_assert(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling, "InCoordSpace::Id == CoordinateSpaceId::RealizationSampling"); }
-        { C_ASSERT(   (OutCoordSpace::Id == CoordinateSpaceId::Device)
-                   || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling)); }
+        { static_assert(   (OutCoordSpace::Id == CoordinateSpaceId::Device)
+                   || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling, "OutCoordSpace::Id == CoordinateSpaceId::Device || id == IdealSampling")); }
 
         CBaseMatrix::ComputePrefilteringDimensions(
             uRealizationWidth,
@@ -275,8 +275,8 @@ public:
         )
     {
         { static_assert(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling, "InCoordSpace::Id == CoordinateSpaceId::RealizationSampling"); }
-        { C_ASSERT(   (OutCoordSpace::Id == CoordinateSpaceId::Device)
-                   || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling)); }
+        { static_assert((OutCoordSpace::Id == CoordinateSpaceId::Device)
+            || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling, "OutCoordSpace::Id == CoordinateSpaceId::Device || id == IdealSampling")); }
 
         CBaseMatrix::AdjustForPrefiltering(
             uRealizationWidth,

@@ -81,7 +81,7 @@ public:
 
 public:
 
-    CGammaHandler::CGammaHandler();
+    CGammaHandler();
     static void CalculateGammaTable(
         __out_ecount(1) GammaTable * pTable,
         __range(1, MAX_GAMMA_INDEX) UINT uiGammaIndex);

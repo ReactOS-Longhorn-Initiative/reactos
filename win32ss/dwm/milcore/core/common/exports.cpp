@@ -302,6 +302,12 @@ MilUtility_CopyPixelBuffer(
     )
 {
     HRESULT hr = S_OK;
+    UINT minimumOutputBufferStrideInBits = 0;
+    UINT minimumOutputBufferStride;
+    UINT minimumOutputBufferSize = 0;
+    UINT minimumInputBufferStrideInBits = 0;
+    UINT minimumInputBufferStride;
+    UINT minimumInputBufferSize;
 
     if (height == 0 || copyWidthInBits == 0)
     {
@@ -315,16 +321,16 @@ MilUtility_CopyPixelBuffer(
         IFC(E_INVALIDARG);
     }
 
-    UINT minimumOutputBufferStrideInBits = 0;
+   
     IFC(UIntAdd(outputBufferOffsetInBits, copyWidthInBits, &minimumOutputBufferStrideInBits));
-    UINT minimumOutputBufferStride = BitsToBytes(minimumOutputBufferStrideInBits);
+    minimumOutputBufferStride = BitsToBytes(minimumOutputBufferStrideInBits);
     if (outputBufferStride < minimumOutputBufferStride)
     {
         // The stride of the output buffer is too small.
         IFC(E_INVALIDARG);
     }
 
-    UINT minimumOutputBufferSize = 0;
+    minimumOutputBufferSize = 0;
     IFC(UIntMult(outputBufferStride, (height-1), &minimumOutputBufferSize));
     IFC(UIntAdd(minimumOutputBufferSize, minimumOutputBufferStride, &minimumOutputBufferSize));
     if (outputBufferSize < minimumOutputBufferSize)
@@ -333,16 +339,16 @@ MilUtility_CopyPixelBuffer(
         IFC(E_INVALIDARG);
     }
 
-    UINT minimumInputBufferStrideInBits = 0;
+    minimumInputBufferStrideInBits = 0;
     IFC(UIntAdd(inputBufferOffsetInBits, copyWidthInBits, &minimumInputBufferStrideInBits));
-    UINT minimumInputBufferStride = BitsToBytes(minimumInputBufferStrideInBits);
+    minimumInputBufferStride = BitsToBytes(minimumInputBufferStrideInBits);
     if (inputBufferStride < minimumInputBufferStride)
     {
         // The stride of the input buffer is too small.
         IFC(E_INVALIDARG);
     }
 
-    UINT minimumInputBufferSize = 0;
+    minimumInputBufferSize = 0;
     IFC(UIntMult(inputBufferStride, (height-1), &minimumInputBufferSize));
     IFC(UIntAdd(minimumInputBufferSize, minimumInputBufferStride, &minimumInputBufferSize));
     if (inputBufferSize < minimumInputBufferSize)

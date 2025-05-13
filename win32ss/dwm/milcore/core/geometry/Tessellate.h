@@ -296,7 +296,7 @@ public:
         __in_ecount(1) const CVertexRef &vr3)
             // Third vertex
     {
-#ifdef DBG
+#if 0
          if (g_fTesselatorTrace)
         {
             OutputDebugString(L"Triangle\n");
