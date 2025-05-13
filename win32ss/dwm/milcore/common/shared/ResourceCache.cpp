@@ -364,7 +364,7 @@ CMILResourceCache::GetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     LONG cInCall;
 
     //
@@ -422,7 +422,7 @@ CMILResourceCache::GetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
         pResource = GetDataBuffer()[uIndex];
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
 
         IMILCacheableResource * volatile *ppResourceEntry;
 
@@ -540,7 +540,7 @@ CMILResourceCache::GetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Decrement to say we're done.  The new value
     // should always be non-negative.
@@ -576,7 +576,7 @@ CMILResourceCache::SetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     LONG cInCall;
 
     //
@@ -680,7 +680,7 @@ CMILResourceCache::SetResource(
 Cleanup:
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Decrement to say we're done.  The new value
     // should always be non-negative.
@@ -707,7 +707,7 @@ CMILResourceCache::ReleaseResources()
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Spin until we can take exclusive access to this cache
     //
@@ -739,7 +739,7 @@ CMILResourceCache::ReleaseResources()
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // No need to lock this assignment since we have exclusive access
     //
@@ -768,7 +768,7 @@ CMILResourceCache::ReleaseOtherResources(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Spin until we can take exclusive access to this cache
     //
@@ -796,7 +796,7 @@ CMILResourceCache::ReleaseOtherResources(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // No need to lock this assignment since we have exclusive access
     //
@@ -824,7 +824,7 @@ CMILResourceCache::EnsureCount(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Assert(m_cInCall > 0);
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     LONG cInCall;
 
     //

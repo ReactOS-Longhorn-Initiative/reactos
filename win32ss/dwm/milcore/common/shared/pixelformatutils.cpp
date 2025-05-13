@@ -764,26 +764,26 @@ Convert_scRGB_float_To_sRGB_UINT16(float v)
     Assert(GammaLUT_sRGB_to_scRGB[0] <= r &&  r < GammaLUT_sRGB_to_scRGB[255]);
 
     Assert(index <= 255);
-    index = min(index, (UINT)ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2);
+    index = min(index, (UINT)ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2);
 
-    while (index <= ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2 &&
+    while (index <= ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2 &&
            r < GammaLUT_sRGB_to_scRGB[index])
     {
         Assert(index > 0);
         index--;
     }
 
-    Assert(index <= ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2);
-    index = min(index, (UINT)ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2);
+    Assert(index <= ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2);
+    index = min(index, (UINT)ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2);
 
-    while (index <= ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2 &&
+    while (index <= ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2 &&
            r >= GammaLUT_sRGB_to_scRGB[index+1])
     {
         index++;
     }
 
-    Assert(index <= ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2);
-    index = min(index, (UINT)ARRAYSIZE(GammaLUT_sRGB_to_scRGB)-2);
+    Assert(index <= ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2);
+    index = min(index, (UINT)ARRAY_SIZE(GammaLUT_sRGB_to_scRGB)-2);
 
     double f = (r - GammaLUT_sRGB_to_scRGB[index]) / (GammaLUT_sRGB_to_scRGB[index+1] - GammaLUT_sRGB_to_scRGB[index]);
     UINT fraction = GpRound(f*256);

@@ -218,13 +218,13 @@ _Ret_notnull_ _Post_writable_byte_size_(cb) _Post_satisfies_(return == pv)
 
 // These don't make users pass in anything, both heap and meter are predefined
 // This will only work with heaps that have global scope
-#define DECLARE_METERHEAP_ALLOC(pheap, mt) \
+#define DECLARE_METERHEAP_ALLOC(pheap, mt) /*\
     __allocator inline __bcount(cb) void * __cdecl operator new(size_t cb)    { return WPFAlloc((pheap), mt, cb); } \
     __allocator inline __bcount(cb) void * __cdecl operator new[](size_t cb)  { return WPFAlloc((pheap), mt, cb); } \
     inline void __cdecl operator delete(void * pv)   { WPFFree((pheap), pv); } \
     inline void __cdecl operator delete[](void * pv) { WPFFree((pheap), pv); } \
     inline __bcount(cb) void * __cdecl operator new(size_t cb, __bcount(cb) void * pv) { return pv; cb; } \
-    inline  void __cdecl operator delete(void* pv, void*) { WPFFree(pheap, pv); }
+    inline  void __cdecl operator delete(void* pv, void*) { WPFFree(pheap, pv); }*/
 
 #define DECLARE_METERHEAP_CLEAR(pheap, mt) \
     __allocator inline __bcount(cb) void * __cdecl operator new(size_t cb)    { return WPFAllocClear((pheap), mt, cb); } \

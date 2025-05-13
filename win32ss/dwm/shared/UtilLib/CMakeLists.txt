@@ -24,4 +24,6 @@ if(NOT MSVC)
     target_compile_options(UtilLib PRIVATE -frtti)
 endif()
 
+target_compile_options(UtilLib PRIVATE -DUNICODE -D_UNICODE)
+
 target_link_libraries(UtilLib PRIVATE cppstl)

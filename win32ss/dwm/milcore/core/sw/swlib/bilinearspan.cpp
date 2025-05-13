@@ -642,7 +642,7 @@ VOID CResampleSpan<TColor>::ReleaseExpensiveResources()
 //      ScanOps
 //
 
-template <class TResampleClass, class TColor>
+template <class TResampleClass, class TColors>
 VOID FASTCALL ColorSource_Image_ScanOp(
     __in_ecount(1) const PipelineParams *pPP,
     __in_ecount(1) const ScanOpParams *pSOP
@@ -653,7 +653,7 @@ MeasurePerf(ColorSource_Image_ScanOp, pPP->m_uiCount);
         DYNCAST(TResampleClass, pSOP->m_posd);
     Assert(pColorSource);
     
-    pColorSource->GenerateColors(pPP->m_iX, pPP->m_iY, pPP->m_uiCount, static_cast<TColor *>(pSOP->m_pvDest));
+    pColorSource->GenerateColors(pPP->m_iX, pPP->m_iY, pPP->m_uiCount, static_cast<TColors *>(pSOP->m_pvDest));
 }
 
 

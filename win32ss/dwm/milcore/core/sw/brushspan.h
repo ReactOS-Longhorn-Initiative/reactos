@@ -27,6 +27,12 @@ MtExtern(CRadialGradientBrushSpan);
 MtExtern(CFocalGradientBrushSpan);
 MtExtern(CShaderEffectBrushSpan);
 
+// CColorSource interface
+extern VOID FASTCALL ColorSource_Constant_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+);
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:
@@ -47,11 +53,6 @@ public:
         __in_ecount(1) const MilColorF *pColor
         );
     
-    // CColorSource interface
-    friend VOID FASTCALL ColorSource_Constant_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );
 
     ScanOpFunc GetScanOp() const override { return ColorSource_Constant_32bppPARGB; }
     MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PBGRA32bpp; }
@@ -133,6 +134,11 @@ protected:
     MilGradientWrapMode::Enum m_wrapMode;
 };
 
+extern VOID FASTCALL ColorSource_LinearGradient_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+);
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:
@@ -189,10 +195,6 @@ private:
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
     
-    friend VOID FASTCALL ColorSource_LinearGradient_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );
 
 protected:
 
@@ -273,6 +275,11 @@ CLinearGradientBrushSpan::GenerateColorsInit(
     }
 }
 
+extern VOID FASTCALL ColorSource_LinearGradient_32bppPARGB_MMX(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+); 
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:
@@ -310,12 +317,13 @@ private:
         _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
-    
-    friend VOID FASTCALL ColorSource_LinearGradient_32bppPARGB_MMX(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );    
+
 };
+
+extern VOID FASTCALL ColorSource_RadialGradient_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+); 
 
 //+-----------------------------------------------------------------------------
 //
@@ -370,12 +378,11 @@ private:
         _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
-    
-    friend VOID FASTCALL ColorSource_RadialGradient_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );    
 };
+
+extern VOID FASTCALL ColorSource_FocalGradient_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *);
 
 //+-----------------------------------------------------------------------------
 //
@@ -432,14 +439,11 @@ private:
         _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
-
-    friend VOID FASTCALL ColorSource_FocalGradient_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );
 };
 
-
+extern VOID FASTCALL ColorSource_ShaderEffect_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *);
 
 class CShaderEffectBrushSpan : public CColorSource
 {
@@ -466,10 +470,6 @@ private:
         _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
-
-    friend VOID FASTCALL ColorSource_ShaderEffect_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *);
 
 
     CPixelShaderState m_pixelShaderState;

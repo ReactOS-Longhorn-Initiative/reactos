@@ -25,19 +25,20 @@
 //
 //-----------------------------------------------------------------------------
 
-/*
-const CMILSurfaceRect::Rect_t CMILSurfaceRect::sc_rcEmpty(
+template<>
+const CMILSurfaceRect::RectC_t CMILSurfaceRect::sc_rcEmpty2(
     0, 0,
     0, 0,
     LTRB_Parameters
     );
 
-const CMILSurfaceRect::Rect_t CMILSurfaceRect::sc_rcInfinite(
+template<>
+const CMILSurfaceRect::RectC_t CMILSurfaceRect::sc_rcInfinite2(
     SURFACE_RECT_MIN, SURFACE_RECT_MIN,
     SURFACE_RECT_MAX, SURFACE_RECT_MAX,
     LTRB_Parameters
     );
-*/
+
 
 
 //+----------------------------------------------------------------------------

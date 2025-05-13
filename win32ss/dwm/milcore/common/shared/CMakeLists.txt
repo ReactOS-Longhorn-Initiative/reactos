@@ -18,64 +18,42 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
 
 list(APPEND SOURCE
-3dutils.cpp
-AssertDllInUse.cpp
-BaseMatrix.cpp
-BufferDispenser.cpp
-d3dloader.cpp
-d3dutils.cpp
-display.cpp
-Dump.cpp
-dwminterop.cpp
-dwritefactory.cpp
+AssertEntry.cpp
+dynarrayimpl.cpp
 engine.cpp
-EnhancedContrastTable.cpp
-exports.cpp
-Gamma.cpp
-gradienttexture.cpp
-guidelinecollection.cpp
-lazymem.cpp
-log.cpp
-matrix3x2.cpp
-matrix.cpp
-MatrixStack.cpp
-memblock.cpp
-memblockreader.cpp
-memreader.cpp
-memwriter.cpp
-milboxf.cpp
-milcoredllentry.cpp
-mildc.cpp
-MILMatrix.cpp
-oscompat.cpp
+etwtrace.cpp
+GammaLUTs.cpp
+mem.cpp
+milcom.cpp
+MILRect.cpp
+MILRectF_WH.cpp
+pixelformatutils.cpp
 precomp.cpp
-ptrarray.cpp
-ptrset.cpp
-RectUtils.cpp
-renderoptions.cpp
-ResourcePool.cpp
-rtutils.cpp
-slistutil.cpp
-Tier.cpp
+processorfeatures.cpp
+real.cpp
+RefCountBase.cpp
+ResourceCache.cpp
+rgnutils.cpp
+utc.cpp
 utils.cpp
-WatermarkStack.cpp
+xmm.cpp
     )
 
-add_library(common ${SOURCE})
-add_dependencies(common xdk)
+add_library(commonShared ${SOURCE})
+add_dependencies(commonShared xdk)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(common PRIVATE /wd5043 /wd5033)
+target_compile_options(commonShared PRIVATE /wd5043 /wd5033)
 endif()
 
 if(NOT MSVC)
-target_compile_options(common PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -fpermissive)
+target_compile_options(commonShared PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-switch -Wno-reorder -fpermissive)
 endif()
 
-set_target_cpp_properties(common WITH_EXCEPTIONS WITH_RTTI)
+set_target_cpp_properties(commonShared WITH_EXCEPTIONS WITH_RTTI)
 
-target_compile_options(common PRIVATE -DUNICODE -D_UNICODE)
+target_compile_options(commonShared PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(common PRIVATE cppstl)
+target_link_libraries(commonShared PRIVATE cppstl)

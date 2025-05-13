@@ -142,13 +142,14 @@ QueryInterface(
     // is pretty complicated and this is simple.
     //
     HRESULT     hr = S_OK;
+    void *pv;
 
     if (!ppv)
     {
         IFCN(E_INVALIDARG);
     }
 
-    void  *pv = Base::GetInterface(riid);
+    pv = Base::GetInterface(riid);
 
     if (NULL == pv)
     {
