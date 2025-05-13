@@ -70,27 +70,27 @@ public:
     // IRenderTargetHWNDInternal methods
     //
 
-    void SetPosition(POINT ptOrigin) override;
+    void SetPosition(POINT ptOrigin) /* override */;
 
     void UpdatePresentProperties(
         MilTransparency::Flags transparencyFlags,
         BYTE constantAlpha,
         COLORREF colorKey
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP Present(
         __in_ecount(1) const RECT *pRect
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP ScrollBlt (
         __in_ecount(1) const RECT *prcSource,
         __in_ecount(1) const RECT *prcDest
-        ) override;    
+        ) /* override */;    
 
     STDMETHODIMP Resize(
         UINT uWidth,
         UINT uHeight
-        ) override;
+        ) /* override */;
 
 protected:
 
@@ -99,7 +99,7 @@ protected:
         __in_ecount(1) CDisplay const *pDisplay,
         D3DDEVTYPE type,
         MilRTInitialization::Flags dwFlags
-        ) override;
+        ) /* override */;
 
 private:
     HRESULT UpdateFlippingChain(UINT uWidth, UINT uHeight);

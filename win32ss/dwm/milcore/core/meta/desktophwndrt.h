@@ -50,7 +50,7 @@ protected:
         __in_range(0,INT_MAX) UINT uMaxBottom
         ) const;
 
-    HRESULT EditMetaData() override;
+    HRESULT EditMetaData() /* override */;
 
     HRESULT ResizeSubRT(
         __in_range(<=, (this->m_cRT)) UINT i,
@@ -74,31 +74,31 @@ public:
 
     STDMETHODIMP SetPosition(
         __in_ecount(1) MilRectF const *prc
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP GetInvalidRegions(
         __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
         __out_ecount(1) UINT *pNumRegions,
         _Out_ bool *fWholeTargetInvalid        
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP_(VOID) GetIntersectionWithDisplay(
         UINT iDisplay,
         __out_ecount(1) MilRectL &rcIntersection
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP UpdatePresentProperties(
         MilTransparency::Flags transparencyFlags,
         FLOAT constantAlpha,
         __in_ecount(1) MilColorF const &colorKey
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Present)(
-        ) override;
+        ) /* override */;
 
 #if DBG
 protected:
-    bool DbgIsValidTransition(enum State eNewState) override;
+    bool DbgIsValidTransition(enum State eNewState) /* override */;
 
 #endif
 

@@ -56,7 +56,7 @@ public:
         __deref_out_ecount(1) IWGXBitmapLock **ppILock
         );
 
-    // IWGXBitmap overrides.
+    // IWGXBitmap /* override */s.
 
     // Distinguishes between bitmaps with full source, no source, and
     // placeholder source for shared surfaces

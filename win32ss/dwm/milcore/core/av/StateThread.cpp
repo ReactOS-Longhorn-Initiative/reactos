@@ -64,7 +64,7 @@ Init(
 //
 //  Synopsis:
 //      Called if the item cannot be run. Empty by default. Not necessarily
-//      called by the state thread. Subclasses may override this.
+//      called by the state thread. Subclasses may /* override */ this.
 //
 //------------------------------------------------------------------------------
 /*virtual*/
@@ -82,7 +82,7 @@ Cancel(
 //
 //  Synopsis:
 //      Called by the state thread to determine whether or not to Cancel an
-//      item. Subclasses should override this if they may need to be canceled.
+//      item. Subclasses should /* override */ this if they may need to be canceled.
 //
 //------------------------------------------------------------------------------
 /*virtual*/

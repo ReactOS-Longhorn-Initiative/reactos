@@ -42,7 +42,7 @@ protected:
 
     ~CMilShaderEffectDuce();
 
-     override virtual BOOL OnChanged(
+     /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender, 
         NotificationEventArgs::Flags e
         );
@@ -61,7 +61,7 @@ public:
     // Composition Resource Methods
     //
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_SHADEREFFECT || CMilEffectDuce::IsOfType(type);
     }
@@ -81,13 +81,13 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override ShaderEffectShaderRenderMode::Enum GetShaderRenderMode();
+    /* override */ ShaderEffectShaderRenderMode::Enum GetShaderRenderMode();
 
-    override HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
+    /* override */ HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
     
-    override HRESULT ApplyEffect(
+    /* override */ HRESULT ApplyEffect(
         _In_ CContextState *pContextState, 
         _In_ CHwSurfaceRenderTarget *pDestRT,
         _In_ CMILMatrix *pScaleTransform,
@@ -97,7 +97,7 @@ public:
         __in_opt CHwTextureRenderTarget *pImplicitInput
         );
 
-    override HRESULT ApplyEffectSw(
+    /* override */ HRESULT ApplyEffectSw(
         _In_ CContextState *pContextState,
         _In_ CSwRenderTargetSurface *pDestRT,
         _In_ CMILMatrix *pScaleTransform,
@@ -106,15 +106,15 @@ public:
         __in_opt IWGXBitmap *pImplicitInput
         );
 
-    override HRESULT PrepareSoftwarePass(
+    /* override */ HRESULT PrepareSoftwarePass(
         _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
         );
 
-    override bool UsesImplicitInput();
+    /* override */ bool UsesImplicitInput();
 
-    override byte GetShaderMajorVersion();
+    /* override */ byte GetShaderMajorVersion();
 
     static HRESULT InitializeJitterLock()
     {

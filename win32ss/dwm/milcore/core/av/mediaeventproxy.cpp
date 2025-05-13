@@ -280,7 +280,7 @@ Cleanup:
 //      corresponds to an AddItem call on the apartment manager.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 void
 CMediaEventProxy::EventItem::
 Run(

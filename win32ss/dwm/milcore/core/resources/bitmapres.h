@@ -39,27 +39,27 @@ protected:
 
 public:
     
-    override virtual bool HasContent() const
+    /* override */ virtual bool HasContent() const
     {
         return m_pIBitmap != NULL;
     }
 
-    override virtual HRESULT Draw(
+    /* override */ virtual HRESULT Draw(
         __in_ecount(1) CDrawingContext *pDC,
         MilBitmapWrapMode::Enum wrapMode
         );
 
-    override virtual HRESULT GetBounds(
+    /* override */ virtual HRESULT GetBounds(
         __in_ecount_opt(1) CContentBounder* pBounder,
         __out_ecount(1) CMilRectF *prcBounds
         );
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_BITMAPSOURCE || CMilImageSource::IsOfType(type);
     }
 
-    override virtual HRESULT GetResolution(
+    /* override */ virtual HRESULT GetResolution(
         __out_ecount(1) double *dDpiX,
         __out_ecount(1) double *dDpiY
         ) const
@@ -86,7 +86,7 @@ public:
         return pIBitmap; 
     }
 
-    override HRESULT GetBitmapSource(
+    /* override */ HRESULT GetBitmapSource(
         __deref_out_ecount_opt(1) IWGXBitmapSource **ppIWGXBitmapSource
         )
     {

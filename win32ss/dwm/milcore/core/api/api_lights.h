@@ -92,13 +92,13 @@ public:
         __in_ecount(1) CHwPipelineShader *pShader,
         __in_ecount(1) const MilColorF &materialColor,
         __inout_ecount(1) MILSPHandle &hStartRegister
-        ) const override;
+        ) const /* override */;
 
     void Transform(
         TransformType type,
         __in_ecount(1) const CMILMatrix *pTransform,
         float flScale
-        ) override
+        ) /* override */
     {
         UNREFERENCED_PARAMETER(type);
         UNREFERENCED_PARAMETER(pTransform);
@@ -134,13 +134,13 @@ public:
         __in_ecount(1) CHwPipelineShader *pShader,
         __in_ecount(1) const MilColorF &materialColor,
         __inout_ecount(1) MILSPHandle &hStartRegister
-        ) const override;
+        ) const /* override */;
 
     void Transform(
         TransformType type,
         __in_ecount(1) const CMILMatrix *pTransform,
         float flScale
-        ) override;
+        ) /* override */;
 
     dxlayer::vector3 m_vec3InvDirectionViewSpace;
     dxlayer::vector3 m_vec3InvDirection;
@@ -181,13 +181,13 @@ public:
         __in_ecount(1) CHwPipelineShader *pShader,
         __in_ecount(1) const MilColorF &materialColor,
         __inout_ecount(1) MILSPHandle &hStartRegister
-        ) const override;
+        ) const /* override */;
 
     void Transform(
         TransformType type,
         __in_ecount(1) const CMILMatrix *pTransform,
         float flScale
-        ) override;
+        ) /* override */;
 
     dxlayer::vector3 m_vec3PositionViewSpace;
     dxlayer::vector3 m_vec3Position;
@@ -234,20 +234,20 @@ public:
         float flAttenuation2
         );
 
-    float GetSpotlightFactor(__in_ecount(1) dxlayer::vector3 const *vec3ToLight) const override;
-    bool IsSpot() const override;
+    float GetSpotlightFactor(__in_ecount(1) dxlayer::vector3 const *vec3ToLight) const /* override */;
+    bool IsSpot() const /* override */;
 
     HRESULT SendShaderData(
         __in_ecount(1) CHwPipelineShader *pShader,
         __in_ecount(1) const MilColorF &materialColor,
         __inout_ecount(1) MILSPHandle &hStartRegister
-        ) const override;
+        ) const /* override */;
 
     void Transform(
         TransformType type,
         __in_ecount(1) const CMILMatrix *pTransform,
         float flScale
-        ) override;
+        ) /* override */;
 };
 
 

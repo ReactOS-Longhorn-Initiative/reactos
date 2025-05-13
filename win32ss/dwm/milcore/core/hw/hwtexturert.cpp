@@ -582,7 +582,7 @@ CHwTextureRenderTarget::GetNumQueuedPresents(
 }
 
 //
-// IRenderTargetInternal overrides.
+// IRenderTargetInternal /* override */s.
 //
 // Since we might re-use this texture over multiple frames for visual caching,
 // we need to invalidate the cached DeviceBitmap source whenever we update the 

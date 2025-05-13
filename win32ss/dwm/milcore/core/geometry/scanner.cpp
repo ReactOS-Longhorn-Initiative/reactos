@@ -2334,7 +2334,7 @@ Cleanup:
 //      CScanner::CChainList::AcceptPoint
 //
 //  Synopsis:
-//      CFlatteningSink override. Called for each point of a flattened Bezier.
+//      CFlatteningSink /* override */. Called for each point of a flattened Bezier.
 //
 //------------------------------------------------------------------------------
 HRESULT

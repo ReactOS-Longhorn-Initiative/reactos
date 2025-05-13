@@ -753,7 +753,7 @@ CGlyphRunResource::GetBlendMode(MilTextRenderingMode::Enum textRenderingMode,
                 return;
         }
     }
-    // WPF developer settings override system text display settings
+    // WPF developer settings /* override */ system text display settings
     switch (textRenderingMode)
     {
         case MilTextRenderingMode::Aliased:

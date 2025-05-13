@@ -15,7 +15,7 @@ class CHwBitBltDeviceBitmapColorSource : public CHwDeviceBitmapColorSource
 {
 public:
     
-    ~CHwBitBltDeviceBitmapColorSource() override;
+    ~CHwBitBltDeviceBitmapColorSource() /* override */;
 
     static HRESULT Create(
         __in_ecount(1) CD3DDeviceLevel1 *pDevice,
@@ -30,12 +30,12 @@ public:
         _In_ UINT cDirtyRects,
         __in_ecount(cDirtyRects) const CMilRectU *prgDirtyRects,
         __in_ecount(1) IDirect3DSurface9 *pISrcSurface
-        ) override;
+        ) /* override */;
 
     HRESULT Realize(
-        ) override;
+        ) /* override */;
 
-    __out_opt CD3DSurface *GetValidTransferSurfaceNoRef() override;
+    __out_opt CD3DSurface *GetValidTransferSurfaceNoRef() /* override */;
 
 private:
 

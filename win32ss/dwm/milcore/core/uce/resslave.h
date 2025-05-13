@@ -108,7 +108,7 @@ public:
     }
 
     //
-    // Derived classes override this and call UnRegisterNotifier for each
+    // Derived classes /* override */ this and call UnRegisterNotifier for each
     // of their member fields.
     //
 

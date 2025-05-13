@@ -190,7 +190,7 @@ Cleanup:
 //      A pointer to the new figure as an IFigureBuilder
 //
 //  Notes:
-//      This is a IShapeBuilder override
+//      This is a IShapeBuilder /* override */
 //
 //------------------------------------------------------------------------------
 HRESULT

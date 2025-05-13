@@ -83,7 +83,7 @@ bool IsMultiAdapterCodeEnabled()
         DWORD cFullPath = GetModuleFileName(NULL, szFullPath, sizeof(szFullPath)/sizeof(szFullPath[0]));
         if (cFullPath > 0)
         {
-            // First check for a value in HKCU (which should override any HKLM setting).
+            // First check for a value in HKCU (which should /* override */ any HKLM setting).
             HKEY hKey = NULL;
             LONG r = RegOpenKeyEx(
                 HKEY_CURRENT_USER,

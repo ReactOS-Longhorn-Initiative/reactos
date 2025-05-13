@@ -142,13 +142,13 @@ public:
     //  the manager has full control.
     void UnusedNotification(
         __inout_ecount(1) CMILPoolResource *pUnused
-        ) override;
+        ) /* override */;
 
     // Used to notify the manager that the resource is no longer usable
     //  and should be removed from the pool.
     void UnusableNotification(
         __inout_ecount(1) CMILPoolResource *pUnusable
-        ) override;
+        ) /* override */;
 
     //
     // Methods called by the brush pool
@@ -279,7 +279,7 @@ protected:
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext,
         __deref_out_ecount(1) CHwBrush ** const ppHwBrush
-        ) override;
+        ) /* override */;
 };
 
 //+-----------------------------------------------------------------------------
@@ -321,7 +321,7 @@ protected:
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext,
         __deref_out_ecount(1) CHwBrush ** const ppHwBrush
-        ) override;
+        ) /* override */;
 };
 
 //+-----------------------------------------------------------------------------

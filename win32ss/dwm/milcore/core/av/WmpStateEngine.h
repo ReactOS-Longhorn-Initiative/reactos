@@ -225,7 +225,7 @@ protected:
     //
     // CStateThreadItem
     //
-    __override
+    /* override */
     void
     Run(
         void

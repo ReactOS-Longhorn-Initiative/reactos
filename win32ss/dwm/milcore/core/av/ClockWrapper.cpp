@@ -270,7 +270,7 @@ TimerWrapper(
         m_timerBeingSet(false)
 {}
 
-__override
+/* override */
 TimerWrapper::
 ~TimerWrapper(
     void
@@ -436,7 +436,7 @@ Cleanup:
 //      Shutdown and release all IUnknowns
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 void
 TimerWrapper::
 Shutdown(
@@ -929,7 +929,7 @@ Release(
     return static_cast<IMFVideoPresenter *>(m_pEvrPresenter)->Release();
 }
 
-__override
+/* override */
 void
 TimerWrapper::PresenterInvoker::
 Run(
@@ -951,7 +951,7 @@ Cleanup:
     //
 }
 
-__override
+/* override */
 bool
 TimerWrapper::PresenterInvoker::
 IsAnOwner(

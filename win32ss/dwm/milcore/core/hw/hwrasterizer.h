@@ -82,7 +82,7 @@ public:
     //------------------------------------------------------------------------
     HRESULT SendGeometry(
         __inout_ecount(1) IGeometrySink *pGeomSink
-        ) override;
+        ) /* override */;
 
     //+-----------------------------------------------------------------------
     //
@@ -94,7 +94,7 @@ public:
     //------------------------------------------------------------------------
     HRESULT SendGeometryModifiers(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        ) override;
+        ) /* override */;
 
     //+-----------------------------------------------------------------------
     //

@@ -408,7 +408,7 @@ public:
         __in_ecount(1) const CHwBrushContext    *pEffectContext,
         __in_ecount_opt(1) const CMILSurfaceRect *prcOutsideBounds = NULL,
         bool fNeedInside = true
-        ) override;
+        ) /* override */;
 
 private:
     HRESULT SendRenderStates();
@@ -418,7 +418,7 @@ private:
     
     HRESULT SendDeviceStates(
         __in_ecount_opt(1) const CHwVertexBuffer *pVB
-        ) override;
+        ) /* override */;
 };
 
 
@@ -458,7 +458,7 @@ public:
         __in_ecount(1) const CHwBrushContext    *pEffectContext,
         __in_ecount_opt(1) const CMILSurfaceRect *prcOutsideBounds,
         bool fNeedInside
-        ) override;
+        ) /* override */;
 
     HRESULT ReInitialize(
         MilCompositingMode::Enum CompositingMode,
@@ -473,7 +473,7 @@ public:
         __in_ecount(1) const CD3DDeviceLevel1 *pDevice
         );
 
-    HRESULT Execute() override;
+    HRESULT Execute() /* override */;
 
 private:
     CHwPipelineShader *m_pPipelineShader;
@@ -481,7 +481,7 @@ private:
 
     HRESULT SendDeviceStates(
         __in_ecount_opt(1) const CHwVertexBuffer *pVB
-        ) override;
+        ) /* override */;
 
 };
 

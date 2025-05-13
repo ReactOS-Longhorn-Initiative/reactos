@@ -244,7 +244,7 @@ Cleanup:
 //        should not be used:
 //
 //        * On WDDM drivers
-//        * If our RegKey override is set
+//        * If our RegKey /* override */ is set
 //
 //------------------------------------------------------------------------------
 

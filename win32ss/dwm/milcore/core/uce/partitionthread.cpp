@@ -210,7 +210,7 @@ CPartitionThread::PresentPartition(
 //  Member: CPartitionThread::Run 
 //
 //  Synopsis:  Simple main function for a worker thread
-//             derived class may override it with more 
+//             derived class may /* override */ it with more 
 //             elaborate scheduling
 //
 //  Returns: Thread exit status

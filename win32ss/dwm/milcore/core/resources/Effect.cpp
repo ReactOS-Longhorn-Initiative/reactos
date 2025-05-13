@@ -28,7 +28,7 @@ MtDefine(CMilEffectDuce, EffectResource, "CMilEffectDuce");
 //    to clipped areas.  By default, the effect will not be clipped
 //    to prevent visual artifacts, since an effect can potentially sample
 //    from any pixel in a texture, so the whole texture may need to be drawn.
-//    If the effect can override this method it should to reduce texture
+//    If the effect can /* override */ this method it should to reduce texture
 //    size and eliminate overdraw when drawing outside visible regions.
 //
 //-----------------------------------------------------------------------------

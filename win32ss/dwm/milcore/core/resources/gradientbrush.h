@@ -34,7 +34,7 @@ protected:
 
 public:
 
-    override bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_GRADIENTBRUSH || CMilBrushDuce::IsOfType(type);
     }
@@ -57,7 +57,7 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    override bool RealizationMayNeedNonPow2Tiling(
+    /* override */ bool RealizationMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {

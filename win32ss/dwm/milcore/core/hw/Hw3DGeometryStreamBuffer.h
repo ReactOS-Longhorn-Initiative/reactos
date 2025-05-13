@@ -342,15 +342,15 @@ public:
 
     HRESULT SendGeometry(
         IN IGeometrySink *pGeomSink
-        ) override;
+        ) /* override */;
 
     HRESULT SendGeometryModifiers(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        ) override;
+        ) /* override */;
 
     HRESULT SendLighting(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        ) override;
+        ) /* override */;
 
 private:
     void CopyVerticesIntoBuffer(

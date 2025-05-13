@@ -446,7 +446,7 @@ Cleanup:
             }
             else
             {
-                MilUnexpectedError(hr, TEXT("failed to override flush channel action for fuzzing"));
+                MilUnexpectedError(hr, TEXT("failed to /* override */ flush channel action for fuzzing"));
             }
         }
 
@@ -648,7 +648,7 @@ HRESULT CComposition::ProcessComposition(
         // Make sure that we invalidate all of the render targets and caches,
         // and notify any listeners that display set is not valid
         // If the UI thread has requested that we try to render despite this, 
-        // then override and lie to listeners that displays are valid.
+        // then /* override */ and lie to listeners that displays are valid.
         IFC(m_pRenderTargetManager->NotifyDisplaySetChange(doRenderPass, displayCount));
         GetVisualCacheManagerNoRef()->NotifyDeviceLost();
     }

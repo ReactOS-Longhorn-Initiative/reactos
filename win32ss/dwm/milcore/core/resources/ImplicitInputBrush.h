@@ -34,7 +34,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_IMPLICITINPUTBRUSH || CMilBrushDuce::IsOfType(type);
     }
@@ -46,16 +46,16 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override virtual bool NeedsBounds(
+    /* override */ virtual bool NeedsBounds(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
         return false;
     }
     
-    override HRESULT GetBrushRealizationInternal(
+    /* override */ HRESULT GetBrushRealizationInternal(
         __in_ecount(1) const BrushContext *pBrushContext,
         __deref_inout_ecount_opt(1) CMILBrush **ppBrushRealizationNoRef
         );

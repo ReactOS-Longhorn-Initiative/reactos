@@ -212,7 +212,7 @@ CDesktopHWNDRenderTarget::CDesktopHWNDRenderTarget(
       m_eWindowLayerType(eWindowLayerType),
       m_rgInvalidRegions(reinterpret_cast<CMilRectF *>(&m_rgMetaData[cMaxRTs]))
 {
-    // override these variables' initialization
+    // /* override */ these variables' initialization
     m_fAccumulateValidBounds = true;
     m_eState = NeedSetPosition;
 

@@ -57,11 +57,11 @@ TierRequirements g_rgTierRequirements[] = {
     {
         MIL_TIER(0, 0),
         0*1024*1024,            // 0 MB
-        FALSE,                  // => LDDM doesn't override mem req
+        FALSE,                  // => LDDM doesn't /* override */ mem req
         0,                      // No Pixel Shader
         0,                      // No Vertex Shader
         NULL,
-        true    // No need to check to registry overrides
+        true    // No need to check to registry /* override */s
     },
     // Tier 1 - 2005 advanced D3D hardware
     // 
@@ -71,9 +71,9 @@ TierRequirements g_rgTierRequirements[] = {
     {
         MIL_TIER(1, 0),
         60*1024*1024,           // 60 MB
-        // Temporarily allow LDDM to override
+        // Temporarily allow LDDM to /* override */
         //  memory settings for Tier 1 as some drivers do not correctly report memory size.
-        TRUE,                   // => LDDM does override mem req
+        TRUE,                   // => LDDM does /* override */ mem req
         D3DPS_VERSION(2, 0),    // Pixel Shader 2.0
         0,                      // No Vertex shader
         CheckTier1_0SpecificCaps,
@@ -83,7 +83,7 @@ TierRequirements g_rgTierRequirements[] = {
     {
         MIL_TIER(2, 0),
         120*1024*1024,          // 120 MB
-        TRUE,                   //  => LDDM overrides mem req
+        TRUE,                   //  => LDDM /* override */s mem req
         D3DPS_VERSION(2, 0),    // Pixel Shader 2.0
         D3DVS_VERSION(2, 0),    // Vertex Shader 2.0
         CheckTier2_0SpecificCaps,

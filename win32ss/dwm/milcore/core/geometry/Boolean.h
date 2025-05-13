@@ -170,7 +170,7 @@ public:
     {
     }
 
-    // CScanner override
+    // CScanner /* override */
     virtual HRESULT ProcessTheJunction();
 
     virtual HRESULT ProcessCurrentVertex(
@@ -443,7 +443,7 @@ public:
     {
     }
 
-    // CScanner override
+    // CScanner /* override */
     virtual HRESULT ProcessTheJunction();
 
     MilPathsRelation::Enum GetResult();

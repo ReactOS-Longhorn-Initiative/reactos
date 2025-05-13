@@ -84,7 +84,7 @@ WmpStateEngineProxyItem<Class, Datatype>::
 //
 //------------------------------------------------------------------------------
 template <typename Class, typename Datatype>
-__override
+/* override */
 void
 WmpStateEngineProxyItem<Class, Datatype>::
 Run(
@@ -119,7 +119,7 @@ Run(
 //
 //------------------------------------------------------------------------------
 template <typename Class, typename Datatype>
-__override
+/* override */
 void
 WmpStateEngineProxyItem<Class, Datatype>::
 Cancel(
@@ -156,7 +156,7 @@ Cancel(
 //
 //------------------------------------------------------------------------------
 template <typename Class, typename Datatype>
-__override
+/* override */
 bool
 WmpStateEngineProxyItem<Class, Datatype>::
 IsAnOwner(

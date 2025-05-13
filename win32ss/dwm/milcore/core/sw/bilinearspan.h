@@ -55,9 +55,9 @@ public:
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
         );
 
-    virtual VOID ReleaseExpensiveResources() override;
+    virtual VOID ReleaseExpensiveResources() /* override */;
 
-    virtual MilPixelFormat::Enum GetPixelFormat() const override
+    virtual MilPixelFormat::Enum GetPixelFormat() const /* override */
     {
         return m_PixelFormat;
     }
@@ -131,7 +131,7 @@ public:
     CNearestNeighborSpan();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CNearestNeighborSpan));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) GpCC *pargbDest) const;
 };
@@ -158,7 +158,7 @@ public:
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
         );
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(
         INT x,
@@ -296,7 +296,7 @@ public:
     CUnoptimizedBilinearSpan();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CBilinearSpan));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) GpCC *pargbDest) const;
 };
@@ -321,9 +321,9 @@ public:
         MilBitmapWrapMode::Enum wrapMode,
         __in_ecount_opt(1) const MilColorF *pBorderColor,
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
-        ) override;
+        ) /* override */;
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     static BOOL CanHandleInputRange(
         UINT uBitmapWidth,
@@ -378,9 +378,9 @@ public:
         MilBitmapWrapMode::Enum wrapMode,
         __in_ecount_opt(1) const MilColorF *pBorderColor,
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
-        ) override;
+        ) /* override */;
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     VOID GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) GpCC *pargbDest) const;
 
@@ -416,7 +416,7 @@ public:
     CNearestNeighborSpan_scRGB();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CNearestNeighborSpan_scRGB));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) MilColorF *pcolDest) const;
 };
@@ -435,7 +435,7 @@ public:
     CBilinearSpan_scRGB();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CBilinearSpan_scRGB));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) MilColorF *pcolDest) const;
 };

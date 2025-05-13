@@ -47,7 +47,7 @@ private:
     // CD3DResource methods
     //
 
-    void ReleaseD3DResources() override;
+    void ReleaseD3DResources() /* override */;
 
 };
 

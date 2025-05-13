@@ -96,7 +96,7 @@ add_dependencies(hw xdk)
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(hw PRIVATE /wd5043 /wd5033)
+target_compile_options(hw PRIVATE /wd5043 /wd5033 /wd4838)
 endif()
 
 if(NOT MSVC)

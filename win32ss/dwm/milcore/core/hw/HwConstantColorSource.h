@@ -58,7 +58,7 @@ public:
     HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder,
         MilVertexFormatAttribute mvfaLocation
-        ) override;
+        ) /* override */;
 
     HRESULT Realize(
         ); 
@@ -66,7 +66,7 @@ public:
     HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        ) override;
+        ) /* override */;
 
     void ResetForPipelineReuse()
     {
@@ -75,7 +75,7 @@ public:
 
     HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        ) override;
+        ) /* override */;
 
     void SetColorShaderHandle(
         MILSPHandle hShaderColorHandle
@@ -203,7 +203,7 @@ public:
 
     HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        ) override;
+        ) /* override */;
 
 protected:
 
@@ -282,11 +282,11 @@ public:
 
     void AlphaScale(
         FLOAT alphaScale
-        ) override;
+        ) /* override */;
 
     HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        ) override;
+        ) /* override */;
 
 private:
 

@@ -69,7 +69,7 @@ CMilVisualCache::~CMilVisualCache()
 //    resource's type.
 //
 //-----------------------------------------------------------------------------
-__override
+/* override */
 bool
 CMilVisualCache::IsOfType(MIL_RESOURCE_TYPE type) const
 {

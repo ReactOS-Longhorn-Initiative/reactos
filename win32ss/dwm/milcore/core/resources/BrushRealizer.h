@@ -152,11 +152,11 @@ public:
 
     bool RealizedBrushMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
-        ) const override;
-    bool RealizedBrushWillHaveSourceClip() const override;
+        ) const /* override */;
+    bool RealizedBrushWillHaveSourceClip() const /* override */;
     bool RealizedBrushSourceClipMayBeEntireSource(
         __in_ecount_opt(1) const BrushContext *pBrushContext
-        ) const override;
+        ) const /* override */;
 
     HRESULT EnsureRealization(
         UINT uAdapterIndex,
@@ -164,14 +164,14 @@ public:
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __in_ecount(1) const CContextState *pContextState,
         __inout_ecount(1) CIntermediateRTCreator *pIRenderTargetCreator
-        ) override;
+        ) /* override */;
 
-    // override void RestoreMetaIntermediates() ; inherits implmentation
-    void FreeRealizationResources() override;
+    // /* override */ void RestoreMetaIntermediates() ; inherits implmentation
+    void FreeRealizationResources() /* override */;
 
     HRESULT GetRealizedEffectsNoRef(
         __deref_out_ecount_opt(1) IMILEffectList **ppIEffectList
-        ) override;
+        ) /* override */;
 
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CBrushResourceRealizer));
 
@@ -221,11 +221,11 @@ public:
 
     bool RealizedBrushMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
-        ) const override;
-    bool RealizedBrushWillHaveSourceClip() const override;
+        ) const /* override */;
+    bool RealizedBrushWillHaveSourceClip() const /* override */;
     bool RealizedBrushSourceClipMayBeEntireSource(
         __in_ecount_opt(1) const BrushContext *pBrushContext
-        ) const override;
+        ) const /* override */;
 
     HRESULT EnsureRealization(
         UINT uAdapterIndex,
@@ -233,13 +233,13 @@ public:
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __in_ecount(1) const CContextState *pContextState,
         __inout_ecount(1) CIntermediateRTCreator *pIRenderTargetCreator
-        ) override;
+        ) /* override */;
 
-    void RestoreMetaIntermediates() override;
+    void RestoreMetaIntermediates() /* override */;
 
     HRESULT GetRealizedEffectsNoRef(
         __deref_out_ecount_opt(1) IMILEffectList **ppIEffectList
-        ) override
+        ) /* override */
     {
         *ppIEffectList = m_pIEffectList;
         return S_OK;

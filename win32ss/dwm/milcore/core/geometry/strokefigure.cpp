@@ -990,7 +990,7 @@ Cleanup:
 //      which we're attaching this shape.  We'll modify the pen to be simple
 //      (not compound), and ignore any dasher.
 //
-//      If the line shape overrides the pen then a new widening pen will be
+//      If the line shape /* override */s the pen then a new widening pen will be
 //      computed from the overriding pen-geometry.
 //
 //------------------------------------------------------------------------------
@@ -1008,7 +1008,7 @@ CWidener::SetForLineShape(
 #ifdef LINE_SHAPES_ENABLED
     HRESULT hr = S_OK;
 
-    if (shape.OverridesThePen())
+    if (shape./* override */sThePen())
     {
         const CPenGeometry &geom = shape.GetPenGeometry();
 

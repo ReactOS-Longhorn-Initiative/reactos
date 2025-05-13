@@ -49,7 +49,7 @@ protected:
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_VIEWPORT3DVISUAL || CMilVisual::IsOfType(type);
     }
@@ -70,17 +70,17 @@ public:
         __in_ecount(1) const MILCMD_VIEWPORT3DVISUAL_SETVIEWPORT* pCmd
         );
 
-    override virtual HRESULT ProcessRemoveAllChildren(
+    /* override */ virtual HRESULT ProcessRemoveAllChildren(
         __in_ecount(1) const CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_VISUAL_REMOVEALLCHILDREN* pCmd
         );
 
-    override virtual HRESULT ProcessRemoveChild(
+    /* override */ virtual HRESULT ProcessRemoveChild(
         __in_ecount(1) const CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_VISUAL_REMOVECHILD* pCmd
         );
 
-    override virtual HRESULT ProcessInsertChildAt(
+    /* override */ virtual HRESULT ProcessInsertChildAt(
         __in_ecount(1) const CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_VISUAL_INSERTCHILDAT* pCmd
         );
@@ -90,12 +90,12 @@ public:
         __in_ecount(1) const MILCMD_VIEWPORT3DVISUAL_SET3DCHILD* pCmd
         );
 
-    override HRESULT GetContentBounds(
+    /* override */ HRESULT GetContentBounds(
         __in_ecount(1) CContentBounder *pContentBounder, 
         __out_ecount(1) CMilRectF *prcBounds
         );
     
-    override HRESULT RenderContent(
+    /* override */ HRESULT RenderContent(
         __in_ecount(1) CDrawingContext* pDrawingContext
         );
 

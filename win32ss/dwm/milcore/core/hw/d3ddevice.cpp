@@ -3591,7 +3591,7 @@ CD3DDeviceLevel1::PresentWithGDI(
 
     if ((pMILDC->GetRTInitializationFlags() & MilRTInitialization::PresentUsingMask) == MilRTInitialization::PresentUsingUpdateLayeredWindow)
     {
-        SIZE sz = { uBufferWidth, uBufferHeight };
+        SIZE sz = { (LONG)uBufferWidth, (LONG)uBufferHeight };
         POINT ptSrc = { 0, 0 };
         HWND hWnd = pMILDC->GetHWND();
 

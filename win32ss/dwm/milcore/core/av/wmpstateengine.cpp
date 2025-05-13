@@ -1275,7 +1275,7 @@ HrFindInterface(
 //      corresponds to an AddItem call on the appartment manager.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 void
 CWmpStateEngine::
 Run(

@@ -57,7 +57,7 @@ public:
         return m_marshalType;
     }
 
-    override HRESULT SubmitBatch(_In_ CMilCommandBatch *pBatch);
+    /* override */ HRESULT SubmitBatch(_In_ CMilCommandBatch *pBatch);
 
     HRESULT PostMessageToClient(
         _In_ const MIL_MESSAGE *pMessage,

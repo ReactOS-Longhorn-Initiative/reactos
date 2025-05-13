@@ -642,7 +642,7 @@ CMILFactory::CreateDesktopRenderTarget(
     }
 
     //
-    // Check for registry keys that override the render target initialization flags
+    // Check for registry keys that /* override */ the render target initialization flags
     //
 
     {

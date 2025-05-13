@@ -66,7 +66,7 @@ public:
 
     HRESULT SendOperations(
         __inout_ecount(1) CHwPipelineBuilder *pBuilder
-        ) override;
+        ) /* override */;
 };
 
 

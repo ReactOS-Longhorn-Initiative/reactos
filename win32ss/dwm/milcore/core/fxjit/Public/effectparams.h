@@ -62,7 +62,7 @@ struct CPixelShaderState
         }
 
         //
-        // Default deltas, but needs to be overriden by the user.
+        // Default deltas, but needs to be /* override */n by the user.
         // 
         // Values provided here so that the caller sees something wrong
         // instead of a blank screen if they forget to set them.

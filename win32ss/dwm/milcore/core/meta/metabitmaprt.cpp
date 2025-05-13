@@ -645,7 +645,7 @@ CMetaBitmapRenderTarget::CopyPixels(
 //      Walks the internal render targets, finding the one that matches the
 //      cache index and display id.
 //
-//      The display id is optional, but if it exists it overrides the cache
+//      The display id is optional, but if it exists it /* override */s the cache
 //      index as a lookup mechanism.
 //
 //      Returns an error if no rendertarget was found.
@@ -686,7 +686,7 @@ CMetaBitmapRenderTarget::GetCompatibleSubRenderTargetNoRef(
 //      Walks the internal render targets, finding the one that matches the
 //      cache index and display id.
 //
-//      The display id is optional, but if it exists it overrides the cache
+//      The display id is optional, but if it exists it /* override */s the cache
 //      index as a lookup mechanism.
 //
 

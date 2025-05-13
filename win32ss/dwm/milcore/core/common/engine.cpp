@@ -29,7 +29,7 @@ DeclareTag(tagMILStepRenderingDisableBreak, "MIL", "MIL Step Rendering - Disable
 UINT CCommonRegistryData::m_uResCheckInSeconds = 15 * 60;
 bool CCommonRegistryData::m_fGPUThrottlingDisabled = false;
 
-//can be overriden by HKLM\Software\Microsoft\Avalon.Graphics\DisableInstrumentationBreaking(DWORD) = !0
+//can be /* override */n by HKLM\Software\Microsoft\Avalon.Graphics\DisableInstrumentationBreaking(DWORD) = !0
 
 /**************************************************************************\
 *

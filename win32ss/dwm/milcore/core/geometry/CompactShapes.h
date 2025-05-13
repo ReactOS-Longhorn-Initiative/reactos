@@ -55,7 +55,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual bool IsEmpty() const
     {
         return false;
@@ -129,7 +129,7 @@ public:
     {
     }
 
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual bool HasGaps() const
     {
         return false;
@@ -187,7 +187,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual HRESULT GetCountsEstimate(
         __out_ecount(1) UINT &cSegments,    // A bound on the number of segments 
         __out_ecount(1) UINT &cPoints       // A bound on the number of points
@@ -436,7 +436,7 @@ public:
             // Error tolerance (optional)
         _In_ bool fRelative=false,
             // True if the tolerance is relative (optional)       
-        _In_ bool fSkipHollows=true) const override;
+        _In_ bool fSkipHollows=true) const /* override */;
             // If true, skip non-fillable figures when computing fill bounds (optional)       
 
     HRESULT WidenToShape(
@@ -512,7 +512,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual HRESULT GetCountsEstimate(
         __out_ecount(1) UINT &cSegments,    // A bound on the number of segments 
         __out_ecount(1) UINT &cPoints       // A bound on the number of points
@@ -814,7 +814,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual HRESULT GetCountsEstimate(
         __out_ecount(1) UINT &cSegments,    // A bound on the number of segments 
         __out_ecount(1) UINT &cPoints       // A bound on the number of points
@@ -982,7 +982,7 @@ public:
     {
     }
 
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual __outro_ecount(1) const IFigureData &GetFigure(IN UINT index) const
     {
         Assert(index == 0);

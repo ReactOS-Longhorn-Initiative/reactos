@@ -107,7 +107,7 @@ Cleanup:
 
 //+-----------------------------------------------------------------------------
 //
-//  CHwPixelShaderEffect::ReleaseD3DResources (override CD3DResource)
+//  CHwPixelShaderEffect::ReleaseD3DResources (/* override */ CD3DResource)
 //
 //  Synopsis:
 //     Called by the device to release D3D resources associated with it on 

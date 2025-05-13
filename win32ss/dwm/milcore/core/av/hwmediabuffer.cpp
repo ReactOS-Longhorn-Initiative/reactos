@@ -55,7 +55,7 @@ CHWMFMediaBuffer(
     SetInterface(m_pMixerDevice, pMixerDevice);
 }
 
-__override
+/* override */
 CHWMFMediaBuffer::
 ~CHWMFMediaBuffer(
     void
@@ -92,7 +92,7 @@ CHWMFMediaBuffer::
 //      the bitmap source.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CHWMFMediaBuffer::
 GetBitmapSource(
@@ -154,7 +154,7 @@ Cleanup:
 //      to allow the EVR to do processing on it.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CHWMFMediaBuffer::
 DoneWithBitmap(
@@ -178,7 +178,7 @@ DoneWithBitmap(
 //      locked.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CHWMFMediaBuffer::
 Init(
