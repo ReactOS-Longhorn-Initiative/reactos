@@ -26,7 +26,7 @@ public:
         UINT uVersion
         );
     
-    override ~CInteropDeviceBitmap();
+    ~CInteropDeviceBitmap() override;
     
     static HRESULT Create(
         _In_ IUnknown *pIUserSurface,
@@ -44,12 +44,12 @@ public:
 
     void Detach();
 
-    override void NotifyAdapterStatus(UINT uAdapter, bool fIsValid);
+    void NotifyAdapterStatus(UINT uAdapter, bool fIsValid) override;
 
-    override bool TryCreateDependentDeviceColorSource(
+    bool TryCreateDependentDeviceColorSource(
         _In_ const LUID &luidNewDevice,
         _In_ CHwBitmapCache *pNewCache
-        );
+        ) override;
 
     bool IsHwRenderingDisabled() const { CGuard<CCriticalSection> oGuard(m_cs); return m_fIsHwRenderingDisabled; }
     bool IsSoftwareFallbackEnabled() const { CGuard<CCriticalSection> oGuard(m_cs); return m_fIsSoftwareFallbackEnabled; }

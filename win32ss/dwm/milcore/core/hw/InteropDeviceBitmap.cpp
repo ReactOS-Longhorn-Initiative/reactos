@@ -220,7 +220,7 @@ CInteropDeviceBitmap::GetUpdateMethod(
         {
             method = SharedSurface;
         }
-        else if (!WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater())
+        else// if (!WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater()) // REACTOS TODO
         {
             HDC hdc;
             IFC(pID3DSurface->GetDC(&hdc));

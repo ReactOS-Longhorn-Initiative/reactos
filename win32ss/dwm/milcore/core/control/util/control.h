@@ -15,9 +15,9 @@
 
 #define DEBUGCONTROL_VERSION 3
 
-__if_not_exists(ARGB) {
-struct ARGB;
-}
+//__if_not_exists(ARGB) {
+//struct ARGB;
+//}
 
 //---------------------------------------------------------------------------------
 // CPerformanceCounter
@@ -33,7 +33,7 @@ struct ARGB;
 class CPerformanceCounter
 {
 public:
-    static void CPerformanceCounter::Initialize(); 
+    static void Initialize(); 
     
     CPerformanceCounter(UINT minIntervalMilliseconds);
 
@@ -128,7 +128,7 @@ private:
         _In_ PCWSTR lpName);
     HRESULT InitializeAttach(
         _In_ PCWSTR lpName);
-    void CMediaControl::UpdateMaxValuePair(
+    void UpdateMaxValuePair(
         __inout_ecount(1) DWORD* pdwMaxValue,
         __inout_ecount(1) DWORD* pdwCurrentValue);
 public:
