@@ -194,7 +194,7 @@ public:
         );
 
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_DRAWINGCONTEXT;
     }
@@ -250,7 +250,7 @@ public:
     //
     // Utility function for bounds render pass check.
     //
-    override BOOL IsBounding()
+    /* override */ BOOL IsBounding()
     {
         return (m_dwInternalRenderTargetType & BoundsRenderTarget);
     }

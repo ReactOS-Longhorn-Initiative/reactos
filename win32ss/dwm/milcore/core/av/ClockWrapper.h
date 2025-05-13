@@ -44,7 +44,7 @@ public:
         void
         );
 
-    __override
+    /* override */
     ~TimerWrapper(
         void
         );
@@ -56,7 +56,7 @@ public:
         _In_    InvokeMethod        method
         );
 
-    __override
+    /* override */
     void
     Shutdown(
         void
@@ -166,13 +166,13 @@ private:
 
     protected:
 
-        __override
+        /* override */
         void
         Run(
             void
             );
 
-        __override
+        /* override */
         bool
         IsAnOwner(
             _In_    IUnknown    *pIUnknown

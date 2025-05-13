@@ -345,7 +345,7 @@ BOOL CSlaveHWndRenderTarget::PostDisplayAvailabilityMessage(int displayCount)
 //  Returns:  Currently always succeeds.
 //
 //------------------------------------------------------------------------
-override
+/* override */
 HRESULT
 CSlaveHWndRenderTarget::NotifyDisplaySetChange(bool invalid , int oldDisplayCount, int displayCount)
 {
@@ -783,7 +783,7 @@ Cleanup:
 // CSlaveHWndRenderTarget::UpdateRenderTargetFlags
 //-----------------------------------------------------------------------------
 
-override
+/* override */
 HRESULT
 CSlaveHWndRenderTarget::UpdateRenderTargetFlags()
 {

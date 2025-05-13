@@ -31,22 +31,22 @@ protected:
 
 public:
 
-    __override virtual bool HasContent() const
+    /* override */ virtual bool HasContent() const
     {
         return m_data.m_pDrawing != NULL;
     }
 
-    __override virtual HRESULT Draw(
+    /* override */ virtual HRESULT Draw(
         __in_ecount(1) CDrawingContext *pDC,
         MilBitmapWrapMode::Enum wrapMode
         );
 
-    __override virtual HRESULT GetBounds(
+    /* override */ virtual HRESULT GetBounds(
         __in_ecount_opt(1) CContentBounder *pBounder,
         __out_ecount(1) CMilRectF *prcBounds
         );
 
-    __override virtual HRESULT GetResolution(
+    /* override */ virtual HRESULT GetResolution(
         __out_ecount(1) double *dDpiX,
         __out_ecount(1) double *dDpiY
         ) const
@@ -56,7 +56,7 @@ public:
         RRETURN(S_OK);
     }
     
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_DRAWINGIMAGE || CMilImageSource::IsOfType(type);
     }
@@ -67,7 +67,7 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
     CMilDrawingImageDuce_Data m_data;
 };

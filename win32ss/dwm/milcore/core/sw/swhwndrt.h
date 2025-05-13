@@ -150,13 +150,13 @@ public:
     // IRenderTargetHWNDInternal.
     //
 
-    void SetPosition(POINT ptOrigin) override;
+    void SetPosition(POINT ptOrigin) /* override */;
 
     void UpdatePresentProperties(
         MilTransparency::Flags transparencyFlags,
         BYTE constantAlpha,
         COLORREF colorKey
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Present)(
         __in_ecount(1) const RECT *pRect
@@ -199,7 +199,7 @@ protected:
 private:
     BOOL m_fDbgClearOnPresent;
 
-    override void ShowSteppedRendering(
+    /* override */ void ShowSteppedRendering(
         _In_ LPCTSTR pszRenderDesc,
         __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
         );

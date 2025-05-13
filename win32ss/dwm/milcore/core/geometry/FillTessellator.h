@@ -77,7 +77,7 @@ public:
 
     void GetPerVertexDataType(
         __out_ecount(1) MilVertexFormat &mvfFullyGenerated
-        ) const override
+        ) const /* override */
     {
         // (X,Y) destination coordinate are generated for each vertex.
         mvfFullyGenerated = MILVFAttrXY;
@@ -95,7 +95,7 @@ public:
     //--------------------------------------------------------------------------
     HRESULT SendGeometryModifiers(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        ) override
+        ) /* override */
     {
         UNREFERENCED_PARAMETER(pPipelineBuilder);
 
@@ -118,7 +118,7 @@ public:
     //--------------------------------------------------------------------------
     HRESULT SendLighting(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        ) override
+        ) /* override */
     {
         UNREFERENCED_PARAMETER(pPipelineBuilder);
 

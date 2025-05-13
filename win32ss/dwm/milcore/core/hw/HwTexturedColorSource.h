@@ -37,7 +37,7 @@ public:
     virtual HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder,
         MilVertexFormatAttribute mvfaLocation
-        ) override;
+        ) /* override */;
 
     __out_ecount(1) const MILMatrix3x2 &GetXSpaceToTextureUV() const
     {
@@ -71,7 +71,7 @@ public:
     virtual HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        ) override;
+        ) /* override */;
 
     HRESULT SendDeviceStates(
         DWORD dwStage,
@@ -87,7 +87,7 @@ public:
 
     HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        ) override;
+        ) /* override */;
 
     void SetTextureTransformHandle(
         MILSPHandle hTransform

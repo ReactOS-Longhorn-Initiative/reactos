@@ -1277,7 +1277,7 @@ void CPSTrans::Initialize(  const DWORD *pCode,
                     if( D3DPS_VERSION(2,0) > Version )
                     {
                         // Force a [-1,1] clamp after applying modifier (for constants only)
-                        // This overrides the the standard [-PixelShader1xMaxValue,PixelShader1xMaxValue] clamp.
+                        // This /* override */s the the standard [-PixelShader1xMaxValue,PixelShader1xMaxValue] clamp.
                         // An IHV that supports PixelShader1xMaxValue > 1 forgot to do this for constants.
                         bForceNeg1To1Clamp[i] = TRUE;
                     }

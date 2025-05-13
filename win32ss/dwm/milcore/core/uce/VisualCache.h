@@ -42,9 +42,9 @@ public:
         return m_pCacheMode;
     }
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
 
-    override virtual BOOL OnChanged(
+    /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         );

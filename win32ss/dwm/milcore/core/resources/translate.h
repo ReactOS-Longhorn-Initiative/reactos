@@ -50,7 +50,7 @@ public:
         __deref_out CMilTranslateTransformDuce **ppTranslateTransform
         );
     
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_TRANSLATETRANSFORM || CMilTransformDuce::IsOfType(type);
     }
@@ -61,7 +61,7 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
     HRESULT SynchronizeAnimatedFields();
 

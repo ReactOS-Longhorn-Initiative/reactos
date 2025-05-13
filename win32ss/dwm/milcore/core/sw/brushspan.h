@@ -54,8 +54,8 @@ public:
         );
     
 
-    ScanOpFunc GetScanOp() const override { return ColorSource_Constant_32bppPARGB; }
-    MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PBGRA32bpp; }
+    ScanOpFunc GetScanOp() const /* override */ { return ColorSource_Constant_32bppPARGB; }
+    MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PBGRA32bpp; }
 
     virtual VOID ReleaseExpensiveResources() {}  // No expensive resources are
                                                  // needed for a constant color
@@ -83,7 +83,7 @@ public:
     {
     }
     
-    MilPixelFormat::Enum GetPixelFormat() const  override { return MilPixelFormat::PBGRA32bpp; }
+    MilPixelFormat::Enum GetPixelFormat() const  /* override */ { return MilPixelFormat::PBGRA32bpp; }
 
 protected:
     
@@ -449,7 +449,7 @@ class CShaderEffectBrushSpan : public CColorSource
 {
 public:
     CShaderEffectBrushSpan();
-    ~CShaderEffectBrushSpan() override {}
+    ~CShaderEffectBrushSpan() /* override */ {}
 
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CShaderEffectBrushSpan));
 
@@ -458,9 +458,9 @@ public:
         __inout CMILBrushShaderEffect* pShaderEffectBrush);
 
 
-    ScanOpFunc GetScanOp() const override { return ColorSource_ShaderEffect_32bppPARGB; }
-    MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PBGRA32bpp; }
-    void ReleaseExpensiveResources() override;
+    ScanOpFunc GetScanOp() const /* override */ { return ColorSource_ShaderEffect_32bppPARGB; }
+    MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PBGRA32bpp; }
+    void ReleaseExpensiveResources() /* override */;
 
 private:
 

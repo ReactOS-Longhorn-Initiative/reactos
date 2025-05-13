@@ -86,7 +86,7 @@ protected:
     virtual ~CDesktopRenderTarget();
 
 
-    STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppv) override;
+    STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppv) /* override */;
 
     virtual HRESULT EditMetaData() = 0;
 
@@ -137,51 +137,51 @@ public:
     STDMETHOD(Clear)(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP Begin3D(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP End3D(
-        ) override;
+        ) /* override */;
 
     // IMILRenderTargetHWND.
 
     STDMETHOD(Present)(
-        ) override;
+        ) /* override */;
 
     STDMETHOD(ScrollBlt) (
         __in_ecount(1) const RECT *prcSource,
         __in_ecount(1) const RECT *prcDest
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Invalidate)(
         __in_ecount_opt(1) MilRectF const *prc
-        ) override;
+        ) /* override */;
 
     STDMETHOD_(VOID, GetBounds)(
         __out_ecount(1) MilRectF * const pBounds
-        ) override;
+        ) /* override */;
 
 
     STDMETHOD(WaitForVBlank)(
-        ) override;
+        ) /* override */;
 
     STDMETHOD_(VOID, AdvanceFrame)(
         UINT uFrameNumber
-        ) override;
+        ) /* override */;
 
     STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        ) override;
+        ) /* override */;
 
     STDMETHOD(CanAccelerateScroll)(
         __out_ecount(1) bool *pfCanAccelerateScroll
-        ) override;
+        ) /* override */;
 
     // IRenderTargetInternal.
 
@@ -192,7 +192,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override;
+        ) /* override */;
 
 #if DBG
     //
@@ -207,7 +207,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawMesh3D)(
         __inout_ecount(1) CContextState* pContextState,
@@ -215,7 +215,7 @@ public:
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __inout_ecount_opt(1) CMILShader *pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawPath)(
         __inout_ecount(1) CContextState *pContextState,
@@ -224,18 +224,18 @@ public:
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawGlyphs)(
         __inout_ecount(1) DrawGlyphsParameters &pars
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IAVSurfaceRenderer *pSurfaceRenderer,
         __inout_ecount(1) IWGXBitmapSource *pBitmapSource,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 #endif /* DBG */
 
 protected:

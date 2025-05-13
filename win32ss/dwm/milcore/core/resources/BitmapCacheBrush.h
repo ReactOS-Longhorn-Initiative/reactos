@@ -40,19 +40,19 @@ protected:
 
     virtual ~CMilBitmapCacheBrushDuce();
 
-    override HRESULT GetBrushRealizationInternal(
+    /* override */ HRESULT GetBrushRealizationInternal(
         __in_ecount(1) const BrushContext *pBrushContext,
         __deref_inout_ecount_opt(1) CMILBrush **ppBrushRealizationNoRef
         );
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_BITMAPCACHEBRUSH || CMilBrushDuce::IsOfType(type);
     }
 
-    override virtual bool NeedsBounds(
+    /* override */ virtual bool NeedsBounds(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -65,8 +65,8 @@ public:
         );
     
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
-    override CMilSlaveResource* GetResource();
+    /* override */ void UnRegisterNotifiers();
+    /* override */ CMilSlaveResource* GetResource();
 
     HRESULT  GetRenderTargetBitmap(
         _In_ CComposition *pComposition,

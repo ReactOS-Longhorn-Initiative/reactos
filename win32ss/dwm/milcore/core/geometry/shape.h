@@ -65,7 +65,7 @@ public:
     
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CShape));
 
-    // IShapeBuilder overrides
+    // IShapeBuilder /* override */s
     virtual HRESULT AddNewFigure(
         __deref_out_ecount(1) IFigureBuilder *&pFigure);   // The newly added figure
     
@@ -73,7 +73,7 @@ public:
         __in_ecount(1) const MilRectF &rect,             // The rectangle
         __in_ecount_opt(1) const CMILMatrix *pMatrix=NULL); // Optional: Transformation matrix (NULL OK)
 
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual bool HasGaps() const;
 
     virtual bool HasHollows() const;

@@ -73,7 +73,7 @@ CMilVisualCacheSet::~CMilVisualCacheSet()
 //
 //-----------------------------------------------------------------------------
 
-__override
+/* override */
 bool
 CMilVisualCacheSet::IsOfType(MIL_RESOURCE_TYPE type) const
 {

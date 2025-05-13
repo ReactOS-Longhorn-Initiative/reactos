@@ -10,7 +10,7 @@
 //  Description:
 //      Contains CD3DSwapChainWithSwDC implementation
 //
-//      This class overrides the GetDC method of CD3DSwapChain to implement
+//      This class /* override */s the GetDC method of CD3DSwapChain to implement
 //      GetDC using GetRenderTargetData. This approach acheived phenominal perf
 //      wins in WDDM.
 //

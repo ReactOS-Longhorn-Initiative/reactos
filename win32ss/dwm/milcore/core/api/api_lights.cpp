@@ -52,7 +52,7 @@ CMILLightAmbient::Set(
 //            hwhlslshaderfragments.cpp
 //
 //-----------------------------------------------------------------------------
-override HRESULT 
+/* override */ HRESULT 
 CMILLightAmbient::SendShaderData(
     __in_ecount(1) CHwPipelineShader *pShader,
     __in_ecount(1) const MilColorF &materialColor,
@@ -119,7 +119,7 @@ CMILLightDirectional::Set(
 //            hwhlslshaderfragments.cpp
 //
 //-----------------------------------------------------------------------------
-override HRESULT 
+/* override */ HRESULT 
 CMILLightDirectional::SendShaderData(
     __in_ecount(1) CHwPipelineShader *pShader,
     __in_ecount(1) const MilColorF &materialColor,
@@ -152,7 +152,7 @@ Cleanup:
 //            CMILLightData::Transform for more information.
 //
 //-----------------------------------------------------------------------------
-override void 
+/* override */ void 
 CMILLightDirectional::Transform(
     TransformType type,
     __in_ecount(1) const CMILMatrix *pTransform,
@@ -231,7 +231,7 @@ CMILLightPoint::Set(
 //            hwhlslshaderfragments.cpp
 //
 //-----------------------------------------------------------------------------
-override HRESULT 
+/* override */ HRESULT 
 CMILLightPoint::SendShaderData(
     __in_ecount(1) CHwPipelineShader *pShader,
     __in_ecount(1) const MilColorF &materialColor,
@@ -281,7 +281,7 @@ Cleanup:
 //            CMILLightData::Transform for more information
 //
 //-----------------------------------------------------------------------------
-override void 
+/* override */ void 
 CMILLightPoint::Transform(
     TransformType type,
     __in_ecount(1) const CMILMatrix *pTransform,
@@ -424,7 +424,7 @@ CMILLightSpot::Set(
 //            hwhlslshaderfragments.cpp
 //
 //-----------------------------------------------------------------------------
-override HRESULT 
+/* override */ HRESULT 
 CMILLightSpot::SendShaderData(
     __in_ecount(1) CHwPipelineShader *pShader,
     __in_ecount(1) const MilColorF &materialColor,
@@ -475,7 +475,7 @@ Cleanup:
 //            CMILLightData::Transform for more information
 //
 //-----------------------------------------------------------------------------
-override void 
+/* override */ void 
 CMILLightSpot::Transform(
     TransformType type,
     __in_ecount(1) const CMILMatrix *pTransform,

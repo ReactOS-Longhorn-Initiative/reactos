@@ -295,7 +295,7 @@ CD3DSurface::ReadIntoSysMemBuffer(
     UINT const uSourceWidth = rcSource.Width();
     UINT const uSourceHeight = rcSource.Height();
 
-    RECT const rcDest = { 0, 0, uSourceWidth, uSourceHeight };
+    RECT const rcDest = { 0, 0, (LONG)uSourceWidth, (LONG)uSourceHeight };
 
     BYTE const BitsPerPixel = GetPixelFormatSize(fmtOut);
 

@@ -142,27 +142,27 @@ public:
 
     // Runs any necessary updates to the composition - all the resources
     // participating in the composition, the thread, or device management.
-    override HRESULT Compose(
+    /* override */ HRESULT Compose(
         __out_ecount(1) bool *pfPresentNeeded
         );
 
-    override HRESULT WaitForVBlank();
+    /* override */ HRESULT WaitForVBlank();
 
     // present any target with unpresented rendering
-    override HRESULT Present(
+    /* override */ HRESULT Present(
         __in_ecount(1) CPartitionManager* pPartitionManager
         );
 
-    override void FlushChannels(
+    /* override */ void FlushChannels(
         bool fForceAllChannels = false
         );
 
     // This method sends a "this partition is in zombie state" notification 
     // back to the server side on all channels that have registered 
     // to receive them.
-    override HRESULT NotifyPartitionIsZombie();
+    /* override */ HRESULT NotifyPartitionIsZombie();
 
-    override virtual MilCompositionDeviceState::Enum GetCompositionDeviceState()
+    /* override */ virtual MilCompositionDeviceState::Enum GetCompositionDeviceState()
     {
         return m_deviceState;
     }

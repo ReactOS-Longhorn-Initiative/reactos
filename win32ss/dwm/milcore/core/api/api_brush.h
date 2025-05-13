@@ -64,12 +64,12 @@ public:
 
     // CMILBrush methods
 
-    __override BrushTypes GetType() const
+    BrushTypes GetType() const
     {
         return BrushSolid;
     }
 
-    BOOL ObviouslyHasZeroAlpha() const override
+    BOOL ObviouslyHasZeroAlpha() const /* override */
     {
         return HasZeroAlpha();
     }
@@ -281,18 +281,18 @@ public:
     // IMILResourceCache
     STDMETHOD_(void, GetUniquenessToken)(
         __out_ecount(1) UINT *puToken
-        ) const override;
+        ) const /* override */;
 
     // CMILBrush Methods
 
-    BrushTypes GetType() const override
+    BrushTypes GetType() const /* override */
     {
         return BrushBitmap;
     }
 
-    bool MayNeedNonPow2Tiling() const override;
+    bool MayNeedNonPow2Tiling() const /* override */;
 
-    BOOL ObviouslyHasZeroAlpha() const override
+    BOOL ObviouslyHasZeroAlpha() const /* override */
     {
         return GetOpacity() == 0.0f;
     }
@@ -515,7 +515,7 @@ public:
 protected:
 
     CMILBrushShaderEffect(_In_ CMilEffectDuce *pShaderEffect);
-    ~CMILBrushShaderEffect() override;
+    ~CMILBrushShaderEffect() /* override */;
 
 private:
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CMILBrushShaderEffect));
@@ -539,12 +539,12 @@ public:
 
     // CMILBrush methods
 
-    BrushTypes GetType() const override
+    BrushTypes GetType() const /* override */
     {
         return BrushShaderEffect;
     }  
 
-    BOOL ObviouslyHasZeroAlpha() const override
+    BOOL ObviouslyHasZeroAlpha() const /* override */
     {
         return false;
     }

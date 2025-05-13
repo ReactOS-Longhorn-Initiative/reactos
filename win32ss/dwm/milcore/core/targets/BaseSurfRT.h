@@ -104,7 +104,7 @@ public:
     
     STDMETHOD(ReadEnabledDisplays) (
         __inout DynArray<bool> *pEnabledDisplays
-        ) override;
+        ) /* override */;
     
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.

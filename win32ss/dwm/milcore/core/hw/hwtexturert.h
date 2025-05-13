@@ -81,7 +81,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawMesh3D)(
         __inout_ecount(1) CContextState* pContextState,
@@ -89,7 +89,7 @@ public:
         __inout_ecount(1) CMILMesh3D* pMesh3D,
         __inout_ecount_opt(1) CMILShader* pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawPath)(
         __inout_ecount(1) CContextState *pContextState,
@@ -98,13 +98,13 @@ public:
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawInfinitePath)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
     
     STDMETHOD(ComposeEffect)(
         __inout_ecount(1) CContextState *pContextState,
@@ -113,18 +113,18 @@ public:
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IMILRenderTargetBitmap* pImplicitInput
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawGlyphs)(
         __inout_ecount(1) DrawGlyphsParameters &pars
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount_opt(1) IAVSurfaceRenderer *pSurfaceRenderer,
         __inout_ecount_opt(1) IWGXBitmapSource *pIBitmapSource,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     //
     // IMILRenderTarget methods
@@ -132,21 +132,21 @@ public:
 
     STDMETHODIMP_(VOID) GetBounds(
         __out_ecount(1) MilRectF * const pBounds
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Clear)(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Begin3D)(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
-    STDMETHOD(End3D)() override;
+    STDMETHOD(End3D)() /* override */;
 
     //
     // CHwSurfaceRenderTarget methods
@@ -174,7 +174,7 @@ public:
 
     STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        ) override;
+        ) /* override */;
 
 private:
     CD3DVidMemOnlyTexture *m_pVidMemOnlyTexture;

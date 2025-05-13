@@ -224,14 +224,14 @@ public:
         return static_cast<CVertexRef *>(pChain->GetTaskData());
     }
 
-    // CScanner overrides
+    // CScanner /* override */s
     virtual HRESULT ProcessTheJunction();
 
     virtual HRESULT ProcessCurrentVertex(
         __inout_ecount(1) CChain *pChain);
             // The chain whose current vertex we're processing
 
-    // Methods supporting these overrides
+    // Methods supporting these /* override */s
     HRESULT CreateBands(
         __inout_ecount(1) CChain *pFirst,
             // The first left chain

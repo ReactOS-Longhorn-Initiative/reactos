@@ -121,10 +121,10 @@ public:
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
     STDMETHOD(End3D)(
-        ) override;
+        ) /* override */;
 
     // IRenderTargetInternal.
 
@@ -179,7 +179,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override;
+        ) /* override */;
 
     STDMETHOD(BeginLayer)(
         __in_ecount(1) MilRectF const &LayerBounds,
@@ -198,7 +198,7 @@ public:
     
     STDMETHOD(ReadEnabledDisplays) (
         __inout DynArray<bool> *pEnabledDisplays
-        ) override;
+        ) /* override */;
     
     // This method is used to determine if the render target is being
     // used to render, or if it's merely being used for bounds accumulation,
@@ -212,7 +212,7 @@ public:
         _In_ bool forceClearType
         );
 
-    UINT GetRealizationCacheIndex() override;
+    UINT GetRealizationCacheIndex() /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
@@ -223,7 +223,7 @@ public:
     
     bool HasEnabledDeviceIndex(IMILResourceCache::ValidIndex cacheIndex);
 
-    __out_ecount_opt(1) CMetaRenderTarget *DynCastToMeta() override { return this; }
+    __out_ecount_opt(1) CMetaRenderTarget *DynCastToMeta() /* override */ { return this; }
 
 protected:
 
@@ -233,7 +233,7 @@ protected:
 
     STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        ) override;
+        ) /* override */;
 
 protected:
 

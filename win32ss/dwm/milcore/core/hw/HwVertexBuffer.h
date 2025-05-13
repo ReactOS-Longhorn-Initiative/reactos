@@ -952,7 +952,7 @@ public:
         DWORD dwCoordIndex,
         __in_ecount(1) const CMilPointAndSizeF *pSubrect,
         WaffleModeFlags waffleMode
-        ) override;
+        ) /* override */;
 
     HRESULT FinalizeMappings(
         );
@@ -960,7 +960,7 @@ public:
     void SetOutsideBounds(
         __in_ecount_opt(1) const CMILSurfaceRect *prcBounds,
         bool fNeedInside
-        ) override;
+        ) /* override */;
 
     bool HasOutsideBounds() const
     {
@@ -1022,7 +1022,7 @@ public:
 
     HRESULT FlushInternal(
         __deref_opt_out_ecount_opt(1) CHwVertexBuffer **ppVertexBuffer
-        ) override;
+        ) /* override */;
             
 private:
 

@@ -95,7 +95,7 @@ private:
         //
         // CStateThreadItem
         //
-        __override
+        /* override */
         void
         Run(
             void

@@ -355,7 +355,7 @@ CMilVisual::RemoveAllChildren()
 //      CMilVisual::GetChildAt
 //---------------------------------------------------------------------------------
 
-override IGraphNode* CMilVisual::GetChildAt(UINT index)
+/* override */ IGraphNode* CMilVisual::GetChildAt(UINT index)
 {
     if (m_rgpChildren.GetCount() <= index)
     {
@@ -389,17 +389,17 @@ override IGraphNode* CMilVisual::GetChildAt(UINT index)
 //      LeaveNode();
 //-------------------------------------------------------------------------
 
-override bool CMilVisual::EnterNode()
+/* override */ bool CMilVisual::EnterNode()
 {
     return EnterResource();
 }
 
-override void CMilVisual::LeaveNode()
+/* override */ void CMilVisual::LeaveNode()
 {
     LeaveResource();
 }
 
-override bool CMilVisual::CanEnterNode() const
+/* override */ bool CMilVisual::CanEnterNode() const
 {
     return CanEnterResource();
 }

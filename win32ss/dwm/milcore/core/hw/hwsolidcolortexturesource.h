@@ -61,12 +61,12 @@ public:
     }
 
     HRESULT Realize(
-        ) override;
+        ) /* override */;
 
     HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        ) override;
+        ) /* override */;
 
 private:
     __checkReturn HRESULT CreateLockableTexture();

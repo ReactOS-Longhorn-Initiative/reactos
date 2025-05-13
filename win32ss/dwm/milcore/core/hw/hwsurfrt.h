@@ -104,10 +104,10 @@ public:
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
     STDMETHOD(End3D)(
-        ) override;
+        ) /* override */;
 
     //
     // IRenderTargetInternal methods
@@ -148,7 +148,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     STDMETHOD(ComposeEffect)(
         __inout_ecount(1) CContextState *pContextState,
@@ -157,7 +157,7 @@ public:
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IMILRenderTargetBitmap* pImplicitInput
-        ) override;
+        ) /* override */;
 
     // Draw a glyph run
 
@@ -172,7 +172,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override;
+        ) /* override */;
 
     HRESULT BeginLayerInternal(
         __inout_ecount(1) CRenderTargetLayer *pNewLayer

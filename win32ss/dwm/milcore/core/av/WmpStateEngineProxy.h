@@ -69,19 +69,19 @@ protected:
         __deref_out void **ppv
         );
 
-    __override
+    /* override */
     void
     Run(
         void
        );
 
-    __override
+    /* override */
     void
     Cancel(
         void
         );
 
-    __override
+    /* override */
     bool
     IsAnOwner(
         _In_    IUnknown    *pIUnknown

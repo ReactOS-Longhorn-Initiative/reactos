@@ -53,13 +53,13 @@ public:
     HRESULT SetBrushAndContext(
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext
-        ) override;
+        ) /* override */;
 
     // IHwPrimaryColorSource methods
 
     HRESULT SendOperations(
         __inout_ecount(1) CHwPipelineBuilder *pBuilder
-        ) override;
+        ) /* override */;
 };
 
 

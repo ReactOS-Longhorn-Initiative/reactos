@@ -78,16 +78,16 @@ public:
 
     void AlphaScale(
         FLOAT alphaScale
-        ) override;
+        ) /* override */;
 
 
     HRESULT Realize(
-        ) override;
+        ) /* override */;
 
     HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        ) override;
+        ) /* override */;
 
     void ResetAlphaScaleFactor() { m_alphaScale = 1.0f; }
 

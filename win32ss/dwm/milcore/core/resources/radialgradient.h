@@ -46,19 +46,19 @@ protected:
 
 public:
 
-    override bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_RADIALGRADIENTBRUSH || CMilGradientBrushDuce::IsOfType(type);
     }
 
-    override HRESULT GetRealizer(
+    /* override */ HRESULT GetRealizer(
         __in_ecount(1) const BrushContext *pBrushContext,
         __deref_out_ecount(1) CBrushRealizer** ppBrushRealizer
         );
 
-    override void FreeRealizationResources();
+    /* override */ void FreeRealizationResources();
     
-    override bool NeedsBounds(
+    /* override */ bool NeedsBounds(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -78,19 +78,19 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override HRESULT GetBrushRealizationInternal(
+    /* override */ HRESULT GetBrushRealizationInternal(
         __in_ecount(1) const BrushContext *pBrushContext,
         __deref_inout_ecount_opt(1) CMILBrush **ppBrushRealizationNoRef
         );
 
-    override bool IsConstantOpaque()
+    /* override */ bool IsConstantOpaque()
     {
         return IsConstantOpaqueInternal(this);
     }
 
-    override BOOL HasRealizationContextChanged(
+    /* override */ BOOL HasRealizationContextChanged(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const;
 

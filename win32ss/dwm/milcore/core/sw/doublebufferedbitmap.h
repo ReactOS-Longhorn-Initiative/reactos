@@ -74,7 +74,7 @@ public:
 protected:
 
     virtual ~CSwDoubleBufferedBitmap();
-    STDMETHOD(HrFindInterface)(_In_ REFIID riid, __deref_out void **ppv) override;
+    STDMETHOD(HrFindInterface)(_In_ REFIID riid, __deref_out void **ppv) /* override */;
 
 private:
 

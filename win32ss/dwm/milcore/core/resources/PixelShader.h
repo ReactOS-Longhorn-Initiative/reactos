@@ -51,7 +51,7 @@ public:
     // Composition Resource Methods
     //
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_PIXELSHADER;
     }
@@ -63,8 +63,8 @@ public:
         UINT cbPayload);
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
-    override CMilSlaveResource* GetResource();
+    /* override */ void UnRegisterNotifiers();
+    /* override */ CMilSlaveResource* GetResource();
 
     // Gets the right effect for the device and sets it in.
     HRESULT SetupShader(_In_ CD3DDeviceLevel1* pDevice);
@@ -77,7 +77,7 @@ public:
 
 protected:
     
-     override virtual BOOL OnChanged(
+     /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender, 
         NotificationEventArgs::Flags e
         );

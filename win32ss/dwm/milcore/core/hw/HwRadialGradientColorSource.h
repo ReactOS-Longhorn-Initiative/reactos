@@ -78,7 +78,7 @@ public:
 
     HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pShader
-        ) override;
+        ) /* override */;
 
 private:
     MILSPHandle m_hptGradientOrigin;

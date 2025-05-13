@@ -271,7 +271,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilAxisAngleRotation3DDuce::UnRegisterNotifiers()
+/* override */ void CMilAxisAngleRotation3DDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pAxisAnimation);
     UnRegisterNotifier(m_data.m_pAngleAnimation);
@@ -362,7 +362,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilQuaternionRotation3DDuce::UnRegisterNotifiers()
+/* override */ void CMilQuaternionRotation3DDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pQuaternionAnimation);
 }
@@ -574,7 +574,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilPerspectiveCameraDuce::UnRegisterNotifiers()
+/* override */ void CMilPerspectiveCameraDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pNearPlaneDistanceAnimation);
@@ -812,7 +812,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilOrthographicCameraDuce::UnRegisterNotifiers()
+/* override */ void CMilOrthographicCameraDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pNearPlaneDistanceAnimation);
@@ -926,7 +926,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilMatrixCameraDuce::UnRegisterNotifiers()
+/* override */ void CMilMatrixCameraDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
 }
@@ -1016,7 +1016,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilModel3DGroupDuce::UnRegisterNotifiers()
+/* override */ void CMilModel3DGroupDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
 
@@ -1117,7 +1117,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilAmbientLightDuce::UnRegisterNotifiers()
+/* override */ void CMilAmbientLightDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pColorAnimation);
@@ -1246,7 +1246,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDirectionalLightDuce::UnRegisterNotifiers()
+/* override */ void CMilDirectionalLightDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pColorAnimation);
@@ -1464,7 +1464,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilPointLightDuce::UnRegisterNotifiers()
+/* override */ void CMilPointLightDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pColorAnimation);
@@ -1765,7 +1765,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilSpotLightDuce::UnRegisterNotifiers()
+/* override */ void CMilSpotLightDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pColorAnimation);
@@ -1955,7 +1955,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilGeometryModel3DDuce::UnRegisterNotifiers()
+/* override */ void CMilGeometryModel3DDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pGeometry);
@@ -2134,7 +2134,7 @@ HRESULT CMilMeshGeometry3DDuce::RegisterNotifiers(__in_ecount(1) CMilSlaveHandle
     RRETURN(hr);
 }
 
-/*override*/ void CMilMeshGeometry3DDuce::UnRegisterNotifiers()
+/* override */ void CMilMeshGeometry3DDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_pPositionsData)
@@ -2234,7 +2234,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilMaterialGroupDuce::UnRegisterNotifiers()
+/* override */ void CMilMaterialGroupDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_rgpChildren)
@@ -2246,7 +2246,7 @@ Cleanup:
     m_data.m_cChildren = 0;
 }
 
-/*override*/ CMilSlaveResource* CMilMaterialGroupDuce::GetResource()
+/* override */ CMilSlaveResource* CMilMaterialGroupDuce::GetResource()
 {
     return this;
 }
@@ -2320,7 +2320,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDiffuseMaterialDuce::UnRegisterNotifiers()
+/* override */ void CMilDiffuseMaterialDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pBrush);
 }
@@ -2394,7 +2394,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilSpecularMaterialDuce::UnRegisterNotifiers()
+/* override */ void CMilSpecularMaterialDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pBrush);
 }
@@ -2467,7 +2467,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilEmissiveMaterialDuce::UnRegisterNotifiers()
+/* override */ void CMilEmissiveMaterialDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pBrush);
 }
@@ -2536,7 +2536,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilTransform3DGroupDuce::UnRegisterNotifiers()
+/* override */ void CMilTransform3DGroupDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_rgpChildren)
@@ -2548,7 +2548,7 @@ Cleanup:
     m_data.m_cChildren = 0;
 }
 
-/*override*/ CMilSlaveResource* CMilTransform3DGroupDuce::GetResource()
+/* override */ CMilSlaveResource* CMilTransform3DGroupDuce::GetResource()
 {
     return this;
 }
@@ -2662,7 +2662,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilTranslateTransform3DDuce::UnRegisterNotifiers()
+/* override */ void CMilTranslateTransform3DDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pOffsetXAnimation);
     UnRegisterNotifier(m_data.m_pOffsetYAnimation);
@@ -2863,7 +2863,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilScaleTransform3DDuce::UnRegisterNotifiers()
+/* override */ void CMilScaleTransform3DDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pScaleXAnimation);
     UnRegisterNotifier(m_data.m_pScaleYAnimation);
@@ -3037,7 +3037,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilRotateTransform3DDuce::UnRegisterNotifiers()
+/* override */ void CMilRotateTransform3DDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pRotation);
     UnRegisterNotifier(m_data.m_pCenterXAnimation);
@@ -3113,7 +3113,7 @@ HRESULT CMilMatrixTransform3DDuce::RegisterNotifiers(__in_ecount(1) CMilSlaveHan
     RRETURN(hr);
 }
 
-/*override*/ void CMilMatrixTransform3DDuce::UnRegisterNotifiers()
+/* override */ void CMilMatrixTransform3DDuce::UnRegisterNotifiers()
 {
 
 }
@@ -3198,7 +3198,7 @@ HRESULT CMilPixelShaderDuce::RegisterNotifiers(CMilSlaveHandleTable *pHandleTabl
     RRETURN(hr);
 }
 
-/*override*/ void CMilPixelShaderDuce::UnRegisterNotifiers()
+/* override */ void CMilPixelShaderDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_pPixelShaderBytecodeData)
@@ -3319,7 +3319,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilImplicitInputBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilImplicitInputBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -3395,7 +3395,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilBlurEffectDuce::UnRegisterNotifiers()
+/* override */ void CMilBlurEffectDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pRadiusAnimation);
 }
@@ -3552,7 +3552,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDropShadowEffectDuce::UnRegisterNotifiers()
+/* override */ void CMilDropShadowEffectDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pShadowDepthAnimation);
     UnRegisterNotifier(m_data.m_pColorAnimation);
@@ -3884,7 +3884,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilShaderEffectDuce::UnRegisterNotifiers()
+/* override */ void CMilShaderEffectDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pPixelShader);
 
@@ -4020,7 +4020,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDrawingImageDuce::UnRegisterNotifiers()
+/* override */ void CMilDrawingImageDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pDrawing);
 }
@@ -4089,7 +4089,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilTransformGroupDuce::UnRegisterNotifiers()
+/* override */ void CMilTransformGroupDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_rgpChildren)
@@ -4101,7 +4101,7 @@ Cleanup:
     m_data.m_cChildren = 0;
 }
 
-/*override*/ CMilSlaveResource* CMilTransformGroupDuce::GetResource()
+/* override */ CMilSlaveResource* CMilTransformGroupDuce::GetResource()
 {
     return this;
 }
@@ -4194,7 +4194,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilTranslateTransformDuce::UnRegisterNotifiers()
+/* override */ void CMilTranslateTransformDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pXAnimation);
     UnRegisterNotifier(m_data.m_pYAnimation);
@@ -4348,7 +4348,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilScaleTransformDuce::UnRegisterNotifiers()
+/* override */ void CMilScaleTransformDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pScaleXAnimation);
     UnRegisterNotifier(m_data.m_pScaleYAnimation);
@@ -4512,7 +4512,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilSkewTransformDuce::UnRegisterNotifiers()
+/* override */ void CMilSkewTransformDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pAngleXAnimation);
     UnRegisterNotifier(m_data.m_pAngleYAnimation);
@@ -4655,7 +4655,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilRotateTransformDuce::UnRegisterNotifiers()
+/* override */ void CMilRotateTransformDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pAngleAnimation);
     UnRegisterNotifier(m_data.m_pCenterXAnimation);
@@ -4751,7 +4751,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilMatrixTransformDuce::UnRegisterNotifiers()
+/* override */ void CMilMatrixTransformDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pMatrixAnimation);
 }
@@ -4865,7 +4865,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilLineGeometryDuce::UnRegisterNotifiers()
+/* override */ void CMilLineGeometryDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pStartPointAnimation);
@@ -5002,7 +5002,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilRectangleGeometryDuce::UnRegisterNotifiers()
+/* override */ void CMilRectangleGeometryDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRadiusXAnimation);
@@ -5140,7 +5140,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilEllipseGeometryDuce::UnRegisterNotifiers()
+/* override */ void CMilEllipseGeometryDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRadiusXAnimation);
@@ -5234,7 +5234,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilGeometryGroupDuce::UnRegisterNotifiers()
+/* override */ void CMilGeometryGroupDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
 
@@ -5247,7 +5247,7 @@ Cleanup:
     m_data.m_cChildren = 0;
 }
 
-/*override*/ CMilSlaveResource* CMilGeometryGroupDuce::GetResource()
+/* override */ CMilSlaveResource* CMilGeometryGroupDuce::GetResource()
 {
     return this;
 }
@@ -5362,14 +5362,14 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilCombinedGeometryDuce::UnRegisterNotifiers()
+/* override */ void CMilCombinedGeometryDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pGeometry1);
     UnRegisterNotifier(m_data.m_pGeometry2);
 }
 
-/*override*/ CMilSlaveResource* CMilCombinedGeometryDuce::GetResource()
+/* override */ CMilSlaveResource* CMilCombinedGeometryDuce::GetResource()
 {
     return this;
 }
@@ -5476,7 +5476,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilPathGeometryDuce::UnRegisterNotifiers()
+/* override */ void CMilPathGeometryDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
 
@@ -5619,7 +5619,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilSolidColorBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilSolidColorBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -5815,7 +5815,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilLinearGradientBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilLinearGradientBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -6062,7 +6062,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilRadialGradientBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilRadialGradientBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -6262,7 +6262,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilImageBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilImageBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -6453,7 +6453,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDrawingBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilDrawingBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -6644,7 +6644,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilVisualBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilVisualBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -6654,7 +6654,7 @@ Cleanup:
     UnRegisterNotifier(m_data.m_pViewboxAnimation);
 }
 
-/*override*/ CMilSlaveResource* CMilVisualBrushDuce::GetResource()
+/* override */ CMilSlaveResource* CMilVisualBrushDuce::GetResource()
 {
     return this;
 }
@@ -6810,7 +6810,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilBitmapCacheBrushDuce::UnRegisterNotifiers()
+/* override */ void CMilBitmapCacheBrushDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pRelativeTransform);
@@ -6819,7 +6819,7 @@ Cleanup:
     UnRegisterNotifier(m_data.m_pOpacityAnimation);
 }
 
-/*override*/ CMilSlaveResource* CMilBitmapCacheBrushDuce::GetResource()
+/* override */ CMilSlaveResource* CMilBitmapCacheBrushDuce::GetResource()
 {
     return this;
 }
@@ -6925,7 +6925,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDashStyleDuce::UnRegisterNotifiers()
+/* override */ void CMilDashStyleDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_pDashesData)
@@ -7052,7 +7052,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilPenDuce::UnRegisterNotifiers()
+/* override */ void CMilPenDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pBrush);
     UnRegisterNotifier(m_data.m_pDashStyle);
@@ -7168,7 +7168,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilGeometryDrawingDuce::UnRegisterNotifiers()
+/* override */ void CMilGeometryDrawingDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pBrush);
     UnRegisterNotifier(m_data.m_pPen);
@@ -7263,7 +7263,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilGlyphRunDrawingDuce::UnRegisterNotifiers()
+/* override */ void CMilGlyphRunDrawingDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pGlyphRun);
     UnRegisterNotifier(m_data.m_pForegroundBrush);
@@ -7357,7 +7357,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilImageDrawingDuce::UnRegisterNotifiers()
+/* override */ void CMilImageDrawingDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pImageSource);
     UnRegisterNotifier(m_data.m_pRectAnimation);
@@ -7451,7 +7451,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilVideoDrawingDuce::UnRegisterNotifiers()
+/* override */ void CMilVideoDrawingDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pPlayer);
     UnRegisterNotifier(m_data.m_pRectAnimation);
@@ -7629,7 +7629,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilDrawingGroupDuce::UnRegisterNotifiers()
+/* override */ void CMilDrawingGroupDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_rgpChildren)
@@ -7646,7 +7646,7 @@ Cleanup:
     UnRegisterNotifier(m_data.m_pOpacityAnimation);
 }
 
-/*override*/ CMilSlaveResource* CMilDrawingGroupDuce::GetResource()
+/* override */ CMilSlaveResource* CMilDrawingGroupDuce::GetResource()
 {
     return this;
 }
@@ -7761,7 +7761,7 @@ HRESULT CMilGuidelineSetDuce::RegisterNotifiers(CMilSlaveHandleTable *pHandleTab
     RRETURN(hr);
 }
 
-/*override*/ void CMilGuidelineSetDuce::UnRegisterNotifiers()
+/* override */ void CMilGuidelineSetDuce::UnRegisterNotifiers()
 {
 
     if (m_data.m_pGuidelinesXData)
@@ -7850,7 +7850,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/*override*/ void CMilBitmapCacheDuce::UnRegisterNotifiers()
+/* override */ void CMilBitmapCacheDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pRenderAtScaleAnimation);
 }

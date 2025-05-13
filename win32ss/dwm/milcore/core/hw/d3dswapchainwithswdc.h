@@ -17,7 +17,7 @@
 //  Class: CD3DSwapChainWithSwDC
 //
 //  Description:
-//      This class overrides the GetDC method of CD3DSwapChain to implement
+//      This class /* override */s the GetDC method of CD3DSwapChain to implement
 //      GetDC using GetRenderTargetData. This approach acheived phenominal perf
 //      wins in WDDM since there is no GDI hardware acceleration in WDDM.
 //
@@ -59,7 +59,7 @@ protected:
 
     HRESULT Init(
         __inout_ecount(1) CD3DResourceManager *pResourceManager
-        ) override;
+        ) /* override */;
 
 private:
     HDC m_hdcCopiedBackBuffer;

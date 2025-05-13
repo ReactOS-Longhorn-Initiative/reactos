@@ -37,9 +37,9 @@ public:
 
     virtual ~CMilMaterialGroupDuce();
 
-    override bool ShouldRender();
+    /* override */ bool ShouldRender();
 
-    override HRESULT Realize(
+    /* override */ HRESULT Realize(
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __in_ecount(1) CDrawingContext *pDrawingContext,
         __in_ecount(1) CContextState *pContextState,
@@ -47,7 +47,7 @@ public:
         __deref_out_ecount_opt(1) CMILShader **ppShader
         );
 
-    override HRESULT Flatten(
+    /* override */ HRESULT Flatten(
         __inout_ecount(1) DynArray<CMilMaterialDuce *> *pMaterialList,
         __inout_ecount(1) bool *pfDiffuseMaterialFound,
         __inout_ecount(1) bool *pfSpecularMaterialFound,
@@ -59,7 +59,7 @@ public:
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_MATERIALGROUP || CMilMaterialDuce::IsOfType(type);
     }
@@ -72,8 +72,8 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
-    override CMilSlaveResource* GetResource();
+    /* override */ void UnRegisterNotifiers();
+    /* override */ CMilSlaveResource* GetResource();
 
     CMilMaterialGroupDuce_Data m_data;
 };

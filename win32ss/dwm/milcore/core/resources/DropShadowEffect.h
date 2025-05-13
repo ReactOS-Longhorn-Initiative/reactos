@@ -30,11 +30,11 @@ protected:
 
     ~CMilDropShadowEffectDuce();
     
-    override HRESULT Initialize();    
+    /* override */ HRESULT Initialize();    
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_DROPSHADOWEFFECT || CMilEffectDuce::IsOfType(type);
     }
@@ -44,7 +44,7 @@ public:
         __in_ecount(1) const MILCMD_DROPSHADOWEFFECT* pCmd
         );
 
-    override HRESULT ApplyEffect(
+    /* override */ HRESULT ApplyEffect(
         _In_ CContextState *pContextState, 
         _In_ CHwSurfaceRenderTarget *pDestRT,
         _In_ CMILMatrix *pScaleTransform,
@@ -54,7 +54,7 @@ public:
         __in_opt CHwTextureRenderTarget *pImplicitInput
         );
 
-    override HRESULT ApplyEffectSw(
+    /* override */ HRESULT ApplyEffectSw(
         _In_ CContextState *pContextState,
         _In_ CSwRenderTargetSurface *pDestRT,
         _In_ CMILMatrix *pScaleTransform, 
@@ -63,7 +63,7 @@ public:
         __in_opt IWGXBitmap *pImplicitInput
         );
 
-    override HRESULT PrepareSoftwarePass(
+    /* override */ HRESULT PrepareSoftwarePass(
         _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
@@ -72,9 +72,9 @@ public:
         RRETURN(E_UNEXPECTED);
     }
 
-    override HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
+    /* override */ HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
 
-    override HRESULT GetLocalSpaceClipBounds(
+    /* override */ HRESULT GetLocalSpaceClipBounds(
         _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
         _In_ CRectF<CoordinateSpace::PageInPixels> clip,
         _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
@@ -82,7 +82,7 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
 private:
 

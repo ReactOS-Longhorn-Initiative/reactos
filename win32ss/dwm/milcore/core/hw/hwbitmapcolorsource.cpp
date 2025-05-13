@@ -3234,7 +3234,7 @@ CHwBitmapColorSource::PrepareToPushSourceBitsToVidMem(
             Assert(m_uBitmapHeight == m_uPrefilterHeight);
 
             {
-                WICRect rcLock = {0, 0, m_uBitmapWidth, m_uBitmapHeight};
+                WICRect rcLock = {0, 0, (INT)m_uBitmapWidth, (INT)m_uBitmapHeight};
                 IFC(m_pBitmap->Lock(
                     &rcLock,
                     MilBitmapLock::Read,
@@ -3765,8 +3765,8 @@ CHwBitmapColorSource::PushTheSourceBitsToVideoMemory(
             CMilRectU const &rcDirty = rgDirtyRects[i];
 
             POINT ptDest = {
-                rcDirty.left - m_rcPrefilteredBitmap.left,
-                rcDirty.top - m_rcPrefilteredBitmap.top
+                (LONG)(rcDirty.left - m_rcPrefilteredBitmap.left),
+                (LONG)(rcDirty.top - m_rcPrefilteredBitmap.top)
             };
 
             WICRect rcCopy = {

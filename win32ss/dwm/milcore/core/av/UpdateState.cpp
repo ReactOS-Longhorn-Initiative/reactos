@@ -308,7 +308,7 @@ HrFindInterface(
 //  Member: UpdateState::Run, CStateThreadItem
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 void
 UpdateState::
 Run(

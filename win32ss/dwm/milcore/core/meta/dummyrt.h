@@ -53,42 +53,42 @@ public:
     // and as such should never really be reference counted.
     //
 
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
+    STDMETHODIMP_(ULONG) AddRef(void) /* override */;
+    STDMETHODIMP_(ULONG) Release(void) /* override */;
     STDMETHODIMP QueryInterface(
         __in_ecount(1) REFIID riid,
         __deref_out void **ppv
-        ) override;
+        ) /* override */;
 
     // IMILRenderTarget.
 
     STDMETHOD_(VOID, GetBounds)(
         __out_ecount(1) MilRectF * const pBounds
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Clear)(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Begin3D)(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
-    STDMETHOD(End3D)() override;
+    STDMETHOD(End3D)() /* override */;
 
     // IRenderTargetInternal.
 
-    STDMETHOD_(__outro_ecount(1) const CMILMatrix *, GetDeviceTransform)() const override;
+    STDMETHOD_(__outro_ecount(1) const CMILMatrix *, GetDeviceTransform)() const /* override */;
 
     STDMETHOD(DrawBitmap)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawMesh3D)(
         __inout_ecount(1) CContextState* pContextState,
@@ -96,7 +96,7 @@ public:
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __inout_ecount_opt(1) CMILShader *pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawPath)(
         __inout_ecount(1) CContextState *pContextState,
@@ -105,13 +105,13 @@ public:
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawInfinitePath)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        ) override; 
+        ) /* override */; 
 
     STDMETHOD(ComposeEffect)(
         __inout_ecount(1) CContextState *pContextState,
@@ -120,9 +120,9 @@ public:
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IMILRenderTargetBitmap* pImplicitInput
-        ) override;
+        ) /* override */;
     
-    STDMETHOD(DrawGlyphs)(DrawGlyphsParameters &pars) override;
+    STDMETHOD(DrawGlyphs)(DrawGlyphsParameters &pars) /* override */;
 
     STDMETHOD(CreateRenderTargetBitmap)(
         UINT width,
@@ -131,7 +131,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override;
+        ) /* override */;
 
     STDMETHOD(BeginLayer)(
         __in_ecount(1) MilRectF const &LayerBounds,
@@ -168,74 +168,74 @@ public:
         RRETURN(S_OK);
     }
 
-    UINT GetRealizationCacheIndex() override;
+    UINT GetRealizationCacheIndex() /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IAVSurfaceRenderer *pSurfaceRenderer,
         __inout_ecount(1) IWGXBitmapSource *pBitmapSource,        
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     // IMILRenderTargetBitmap.
 
     STDMETHOD(GetBitmapSource)(
         __deref_out_ecount(1) IWGXBitmapSource ** const ppIBitmapSource
-        ) override;
+        ) /* override */;
 
     STDMETHOD(GetCacheableBitmapSource)(
         __deref_out_ecount(1) IWGXBitmapSource ** const ppIBitmapSource
-        ) override;    
+        ) /* override */;    
 
     STDMETHOD(GetBitmap)(
         __deref_out_ecount(1) IWGXBitmap ** const ppIBitmap
-        ) override;
+        ) /* override */;
 
     // IMILRenderTargetHWND
 
     STDMETHOD(SetPosition)(
         __in_ecount(1) MilRectF const *prc
-        ) override;
+        ) /* override */;
 
     STDMETHOD(GetInvalidRegions)(
         __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
         __out_ecount(1) UINT *pNumRegions,
         _Out_ bool *fWholeTargetInvalid
-        ) override;
+        ) /* override */;
 
     STDMETHOD(UpdatePresentProperties)(
         MilTransparency::Flags transparencyFlags,
         FLOAT constantAlpha,
         __in_ecount(1) MilColorF const &colorKey
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP Present(
-        ) override;
+        ) /* override */;
 
     STDMETHODIMP ScrollBlt (
         THIS_
         __in_ecount(1) const RECT *prcSource,
         __in_ecount(1) const RECT *prcDest
-        ) override;        
+        ) /* override */;        
 
     STDMETHODIMP Invalidate(
         __in_ecount_opt(1) MilRectF const *prc
-        ) override;
+        ) /* override */;
 
     STDMETHOD_(VOID, GetIntersectionWithDisplay)(
         UINT iDisplay,
         __out_ecount(1) MilRectL &rcIntersection
-        ) override;
+        ) /* override */;
     
-    STDMETHOD(WaitForVBlank)() override;
+    STDMETHOD(WaitForVBlank)() /* override */;
 
     STDMETHOD_(VOID, AdvanceFrame)(
         UINT uFrameNumber
-        ) override;
+        ) /* override */;
 
     STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        ) override;
+        ) /* override */;
 
     STDMETHOD_(bool, CanReuseForThisFrame)(
         THIS_
@@ -244,34 +244,34 @@ public:
 
     STDMETHOD(CanAccelerateScroll)(
         __out_ecount(1) bool *fCanAccelerateScroll
-        ) override;
+        ) /* override */;
 
     // IWGXBitmapSource.
 
     STDMETHOD(GetSize)(
         __out_ecount(1) UINT *puWidth,
         __out_ecount(1) UINT *puHeight
-        ) override;
+        ) /* override */;
 
     STDMETHOD(GetPixelFormat)(
         __out_ecount(1) MilPixelFormat::Enum *pPixelFormat
-        ) override;
+        ) /* override */;
 
     STDMETHOD(GetResolution)(
         __out_ecount(1) double *pDpiX,
         __out_ecount(1) double *pDpiY
-        ) override;
+        ) /* override */;
 
     STDMETHOD(CopyPalette)(
         __inout_ecount(1) IWICPalette *pIPalette
-        ) override;
+        ) /* override */;
 
     STDMETHOD(CopyPixels)(
         __in_ecount_opt(1) const MILRect *prc,
         _In_ UINT cbStride,
         _In_ UINT cbBufferSize,
         __out_ecount(cbBufferSize) BYTE *pvPixels
-        ) override;
+        ) /* override */;
 
 private:
 

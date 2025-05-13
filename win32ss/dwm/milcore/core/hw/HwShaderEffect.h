@@ -46,7 +46,7 @@ public:
     // 
     // New Operator
     //
-    //     Override new operator to work with debug MeterHeap and
+    //     /* override */ new operator to work with debug MeterHeap and
     //     zero initialize the object.
     //
 
@@ -89,7 +89,7 @@ public:
 
 #if PERFMETER
     // 
-    // CD3DResource::GetPerfMeterTag (override)
+    // CD3DResource::GetPerfMeterTag (/* override */)
     //
     //    Used to publish video memory consumption for this resource
     //    type. However, since it is not known how much video memory a
@@ -104,15 +104,15 @@ public:
 #endif
 
     // 
-    // CD3DResource::ReleaseD3DResources (override)
+    // CD3DResource::ReleaseD3DResources (/* override */)
     //
     //    Release D3D resources associated with this PixelShaderEffect.
     //    ReleaseD3DResources is called by the device on device lost, shutdown, etc.
     //
-    void ReleaseD3DResources() override;
+    void ReleaseD3DResources() /* override */;
 
     //
-    // CMILCacheableResource::IsValid (override)
+    // CMILCacheableResource::IsValid (/* override */)
     //
     //     This resource is valid if the D3D resource is valid. Therefore
     //     mappping IsValid to CD3DResource::IsValid.

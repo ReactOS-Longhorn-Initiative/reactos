@@ -53,7 +53,7 @@ CMilD3DImageDuce::~CMilD3DImageDuce()
 //
 //-------------------------------------------------------------------------
 
-__override
+/* override */
 HRESULT
 CMilD3DImageDuce::GetResolution(
     __out_ecount(1) double *dDpiX,
@@ -85,7 +85,7 @@ Cleanup:
 //
 //-------------------------------------------------------------------------
 
-__override
+/* override */
 HRESULT
 CMilD3DImageDuce::GetBitmapSource(
     __deref_out_ecount_opt(1) IWGXBitmapSource **ppIWGXBitmapSource
@@ -125,7 +125,7 @@ CMilD3DImageDuce::GetBitmapSource(
 //      content units.
 //
 //-------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CMilD3DImageDuce::GetBounds(
     __in_ecount_opt(1) CContentBounder* pBounder,
@@ -156,7 +156,7 @@ Cleanup:
 //      Draws the bitmap with the given DC
 //
 //-------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CMilD3DImageDuce::Draw(
     __in_ecount(1) CDrawingContext *pDC,

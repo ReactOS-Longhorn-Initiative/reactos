@@ -1504,7 +1504,7 @@ class CVertex;
             }
             return pChain;
         }
-        
+
     };
 
     class CCandidateHeap : public CHeap<CCandidateChain, 6>
@@ -1581,7 +1581,7 @@ class CVertex;
                 // Info about the associated curve (or NULL)
             );
 
-        // CFlatteningSink override
+        // CFlatteningSink /* override */
         HRESULT AcceptPoint(
             __in_ecount(1) const GpPointR &ptNew,
                 // The new vertex to add

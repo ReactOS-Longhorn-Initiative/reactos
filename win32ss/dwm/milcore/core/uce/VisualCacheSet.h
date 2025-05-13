@@ -45,12 +45,12 @@ public:
     // CMilSlaveResource methods
     //
     
-    override BOOL OnChanged(
+    /* override */ BOOL OnChanged(
         CMilSlaveResource *pSender, 
         NotificationEventArgs::Flags e
         );
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
 
     UINT GetCount() const;
 

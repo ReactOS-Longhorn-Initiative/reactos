@@ -326,7 +326,7 @@ HRESULT CD3DGlyphBank::RectFillAlpha(
     UINT uWidth = srcRect.right - srcRect.left;
     UINT uHeight = srcRect.bottom - srcRect.top;
 
-    RECT rcTemp = {0, 0, uWidth, uHeight};
+    RECT rcTemp = {0, 0, (LONG)uWidth, (LONG)uHeight};
     IDirect3DSurface9* pTankSurface = pTank->GetSurfaceNoAddref();
     IDirect3DSurface9* pTempSurface = NULL;
 

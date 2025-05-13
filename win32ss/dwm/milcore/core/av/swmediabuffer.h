@@ -38,12 +38,12 @@ public:
         _In_    CD3DDeviceLevel1 *pRenderDevice
         );
 
-    __override
+    /* override */
     ~CSWMFMediaBuffer(
         void
         );
 
-    __override
+    /* override */
     HRESULT
     GetBitmapSource(
         _In_            bool                syncChannel,
@@ -51,7 +51,7 @@ public:
         __deref_out     IWGXBitmapSource    **ppIBitmapSource
         );
 
-    __override
+    /* override */
     HRESULT
     DoneWithBitmap(
         void
@@ -59,7 +59,7 @@ public:
 
 protected:
 
-    __override
+    /* override */
     HRESULT
     Init(
         void

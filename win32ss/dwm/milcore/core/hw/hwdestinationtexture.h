@@ -69,12 +69,12 @@ public:
         ) const;
 
     HRESULT Realize(
-        ) override;
+        ) /* override */;
 
     HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        ) override;
+        ) /* override */;
 
 public:
 

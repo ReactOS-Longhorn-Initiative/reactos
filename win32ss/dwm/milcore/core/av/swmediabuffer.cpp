@@ -44,7 +44,7 @@ CSWMFMediaBuffer(
 {
 }
 
-__override
+/* override */
 CSWMFMediaBuffer::
 ~CSWMFMediaBuffer(
     void
@@ -72,7 +72,7 @@ CSWMFMediaBuffer::
 //      the bitmap source.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CSWMFMediaBuffer::
 GetBitmapSource(
@@ -133,7 +133,7 @@ Cleanup:
 //      our surface so that the EVR can write into it.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CSWMFMediaBuffer::
 DoneWithBitmap(
@@ -171,7 +171,7 @@ Cleanup:
 //      because we are off on a new thread.
 //
 //------------------------------------------------------------------------------
-__override
+/* override */
 HRESULT
 CSWMFMediaBuffer::
 Init(

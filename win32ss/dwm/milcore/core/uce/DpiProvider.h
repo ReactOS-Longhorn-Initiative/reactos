@@ -56,9 +56,9 @@ DEFINE_DELEGATING_INTERFACE(IDpiProvider, DpiProvider)
         {}
     
         // DpiProvider
-        STDMETHOD_(const DPI_AWARENESS_CONTEXT, GetDpiAwarenessContext)(THIS) const override;
-        STDMETHOD(GetCurrentDpi)(THIS_ DpiScale* pDpiScale) const override;
-        STDMETHOD_(BOOL, IsPerMonitorDpiAware)(THIS) const override;
+        STDMETHOD_(const DPI_AWARENESS_CONTEXT, GetDpiAwarenessContext)(THIS) const /* override */;
+        STDMETHOD(GetCurrentDpi)(THIS_ DpiScale* pDpiScale) const /* override */;
+        STDMETHOD_(BOOL, IsPerMonitorDpiAware)(THIS) const /* override */;
         
     protected:
         void UpdateDpi(const DpiScale& dpi);

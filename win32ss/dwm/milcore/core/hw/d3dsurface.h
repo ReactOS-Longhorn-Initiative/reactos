@@ -107,7 +107,7 @@ private:
     // CD3DResource methods
     //
 
-    virtual void ReleaseD3DResources() override;
+    virtual void ReleaseD3DResources() /* override */;
 
 protected:
 

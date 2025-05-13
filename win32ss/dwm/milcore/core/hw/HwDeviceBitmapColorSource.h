@@ -56,7 +56,7 @@ public:
         );
 
     virtual HRESULT Realize(
-        ) override;
+        ) /* override */;
 
     //
     // Query methods

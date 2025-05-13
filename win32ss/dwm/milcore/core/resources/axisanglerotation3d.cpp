@@ -27,7 +27,7 @@ CMilAxisAngleRotation3DDuce::~CMilAxisAngleRotation3DDuce()
     UnRegisterNotifiers();
 }
 
-/* override */ HRESULT CMilAxisAngleRotation3DDuce::GetRealization(
+/* /* override */ */ HRESULT CMilAxisAngleRotation3DDuce::GetRealization(
     __out_ecount(1) CMILMatrix *pRealization
     )
 {

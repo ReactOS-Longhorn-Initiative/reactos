@@ -361,17 +361,17 @@ public:
         ) const;
 
     virtual HRESULT Realize(
-        ) override;
+        ) /* override */;
 
     HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        ) override;
+        ) /* override */;
 
     HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder,
         MilVertexFormatAttribute mvfaLocation
-        ) override;
+        ) /* override */;
 
 
     //

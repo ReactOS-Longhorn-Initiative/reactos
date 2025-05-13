@@ -27,8 +27,8 @@ public:
     CMILPoolResource(__in_ecount_opt(1) IMILPoolManager *pManager);
     virtual ~CMILPoolResource();
 
-    // CMILRefCountBase overrides
-    STDMETHOD_(ULONG, Release)(void) override;
+    // CMILRefCountBase /* override */s
+    STDMETHOD_(ULONG, Release)(void) /* override */;
 
     ULONG GetRefCount() const;
 

@@ -71,7 +71,7 @@ public:
     {
     }
 
-    // IFigureBuilder overrides
+    // IFigureBuilder /* override */s
     virtual HRESULT StartAt(
         REAL x, REAL y); // In: Figure's start point
 
@@ -124,7 +124,7 @@ public:
         m_rgTypes.Reset(shrink);
     }
    
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual bool IsEmpty() const
     {
 #if DBG
@@ -547,7 +547,7 @@ public:
     {
     }
 
-    // IFigureBuilder overrides
+    // IFigureBuilder /* override */s
     virtual HRESULT StartAt(
         REAL x, REAL y) // In: Figure's start point
     {
