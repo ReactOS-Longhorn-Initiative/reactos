@@ -68,15 +68,15 @@ struct MetaData
             // content.  This rectangle is relative to the meta RT origin.
             CMILSurfaceRect rcLocalDeviceValidContentBounds;
 
-        };
+        } m_desktop;
 
         // Used by CMetaBitmapRenderTarget
         struct {
             IMILRenderTargetBitmap *pIRTBitmap;
             UINT uIndexOfRealRTBitmap;
             ULONG cacheIndex; // For convenience of creating
-        };
-    };
+        } m_bitmap;
+    } m_data;
 
     // When true no invalid render bounds were returned from GetInvalidRegions
     // because all bounds required for Present are already valid.
@@ -231,9 +231,9 @@ protected:
         __out_ecount(1) UINT *pidxFirstEnabledRT
         ) const;
 
-    override STDMETHOD(GetNumQueuedPresents)(
+    STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        );
+        ) override;
 
 protected:
 

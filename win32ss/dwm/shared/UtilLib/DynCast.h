@@ -29,7 +29,7 @@
 //
 //-------------------------------------------------------------------------
 
-#if !defined(_PREFAST_) && (!DBG || defined(NO_RTTI))
+#if 1 //!defined(_PREFAST_) && (!DBG || defined(NO_RTTI))
 
 #define DYNCAST(Dest_type, Source_Value) (static_cast<Dest_type*>(Source_Value))
 

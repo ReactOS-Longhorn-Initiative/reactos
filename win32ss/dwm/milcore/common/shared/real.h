@@ -378,7 +378,7 @@ public:
 
 private:
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
     static int RoundWithHalvesToEven(float x);
     static int LargeFloor(float x);
     static int LargeCeiling(float x);
@@ -565,7 +565,7 @@ CFloatFPU::FloorFPU(float x)
 MIL_FORCEINLINE int
 CFloatFPU::Floor(float x)
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
     // cut off sign
     UINT32 xAbs = *reinterpret_cast<const UINT*>(&x) & 0x7FFFFFFF;
 
@@ -573,7 +573,7 @@ CFloatFPU::Floor(float x)
         ? SmallFloor(x)
         : LargeFloor(x);
 
-#elif defined(_AMD64_)
+#elif 0//defined(_AMD64_)
     __m128 given = _mm_set_ss(x);                       // load given value to xmm register
     __int32 result = _mm_cvtss_si32(given);             // convert it to integer (rounding mode doesn't matter)
     __m128 rounded = _mm_cvtsi32_ss(rounded, result);   // convert back to float
@@ -600,7 +600,7 @@ CFloatFPU::Floor(float x)
 MIL_FORCEINLINE int
 CFloatFPU::CeilingFPU(float x)
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
     int i = RoundWithHalvesToEven(x);
 
     if (static_cast<float>(i) < x)
@@ -628,7 +628,7 @@ CFloatFPU::CeilingFPU(float x)
 MIL_FORCEINLINE int
 CFloatFPU::Ceiling(float x)
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
     // cut off sign
     UINT32 xAbs = *reinterpret_cast<const UINT*>(&x) & 0x7FFFFFFF;
 
@@ -636,7 +636,7 @@ CFloatFPU::Ceiling(float x)
         ? SmallCeiling(x)
         : LargeCeiling(x);
 
-#elif defined(_AMD64_)
+#elif 0//defined(_AMD64_)
     __m128 given = _mm_set_ss(x);                       // load given value to xmm register
     __int32 result = _mm_cvtss_si32(given);             // convert it to integer (rounding mode doesn't matter)
     __m128 rounded = _mm_cvtsi32_ss(rounded, result);   // convert back to float
@@ -727,7 +727,7 @@ MIL_FORCEINLINE float FASTCALL CFloatFPU::FloorF(float x)
 MIL_FORCEINLINE float FASTCALL CFloatFPU::FloorFFast(float x)
 {
     // Floats greater than or equal to MIN_FLOAT_WITHOUT_FRACTION are all integers
-#if defined(_X86_)
+#if 0//defined(_X86_)
     // cut off sign
     UINT32 xAbs = *reinterpret_cast<const UINT*>(&x) & 0x7FFFFFFF;
     if (xAbs >= MIN_FLOAT_WITHOUT_FRACTION_AS_UINT)

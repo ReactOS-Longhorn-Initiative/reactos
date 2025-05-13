@@ -126,4 +126,19 @@ Cleanup:
     RRETURN(hr);
 }
 
+namespace WPFUtils
+{
+
+HMODULE LoadDWriteLibraryAndGetProcAddress(void **pfncptrDWriteCreateFactory)
+{
+    HMODULE hDWriteLibrary = LoadLibraryEx(L"dwrite.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (hDWriteLibrary)
+    {
+        *pfncptrDWriteCreateFactory = (void*)GetProcAddress(hDWriteLibrary, "DWriteCreateFactory");
+    }
+
+    return hDWriteLibrary;
+}
+
+}// namespace WPFUtils
 

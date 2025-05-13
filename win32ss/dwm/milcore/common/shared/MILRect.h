@@ -1044,7 +1044,7 @@ template <typename TBase, typename TBaseRect, typename TBaseRect_WH, typename un
 class TMilRect_ : public TMilRect<TBase, TBaseRect, unique>
 {
 public:
-
+    typedef TMilRect_ RectC_t;
     //=========================================================================
     // Constructors
     //
@@ -1163,6 +1163,10 @@ public:
     }
 
     static void HasBaseType();
+
+    static const TMilRect_ sc_rcEmpty2;
+
+    static const TMilRect_ sc_rcInfinite2;
 };
 
 

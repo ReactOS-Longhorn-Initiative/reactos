@@ -18,64 +18,26 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
 
 list(APPEND SOURCE
-3dutils.cpp
-AssertDllInUse.cpp
-BaseMatrix.cpp
-BufferDispenser.cpp
-d3dloader.cpp
-d3dutils.cpp
-display.cpp
-Dump.cpp
-dwminterop.cpp
-dwritefactory.cpp
-engine.cpp
-EnhancedContrastTable.cpp
-exports.cpp
-Gamma.cpp
-gradienttexture.cpp
-guidelinecollection.cpp
-lazymem.cpp
-log.cpp
-matrix3x2.cpp
-matrix.cpp
-MatrixStack.cpp
-memblock.cpp
-memblockreader.cpp
-memreader.cpp
-memwriter.cpp
-milboxf.cpp
-milcoredllentry.cpp
-mildc.cpp
-MILMatrix.cpp
-oscompat.cpp
 precomp.cpp
-ptrarray.cpp
-ptrset.cpp
-RectUtils.cpp
-renderoptions.cpp
-ResourcePool.cpp
-rtutils.cpp
-slistutil.cpp
-Tier.cpp
-utils.cpp
-WatermarkStack.cpp
+dllentry.cpp
     )
 
-add_library(common ${SOURCE})
-add_dependencies(common xdk)
+add_library(milcore MODULE ${SOURCE})
+add_dependencies(milcore xdk)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(common PRIVATE /wd5043 /wd5033)
+target_compile_options(milcore PRIVATE /wd5043 /wd5033)
 endif()
 
 if(NOT MSVC)
-target_compile_options(common PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -fpermissive)
+target_compile_options(milcore PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
 endif()
 
-set_target_cpp_properties(common WITH_EXCEPTIONS WITH_RTTI)
+set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)
 
-target_compile_options(common PRIVATE -DUNICODE -D_UNICODE)
-
-target_link_libraries(common PRIVATE cppstl)
+set_module_type(milcore win32dll UNICODE)
+target_link_libraries(milcore common cppstl uuid UtilLib DebugLib commonShared)
+add_importlibs(milcore winmm ole32 oleaut32 windowscodecs d3dx9_40 d3d10 d3d10_1 advapi32 user32 gdi32 msvcrt kernel32 ntdll)
+add_cd_file(TARGET milcore DESTINATION reactos/system32 FOR all)
