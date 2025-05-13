@@ -393,3 +393,12 @@ extern "C" {
 // re-introduced.
 #pragma deprecated(D3DMATRIX, D3DXMATRIX, MILMatrix, GpMatrix, MIL_MATRIXF)
 
+inline HRESULT UIntMult(
+    UINT uMultiplicand,
+    UINT uMultiplier,
+    UINT *puResult
+  )
+{
+    *puResult = uMultiplicand * uMultiplier;
+    return 0;
+}

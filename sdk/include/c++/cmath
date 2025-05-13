@@ -5,6 +5,7 @@
 
 #include <math.h>
 
+#ifdef _MSC_VER
 // Get rid of those macros defined in <math.h> in lieu of real functions.
 #undef abs
 #undef div
@@ -257,3 +258,5 @@ namespace std
   using ::tan;
   using ::tanh;
 }
+
+#endif

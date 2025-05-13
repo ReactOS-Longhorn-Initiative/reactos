@@ -95,6 +95,18 @@
 #endif
 /*#endif*/
 
+#if defined(__GNUC__) && (__GNUC__ > 10)
+#define __WINE_DEALLOC(...) __attribute__((malloc (__VA_ARGS__)))
+#else
+#define __WINE_DEALLOC(...)
+#endif
+
+#if defined(__GNUC__) && (__GNUC__ > 2)
+#define __WINE_MALLOC __attribute__((malloc))
+#else
+#define __WINE_MALLOC
+#endif
+
 #ifdef __GNUC__
 # define _HAVE_INT64
 # ifndef _INTEGRAL_MAX_BITS

@@ -13,8 +13,7 @@
 //-----------------------------------------------------------------------------
 
 #pragma once
-#include <limits>
-#include "scopeguard.h"
+//#include <limits>
 #include "DpiUtil.h"
 
 /// <summary>
@@ -134,7 +133,7 @@ struct DpiScale
     /// </summary>
     inline bool operator!=(const DpiScale& other) const
     {
-        return !(!this == other);
+        return !((!this) == other);
     }
 
     /// <summary>
@@ -337,17 +336,16 @@ struct DpiScale
             {
                 // GetDpiForSystem failed, try GetDC + GetDeviceCaps
                 // CreateIC is a lightweight alternative to GetDC 
-                wpf::util::scopeguard<HDC> hDesktopDC(
-                    []() -> HDC {return CreateICW(L"DISPLAY", nullptr, nullptr, nullptr); },    // acquire HDC
-                    [](HDC& hDC) ->void {DeleteDC(hDC); },                                      // release HDC
-                    [](const HDC& hDC) ->bool {return hDC != nullptr; });                       // goodness test
+                HDC hDesktopDC = CreateICW(L"DISPLAY", nullptr, nullptr, nullptr);
 
-                if (hDesktopDC.valid())
+                if (hDesktopDC)
                 {
                     primaryDisplayDpi = 
                         DpiScale::FromPixelsPerInch(
                             GetDeviceCaps(hDesktopDC, LOGPIXELSX), 
                             GetDeviceCaps(hDesktopDC, LOGPIXELSY));
+
+                    DeleteDC(hDesktopDC);
                 }
 
                 if (primaryDisplayDpi.DpiScaleX <= 0 || primaryDisplayDpi.DpiScaleY <= 0)

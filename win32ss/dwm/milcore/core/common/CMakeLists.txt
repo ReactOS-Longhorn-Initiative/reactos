@@ -4,7 +4,6 @@ set(CMAKE_CXX_STANDARD 17)
 remove_definitions(-D_WIN32_WINNT=0x502)
 add_definitions(-D_WIN32_WINNT=0x600)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/c++)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/UtilLib)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore/common/DirectXLayer/)
@@ -65,8 +64,18 @@ WatermarkStack.cpp
 add_library(common ${SOURCE})
 add_dependencies(common xdk)
 
-if(NOT MSVC)
-    target_compile_options(common PRIVATE -fexceptions -frtti -Wno-sequence-point -Wno-unused-function -Wno-unused-but-set-variable -Wno-error -Wno-delete-non-virtual-dtor) # Our favourite compiler :)
+if(MSVC)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
+# disable exception specification does not match previous declaration
+target_compile_options(common PRIVATE /wd5043 /wd5033)
 endif()
+
+if(NOT MSVC)
+target_compile_options(common PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
+endif()
+
+set_target_cpp_properties(common WITH_EXCEPTIONS WITH_RTTI)
+
+target_compile_options(common PRIVATE -DUNICODE -D_UNICODE)
 
 target_link_libraries(common PRIVATE cppstl)

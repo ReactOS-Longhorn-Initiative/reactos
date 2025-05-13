@@ -110,7 +110,7 @@ CBufferDispenser::Allocate(
     // need this one overflow check.
     if (size > sizeRequested)
     {
-        if (this && m_cbSpaceLeft >= size)
+        if (m_cbSpaceLeft >= size)
         {
             ptrRet = AllocateFromBuffer(size, alignment, mt);
         }
@@ -239,9 +239,9 @@ CBufferDispenser::AllocateFromHeap(
         #endif
         #if DBG
             pHeader->pDbgDispenser = this;
-            if (this)
+            //if (this)
             {
-                m_cDbgHeapAllocations++;
+             //   m_cDbgHeapAllocations++;
             }
         #elif defined(PERFMETER)
             // Just to give it a value

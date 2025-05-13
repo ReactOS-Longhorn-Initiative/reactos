@@ -1474,6 +1474,16 @@ class CVertex;
             m_pChain->Dump();
 #endif
         }
+
+        UINT GetIndex() const
+        {
+            return 0;
+        }
+
+        void SetIndex(UINT index)
+        {
+            
+        }
     };
 
     class CMasterHeap : public CHeap<CMasterChain, 6>
@@ -1494,7 +1504,7 @@ class CVertex;
             }
             return pChain;
         }
-
+        
     };
 
     class CCandidateHeap : public CHeap<CCandidateChain, 6>

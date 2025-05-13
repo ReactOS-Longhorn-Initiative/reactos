@@ -1036,7 +1036,7 @@ ComputePrefilteredSize(
             //
             //   Assert(rScaleThreshold <= 1.0f);    // Failure is handled with log check
 
-            uPrefiltered = CFloatFPU::Ceiling(uOriginal * TOREAL(std::pow(rScaleThreshold, nExp)));
+            uPrefiltered = CFloatFPU::Ceiling(uOriginal * TOREAL(pow(rScaleThreshold, nExp)));
 #if defined(RESTORE_POW)
 #pragma pop_macro("pow")
 #endif 
@@ -1207,7 +1207,7 @@ CBaseMatrix::CompareWithoutOffset(__in_ecount(1) const CBaseMatrix &in) const
 }
 
 
-#if DBG
+#if 0
 #include <strsafe.h>
 
 //+-------------------------------------------------------------------------------------------------

@@ -30,7 +30,7 @@ void _cdecl MILDebugOutput(_In_ PCWSTR pFormat, ...)
     IGNORE_HR(StringCchVPrintfW(buffer, MAX_DUMP_SIZE, pFormat, arglist)); 
     va_end(arglist);
 
-    OutputDebugString(buffer);
+    OutputDebugStringW(buffer);
 }
 
 #endif // DBG

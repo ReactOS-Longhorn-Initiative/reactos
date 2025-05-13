@@ -195,7 +195,7 @@ private:
 // 'TMemBlockBase<TElement>::TMemBlock' : structure was padded due to __declspec(align())
 #pragma warning(push)
 #pragma warning(disable:4324)
-        __declspec(align(8)) BYTE m_rgStorage[sc_uCapacity * sizeof(TElement)];
+    DECLSPEC_ALIGN(8) BYTE m_rgStorage[sc_uCapacity * sizeof(TElement)];
 #pragma warning(pop)
     };
 

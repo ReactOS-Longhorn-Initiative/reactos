@@ -55,8 +55,8 @@ public:
     // Constructor/destructor
     CShape()
         :   m_eFillMode(MilFillMode::Winding),
-            m_wCacheState(SHAPE_BOX_VALID),
-            m_fFillState(true)    
+            m_fFillState(true),
+            m_wCacheState(SHAPE_BOX_VALID)
     {
         m_cachedBounds.left = m_cachedBounds.right = m_cachedBounds.top = m_cachedBounds.bottom = 0;
     }

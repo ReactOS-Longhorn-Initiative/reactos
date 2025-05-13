@@ -14,7 +14,6 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore/core/)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/Generated)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/dxmath/Inc)
 
 # DIRECTXMATH requires SSE
 add_definitions(-DD3D9EXTENSIONS) # todo should DD3D9EXTENSIONS / DIRECTXMATH be used?
@@ -22,7 +21,7 @@ add_definitions(-DD3D9EXTENSIONS) # todo should DD3D9EXTENSIONS / DIRECTXMATH be
 list(APPEND SOURCE
 precomp.cpp
 effectlist.cpp
-    )
+)
 
 add_library(effects ${SOURCE})
 add_dependencies(effects xdk)

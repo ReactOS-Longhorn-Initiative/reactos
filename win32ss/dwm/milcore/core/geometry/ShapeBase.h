@@ -210,7 +210,7 @@ public:
         _In_ bool fRetrieveCurves=true) const;
             // Retrieve curves in the result if true
 
-    static HRESULT CShapeBase::ClipWithParallelogram(
+    static HRESULT ClipWithParallelogram(
         __in_ecount(1) const IShapeData *pShape,
             // Shape to be clipped
         __in_ecount(1) const CParallelogram *pClipParallelogram,

@@ -815,11 +815,11 @@ CDisplaySet::GetDWriteFactoryNoRef(IDWriteFactory **ppIDWriteFactory)
         // Initialize DWriteFactory object
         IFC(g_DWriteLoader.DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
-            __uuidof(IDWriteFactory),
+            IID_IDWriteFactory,
             &pIUnknown
             ));
 
-        IFC(pIUnknown->QueryInterface(__uuidof(IDWriteFactory),
+        IFC(pIUnknown->QueryInterface(IID_IDWriteFactory,
                                         reinterpret_cast<void**>(&(m_pIDWriteFactory))
                                         ));
 
@@ -1443,7 +1443,7 @@ CDisplaySet::GetMonitorDescription(
     pMonitorInfo->cbSize = sizeof(MONITORINFOEX);
 
     SetLastError(ERROR_SUCCESS);
-    if (0 == TW32(0,GetMonitorInfo(hMonitor, pMonitorInfo)))
+    if (0 == TW32(0,GetMonitorInfo(hMonitor, (MONITORINFO*)pMonitorInfo)))
     {
         IFC( InspectLastError() );
     }
@@ -2345,7 +2345,7 @@ CDisplay::CDisplay(
     size_t KeyLength = 0;
     const size_t c_RegKeyPrefix = 18;   // "\Registry\Machine\"
 
-    if (   SUCCEEDED(StringCchLength(pdd->DeviceKey, ARRAYSIZE(pdd->DeviceKey), &KeyLength))
+    if (   SUCCEEDED(StringCchLength(pdd->DeviceKey, ARRAY_SIZE(pdd->DeviceKey), &KeyLength))
         && KeyLength > c_RegKeyPrefix)
     {
         CDisplayRegKey keyDev(&pdd->DeviceKey[c_RegKeyPrefix]);

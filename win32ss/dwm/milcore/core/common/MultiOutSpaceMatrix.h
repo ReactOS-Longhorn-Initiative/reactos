@@ -70,7 +70,7 @@ public:
 #endif
 
     template <typename OutCoordSpace>
-    operator const typename CMatrix<InCoordSpace,OutCoordSpace> &() const
+    operator const CMatrix<InCoordSpace, OutCoordSpace> &() const
     {
         Assert(m_eDbgCurrentOutCoordSpaceId == OutCoordSpace::Id);
         return *reinterpret_cast<CMatrix<InCoordSpace,OutCoordSpace> const *>(this);
@@ -83,7 +83,7 @@ public:
     //       clutter to code and can be quite difficult in certain situations
     //       with the matrix being an passed as an out parameter.
     template <typename OutCoordSpace>
-    operator typename CMatrix<InCoordSpace,OutCoordSpace> &()
+    operator CMatrix<InCoordSpace,OutCoordSpace> &()
     {
 #if DBG_ANALYSIS
         if (m_eDbgCurrentOutCoordSpaceId != OutCoordSpace::Id)
@@ -94,7 +94,7 @@ public:
         return *reinterpret_cast<CMatrix<InCoordSpace,OutCoordSpace> *>(this);
     }
 
-    operator typename CMultiOutSpaceMatrix<CoordinateSpace::Variant> &()
+    operator CMultiOutSpaceMatrix<CoordinateSpace::Variant> &()
     {
         return *reinterpret_cast<CMultiOutSpaceMatrix<CoordinateSpace::Variant> *>(this);
     }

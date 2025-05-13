@@ -25,6 +25,7 @@
 //
 //-----------------------------------------------------------------------------
 
+/*
 const CMILSurfaceRect::Rect_t CMILSurfaceRect::sc_rcEmpty(
     0, 0,
     0, 0,
@@ -36,7 +37,7 @@ const CMILSurfaceRect::Rect_t CMILSurfaceRect::sc_rcInfinite(
     SURFACE_RECT_MAX, SURFACE_RECT_MAX,
     LTRB_Parameters
     );
-
+*/
 
 
 //+----------------------------------------------------------------------------

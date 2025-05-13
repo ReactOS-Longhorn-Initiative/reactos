@@ -665,9 +665,9 @@ protected:
 
         // Check that the vertex at m_pt[0] has one horizontal and one vertical edge.
         // Since this is a parallelogram, all other edges comply with that.
-        return ((m_pt[0].X == m_pt[3].X)  &&  (m_pt[0].Y == m_pt[1].Y) 
+        return (((m_pt[0].X == m_pt[3].X)  &&  (m_pt[0].Y == m_pt[1].Y))
             ||
-                (m_pt[0].Y == m_pt[3].Y)  &&  (m_pt[0].X == m_pt[1].X));
+                ((m_pt[0].Y == m_pt[3].Y)  &&  (m_pt[0].X == m_pt[1].X)));
     }
 
 protected:

@@ -113,7 +113,7 @@ CDWriteFactory::DWriteCreateFactory(
             void *pfnDWriteCreateFactory = NULL;
             
             m_hDWriteLibrary = WPFUtils::LoadDWriteLibraryAndGetProcAddress(&pfnDWriteCreateFactory);
-            m_pfnDWriteCreateFactory = static_cast<DWRITECREATEFACTORY>(pfnDWriteCreateFactory);
+            m_pfnDWriteCreateFactory = reinterpret_cast<DWRITECREATEFACTORY>(pfnDWriteCreateFactory);
             
             IFCNULL(m_hDWriteLibrary);
             IFCNULL(m_pfnDWriteCreateFactory);   
