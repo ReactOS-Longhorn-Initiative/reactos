@@ -1891,8 +1891,8 @@ NtNotifyChangeMultipleKeys(_In_ HANDLE MasterKeyHandle,
         goto Failure2;
     }
 
-    /* Windows ignores the IO_STATUS_BLOCK with KernelMode callers */
-    if (PreviousMode != KernelMode)
+    /* Windows ignores the IO_STATUS_BLOCK with KernelMode Asynchronous callers */
+    if (!Asynchronous || PreviousMode != KernelMode)
     {
         /* Attach the IO_STATUS_BLOCK */
         PostBlock->Process = &PsGetCurrentProcess()->Pcb;
@@ -1967,7 +1967,7 @@ NtNotifyChangeMultipleKeys(_In_ HANDLE MasterKeyHandle,
     KeLeaveCriticalRegion();
 
     /* Initialize IO_STATUS_BLOCK */
-    if (PreviousMode != KernelMode)
+    if (!Asynchronous || PreviousMode != KernelMode)
     {
         IoStatusBlock->Status = STATUS_PENDING;
         IoStatusBlock->Information = 0;
