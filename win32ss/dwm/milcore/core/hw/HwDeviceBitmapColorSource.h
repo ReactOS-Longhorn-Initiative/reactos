@@ -55,8 +55,8 @@ public:
         __deref_opt_inout_ecount(1) HANDLE * const pSharedHandle
         );
 
-    override virtual HRESULT Realize(
-        );
+    virtual HRESULT Realize(
+        ) override;
 
     //
     // Query methods
@@ -173,7 +173,7 @@ private:
 
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CHwDeviceBitmapColorSource));
     
-    override HRESULT GetPointerToValidSourceRects(
+    HRESULT GetPointerToValidSourceRects(
         __in_ecount_opt(1) IWGXBitmap *pBitmap,
         __out_ecount(1) UINT &cValidSourceRects,
         __deref_out_ecount_full(cValidSourceRects) CMilRectU const * &rgValidSourceRects

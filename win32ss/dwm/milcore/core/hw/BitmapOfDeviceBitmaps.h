@@ -61,7 +61,7 @@ public:
     // Distinguishes between bitmaps with full source, no source, and
     // placeholder source for shared surfaces
 
-    override STDMETHODIMP_(SourceState::Enum) SourceState() const
+    STDMETHODIMP_(SourceState::Enum) SourceState() const
     {
         return SourceState::DeviceBitmap;
     };

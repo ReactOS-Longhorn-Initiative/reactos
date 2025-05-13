@@ -161,8 +161,8 @@ protected:
 \*=========================================================================*/
 
 #define DEFINE_RESOURCE_REF_COUNT_BASE                                               \
-    override ULONG STDMETHODCALLTYPE AddRef(void) {return CD3DResource::AddRef();} \
-    override ULONG STDMETHODCALLTYPE Release(void) {return CD3DResource::Release();}
+    ULONG STDMETHODCALLTYPE AddRef(void) {return CD3DResource::AddRef();} \
+    ULONG STDMETHODCALLTYPE Release(void) {return CD3DResource::Release();}
 
 //------------------------------------------------------------------------------
 //

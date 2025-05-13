@@ -97,7 +97,7 @@ public:
     //    implemented. 
     //
     //
-    override PERFMETERTAG GetPerfMeterTag() const
+    PERFMETERTAG GetPerfMeterTag() const
     {
         return Mt(CHwPixelShaderEffect_NotImplementedAndShouldAlwaysBeZero);
     }
@@ -109,7 +109,7 @@ public:
     //    Release D3D resources associated with this PixelShaderEffect.
     //    ReleaseD3DResources is called by the device on device lost, shutdown, etc.
     //
-    override void ReleaseD3DResources();
+    void ReleaseD3DResources() override;
 
     //
     // CMILCacheableResource::IsValid (override)
@@ -117,7 +117,7 @@ public:
     //     This resource is valid if the D3D resource is valid. Therefore
     //     mappping IsValid to CD3DResource::IsValid.
     //
-    override bool IsValid() const
+    bool IsValid() const
     {
         return CD3DResource::IsValid();
     }

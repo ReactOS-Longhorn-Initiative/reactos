@@ -34,13 +34,13 @@ class CD3DSwapChainWithSwDC : public CD3DSwapChain
         );
 
 public:
-    override HRESULT GetDC(
+    HRESULT GetDC(
         /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
         __in_ecount(1) const CMilRectU& rcDirty,
         __deref_out HDC *phdcBackBuffer
         ) const;
 
-    override HRESULT ReleaseDC(
+    HRESULT ReleaseDC(
         /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
         _In_ HDC hdcBackBuffer
         ) const;
@@ -57,9 +57,9 @@ protected:
 
 protected:
 
-    override HRESULT Init(
+    HRESULT Init(
         __inout_ecount(1) CD3DResourceManager *pResourceManager
-        );
+        ) override;
 
 private:
     HDC m_hdcCopiedBackBuffer;

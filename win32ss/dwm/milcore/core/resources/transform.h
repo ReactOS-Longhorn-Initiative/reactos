@@ -49,7 +49,7 @@ protected:
 
 protected:
 
-    override BOOL OnChanged(
+    BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         )

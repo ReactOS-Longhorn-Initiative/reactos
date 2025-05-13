@@ -75,34 +75,34 @@ public:
     // IInternalRenderTarget overrides
     //
 
-    override STDMETHOD(DrawBitmap)(
+    STDMETHOD(DrawBitmap)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        );
+        ) override;
 
-    override STDMETHOD(DrawMesh3D)(
+    STDMETHOD(DrawMesh3D)(
         __inout_ecount(1) CContextState* pContextState,
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __inout_ecount_opt(1) CMILShader *pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        );
+        ) override;
 
-    override STDMETHOD(DrawPath)(
+    STDMETHOD(DrawPath)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __inout_ecount(1) IShapeData *pShape,
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        );
+        ) override;
 
-    override STDMETHOD(DrawInfinitePath)(
+    STDMETHOD(DrawInfinitePath)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        );
+        ) override;
 
     STDMETHOD(DrawGlyphs)(
         __inout_ecount(1) DrawGlyphsParameters &pars
@@ -124,15 +124,15 @@ public:
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
         );
 
-    override STDMETHODIMP Begin3D(
+    STDMETHODIMP Begin3D(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        );
+        ) override;
 
-    override STDMETHODIMP End3D(
-        );
+    STDMETHODIMP End3D(
+        ) override;
 
 
     //
@@ -181,7 +181,7 @@ protected:
     //
     //-------------------------------------------------------------------------
 
-    override bool IsValid() const;
+    bool IsValid() const;
 
 
 protected:

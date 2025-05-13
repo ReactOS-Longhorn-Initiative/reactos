@@ -49,8 +49,8 @@ protected:
 \*=========================================================================*/
 
 #define DEFINE_POOLRESOURCE_REF_COUNT_BASE                                               \
-    override ULONG STDMETHODCALLTYPE AddRef(void) {return CMILPoolResource::AddRef();}   \
-    override ULONG STDMETHODCALLTYPE Release(void) {return CMILPoolResource::Release();}
+    ULONG STDMETHODCALLTYPE AddRef(void) {return CMILPoolResource::AddRef();}   \
+    ULONG STDMETHODCALLTYPE Release(void) {return CMILPoolResource::Release();}
 
 /*=========================================================================*\
     IMILPoolManager - MIL interface pooled resource lifetime manager

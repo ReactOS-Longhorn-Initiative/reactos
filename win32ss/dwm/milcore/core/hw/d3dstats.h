@@ -20,7 +20,6 @@
 //------------------------------------------------------------------------------
 
 #if DBG
-
 MtExtern(CD3DStats);
 
 //+-----------------------------------------------------------------------------
@@ -41,6 +40,11 @@ struct D3DDEVINFO_DDISTATS
     DWORD   m_dwNumFrontEndStateUpdates; // Number of calls to update front-end state 
     DWORD   m_dwNumShaderUpdates;        // Number of calls to SetupFVF to update front-end state 
 };
+
+typedef struct _D3DDEVINFO_RESOURCEMANAGER
+{
+    D3DRESOURCESTATS    stats[D3DRTYPECOUNT];
+} D3DDEVINFO_RESOURCEMANAGER, *LPD3DDEVINFO_RESOURCEMANAGER;
 
 //+-----------------------------------------------------------------------------
 //

@@ -102,7 +102,7 @@ protected:
     // CHwSurfaceRenderTarget methods
     //
 
-    override bool IsValid() const;
+    bool IsValid() const;
 
 private:
 
