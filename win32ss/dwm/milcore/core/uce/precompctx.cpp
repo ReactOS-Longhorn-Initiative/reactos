@@ -598,7 +598,7 @@ CPreComputeContext::ConvertInnerToOuterBounds(
     // set to infinite bounds if bounding box has NaN 
     if (!(pNodeBounds->IsWellOrdered()))
     {
-        *pNodeBounds = CMilRectF::sc_rcInfinite2;
+        *pNodeBounds = CMilRectF::sc_rcInfinite;
     }
 
 Cleanup:
@@ -807,7 +807,7 @@ CPreComputeContext::PushCache(
         // and an empty clip on top of the stack.
         CMILMatrix matIdentity(true);
         IFC(m_transformStack.Push(&matIdentity, false /*do not multiply*/));
-        CRectF<CoordinateSpace::PageInPixels> noClip = CRectF<CoordinateSpace::PageInPixels>::ReinterpretNonSpaceTyped(CMilRectF::sc_rcInfinite2);
+        CRectF<CoordinateSpace::PageInPixels> noClip = CRectF<CoordinateSpace::PageInPixels>::ReinterpretNonSpaceTyped(CMilRectF::sc_rcInfinite);
         IFC(m_clipStack.PushExact(noClip));
     }
     

@@ -198,14 +198,14 @@ ScanOpFunc GetOp_SrcOver_or_SrcOverAL(
         {
         case MilPixelFormat::RGB128bppFloat:   // See Notes above
         case MilPixelFormat::PRGBA128bppFloat:
-            if (CCPUInfo::HasSSE2())    
-            {
-                return SrcOver_128bppPABGR_128bppPABGR_SSE2;
-            }
-            else
-            {
+            //if (CCPUInfo::HasSSE2())    
+            //{
+            //    return SrcOver_128bppPABGR_128bppPABGR_SSE2;
+            //}
+           // else
+            //{
                 return SrcOver_128bppPABGR_128bppPABGR;
-            }
+            //}
 
         default:
             return NULL;

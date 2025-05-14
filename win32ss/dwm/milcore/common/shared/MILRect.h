@@ -1163,10 +1163,6 @@ public:
     }
 
     static void HasBaseType();
-
-    static const TMilRect_ sc_rcEmpty2;
-
-    static const TMilRect_ sc_rcInfinite2;
 };
 
 

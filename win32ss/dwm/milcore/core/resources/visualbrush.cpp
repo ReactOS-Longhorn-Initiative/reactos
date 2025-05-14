@@ -239,7 +239,7 @@ CMilVisualBrushDuce::PreComputeHelper(
     HRESULT hr = S_OK;
     CMilRectF bounds;
 
-    bounds = bounds.sc_rcInfinite2;
+    bounds = bounds.sc_rcInfinite;
 {
     IFC(pPreComputeContext->PreCompute(
         pVisual,

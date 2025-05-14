@@ -14,14 +14,14 @@
 #pragma warning(disable:4356)
 
 template<>
-const CMilRectF::RectC_t CMilRectF::sc_rcEmpty2(
+const CMilRectF::Rect_t CMilRectF::sc_rcEmpty(
     0, 0,
     0, 0,
     LTRB_Parameters
     );
 
 template<>
-const CMilRectF::RectC_t CMilRectF::sc_rcInfinite2(
+const CMilRectF::Rect_t CMilRectF::sc_rcInfinite(
     -FLT_MAX, -FLT_MAX,
      FLT_MAX,  FLT_MAX,
     LTRB_Parameters
@@ -29,14 +29,14 @@ const CMilRectF::RectC_t CMilRectF::sc_rcInfinite2(
 
 
 template<>
-const CMilRectL::RectC_t CMilRectL::sc_rcEmpty2(
+const CMilRectL::Rect_t CMilRectL::sc_rcEmpty(
     0, 0,
     0, 0,
     LTRB_Parameters
     );
 
 template<>
-const CMilRectL::RectC_t CMilRectL::sc_rcInfinite2(
+const CMilRectL::Rect_t CMilRectL::sc_rcInfinite(
     -LONG_MAX-1, -LONG_MAX-1,
     LONG_MAX, LONG_MAX,
     LTRB_Parameters
@@ -55,7 +55,6 @@ const CMilRectU::Rect_t CMilRectU::sc_rcInfinite(
     ULONG_MAX, ULONG_MAX,
     LTRB_Parameters
     );
-
 
 
 

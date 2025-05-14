@@ -14,6 +14,7 @@
 
 #include <initguid.h>
 #include "precomp.hpp"
+#include "av/avloader.h" // todo remove
 
 extern "C"
 BOOL
@@ -30,5 +31,57 @@ DllMain(
         );
 }
 
+BOOL g_fNoMeterChecks;
 
+/* Stubs */
+bool WPFUtils::OSVersionHelper::IsWindows8OrGreater()
+{
+    return false;
+}
+bool WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater()
+{
+    return false;
+}
+bool WPFUtils::OSVersionHelper::IsWindows7OrGreater()
+{
+    return false;
+}
 
+/* TODO: does AV lib depend on WMP headers? */
+HRESULT
+AvDllInitialize(
+    void
+    )
+{
+    OutputDebugStringW(L"WARNING: dllentry.cpp attempted to initialize WMP (AvDllInitialize)\n");
+    return S_OK;
+}
+void
+AvDllShutdown(void)
+{
+    OutputDebugStringW(L"WARNING: stub AvDllShutdown called\n");
+}
+
+HRESULT CAVLoader::Startup()
+{
+    OutputDebugStringW(L"WARNING: stub CAVLoader::Startup called\n");
+    return S_OK;
+}
+
+void CAVLoader::Shutdown()
+{
+    OutputDebugStringW(L"WARNING: stub CAVLoader::Shutdown called\n");
+}
+
+HRESULT
+CMILAV::
+CreateMedia(
+    _In_        CEventProxy *pEventProxy,
+    _In_        bool        canOpenAnyMedia,
+    __deref_out IMILMedia   **ppMedia
+    )
+{
+    *ppMedia = nullptr;
+    OutputDebugStringW(L"WARNING: stub CMILAV::CreateMedia called\n");
+    return E_NOTIMPL;
+}

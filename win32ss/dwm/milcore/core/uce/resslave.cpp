@@ -275,3 +275,9 @@ CMilCyclicResourceListEntry::~CMilCyclicResourceListEntry(
 
 
 
+template HRESULT CMilSlaveResource::AddHandleToArrayAndReplace<CMilSlaveResource>(
+    HMIL_RESOURCE *phObject,
+    MIL_RESOURCE_TYPE resType,
+    DynArray<CMilSlaveResource *, TRUE> *prgpResource,
+    CMilSlaveHandleTable *pHandleTable
+);

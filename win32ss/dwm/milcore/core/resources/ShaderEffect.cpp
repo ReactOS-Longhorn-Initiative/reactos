@@ -827,7 +827,7 @@ CMilShaderEffectDuce::DrawIntoIntermediate(
     contextState.WorldToDevice.DbgChangeToSpace<CoordinateSpace::PageInPixels,CoordinateSpace::Device>();
     // Note that the render state is inherited here, so we realize the secondary input with the context's bitmap scaling mode, etc.
     contextState.RenderState = pContextState->RenderState;
-    contextState.AliasedClip = CAliasedClip(&CMilRectF::sc_rcInfinite2);
+    contextState.AliasedClip = CAliasedClip(&CMilRectF::sc_rcInfinite);
 
 
     brushContext.pBrushDeviceNoRef = GetCompositionDeviceNoRef();
@@ -838,7 +838,7 @@ CMilShaderEffectDuce::DrawIntoIntermediate(
     // Double precision is always good karma...
     MilPointAndSizeD boundingBox = { 0, 0, static_cast<double>(implicitInputWidth), static_cast<double>(implicitInputHeight) };
     brushContext.rcWorldBrushSizingBounds = boundingBox;
-    brushContext.rcWorldSpaceBounds = CMilRectF::sc_rcInfinite2;
+    brushContext.rcWorldSpaceBounds = CMilRectF::sc_rcInfinite;
 
     brushContext.pContentBounder = NULL;
     IFC(CContentBounder::Create(brushContext.pBrushDeviceNoRef, &brushContext.pContentBounder));

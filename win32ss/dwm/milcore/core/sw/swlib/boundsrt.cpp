@@ -178,7 +178,7 @@ STDMETHODIMP_(VOID) CSwRenderTargetGetBounds::GetBounds(
     )
 {
     RIP("Currently unused.");
-    *pBounds = CMilRectF::sc_rcInfinite2;
+    *pBounds = CMilRectF::sc_rcInfinite;
 }
 
 //+-----------------------------------------------------------------------------

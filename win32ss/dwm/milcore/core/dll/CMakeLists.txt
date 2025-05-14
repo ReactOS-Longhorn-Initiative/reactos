@@ -17,9 +17,14 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 
 add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
 
+add_definitions(-D_milcore_)
+spec2def(milcore.dll milcore.spec ADD_IMPORTLIB)
+
 list(APPEND SOURCE
 precomp.cpp
 dllentry.cpp
+${CMAKE_CURRENT_BINARY_DIR}/milcore.def
+${CMAKE_CURRENT_BINARY_DIR}/milcore_stubs.c
     )
 
 add_library(milcore MODULE ${SOURCE})
