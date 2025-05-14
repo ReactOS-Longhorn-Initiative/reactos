@@ -12,6 +12,7 @@
 //
 //
 
+#include <initguid.h>
 #include "precomp.hpp"
 
 extern "C"

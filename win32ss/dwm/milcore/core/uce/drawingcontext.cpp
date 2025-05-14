@@ -61,7 +61,7 @@ CDrawingContext::CDrawingContext(
     m_brushContext.pRenderTargetCreator = NULL;
 
     m_3DBrushContext.pBrushDeviceNoRef = pComposition;
-    m_3DBrushContext.rcSampleSpaceClip = CMilRectF::sc_rcInfinite;
+    m_3DBrushContext.rcSampleSpaceClip = CMilRectF::sc_rcInfinite2;
     m_3DBrushContext.fBrushIsUsedFor3D = true;
     m_3DBrushContext.fRealizeProceduralBrushesAsIntermediates = TRUE;
     m_3DBrushContext.pRenderTargetCreator = NULL;
@@ -2730,7 +2730,7 @@ HRESULT CDrawingContext::PushEffects(
                 // isn't a critical error, but we still don't know the real bounds
                 // of the mask. We'll be conservative and set them to infinite.
                 //
-                rcClipBounds = CMilRectF::sc_rcInfinite;
+                rcClipBounds = CMilRectF::sc_rcInfinite2;
             }
 
             IFC(PushClipRect(rcClipBounds));
@@ -2973,7 +2973,7 @@ CDrawingContext::CreateAndFillLayer(
     //
 
     m_brushContext.rcWorldBrushSizingBounds = rcBoundsD;
-    m_brushContext.rcWorldSpaceBounds = CMilRectF::sc_rcInfinite;
+    m_brushContext.rcWorldSpaceBounds = CMilRectF::sc_rcInfinite2;
 
     //
     // Call DrawInfinitePath to fill layer with fill brush.
@@ -4740,15 +4740,15 @@ CDrawingContext::PreSubgraph(__out_ecount(1) BOOL *pfVisitChildren)
     BOOL fPushEffect = FALSE;
     CRectF<CoordinateSpace::LocalRendering> localBounds;
     CRectF<CoordinateSpace::PageInPixels> clippedBoundsWorldAAInflated;
-
     AssertMsg(m_pGraphIterator, "There is a problem with using the render context from the UiThread. You can only call this for visuals.");
-
+    
     CMilVisual* pNode = GetCurrentVisual();
     Assert(pNode);
-
+    
     // Track the current resource so for IRT event tracing.
     CMilSlaveResource* savedResource = m_pComposition->GetCurrentResourceNoRef();
     m_pComposition->SetCurrentResource(static_cast<CMilSlaveResource*>(pNode));
+{
 
     //
     // For now we assume that we need to render this node and all its children.
@@ -5075,7 +5075,7 @@ CDrawingContext::PreSubgraph(__out_ecount(1) BOOL *pfVisitChildren)
         // Render the content of the node.
         IFC(pNode->RenderContent(this));
     }
-
+}
 Cleanup:
     
     m_pComposition->SetCurrentResource(savedResource);
@@ -5344,7 +5344,7 @@ CDrawingContext::DetermineEffectCompositionMode(
     // displays in that situation, we will be pushing an unnecessary layer.
     DWORD renderTargetType = 0;
     IFC(m_pIRenderTarget->GetType(&renderTargetType));
-    
+{
     bool hasHardwareSupport = false;
     bool hasSoftwareSupport = false;
     bool requiresPS30 = (pEffect->GetShaderMajorVersion() == 3);
@@ -5434,7 +5434,7 @@ CDrawingContext::DetermineEffectCompositionMode(
             *pEffectCompositionMode = SkipRender;
         }
     }
-
+}
 Cleanup:
     RRETURN(hr);
    

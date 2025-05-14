@@ -87,6 +87,5 @@ Environment:
 #include "uce/uce.h"
 #include "resources/resources.h"
 
-#include "DynamicCall/DelayCall.h"
 #include "DpiProvider.h"
 

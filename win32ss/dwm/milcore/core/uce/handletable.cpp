@@ -211,7 +211,7 @@ HRESULT HANDLE_TABLE::Resize(
     )
 {
     HRESULT hr = S_OK;
-
+{
     //
     // Ensure that the table is growing. Shrinking would imply that we leak
     // handle entries.
@@ -246,6 +246,7 @@ HRESULT HANDLE_TABLE::Resize(
 
     m_pvTable = pvTable;
     m_cHandleCount = cTableSize;
+}
 
 Cleanup:
     RRETURN(hr);
@@ -276,7 +277,7 @@ HRESULT HANDLE_TABLE::GetNewEntry(
     )
 {
     HRESULT hr = S_OK;
-
+{
     //
     // EMPTY_ENTRY (==0) is used to indicate an empty table entry.
     // Allocating a handle with this type will cause table inconsistency.
@@ -360,6 +361,7 @@ HRESULT HANDLE_TABLE::GetNewEntry(
 
     ENTRY_TYPE_FIELD(nFreePos) = type;
     *phObject = nFreePos;
+}
 
 Cleanup:
     RRETURN(hr);

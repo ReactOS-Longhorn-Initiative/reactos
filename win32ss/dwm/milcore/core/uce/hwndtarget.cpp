@@ -84,7 +84,7 @@ CSlaveHWndRenderTarget::Render(
     )
 {
     HRESULT hr = S_OK;
-
+{
     IFC(EnsureRenderTargetInternal());
 
     CDrawingContext *pDrawingContext = NULL;
@@ -236,7 +236,7 @@ CSlaveHWndRenderTarget::Render(
     }
 
     *pfNeedsPresent = m_fNeedsPresent;
-
+}
 Cleanup:
     if (FAILED(hr))
     {

@@ -263,7 +263,7 @@ RtlAssert(
 #if DBG
 #define ASSERT( exp ) \
     ((!(exp)) ? \
-        (RtlAssert( #exp, __FILE__, __LINE__, NULL ),FALSE) : \
+        (RtlAssert( (PVOID)(#exp), (PVOID)__FILE__, __LINE__, NULL ),FALSE) : \
         TRUE)
 #else
 #define ASSERT( exp )         ((void) 0)

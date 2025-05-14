@@ -379,6 +379,8 @@ public:
         }
     }
 
+    inline void MarkAsUnlisted(){}
+
     HRESULT EnsureValidAlphaMap(_In_ const EnhancedContrastTable *pECT);
     bool HasAlphaMaps()
     {

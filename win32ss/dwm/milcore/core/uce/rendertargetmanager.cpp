@@ -594,7 +594,7 @@ CRenderTargetManager::Present(
     HRESULT hr = S_OK;
 
     bool fGPUThrottlingEnabled = false;
-
+{
     //
     // We need to call this every time we present because we could
     // transition from a WDDM to non-WDDM driver through a TS session.
@@ -647,6 +647,7 @@ CRenderTargetManager::Present(
             IFC(HandlePresentErrors(hr));
         }
     }
+}
 
 Cleanup:
     AdvanceFrame();
