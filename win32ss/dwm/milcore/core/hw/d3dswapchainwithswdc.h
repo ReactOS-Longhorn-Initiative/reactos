@@ -25,7 +25,7 @@
 
 class CD3DSwapChainWithSwDC : public CD3DSwapChain
 {
-    friend static HRESULT CD3DSwapChain::Create(
+    friend HRESULT CD3DSwapChain::Create(
         __inout_ecount(1) CD3DResourceManager *pResourceManager,
         __inout_ecount(1) IDirect3DSwapChain9 *pID3DSwapChain9,
         UINT BackBufferCount,

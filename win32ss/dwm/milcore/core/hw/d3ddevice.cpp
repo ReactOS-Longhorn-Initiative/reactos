@@ -322,7 +322,7 @@ CD3DDeviceLevel1::Init(
     Assert(m_pD3DDeviceEx == NULL);
 
     IDirect3D9* pd3d9 = NULL;
-
+{
     // Initialize the resource manager as early as possible since the resource manager asserts on
     // shutdown that it has a valid device associated. If not, failures in the hardware detection code
     // below will lead to asserts firing in the D3DResourceManager code on shutdown.
@@ -573,7 +573,7 @@ CD3DDeviceLevel1::Init(
     m_presentFailureWindowMessage = RegisterWindowMessage(L"NeedsRePresentOnWake");
 
     } // Leave device scope
-
+}
 Cleanup:
     ReleaseInterfaceNoNULL(pd3d9);
 
@@ -2399,7 +2399,7 @@ CD3DDeviceLevel1::CreateSysMemUpdateSurface(
     UINT uWidth,
     UINT uHeight,
     D3DFORMAT fmtTexture,
-    __in_xcount_opt(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
+    _In_opt_count_(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
     __deref_out_ecount(1) IDirect3DSurface9 ** const ppD3DSysMemSurface
     )
 {
@@ -3127,7 +3127,7 @@ CD3DDeviceLevel1::Present(
     AssertDeviceEntry(*this);
 
     HRESULT hr;
-
+{
     if (FAILED(m_hrDisplayInvalid))
     {
         // Call MarkUnusable to check if we still need to handle loss now that
@@ -3276,7 +3276,7 @@ CD3DDeviceLevel1::Present(
             }
         }
     }
-
+}
 Cleanup:
 
     RRETURN1(hr, S_PRESENT_OCCLUDED); // DIE already handled
@@ -4205,12 +4205,12 @@ CD3DDeviceLevel1::CompilePipelineVertexShader(
     std::shared_ptr<buffer> pShader;
     std::shared_ptr<buffer> pErr;
 
-    std::string profile_name = 
+    const char* profile_name = 
         shader::get_vertex_shader_profile_name(m_pD3DDevice);
 
     HRESULT hr =
         shader::compile(
-            std::string(pHLSLSource, pHLSLSource + cbHLSLSource),
+            pHLSLSource,
             "VertexShaderImpl",
             profile_name,
             0, 0,
@@ -4250,12 +4250,12 @@ CD3DDeviceLevel1::CompilePipelinePixelShader(
     std::shared_ptr<buffer> pShader;
     std::shared_ptr<buffer> pErr;
 
-    std::string profile_name 
+    const char* profile_name 
         = shader::get_pixel_shader_profile_name(m_pD3DDevice);
 
     HRESULT hr =
         shader::compile(
-            std::string(pHLSLSource, pHLSLSource + cbHLSLSource),
+            pHLSLSource,
             "PixelShaderImpl",
             profile_name,
             0, 0,

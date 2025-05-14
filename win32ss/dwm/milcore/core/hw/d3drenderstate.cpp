@@ -605,7 +605,7 @@ CD3DRenderState::sc_fmConvolution =
 
 CD3DRenderState::CD3DRenderState()
 {
-    for (int i = 0; i < ARRAYSIZE(m_pPixelShaders); i++)
+    for (int i = 0; i < ARRAY_SIZE(m_pPixelShaders); i++)
     {
         m_pPixelShaders[i] = NULL;
     }
@@ -625,7 +625,7 @@ CD3DRenderState::CD3DRenderState()
 
 CD3DRenderState::~CD3DRenderState()
 {
-    for (int i = 0; i < ARRAYSIZE(m_pPixelShaders); i++)
+    for (int i = 0; i < ARRAY_SIZE(m_pPixelShaders); i++)
     {
         ReleaseInterface(m_pPixelShaders[i]);
     }
@@ -1663,7 +1663,7 @@ CD3DRenderState::InitPixelShaders()
         }
     }
 
-    static_assert(ARRAYSIZE(m_pPixelShaders) == PXS_NUM, "ARRAYSIZE(m_pPixelShaders) == PXS_NUM");
+    static_assert(ARRAY_SIZE(m_pPixelShaders) == PXS_NUM, "ARRAY_SIZE(m_pPixelShaders) == PXS_NUM");
     
     for (int i = 0; i < PXS_NUM; i++)
     {

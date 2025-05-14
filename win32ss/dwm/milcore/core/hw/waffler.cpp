@@ -263,7 +263,7 @@ HRESULT TriangleWaffler<T>::AddTriangle(
              
 #define EDGE(a,b,o)                                                     \
         T e##a##b##o;                                                   \
-        SplitEdge(s[##a],v##a,s[##b],v##b,static_cast<float>(i+o),e##a##b##o) \
+        SplitEdge(s[a],v##a,s[b],v##b,static_cast<float>(i+o),e##a##b##o) \
 
         switch (configuration)
         {
@@ -445,6 +445,7 @@ LineWaffler<T>::AddLine(
     
     float score0 = Score(v0, m_a, m_b, m_c);
     float score1 = Score(v1, m_a, m_b, m_c);
+    int cellNum0, cellNum1;
     
     if (score0 > score1)
     {
@@ -460,8 +461,8 @@ LineWaffler<T>::AddLine(
         IFC(E_FAIL);
     }
 
-    int cellNum0 = GpFloorSat(score0);
-    int cellNum1 = GpFloorSat(score1);
+    cellNum0 = GpFloorSat(score0);
+    cellNum1 = GpFloorSat(score1);
 
     Assert(cellNum1 >= cellNum0);
 

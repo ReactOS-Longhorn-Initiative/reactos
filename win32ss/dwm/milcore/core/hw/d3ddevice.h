@@ -379,7 +379,7 @@ public:
         UINT uWidth,
         UINT uHeight,
         D3DFORMAT fmtTexture,
-        __in_xcount_opt(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
+        _In_opt_count_(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
         __deref_out_ecount(1) IDirect3DSurface9 ** const ppD3DSysMemSurface
         );
 

@@ -298,6 +298,7 @@ CD3DSurface::ReadIntoSysMemBuffer(
     RECT const rcDest = { 0, 0, (LONG)uSourceWidth, (LONG)uSourceHeight };
 
     BYTE const BitsPerPixel = GetPixelFormatSize(fmtOut);
+    D3DFORMAT d3dfmtOut;
 
     if (BitsPerPixel % BITS_PER_BYTE)
     {
@@ -315,7 +316,7 @@ CD3DSurface::ReadIntoSysMemBuffer(
 
     Assert(Device().IsInAUseContext());
 
-    D3DFORMAT d3dfmtOut = PixelFormatToD3DFormat(fmtOut);
+    d3dfmtOut = PixelFormatToD3DFormat(fmtOut);
 
     if ((m_d3dsd.Pool == D3DPOOL_MANAGED) || (m_d3dsd.Pool == D3DPOOL_SYSTEMMEM))
     {

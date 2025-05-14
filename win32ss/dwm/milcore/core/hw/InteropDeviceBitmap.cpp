@@ -266,9 +266,10 @@ CInteropDeviceBitmap::Create(
     CD3DDeviceManager *pDeviceManager = CD3DDeviceManager::Get();
     D3DSURFACE_DESC desc;
     CInteropDeviceBitmap *pInteropDeviceBitmap = NULL;
+    FrontBufferUpdateMethod method;
         
     IFC(pIUserSurface->QueryInterface(
-        __uuidof(IDirect3DSurface9), 
+        IID_IDirect3DSurface9, 
         reinterpret_cast<void **>(&pID3DUserSurface)
         ));
     IFC(pID3DUserSurface->GetDesc(&desc));
@@ -305,7 +306,7 @@ CInteropDeviceBitmap::Create(
     // Check to see if the user's device is dead. On 9Ex, TestCooperativeLevel always returns
     // S_OK so we must call CheckDeviceState instead
     if (SUCCEEDED(pID3DUserDevice->QueryInterface(
-        __uuidof(IDirect3DDevice9Ex),
+        IID_IDirect3DDevice9Ex,
         reinterpret_cast<void **>(&pID3DUserDeviceEx)
         )))
     {    
@@ -322,8 +323,7 @@ CInteropDeviceBitmap::Create(
         }
     }
 
-    FrontBufferUpdateMethod method = 
-        CInteropDeviceBitmap::GetUpdateMethod(pID3DUserDevice, pID3DUserDeviceEx, pID3DUserSurface);
+    method = CInteropDeviceBitmap::GetUpdateMethod(pID3DUserDevice, pID3DUserDeviceEx, pID3DUserSurface);
 
     //
     // MSAA is only allowed in shared surface mode because it's the only way it will be fast. GetDC
@@ -840,7 +840,7 @@ CInteropDeviceBitmap::GetDisplayFromUserDevice(
     IDirect3DDevice9 *pID3DUserDevice = NULL;
     IDirect3D9 *pID3DUserObject = NULL;
     const CDisplaySet *pDisplaySet = NULL; 
-
+{
     IFC(m_pIUserSurface->GetDevice(&pID3DUserDevice));
     IFC(pID3DUserDevice->GetDirect3D(&pID3DUserObject));
 
@@ -851,7 +851,7 @@ CInteropDeviceBitmap::GetDisplayFromUserDevice(
     IFC(pDisplaySet->GetDisplayIndexFromMonitor(hMon, uDisplayIndex));
 
     IFC(pDisplaySet->GetDisplay(uDisplayIndex, ppDisplay));
-
+}
 Cleanup:    
     ReleaseInterface(pID3DUserDevice);
     ReleaseInterface(pID3DUserObject);

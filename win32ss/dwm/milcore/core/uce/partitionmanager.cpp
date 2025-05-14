@@ -236,7 +236,7 @@ CPartitionManager::Initialize(
         // *** ATTENTION    ATTENTION    ATTENTION    ATTENTION    ATTENTION ***
         //
         
-        IFC(StringCchPrintfW(wszBuffer, ARRAYSIZE(wszBuffer), L"wpfgfx_v0400-%d", pid));
+        IFC(StringCchPrintfW(wszBuffer, ARRAY_SIZE(wszBuffer), L"wpfgfx_v0400-%d", pid));
 
         CPerformanceCounter::Initialize();
 

@@ -101,7 +101,10 @@ endif()
 
 if(NOT MSVC)
 target_compile_options(hw PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder)
+set_property(TARGET hw PROPERTY COMPILE_WARNING_AS_ERROR OFF)
+
 endif()
+
 
 set_target_cpp_properties(hw WITH_EXCEPTIONS WITH_RTTI)
 

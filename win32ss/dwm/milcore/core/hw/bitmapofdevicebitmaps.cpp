@@ -137,6 +137,8 @@ CDeviceBitmap::Lock(
     HRESULT hr = S_OK;
 
     CMilRectL rcLock;
+    {
+        size_t cbInset;
 
     if (dwFlags != MilBitmapLock::Read)
     {
@@ -166,7 +168,7 @@ CDeviceBitmap::Lock(
     // trimmed by surface bounds by HrCheckPixelRect.
     Assert(rcLockU.top < m_nHeight);
     Assert(rcLockU.left < m_nWidth);
-    size_t cbInset =
+    cbInset =
         rcLockU.top * m_uStride
         + rcLockU.left * m_cbPixel;
 
@@ -179,6 +181,7 @@ CDeviceBitmap::Lock(
         dwFlags,
         ppILock
         ));
+    }
 
 Cleanup:
     RRETURN(hr);

@@ -190,7 +190,7 @@ HRESULT CHwBitmapColorSource::DeriveFromBrushAndContext(
     CHwBitmapCache *pHwBitmapCache = NULL;
 
     BitmapToXSpaceTransform bitmapToXSpaceTransform;
-
+{
     Assert(hwBrushContext.GetContextStatePtr()->RenderState);
 
     //
@@ -404,7 +404,7 @@ HRESULT CHwBitmapColorSource::DeriveFromBrushAndContext(
         }
     }
     IFC((**ppHwTexturedColorSource).SetMaskClipWorldSpace(pWorldSpaceMaskParallelogramNoRef));
-
+}
 Cleanup:
     ReleaseInterfaceNoNULL(pHwBitmapCache);
     ReleaseInterfaceNoNULL(pReusableRealizationSourcesList);
@@ -1173,7 +1173,7 @@ CHwBitmapColorSource::ComputeRealizationParameters(
     )
 {
     HRESULT hr = S_OK;
-
+{
     //
     // Determine texture properties
     //
@@ -1433,7 +1433,7 @@ CHwBitmapColorSource::ComputeRealizationParameters(
             ) == S_OK);
     }
     #endif
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -2701,7 +2701,7 @@ CHwBitmapColorSource::FillTexture(
     IWICBitmapSource *pIWICBitmapSourceNoRef = NULL;
     IWICBitmapSource *pWGXWrapperBitmapSource = NULL;
     IWGXBitmapSource *pWICWrapperBitmapSource = NULL;
-
+{
     IFC(WrapInClosestBitmapInterface(m_pIBitmapSource, &pWGXWrapperBitmapSource));
     pIWICBitmapSourceNoRef = pWGXWrapperBitmapSource; // No ref changes
 
@@ -2835,7 +2835,7 @@ CHwBitmapColorSource::FillTexture(
         ));
 
     Assert(IsRealizationValid());
-
+    }
 Cleanup:
     ReleaseInterfaceNoNULL(pWGXWrapperBitmapSource);
     ReleaseInterfaceNoNULL(pIWICFactory);
@@ -2952,7 +2952,7 @@ CHwBitmapColorSource::FillTextureWithTransformedSource(
 
     if (!fCompletelyInvalid)
     {
-        static_assert(IWGXBitmap::c_maxBitmapDirtyListSize < ARRAYSIZE(rgDestDirtyRects), "IWGXBitmap::c_maxBitmapDirtyListSize < ARRAYSIZE(rgDestDirtyRects)");
+        static_assert(IWGXBitmap::c_maxBitmapDirtyListSize < ARRAY_SIZE(rgDestDirtyRects), "IWGXBitmap::c_maxBitmapDirtyListSize < ARRAY_SIZE(rgDestDirtyRects)");
 
         cPrefilteredDirtyRects = ComputePrefilteredDirtyRects(
             rgDirtyRects,
@@ -2976,7 +2976,7 @@ CHwBitmapColorSource::FillTextureWithTransformedSource(
     {
         // There should be at lease 4 rects left for
         // CalculateSubtractionRectangles to fill in. 
-        Assert(cPrefilteredDirtyRects <= ARRAYSIZE(rgDestDirtyRects) - 4);
+        Assert(cPrefilteredDirtyRects <= ARRAY_SIZE(rgDestDirtyRects) - 4);
 
         cPrefilteredDirtyRects +=
             m_rcRequiredRealizationBounds.CalculateSubtractionRectangles(
@@ -2991,7 +2991,7 @@ CHwBitmapColorSource::FillTextureWithTransformedSource(
     {
         CMilRectU *rgUpdateFromBitmapRects = rgDestDirtyRects;
 
-        DynArrayIA<CMilRectU,ARRAYSIZE(rgDestDirtyRects)>
+        DynArrayIA<CMilRectU,ARRAY_SIZE(rgDestDirtyRects)>
             rgDestDirtyRectsRemaining[2];
 
 
@@ -3024,7 +3024,7 @@ CHwBitmapColorSource::FillTextureWithTransformedSource(
                     rgUpdateFromBitmapRects,
                     OUT &cPrefilteredDirtyRects,
                     OUT &rgUpdateFromBitmapRects,
-                    ARRAYSIZE(rgrgRemainingRects),
+                    ARRAY_SIZE(rgrgRemainingRects),
                     rgrgRemainingRects,
                     IN OUT &uActiveOutputArrayIndex
                     ));
