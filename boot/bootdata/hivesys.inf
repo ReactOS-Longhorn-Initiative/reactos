@@ -2184,7 +2184,7 @@ HKLM,"SYSTEM\CurrentControlSet\Services\Themes\Parameters","ServiceMain",0x00000
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","DisplayName",0x00000000,%UXSMS_SERVICE%
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","Description",0x00000000,%UXSMS_SERVICE_DESCRIPTION%
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","ErrorControl",0x00010001,0x00000001
-HKLM,"SYSTEM\CurrentControlSet\Services\Themes","FailureActions",0x00000003, \
+HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","FailureActions",0x00000003, \
     83,03,00,00,00,00,00,00,00,00,00,00,03,00,00,00,14,00,00,00, \
     01,00,00,00,c0,d4,01,00,01,00,00,00,e0,93,04,00,00,00,00,00,00,00,00,00
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","Group",0x00000000,"UIGroup"
