@@ -163,7 +163,7 @@ CGradientBrushSpan::InitializeTexture(
     // Generate the gradient texture
     if (SUCCEEDED(hr))
     {
-        static_assert(ARRAYSIZE(m_rgStartTexelAgrb) == ARRAYSIZE(m_rgEndTexelAgrb), "ARRAYSIZE(m_rgStartTexelAgrb) == ARRAYSIZE(m_rgEndTexelAgrb)");
+        static_assert(ARRAY_SIZE(m_rgStartTexelAgrb) == ARRAY_SIZE(m_rgEndTexelAgrb), "ARRAY_SIZE(m_rgStartTexelAgrb) == ARRAY_SIZE(m_rgEndTexelAgrb)");
 
         hr = THR(CGradientTextureGenerator::GenerateGradientTexture(
             pColors,
@@ -173,11 +173,11 @@ CGradientBrushSpan::InitializeTexture(
             wrapMode,
             colorInterpolationMode,
             &gradientSpanInfo,
-            ARRAYSIZE(m_rgStartTexelAgrb),
+            ARRAY_SIZE(m_rgStartTexelAgrb),
             m_rgStartTexelAgrb));
 
             UINT uTexelCount = gradientSpanInfo.GetTexelCount();
-            Assert(uTexelCount <= ARRAYSIZE(m_rgStartTexelAgrb));
+            Assert(uTexelCount <= ARRAY_SIZE(m_rgStartTexelAgrb));
 
             // Fill shifted buffer with elements of the texel buffer shifted
             // down one element
@@ -956,7 +956,7 @@ CRadialGradientBrushSpan::GenerateColors(
     // Given our start point in device space, figure out the corresponding
     // normalized brush point and then the texel(s).
 
-    __if_exists(TPlatform::SSE)
+    /*__if_exists(TPlatform::SSE)
     {
         CXmmFloat rXIncrement = m_rM11;
         CXmmFloat rYIncrement = m_rM12;
@@ -967,13 +967,13 @@ CRadialGradientBrushSpan::GenerateColors(
         CXmmFloat rYPositionHPC = x * rYIncrement + y * m_rM22 + m_rDy;
     }
     __if_not_exists(TPlatform::SSE)
-    {
+    {*/
         FLOAT rXIncrement = m_rM11;
         FLOAT rYIncrement = m_rM12;
 
         FLOAT rXPositionHPC = nX * rXIncrement + nY * m_rM21 + m_rDx;
         FLOAT rYPositionHPC = nX * rYIncrement + nY * m_rM22 + m_rDy;
-    }
+    //}
             
     //
     // Both TexelCount and FIXED16_INT_MAX + 1 should be powers of 2. This
@@ -994,7 +994,7 @@ CRadialGradientBrushSpan::GenerateColors(
         // normalized brush space.  The distance is the unwrapped index into
         // the texture.
 
-        __if_exists(TPlatform::SSE)
+        /*__if_exists(TPlatform::SSE)
         {
             CXmmFloat rDistanceHPC = CXmmFloat::Sqrt( rXPositionHPC * rXPositionHPC + rYPositionHPC * rYPositionHPC );
             rXPositionHPC += rXIncrement;
@@ -1010,7 +1010,7 @@ CRadialGradientBrushSpan::GenerateColors(
             nDistanceIPC = rDistanceIPC.Round();
         }
         __if_not_exists(TPlatform::SSE)
-        {
+        {*/
             FLOAT rDistanceHPC = sqrtf( rXPositionHPC * rXPositionHPC + rYPositionHPC * rYPositionHPC );
             rXPositionHPC += rXIncrement;
             rYPositionHPC += rYIncrement;
@@ -1021,7 +1021,7 @@ CRadialGradientBrushSpan::GenerateColors(
             // See assertions above.
             FLOAT rDistanceIPC = min(rDistanceHPC - 0.5f, static_cast<float>(FIXED16_INT_MAX));
             nDistanceIPC = GpRealToFix16(rDistanceIPC);
-        }
+        //}
 
         {
             // We want to linearly interpolate between two texels,

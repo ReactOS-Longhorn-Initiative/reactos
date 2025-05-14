@@ -54,6 +54,7 @@ CD3DGlyphRunPainter::Paint(
 
     BOOL fVisible = FALSE;
     MilPointAndSizeL rcClip;
+    bool fClearType;
 
     Assert(pars.pContextState);
 
@@ -96,7 +97,7 @@ CD3DGlyphRunPainter::Paint(
         goto Cleanup;
     }
 
-    bool fClearType = (m_recommendedBlendMode == ClearType) && fTargetSupportsClearType;
+    fClearType = (m_recommendedBlendMode == ClearType) && fTargetSupportsClearType;
 
     // Rendering preparation:
     // Choose rendering branch (set m_pfnDrawRectangle)
@@ -256,10 +257,10 @@ CD3DGlyphRunPainter::IsSubglyphClippedOut(MilPointAndSizeL const* prcClip) const
         bot = float(prcClip->Y + prcClip->Height);
 
     return
-        x0 > rig && x1 > rig && x2 > rig && x3 > rig ||
-        x0 < lef && x1 < lef && x2 < lef && x3 < lef ||
-        y0 > bot && y1 > bot && y2 > bot && y3 > bot ||
-        y0 < top && y1 < top && y2 < top && y3 < top;
+        ((x0 > rig && x1 > rig) && (x2 > rig && x3 > rig)) ||
+        ((x0 < lef && x1 < lef) && (x2 < lef && x3 < lef)) ||
+        ((y0 > bot && y1 > bot) && (y2 > bot && y3 > bot)) ||
+        ((y0 < top && y1 < top) && (y2 < top && y3 < top));
 }
 
 //+-----------------------------------------------------------------------------
@@ -514,11 +515,11 @@ CD3DGlyphRunPainter::TDrawRectangle()
 
     TVertex* vertices = NULL;
 
-    TVertex::buffer *pBuffer;
+    typename TVertex::buffer *pBuffer;
     IFC(m_pDevice->StartPrimitive(&pBuffer));
     IFC(pBuffer->GetNewVertices(
         4,
-        (TVertex::base **)&vertices
+        (typename TVertex::base **)&vertices
         ));
 
     vertices[0].Set(m_xMin, m_yMin, &m_data);

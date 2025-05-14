@@ -205,7 +205,8 @@ CHwShader::FixedFunctionDrawMesh3D(
     HRESULT hr = S_OK;
     CHwFFPipeline Pipeline(pD3DDevice);
 
-    //
+    {
+        //
     // Our shaders can support multiple passes
     //
     UINT uNumPasses = GetNumPasses();
@@ -282,6 +283,7 @@ CHwShader::FixedFunctionDrawMesh3D(
             ));
 
         Pipeline.ReleaseExpensiveResources();    
+    }
     }
 
 Cleanup:

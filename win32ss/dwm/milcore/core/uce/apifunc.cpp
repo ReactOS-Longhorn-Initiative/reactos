@@ -824,7 +824,7 @@ Cleanup:
 HRESULT WINAPI MilPlayer_Process(
     __in_ecount(1) HMIL_PLAYER hPlayer,
     _In_reads_(sizeof(MIL_REC_PACKET_HEADER)) const BYTE* pbHeader,
-    __in_xcount_opt(sizeof(UCE_RDP_HEADER)) const BYTE* pbRdpHeader,
+    _In_opt_count_(sizeof(UCE_RDP_HEADER)) const BYTE* pbRdpHeader,
     __in_bcount_opt(cbData) const BYTE* pbData,
     UINT cbData
     )

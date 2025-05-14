@@ -84,10 +84,12 @@ CD3DSwapChainWithSwDC::Init(
     )
 {
     HRESULT hr = S_OK;
+    MilPixelFormat::Enum milFormat;
 
     // The base class must be initialized first
     IFC(CD3DSwapChain::Init(pResourceManager));
 
+   {
     Assert(m_cBackBuffers >= 1);
     D3DSURFACE_DESC const &surfDesc = m_rgBackBuffers[0]->Desc();
 
@@ -119,7 +121,7 @@ CD3DSwapChainWithSwDC::Init(
         0
         ));
 
-    MilPixelFormat::Enum milFormat = D3DFormatToPixelFormat(surfDesc.Format, TRUE);
+    milFormat = D3DFormatToPixelFormat(surfDesc.Format, TRUE);
 
     IFC(HrCalcDWordAlignedScanlineStride(surfDesc.Width, milFormat, OUT m_stride));
 
@@ -134,6 +136,7 @@ CD3DSwapChainWithSwDC::Init(
         m_hdcCopiedBackBuffer,
         m_hbmpCopiedBackBuffer
         ));
+   }
     
 Cleanup:
     RRETURN(hr);

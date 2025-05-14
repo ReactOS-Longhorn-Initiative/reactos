@@ -296,7 +296,8 @@ HRESULT CHwSurfaceRenderTargetSharedData::GetCachedBrush(
 {
     HRESULT hr = S_OK;
 
-    *ppHwCachedBrush = NULL;
+    {
+        *ppHwCachedBrush = NULL;
 
     //
     // Check cache for linear & radial gradient brushes
@@ -364,6 +365,7 @@ HRESULT CHwSurfaceRenderTargetSharedData::GetCachedBrush(
         {
             *ppHwCachedBrush = pCachedBrush;  // Transfer reference
         }
+    }
     }
 
 Cleanup:

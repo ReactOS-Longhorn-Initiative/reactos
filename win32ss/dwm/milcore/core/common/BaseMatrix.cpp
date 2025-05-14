@@ -1224,15 +1224,15 @@ CBaseMatrix::Dump() const
 
     OutputDebugString(L"CBaseMatrix\n");
     // Debug spew -- ignore failure.
-    IGNORE_HR(StringCchPrintfW(wzString, ARRAYSIZE(wzString), L"%f, %f\n", _11, _12));
+    IGNORE_HR(StringCchPrintfW(wzString, ARRAY_SIZE(wzString), L"%f, %f\n", _11, _12));
     OutputDebugString(wzString);
 
     // Debug spew -- ignore failure.
-    IGNORE_HR(StringCchPrintfW(wzString, ARRAYSIZE(wzString), L"%f, %f\n", _21, _22));
+    IGNORE_HR(StringCchPrintfW(wzString, ARRAY_SIZE(wzString), L"%f, %f\n", _21, _22));
     OutputDebugString(wzString);
 
     // Debug spew -- ignore failure.
-    IGNORE_HR(StringCchPrintfW(wzString, ARRAYSIZE(wzString), L"%f, %f\n", _41, _42));
+    IGNORE_HR(StringCchPrintfW(wzString, ARRAY_SIZE(wzString), L"%f, %f\n", _41, _42));
     OutputDebugString(wzString);
 }
 #endif

@@ -79,6 +79,9 @@
 
 MtDefine(CHwTVertexBuffer_Builder, MILRender, "CHwTVertexBuffer<TVertex>::Builder");
 
+const DWORD FLOAT_ZERO = 0x00000000;
+const DWORD FLOAT_ONE  = 0x3f800000;
+
 ExternTag(tagWireframe);
 
 //+----------------------------------------------------------------------------
@@ -249,7 +252,7 @@ CHwTVertexBuffer<TVertex>::AddTriListVertices(
     )
 {
     HRESULT hr = S_OK;
-
+{
     Assert(ppVertices);
 
     UINT uCount = static_cast<UINT>(m_rgVerticesTriList.GetCount());
@@ -274,7 +277,7 @@ CHwTVertexBuffer<TVertex>::AddTriListVertices(
     m_rgVerticesTriList.SetCount(newCount);
     *pwIndexStart = static_cast<WORD>(uCount);
     *ppVertices = &m_rgVerticesTriList[uCount];
-
+}
   Cleanup:
     RRETURN(hr);
 }
@@ -385,6 +388,20 @@ CHwTVertexBuffer<TVertex>::AddLineListVertices(
 
 Cleanup:
     RRETURN(hr);
+}
+
+template <>
+MilVertexFormat
+CHwTVertexBuffer<CD3DVertexXYZDUV2>::Builder::GetOutVertexFormat()
+{
+    return (MILVFAttrXYZ | MILVFAttrDiffuse | MILVFAttrUV2);
+}
+
+template <>
+MilVertexFormat
+CHwTVertexBuffer<CD3DVertexXYZDUV8>::Builder::GetOutVertexFormat()
+{
+    return (MILVFAttrXYZ | MILVFAttrDiffuse | MILVFAttrUV8);
 }
 
 //+----------------------------------------------------------------------------
@@ -764,20 +781,6 @@ CHwTVertexBuffer<TVertex>::Builder::sc_pfnExpandVerticesTable[8*2] =
 //  Synopsis:  Return MIL vertex format covered by specific builders
 //
 //-----------------------------------------------------------------------------
-
-template <>
-MilVertexFormat
-CHwTVertexBuffer<CD3DVertexXYZDUV2>::Builder::GetOutVertexFormat()
-{
-    return (MILVFAttrXYZ | MILVFAttrDiffuse | MILVFAttrUV2);
-}
-
-template <>
-MilVertexFormat
-CHwTVertexBuffer<CD3DVertexXYZDUV8>::Builder::GetOutVertexFormat()
-{
-    return (MILVFAttrXYZ | MILVFAttrDiffuse | MILVFAttrUV8);
-}
 
 template <>
 MilVertexFormat
@@ -1553,7 +1556,7 @@ CHwTVertexBuffer<TVertex>::Builder::AddComplexScan(
     IFC(PrepareStratum(static_cast<float>(nPixelY),
                   static_cast<float>(nPixelY+1),
                   false /* Not a trapezoid. */ ));
-
+{
     float rPixelY = float(nPixelY) + 0.5f;
 
     LineWaffler<PointXYA> wafflers[NUM_OF_VERTEX_TEXTURE_COORDS(TVertex) * 2];
@@ -1695,6 +1698,7 @@ CHwTVertexBuffer<TVertex>::Builder::AddComplexScan(
 
         pIntervalSpanStart = pIntervalSpanStart->m_pNext;
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -1777,6 +1781,122 @@ CHwTVertexBuffer<TVertex>::AddLineAsTriangleStrip(
   Cleanup:
     RRETURN(hr);
 }
+
+//+------------------------------------------------------------------------
+    //
+    //  Member:    SendVertexFormat
+    //
+    //  Synopsis:  Send contained vertex format to device
+    //
+    //-------------------------------------------------------------------------
+template <class TVertex>
+HRESULT
+CHwTVertexBuffer<TVertex>::SendVertexFormat(
+    __inout_ecount(1) CD3DDeviceLevel1 *pDevice) const
+{
+    RRETURN(THR(pDevice->SetFVF(TVertex::Format)));
+}
+
+//+------------------------------------------------------------------------
+    //
+    //  Member:    DrawPrimitive
+    //
+    //  Synopsis:  Send the geometry data to the device and execute rendering
+    //
+    //-------------------------------------------------------------------------
+template <class TVertex>
+HRESULT
+CHwTVertexBuffer<TVertex>::DrawPrimitive(
+        __inout_ecount(1) CD3DDeviceLevel1 *pDevice
+        ) const
+{
+        HRESULT hr = S_OK;
+
+        Assert(pDevice);
+
+        //
+        // Draw the indexed triangle lists.  We might have indexed tri list
+        // vertices but not indices if we are aliased and waffling.
+        //
+
+        if (m_rgVerticesTriList.GetCount() > 0
+            && m_rgIndices.GetCount() > 0)
+        {
+            Assert(m_rgIndices.GetCount() % 3 == 0);
+
+            IFC(pDevice->DrawIndexedTriangleListUP(
+                m_rgVerticesTriList.GetCount(),
+                m_rgIndices.GetCount() / 3, // primitive count
+                m_rgIndices.GetDataBuffer(),
+                m_rgVerticesTriList.GetDataBuffer(),
+                sizeof(TVertex)
+                ));
+        }
+        
+        //
+        // Draw the non-indexed triangle lists
+        //
+
+        if (m_rgVerticesNonIndexedTriList.GetCount() > 0)
+        {
+            Assert(m_rgVerticesNonIndexedTriList.GetCount() %3 == 0);
+            
+            IFC(pDevice->DrawPrimitiveUP(
+                D3DPT_TRIANGLELIST,
+                m_rgVerticesNonIndexedTriList.GetCount() / 3, // primitive count
+                m_rgVerticesNonIndexedTriList.GetDataBuffer(),
+                sizeof(TVertex)
+                ));
+        }
+
+        //
+        // Draw the triangle strips
+        //
+
+        if (m_rgVerticesTriStrip.GetCount() > 0)
+        {
+            // A tri strip should have at least 5 vertices including duplicate vertices 
+            // at the beginning and end to make degenerate vertices
+            Assert(m_rgVerticesTriStrip.GetCount() > 4);
+
+            TVertex *pVertex = static_cast<TVertex *>(m_rgVerticesTriStrip.GetDataBuffer());
+            UINT uVertexCount = m_rgVerticesTriStrip.GetCount(); 
+
+            //Check that the tri strip does contain vertces at start and end for the degenerated triangles. 
+            Assert(pVertex);
+            Assert(pVertex[0].ptPt.Y == pVertex[1].ptPt.Y);
+            Assert(pVertex[0].ptPt.X == pVertex[1].ptPt.X); 
+            Assert(pVertex[uVertexCount -1].ptPt.Y == pVertex[uVertexCount -2].ptPt.Y);
+            Assert(pVertex[uVertexCount -1].ptPt.X == pVertex[uVertexCount -2].ptPt.X); 
+
+            //Remove degenerated triangles from starting and the ending of the vertex buffer. 
+            pVertex++;
+
+            IFC(pDevice->DrawPrimitiveUP(
+                D3DPT_TRIANGLESTRIP,
+                uVertexCount - 4, // primitive count
+                pVertex,
+                sizeof(TVertex)
+                ));
+        }
+
+        //
+        // Draw the line lists
+        //
+
+        if (m_rgVerticesLineList.GetCount() > 0)
+        {
+            IFC(pDevice->DrawPrimitiveUP(
+                D3DPT_LINELIST,
+                m_rgVerticesLineList.GetCount() / 2, // primitive count
+                m_rgVerticesLineList.GetDataBuffer(),
+                sizeof(TVertex)
+                ));
+        }
+
+    Cleanup:
+        RRETURN(hr);
+    }
 
 //+----------------------------------------------------------------------------
 //
@@ -2045,7 +2165,7 @@ CHwTVertexBuffer<TVertex>::Builder::AddTrapezoidStandard(
         min(rPixelXTopLeft, rPixelXBottomLeft),
         max(rPixelXTopRight, rPixelXBottomRight)
         ));
-    
+{
     //
     // Add the vertices
     //
@@ -2153,7 +2273,7 @@ CHwTVertexBuffer<TVertex>::Builder::AddTrapezoidStandard(
         pVertex->Diffuse = FLOAT_ZERO;
         ++pVertex;
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -2659,6 +2779,363 @@ CHwTVertexBuffer<TVertex>::Builder::FlushInternal(
     RRETURN(hr);
 }
 
+template<typename T>
+void SetNormalAttribIfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetNormalAttribIfPossible(CHwTVertexMappings<CD3DVertexXYZNDSUV4>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated,
+    CD3DVertexXYZNDSUV4 const * pInputVertex,
+    CD3DVertexXYZNDSUV4* pOutputVertex) {
+    if (mvfGenerated & MILVFAttrNormal)
+    {
+        pOutputVertex->Normal = m_map.m_vStatic.Normal;
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->Normal = pInputVertex->Normal;
+    }
+}
+
+template<typename T>
+void SetSpecularAttribIfPossible1(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetSpecularAttribIfPossible1(CHwTVertexMappings<CD3DVertexXYZNDSUV4>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated,
+    CD3DVertexXYZNDSUV4 const * pInputVertex,
+    CD3DVertexXYZNDSUV4* pOutputVertex) {
+    if (mvfGenerated & MILVFAttrSpecular)
+    {
+        pOutputVertex->Specular = m_map.m_vStatic.Specular;
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->Specular = pInputVertex->Specular;
+    }
+}
+
+template<typename T>
+void SetUv0IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv0IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV2>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV2 const * pInputVertex,
+    CD3DVertexXYZDUV2* pOutputVertex) {
+    if (mvfGenerated & MILVFAttrUV1)
+    {
+        m_map.PointToUV(*pptPoint, 0, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV0(pInputVertex->UV0());
+    }
+}
+void SetUv0IfPossible(CHwTVertexMappings<CD3DVertexXYZNDSUV4>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZNDSUV4 const * pInputVertex,
+    CD3DVertexXYZNDSUV4* pOutputVertex) {
+    if (mvfGenerated & MILVFAttrUV1)
+    {
+        m_map.PointToUV(*pptPoint, 0, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV0(pInputVertex->UV0());
+    }
+}
+void SetUv0IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV6>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV6 const * pInputVertex,
+    CD3DVertexXYZDUV6* pOutputVertex) {
+    if (mvfGenerated & MILVFAttrUV1)
+    {
+        m_map.PointToUV(*pptPoint, 0, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV0(pInputVertex->UV0());
+    }
+}
+void SetUv0IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & MILVFAttrUV1)
+    {
+        m_map.PointToUV(*pptPoint, 0, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV0(pInputVertex->UV0());
+    }
+}
+
+template<typename T>
+void SetUv1IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv1IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV2>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV2 const * pInputVertex,
+    CD3DVertexXYZDUV2* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV2 & ~MILVFAttrUV1))
+    {
+        m_map.PointToUV(*pptPoint, 1, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV1(pInputVertex->UV1());
+    }
+}
+void SetUv1IfPossible(CHwTVertexMappings<CD3DVertexXYZNDSUV4>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZNDSUV4 const * pInputVertex,
+    CD3DVertexXYZNDSUV4* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV2 & ~MILVFAttrUV1))
+    {
+        m_map.PointToUV(*pptPoint, 1, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV1(pInputVertex->UV1());
+    }
+}
+void SetUv1IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV6>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV6 const * pInputVertex,
+    CD3DVertexXYZDUV6* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV2 & ~MILVFAttrUV1))
+    {
+        m_map.PointToUV(*pptPoint, 1, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV1(pInputVertex->UV1());
+    }
+}
+void SetUv1IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV2 & ~MILVFAttrUV1))
+    {
+        m_map.PointToUV(*pptPoint, 1, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV1(pInputVertex->UV1());
+    }
+}
+
+template<typename T>
+void SetUv2IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv2IfPossible(CHwTVertexMappings<CD3DVertexXYZNDSUV4>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZNDSUV4 const * pInputVertex,
+    CD3DVertexXYZNDSUV4* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV3 & ~MILVFAttrUV2))
+    {
+        m_map.PointToUV(*pptPoint, 2, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV2(pInputVertex->UV2());
+    }
+}
+void SetUv2IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV6>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV6 const * pInputVertex,
+    CD3DVertexXYZDUV6* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV3 & ~MILVFAttrUV2))
+    {
+        m_map.PointToUV(*pptPoint, 2, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV2(pInputVertex->UV2());
+    }
+}
+void SetUv2IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV3 & ~MILVFAttrUV2))
+    {
+        m_map.PointToUV(*pptPoint, 2, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV2(pInputVertex->UV2());
+    }
+}
+
+template<typename T>
+void SetUv3IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv3IfPossible(CHwTVertexMappings<CD3DVertexXYZNDSUV4>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZNDSUV4 const * pInputVertex,
+    CD3DVertexXYZNDSUV4* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV4 & ~MILVFAttrUV3))
+    {
+        m_map.PointToUV(*pptPoint, 3, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV3(pInputVertex->UV3());
+    }
+}
+void SetUv3IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV6>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV6 const * pInputVertex,
+    CD3DVertexXYZDUV6* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV4 & ~MILVFAttrUV3))
+    {
+        m_map.PointToUV(*pptPoint, 3, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV3(pInputVertex->UV3());
+    }
+}
+void SetUv3IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV4 & ~MILVFAttrUV3))
+    {
+        m_map.PointToUV(*pptPoint, 3, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV3(pInputVertex->UV3());
+    }
+}
+
+template<typename T>
+void SetUv4IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv4IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV6>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV6 const * pInputVertex,
+    CD3DVertexXYZDUV6* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV5 & ~MILVFAttrUV4))
+    {
+        m_map.PointToUV(*pptPoint, 4, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV4(pInputVertex->UV4());
+    }
+}
+void SetUv4IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV5 & ~MILVFAttrUV4))
+    {
+        m_map.PointToUV(*pptPoint, 4, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV4(pInputVertex->UV4());
+    }
+}
+
+template<typename T>
+void SetUv5IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv5IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV6>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV6 const * pInputVertex,
+    CD3DVertexXYZDUV6* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV6 & ~MILVFAttrUV5))
+    {
+        m_map.PointToUV(*pptPoint, 5, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV5(pInputVertex->UV5());
+    }
+}
+void SetUv5IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV6 & ~MILVFAttrUV5))
+    {
+        m_map.PointToUV(*pptPoint, 5, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV5(pInputVertex->UV5());
+    }
+}
+
+template<typename T>
+void SetUv6IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv6IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV7 & ~MILVFAttrUV6))
+    {
+        m_map.PointToUV(*pptPoint, 6, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV6(pInputVertex->UV6());
+    }
+}
+
+template<typename T>
+void SetUv7IfPossible(CHwTVertexMappings<T>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    T const * pInputVertex,
+    T* pOutputVertex) { /* Empty */ }
+
+void SetUv7IfPossible(CHwTVertexMappings<CD3DVertexXYZDUV8>& m_map, 
+    bool fInputOutputAreSameBuffer, MilVertexFormat mvfGenerated, const MilPoint2F *pptPoint,
+    CD3DVertexXYZDUV8 const * pInputVertex,
+    CD3DVertexXYZDUV8* pOutputVertex) {
+    if (mvfGenerated & (MILVFAttrUV8 & ~MILVFAttrUV7))
+    {
+        m_map.PointToUV(*pptPoint, 7, pOutputVertex);
+    }
+    else if (!fInputOutputAreSameBuffer)
+    {
+        pOutputVertex->UV7(pInputVertex->UV7());
+    }
+}
+
+
 //+----------------------------------------------------------------------------
 //
 //  Member:
@@ -2673,9 +3150,6 @@ CHwTVertexBuffer<TVertex>::Builder::FlushInternal(
 //             directly, but rather through a wrapper method like
 //             ExpandVerticesGeneral and ExpandVerticesFast.
 //
-
-const DWORD FLOAT_ZERO = 0x00000000;
-const DWORD FLOAT_ONE  = 0x3f800000;
 
 template <class TVertex>
 MIL_FORCEINLINE
@@ -2702,7 +3176,7 @@ CHwTVertexBuffer<TVertex>::Builder::TransferAndOrExpandVerticesInline(
     // Create a reference to the pointer that will be used for input vertices.
     // A reference is used make the compiler only track a single pointer
     // through this routine in the pIn == pOut case as an optimization.
-    TVertex const * &pInputVertex = *(fInputOutputAreSameBuffer ? &pOutputVertex : &pInputVertex_);
+    TVertex const * &pInputVertex = *(fInputOutputAreSameBuffer ? (const TVertex**)&pOutputVertex : &pInputVertex_);
 
     //
     // Set the diffuse color and components we need for fast blending
@@ -2803,17 +3277,7 @@ CHwTVertexBuffer<TVertex>::Builder::TransferAndOrExpandVerticesInline(
             pOutputVertex->Z = pInputVertex->Z;
         }
 
-        __if_exists (TVertex::Normal)
-        {
-            if (mvfGenerated & MILVFAttrNormal)
-            {
-                pOutputVertex->Normal = m_map.m_vStatic.Normal;
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->Normal = pInputVertex->Normal;
-            }
-        }
+        SetNormalAttribIfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pInputVertex, pOutputVertex);
 
         if (mvfGenerated & MILVFAttrDiffuse)
         {
@@ -2889,17 +3353,7 @@ CHwTVertexBuffer<TVertex>::Builder::TransferAndOrExpandVerticesInline(
             pOutputVertex->Diffuse = pInputVertex->Diffuse;
         }
 
-        __if_exists (TVertex::Specular)
-        {
-            if (mvfGenerated & MILVFAttrSpecular)
-            {
-                pOutputVertex->Specular = m_map.m_vStatic.Specular;
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->Specular = pInputVertex->Specular;
-            }
-        }
+        SetSpecularAttribIfPossible1(m_map, fInputOutputAreSameBuffer, mvfGenerated, pInputVertex, pOutputVertex);
 
         //
         // NOTICE-2005/12/15-chrisra UV Transform applied after pos transform
@@ -2908,102 +3362,14 @@ CHwTVertexBuffer<TVertex>::Builder::TransferAndOrExpandVerticesInline(
         // device space, which means we have to apply these to the 2d point
         // after all other 2d transforms have been applied (Exception is the
         // final projection transform).
-        //
-        __if_exists (TVertex::UV0)
-        {
-            if (mvfGenerated & MILVFAttrUV1)
-            {
-                m_map.PointToUV(*pptPoint, 0, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV0(pInputVertex->UV0());
-            }
-        }
-
-        __if_exists (TVertex::UV1)
-        {
-            if (mvfGenerated & (MILVFAttrUV2 & ~MILVFAttrUV1))
-            {
-                m_map.PointToUV(*pptPoint, 1, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV1(pInputVertex->UV1());
-            }
-        }
-
-        __if_exists (TVertex::UV2)
-        {
-            if (mvfGenerated & (MILVFAttrUV3 & ~MILVFAttrUV2))
-            {
-                m_map.PointToUV(*pptPoint, 2, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV2(pInputVertex->UV2());
-            }
-        }
-
-        __if_exists (TVertex::UV3)
-        {
-            if (mvfGenerated & (MILVFAttrUV4 & ~MILVFAttrUV3))
-            {
-                m_map.PointToUV(*pptPoint, 3, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV3(pInputVertex->UV3());
-            }
-        }
-
-        __if_exists (TVertex::UV4)
-        {
-            if (mvfGenerated & (MILVFAttrUV5 & ~MILVFAttrUV4))
-            {
-                m_map.PointToUV(*pptPoint, 4, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV4(pInputVertex->UV4());
-            }
-        }
-
-        __if_exists (TVertex::UV5)
-        {
-            if (mvfGenerated & (MILVFAttrUV6 & ~MILVFAttrUV5))
-            {
-                m_map.PointToUV(*pptPoint, 5, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV5(pInputVertex->UV5());
-            }
-        }
-
-        __if_exists (TVertex::UV6)
-        {
-            if (mvfGenerated & (MILVFAttrUV7 & ~MILVFAttrUV6))
-            {
-                m_map.PointToUV(*pptPoint, 6, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV6(pInputVertex->UV6());
-            }
-        }
-
-        __if_exists (TVertex::UV7)
-        {
-            if (mvfGenerated & (MILVFAttrUV8 & ~MILVFAttrUV7))
-            {
-                m_map.PointToUV(*pptPoint, 7, pOutputVertex);
-            }
-            else if (!fInputOutputAreSameBuffer)
-            {
-                pOutputVertex->UV7(pInputVertex->UV7());
-            }
-        }
+        SetUv0IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv1IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv2IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv3IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv4IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv5IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv6IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
+        SetUv7IfPossible(m_map, fInputOutputAreSameBuffer, mvfGenerated, pptPoint, pInputVertex, pOutputVertex);
 
         //
         // Check for more vertices

@@ -413,6 +413,7 @@ CD3DLockableTexturePairLock::LockOne(
     )
 {
     HRESULT hr = S_OK;
+    BYTE *pScanline;
 
     //
     // Lock the rect and declare it dirty
@@ -427,7 +428,7 @@ CD3DLockableTexturePairLock::LockOne(
     // Clear the rect
     //    
 
-    BYTE *pScanline = (BYTE *)pD3DLockedRect->pBits;
+    pScanline = (BYTE *)pD3DLockedRect->pBits;
     for (UINT i = 0; i < uHeight; i++)
     {
         ZeroMemory(pScanline, uWidth*sizeof(ARGB));

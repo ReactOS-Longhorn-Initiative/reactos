@@ -367,7 +367,7 @@ CHwDisplayRenderTarget::Present(
     DbgAssertBoundsState();
 
     CMILSurfaceRect presentRect;
-
+{
     //
     // Don't present if rendering is disabled
     //
@@ -467,7 +467,7 @@ CHwDisplayRenderTarget::Present(
         fGreen = !fGreen;
     }
 #endif /* DBG_STEP_RENDERING */
-
+}
 Cleanup:
     //
     // Reset invalidated rects (even on failure). Nothing we can do if the clear
