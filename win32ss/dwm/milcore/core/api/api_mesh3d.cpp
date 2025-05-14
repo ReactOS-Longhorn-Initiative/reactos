@@ -870,16 +870,16 @@ CMILMesh3D::CalculateBounds()
         }
         catch (dxlayer_exception& ex)
         {
-            try
+            //try
             {
                 const hresult& err_hr = dynamic_cast<const hresult&>(ex.get_error());
                 hr = err_hr.get_hr();
             }
-            catch (std::bad_cast&)
+           // catch (std::bad_cast&)
             {
                 // Couldn't find a specific HRESULT value, 
                 // so set it to the generic failure code E_FAIL.
-                hr = E_FAIL;
+              //  hr = E_FAIL;
             }
         }
     }

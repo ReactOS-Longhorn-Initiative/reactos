@@ -871,12 +871,13 @@ MILCreateStreamFromStreamDescriptor(
 
     CHECKPTRARG(ppStream);
     CHECKPTRARG(pSD);
-
+{
     IStream* pStream = new CManagedStreamWrapper(*pSD);
     IFCOOM(pStream);
 
     pStream->AddRef();
     *ppStream = pStream;
+}
 Cleanup:
     RRETURN(hr);
 }

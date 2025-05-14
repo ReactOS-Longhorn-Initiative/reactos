@@ -102,6 +102,7 @@ typedef struct D3DXVECTOR4
 #ifdef __cplusplus
     D3DXVECTOR4();
     D3DXVECTOR4(const FLOAT *pf);
+    D3DXVECTOR4(CONST D3DVECTOR& xyz, FLOAT w );
     D3DXVECTOR4(FLOAT fx, FLOAT fy, FLOAT fz, FLOAT fw);
 
     operator FLOAT* ();

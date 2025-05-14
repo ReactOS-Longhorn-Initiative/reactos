@@ -457,7 +457,7 @@ CLinearGradientBrushSpan_MMX::Initialize(
         colorInterpolationMode
         ));
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
     if (SUCCEEDED(hr))
     {
         UINT uTexelCount = m_uTexelCount;
@@ -542,7 +542,7 @@ CLinearGradientBrushSpan_MMX::GenerateColors(
     __out_ecount_full(nCount) ARGB *pArgbDest
     )
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
 
     // Copy some class stuff to local variables for faster access in
     // our inner loop:
@@ -877,7 +877,7 @@ FASTCALL ColorSource_RadialGradient_32bppPARGB(
         DYNCAST(CRadialGradientBrushSpan, pSOP->m_posd);
     Assert(pColorSource);
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
     if (CCPUInfo::HasSSE())
     {
         pColorSource->GenerateColors<TypeSSE>(
