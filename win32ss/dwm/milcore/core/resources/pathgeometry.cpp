@@ -180,7 +180,7 @@ CMilPathGeometryDuce::ValidateData()
     bool fIsARegion = ((pGeometryData->Flags & MilPathGeometryFlags::IsRegionData) != 0);
 
     size_t nBytesLeft = m_data.m_cbFiguresSize;
-
+{
 
     //
     // Validate the path geometry packet header
@@ -376,6 +376,7 @@ CMilPathGeometryDuce::ValidateData()
     {
         IFC(WGXERR_UCE_MALFORMEDPACKET);
     }
+}
 
 
 Cleanup:

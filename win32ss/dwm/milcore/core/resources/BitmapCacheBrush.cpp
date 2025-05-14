@@ -58,7 +58,6 @@ CMilBitmapCacheBrushDuce::ProcessUpdate(
     )
 {
     HRESULT hr = S_OK;
-
     // Get the previous cache mode and Visual and hold onto them.
     CMilBitmapCacheDuce *pOldBitmapCacheMode = m_data.m_pBitmapCache;
     CMilVisual *pOldTarget = m_data.m_pInternalTarget;
@@ -66,11 +65,12 @@ CMilBitmapCacheBrushDuce::ProcessUpdate(
     {
         pOldBitmapCacheMode->AddRef();
     }
-
+    
     if (pOldTarget != NULL)
     {
         pOldTarget->AddRef();
     }
+{
     
     IFC(GeneratedProcessUpdate(pHandleTable, pCmd));
 
@@ -91,7 +91,8 @@ CMilBitmapCacheBrushDuce::ProcessUpdate(
             IFC(pNewTarget->RegisterCache(pNewBitmapCacheMode));
         }
     }
-    
+}
+
 Cleanup:
     ReleaseInterface(pOldBitmapCacheMode);
     ReleaseInterface(pOldTarget);

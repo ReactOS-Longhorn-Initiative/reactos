@@ -541,7 +541,7 @@ CMilVisual::ProcessSetCacheMode(
     )
 {
     HRESULT hr = S_OK;
-
+{
     CMilVisualCacheSet *pCaches = NULL;
     
     // Get the resource
@@ -554,7 +554,7 @@ CMilVisual::ProcessSetCacheMode(
             IFC(WGXERR_UCE_MALFORMEDPACKET);
         }
     }
-
+{
     if (!m_pCaches)
     {
         IFCSUB1(CMilVisualCacheSet::Create(m_pComposition, this, &pCaches));
@@ -570,6 +570,7 @@ CMilVisual::ProcessSetCacheMode(
         // Mark the node as dirty for precompute to ensure the cache is updated.
         MarkDirtyForPrecompute();
     }
+}
     
 SubCleanup1:
     // Release the add-ref from creation; we're still holding a ref from RegisterNotifier
@@ -581,7 +582,7 @@ SubCleanup1:
     {
         UnRegisterNotifier(m_pCaches);
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -761,9 +762,10 @@ CMilVisual::ProcessSetAlphaMask(
     )
 {
     HRESULT hr = S_OK;
-
+{
     // Get the new resource
     CMilBrushDuce *pAlphaMask = NULL;
+    {
     if (pCmd->hAlphaMask != HMIL_RESOURCE_NULL)
     {
         pAlphaMask = DYNCAST(CMilBrushDuce, pHandleTable->GetResource(pCmd->hAlphaMask, TYPE_BRUSH));
@@ -789,7 +791,7 @@ CMilVisual::ProcessSetAlphaMask(
         // Mark the node as dirty and propagate flags
         CMilVisual::PropagateFlags(this, FALSE, TRUE);
     }
-
+}
 SubCleanup1:
     // Release the wrapper upon failure or if there is no alpha mask.
     if (FAILED(hr) || pAlphaMask == NULL)
@@ -797,7 +799,7 @@ SubCleanup1:
         delete m_pAlphaMaskWrapper;
         m_pAlphaMaskWrapper = NULL;
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }

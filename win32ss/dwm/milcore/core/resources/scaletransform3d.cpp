@@ -39,7 +39,7 @@ HRESULT CMilScaleTransform3DDuce::GetRealization(
     HRESULT hr = S_OK;
 
     IFC(SynchronizeAnimatedFields());
-
+{
     float sx = static_cast<float>(m_data.m_scaleX);
     float sy = static_cast<float>(m_data.m_scaleY);
     float sz = static_cast<float>(m_data.m_scaleZ);
@@ -69,6 +69,7 @@ HRESULT CMilScaleTransform3DDuce::GetRealization(
         pRealization->_42 = cy - sy * cy;
         pRealization->_43 = cz - sz * cz;
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -81,7 +82,7 @@ HRESULT CMilScaleTransform3DDuce::Append(
     HRESULT hr = S_OK;
 
     IFC(SynchronizeAnimatedFields());
-    
+{
     float sx = static_cast<float>(m_data.m_scaleX);
     float sy = static_cast<float>(m_data.m_scaleY);
     float sz = static_cast<float>(m_data.m_scaleZ);
@@ -127,7 +128,7 @@ HRESULT CMilScaleTransform3DDuce::Append(
         tmp = pMat->_44 * cz;
         pMat->_43 = tmp + sz * (pMat->_43 - tmp);
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }

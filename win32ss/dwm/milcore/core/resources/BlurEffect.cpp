@@ -290,10 +290,12 @@ CMilBlurEffectDuce::CalculateGaussianSamplingWeightsFullKernel(
     )
 {        
     HRESULT hr = S_OK;
+    float *pWeights;
+{
 
     UINT size = (2 * radius + 1) * sizeof(float);
 
-    float *pWeights = static_cast<float*>WPFAlloc(ProcessHeap, Mt(CMilBlurEffectDuce), size);
+    pWeights = static_cast<float*>WPFAlloc(ProcessHeap, Mt(CMilBlurEffectDuce), size);
     IFCOOM(pWeights);
 
     CalculateSamplingWeights(radius, &pWeights, MilKernelType::Gaussian);
@@ -305,6 +307,7 @@ CMilBlurEffectDuce::CalculateGaussianSamplingWeightsFullKernel(
         pSamplingWeights[radius-i] = pWeights[i];
         pSamplingWeights[i+radius] = pWeights[i];
     }
+}
 
 Cleanup:
     if (pWeights)
@@ -431,10 +434,10 @@ CMilBlurEffectDuce::ClearMarginPixels(
     {
         IFC(E_INVALIDARG);
     }
-
+  {
     UINT *pCurrent = pStart;
     UINT clearSize, clearElements;
-    
+  
     // Do top rows
     IFC(UIntMult(width, topMargin, &clearElements));
     IFC(UIntMult(sizeof(UINT), clearElements, &clearSize));
@@ -464,6 +467,7 @@ CMilBlurEffectDuce::ClearMarginPixels(
     IFC(UIntMult(width, bottomMargin, &clearElements));
     IFC(UIntMult(sizeof(UINT), clearElements, &clearSize));
     ZeroMemory(pCurrent, clearSize);    
+    }
 
 Cleanup:
     RRETURN(hr);
@@ -694,7 +698,7 @@ CMilBlurEffectDuce::ApplyGaussianBlurSw(__in_ecount(sourceWidth * sourceHeight *
                                         )
 {
     HRESULT hr = S_OK;
-    
+    {
     if (s_pfnBlurFunctionGaussian == NULL)
     {
         IFC(InitializeBlurFunction(true, false, &s_pfnBlurFunctionGaussian));
@@ -757,7 +761,7 @@ CMilBlurEffectDuce::ApplyGaussianBlurSw(__in_ecount(sourceWidth * sourceHeight *
     (*s_pfnBlurFunctionGaussian)(&arguments);
     
     WPFFree(ProcessHeap, pGaussianWeights);
-    
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -786,7 +790,7 @@ CMilBlurEffectDuce::ApplyBoxBlurSw(__in_ecount(sourceWidth * sourceHeight * 4) B
         IFC(InitializeBlurFunction(false, false, &s_pfnBlurFunctionBox));
         Assert(s_pfnBlurFunctionBox);
     }                        
-
+{
     //
     // Need a buffer aligned to 16 byte boundary for SSE2 load/save operations,
     // so make sure there's space in allocation to align the pointer.
@@ -833,7 +837,7 @@ CMilBlurEffectDuce::ApplyBoxBlurSw(__in_ecount(sourceWidth * sourceHeight * 4) B
     arguments.vertical = 1;
 
     (*s_pfnBlurFunctionBox)(&arguments);
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -909,7 +913,7 @@ CMilBlurEffectDuce::ApplyEffectImpl(
 
     // Clear to transparent black.
     MilColorB colBlank = 0;
-
+{
     // When drawing to the back buffer, we support either nearest-neighbor or
     // bilinear sampling.  We don't support Fant interpolation.  If we are
     // rotated, we force bilinear sampling to reduce aliasing artifacts.
@@ -1324,7 +1328,7 @@ CMilBlurEffectDuce::ApplyEffectImpl(
         }
 
     }
-        
+}
 
 Cleanup:
     if (pSamplingWeights != NULL)
@@ -1384,7 +1388,7 @@ CMilBlurEffectDuce::ExecutePasses(
     int sampleIndex = - static_cast<int>(radius);
 
     UINT passNumber = 1;
-    
+    {
     //
     // Execute passes        
     while (samplesRemaining > 0)
@@ -1440,7 +1444,7 @@ CMilBlurEffectDuce::ExecutePasses(
     // all performance passes, sample from B.
     bool useTextureCAsSource = isQuality && (passNumber%2 == 1);
     IFC(pDevice->SetTexture(0, (useTextureCAsSource) ? pTexture_C : pTexture_B));
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -1557,7 +1561,7 @@ CMilBlurEffectDuce::SetupShader(
 {
     HRESULT hr = S_OK;
     CHwPixelShaderEffect *pHwPixelShaderEffect = NULL;
-
+{
     // The shaders are assigned slots in the hw cache as follows:
     //   Slot    Shader
     //    0        Horizontal single-input
@@ -1605,6 +1609,7 @@ CMilBlurEffectDuce::SetupShader(
         }
     }
     IFC(pDevice->SetPixelShaderConstantF(3, arrWeights, 4));
+}
 
 Cleanup:
     ReleaseInterface(pHwPixelShaderEffect);
@@ -2228,8 +2233,8 @@ C_u32x4
 CMilBlurEffectDuce::Sample(P_u32 pSampleSource)
 {
     // Convert to a 4x32 integer vector 0000 0000 0000 argb
-    C_u32x4 u4Sample = *pSampleSource;
-
+    C_u32x4 u4Sample = (C_u32x4)*pSampleSource;
+{
     // Interleave to get 0000 0000 aarr ggbb
     u4Sample = u4Sample.AsC_u8x16().InterleaveLow(u4Sample.AsC_u8x16());
 
@@ -2238,7 +2243,7 @@ CMilBlurEffectDuce::Sample(P_u32 pSampleSource)
 
     // Shift right to get 000a 000r 000g 000b
     u4Sample >>= 24;   
-
+}
     return u4Sample;
 }
 

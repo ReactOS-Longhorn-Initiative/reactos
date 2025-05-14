@@ -152,7 +152,7 @@ CMilPixelShaderDuce::GetHwPixelShaderEffectFromCache(
 {
     HRESULT hr = S_OK;
     IMILCacheableResource *pResource = NULL;
-
+{
     if (m_hwPixelShaderEffectCache == NULL)
     {
         // No hw shader cache for device specific IDirect3DPixelShader9 objects has been 
@@ -235,7 +235,7 @@ CMilPixelShaderDuce::GetHwPixelShaderEffectFromCache(
 
     *ppPixelShaderEffect = static_cast<CHwPixelShaderEffect*>(pResource);
     pResource = NULL; // Transitioning ref count to out argument. 
-
+}
   Cleanup:
     ReleaseInterface(pResource);
     

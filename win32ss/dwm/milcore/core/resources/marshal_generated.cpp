@@ -55,6 +55,22 @@ UnmarshalResourceArray(
     return hr;
 }
 
+HRESULT UIntPtrToUInt(uintptr_t input, unsigned int* result)
+{
+    if (result == nullptr)
+    {
+        return E_POINTER;
+    }
+
+    if (input > UINT_MAX)
+    {
+        return E_INVALIDARG;
+    }
+
+    *result = static_cast<unsigned int>(input);
+    return S_OK;
+}
+
 HRESULT
 UnmarshalResourceArray(
     __inout_pcount_in_bcount(1, cbRawArray) BYTE const *&pbRawArray,

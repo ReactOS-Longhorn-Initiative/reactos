@@ -483,7 +483,7 @@ HRESULT CMilImageBrushDuce::SourceClipApproximatesContentBounds(
     ) const
 {
     HRESULT hr = S_OK;
-
+{
     //
     // Compute matrix to transform viewport, and the imageBounds mapped to the viewport,
     // into sample  space.  This allows us to determine the actual pixel
@@ -538,7 +538,7 @@ HRESULT CMilImageBrushDuce::SourceClipApproximatesContentBounds(
         &matViewportToSampleSpace,
         renderingTolerance
         );
-
+    }
 Cleanup:
     RRETURN(hr);
 }

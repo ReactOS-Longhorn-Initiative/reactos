@@ -240,7 +240,7 @@ CMilVisualBrushDuce::PreComputeHelper(
     CMilRectF bounds;
 
     bounds = bounds.sc_rcInfinite2;
-
+{
     IFC(pPreComputeContext->PreCompute(
         pVisual,
         &bounds, // Infinite surface bounds 
@@ -298,7 +298,7 @@ CMilVisualBrushDuce::PreComputeHelper(
             parent->AddAdditionalDirtyRects(&region);
         }                                
     }
-
+}
 Cleanup:
 
     RRETURN(hr);
