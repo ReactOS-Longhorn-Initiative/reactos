@@ -46,9 +46,9 @@ HRESULT CResourceFactory::Create(
         pResource = new CMilPerspectiveCameraDuce(pComposition);
         break;
 
-    case TYPE_ORTHOGRAPHICCAMERA:
-        pResource = new CMilOrthographicCameraDuce(pComposition);
-        break;
+    //case TYPE_ORTHOGRAPHICCAMERA:
+    //    pResource = new CMilOrthographicCameraDuce(pComposition);
+    //    break;
 
     case TYPE_MATRIXCAMERA:
         pResource = new CMilMatrixCameraDuce(pComposition);

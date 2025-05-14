@@ -15,7 +15,7 @@
 //  $ENDTAG
 //
 //------------------------------------------------------------------------------
-
+#if 0
 MtExtern(CMilOrthographicCameraDuce);
 
 // Class: CMilOrthographicCameraDuce
@@ -86,3 +86,4 @@ public:
 
 };
 
+#endif
