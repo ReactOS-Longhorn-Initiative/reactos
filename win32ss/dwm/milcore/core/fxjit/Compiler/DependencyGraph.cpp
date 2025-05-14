@@ -42,7 +42,7 @@ CProgram::BuildSpanGraph()
 
     m_pSpanGraph = (OpSpan*)AllocMem(sizeof(OpSpan) * m_uSpanCount);
     IFCOOM(m_pSpanGraph);
-
+{
     OpSpan *pSpan = NULL;
     OpSpan *pPreviousSpan = NULL;
     UINT32 uSpanIdx = 0;
@@ -203,7 +203,7 @@ CProgram::BuildSpanGraph()
             IFC(AddSpanLink(pNextSpan, pReturnSpan));
         }
     }
-
+}
 Cleanup:
     return hr;
 }
@@ -1115,7 +1115,7 @@ CProgram::SetInUse(COperator *pOperator)
         WarpAssert(pProvider);
         if (pProvider->m_uFlags)
             continue; // we've already considered this operator useful
-            SetInUse(pProvider);
+        SetInUse(pProvider);
     }
 }
 

@@ -541,6 +541,7 @@ __checkReturn HRESULT
 CMapper::MapSubroutineCall()
 {
     HRESULT hr = S_OK;
+{
 
     IFC(FreeRegs());
 
@@ -556,7 +557,7 @@ CMapper::MapSubroutineCall()
     const CBitArray * pUsage = pNextSpan->m_pVarsInUseBefore;
 
     m_locator.Setup(pUsage);
-
+}
 Cleanup:
     return hr;
 }
@@ -565,7 +566,7 @@ __checkReturn HRESULT
 CMapper::MapSubroutineStart()
 {
     HRESULT hr = S_OK;
-
+{
     // Assuming for now that subroutine starts with empty registers.
     IFC(FreeRegs());
 
@@ -574,7 +575,7 @@ CMapper::MapSubroutineStart()
     const CBitArray * pUsage = pSpan->m_pVarsInUseBefore;
 
     m_locator.Setup(pUsage);
-
+}
 Cleanup:
     return hr;
 }
@@ -1151,7 +1152,7 @@ __checkReturn HRESULT
 CMapper::MapOperator()
 {
     HRESULT hr = S_OK;
-
+{
     UINT32 vResult   = m_pOp->m_vResult;
     UINT32 vOperand1 = m_pOp->m_vOperand1;
     UINT32 vOperand2 = m_pOp->m_vOperand2;
@@ -1480,7 +1481,7 @@ CMapper::MapOperator()
 
         m_locator.ConsiderSetValue(vResult, rResult);
     }
-
+}
 Cleanup:
     return hr;
 }
@@ -1651,11 +1652,13 @@ __checkReturn HRESULT
 CMapper::SaveReg(COperator * pOp, UINT32 uVarID, CRegID regSrc)
 {
     HRESULT hr = S_OK;
+{
     UINT8 * pMem = m_pProgram->AllocMem(sizeof(CShuffleRecord));
     IFCOOM(pMem);
     VariableType vt = m_pProgram->GetVarType(uVarID);
     CShuffleRecord * psr = new(pMem) CShuffleRecord(uVarID, regSrc, vt);
     HookShuffleRecord(pOp, psr);
+}
 
 Cleanup:
     return hr;
@@ -1665,12 +1668,13 @@ __checkReturn HRESULT
 CMapper::LoadReg(COperator * pOp, CRegID regDst, UINT32 uVarID)
 {
     HRESULT hr = S_OK;
+{
     UINT8 * pMem = m_pProgram->AllocMem(sizeof(CShuffleRecord));
     IFCOOM(pMem);
     VariableType vt = m_pProgram->GetVarType(uVarID);
     CShuffleRecord * psr = new(pMem) CShuffleRecord(regDst, uVarID, vt);
     HookShuffleRecord(pOp, psr);
-
+}
 Cleanup:
     return hr;
 }
@@ -1679,11 +1683,12 @@ __checkReturn HRESULT
 CMapper::MoveReg(COperator * pOp, CRegID regDst, CRegID regSrc, VariableType vt)
 {
     HRESULT hr = S_OK;
+{
     UINT8 * pMem = m_pProgram->AllocMem(sizeof(CShuffleRecord));
     IFCOOM(pMem);
     CShuffleRecord * psr = new(pMem) CShuffleRecord(regDst, regSrc, vt);
     HookShuffleRecord(pOp, psr);
-
+}
 Cleanup:
     return hr;
 }

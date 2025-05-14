@@ -78,7 +78,9 @@ CProgram::SplitFlow()
     m_fFlowIsSplit = true;
     m_uCurrentFlow = 0;
 }
-
+#ifndef __in_range
+#define __in_range(a,b)
+#endif
 //------------------------------------------------------------------------
 //
 //  Member:
@@ -89,7 +91,7 @@ CProgram::SplitFlow()
 //
 //------------------------------------------------------------------------
 void
-CProgram::SetFlow(_In_Range_(0, (MAX_FLOWS-1)) UINT32 uFlowID)
+CProgram::SetFlow(__in_range(0, (MAX_FLOWS-1)) UINT32 uFlowID)
 {
     WarpAssert(m_fFlowIsSplit);
     WarpAssert(uFlowID < MAX_FLOWS);
@@ -99,9 +101,7 @@ CProgram::SetFlow(_In_Range_(0, (MAX_FLOWS-1)) UINT32 uFlowID)
         m_uCurrentFlow = uFlowID;
     }
 }
-#ifndef __in_range
-#define __in_range(a,b)
-#endif
+
 //------------------------------------------------------------------------
 //
 //  Member:
