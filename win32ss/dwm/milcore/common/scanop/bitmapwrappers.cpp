@@ -423,8 +423,8 @@ CWGXWrapperBitmap::Lock(
     IWGXBitmapLock *pIWGXLock = NULL;
 
     // Ensure that flag mapping is the same
-    static_assert(MilBitmapLock::Write == WICBitmapLockWrite, "MilBitmapLock::Write == WICBitmapLockWrite");
-    static_assert(MilBitmapLock::Read == WICBitmapLockRead, "MilBitmapLock::Read == WICBitmapLockRead");
+    static_assert((WICBitmapLockFlags)MilBitmapLock::Write == WICBitmapLockWrite, "MilBitmapLock::Write == WICBitmapLockWrite");
+    static_assert((WICBitmapLockFlags)MilBitmapLock::Read == WICBitmapLockRead, "MilBitmapLock::Read == WICBitmapLockRead");
 
     IFC(m_pIWGXBitmap->Lock(prcLock, flags, &pIWGXLock));
 
@@ -822,8 +822,8 @@ CWICWrapperBitmap::Lock(
     IWICBitmapLock *pIWICLock = NULL;
 
     // Ensure that flag mapping is the same
-    static_assert(MilBitmapLock::Write == WICBitmapLockWrite, "MilBitmapLock::Write == WICBitmapLockWrite");
-    static_assert(MilBitmapLock::Read == WICBitmapLockRead, "MilBitmapLock::Read == WICBitmapLockRead");
+    static_assert((WICBitmapLockFlags)MilBitmapLock::Write == WICBitmapLockWrite, "MilBitmapLock::Write == WICBitmapLockWrite");
+    static_assert((WICBitmapLockFlags)MilBitmapLock::Read == WICBitmapLockRead, "MilBitmapLock::Read == WICBitmapLockRead");
 
     IFC(m_pIBitmap->Lock(prcLock, flags, &pIWICLock));
 

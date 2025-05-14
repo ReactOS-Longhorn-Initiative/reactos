@@ -236,8 +236,8 @@ HRESULT CSystemMemoryBitmap::UnsafeUpdateFromSource(
     Assert(uDstTop < m_nHeight);
 
     WICRect rcUpdate = {
-        rcSrc.left, rcSrc.top,
-        rcSrc.right - rcSrc.left, rcSrc.bottom - rcSrc.top
+        (INT)rcSrc.left, (INT)rcSrc.top,
+        (INT)(rcSrc.right - rcSrc.left), (INT)(rcSrc.bottom - rcSrc.top)
     };
 
     Assert(static_cast<UINT>(rcUpdate.Width) <= m_nWidth);
@@ -368,7 +368,7 @@ HRESULT CSystemMemoryBitmap::Init(
 
         if (SUCCEEDED(hr))
         {
-            WICRect rc = {0, 0, m_nWidth, m_nHeight};
+            WICRect rc = {0, 0, (INT)m_nWidth, (INT)m_nHeight};
             MIL_THR(pISource->CopyPixels(&rc, m_nStride, m_nStride*m_nHeight, (BYTE*)m_pPixels));
         }
 
@@ -485,7 +485,7 @@ HRESULT CSystemMemoryBitmap::Init(
         {
             if (srcRect == NULL)
             {
-                WICRect rcDefault = {0, 0, m_nWidth, m_nHeight};
+                WICRect rcDefault = {0, 0, (INT)m_nWidth, (INT)m_nHeight};
                 MIL_THR(pISource->CopyPixels(&rcDefault, m_nStride, m_nStride*m_nHeight, (BYTE*)m_pPixels));
             }
             else
@@ -663,7 +663,7 @@ HRESULT CDummySource::CopyPixels(
 
     HRESULT hr = S_OK;
     RECT rcLock;
-
+{
     SetRect(&rcLock, 0, 0, m_nWidth, m_nHeight);
     if (prc)
     {
@@ -700,6 +700,7 @@ HRESULT CDummySource::CopyPixels(
 #pragma prefast(pop)
         pbPixels += cbStride;
     }
+}
 
 Cleanup:
     RRETURN(hr);

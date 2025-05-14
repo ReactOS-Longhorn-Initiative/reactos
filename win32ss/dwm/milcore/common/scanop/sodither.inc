@@ -61,7 +61,7 @@ DITHERBLEND_FUNC(
     const ScanOpParams *pSOP
     )
 {
-#if defined(_X86_)
+/*#if defined(_X86_)
 
     WORD* pDestOut = static_cast<WORD *>(pSOP->m_pvDest);
     const ARGB* pSrc = static_cast<const ARGB *>(pSOP->m_pvSrc1);
@@ -485,7 +485,7 @@ alignment_loop:
         emms      
     }
 
-#endif
+#endif*/
 }
 
 // Dither to 16bpp using MMX
@@ -496,7 +496,7 @@ DITHER_FUNC(
     const ScanOpParams *pSOP
     )
 {
-#if defined(_X86_)
+/*#if defined(_X86_)
 
     DEFINE_POINTERS(ARGB, WORD);
     UINT uiCount = pPP->m_uiCount;
@@ -640,7 +640,7 @@ DITHER_FUNC(
         emms      
     }
 
-#endif
+#endif*/
 }
 
 #pragma warning(pop) // reset C4740
