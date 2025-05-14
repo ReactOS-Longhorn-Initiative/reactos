@@ -635,7 +635,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT CMilOrthographicCameraDuce::ProcessUpdate(
+/*HRESULT CMilOrthographicCameraDuce::ProcessUpdate(
     __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
     __in_ecount(1) const MILCMD_ORTHOGRAPHICCAMERA* pCmd
     )
@@ -828,7 +828,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-/* override */ void CMilOrthographicCameraDuce::UnRegisterNotifiers()
+void CMilOrthographicCameraDuce::UnRegisterNotifiers()
 {
     UnRegisterNotifier(m_data.m_pTransform);
     UnRegisterNotifier(m_data.m_pNearPlaneDistanceAnimation);
@@ -871,7 +871,7 @@ HRESULT CMilOrthographicCameraDuce::SynchronizeAnimatedFields()
 
 Cleanup:
     RRETURN(hr);
-}
+}*/
 
 HRESULT CMilMatrixCameraDuce::ProcessUpdate(
     __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
