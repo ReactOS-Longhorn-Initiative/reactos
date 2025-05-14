@@ -159,14 +159,14 @@ CMetaRenderTarget::UpdateValidContentBounds(
     )
 {
     // The valid bounds should always encompass the required Present bounds.
-    Assert(oDevData.rcLocalDeviceValidContentBounds.DoesContain(
+    Assert(oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds.DoesContain(
                oDevData.rcLocalDevicePresentBounds));
 
     if (aliasedDeviceClip.IsNullClip())
     {
         // All content is valid in this device's render bounds, but nothing
         // more.
-        oDevData.rcLocalDeviceValidContentBounds = oDevData.rcLocalDeviceRenderBounds;
+        oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds = oDevData.rcLocalDeviceRenderBounds;
     }
     else
     {
@@ -176,7 +176,7 @@ CMetaRenderTarget::UpdateValidContentBounds(
 
         // Convenience references to avoid large names through out routine
         CMILSurfaceRect const &rcRender = oDevData.rcLocalDeviceRenderBounds;
-        CMILSurfaceRect &rcValid = oDevData.rcLocalDeviceValidContentBounds;
+        CMILSurfaceRect &rcValid = oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds;
 
         //
         // Determine if any part of current valid area is affected by
@@ -363,7 +363,7 @@ CMetaRenderTarget::UpdateValidContentBounds(
 
     // Started with valid content bounds encompassing the required
     // Present bounds and they should still be contained.
-    Assert(oDevData.rcLocalDeviceValidContentBounds.DoesContain(
+    Assert(oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds.DoesContain(
                oDevData.rcLocalDevicePresentBounds));
 }
 

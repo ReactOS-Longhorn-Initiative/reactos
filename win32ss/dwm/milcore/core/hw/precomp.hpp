@@ -48,7 +48,7 @@
 
 // common render target classes and methods
 
-#include "targets/targets.h"
+#include "targets/Targets.h"
 
 // software classes
 

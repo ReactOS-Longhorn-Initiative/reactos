@@ -18,26 +18,31 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
 
 list(APPEND SOURCE
+desktophwndrt.cpp
+desktoprt.cpp
+dummyrt.cpp
+metabitmaprt.cpp
+metaiterator.cpp
+metart.cpp
 precomp.cpp
-dllentry.cpp
-    )
+)
 
-add_library(milcore MODULE ${SOURCE})
-add_dependencies(milcore xdk)
+add_library(milcoreMeta ${SOURCE})
+add_dependencies(milcoreMeta xdk)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(milcore PRIVATE /wd5043 /wd5033)
+target_compile_options(milcoreMeta PRIVATE /wd5043 /wd5033 /wd4838)
 endif()
 
 if(NOT MSVC)
-target_compile_options(milcore PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
+target_compile_options(milcoreMeta PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing -Wno-invalid-offsetof)
 endif()
 
-set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)
 
-set_module_type(milcore win32dll UNICODE)
-target_link_libraries(milcore common cppstl uuid dxguid UtilLib DebugLib commonShared targets hw gcutil glyph swlib milcoreMeta milcoreApi)
-add_importlibs(milcore winmm ole32 oleaut32 windowscodecs d3dx9_40 d3d10 d3d10_1 advapi32 user32 gdi32 msvcrt kernel32 ntdll)
-add_cd_file(TARGET milcore DESTINATION reactos/system32 FOR all)
+set_target_cpp_properties(milcoreMeta WITH_EXCEPTIONS WITH_RTTI)
+
+target_compile_options(milcoreMeta PRIVATE -DUNICODE -D_UNICODE)
+
+target_link_libraries(milcoreMeta PRIVATE cppstl)
