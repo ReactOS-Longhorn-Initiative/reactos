@@ -4635,7 +4635,7 @@ CD3DDeviceLevel1::SetClipRect(
     )
 {
     HRESULT hr = S_OK;
-    MilPointAndSizeL rcTargetSurface = {0, 0, m_desc.Width, m_desc.Height};
+    MilPointAndSizeL rcTargetSurface = {0, 0, (INT)m_desc.Width, (INT)m_desc.Height};
     MilPointAndSizeL rcSurfaceIntersectClip;
     const MilPointAndSizeL *prcNewClip = NULL;
 

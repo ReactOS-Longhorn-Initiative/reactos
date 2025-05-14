@@ -634,7 +634,7 @@ CHwDeviceBitmapColorSource::Flush(
     // tells us that some drivers have issues with ultra small surfaces.
     const UINT uFlushWidth = min(16u, desc.Width);
     const UINT uFlushHeight = min(16u, desc.Height);
-    const RECT rcCopy = { 0, 0, uFlushWidth, uFlushHeight };
+    const RECT rcCopy = { 0, 0, (LONG)uFlushWidth, (LONG)uFlushHeight };
     const RECT rcFlush = { 0, 0, 1, 1 };
 
     IDirect3DSurface9 *pIFlushSurface = NULL;
