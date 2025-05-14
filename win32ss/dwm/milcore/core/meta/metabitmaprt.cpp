@@ -155,7 +155,7 @@ CMetaBitmapRenderTarget::~CMetaBitmapRenderTarget()
 {
     for (UINT i = 0; i < m_cRT; i++)
     {
-        ReleaseInterface(m_rgMetaData[i].pIRTBitmap);
+        ReleaseInterface(m_rgMetaData[i].m_data.m_bitmap.pIRTBitmap);
     }
 }
 
@@ -253,10 +253,10 @@ CMetaBitmapRenderTarget::Init(
         // Initialize the cache index to invalid. We only want the meta data
         // object which has a non-null pIRTBitmap to have a valid cache index.
         //
-        m_rgMetaData[i].cacheIndex = CMILResourceCache::InvalidToken;
+        m_rgMetaData[i].m_data.m_bitmap.cacheIndex = CMILResourceCache::InvalidToken;
 
         #if DBG
-        m_rgMetaData[i].uIndexOfRealRTBitmap = UINT_MAX;
+        m_rgMetaData[i].m_data.m_bitmap.uIndexOfRealRTBitmap = UINT_MAX;
         #endif
         
         if (pMetaData[i].fEnable)
@@ -269,7 +269,7 @@ CMetaBitmapRenderTarget::Init(
 
 
             // Initialize the index 'pointer' to itself.
-            m_rgMetaData[i].uIndexOfRealRTBitmap = i;
+            m_rgMetaData[i].m_data.m_bitmap.uIndexOfRealRTBitmap = i;
 
             // Future Consideration: We may want to revisit this sharing code.  If it is cheap to share
             //     textures (i.e. they have the same underlying video card and we have 9EX
@@ -285,8 +285,8 @@ CMetaBitmapRenderTarget::Init(
             //
             for (UINT j = 0; j < i; j++)
             {
-                if (   m_rgMetaData[j].cacheIndex == curCacheIndex
-                    || m_rgMetaData[j].cacheIndex == CMILResourceCache::SwRealizationCacheIndex
+                if (   m_rgMetaData[j].m_data.m_bitmap.cacheIndex == curCacheIndex
+                    || m_rgMetaData[j].m_data.m_bitmap.cacheIndex == CMILResourceCache::SwRealizationCacheIndex
                    )
                 {
                     //
@@ -294,14 +294,14 @@ CMetaBitmapRenderTarget::Init(
                     // render targets so we will 'point' back to the matching
                     // one.
                     //
-                    m_rgMetaData[i].uIndexOfRealRTBitmap = j;
+                    m_rgMetaData[i].m_data.m_bitmap.uIndexOfRealRTBitmap = j;
                     break;
                 }
             }
 
-            if (m_rgMetaData[i].uIndexOfRealRTBitmap != i)
+            if (m_rgMetaData[i].m_data.m_bitmap.uIndexOfRealRTBitmap != i)
             {
-                m_rgMetaData[i].cacheIndex = CMILResourceCache::InvalidToken;
+                m_rgMetaData[i].m_data.m_bitmap.cacheIndex = CMILResourceCache::InvalidToken;
                 Assert(m_rgMetaData[i].fEnable == FALSE);
             }
             else
@@ -311,7 +311,7 @@ CMetaBitmapRenderTarget::Init(
                     uHeight,
                     usageInfo,
                     dwFlags,
-                    &m_rgMetaData[i].pIRTBitmap
+                    &m_rgMetaData[i].m_data.m_bitmap.pIRTBitmap
                     ));
     
                 if (SUCCEEDED(hr))
@@ -328,11 +328,11 @@ CMetaBitmapRenderTarget::Init(
                         Assert(curCacheIndex == CMILResourceCache::SwRealizationCacheIndex);
                         
                         // The DYNCAST does the assert
-                        DYNCAST(CSwRenderTargetBitmap, m_rgMetaData[i].pIRTBitmap);
+                        DYNCAST(CSwRenderTargetBitmap, m_rgMetaData[i].m_data.m_bitmap.pIRTBitmap);
                     }
                 #endif
 
-                    hr = THR(m_rgMetaData[i].pIRTBitmap->QueryInterface(
+                    hr = THR(m_rgMetaData[i].m_data.m_bitmap.pIRTBitmap->QueryInterface(
                         IID_IRenderTargetInternal,
                         (void **)&(m_rgMetaData[i].pInternalRT)
                         ));
@@ -352,7 +352,7 @@ CMetaBitmapRenderTarget::Init(
                     // hardware render targets are allowed to create software
                     // render targets.
                     //
-                    m_rgMetaData[i].cacheIndex = m_rgMetaData[i].pInternalRT->GetRealizationCacheIndex();
+                    m_rgMetaData[i].m_data.m_bitmap.cacheIndex = m_rgMetaData[i].pInternalRT->GetRealizationCacheIndex();
     
                     // Set the bounds either way
                     Assert(m_rgMetaData[i].rcLocalDeviceRenderBounds.left == 0);
@@ -721,7 +721,7 @@ CMetaBitmapRenderTarget::GetCompatibleSubRenderTargetNoRefInternal(
     
                 if (uRTRealizationIndex == uRealizationCacheIndexToLookFor)
                 {
-                    pIRenderTargetNoRef = m_rgMetaData[i].pIRTBitmap;
+                    pIRenderTargetNoRef = m_rgMetaData[i].m_data.m_bitmap.pIRTBitmap;
                 }
             }
         }
@@ -746,12 +746,12 @@ CMetaBitmapRenderTarget::GetCompatibleSubRenderTargetNoRefInternal(
             targetDestination,
             OUT idx
             )));
-        idx = m_rgMetaData[idx].uIndexOfRealRTBitmap;
+        idx = m_rgMetaData[idx].m_data.m_bitmap.uIndexOfRealRTBitmap;
         Assert(idx < m_cRT);
         Assert(m_rgMetaData[idx].fEnable);
-        Assert(m_rgMetaData[idx].pIRTBitmap);
+        Assert(m_rgMetaData[idx].m_data.m_bitmap.pIRTBitmap);
 
-        pIRenderTargetNoRef = m_rgMetaData[idx].pIRTBitmap;
+        pIRenderTargetNoRef = m_rgMetaData[idx].m_data.m_bitmap.pIRTBitmap;
     }
 
     return pIRenderTargetNoRef;

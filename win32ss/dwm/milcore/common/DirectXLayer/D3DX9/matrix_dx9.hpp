@@ -83,7 +83,7 @@ namespace dxlayer
         }
 
         // D3DXMatrixDecompose
-        /*inline std::tuple<vector3_t<dxapi::d3dx9>, quaternion_t<dxapi::d3dx9>, vector3_t<dxapi::d3dx9>> decompose() const
+        inline bool decompose() const
         {
             vector3_t<dxapi::d3dx9> scale;
             quaternion_t<dxapi::d3dx9> rotation;
@@ -95,8 +95,10 @@ namespace dxlayer
                 throw dxlayer_exception(hresult(hResult));
             }
 
-            return std::make_tuple(scale, rotation, translation);
-        }*/
+            // NOTE: Result is not used
+
+            return true;//std::make_tuple(scale, rotation, translation);
+        }
 
         // D3DXMatrixDeterminant
         inline float determinant() const
