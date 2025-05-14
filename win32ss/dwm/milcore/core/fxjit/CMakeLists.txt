@@ -1,1 +1,2 @@
 add_subdirectory(PixelShader)
+add_subdirectory(Collector)

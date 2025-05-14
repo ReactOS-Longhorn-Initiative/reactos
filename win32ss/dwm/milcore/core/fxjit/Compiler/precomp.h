@@ -13,7 +13,8 @@
 
 #include <WPFSDL.h>
 #include <sal.h>
-#include <salextra.h>
+//#include <salextra.h>
+
 
 #include "types.h"
 #include "warpplatform.h"
