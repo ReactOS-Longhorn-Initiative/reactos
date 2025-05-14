@@ -14,7 +14,7 @@
 #include <ndk/psfuncs.h>
 #include <ndk/rtlfuncs.h>
 
-#include <dwmlpc.h>
+#include <rwm.h>
 
 
 class LpcConnectLib

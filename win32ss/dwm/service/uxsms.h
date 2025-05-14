@@ -1,24 +1,35 @@
-#pragma once
+/*
+ * PROJECT:     RWM UxSms Service
+ * LICENSE:     MIT (https://opensource.org/licenses/MIT)
+ * PURPOSE:     UxSms Unified Service Header
+ * COPYRIGHT:   Copyright 2025 Justin Miller <justin.miller@reactos.org>
+ */
 
+#pragma once
 
 #define WIN32_NO_STATUS
 #include <windows.h>
-#include <ndk/lpcfuncs.h>
-#include "../shared/LpcConnectLib/LpcConnectLib.hpp"
-#include "../shared/LpcCreateLib/LpcCreateLib.hpp"
-#define DWMAPP_NAME L"uxss.exe" //Longhorn 5048-5112
+#include <versionhelpers.h>
+#include <rwm.h>
+#include <LpcConnectLib.hpp>
+#include <LpcCreateLib.hpp>
+
+extern WCHAR* DwmSessionPort;
 
 /* Main serice entry */
-HRESULT WINAPI
+HRESULT
+WINAPI
 ServiceStartup();
+
+VOID
+WINAPI
+InitializeServicePort();
+
+VOID
+WINAPI
+DestroyServicePort();
 
 NTSTATUS
 WINAPI
 SessionBypassInitializeDWM();
 
-BOOL PullPortAPIs(void);
-
-
-VOID
-WINAPI
-InitializeServicePort();
