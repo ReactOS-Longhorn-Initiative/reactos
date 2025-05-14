@@ -70,7 +70,7 @@ add_dependencies(uce xdk)
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(uce PRIVATE /wd5043 /wd5033 /wd4838)
+target_compile_options(uce PRIVATE /wd5043 /wd5033 /wd4838 /Zc:sizedDealloc-)
 endif()
 
 if(NOT MSVC)

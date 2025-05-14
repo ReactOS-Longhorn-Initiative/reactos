@@ -240,6 +240,14 @@ inline D3DXVECTOR4::D3DXVECTOR4()
 {
 }
 
+inline D3DXVECTOR4::D3DXVECTOR4(CONST D3DVECTOR& xyz, FLOAT newW)
+{
+    x = xyz.x;
+    y = xyz.y;
+    z = xyz.z;
+    w = newW;
+}
+
 inline D3DXVECTOR4::D3DXVECTOR4(const FLOAT *pf)
 {
     if(!pf) return;
