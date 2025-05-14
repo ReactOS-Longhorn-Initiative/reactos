@@ -68,7 +68,7 @@ HRESULT CDesktopRenderTarget::Create(
     UINT cAdapters = 0;
 
     *ppIRT = NULL;
-
+{
     // Check for the null render target
     if ((dwFlags & MilRTInitialization::TypeMask) == MilRTInitialization::Null)
     {
@@ -131,7 +131,7 @@ HRESULT CDesktopRenderTarget::Create(
 
 SubCleanup1:
     ReleaseInterfaceNoNULL(pRT);
-
+    }
 Cleanup:
 
     RRETURN(hr);
@@ -1346,7 +1346,7 @@ CDesktopRenderTarget::CanAccelerateScroll(
 	*pfCanAccelerateScroll = true;
 
     DynArray<bool> rgActiveDisplays;
-    
+    {
     // Now check if this Hwnd extends onto multiple physical displays. If so, we can't scroll
     // because that would involve BLTing from one display to another, which we don't support 
     // currently.              
@@ -1385,7 +1385,7 @@ CDesktopRenderTarget::CanAccelerateScroll(
             }
         }
     }
-    
+}
 Cleanup:
     RRETURN(hr);
 }

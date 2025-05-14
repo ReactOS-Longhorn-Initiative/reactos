@@ -456,7 +456,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
     CMILSurfaceRect rcClosestMonitorBounds(0, 0, 0, 0, LTRB_Parameters);
 
     CMILSurfaceRect rcNewPosition;
-
+{
     //
     // Check if display state has changed
     //
@@ -749,6 +749,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
     {
         Assert(hr == WGXERR_DISPLAYSTATEINVALID);
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -1034,7 +1035,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::UpdatePresentProperties(
     )
 {
     HRESULT hr = S_OK;
-
+{
     if (m_eWindowLayerType == MilWindowLayerType::NotLayered)
     {
         Assert(transparencyFlags == MilTransparency::Opaque);
@@ -1088,6 +1089,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::UpdatePresentProperties(
             }
         }
     }
+}
 
 Cleanup:
     RRETURN(hr);

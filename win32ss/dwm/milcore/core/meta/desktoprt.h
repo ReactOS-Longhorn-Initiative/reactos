@@ -100,7 +100,7 @@ protected:
         );
 
     
-    MIL_FORCEINLINE void TransitionToState(
+    void TransitionToState(
         enum State eNewState
 #if DBG
         , const char *pszMethod = NULL
