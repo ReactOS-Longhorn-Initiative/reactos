@@ -1462,7 +1462,9 @@ CMetaRenderTarget::DrawVideo(
     )
 {
     HRESULT hr = S_OK;
-
+    
+    BOOL bSetSrcRect = FALSE;
+{
     //
     // Either the surface renderer isn't NULL or the bitmap source isn't NULL.
     //
@@ -1473,8 +1475,6 @@ CMetaRenderTarget::DrawVideo(
     // Note that we only need to worry about alpha masks since we can't have
     // intermediates any other way
     AssertEffectListHasNoAlphaMask(pIEffect);
-
-    BOOL bSetSrcRect = FALSE;
 
     if (!(pContextState->RenderState->Options.SourceRectValid))
     {
@@ -1538,6 +1538,7 @@ CMetaRenderTarget::DrawVideo(
     }
 
     pContextState->RenderState->PrefilterEnable = fSavePrefilterEnable;
+}
 
 Cleanup:
 

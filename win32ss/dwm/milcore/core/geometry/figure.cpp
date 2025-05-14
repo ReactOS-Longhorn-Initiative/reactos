@@ -860,7 +860,7 @@ CFigureData::BeziersTo(
         // Number of points
 {
     HRESULT hr = S_OK;
-
+{
     if (!rgPoints  ||  count < 3)
     {
         IFC(E_INVALIDARG);
@@ -886,7 +886,7 @@ CFigureData::BeziersTo(
     
     SetCurved();
 
-
+}
 Cleanup:
     RRETURN(hr);
 }

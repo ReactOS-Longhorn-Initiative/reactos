@@ -4166,7 +4166,7 @@ CScanner::SplitAtCoincidentIntersection(
     
     if (!pRight)
         goto Cleanup;
-
+{
     // This method is eventually called after processing a junction. Both chains
     // point to vertices that generated that junction. Therefore they share
     // a common point.
@@ -4224,6 +4224,7 @@ CScanner::SplitAtCoincidentIntersection(
 
         pChain->SetCoincidentWithRight();
     }
+}
 
 Cleanup:
     RRETURN(hr);

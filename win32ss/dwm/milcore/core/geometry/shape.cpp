@@ -676,7 +676,7 @@ CShape::ConstructFromGpPath(
     {
         IFC(E_INVALIDARG);
     }
-
+{
     Assert(pPoints);
     Assert(pTypes);
 
@@ -746,7 +746,7 @@ CShape::ConstructFromGpPath(
         Assert(pFigure); // should have been allocated in the PathPointTypeStart case
         IFC(pFigure->Close());
     }
-
+}
 Cleanup:
     if (FAILED(hr))
     {

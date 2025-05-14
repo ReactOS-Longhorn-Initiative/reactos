@@ -509,7 +509,7 @@ CShapeBase::ClipWithParallelogram(
     MilPoint2F vertices[4];
 
     double rAbsoluteTolerance;
-
+{
     IFC(pShape->GetAbsoluteTolerance(
             rTolerance,
             fRelative,
@@ -572,6 +572,7 @@ CShapeBase::ClipWithParallelogram(
 
         IFC(pShape->Populate(&clip2, pShapeTransform));
     }
+}
 
 Cleanup:
     RRETURN(hr);

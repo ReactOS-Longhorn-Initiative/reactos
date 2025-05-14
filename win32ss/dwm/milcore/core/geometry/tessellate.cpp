@@ -522,7 +522,7 @@ CTessellator::MergeTheBands(
         // The rightmost tail
 {
     HRESULT hr = S_OK;
-
+{
     // We should not be here unless ---
     
     // We were called on a nonempty junction with no head, so it should have at least 2 tails
@@ -565,6 +565,7 @@ CTessellator::MergeTheBands(
         }
     }
     // The tails are on their way out, so we won't bother detaching them from the ceiling
+}
 
 Cleanup:
     RRETURN(hr);
@@ -599,7 +600,7 @@ CTessellator::SplitTheBand(
         // Trianguation index of the current junction vertex
 {
     HRESULT hr = S_OK;
-
+{
     // We should be here only if we have at least two heads 
     QUIT_IF_NOT(pLeftmostHead  && pRightmostHead  && (pLeftmostHead != pRightmostHead));
 
@@ -650,6 +651,8 @@ CTessellator::SplitTheBand(
         
         IFC(CreateBands(pFrom, pTo, wIndex)); 
     }
+}
+
 Cleanup:
     RRETURN(hr);
 }
