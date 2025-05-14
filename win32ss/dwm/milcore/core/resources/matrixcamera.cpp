@@ -27,7 +27,7 @@ CMilMatrixCameraDuce::~CMilMatrixCameraDuce()
     UnRegisterNotifiers();
 }
 
-/* /* override */ */ HRESULT CMilMatrixCameraDuce::ApplyToContextState(
+HRESULT CMilMatrixCameraDuce::ApplyToContextState(
     __inout_ecount(1) CContextState *pCtxState,     // Context state to modify
     const float flViewportWidth,
     const float flViewportHeight,

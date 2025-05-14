@@ -1216,7 +1216,7 @@ DbgAssertEffectWellKnown(
     // Get the count of the transform blocks in the effect object.
     IFC( pEffect->GetCount(&cEntries) );
     Assert(cEntries <= 3);
-
+{
     UINT uNumAlphaScales = 0;
     UINT uNumAlphaMasks = 0;
 
@@ -1243,7 +1243,7 @@ DbgAssertEffectWellKnown(
             RIPW(L"Unknown effect found!");
         }
     }
-
+}
 Cleanup:
     IGNORE_HR(hr);
 }

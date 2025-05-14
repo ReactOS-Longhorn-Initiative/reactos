@@ -228,7 +228,7 @@ CGlyphRunResource::GetAvailableScale(
     {
         IFC(WGXERR_INVALIDPARAMETER);  // We should only add realizations for scales below Geometry threshold
     }
-
+{
     double matchScoreHighQuality = 0;
     bool fFoundExactMatch = false;
     bool fFoundMatch = false;
@@ -712,7 +712,7 @@ CGlyphRunResource::GetAvailableScale(
                   ));
 
     *pRecommendedRenderingMode = blendMode;
-
+                }
 Cleanup:
     ReleaseInterface(pRealization);
     
@@ -794,7 +794,7 @@ CGlyphRunResource::CreateRealization(
 
     DWRITE_MATRIX scaleTransform;
     memset(&scaleTransform, 0, sizeof(DWRITE_MATRIX));
-
+{
     // If we are creating a full quality realization, just set the scale transform.
     scaleTransform.m11 = scaleX / m_muSize;
     scaleTransform.m22 = scaleY / m_muSize;
@@ -929,7 +929,7 @@ CGlyphRunResource::CreateRealization(
     // Returning realization - note that reference is transferred to out argument.
     *ppRealization = pRealization;
     pRealization = NULL; 
-
+}
 Cleanup:
     ReleaseInterface(pRealization);
     ReleaseInterface(pIDWriteGlyphRunAnalysis);
@@ -1259,7 +1259,7 @@ CGlyphRunResource::ShouldUseGeometry(
 
     Assert(m_pIDWriteFont);
     DWRITE_RENDERING_MODE renderingMode;
-
+{
     IFC(CDWriteFontFaceCache::GetFontFace(m_pIDWriteFont, &pIDWriteFontFace));
 
     IFC(pIDWriteFontFace->GetRecommendedRenderingMode(
@@ -1282,7 +1282,7 @@ CGlyphRunResource::ShouldUseGeometry(
     // If glyph run size is big, then use geometry.
     // If it is small, use bitmaps 
     hr = (fShouldUseGeometry && (m_pGeometry != NULL)) ? S_OK : E_FAIL;
-
+}
 Cleanup:
     ReleaseInterface(pIDWriteFontFace);
     return SUCCEEDED(hr);

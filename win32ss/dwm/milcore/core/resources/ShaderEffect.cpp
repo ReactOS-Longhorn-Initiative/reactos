@@ -62,6 +62,17 @@ CMilShaderEffectDuce::FreeSamplerData()
     m_samplerDataCount = 0;   
 }
 
+HRESULT IntToDWord(int input, DWORD* result)
+{
+    if (result == nullptr)
+    {
+        return E_POINTER;
+    }
+
+    *result = static_cast<DWORD>(input);
+    return S_OK;
+}
+
 //-----------------------------------------------------------------------------
 //
 // CMilShaderEffectDuce::ProcessUpdate
@@ -85,7 +96,7 @@ CMilShaderEffectDuce::ProcessUpdate(
 
     // Do the main update processing
     IFC(GeneratedProcessUpdate(pHandleTable, pCmd, pPayload, cbPayload));
-
+{
     // Get the sampler data count and cap at MAX_TEXTURE_STAGE_CONFIGURATIONS.
     m_samplerDataCount = 
         min((UINT32)(m_data.m_cbDependencyPropertySamplerValuesSize / sizeof(UINT32)), 
@@ -133,6 +144,7 @@ CMilShaderEffectDuce::ProcessUpdate(
             m_pSamplerData[i].Init(samplerRegister, samplingMode, pBrush);
         }
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -807,6 +819,8 @@ CMilShaderEffectDuce::DrawIntoIntermediate(
     CBrushRealizer *pBrushRealizer = NULL;
     IntermediateRTUsage rtUsage;
     CContextState contextState;
+    BrushContext brushContext;
+{
     // ContextStates are initialized assumg PageInPixel space which is typically converted by the Meta RT layer into device space. 
     // Since we are operating here below the Meta RT, we need to change the default coordinate space to Device which is what we 
     // actual operate in. 
@@ -815,7 +829,7 @@ CMilShaderEffectDuce::DrawIntoIntermediate(
     contextState.RenderState = pContextState->RenderState;
     contextState.AliasedClip = CAliasedClip(&CMilRectF::sc_rcInfinite2);
 
-    BrushContext brushContext;
+
     brushContext.pBrushDeviceNoRef = GetCompositionDeviceNoRef();
     brushContext.fBrushIsUsedFor3D = false;
     brushContext.fRealizeProceduralBrushesAsIntermediates = FALSE;
@@ -869,7 +883,7 @@ CMilShaderEffectDuce::DrawIntoIntermediate(
 
     *ppTexture = pRenderTargetBitmap;
     pRenderTargetBitmap = NULL; //Transferring reference. 
-
+    }
     
 Cleanup:
     ReleaseInterface(pRenderTargetBitmap);
@@ -906,6 +920,7 @@ CMilShaderEffectDuce::SendShaderConstantsHw(
     )
 {
     HRESULT hr = S_OK;
+{
 
     // Floating point values
     float *pFloatValues  = m_data.m_pDependencyPropertyFloatValuesData;
@@ -936,6 +951,7 @@ CMilShaderEffectDuce::SendShaderConstantsHw(
         IFC(pDevice->SetPixelShaderConstantB(*pBoolRegisterIndices++, *pBoolValues));
         pBoolValues++;
     }
+}
 
 Cleanup:
     RRETURN(hr);

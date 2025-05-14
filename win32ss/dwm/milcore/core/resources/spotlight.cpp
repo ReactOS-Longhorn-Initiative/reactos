@@ -38,7 +38,7 @@ HRESULT CMilSpotLightDuce::PreRender(
     )
 {
     HRESULT hr = S_OK;
-
+{
     CMILLightSpot *pSpotLightNoRef = NULL;
 
     // Get the light data
@@ -54,6 +54,7 @@ HRESULT CMilSpotLightDuce::PreRender(
         pSpotLightNoRef->Transform(CMILLight::TransformType_ViewSpace, pTransform, flScale);
         pPrerenderer->AddLight(pSpotLightNoRef);
     }
+}
 
 Cleanup:
     RRETURN(hr);

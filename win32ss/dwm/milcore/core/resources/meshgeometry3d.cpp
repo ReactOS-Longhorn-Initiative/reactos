@@ -79,7 +79,7 @@ HRESULT CMilMeshGeometry3DDuce::Realize(
     *ppMesh = NULL;
     IMILMesh3D *pIMesh = NULL;
     CMILMesh3D *pMesh = NULL;
-
+{
     //
     //  Early exit with S_OK/NULL realization if mesh has no vertices.
     //  (We'll handle no VALID indices after we figure out how many valid indices we have.)
@@ -181,7 +181,7 @@ HRESULT CMilMeshGeometry3DDuce::Realize(
 
     // Finally, "return" ppMesh
     *ppMesh = pMesh;
-
+    }
 Cleanup:
     RRETURN(hr);
 }

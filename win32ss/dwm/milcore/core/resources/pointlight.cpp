@@ -41,7 +41,7 @@ HRESULT CMilPointLightDuce::PreRender(
     HRESULT hr = S_OK;
 
     CMILLightPoint *pPointLightNoRef = NULL;
-
+{
     // Get the light data
     IFC(GetRealization(&pPointLightNoRef));
 
@@ -55,6 +55,7 @@ HRESULT CMilPointLightDuce::PreRender(
         pPointLightNoRef->Transform(CMILLight::TransformType_ViewSpace, pTransform, flScale);
         pPrerenderer->AddLight(pPointLightNoRef);
     }
+}
 
 Cleanup:
     RRETURN(hr);

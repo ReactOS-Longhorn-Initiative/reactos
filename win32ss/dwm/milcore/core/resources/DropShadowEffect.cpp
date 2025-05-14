@@ -1023,7 +1023,7 @@ CMilDropShadowEffectDuce::SetupShader(
 
     //
     // Set pixel shader constants
-    
+    {
     float offsetX = 0.0f;
     float offsetY = 0.0f;
     CalculateOffset(true, pScaleTransform, &offsetX, &offsetY);
@@ -1039,6 +1039,7 @@ CMilDropShadowEffectDuce::SetupShader(
     float opacity = static_cast<float>(GetOpacity());
     float arrOpacity[4] = { opacity, /*unused values*/ 0.0f, 0.0f, 0.0f };
     IFC(pDevice->SetPixelShaderConstantF(2, arrOpacity, 1));
+    }
 
 Cleanup:
     RRETURN(hr);
