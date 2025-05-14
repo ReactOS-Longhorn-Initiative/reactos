@@ -1,4 +1,6 @@
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcConnectLib)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
+
 spec2def(uxsms.dll uxsms.spec ADD_IMPORTLIB)
 
 add_library(uxsms MODULE
@@ -10,6 +12,6 @@ add_library(uxsms MODULE
     ${CMAKE_CURRENT_BINARY_DIR}/uxsms.def)
 
 set_module_type(uxsms win32dll UNICODE)
-target_link_libraries(uxsms LpcConnectLib wine)
+target_link_libraries(uxsms LpcCreateLib LpcConnectLib wine)
 add_importlibs(uxsms uxtheme wtsapi32 advapi32 msvcrt kernel32 ntdll)
 add_cd_file(TARGET uxsms DESTINATION reactos/system32 FOR all)

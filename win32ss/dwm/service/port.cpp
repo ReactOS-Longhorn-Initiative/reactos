@@ -25,63 +25,70 @@ typedef struct _SESSION_INIT
 } SESSION_INIT, *PSESSION_INIT;
 HANDLE GlobalServiceApiThreadHandle;
 
+LpcCreateLib* lpcCreateLib;
+
+typedef enum _RWM_SERIVCE_MSGS
+{
+    RWM_SERVICE_CONNECT = 1,
+    RWM_SERVICE_PUSH_OBJ = 2,
+    RWM_SERVICE_POP_OBJ = 3,
+    RWM_SERVICE_QUERY_PORTNAME = 4
+} RWM_SERIVCE_MSGS, *PRWM_SERIVCE_MSGS;
+WCHAR* DwmSessionPort;
 
 VOID
 WINAPI
-ProcessLpcOperation(PLPC_MAX_MESSAGE LpcReply)
+RwmServiceConnect(PLPC_MAX_MESSAGE LpcReply)
 {
-    __debugbreak();
-    if (LpcReply->Message)
-    {
-        switch (LpcReply->Message)
-        {
-            case 1: //DwmConnect:
-            {
-                DPRINT1("UXSS.EXE has requested to connect to the UxSms service\n");
-                WCHAR* UXSSPortName = (WCHAR*)LpcReply->Data;
-                DPRINT1("PortName: %ls\n", UXSSPortName);
-                NtReplyPort(PortHandle, &LpcReply->Header);
-                break;
-            }
-            default:
-            {
-                DbgPrint("Unknown message: %lx\n", LpcReply->Message);
-                break;
-            }
-        }
-    }
+    PSESSION_PORTPATH pSessionPath = {0};
+    DPRINT("RWM_SERVICE_CONNECT received\n");
+    pSessionPath = (PSESSION_PORTPATH)LpcReply->Data;
+    DPRINT1("Path: %ls\n", pSessionPath->PortPathStr);
+    DwmSessionPort = pSessionPath->PortPathStr;
+    SESSION_INIT* pSessionInit = (SESSION_INIT*)LpcReply->Data;
+    pSessionInit->SessionId = 0;
+    pSessionInit->ProcessId = GetCurrentProcessId();
+    LpcReply->Header.u1.s1.DataLength = sizeof(ULONG) + sizeof(ULONG) + sizeof(SESSION_INIT);
 }
 
-
-DWORD
+NTSTATUS
 WINAPI
-RWMServiceApiPortThread(LPVOID lpParameter)
+HandleServiceLpcOperations(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext)
 {
-    PLPC_MAX_MESSAGE LpcReply;
-     PVOID PortContext;
-     NTSTATUS Status;
-    LpcReply = (PLPC_MAX_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
-                                          HEAP_ZERO_MEMORY,
-                                          256);
-    while(1)
+
+    ULONG MessageType;
+    NTSTATUS Status;
+    MessageType = LpcReply->Message;
+
+    LpcCreateLib* pThis = (LpcCreateLib*)PortContext;
+    switch (MessageType)
     {
-        Status = NtReplyWaitReceivePort(PortHandle, &PortContext, 0, &LpcReply->Header);
-        /* Check if we didn't get success */
-        if (Status != STATUS_SUCCESS)
-        {
-            /* If we only got a warning, keep going */
-            if (NT_SUCCESS(Status)) continue;
-
-            /* We failed big time, so start out fresh */
-            DPRINT1("RWMServiceApiPortThread: ReceivePort failed - Status == %X\n", Status);
-            continue;
-        }
-
-        DPRINT1("lpc message: %lx\n", LpcReply->Message);
-        ProcessLpcOperation(LpcReply);
+        case RWM_SERVICE_CONNECT:
+            RwmServiceConnect(LpcReply);
+            LpcReply->Status = STATUS_SUCCESS;
+            break;
+        case RWM_SERVICE_PUSH_OBJ:
+            DPRINT("RWM_SERVICE_PUSH_OBJ received\n");
+            break;
+        case RWM_SERVICE_POP_OBJ:   
+            DPRINT("RWM_SERVICE_POP_OBJ received\n");
+            break;
+        case RWM_SERVICE_QUERY_PORTNAME:
+            DPRINT("RWM_SERVICE_QUERY_PORTNAME received\n");
+            break;
+        default:
+            DPRINT("Unknown message type: %lx\n", MessageType);
+            __debugbreak();
+            break;
     }
-    __debugbreak();
-    return 0;
+    Status = NtReplyPort(pThis->InstancePort, &LpcReply->Header);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT("Failed to reply to port: %lx\n", Status);
+        return Status;
+    }
+    
+    return Status;
 }
 
 VOID
@@ -105,7 +112,13 @@ InitializeServicePort()
                           256,
                           16 * 256);
 
+    lpcCreateLib = new LpcCreateLib();
+    lpcCreateLib->LpcHandler = (PINTERNALLPCHANDLER)HandleServiceLpcOperations;
+    lpcCreateLib->StartPortThread(PortHandle);
     if (!NT_SUCCESS(Status))
-        DbgPrint("Failed to create port: %lx\n", Status);
-     GlobalServiceApiThreadHandle = CreateThread(0, 0, RWMServiceApiPortThread, NULL, 0, 0);
+    {
+        DPRINT1("Failed to thread port: %lx\n", Status);
+        return;
+    }
+    DPRINT1("Created thread: %lx\n", PortHandle);
 }

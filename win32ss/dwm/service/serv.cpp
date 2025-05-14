@@ -176,7 +176,7 @@ ServiceStartup()
      * -> So DWM startsup at this point if all lights are green behind the screen and fade in 
      * only occurs after it finishes.
      */
-    __debugbreak();
+
     SessionBypassInitializeDWM();
     return S_OK;
 }

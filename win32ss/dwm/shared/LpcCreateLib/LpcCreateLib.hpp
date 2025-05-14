@@ -14,18 +14,28 @@
 #include <ndk/psfuncs.h>
 #include <ndk/rtlfuncs.h>
 
-#include <ndk/kefuncs.h>
+
+#include <dwmlpc.h>
+
+typedef
+NTSTATUS
+INTERNALLPCHANDLER(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext);
+
+typedef INTERNALLPCHANDLER *PINTERNALLPCHANDLER;
 
 class LpcCreateLib
 {
 private:
-    HANDLE InstancePort;
-
 public:
+    HANDLE InstancePort;
+    HANDLE GlobalGenericThread;
+    PINTERNALLPCHANDLER LpcHandler;
     LpcCreateLib();
     ~LpcCreateLib();
 
     NTSTATUS StartPortThread(HANDLE hSourceHandle);
     NTSTATUS StopPortThread();
     NTSTATUS WaitOnPortThread();
+    VOID WINAPI ProcessLpcOperation(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext);
+    DWORD WINAPI ProcessCompleteConnect(PLPC_MAX_MESSAGE LpcInput);
 };
