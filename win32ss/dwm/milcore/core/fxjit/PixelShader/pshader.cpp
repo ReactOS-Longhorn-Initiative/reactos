@@ -64,7 +64,7 @@ struct CInstructionVariables
 //     used for setting a breakpoint
 //
 //-------------------------------------------------------------------------
-#if DBG
+#if 0
 void
 OutputBreakpointTrace(const void *pCode)
 {
@@ -157,7 +157,7 @@ CPixelShaderCompiler::~CPixelShaderCompiler()
 
     if (m_pfn != NULL)
     {
-        CJitterSupport::CodeFree(m_pfn);
+        CJitterSupport::CodeFree((void*)m_pfn);
     }
 }
 
@@ -475,10 +475,10 @@ SampleTexture(
                 C_u32 v1Offset = v1Coordinate*uWidth;
 
                 // Store the sample 32-bit uint as a 4x32 integer vector: 0000 0000 0000 argb
-                C_u32x4 uSampleUV = *((pTextureVars->m_pTextureSource.AsP_u8() + vOffset).AsP_u32() + uCoordinate);
-                C_u32x4 uSampleU1V = *((pTextureVars->m_pTextureSource.AsP_u8() + vOffset).AsP_u32() + u1Coordinate);
-                C_u32x4 uSampleUV1 = *((pTextureVars->m_pTextureSource.AsP_u8() + v1Offset).AsP_u32() + uCoordinate);
-                C_u32x4 uSampleU1V1 = *((pTextureVars->m_pTextureSource.AsP_u8() + v1Offset).AsP_u32() + u1Coordinate);
+                C_u32x4 uSampleUV = (C_u32x4)*((pTextureVars->m_pTextureSource.AsP_u8() + vOffset).AsP_u32() + uCoordinate);
+                C_u32x4 uSampleU1V = (C_u32x4)*((pTextureVars->m_pTextureSource.AsP_u8() + vOffset).AsP_u32() + u1Coordinate);
+                C_u32x4 uSampleUV1 = (C_u32x4)*((pTextureVars->m_pTextureSource.AsP_u8() + v1Offset).AsP_u32() + uCoordinate);
+                C_u32x4 uSampleU1V1 = (C_u32x4)*((pTextureVars->m_pTextureSource.AsP_u8() + v1Offset).AsP_u32() + u1Coordinate);
 
                 // Interleave to get 0000 0000 aarr ggbb
                 uSampleUV = uSampleUV.AsC_u8x16().InterleaveLow(uSampleUV.AsC_u8x16());
@@ -2391,7 +2391,7 @@ CPixelShaderCompiler::Compile(
 
     IFC(CJitterAccess::Compile(&pBinaryCode));
 
-#if DBG
+#if 0
 
     //
     // Output a breakpoint address for debugging

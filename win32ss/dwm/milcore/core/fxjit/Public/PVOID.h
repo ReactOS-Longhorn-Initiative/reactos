@@ -113,7 +113,7 @@ public:
         , m_uIndexVarID(uIndexVarID)
         , m_uDisplacement(uDisplacement)
     {
-        WarpAssert(uBaseVarID);
+        //WarpAssert(uBaseVarID);
         // uIndexVarID might be zero; this means no indexing
     }
 

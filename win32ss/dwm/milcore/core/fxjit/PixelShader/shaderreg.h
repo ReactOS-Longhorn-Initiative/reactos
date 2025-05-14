@@ -66,7 +66,7 @@ public:
     //
 
     C_f32x4 *
-    CPixelShaderRegisters::GetColorOutput()
+    GetColorOutput()
     {
         return &(m_colorOutput[0]);
     }

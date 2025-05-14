@@ -12,7 +12,7 @@
 //      Includes SAL defines not in the public sal.h.
 //
 
-#include <codeanalysis/sourceannotations.h>  // TEMPORARY INCLUDE
+//#include <codeanalysis/sourceannotations.h>  // TEMPORARY INCLUDE
 
 #if !defined(MIDL_PASS) && defined(_PREFAST_) && _MSC_VER >= 1000 
 
