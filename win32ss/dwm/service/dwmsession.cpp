@@ -42,14 +42,7 @@ SessionBypassInitializeDWM()
     STARTUPINFOW StartupInfo = {0};
     PROCESS_INFORMATION ProcessInfo = {0};
 
-    HANDLE TokenHandle;
     InitializeDwmProcessPath();
-
-    if (!WTSQueryUserToken(0, &TokenHandle))
-    {
-        DPRINT1("Failed to get UserToken\n");
-        return 1;
-    }
 
     StartupInfo.cb = sizeof(STARTUPINFOW);
     StartupInfo.lpDesktop = (LPWSTR)L"WinSta0\\Default";

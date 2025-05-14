@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <ndk/lpcfuncs.h>
 #include "../shared/LpcConnectLib/LpcConnectLib.hpp"
-
+#include "../shared/LpcCreateLib/LpcCreateLib.hpp"
 #define DWMAPP_NAME L"uxss.exe" //Longhorn 5048-5112
 
 /* Main serice entry */

@@ -4,6 +4,7 @@ include_directories(
     ${REACTOS_SOURCE_DIR}/sdk/include/reactos/subsys
     ${REACTOS_SOURCE_DIR}/sdk/include/reactos/idl
     ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
 
 list(APPEND SOURCE
 DWRUserFace.cpp
@@ -21,6 +22,6 @@ if(NOT MSVC)
 endif()
 
 set_module_type(uxss win32gui UNICODE)
-target_link_libraries(uxss evtlib LpcConnectLib)
+target_link_libraries(uxss evtlib LpcCreateLib LpcConnectLib)
 add_importlibs(uxss user32 gdi32 advapi32 rpcrt4 msvcrt kernel32 ntdll)
 add_cd_file(TARGET uxss DESTINATION reactos/system32 FOR all)
