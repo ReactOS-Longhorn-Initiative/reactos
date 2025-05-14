@@ -34,7 +34,7 @@
 #endif
 
 
-#if DBG
+#if 0 // disable for now
 #ifndef Assert
 #define Assert(cond)                                                                                                      \
     {                                                                                                                     \
@@ -156,7 +156,7 @@ public:
     //
 
     static void TraceMessage(
-        __in_z const unsigned short *pzTraceMessage
+        __in_z const wchar_t* pzTraceMessage
         );
 
     //
@@ -164,8 +164,8 @@ public:
     //
 
     static void AssertMessage(
-        __in_z const unsigned short *pzCondition,
-        __in_z const unsigned short *pzFile,
+        __in_z const wchar_t* pzCondition,
+        __in_z const wchar_t* pzFile,
         unsigned nLine
         );
 };

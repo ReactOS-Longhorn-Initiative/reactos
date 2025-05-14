@@ -23,7 +23,7 @@ typedef __int16 INT16;
 typedef __int32 INT32;
 typedef __int64 INT64;
 
-typedef unsigned short WCHAR;
+//typedef unsigned short WCHAR;
 
 typedef unsigned __int8  UINT8 ;
 typedef unsigned __int16 UINT16;
@@ -35,9 +35,9 @@ typedef unsigned __int64 UINT64;
     typedef unsigned __int64 UINT_PTR;
     typedef unsigned __int64 size_t;
 #else
-    typedef __w64 __int32 INT_PTR;
-    typedef __w64 unsigned __int32 UINT_PTR;
-    typedef __w64 unsigned __int32 size_t;
+    typedef __int32 INT_PTR;
+    typedef unsigned __int32 UINT_PTR;
+    typedef unsigned __int32 size_t;
 #endif
 
 #define NULL    0

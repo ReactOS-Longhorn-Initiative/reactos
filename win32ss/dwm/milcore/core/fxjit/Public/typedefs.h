@@ -77,7 +77,7 @@ extern "C" {
 #endif
 
 #ifndef _WCHAR_T_DEFINED
-typedef unsigned short wchar_t;
+//typedef unsigned short wchar_t;
 #define _WCHAR_T_DEFINED
 #endif
 
@@ -582,7 +582,7 @@ typedef void *PVOID;
 
 typedef XUINT16 UINT16;
 
-typedef unsigned __int64    DWORDLONG;
+typedef unsigned long long    DWORDLONG;
 
 #define ZeroMemory(pb,cb)           memset((pb),0,(cb))
 #define FillMemory(pb,cb,b)         memset((pb),(b),(cb))
