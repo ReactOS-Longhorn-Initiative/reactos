@@ -1,4 +1,8 @@
 add_subdirectory(common)
 add_subdirectory(targets)
 add_subdirectory(hw)
+add_subdirectory(control)
+add_subdirectory(glyph)
+add_subdirectory(sw)
+#add_subdirectory(api)
 #add_subdirectory(dll)

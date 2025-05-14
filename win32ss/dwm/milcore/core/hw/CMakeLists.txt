@@ -101,8 +101,6 @@ endif()
 
 if(NOT MSVC)
 target_compile_options(hw PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing)
-set_property(TARGET hw PROPERTY COMPILE_WARNING_AS_ERROR OFF)
-
 endif()
 
 

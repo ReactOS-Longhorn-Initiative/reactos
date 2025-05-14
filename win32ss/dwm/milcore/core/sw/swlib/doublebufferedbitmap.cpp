@@ -89,7 +89,7 @@ CSwDoubleBufferedBitmap::HrInit(
     IWICImagingFactory *    pImagingFactory       = NULL;
     IWICFormatConverter *   pFormatConverter      = NULL;
     IWICPalette *           pWicPalette           = NULL;
-
+{
     // We restrict the dimensions of the bitmap to INT_MAX so that we
     // can treat our dirty rects as RECTs.
     if (width > INT_MAX || height > INT_MAX)
@@ -180,7 +180,7 @@ CSwDoubleBufferedBitmap::HrInit(
             &m_pFormatConverter
             ));
     }
-
+}
 Cleanup:
     
     ReleaseInterfaceNoNULL(pWriteProtectedBitmap);

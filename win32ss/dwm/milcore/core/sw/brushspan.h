@@ -60,7 +60,7 @@ public:
     virtual VOID ReleaseExpensiveResources() {}  // No expensive resources are
                                                  // needed for a constant color
                                                  // brush.
-protected:
+public:
 
     ARGB m_Color;
 };
@@ -174,7 +174,7 @@ public:
 
     virtual VOID ReleaseExpensiveResources();
 
-protected:
+public:
 
     INT MatrixValueToFix16(FLOAT value);
 
@@ -186,7 +186,7 @@ protected:
         __out_ecount(1) INT *pnXIncrement
         );
 
-private:
+public:
 
     VOID GenerateColors(
         _In_ INT nX, 
@@ -309,7 +309,7 @@ public:
 
     virtual ScanOpFunc GetScanOp() const { return ColorSource_LinearGradient_32bppPARGB_MMX; }
 
-private:
+//private:
     
     VOID GenerateColors(
         _In_ INT nX, 
@@ -369,7 +369,7 @@ protected:
     FLOAT m_rM22;
     FLOAT m_rDy; 
 
-private:
+public:
     
     template<typename TPlatform>
     VOID GenerateColors(
@@ -424,7 +424,7 @@ protected:
     FLOAT m_rXFirstTexelRegionCenter;
     FLOAT m_rYFirstTexelRegionCenter;
 
-private:
+public:
 
     void TransformPointFromWorldHPCToGradientCircle(
         __in_ecount(1) const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCtoDeviceHPC,
@@ -462,8 +462,6 @@ public:
     MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PBGRA32bpp; }
     void ReleaseExpensiveResources() /* override */;
 
-private:
-
     VOID GenerateColors(
         _In_ INT nX, 
         _In_ INT nY, 
@@ -471,6 +469,7 @@ private:
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
 
+private:
 
     CPixelShaderState m_pixelShaderState;
     CPixelShaderCompiler *m_pPixelShaderCompiler;

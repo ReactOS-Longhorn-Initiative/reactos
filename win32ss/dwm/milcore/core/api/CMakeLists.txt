@@ -18,26 +18,37 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
 
 list(APPEND SOURCE
+api_base.cpp
+api_basebrushes.cpp
+api_brush.cpp
+api_codecfactory.cpp
+api_factory.cpp
+api_lightdata.cpp
+api_lights.cpp
+api_mesh3d.cpp
+api_renderstate.cpp
+api_shader.cpp
+api_utils.cpp
+exports.cpp
 precomp.cpp
-dllentry.cpp
-    )
+)
 
-add_library(milcore MODULE ${SOURCE})
-add_dependencies(milcore xdk)
+add_library(milcoreApi ${SOURCE})
+add_dependencies(milcoreApi xdk)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(milcore PRIVATE /wd5043 /wd5033)
+target_compile_options(milcoreApi PRIVATE /wd5043 /wd5033 /wd4838)
 endif()
 
 if(NOT MSVC)
-target_compile_options(milcore PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
+target_compile_options(milcoreApi PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing -Wno-invalid-offsetof)
 endif()
 
-set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)
 
-set_module_type(milcore win32dll UNICODE)
-target_link_libraries(milcore common cppstl uuid dxguid UtilLib DebugLib commonShared targets hw gcutil glyph swlib)
-add_importlibs(milcore winmm ole32 oleaut32 windowscodecs d3dx9_40 d3d10 d3d10_1 advapi32 user32 gdi32 msvcrt kernel32 ntdll)
-add_cd_file(TARGET milcore DESTINATION reactos/system32 FOR all)
+set_target_cpp_properties(milcoreApi WITH_EXCEPTIONS WITH_RTTI)
+
+target_compile_options(milcoreApi PRIVATE -DUNICODE -D_UNICODE)
+
+target_link_libraries(milcoreApi PRIVATE cppstl)

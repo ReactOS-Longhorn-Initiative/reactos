@@ -448,6 +448,17 @@ public:
 *
 **************************************************************************/
 
+
+    extern VOID FASTCALL ConstantAlpha_32bppPARGB(
+        const PipelineParams *, const ScanOpParams *);
+
+    extern VOID FASTCALL ConstantAlpha_32bppRGB(
+        const PipelineParams *, const ScanOpParams *);
+
+    // Don't call, this is the implementation of above functions
+    extern VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
+        const PipelineParams *, const ScanOpParams *, bool);
+
 class CConstantAlphaSpan : public COwnedOSD
 {
 public:
@@ -456,16 +467,6 @@ public:
 
     HRESULT Initialize(FLOAT flAlpha);
 
-    friend VOID FASTCALL ConstantAlpha_32bppPARGB(
-        const PipelineParams *, const ScanOpParams *);
-
-    friend VOID FASTCALL ConstantAlpha_32bppRGB(
-        const PipelineParams *, const ScanOpParams *);
-
-private:
-    // Don't call, this is the implementation of above functions
-    friend VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
-        const PipelineParams *, const ScanOpParams *, bool);
 
     INT m_nAlpha;
 };
@@ -477,6 +478,13 @@ private:
 *   Span class applying alpha mask on its input.
 *
 **************************************************************************/
+
+
+extern VOID FASTCALL MaskAlpha_32bppPARGB_32bppPARGB(
+    const PipelineParams *, const ScanOpParams *);
+
+extern VOID FASTCALL MaskAlpha_32bppRGB_32bppPARGB(
+    const PipelineParams *, const ScanOpParams *);
 
 class CMaskAlphaSpan : public COwnedOSD
 {
@@ -495,13 +503,8 @@ public:
         INT spanWidth
         );
 
-    friend VOID FASTCALL MaskAlpha_32bppPARGB_32bppPARGB(
-        const PipelineParams *, const ScanOpParams *);
 
-    friend VOID FASTCALL MaskAlpha_32bppRGB_32bppPARGB(
-        const PipelineParams *, const ScanOpParams *);
-
-private:
+public:
     // Implementation for more specific functions
     friend VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
         const PipelineParams *,
@@ -524,6 +527,7 @@ private:
 *
 **************************************************************************/
 
+extern VOID FASTCALL ConstantAlpha_128bppPABGR(const PipelineParams *, const ScanOpParams *);
 class CConstantAlphaSpan_scRGB : public COwnedOSD
 {
 public:
@@ -532,10 +536,9 @@ public:
 
     HRESULT Initialize(FLOAT flAlpha);
 
-    friend VOID FASTCALL ConstantAlpha_128bppPABGR(
-        const PipelineParams *, const ScanOpParams *);
 
-private:
+
+public:
     FLOAT m_flAlpha;
 };
 
@@ -547,6 +550,8 @@ private:
 *
 **************************************************************************/
 
+extern VOID FASTCALL MaskAlpha_128bppPABGR_128bppPABGR(
+        const PipelineParams *, const ScanOpParams *);
 class CMaskAlphaSpan_scRGB : public COwnedOSD
 {
 public:
@@ -564,10 +569,9 @@ public:
         INT spanWidth
         );
 
-    friend VOID FASTCALL MaskAlpha_128bppPABGR_128bppPABGR(
-        const PipelineParams *, const ScanOpParams *);
 
-private:
+
+public:
     FLOAT *m_pBuffer;
     UINT m_nBufferLen;
     CColorSource *m_pMaskResampleCS;

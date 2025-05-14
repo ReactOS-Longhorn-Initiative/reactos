@@ -809,7 +809,7 @@ HRESULT CSwRenderTargetSurface::DrawPathInternal(
     HRESULT hr = S_OK;
 
     CRectClipper Clipper;
-
+{
     if (!UpdateCurrentClip(pContextState->AliasedClip, &Clipper))
     {
         // Clipping yields no area; so be done
@@ -882,6 +882,7 @@ HRESULT CSwRenderTargetSurface::DrawPathInternal(
             DBG_STEP_RENDERING_COMMA_PARAM(m_pDisplayRTParent)
             ));
     }
+}
 
 Cleanup:
     // Some failure HRESULTs should only cause the primitive
@@ -1052,7 +1053,7 @@ STDMETHODIMP CSwRenderTargetSurface::DrawGlyphs(
     CRectClipper Clipper;
     CMILBrush *pBrushNoRef;
     float flAlphaScale;
-
+{
     if (!UpdateCurrentClip( pars.pContextState->AliasedClip, &Clipper ))
     {
         // Clipping yields no area; so be done
@@ -1102,7 +1103,7 @@ STDMETHODIMP CSwRenderTargetSurface::DrawGlyphs(
         &m_glyphPainterMemory,
         fTargetSupportsClearType
         ));
-
+    }
 Cleanup:
 
     // Some failure HRESULTs should only cause the primitive

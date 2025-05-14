@@ -403,7 +403,7 @@ HRESULT CSoftwareRasterizer::DrawGlyphRun(
     }
     
     pSpanClipper->GetClipBounds(&rcClipBounds);
-
+{
     {
         // Do a rough check for glyph run visibility.
         // We need it, at least, to protect against
@@ -504,7 +504,7 @@ HRESULT CSoftwareRasterizer::DrawGlyphRun(
     }
 
     pSpanSink->ReleaseExpensiveResources();
-
+}
 Cleanup:
 
     // Always reset the geometry scratch buffers to prevent stale
@@ -956,7 +956,7 @@ HRESULT CResampleSpanCreator_sRGB::GetCS_Resample(
     IWICBitmapSource *pIWICBitmapSourceNoRef = NULL;
     
     MilPixelFormat::Enum pixelFormat;
-
+{
     IFC(pIBitmapSource->GetPixelFormat(&pixelFormat));
 
     IFC(WrapInClosestBitmapInterface(pIBitmapSource, &pWGXWrapper));
@@ -1039,7 +1039,7 @@ HRESULT CResampleSpanCreator_sRGB::GetCS_Resample(
 
             BOOL fSupportsSSE2 = FALSE;
 
-#if defined(_X86_) 
+#if 0//defined(_X86_) 
             // Check for SSE2 on x86 machines.  SSE2 acceleration
             // is disabled for 64-bit targets because intrinsics
             // are causing compile errors.
@@ -1093,7 +1093,7 @@ HRESULT CResampleSpanCreator_sRGB::GetCS_Resample(
         ));
     
     *ppColorSource = pResampleSpan;
-
+    }
 Cleanup:
     ReleaseInterfaceNoNULL(pWGXWrapper);
     ReleaseInterfaceNoNULL(pIWICFactory);

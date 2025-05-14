@@ -141,7 +141,7 @@ getBilinearFilteredARGB(
                 );
 }
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
 
 //+-----------------------------------------------------------------------------
 //
@@ -226,7 +226,7 @@ getBilinearFilteredARGB_Fixed16(
 {
     ARGB retval;
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
     if (g_fUseSSE2)
     {
         CXmmWords xFrac4, yFrac8, color10, color32;
@@ -1543,7 +1543,7 @@ void CBilinearSpan::GenerateColors(
                     // Optimization for cases where we are outside the texture.  This is common, for example, when
                     // dealing with one-dimensional textures (e.g. for gradients).  At least 50% faster than the old
                     // MMX version, far faster than the C fallback
-#if defined(_X86_)
+#if 0//defined(_X86_)
                     if (g_fUseSSE2 && m_WrapMode == MilBitmapWrapMode::Extend && uiCount > SSE_THRESHOLD)
                     {
                         // handles a 1 dimensional interpolation in SSE2 (intrinsics)
@@ -1556,7 +1556,7 @@ void CBilinearSpan::GenerateColors(
                     {
 #endif
                         N = Handle_OutsideTexture_C(u, v, N, pargbDest);
-#if defined(_X86_)
+#if 0//defined(_X86_)
                     }
 #endif
 
@@ -1643,7 +1643,7 @@ void CBilinearSpan::GenerateColors(
             // Postcondition:  horiz_min <= u+(N-1)*UIncrement < horiz_max
             // Postcondition:  vert_min <= v+(N-1)*VIncrement < vert_max
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
             if (g_fUseSSE2 && N > SSE_THRESHOLD)
             {
                 // If either the x or y flip modes are set, use the slower version that supports flipping
@@ -2166,7 +2166,7 @@ void CBilinearSpan::FlippedTile_Interpolation_C(
     }
 }
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
 //+-----------------------------------------------------------------------------
 //
 //  Member:
@@ -3254,7 +3254,7 @@ void CBilinearSpan_MMX::GenerateColors(
     Assert((((ULONG_PTR) m_pvBits) & 3) == 0);
     Assert((m_cbStride & 3) == 0);
 
-#if defined(_X86_)
+/*#if defined(_X86_)
 
     // Transform an array of points using the matrix v' = v M:
     //
@@ -3763,7 +3763,7 @@ void CBilinearSpan_MMX::GenerateColors(
 
     }
 
-#endif
+#endif*/
 
 }
 
@@ -4300,7 +4300,7 @@ HRESULT CConstantAlphaSpan::Initialize(FLOAT flAlpha)
     return S_OK;
 }
 
-static VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
+VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
     __in_ecount(1) const PipelineParams *pPP,
     __in_ecount(1) const ScanOpParams *pSOP,
     bool fHasAlpha
@@ -4447,7 +4447,7 @@ Cleanup:
 
 // MaskAlpha a 32bppPARGB mask bitmap over 32bppPARGB or 32bppRGB color data
 
-static VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
+VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
     __in_ecount(1) const PipelineParams *pPP,
     __in_ecount(1) const ScanOpParams *pSOP,
     bool fHasAlpha

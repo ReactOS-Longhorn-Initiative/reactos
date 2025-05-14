@@ -139,7 +139,7 @@ private:
         __in_ecount(1) const BITMAPINFO *pbmi
         );
     
-    HRESULT CSwPresenter32bppGDI::RemoveForegroundWindowScrollArtifacts(
+    HRESULT RemoveForegroundWindowScrollArtifacts(
         __in_ecount(1) HDC hdcFront
         );
 
