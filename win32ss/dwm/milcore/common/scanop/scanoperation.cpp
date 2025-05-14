@@ -166,8 +166,8 @@ ScanOpFunc GetOp_SrcOver_or_SrcOverAL(
             //}
             //else
             {
-                return CCPUInfo::HasMMX() ? 
-                    SrcOverAL_32bppPARGB_32bppPARGB_MMX :
+                return /*CCPUInfo::HasMMX() ? 
+                    //SrcOverAL_32bppPARGB_32bppPARGB_MMX :*/
                     SrcOverAL_32bppPARGB_32bppPARGB;
             }
 

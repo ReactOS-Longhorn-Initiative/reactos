@@ -92,9 +92,9 @@ CBaseWGXBitmap::AddDirtyRect(
     HRESULT hr = S_OK;
 
     AssertEntry(*this);
-
     UINT uWidth, uHeight;
     IFC(GetSize(&uWidth, &uHeight));
+    {
 
     if (   (prcDirtyRect != NULL)
         && (   prcDirtyRect->left < 0
@@ -178,7 +178,7 @@ CBaseWGXBitmap::AddDirtyRect(
             m_rgDirtyRects[m_cDirtyRects++] = *prcDirty;
         }
     }
-
+}
 Cleanup:
     // Update the uniqueness count to ensure that
     // the bitmap knows there is a change
@@ -671,6 +671,22 @@ STDMETHODIMP CWGXBitmap::SetResolution(
     return S_OK;
 }
 
+HRESULT ULongToLong(ULONG input, long* result)
+{
+    if (result == nullptr)
+    {
+        return E_POINTER;
+    }
+
+    if (input > LONG_MAX)
+    {
+        return E_INVALIDARG;
+    }
+
+    *result = static_cast<long>(input);
+    return S_OK;
+}
+
 HRESULT CWGXBitmap::HrCheckPixelRect(
     __in_ecount_opt(1) const WICRect *prcInput,
     __out_ecount(1) RECT *prcOutput)
@@ -994,7 +1010,7 @@ HRESULT CreateBitmapFromSourceRect(
 
     if (SUCCEEDED(hr))
     {
-        WICRect rc = {x, y, width, height };
+        WICRect rc = {(INT)x, (INT)y, (INT)width, (INT)height };
         MIL_THR(pTempBitmap->Init(pISource, &rc, fCopySource));
     }
 

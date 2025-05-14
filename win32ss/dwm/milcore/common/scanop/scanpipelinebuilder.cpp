@@ -556,7 +556,7 @@ ScanPipelineBuilder::Append_Convert_NonHalftoned_ReportNOP(
     )
 {
     HRESULT hr = S_OK;
-
+{
     UINT uStart = GetOpCount();
 
     IFC(Append_Convert_NonHalftoned(fmtDest, fmtSrc, fSrcOpaque, eSubpipe));
@@ -564,7 +564,7 @@ ScanPipelineBuilder::Append_Convert_NonHalftoned_ReportNOP(
     UINT uEnd = GetOpCount();
 
     *fIsNop = (uEnd == uStart);
-
+}
 Cleanup:
     RRETURN(hr);
 }

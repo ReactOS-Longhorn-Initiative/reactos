@@ -184,7 +184,7 @@ SrcOverAL_32bppPARGB_32bppPARGB_MMX(
     const ScanOpParams *pSOP
     )
 {
-#if defined(_X86_)
+/*#if defined(_X86_)
     const ARGB64* pDestIn = static_cast<const ARGB64 *>(pSOP->m_pvSrc2); \
     ARGB64* pDestOut = static_cast<ARGB64 *>(pSOP->m_pvDest); \
     const void* pSrc = pSOP->m_pvSrc1;
@@ -246,7 +246,7 @@ alpha_blend_done:
 
         emms
     }
-#endif
+#endif*/
 }
 
 // SrcOver from 64bppPARGB to 64bppPARGB.
@@ -310,7 +310,7 @@ SrcOver_64bppPARGB_64bppPARGB_MMX(
     const ScanOpParams *pSOP
     )
 {
-#if defined(_X86_)
+/*#if defined(_X86_)
     const ARGB64* pDestIn = static_cast<const ARGB64 *>(pSOP->m_pvSrc2); \
     ARGB64* pDestOut = static_cast<ARGB64 *>(pSOP->m_pvDest); \
     const void* pSrc = pSOP->m_pvSrc1;
@@ -364,7 +364,7 @@ alpha_blend_done:
         jg         main_loop
         emms
     }
-#endif
+#endif*/
 }
 
 // Note: For SrcOverAL_32bppPARGB_555 and SrcOverAL_32bppPARGB_565, see
