@@ -45,6 +45,7 @@
 // Win32 defines _WIN32 automatically,
 // but Macintosh doesn't, so if we are using
 // Win32 Functions, we must do it here
+#include <float.h>
 
 #ifdef _MAC
 #ifndef _WIN32
@@ -411,7 +412,7 @@ typedef const TCHAR *LPCTSTR;
 
 typedef double DOUBLE;
 
-typedef char INT8;
+//typedef char INT8;
 
 typedef unsigned char       UINT8;
 
@@ -566,8 +567,12 @@ typedef unsigned long       ULONG;
 
     #define __int3264   __int32
 
+    /*#ifndef PtrToUlong
     #define PtrToUlong( p ) ((ULONG)(ULONG_PTR) (p) )
+    #endif
+    #ifndef UlongToPtr
     #define UlongToPtr( ul ) ((VOID *)(ULONG_PTR)((unsigned long)ul))
+    #endif*/
 #endif
 
 #ifdef __MACINTOSH__
@@ -1342,7 +1347,7 @@ typedef const OLECHAR *LPCOLESTR;
 // Definitions for XMLLite
 #define __assume(p)
 #define AssertSz(x,y)
-#define SIZE_T size_t
+//#define SIZE_T size_t
 #define HINSTANCE void *
 #define EXCEPTION_POINTERS int
 #define DISP_E_OVERFLOW 0x8002000AL
