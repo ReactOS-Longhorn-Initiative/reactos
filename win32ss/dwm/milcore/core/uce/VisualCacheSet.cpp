@@ -400,7 +400,7 @@ CMilVisualCacheSet::BeginPartialInvalidate(
     __deref_out CDirtyRegion2 **ppDirtyRegionsNoRef
     )
 {        
-    CMilRectF rect = CMilRectF::sc_rcInfinite;
+    CMilRectF rect = CMilRectF::sc_rcInfinite2;
     m_dirtyRegion.Initialize(&rect, allowedDirtyRegionOverhead);
     *ppDirtyRegionsNoRef = &m_dirtyRegion;
 }
@@ -596,10 +596,10 @@ CMilVisualCacheSet::AddCacheInternal(
 
     // Our cache mode for lookup will either be the specified cache mode or the default cache.
     CMilBitmapCacheDuce *pCacheModeForLookup = pBitmapCacheMode;
-
+{
     // Should only be called with a positive number of cache references.
     Assert(refCount >= 1);
-    
+
     // Handle unspecified cache modes separately.
     if (pCacheModeForLookup == NULL)
     {
@@ -658,6 +658,7 @@ CMilVisualCacheSet::AddCacheInternal(
         // Since we've added a new cache we need to ensure it is updated.
         m_pVisualNoRef->MarkDirtyForPrecompute();
     }
+}
 
 Cleanup:
     // Release the ref from Create, we still hold one from registering as a listener.
@@ -770,7 +771,7 @@ CMilVisualCacheSet::GetBitmapSource (
     )
 {
     HRESULT hr = S_OK;
-
+{
     // Our cache mode for lookup will either be the specified cache mode or the default cache.
     const CMilBitmapCacheDuce *pCacheModeForLookup = pCacheMode;
     
@@ -814,7 +815,7 @@ CMilVisualCacheSet::GetBitmapSource (
         // We shouldn't try to get a bitmap from a non-existent cache.
         Assert(false);
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -837,7 +838,7 @@ CMilVisualCacheSet::GetRenderTargetBitmap (
     )
 {
     HRESULT hr = S_OK;
-
+{
     // Our cache mode for lookup will either be the specified cache mode or the default cache.
     const CMilBitmapCacheDuce *pCacheModeForLookup = pCacheMode;
     
@@ -881,6 +882,7 @@ CMilVisualCacheSet::GetRenderTargetBitmap (
         // We shouldn't try to get a bitmap from a non-existent cache.
         Assert(false);
     }
+}
 
 Cleanup:
     RRETURN(hr);

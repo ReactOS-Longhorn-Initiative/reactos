@@ -682,7 +682,7 @@ CMilVisualCache::GetRenderTargetBitmap (
     
     IRenderTargetInternal *pBaseIRT = NULL;
     DynArray<bool> arrActiveDisplays;
-    
+    {
     // If we are rendering in hardware anywhere, we choose to render caches only in hardware.  
     // This means that in some scenarios (a VisualBrush in a software HWnd, certain cases of 
     // tiled TileBrushes) we might always render the cache bitmap in software 
@@ -751,7 +751,7 @@ CMilVisualCache::GetRenderTargetBitmap (
     }
 
     *ppIRTB = m_pIRenderTargetBitmap; // Pass ref or null to out arg
-
+}
 Cleanup:
     ReleaseInterface(pBaseIRT);
     

@@ -44,7 +44,7 @@ public:
 
     inline STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppvObject) /* override */
     {
-        if (riid == __uuidof(IDpiProvider))
+        if (riid == IID_IDpiProvider)
         {
             *ppvObject = static_cast<DpiProvider*>(this);
             return S_OK;

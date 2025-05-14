@@ -386,7 +386,7 @@ private:
     //
     // ------------------------------------------------------------------------
 
-    HRESULT CComposition::Partition_NotifyPolicyChangeForNonInteractiveMode(
+    HRESULT Partition_NotifyPolicyChangeForNonInteractiveMode(
         _In_ CMilServerChannel *pChannel,
         _In_ CMilSlaveHandleTable *pHandleTable,
         _In_ const MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE* pCmd

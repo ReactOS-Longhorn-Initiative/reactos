@@ -218,7 +218,7 @@ CPartitionManager::Initialize(
 
     if (fEnableDebugControl)
     {
-#if DBG==1
+#if 0
         CSetDefaultMeter mtDefault(Mt(CMediaControl));
 #endif
         WCHAR wszBuffer [64];

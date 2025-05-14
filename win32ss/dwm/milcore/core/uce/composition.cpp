@@ -975,7 +975,7 @@ CComposition::Present(
 {
     HRESULT hr = S_OK;
     QPC_TIME qpcPresentationTime = UINT64_MAX;
-
+{
     if (m_deviceState == MilCompositionDeviceState::Occluded)
     {
         hr = S_PRESENT_OCCLUDED;
@@ -1031,7 +1031,7 @@ CComposition::Present(
                                         &qpcPresentationTime));
 
     NotifyPresentListeners(ePresentationResults, uiRefreshRate, qpcPresentationTime);
-
+    }
 Cleanup:
     if (SUCCEEDED(hr) &&
         ETW_ENABLED_CHECK(TRACE_LEVEL_INFORMATION))
@@ -1601,7 +1601,7 @@ CComposition::Channel_RequestTier(
     //
 
     {
-        static const PTSTR szWinSatKey = _T("Software\\Microsoft\\Windows NT\\CurrentVersion\\WinSAT");
+        static LPCWSTR szWinSatKey = _T("Software\\Microsoft\\Windows NT\\CurrentVersion\\WinSAT");
         
         // Grab WinSAT dropped bandwidth number
         DWORD VideoMemoryBandwidth = 0;
@@ -1964,7 +1964,7 @@ HRESULT CComposition::DetachChannel(
     )
 {
     HRESULT hr = S_OK;
-
+{
     CMilServerChannel *pChannel = NULL;
 
     IFC(GetAttachedChannel(hChannel, &pChannel));
@@ -2011,6 +2011,7 @@ HRESULT CComposition::DetachChannel(
     {
         m_rgpAttachedChannels.ShrinkToSize();
     }
+}
 
 Cleanup:
     RRETURN(hr);

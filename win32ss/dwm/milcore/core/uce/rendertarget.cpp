@@ -95,7 +95,7 @@ CRenderTarget::GetDrawingContext(
     )
 {
     HRESULT hr = S_OK;
-
+{
     if (m_pDrawingContext == NULL)
     {
         if (allowCreation)
@@ -115,7 +115,7 @@ CRenderTarget::GetDrawingContext(
     // Sometimes, a render target is also a DpiProvider. 
     // If the current one is such an RT, then pass it along to the Drawing Context
     IDpiProvider* pDpiProvider = nullptr;
-    if (SUCCEEDED(QueryInterface(IID_PPV_ARGS(&pDpiProvider))))
+    if (SUCCEEDED(QueryInterface(IID_IDpiProvider, (void**)&pDpiProvider)))
     {
         if (m_pDrawingContext != nullptr)
         {
@@ -123,6 +123,7 @@ CRenderTarget::GetDrawingContext(
         }
         ReleaseInterface(pDpiProvider);
     }
+}
 
     *pDrawingContext = m_pDrawingContext;
 

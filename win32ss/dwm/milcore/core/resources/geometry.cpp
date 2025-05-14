@@ -66,7 +66,7 @@ HRESULT CMilGeometryDuce::GetBoundsSafe(CMilRectF *pRect)
 Cleanup:
     if (hr == WGXERR_BADNUMBER)
     {
-        *pRect = CMilRectF::sc_rcInfinite;
+        *pRect = CMilRectF::sc_rcInfinite2;
         hr = S_OK;
     }
 

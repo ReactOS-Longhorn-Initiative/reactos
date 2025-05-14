@@ -56,12 +56,12 @@ CMilSlaveGlyphCache::Create(_In_ CComposition *pComposition, _Out_ CMilSlaveGlyp
 
     IFC(g_DWriteLoader.DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED, 
-            __uuidof(IDWriteFactory),
+            IID_IDWriteFactory,
             &pIUnknown
             ));
 
     IFC(pIUnknown->QueryInterface(
-            __uuidof(IDWriteFactory),
+            IID_IDWriteFactory,
             reinterpret_cast<void**>(&(pGlyphCache->m_pDWriteFactory))
             ));                
 

@@ -221,7 +221,7 @@ CContentBounder::GetContentBounds(
         *prcBounds = m_pBoundsRenderTarget->GetAccumulatedBounds();
         if (!(prcBounds->IsWellOrdered()))
         {
-            *prcBounds = CMilRectF::sc_rcInfinite;
+            *prcBounds = CMilRectF::sc_rcInfinite2;
         }
 
     }
@@ -272,7 +272,7 @@ CContentBounder::GetVisualInnerBounds(
     // use m_Bounds and must walk the content bounds
     //
     IFC(pNode->GetContentBounds(this, &rcBounds));
-
+{
     // Walk the children and union in their bounds.
     // 
     // The cached bounds (m_Bounds) of the children contain their subgraph bounds
@@ -288,7 +288,7 @@ CContentBounder::GetVisualInnerBounds(
 
     // Set out-param upon success
     *prcBounds = rcBounds;
-
+}
 Cleanup:
 
     RRETURN(hr);

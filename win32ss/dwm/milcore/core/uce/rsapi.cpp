@@ -53,7 +53,7 @@ GetGraphicsStreamClient(
     )
 {
     HRESULT hr = S_OK;
-
+{
     //
     // Don't break on E_INVALIDARG -- this error code is used to report that
     // there are no more graphics streams to be enumerated.
@@ -93,7 +93,7 @@ GetGraphicsStreamClient(
             uIndex,
             pUuid
             ));
-
+        }
 Cleanup:
     if (FAILED(hr) && hr != E_INVALIDARG)
     {   
