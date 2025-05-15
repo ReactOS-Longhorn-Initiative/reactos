@@ -61,22 +61,22 @@ utils.cpp
 WatermarkStack.cpp
     )
 
-add_library(common ${SOURCE})
-add_dependencies(common xdk)
+add_library(milcoreCommon ${SOURCE})
+add_dependencies(milcoreCommon xdk)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(common PRIVATE /wd5043 /wd5033)
+target_compile_options(milcoreCommon PRIVATE /wd5043 /wd5033)
 endif()
 
 if(NOT MSVC)
-target_compile_options(common PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
+target_compile_options(milcoreCommon PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
 endif()
-#add_pch(common precomp.cpp SOURCE)
+#add_pch(milcoreCommon precomp.cpp SOURCE)
 
-set_target_cpp_properties(common WITH_EXCEPTIONS WITH_RTTI)
+set_target_cpp_properties(milcoreCommon WITH_EXCEPTIONS WITH_RTTI)
 
-target_compile_options(common PRIVATE -DUNICODE -D_UNICODE)
+target_compile_options(milcoreCommon PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(common PRIVATE cppstl)
+target_link_libraries(milcoreCommon PRIVATE cppstl)
