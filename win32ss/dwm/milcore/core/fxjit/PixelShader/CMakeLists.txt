@@ -40,7 +40,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(PixelShader PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing)
 endif()
-add_pch(PixelShader precomp.cpp SOURCE)
+#add_pch(PixelShader precomp.cpp SOURCE)
 
 set_target_cpp_properties(PixelShader WITH_EXCEPTIONS WITH_RTTI)
 

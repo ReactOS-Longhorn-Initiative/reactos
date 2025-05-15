@@ -50,7 +50,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(Compiler PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing)
 endif()
-add_pch(Compiler precomp.cpp SOURCE)
+#add_pch(Compiler precomp.cpp SOURCE)
 
 set_target_cpp_properties(Compiler WITH_EXCEPTIONS WITH_RTTI)
 

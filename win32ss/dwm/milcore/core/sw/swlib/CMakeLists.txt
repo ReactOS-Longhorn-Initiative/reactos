@@ -53,7 +53,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(swlib PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing)
 endif()
-add_pch(swlib precomp.cpp SOURCE)
+#add_pch(swlib precomp.cpp SOURCE)
 
 set_target_cpp_properties(swlib WITH_EXCEPTIONS WITH_RTTI)
 
