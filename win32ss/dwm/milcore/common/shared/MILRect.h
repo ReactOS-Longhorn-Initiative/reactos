@@ -309,8 +309,8 @@ public:
         // values of the rect, not the maximum extent. The reason for this is that
         // INT_MAX is already at the extreme boundary of the range. 
         // 
-        return (   (this->left <= sc_rcInfinite.left && this->right  >= sc_rcInfinite.right )
-                || (this->top  <= sc_rcInfinite.top  && this->bottom >= sc_rcInfinite.bottom));
+        return (   (this->left <= GetInfiniteValue().left && this->right  >= GetInfiniteValue().right )
+                || (this->top  <= GetInfiniteValue().top  && this->bottom >= GetInfiniteValue().bottom));
     }
 
     //=========================================================================
@@ -498,7 +498,7 @@ public:
 
     VOID SetInfinite()
     {
-        *this = sc_rcInfinite;
+        *this = GetInfiniteValue();
     }
 
     //+------------------------------------------------------------------------
@@ -1011,13 +1011,13 @@ public:
         return reinterpret_cast<const TMilRect*>(base);
     }
 
-    static const Rect_t& GetEmptyValue()
+    static const inline Rect_t& GetEmptyValue()
     {
         return sc_rcEmpty;
     }
-    static const Rect_t& GetInfiniteValue()
+    static const inline Rect_t& GetInfiniteValue()
     {
-        return sc_rcEmpty;
+        return sc_rcInfinite;
     }
 
     //=========================================================================
@@ -1173,11 +1173,11 @@ public:
 
     static void HasBaseType();
 
-    static const TMilRect<TBase, TBaseRect, unique>& GetEmptyValue()
+    static const inline TMilRect<TBase, TBaseRect, unique>& GetEmptyValue()
     {
         return sc_rcEmpty;
     }
-    static const TMilRect<TBase, TBaseRect, unique>& GetInfiniteValue()
+    static const inline TMilRect<TBase, TBaseRect, unique>& GetInfiniteValue()
     {
         return sc_rcEmpty;
     }
