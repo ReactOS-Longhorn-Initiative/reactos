@@ -344,10 +344,10 @@ CModelRenderWalker::RealizeMaterialAndRender(
         // INT_MAX is already at the extreme boundary of the range. 
         // 
         const CMILSurfaceRect LARGEST_MILSURFACERECT(
-            CMILSurfaceRect::sc_rcInfinite.left + 1, 
-            CMILSurfaceRect::sc_rcInfinite.top + 1, 
-            CMILSurfaceRect::sc_rcInfinite.right - 1, 
-            CMILSurfaceRect::sc_rcInfinite.bottom - 1,
+            CMILSurfaceRect::GetInfiniteValue().left + 1, 
+            CMILSurfaceRect::GetInfiniteValue().top + 1, 
+            CMILSurfaceRect::GetInfiniteValue().right - 1, 
+            CMILSurfaceRect::GetInfiniteValue().bottom - 1,
             LTRB_Parameters
             );
             

@@ -27,8 +27,8 @@ MtDefine(CMilAlphaMaskWrapper, Mem, "CMilAlphaMaskWrapper");
 CMilAlphaMaskWrapper::CMilAlphaMaskWrapper(
     )
 {
-    m_previousInnerBounds = CMilRectF::sc_rcEmpty;
-    m_previousOuterBounds = CMilRectF::sc_rcEmpty;    
+    m_previousInnerBounds = CMilRectF::GetEmptyValue();
+    m_previousOuterBounds = CMilRectF::GetEmptyValue();    
     m_pAlphaMask = NULL;
 }
 

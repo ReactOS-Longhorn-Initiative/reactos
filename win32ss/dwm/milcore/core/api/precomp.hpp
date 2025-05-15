@@ -27,7 +27,7 @@
 
 #include "common/common.h"
 
-#include "../../common\effects\effectlist.h"
+#include "../../common/effects/effectlist.h"
 
 // Format converter, palette etc.
 
@@ -47,7 +47,7 @@
 
 // common render target classes and methods
 
-#include "targets/targets.h"
+#include "targets/Targets.h"
 
 // Rendering classes
 
@@ -66,7 +66,7 @@
 
 #include "wgx_core_types.h"
 
-#include "resources/brushcontext.h"
+#include "resources/BrushContext.h"
 #include "resources/BrushRealizer.h"
 
 // Audio/Video

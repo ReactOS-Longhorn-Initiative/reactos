@@ -400,7 +400,7 @@ CMilVisualCacheSet::BeginPartialInvalidate(
     __deref_out CDirtyRegion2 **ppDirtyRegionsNoRef
     )
 {        
-    CMilRectF rect = CMilRectF::sc_rcInfinite;
+    CMilRectF rect = CMilRectF::GetInfiniteValue();
     m_dirtyRegion.Initialize(&rect, allowedDirtyRegionOverhead);
     *ppDirtyRegionsNoRef = &m_dirtyRegion;
 }

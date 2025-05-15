@@ -343,14 +343,14 @@ SrcOverAL_32bppPARGB_555(
 
 #define DITHER_BLEND_555 1
 
-#include "SODither.inc"
+#include "sodither.inc"
 
 // Generate 565 versions of the routines defined in 'sodither.inc'
 
 #undef DITHER_BLEND_555 
 #define DITHER_BLEND_555 0
 
-#include "SODither.inc"
+#include "sodither.inc"
 
 
 

@@ -1011,6 +1011,15 @@ public:
         return reinterpret_cast<const TMilRect*>(base);
     }
 
+    static const Rect_t& GetEmptyValue()
+    {
+        return sc_rcEmpty;
+    }
+    static const Rect_t& GetInfiniteValue()
+    {
+        return sc_rcEmpty;
+    }
+
     //=========================================================================
     // Predefined constant versions of this class
     //
@@ -1019,7 +1028,7 @@ public:
     //   Because I'm not using infinity, these "empty" and "infinite"
     //   rectangles don't really include/exclude all possible points. (See
     //   their definitions in milrectf.cpp).
-
+private:
     static const Rect_t sc_rcEmpty;     // Warning: See ISSUE above
 
     static const Rect_t sc_rcInfinite;  // Warning: See ISSUE above
@@ -1163,6 +1172,28 @@ public:
     }
 
     static void HasBaseType();
+
+    static const TMilRect<TBase, TBaseRect, unique>& GetEmptyValue()
+    {
+        return sc_rcEmpty;
+    }
+    static const TMilRect<TBase, TBaseRect, unique>& GetInfiniteValue()
+    {
+        return sc_rcEmpty;
+    }
+
+    //=========================================================================
+    // Predefined constant versions of this class
+    //
+
+    //   Extreme coordinates not supported
+    //   Because I'm not using infinity, these "empty" and "infinite"
+    //   rectangles don't really include/exclude all possible points. (See
+    //   their definitions in milrectf.cpp).
+private:
+    static const TMilRect<TBase, TBaseRect, unique> sc_rcEmpty;     // Warning: See ISSUE above
+
+    static const TMilRect<TBase, TBaseRect, unique> sc_rcInfinite;  // Warning: See ISSUE above
 };
 
 

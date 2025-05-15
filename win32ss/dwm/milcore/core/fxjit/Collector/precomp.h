@@ -15,7 +15,7 @@
 #include <sal.h>
 //#include <salextra.h>
 
-#include "types.h"
+#include "Types.h"
 #include "warpplatform.h"
 
 #include "SIMDJit.h"

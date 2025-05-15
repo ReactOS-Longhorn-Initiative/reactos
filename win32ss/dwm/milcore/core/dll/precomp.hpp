@@ -15,7 +15,7 @@
 #include "api/api_include.h"
 #include "meta/meta.h"
 #include "geometry/geometry.h"
-#include "targets/targets.h"
+#include "targets/Targets.h"
 #include "sw/sw.h"
 #include "av/av.h"
 

@@ -130,7 +130,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(milcoreResources PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing -Wno-invalid-offsetof)
 endif()
-
+add_pch(resources precomp.cpp SOURCE)
 
 set_target_cpp_properties(milcoreResources WITH_EXCEPTIONS WITH_RTTI)
 

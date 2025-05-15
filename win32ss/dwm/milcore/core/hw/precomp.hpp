@@ -70,14 +70,14 @@
 #include "HwTexturedColorSourceBrush.h"
 #include "D3DTextureSurface.h"
 
-#include "D3DSwapChainWithSwDC.h"
+#include "d3dswapchainwithswdc.h"
 
 #include "control/util/control.h"
 
-#include "shaders.h"
+#include "Shaders.h"
 
 
-#include "../common/effects\effectlist.h"
+#include "../common/effects/effectlist.h"
 
 #include "HwDeviceBitmapColorSource.h"
 #include "HwBitBltDeviceBitmapColorSource.h"

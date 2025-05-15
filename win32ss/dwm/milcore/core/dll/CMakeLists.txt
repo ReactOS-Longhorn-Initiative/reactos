@@ -37,7 +37,7 @@ target_compile_options(milcore PRIVATE /wd5043 /wd5033)
 endif()
 
 if(NOT MSVC)
-target_compile_options(milcore PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
+target_compile_options(milcore PRIVATE -Wno-comment -Wno-sign-compare -Wno-uninitialized)
 endif()
 
 set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)

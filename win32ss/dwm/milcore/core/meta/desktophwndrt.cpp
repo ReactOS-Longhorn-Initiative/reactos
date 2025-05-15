@@ -1015,7 +1015,7 @@ STDMETHODIMP_(VOID) CDesktopHWNDRenderTarget::GetIntersectionWithDisplay(
     }
     else
     {
-        rcIntersectionOut = rcIntersectionOut.sc_rcEmpty;
+        rcIntersectionOut = rcIntersectionOut.GetEmptyValue();
     }
 }
 
@@ -1129,7 +1129,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::Present(
         //
 
         Assert(m_eState == NeedRecreate);
-        IGNORE_HR(SetPosition(&CMilRectF::sc_rcEmpty));
+        IGNORE_HR(SetPosition(&CMilRectF::GetEmptyValue()));
     }
     else if (hr == HRESULT_FROM_WIN32(ERROR_INCORRECT_SIZE))
     {

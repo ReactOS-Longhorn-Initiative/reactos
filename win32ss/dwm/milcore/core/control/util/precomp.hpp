@@ -20,7 +20,7 @@ Environment:
 #include <WPFSDL.h>
 #include <std.h>
 
-#include <shared\basetypes.h>
+#include <shared/basetypes.h>
 
 #include "common.h"
 #include "control.h"

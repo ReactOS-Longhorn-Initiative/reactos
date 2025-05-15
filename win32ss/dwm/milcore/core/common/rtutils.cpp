@@ -162,10 +162,10 @@ IntersectAntiAliasedBoundsRectFWithSurfaceRect(
     static_assert(SURFACE_RECT_MIN >= FIXED4_INT_MIN, "SURFACE_RECT_MIN >= FIXED4_INT_MIN");
     static_assert(SURFACE_RECT_MAX <= FIXED4_INT_MAX, "SURFACE_RECT_MAX <= FIXED4_INT_MAX");
 
-    Assert(SURFACE_RECT_MIN == rcSurface.sc_rcInfinite.left  );
-    Assert(SURFACE_RECT_MIN == rcSurface.sc_rcInfinite.top   );
-    Assert(SURFACE_RECT_MAX == rcSurface.sc_rcInfinite.right );
-    Assert(SURFACE_RECT_MAX == rcSurface.sc_rcInfinite.bottom);
+    Assert(SURFACE_RECT_MIN == rcSurface.GetInfiniteValue().left  );
+    Assert(SURFACE_RECT_MIN == rcSurface.GetInfiniteValue().top   );
+    Assert(SURFACE_RECT_MAX == rcSurface.GetInfiniteValue().right );
+    Assert(SURFACE_RECT_MAX == rcSurface.GetInfiniteValue().bottom);
 
     if (//  (floor(rcBoundsF.left) >= rcSurface.sc_rcInfinite.right)
         //   ==>  (rcBoundsF.left  >= rcSurface.sc_rcInfinite.right)

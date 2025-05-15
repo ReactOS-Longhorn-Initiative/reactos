@@ -166,7 +166,7 @@ class CMilSlaveBitmap;
 //
 
 #include "renderdata.h"
-#include "drawing.h"
+#include "Drawing.h"
 #include "GeometryDrawing.h"
 #include "ImageDrawing.h"
 #include "GlyphRunDrawing.h"

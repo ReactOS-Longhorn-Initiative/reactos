@@ -52,7 +52,7 @@ Environment:
 #include "api/api_include.h"
 
 // Needed for sw.h and hw.h
-#include "targets/targets.h"
+#include "targets/Targets.h"
 
 // Needed only for bitmap
 #include "sw/sw.h"
@@ -73,7 +73,7 @@ Environment:
 #include "DeviceAlignedIntermediateRealizer.h"
 #include "ViewportAlignedIntermediateRealizer.h"
 
-#include "fxjit/public/effectparams.h"
-#include "fxjit/public/pshader.h"
+#include "fxjit/Public/effectparams.h"
+#include "fxjit/Public/pshader.h"
 
 

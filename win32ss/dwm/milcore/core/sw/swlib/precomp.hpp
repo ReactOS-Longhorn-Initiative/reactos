@@ -55,7 +55,7 @@
 
 // common render target classes and methods
 
-#include "targets/targets.h"
+#include "targets/Targets.h"
 
 // get the primitive list from here.
 
