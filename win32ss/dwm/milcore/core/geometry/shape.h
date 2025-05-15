@@ -337,7 +337,7 @@ public:
 #if DBG
         m_fDbgHaveShapesBeenWalkedToPrecomputeProperties = false;
 #endif
-        m_rcCachedBounds = CMilRectF::GetEmptyValue();
+        m_rcCachedBounds = CMilRectF::sc_rcEmpty;
         m_fCachedBoundsSet = false;
         m_eFillMode = MilFillMode::Winding;
     };

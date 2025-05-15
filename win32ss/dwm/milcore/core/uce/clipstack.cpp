@@ -116,7 +116,7 @@ CBaseClipStack::Top(
 {
     if (m_clipStack.IsEmpty())
     {
-        *prcClip = prcClip->GetInfiniteValue();
+        *prcClip = prcClip->sc_rcInfinite;
     }
     else
     {

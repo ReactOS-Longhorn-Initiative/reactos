@@ -61,7 +61,7 @@ CDrawingContext::CDrawingContext(
     m_brushContext.pRenderTargetCreator = NULL;
 
     m_3DBrushContext.pBrushDeviceNoRef = pComposition;
-    m_3DBrushContext.rcSampleSpaceClip = CMilRectF::GetInfiniteValue();
+    m_3DBrushContext.rcSampleSpaceClip = CMilRectF::sc_rcInfinite;
     m_3DBrushContext.fBrushIsUsedFor3D = true;
     m_3DBrushContext.fRealizeProceduralBrushesAsIntermediates = TRUE;
     m_3DBrushContext.pRenderTargetCreator = NULL;
@@ -77,7 +77,7 @@ CDrawingContext::CDrawingContext(
 
     for (UINT i = 0; i < CDirtyRegion2::MaxDirtyRegionCount; i++)
     {
-        m_renderedRegions[i] = CMilRectF::GetEmptyValue();
+        m_renderedRegions[i] = CMilRectF::sc_rcEmpty;
     }
 
     m_fClearTypeHint = false;
@@ -1079,7 +1079,7 @@ CDrawingContext::DrawShape(
             }
             else
             {
-                boundsF = CMilRectF::GetEmptyValue();
+                boundsF = CMilRectF::sc_rcEmpty;
                 boundsD = MilEmptyPointAndSizeD;
             }
 
@@ -1110,7 +1110,7 @@ CDrawingContext::DrawShape(
             }
             else
             {
-                boundsF = CMilRectF::GetEmptyValue();
+                boundsF = CMilRectF::sc_rcEmpty;
                 boundsD = MilEmptyPointAndSizeD;
             }
 
@@ -2730,7 +2730,7 @@ HRESULT CDrawingContext::PushEffects(
                 // isn't a critical error, but we still don't know the real bounds
                 // of the mask. We'll be conservative and set them to infinite.
                 //
-                rcClipBounds = CMilRectF::GetInfiniteValue();
+                rcClipBounds = CMilRectF::sc_rcInfinite;
             }
 
             IFC(PushClipRect(rcClipBounds));
@@ -2973,7 +2973,7 @@ CDrawingContext::CreateAndFillLayer(
     //
 
     m_brushContext.rcWorldBrushSizingBounds = rcBoundsD;
-    m_brushContext.rcWorldSpaceBounds = CMilRectF::GetInfiniteValue();
+    m_brushContext.rcWorldSpaceBounds = CMilRectF::sc_rcInfinite;
 
     //
     // Call DrawInfinitePath to fill layer with fill brush.
@@ -3181,7 +3181,7 @@ HRESULT CDrawingContext::PushLayer(
             //
 
             MIL_THR(PushExactClip(
-                CMilRectF::GetEmptyValue(),
+                CMilRectF::sc_rcEmpty,
                 TRUE // => push clip type on state stack
                 ));
             // Note fPushedClip is not set to TRUE on success.  It is not

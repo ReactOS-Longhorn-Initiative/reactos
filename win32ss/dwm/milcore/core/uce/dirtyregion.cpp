@@ -175,7 +175,7 @@ CDirtyRegion2::Initialize(
     m_rcSurfaceBoundsF =
         (prcNewSurfaceBounds) ?
         *prcNewSurfaceBounds :
-        m_rcSurfaceBoundsF.GetEmptyValue();
+        m_rcSurfaceBoundsF.sc_rcEmpty;
 }
 
 //+-----------------------------------------------------------------------------

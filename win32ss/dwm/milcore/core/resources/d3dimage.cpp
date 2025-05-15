@@ -140,7 +140,7 @@ CMilD3DImageDuce::GetBounds(
     }
     else
     {
-        *prcBounds = CMilRectF::GetEmptyValue();
+        *prcBounds = CMilRectF::sc_rcEmpty;
     }
 
 Cleanup:

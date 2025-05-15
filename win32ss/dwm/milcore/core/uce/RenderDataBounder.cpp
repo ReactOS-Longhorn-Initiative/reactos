@@ -221,7 +221,7 @@ CContentBounder::GetContentBounds(
         *prcBounds = m_pBoundsRenderTarget->GetAccumulatedBounds();
         if (!(prcBounds->IsWellOrdered()))
         {
-            *prcBounds = CMilRectF::GetInfiniteValue();
+            *prcBounds = CMilRectF::sc_rcInfinite;
         }
 
     }

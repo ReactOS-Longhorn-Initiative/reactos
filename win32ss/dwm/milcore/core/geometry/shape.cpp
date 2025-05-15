@@ -471,9 +471,9 @@ CCompoundShapeNoRef::GetFillBoundsInternal(
 {
     HRESULT hr = S_OK;
 
-    CMilRectF rcOverallBoundsShapeSpace = CMilRectF::GetEmptyValue();
+    CMilRectF rcOverallBoundsShapeSpace = CMilRectF::sc_rcEmpty;
 
-    *prcBoundsShapeSpace = CMilRectF::GetEmptyValue();
+    *prcBoundsShapeSpace = CMilRectF::sc_rcEmpty;
 
     for (UINT uShapeNum = 0; uShapeNum < m_rgpShapeDatas.GetCount(); uShapeNum++)
     {
