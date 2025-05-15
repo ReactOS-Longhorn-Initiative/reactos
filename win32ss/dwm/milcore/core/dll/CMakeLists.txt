@@ -43,6 +43,6 @@ endif()
 set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)
 
 set_module_type(milcore win32dll UNICODE)
-target_link_libraries(milcore cppstl uuid dxguid UtilLib DebugLib milcoreCommon commonShared targets hw gcutil glyph swlib milcoreMeta milcoreApi geometry effects scanop uce milcoreResources PixelShader Collector Platform Compiler)
+target_link_libraries(milcore milcoreCommon cppstl uuid dxguid UtilLib DebugLib commonShared targets hw gcutil glyph swlib milcoreMeta milcoreApi geometry effects scanop uce milcoreResources PixelShader Collector Platform Compiler)
 add_importlibs(milcore winmm ole32 oleaut32 windowscodecs d3dx9_40 d3d10 d3d10_1 advapi32 user32 gdi32 msvcrt kernel32 ntdll)
 add_cd_file(TARGET milcore DESTINATION reactos/system32 FOR all)
