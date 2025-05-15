@@ -154,7 +154,7 @@ CDummyRenderTarget::GetBounds(
     )
 {
     // Return dummy bounds here...
-    *pBounds = CMilRectF::GetEmptyValue();
+    *pBounds = CMilRectF::sc_rcEmpty;
 
     return;
 }
@@ -571,7 +571,7 @@ CDummyRenderTarget::GetIntersectionWithDisplay(
     __out_ecount(1) MilRectL &rcIntersection
     )
 {
-    rcIntersection = CMilRectL::GetEmptyValue();
+    rcIntersection = CMilRectL::sc_rcEmpty;
     return;
 }
 

@@ -385,7 +385,7 @@ void CSlaveHWndRenderTarget::GetIntersectionWithDisplay(
     }
     else
     {
-        rcIntersection = rcIntersection.GetEmptyValue();
+        rcIntersection = rcIntersection.sc_rcEmpty;
     }
 }
 

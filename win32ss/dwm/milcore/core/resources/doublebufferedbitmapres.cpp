@@ -83,7 +83,7 @@ CMilSlaveDoubleBufferedBitmap::GetBounds(
     {
         // We are concerned about callers who won't expect this
         // method to fail.
-        *prcBounds = CMilRectF::GetEmptyValue();
+        *prcBounds = CMilRectF::sc_rcEmpty;
     }
     else
     {

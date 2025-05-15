@@ -598,7 +598,7 @@ CPreComputeContext::ConvertInnerToOuterBounds(
     // set to infinite bounds if bounding box has NaN 
     if (!(pNodeBounds->IsWellOrdered()))
     {
-        *pNodeBounds = CMilRectF::GetInfiniteValue();
+        *pNodeBounds = CMilRectF::sc_rcInfinite;
     }
 
 Cleanup:
@@ -807,7 +807,7 @@ CPreComputeContext::PushCache(
         // and an empty clip on top of the stack.
         CMILMatrix matIdentity(true);
         IFC(m_transformStack.Push(&matIdentity, false /*do not multiply*/));
-        CRectF<CoordinateSpace::PageInPixels> noClip = CRectF<CoordinateSpace::PageInPixels>::ReinterpretNonSpaceTyped(CMilRectF::GetInfiniteValue());
+        CRectF<CoordinateSpace::PageInPixels> noClip = CRectF<CoordinateSpace::PageInPixels>::ReinterpretNonSpaceTyped(CMilRectF::sc_rcInfinite);
         IFC(m_clipStack.PushExact(noClip));
     }
     
@@ -1151,7 +1151,7 @@ HRESULT CPreComputeContext::ScrollableAreaHandling(
         //
 
         // Take the vertical scroll case first, this is the most common in the targeted scenarios
-        CMilRectL verticalScrollRect = CMilRectL::GetEmptyValue();
+        CMilRectL verticalScrollRect = CMilRectL::sc_rcEmpty;
         if (offsetY != 0)
         {
             verticalScrollRect = scrollClipRectFinal;
@@ -1167,7 +1167,7 @@ HRESULT CPreComputeContext::ScrollableAreaHandling(
             }
         }
 
-        CMilRectL horizontalScrollRect = CMilRectL::GetEmptyValue();
+        CMilRectL horizontalScrollRect = CMilRectL::sc_rcEmpty;
         if (offsetX != 0)
         {                
             horizontalScrollRect = scrollClipRectFinal;
