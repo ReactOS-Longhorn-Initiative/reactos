@@ -29,7 +29,7 @@
 
 #include "warpplatform.h"
 
-#include "types.h"
+#include "Types.h"
 #include "SIMDJit.h"
 
 

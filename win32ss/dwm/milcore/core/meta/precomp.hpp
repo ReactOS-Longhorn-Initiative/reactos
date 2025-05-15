@@ -39,7 +39,7 @@
 #include "api/api_include.h"
 
 // hardware and software render targets.
-#include "../targets/targets.h"
+#include "../targets/Targets.h"
 #include "../sw/sw.h"
 #include "../hw/hw.h"
 

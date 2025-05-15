@@ -79,7 +79,7 @@ CAdjustBounds::CAdjustBounds(
     // Remember original bounds
     m_boundsOrig(m_fBoundsNeedAdjustment ?
                  **ppBoundsToAdjust :
-                 m_boundsForDevice.sc_rcEmpty)
+                 m_boundsForDevice.GetEmptyValue())
 {
 //    m_fBoundsNeedAdjustment = (ppBoundsToAdjust != NULL);
 

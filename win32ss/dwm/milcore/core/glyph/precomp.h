@@ -25,7 +25,7 @@
 
 #include "api/api_include.h"
 
-#include "targets/targets.h"
+#include "targets/Targets.h"
 
 #include "sw/sw.h"
 

@@ -39,7 +39,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(milcoreMeta PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder -Wno-delete-non-virtual-dtor -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-unused-variable -Wno-narrowing -Wno-invalid-offsetof)
 endif()
-
+add_pch(meta precomp.cpp SOURCE)
 
 set_target_cpp_properties(milcoreMeta WITH_EXCEPTIONS WITH_RTTI)
 

@@ -9,7 +9,7 @@
 #include "std.h"
 #include <ole2.h>
 
-#include "internalguids.h"
+#include "InternalGUIDs.h"
 #include "shared/shared.h"
 
 #include "scanop.h"

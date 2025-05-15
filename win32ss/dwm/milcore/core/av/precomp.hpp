@@ -34,7 +34,7 @@
 #include "api/api_include.h"
 
 // Needed for sw.h and hw.h
-#include "targets/targets.h"
+#include "targets/Targets.h"
 
 // Needed for hw.h
 #include "sw/sw.h"

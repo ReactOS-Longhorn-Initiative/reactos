@@ -73,6 +73,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(common PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
 endif()
+add_pch(common precomp.cpp SOURCE)
 
 set_target_cpp_properties(common WITH_EXCEPTIONS WITH_RTTI)
 

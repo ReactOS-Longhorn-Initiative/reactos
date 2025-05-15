@@ -32,7 +32,7 @@
 
 // local headers
 
-#include "targets.h"
+#include "Targets.h"
 
 #include "control/util/control.h"
 
