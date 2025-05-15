@@ -36,7 +36,7 @@ endif()
 if(NOT MSVC)
 target_compile_options(targets PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-reorder)
 endif()
-add_pch(targets precomp.cpp SOURCE)
+#add_pch(targets precomp.cpp SOURCE)
 
 set_target_cpp_properties(targets WITH_EXCEPTIONS WITH_RTTI)
 
