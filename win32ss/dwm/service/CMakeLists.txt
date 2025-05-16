@@ -1,13 +1,15 @@
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcConnectLib)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcCreateLib)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/rwm)
 
 spec2def(uxsms.dll uxsms.spec ADD_IMPORTLIB)
 
 add_library(uxsms MODULE
     dwmsession.cpp
-    uxsms.cpp
+    port.cpp    
     serv.cpp
-    port.cpp
+    uxsms.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/uxsms_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/uxsms.def)
 

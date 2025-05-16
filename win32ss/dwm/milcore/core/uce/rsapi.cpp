@@ -15,6 +15,10 @@
 
 #include "precomp.hpp"
 
+// Compatibility for Vista dwm api.
+typedef MilMatrix3x2D MIL_MATRIX3X2D;
+
+
 typedef HRESULT (WINAPI *PFNDWMGETGRAPHICSSTREAMTRANSFORMHINT)(
     _In_ UINT uIndex,
     __out_ecount(1) MilMatrix3x2D *pTransform
@@ -34,6 +38,82 @@ typedef HRESULT (WINAPI *PFNDWMPDETACHMILCONTENT)(HWND hwnd);
 
 CCriticalSection g_csGraphicsStream;
 
+HRESULT
+WINAPI
+MilGraphicsStream_Close(PVOID Adapter)
+{
+    __debugbreak();
+    return S_OK;
+}
+
+HRESULT
+WINAPI
+MilGraphicsStream_Open(PVOID MilConnectionManager, PVOID MILGraphicsStreamClien, MIL_MATRIX3X2D* pTransform)
+{
+    __debugbreak();
+    return S_OK;
+}
+
+HRESULT
+WINAPI
+MilGraphicsStream_SetTransformHint(MIL_MATRIX3X2D* pTransform)
+{
+    __debugbreak();
+    return S_OK;
+}
+
+HRESULT
+WINAPI
+MilGraphicsStream_GetTransformHint(
+    _In_ UINT uIndex,
+    __out_ecount(1) MilMatrix3x2D *pTransform
+    )
+{
+    HRESULT hr = S_OK;
+{
+    //
+    // Don't break on E_INVALIDARG -- this error code is used to report that
+    // there are no more graphics streams to be enumerated.
+    //
+
+    BEGIN_MILINSTRUMENTATION_HRESULT_LIST
+        E_INVALIDARG
+    END_MILINSTRUMENTATION_HRESULT_LIST
+
+    //
+    // Do not attempt to load dwmapi.dll on down-level platforms.
+    //
+    if (!DWMAPI::CheckOS())
+    {
+        hr = E_INVALIDARG;
+        goto Cleanup;
+    }
+    //  
+    // Call the DWM to enumerate graphics streams.
+    //
+    IFC(DWMAPI::Load());
+    PFNDWMGETGRAPHICSSTREAMTRANSFORMHINT pfnGetGraphicsStreamTransformHint = NULL;
+    IFCW32(pfnGetGraphicsStreamTransformHint = 
+           reinterpret_cast<PFNDWMGETGRAPHICSSTREAMTRANSFORMHINT>(
+               DWMAPI::GetProcAddress(
+                   "DwmGetGraphicsStreamTransformHint"
+                   )));
+    IFC(pfnGetGraphicsStreamTransformHint(
+            uIndex,
+            pTransform
+            ));
+        }
+Cleanup:
+    if (FAILED(hr) && hr != E_INVALIDARG)
+    {   
+        TraceTag((tagMILWarning, 
+                  "MilGraphicsStream_Enum: failed with HRESULT 0x%08x", 
+                  hr
+                  ));
+    }
+    
+    RRETURN(hr);
+}
 
 //+-----------------------------------------------------------------------------
 //

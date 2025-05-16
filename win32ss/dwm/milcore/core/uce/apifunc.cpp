@@ -115,6 +115,131 @@ MilCompositionEngine_DeinitializePartitionManager()
     return S_OK;
 }
 
+//+-----------------------------------------------------------------------
+//
+//    Function:
+//        MilTransport_AddRef
+//
+//    Synopsis:
+//        Icrement reference to the connection.
+//------------------------------------------------------------------------
+
+HRESULT
+WINAPI
+MilTransport_AddRef(
+    _In_ HMIL_CONNECTION hConnection
+    )
+{
+    HRESULT hr = S_OK;
+    CMilConnection* pConnection = HandleToPointer(hConnection);
+    IFC(pConnection->AddRef());
+
+Cleanup:
+    RRETURN(hr);
+}
+
+HRESULT
+WINAPI
+MilTransport_Create(PVOID CMilConnectionManager,
+                    PVOID TransportParams,
+                    UINT32 Boolean,
+                    HMIL_CONNECTION *phConnection)
+{
+    HRESULT hr = S_OK;
+    CMilConnection* pConnection = NULL;
+
+    CHECKPTRARG(phConnection);
+
+    IFC(CMilConnection::Create(
+        MilMarshalType::SameThread ,
+        OUT &pConnection));
+
+    *phConnection = PointerToHandle(pConnection);
+    pConnection = NULL;
+
+Cleanup:
+    ReleaseInterface(pConnection);
+    
+    RRETURN(hr);
+}
+
+HRESULT
+WINAPI
+MilTransport_CreateFromPacketTransport(PVOID CMilConnectionManager,
+                                       PVOID TransportParams,
+                                       HMIL_CONNECTION *phConnection)
+{
+    HRESULT hr = S_OK;
+    CMilConnection* pConnection = NULL;
+
+    CHECKPTRARG(phConnection);
+
+    IFC(CMilConnection::Create(
+        MilMarshalType::CrossThread,
+        OUT &pConnection));
+
+    *phConnection = PointerToHandle(pConnection);
+    pConnection = NULL;
+
+Cleanup:
+    ReleaseInterface(pConnection);
+    
+    RRETURN(hr);
+}
+
+HRESULT
+WINAPI
+MilTransport_CreateSurfaceManager(PVOID IMilRedirectedGDISurfaceManager)
+{
+    //DbgPrint("MilTransport_CreateSurfaceManager: Not implemented\n");
+    __debugbreak();
+    return S_OK;
+}	
+
+HRESULT
+WINAPI
+MilTransport_CreateTransportParameters(PVOID Todo)
+{
+    //DbgPrint("MilTransport_CreateTransportParameters: Not implemented\n");
+    __debugbreak();
+    return S_OK;
+}
+
+HRESULT
+WINAPI
+MilTransport_DisconnectTransport(HMIL_CONNECTION hConnection)
+{
+    HRESULT hr = S_OK;
+
+    CMilConnection *pConnection;
+
+    CHECKPTRARG(hConnection);
+
+    pConnection = HandleToPointer(hConnection);
+
+    pConnection->Release();
+
+Cleanup:
+    RRETURN(hr);
+}
+
+HRESULT
+WINAPI
+MilTransport_InitializeConnectionManager(PVOID IMilRedirectedGDISurfaceManager, PULONG * ConnectionManager)
+{
+    __debugbreak();
+    *ConnectionManager = (PULONG)0xFFFFFFFF;
+    return S_OK;
+}
+HRESULT
+WINAPI
+MilTransport_ShutDownConnectionManager(CMilConnectionManager* ConnectionManager)
+{
+    __debugbreak();
+    ConnectionManager = NULL;
+    return S_OK;
+}
+
 
 //+-----------------------------------------------------------------------
 //

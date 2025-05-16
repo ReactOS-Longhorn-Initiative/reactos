@@ -14,7 +14,9 @@
 
 #include <initguid.h>
 #include "precomp.hpp"
+#include <MemUtils.h>
 #include "av/avloader.h" // todo remove
+
 
 extern "C"
 BOOL
@@ -25,6 +27,7 @@ DllMain(
     __in_ecount(1) CONTEXT* /* context */
     )
 {
+     g_hProcessHeap = GetProcessHeap();
     return MILCoreDllMain(
         dllHandle,
         reason
@@ -40,7 +43,7 @@ bool WPFUtils::OSVersionHelper::IsWindows8OrGreater()
 }
 bool WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater()
 {
-    return false;
+    return true;
 }
 bool WPFUtils::OSVersionHelper::IsWindows7OrGreater()
 {

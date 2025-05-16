@@ -42,7 +42,7 @@ LpcCreateLib::StopPortThread()
 }   
 
 DWORD WINAPI
-LpcCreateLib::ProcessCompleteConnect(PLPC_MAX_MESSAGE LpcInput)
+LpcCreateLib::ProcessCompleteConnect(PLPC_RWM_MESSAGE LpcInput)
 {
     HANDLE PortHandle;
     NTSTATUS Status;
@@ -60,7 +60,7 @@ LpcCreateLib::ProcessCompleteConnect(PLPC_MAX_MESSAGE LpcInput)
 
 VOID
 WINAPI
-LpcCreateLib::ProcessLpcOperation(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext)
+LpcCreateLib::ProcessLpcOperation(PLPC_RWM_MESSAGE LpcReply, PVOID PortContext)
 {
     ULONG MessageType;
 
@@ -99,14 +99,14 @@ GenericPortThread(LPVOID lpParameter)
 {
     LpcCreateLib* pThis = (LpcCreateLib*)lpParameter;
     NTSTATUS Status;
-    PLPC_MAX_MESSAGE LpcReply;
+    PLPC_RWM_MESSAGE LpcReply;
     PVOID PortContext;
 
     // Wait for a message from the port
     while (TRUE)
     {
         // Allocate memory for the message
-        LpcReply = (PLPC_MAX_MESSAGE)(PLPC_MAX_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
+        LpcReply =  (PLPC_RWM_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
                                           HEAP_ZERO_MEMORY,
                                           256);
         if (!LpcReply)

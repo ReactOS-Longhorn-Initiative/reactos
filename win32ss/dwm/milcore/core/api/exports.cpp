@@ -890,15 +890,8 @@ MILCreateEventProxy(
     __deref_out_ecount(1) CEventProxy** const ppEventProxy
     )
 {
-    HRESULT hr = S_OK;
-
-    CHECKPTRARG(ppEventProxy);
-    CHECKPTRARG(pEPD);
-
-    IFC(CEventProxy::Create(*pEPD, ppEventProxy));
-
-Cleanup:
-    RRETURN(hr);
+    __debugbreak();
+    return E_NOTIMPL;
 }
 
 //------------------------------------------------------------------------------

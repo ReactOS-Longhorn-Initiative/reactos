@@ -1,58 +1,45 @@
 /*
- * PROJECT:     ReactOS DWM Service
+ * PROJECT:     RWM UxSms Service
  * LICENSE:     MIT (https://opensource.org/licenses/MIT)
- * PURPOSE:     Entry point for the DWM service
+ * PURPOSE:     UxSms service side logic
  * COPYRIGHT:   Copyright 2025 Justin Miller <justin.miller@reactos.org>
  */
 
 /* INCLUDES *****************************************************************/
 
-#include "uxsms.h"
+#include <uxsms.h>
+#include <winsvc.h>
+#include <wtsapi32.h>
+#define NDEBUG
 #include <debug.h>
 
 /* GLOBALS ******************************************************************/
 
-static WCHAR ServiceName[] = L"UxSms";
-
-SERVICE_STATUS_HANDLE ServiceStatusHandle;
-SERVICE_STATUS ServiceStatus;
-
-#ifndef SERVICE_CONTROL_SESSIONCHANGE
-#define SERVICE_CONTROL_SESSIONCHANGE          0x0000000E
-#endif
-
-#ifndef WTS_CONSOLE_CONNECT
-#define WTS_CONSOLE_CONNECT                0x1
-#define WTS_CONSOLE_DISCONNECT             0x2
-#define WTS_REMOTE_CONNECT                 0x3
-#define WTS_REMOTE_DISCONNECT              0x4
-#define WTS_SESSION_LOGON                  0x5
-#define WTS_SESSION_LOGOFF                 0x6
-#endif
+SERVICE_STATUS_HANDLE GlobalServiceStatusHandle;
 
 /* FUNCTIONS *****************************************************************/
 
-static VOID
+static
+VOID
 UpdateServiceStatus(DWORD dwState)
 {
+    SERVICE_STATUS ServiceStatus = {0};
+
     ServiceStatus.dwServiceType = SERVICE_WIN32;
     ServiceStatus.dwCurrentState = dwState;
     ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_SESSIONCHANGE |
                                        SERVICE_ACCEPT_STOP |
                                        SERVICE_ACCEPT_SHUTDOWN;
-    ServiceStatus.dwWin32ExitCode = 0;
-    ServiceStatus.dwServiceSpecificExitCode = 0;
-    ServiceStatus.dwCheckPoint = 0;
-    ServiceStatus.dwWaitHint = 0;
 
-    SetServiceStatus(ServiceStatusHandle,
+    SetServiceStatus(GlobalServiceStatusHandle,
                      &ServiceStatus);
 }
 
-HRESULT WINAPI
+HRESULT
+WINAPI
 ServiceShutdown()
 {
-    DPRINT1("ServiceShutdown() called\n");
+    DPRINT("ServiceShutdown() called\n");
     UpdateServiceStatus(SERVICE_STOP_PENDING);
     // Perform any necessary cleanup here
     // This is where you would free resources or save state
@@ -63,7 +50,9 @@ ServiceShutdown()
     return S_OK;
 }
 
-static DWORD WINAPI
+static
+DWORD
+WINAPI
 ServiceHandleSessionEvents(DWORD dwEventType,
                            LPVOID lpEventData,
                            LPVOID lpContext)
@@ -92,7 +81,7 @@ ServiceHandleSessionEvents(DWORD dwEventType,
             break;
         case WTS_SESSION_LOGON:
             DPRINT1("Session logon event received\n");
-            // THis is where you would start the DWM process
+            SessionBypassInitializeDWM();
             break;
         case WTS_SESSION_LOGOFF:
             DPRINT1("Session logoff event received\n");
@@ -105,7 +94,9 @@ ServiceHandleSessionEvents(DWORD dwEventType,
     return ERROR_SUCCESS;
 }
 
-static DWORD WINAPI
+static
+DWORD
+WINAPI
 ServiceControlHandler(DWORD dwControl,
                       DWORD dwEventType,
                       LPVOID lpEventData,
@@ -122,7 +113,6 @@ ServiceControlHandler(DWORD dwControl,
             ServiceShutdown();
             return ERROR_SUCCESS;
         }
-        /* This service aspect of this dll is primarily to track session changes */
         case SERVICE_CONTROL_SESSIONCHANGE:
         {
             DPRINT1("ServiceControlHandler: Control to SessionChange received\n");
@@ -143,16 +133,16 @@ ServiceControlHandler(DWORD dwControl,
 HRESULT WINAPI
 ServiceStartup()
 {
-    DPRINT1("ServiceStartup() called\n");
-    ServiceStatusHandle = RegisterServiceCtrlHandlerExW(ServiceName,
-                                                        ServiceControlHandler,
-                                                        NULL);
-    if (!ServiceStatusHandle)
+    DPRINT("ServiceStartup() called\n");
+    GlobalServiceStatusHandle = RegisterServiceCtrlHandlerExW(RWMUXSMS_NAME,
+                                                              ServiceControlHandler,
+                                                              NULL);
+    if (!GlobalServiceStatusHandle)
     {
-        DPRINT1("RegisterServiceCtrlHandlerExW failed\n");
+        DPRINT("RegisterServiceCtrlHandlerExW failed\n");
         return HRESULT_FROM_WIN32(GetLastError());
     }
-    DPRINT1("RegisterServiceCtrlHandlerExW succeeded\n");
+    DPRINT("RegisterServiceCtrlHandlerExW succeeded\n");
 
     UpdateServiceStatus(SERVICE_START_PENDING);
 
@@ -160,7 +150,7 @@ ServiceStartup()
     InitializeServicePort();
 
     UpdateServiceStatus(SERVICE_RUNNING);
-    // TODO: HACK: ReactOS has no support for Multisession, so let's indefinietly start 
+    // TODO: HACK: ReactOS has no support for Multisession, so let's manually start 
     /* Start UX.SS/DWM.EXE
      * This is actually NOT correct. 
      * The DWM service should be started  at the logon event
@@ -176,7 +166,10 @@ ServiceStartup()
      * -> So DWM startsup at this point if all lights are green behind the screen and fade in 
      * only occurs after it finishes.
      */
+    if (IsReactOS())
+    {
+        SessionBypassInitializeDWM();
+    }
 
-    SessionBypassInitializeDWM();
     return S_OK;
 }

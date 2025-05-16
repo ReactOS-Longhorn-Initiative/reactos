@@ -1,13 +1,13 @@
 /*
- * PROJECT:     ReactOS DWM Service
+ * PROJECT:     RWM UxSms Service
  * LICENSE:     MIT (https://opensource.org/licenses/MIT)
- * PURPOSE:     Entry point for the DWM service
+ * PURPOSE:     Entry points for UxSms
  * COPYRIGHT:   Copyright 2025 Justin Miller <justin.miller@reactos.org>
  */
 
 /* INCLUDES *****************************************************************/
 
-#include "uxsms.h"
+#include <uxsms.h>
 
 /* FUNCTIONS *****************************************************************/
 
