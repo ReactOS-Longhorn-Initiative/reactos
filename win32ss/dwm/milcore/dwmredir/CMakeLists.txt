@@ -3,7 +3,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 remove_definitions(-D_WIN32_WINNT=0x502)
 add_definitions(-D_WIN32_WINNT=0x600)
-
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/rwm)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcConnectLib)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcCreateLib)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/UtilLib)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore/common/DirectXLayer/)
@@ -15,32 +18,22 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/Generated)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 
-add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
-
-add_definitions(-D_milcore_)
-#spec2def(milcore.dll milcore.spec ADD_IMPORTLIB)
+# DIRECTXMATH requires SSE
+add_definitions(-DD3D9EXTENSIONS) # todo should DD3D9EXTENSIONS / DIRECTXMATH be used?
 
 list(APPEND SOURCE
-precomp.cpp
-dllentry.cpp
-wpfgfx.def
-    )
+dwmstartup.cpp
+)
 
-add_library(milcore MODULE ${SOURCE})
-add_dependencies(milcore xdk)
+add_library(dwmredir ${SOURCE})
+add_dependencies(dwmredir xdk)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration
-target_compile_options(milcore PRIVATE /wd5043 /wd5033)
+target_compile_options(dwmredir PRIVATE /wd5043)
 endif()
 
-if(NOT MSVC)
-target_compile_options(milcore PRIVATE -Wno-comment -Wno-sign-compare -Wno-uninitialized)
-endif()
+set_target_cpp_properties(dwmredir WITH_EXCEPTIONS WITH_RTTI)
 
-set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)
-set_module_type(milcore win32dll UNICODE)
-target_link_libraries(milcore dwmredir milcoreCommon cppstl uuid dxguid UtilLib DebugLib commonShared targets hw gcutil glyph swlib milcoreMeta milcoreApi geometry effects scanop uce milcoreResources PixelShader Collector Platform Compiler)
-add_importlibs(milcore winmm ole32 oleaut32 windowscodecs d3dx9_40 d3d10 d3d10_1 advapi32 user32 gdi32 msvcrt kernel32 ntdll)
-add_cd_file(TARGET milcore DESTINATION reactos/system32 FOR all)
+target_link_libraries(dwmredir PRIVATE cppstl)
