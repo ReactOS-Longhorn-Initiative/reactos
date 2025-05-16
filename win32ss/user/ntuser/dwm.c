@@ -30,7 +30,7 @@ IntLpcStyleDwmNewWindow(PWND Pwnd, BOOLEAN NewWindow)
         else
         {
             SetLayeredStatus(Pwnd, 0);
-            IntSetLayeredWindowAttributes(Pwnd,(COLORREF)NULL,255,2);
+            IntSetLayeredWindowAttributes(Pwnd,0,255,2);
         }
     }
 
