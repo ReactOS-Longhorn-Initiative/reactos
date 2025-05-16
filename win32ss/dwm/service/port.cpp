@@ -1,59 +1,58 @@
+/*
+ * PROJECT:     RWM UxSms Service
+ * LICENSE:     MIT (https://spdx.org/licenses/MIT)
+ * PURPOSE:     UxSms Service Port
+ * COPYRIGHT:   Copyright 2025 Justin Miller <justin.miller@reactos.org>
+ */
 
 /* INCLUDES *****************************************************************/
 
-#include "uxsms.h"
-
+#include <uxsms.h>
+#include <wtsapi32.h>
+//#define NDEBUG
 #include <debug.h>
-
-#define DWMUXSMS_APIPORTDESCRIPTION L"User Experience SubSystem API Port"
 
 /* GLOBALS ******************************************************************/
 
-static WCHAR PortName[] = L"\\UxSmsApiPort";
+HANDLE GlobalServiceApiThreadHandle;
+HANDLE PortHandle;
+LpcCreateLib* lpcCreateLib;
+WCHAR* DwmSessionPort;
 
 /* FUNCTIONS ****************************************************************/
-typedef struct  _SESSION_PORTPATH
-{
-    WCHAR PortPathStr[MAX_PATH];
-} SESSION_PORTPATH, *PSESSION_PORTPATH;
-
-    HANDLE PortHandle;
-typedef struct _SESSION_INIT
-{
-    ULONG SessionId;
-    ULONG ProcessId;
-} SESSION_INIT, *PSESSION_INIT;
-HANDLE GlobalServiceApiThreadHandle;
-
-LpcCreateLib* lpcCreateLib;
-
-typedef enum _RWM_SERIVCE_MSGS
-{
-    RWM_SERVICE_CONNECT = 1,
-    RWM_SERVICE_PUSH_OBJ = 2,
-    RWM_SERVICE_POP_OBJ = 3,
-    RWM_SERVICE_QUERY_PORTNAME = 4
-} RWM_SERIVCE_MSGS, *PRWM_SERIVCE_MSGS;
-WCHAR* DwmSessionPort;
 
 VOID
 WINAPI
-RwmServiceConnect(PLPC_MAX_MESSAGE LpcReply)
+RwmServiceConnect(PLPC_RWM_MESSAGE LpcReply)
 {
-    PSESSION_PORTPATH pSessionPath = {0};
+    PRWMSERVCMD_CONNECT_SESSION_PORT pSessionPath = {0};
     DPRINT("RWM_SERVICE_CONNECT received\n");
-    pSessionPath = (PSESSION_PORTPATH)LpcReply->Data;
-    DPRINT1("Path: %ls\n", pSessionPath->PortPathStr);
+    pSessionPath = (PRWMSERVCMD_CONNECT_SESSION_PORT)LpcReply->Data;
     DwmSessionPort = pSessionPath->PortPathStr;
-    SESSION_INIT* pSessionInit = (SESSION_INIT*)LpcReply->Data;
-    pSessionInit->SessionId = 0;
+    DPRINT1("Path: %ls\n", pSessionPath->PortPathStr);
+
+    PRWMSERVCMD_CONNECT_SESSIONINFO pSessionInit = (PRWMSERVCMD_CONNECT_SESSIONINFO)LpcReply->Data;
+    pSessionInit->SessionId = WTS_CURRENT_SESSION;
     pSessionInit->ProcessId = GetCurrentProcessId();
-    LpcReply->Header.u1.s1.DataLength = sizeof(ULONG) + sizeof(ULONG) + sizeof(SESSION_INIT);
+    LpcReply->Header.u1.s1.DataLength = sizeof(ULONG) + sizeof(ULONG) + sizeof(RWMSERVCMD_CONNECT_SESSIONINFO);
 }
+
+VOID
+WINAPI
+RwmServiceQuertyPortName(PLPC_RWM_MESSAGE LpcReply)
+{
+    PRWMSERVCMD_CONNECT_SESSION_PORT GetSessionPort = {0};
+    DPRINT("RWM_SERVICE_CONNECT received\n");
+    GetSessionPort = (PRWMSERVCMD_CONNECT_SESSION_PORT)LpcReply->Data;
+    ULONG PortNameSize = lstrlenW(DwmSessionPort) * sizeof(WCHAR);
+    RtlCopyMemory(GetSessionPort->PortPathStr, DwmSessionPort, PortNameSize);
+    LpcReply->Header.u1.s1.DataLength = sizeof(ULONG) + sizeof(ULONG) + PortNameSize;
+}
+
 
 NTSTATUS
 WINAPI
-HandleServiceLpcOperations(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext)
+HandleServiceLpcOperations(PLPC_RWM_MESSAGE LpcReply, PVOID PortContext)
 {
 
     ULONG MessageType;
@@ -99,7 +98,7 @@ InitializeServicePort()
     OBJECT_ATTRIBUTES ObjectAttributes;
     UNICODE_STRING PortString;
 
-    RtlInitUnicodeString(&PortString, PortName);
+    RtlInitUnicodeString(&PortString, RWMUXSMS_APIPORTNAME);
 
     InitializeObjectAttributes(&ObjectAttributes,
                                &PortString,
@@ -108,9 +107,9 @@ InitializeServicePort()
                                NULL);
     Status = NtCreatePort(&PortHandle,
                           &ObjectAttributes,
-                          (sizeof(L"User Experience Session Management Service API Port")),
-                          256,
-                          16 * 256);
+                          RWMUXSMS_APIPORTDESCRIPTIONLEN,
+                          sizeof(LPC_RWM_MESSAGE),
+                          16 * sizeof(LPC_RWM_MESSAGE));
 
     lpcCreateLib = new LpcCreateLib();
     lpcCreateLib->LpcHandler = (PINTERNALLPCHANDLER)HandleServiceLpcOperations;
@@ -121,4 +120,22 @@ InitializeServicePort()
         return;
     }
     DPRINT1("Created thread: %lx\n", PortHandle);
+}
+
+VOID
+WINAPI
+DestroyServicePort()
+{
+    NTSTATUS Status;
+    if (lpcCreateLib)
+    {
+        lpcCreateLib->StopPortThread();
+        delete lpcCreateLib;
+        lpcCreateLib = NULL;
+    }
+    if (PortHandle)
+    {
+        Status = NtClose(PortHandle);
+        PortHandle = NULL;
+    }
 }

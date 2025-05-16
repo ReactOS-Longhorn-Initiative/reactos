@@ -10,6 +10,7 @@
 
 WCHAR ProcessPath[MAX_PATH];
 HANDLE GlobalDwmWaitHandle;
+
 /* FUNCTIONS *****************************************************************/
 
 static
@@ -19,7 +20,7 @@ InitializeDwmProcessPath(VOID)
     WCHAR szSysDir[MAX_PATH];
 
     GetSystemDirectoryW(szSysDir, _countof(szSysDir));
-    StringCchPrintfW(ProcessPath, _countof(ProcessPath), L"%s\\%s", szSysDir, DWMAPP_NAME);
+    StringCchPrintfW(ProcessPath, _countof(ProcessPath), L"%s\\%s", szSysDir, RWMAPP_NAME);
     DPRINT1("InitializeDwmProcessPath: Path is %ls\n", ProcessPath);
 }
 
@@ -71,5 +72,5 @@ SessionBypassInitializeDWM()
                                  WT_EXECUTEONLYONCE);
     DPRINT1("Now starting DWM.EXE/UXSS.EXE\n");
     ResumeThread(ProcessInfo.hThread);
-    return 0;
+    return STATUS_SUCCESS;
 }

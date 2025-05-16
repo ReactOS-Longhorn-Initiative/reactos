@@ -14,12 +14,11 @@
 #include <ndk/psfuncs.h>
 #include <ndk/rtlfuncs.h>
 
-
-#include <dwmlpc.h>
+#include <rwm.h>
 
 typedef
 NTSTATUS
-INTERNALLPCHANDLER(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext);
+INTERNALLPCHANDLER(PLPC_RWM_MESSAGE LpcReply, PVOID PortContext);
 
 typedef INTERNALLPCHANDLER *PINTERNALLPCHANDLER;
 
@@ -36,6 +35,6 @@ public:
     NTSTATUS StartPortThread(HANDLE hSourceHandle);
     NTSTATUS StopPortThread();
     NTSTATUS WaitOnPortThread();
-    VOID WINAPI ProcessLpcOperation(PLPC_MAX_MESSAGE LpcReply, PVOID PortContext);
-    DWORD WINAPI ProcessCompleteConnect(PLPC_MAX_MESSAGE LpcInput);
+    VOID WINAPI ProcessLpcOperation(PLPC_RWM_MESSAGE LpcReply, PVOID PortContext);
+    DWORD WINAPI ProcessCompleteConnect(PLPC_RWM_MESSAGE LpcInput);
 };

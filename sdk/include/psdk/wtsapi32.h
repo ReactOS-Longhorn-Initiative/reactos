@@ -197,6 +197,15 @@ DECL_WINELIB_TYPE_AW(PWTS_SERVER_INFO)
 #define WTS_CURRENT_SERVER_HANDLE ((HANDLE)NULL)
 #define WTS_CURRENT_SESSION (~0u)
 
+#ifdef __REACTOS__
+#define WTS_CONSOLE_CONNECT                0x1
+#define WTS_CONSOLE_DISCONNECT             0x2
+#define WTS_REMOTE_CONNECT                 0x3
+#define WTS_REMOTE_DISCONNECT              0x4
+#define WTS_SESSION_LOGON                  0x5
+#define WTS_SESSION_LOGOFF                 0x6
+#endif
+
 void WINAPI WTSCloseServer(HANDLE);
 BOOL WINAPI WTSConnectSessionA(ULONG, ULONG, PSTR, BOOL);
 BOOL WINAPI WTSConnectSessionW(ULONG, ULONG, PWSTR, BOOL);

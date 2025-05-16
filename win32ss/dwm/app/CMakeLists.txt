@@ -23,5 +23,5 @@ endif()
 
 set_module_type(uxss win32gui UNICODE)
 target_link_libraries(uxss evtlib LpcCreateLib LpcConnectLib)
-add_importlibs(uxss user32 gdi32 advapi32 rpcrt4 msvcrt kernel32 ntdll)
+add_importlibs(uxss milcore user32 gdi32 advapi32 rpcrt4 msvcrt kernel32 ntdll)
 add_cd_file(TARGET uxss DESTINATION reactos/system32 FOR all)

@@ -86,16 +86,16 @@ LpcConnectLib::SendComplexAsyncRequest(UINT32 Command,
                                        SIZE_T InSize)
 {
     NTSTATUS Status;
-    PLPC_MAX_MESSAGE PortMessage;
+    PLPC_RWM_MESSAGE PortMessage;
 
-    if (InSize > MAX_MESSAGE_DATA - sizeof(ULONG) - sizeof(ULONG))
+    if (InSize > RWM_MAX_MESSAGE_DATA - sizeof(ULONG) - sizeof(ULONG))
     {
         DPRINT1("Data size too large\n");
         return STATUS_INVALID_PARAMETER;
     }
-    PortMessage = (PLPC_MAX_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
+    PortMessage = (PLPC_RWM_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
                                                    0,
-                                                   sizeof(LPC_MAX_MESSAGE) + InSize);
+                                                   sizeof(PLPC_RWM_MESSAGE) + InSize);
 
     RtlZeroMemory(&PortMessage, sizeof(PortMessage));
     PortMessage->Header.u1.s1.TotalLength = sizeof(PortMessage) + (USHORT)InSize;
@@ -118,16 +118,16 @@ LpcConnectLib::SendComplexSyncRequest(UINT32 Command,
                                 HRESULT* Request)
 {
     NTSTATUS Status;
-    PLPC_MAX_MESSAGE PortMessage;
+    PLPC_RWM_MESSAGE PortMessage;
 
-    if (InSize > MAX_MESSAGE_DATA - sizeof(ULONG) - sizeof(ULONG))
+    if (InSize > RWM_MAX_MESSAGE_DATA - sizeof(ULONG) - sizeof(ULONG))
     {
         DPRINT1("Data size too large\n");
         return STATUS_INVALID_PARAMETER;
     }
-    PortMessage = (PLPC_MAX_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
+    PortMessage = (PLPC_RWM_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
                                                    0,
-                                                   sizeof(LPC_MAX_MESSAGE) + InSize);
+                                                   sizeof(PLPC_RWM_MESSAGE) + InSize);
 
     RtlZeroMemory(&PortMessage, sizeof(PortMessage));
     PortMessage->Header.u1.s1.TotalLength = sizeof(PortMessage) + (USHORT)InSize;
@@ -153,11 +153,11 @@ NTSTATUS
 LpcConnectLib::SendSimpleAsyncRequest(UINT32 Command)
 {
     NTSTATUS Status;
-    PLPC_MAX_MESSAGE PortMessage;
+    PLPC_RWM_MESSAGE PortMessage;
 
-    PortMessage = (PLPC_MAX_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
+    PortMessage = (PLPC_RWM_MESSAGE)RtlAllocateHeap(GetProcessHeap(),
                                                    0,
-                                                   sizeof(LPC_MAX_MESSAGE) + sizeof(ULONG));
+                                                   sizeof(PLPC_RWM_MESSAGE) + sizeof(ULONG));
 
     /* We only need to pass a command so let's simplify that. */
     RtlZeroMemory(&PortMessage, sizeof(PortMessage));

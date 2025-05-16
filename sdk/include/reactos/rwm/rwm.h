@@ -1,9 +1,10 @@
 /*
- * PROJECT:     ReactOS Desktop Manager
+ * PROJECT:     ReactOS Window Manager
  * LICENSE:     MIT (https://spdx.org/licenses/MIT)
  * PURPOSE:     RWM Shared Headers
  * COPYRIGHT:   Copyright 2025 Justin Miller <justin.miller@reactos.org>
  */
+#pragma once
 
 /* PSDK/NDK Headers */
 #include <stdio.h>
@@ -19,7 +20,10 @@
 #include <ndk/psfuncs.h>
 #include <ndk/rtlfuncs.h>
 
-#define RWMUXSMS_APIPORTDESCRIPTION L"User Experience SubSystem API Port"
+#define RWMUXSMS_NAME               L"UxSms"
+#define RWMUXSMS_APIPORTDESCRIPTION L"User Experience Session Management Service API Port"
+#define RWMUXSMS_APIPORTDESCRIPTIONLEN (sizeof(RWMUXSMS_APIPORTDESCRIPTION)/sizeof(WCHAR))
+
 #define RWMUXSMS_APIPORTNAME        L"\\UxSmsApiPort"
 #define RWMUXSMS_APIPORTNAMELEN     (sizeof(RWMUXSMS_APIPORTNAME)/sizeof(WCHAR))
 
