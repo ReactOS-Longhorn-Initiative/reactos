@@ -14,8 +14,15 @@
 
 #include <initguid.h>
 #include "precomp.hpp"
+#include <MemUtils.h>
 #include "av/avloader.h" // todo remove
 
+EXTERN_C HRESULT AvCreateProcessHeap(VOID);
+extern "C" void InitDebugLib(
+    __in_ecount_opt(1) HANDLE, 
+    __in_ecount_opt(1) BOOL (WINAPI *)(HANDLE, DWORD, LPVOID), 
+    BOOL fExe
+    );
 extern "C"
 BOOL
 __stdcall
@@ -25,6 +32,8 @@ DllMain(
     __in_ecount(1) CONTEXT* /* context */
     )
 {
+    AvCreateProcessHeap();
+    InitDebugLib(dllHandle, NULL, TRUE);
     return MILCoreDllMain(
         dllHandle,
         reason
@@ -40,7 +49,7 @@ bool WPFUtils::OSVersionHelper::IsWindows8OrGreater()
 }
 bool WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater()
 {
-    return false;
+    return true;
 }
 bool WPFUtils::OSVersionHelper::IsWindows7OrGreater()
 {
