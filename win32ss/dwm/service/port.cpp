@@ -66,14 +66,12 @@ HandleServiceLpcOperations(PLPC_RWM_MESSAGE LpcReply, PVOID PortContext)
             RwmServiceConnect(LpcReply);
             LpcReply->Status = STATUS_SUCCESS;
             break;
-        case RWM_SERVICE_PUSH_OBJ:
-            DPRINT("RWM_SERVICE_PUSH_OBJ received\n");
-            break;
-        case RWM_SERVICE_POP_OBJ:   
-            DPRINT("RWM_SERVICE_POP_OBJ received\n");
-            break;
         case RWM_SERVICE_QUERY_PORTNAME:
-            DPRINT("RWM_SERVICE_QUERY_PORTNAME received\n");
+            RwmServiceQuertyPortName(LpcReply);
+            break;
+        case RWM_CHECK_IF_SESSION_HAS_DWM:
+            DPRINT1("RWM_CHECK_IF_SESSION_HAS_DWM received\n");
+            LpcReply->Status = STATUS_SUCCESS;
             break;
         default:
             DPRINT("Unknown message type: %lx\n", MessageType);

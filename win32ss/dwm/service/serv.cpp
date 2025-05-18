@@ -10,29 +10,41 @@
 #include <uxsms.h>
 #include <winsvc.h>
 #include <wtsapi32.h>
+#include <svc.h>
 #define NDEBUG
 #include <debug.h>
 
 /* GLOBALS ******************************************************************/
 
 SERVICE_STATUS_HANDLE GlobalServiceStatusHandle;
+SERVICE_STATUS GlobalServiceStatus = {0};
+PSVCHOST_GLOBAL_DATA lpServiceGlobals;
 
 /* FUNCTIONS *****************************************************************/
+
+VOID
+WINAPI
+SvchostPushServiceGlobals(
+    _In_ PSVCHOST_GLOBAL_DATA lpGlobals)
+{
+    DPRINT1("SvchostPushServiceGlobals(%p)\n", lpGlobals);
+    lpServiceGlobals = lpGlobals;
+}
 
 static
 VOID
 UpdateServiceStatus(DWORD dwState)
 {
-    SERVICE_STATUS ServiceStatus = {0};
+    GlobalServiceStatus = {0};
 
-    ServiceStatus.dwServiceType = SERVICE_WIN32;
-    ServiceStatus.dwCurrentState = dwState;
-    ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_SESSIONCHANGE |
+    GlobalServiceStatus.dwServiceType = SERVICE_WIN32;
+    GlobalServiceStatus.dwCurrentState = dwState;
+    GlobalServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_SESSIONCHANGE |
                                        SERVICE_ACCEPT_STOP |
                                        SERVICE_ACCEPT_SHUTDOWN;
 
     SetServiceStatus(GlobalServiceStatusHandle,
-                     &ServiceStatus);
+                     &GlobalServiceStatus);
 }
 
 HRESULT
