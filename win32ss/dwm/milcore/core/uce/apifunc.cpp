@@ -626,7 +626,7 @@ HRESULT WINAPI
 MilResource_SendCommand(
     __in_bcount(cbSize) VOID *pvCommandData,
     UINT32 cbSize,
-    bool sendInSeparateBatch,
+   // bool sendInSeparateBatch, Not In Vista RTM?
     MIL_CHANNEL hChannel
     )
 {
@@ -640,7 +640,7 @@ MilResource_SendCommand(
 
     CHECKPTRARG(pChannel);
 
-    IFC(pChannel->SendCommand(pvCommandData, cbSize, sendInSeparateBatch));
+    IFC(pChannel->SendCommand(pvCommandData, cbSize, TRUE));
 
 Cleanup:
     RRETURN(hr);

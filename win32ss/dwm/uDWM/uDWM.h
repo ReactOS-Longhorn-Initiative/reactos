@@ -8,25 +8,13 @@
 #pragma once
 
 /* INCLUDES ******************************************************************/
+#include <std.h>
 
-#include <stdio.h>
-#include <stdlib.h>
 
-/* PSDK/NDK Headers */
-#define WIN32_NO_STATUS
-#include <windef.h>
-#include <winbase.h>
-#include <wingdi.h>
-#include <winuser.h>
-#include <winnls.h>
-#include <winreg.h>
-#include <winnls32.h>
-#include <winver.h>
+#include "MilResource.hpp"
 
-#include <imm.h>
-#include <ddk/immdev.h>
-
-#define NTOS_MODE_USER
-#include <ndk/umtypes.h>
-#include <ndk/pstypes.h>
-#include <ndk/rtlfuncs.h>
+HRESULT
+WINAPI
+MilResourceCreateType(MIL_RESOURCE_TYPE type,
+                      HMIL_CHANNEL MilChannel,
+                      MilResource **MilResourceInstance);

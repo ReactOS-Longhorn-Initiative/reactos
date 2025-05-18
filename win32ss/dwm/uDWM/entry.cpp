@@ -1,6 +1,7 @@
 
 #include "uDWM.h"
 #include <debug.h>
+EXTERN_C
 BOOL WINAPI DllMain(HINSTANCE hinstDLL,
                     DWORD fdwReason,
                     LPVOID fImpLoad)
@@ -12,18 +13,31 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL,
     return TRUE;
 }
 
+EXTERN_C
 HRESULT
 WINAPI
 DwmClientStartup()
 {
+    DPRINT1("DwmClientStartup Called:\n");
+    __debugbreak();
     return 0;
 }
 
+EXTERN_C
+HRESULT
+WINAPI
+DwmClientNotifyRedirectionShutdown()
+{
+    DPRINT1("DwmClientNotifyRedirectionShutdown Called:\n");
+    __debugbreak();
+    return 0;
+}
+
+EXTERN_C
 HRESULT
 WINAPI
 DwmClientShutdown()
 {
     DPRINT1("DwmClientShutdown Called:\n");
-    /* looks like it's more so left over from longhorn dev, just releases some locks */
     return 0;
 }

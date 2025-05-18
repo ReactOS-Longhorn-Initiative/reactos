@@ -18,7 +18,7 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 add_definitions(-DD3D9EXTENSIONS) # todo should DIRECTXMATH be used?
 
 add_definitions(-D_milcore_)
-#spec2def(milcore.dll milcore.spec ADD_IMPORTLIB)
+spec2def(milcore.dll milcore.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
 precomp.cpp
