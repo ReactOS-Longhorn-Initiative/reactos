@@ -27,11 +27,11 @@
 #define RWMUXSMS_APIPORTNAME        L"\\UxSmsApiPort"
 #define RWMUXSMS_APIPORTNAMELEN     (sizeof(RWMUXSMS_APIPORTNAME)/sizeof(WCHAR))
 
-#define RWMAPP_NAME             L"uxss.exe"
+#define RWMAPP_NAME             L"dwm.exe"
 #define RWMAPP_NAMELEN          (sizeof(RWM_APPNAME)/sizeof(WCHAR))
-#define RWMAPP_WINDOWDESC       L"UXSS Notification Window"
+#define RWMAPP_WINDOWDESC       L"DWM Notification Window"
 #define RWMAPP_WINDOWNAMELEN    (sizeof(RWM_APPWINDOWDESC)/sizeof(WCHAR))
-#define RWMAPP_WINDOWCLASS      L"UxSsWindowClass"
+#define RWMAPP_WINDOWCLASS      L"Dwm"
 
 
 #define RWM_MAX_MESSAGE_DATA   (0x130)

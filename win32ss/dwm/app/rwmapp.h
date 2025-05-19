@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <stdio.h>
 #include <stdarg.h>
 
 /* PSDK/NDK Headers */

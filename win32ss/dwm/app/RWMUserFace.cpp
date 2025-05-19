@@ -1,4 +1,4 @@
-#include <dwr.hpp>
+#include <rwm.hpp>
 #include <debug.h>
 
 EXTERN_C
@@ -15,7 +15,7 @@ LRESULT WINAPI NotifyWndProcLoc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPara
 
 
 LRESULT
-DWRUserFace::NotifyWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+RWMUserFace::NotifyWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     switch (Msg)
     {
@@ -31,20 +31,20 @@ DWRUserFace::NotifyWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
  */
 HRESULT
 WINAPI
-DWRUserFace::InitializeWindow()
+RWMUserFace::InitializeWindow()
 {
     WNDCLASSEXW Class;
     RtlZeroMemory(&Class, sizeof(Class));
     Class.cbSize = 48;
     Class.lpfnWndProc = NotifyWndProcLoc;
     Class.hInstance = DWRInstance;
-    Class.lpszClassName = L"Dwm";
+    Class.lpszClassName = RWMAPP_WINDOWCLASS;
     DPRINT1("DWM: Creating Window\n");
 
     RegisterClassExW(&Class);
     DWRWndNotify = CreateWindowExW(0,
-                                   L"Dwm",
-                                   L"DWM Notification Window",
+                                   RWMAPP_WINDOWCLASS,
+                                   RWMAPP_WINDOWDESC,
                                    0xA0000000,
                                    0,
                                    0,
@@ -63,24 +63,24 @@ DWRUserFace::InitializeWindow()
  */
 HRESULT
 WINAPI
-DWRUserFace::Initialize(HINSTANCE hInstance)
+RWMUserFace::Initialize(HINSTANCE hInstance)
 {
     DWRInstance = hInstance;
     DWRMsgThreadId = GetCurrentThreadId();
-    return DWRUserFace::InitializeWindow();
+    return RWMUserFace::InitializeWindow();
     return S_OK;
 }
 
 HRESULT
 WINAPI
-DWRUserFace::WaitForAndProcessEvent()
+RWMUserFace::WaitForAndProcessEvent()
 {
     return S_OK;
 }
 
 HRESULT
 WINAPI
-DWRUserFace::Run()
+RWMUserFace::Run()
 {
     MSG Msg;
     UINT ExitCode;
@@ -103,7 +103,7 @@ DWRUserFace::Run()
         }
         if (Msg.message == 18)
             break;
-        HResult = DWRUserFace::WaitForAndProcessEvent();
+        HResult = RWMUserFace::WaitForAndProcessEvent();
         if (HResult != S_OK)
         {
             ExitCode = HResult;
@@ -117,12 +117,12 @@ StartShutdown:
 }
 
 VOID    
-WINAPI DWRUserFace::Cleanup(){
+WINAPI RWMUserFace::Cleanup(){
     DPRINT1("DWM: Cleaning up the DWM service\n");
     if (DWRWndNotify)
     {
         DestroyWindow(DWRWndNotify);
         DWRWndNotify = 0;
     }
-    UnregisterClassW(L"Dwm", DWRInstance);
+    UnregisterClassW(RWMAPP_WINDOWCLASS, DWRInstance);
 }

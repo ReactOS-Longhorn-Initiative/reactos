@@ -1,8 +1,8 @@
 #pragma once
 
-#include <dwr.hpp>
+#include <rwm.hpp>
 
-class DWRUserFace {
+class RWMUserFace {
 public:
     HRESULT  WINAPI Initialize(HINSTANCE hInstance);
     HRESULT  WINAPI Run();

@@ -5,23 +5,27 @@ include_directories(
     ${REACTOS_SOURCE_DIR}/sdk/include/reactos/idl
     ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcConnectLib)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/LpcCreateLib)
+include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/shared/include)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/rwm)
 
 list(APPEND SOURCE
-DWRUserFace.cpp
-    dwr.cpp
+    RWMUserFace.cpp
+    rwm.cpp
     entry.c
     sess.cpp
     servconnect.cpp
-    dwr.h)
+    rwmapp.h)
 
-add_executable(uxss ${SOURCE} dwm.rc)
-add_pch(uxss dwr.h SOURCE)
+add_executable(dwm ${SOURCE} dwm.rc)
+add_pch(dwm rwmapp.h SOURCE)
 
 if(NOT MSVC)
-    target_link_libraries(uxss ${PSEH_LIB})
+    target_link_libraries(dwm ${PSEH_LIB})
 endif()
 
-set_module_type(uxss win32gui UNICODE)
-target_link_libraries(uxss evtlib LpcCreateLib LpcConnectLib)
-add_importlibs(uxss milcore user32 gdi32 advapi32 rpcrt4 msvcrt kernel32 ntdll)
-add_cd_file(TARGET uxss DESTINATION reactos/system32 FOR all)
+set_module_type(dwm win32gui UNICODE)
+target_link_libraries(dwm evtlib LpcCreateLib LpcConnectLib)
+add_importlibs(dwm milcore user32 gdi32 advapi32 rpcrt4 msvcrt kernel32 ntdll)
+add_cd_file(TARGET dwm DESTINATION reactos/system32 FOR all)

@@ -1,5 +1,5 @@
 
-#include "dwr.hpp"
+#include "rwm.hpp"
 #include <ndk/lpcfuncs.h>
 #include <strsafe.h>
 
@@ -8,6 +8,7 @@ HANDLE GlobalApiThreadHandle;
 WCHAR PortName[MAX_PATH];
 #include <debug.h>
 
+LpcCreateLib* lpcCreateLib;
 
 DWORD
 WINAPI
@@ -16,6 +17,38 @@ RWMSessionApiPortThread(LPVOID lpParameter)
     __debugbreak();
     return 0;
 }
+
+NTSTATUS
+WINAPI
+HandleDwmApiPortLpcOperations(PLPC_RWM_MESSAGE LpcReply, PVOID PortContext)
+{
+
+    ULONG MessageType;
+    NTSTATUS Status;
+    MessageType = LpcReply->Message;
+
+    LpcCreateLib* pThis = (LpcCreateLib*)PortContext;
+    switch (MessageType)
+    {
+        case RWMCMD_NOTIFY_SETTINGS_CHANGE:
+            DPRINT("RWMCMD_NOTIFY_SETTINGS_CHANGE\n");
+            __debugbreak();
+            break;
+        default:
+            DPRINT("Unknown message type: %lx\n", MessageType);
+            __debugbreak();
+            break;
+    }
+    Status = NtReplyPort(pThis->InstancePort, &LpcReply->Header);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT("Failed to reply to port: %lx\n", Status);
+        return Status;
+    }
+    
+    return Status;
+}
+
 
 VOID
 WINAPI
@@ -39,8 +72,8 @@ RWMCreateSessionPort()
      * down into win32k
      */
     StringCchPrintfW(PortName,  _countof(PortName),
-                L"\\UxSs-%04X-ApiPort-%04X", rand() % 0xFFFF, rand() % 0xFFFF);
-     RtlInitUnicodeString(&PortString, (PCWSTR)&PortName);
+                L"\\Dwm-%04X-ApiPort-%04X", rand() % 0xFFFF, rand() % 0xFFFF);
+    RtlInitUnicodeString(&PortString, (PCWSTR)&PortName);
     InitializeObjectAttributes(&ObjectAttributes,
                                &PortString,
                                OBJ_CASE_INSENSITIVE,
@@ -54,6 +87,13 @@ RWMCreateSessionPort()
 
     if (!NT_SUCCESS(Status))
         DbgPrint("Failed to create port: %lx\n", Status);
-    GlobalApiThreadHandle = CreateThread(0, 0, RWMSessionApiPortThread, NULL, 0, 0);
+    lpcCreateLib = new LpcCreateLib();
+    lpcCreateLib->LpcHandler = (PINTERNALLPCHANDLER)HandleDwmApiPortLpcOperations;
+    lpcCreateLib->StartPortThread(GlobalSessionPortHandle);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("Failed to thread port: %lx\n", Status);
+        return;
+    }
 }
 

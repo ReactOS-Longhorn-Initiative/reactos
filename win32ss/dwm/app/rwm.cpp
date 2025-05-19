@@ -1,4 +1,4 @@
-#include "dwr.hpp"
+#include "rwm.hpp"
 #include <debug.h>
 
 /* C++ Entry point */
@@ -9,13 +9,13 @@ DwmEntry(HINSTANCE hInstance,
          int nShowCmd)
 {
     UINT32 ExitCode;
-    DWRUserFace AppHostInstance;
+    RWMUserFace AppHostInstance;
 
-    RWMCreateSessionPort();
-    RWMConnectToUxServ();
     /* Now let's create a window */
     ExitCode = AppHostInstance.Initialize(hInstance);
     DPRINT1("CDwmAppHost::Initialize -> Exit code: %d\n", ExitCode);
+    RWMCreateSessionPort();
+    RWMConnectToUxServ();
     AppHostInstance.Run();
     AppHostInstance.Cleanup();
     return 0;

@@ -1,40 +1,24 @@
 
-#include "dwr.hpp"
-#include <ndk/lpcfuncs.h>
-#include "../shared/LpcConnectLib/LpcConnectLib.hpp"
+#include "rwm.hpp"
+
 #include <strsafe.h>
 LpcConnectLib* lpcConnectLib;
 extern WCHAR PortName[MAX_PATH];
-
-#define DWMUXSMS_APIPORTDESCRIPTION L"User Experience SubSystem API Port"
-static WCHAR PortNameUxSms[] = L"\\UxSmsApiPort";
-#define DWM_CONNECT_TO_SERVICE 0x00000001
-
-typedef struct _SESSION_INIT
-{
-    ULONG SessionId;
-    ULONG ProcessId;
-} SESSION_INIT, *PSESSION_INIT;
-
-typedef struct  _SESSION_PORTPATH
-{
-    WCHAR PortPathStr[MAX_PATH];
-} SESSION_PORTPATH, *PSESSION_PORTPATH;
 
 VOID
 WINAPI
 RWMConnectToUxServ()
 {
-    SESSION_PORTPATH PortPath = {0};
-    wcscpy_s(PortPath.PortPathStr, _countof(PortName), PortName);
-    SESSION_INIT SessionInit;
+    RWMSERVCMD_CONNECT_SESSION_PORT PortPath = {0};
+    wcscpy(PortPath.PortPathStr, PortName);
+    RWMSERVCMD_CONNECT_SESSIONINFO SessionInit;
     HRESULT ReturnHr;
     /* Initlaize the LpcConnectLib class*/
     lpcConnectLib = new LpcConnectLib();
     /* Initialize the connection to the service */
-    lpcConnectLib->ConnectToPortString(PortNameUxSms, DWMUXSMS_APIPORTDESCRIPTION);
+    lpcConnectLib->ConnectToPortString(RWMUXSMS_APIPORTNAME, RWMUXSMS_APIPORTDESCRIPTION);
     lpcConnectLib->SendComplexSyncRequest(
-        DWM_CONNECT_TO_SERVICE,
+        RWM_SERVICE_CONNECT,
         &PortPath,
         sizeof(PortPath),
         &SessionInit,
