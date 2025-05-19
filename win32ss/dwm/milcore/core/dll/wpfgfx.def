@@ -154,23 +154,3 @@ EXPORTS
     MilGraphicsStream_SetTransformHint
     MilGraphicsStream_GetTransformHint
 
-    ; 5112
-    MilTransport_InitializeTransport
-    MilTransport_ShutDownTransport
-
-    MilDwmInitialize
-    MilDwmShutdown
-    MilDwmReplySyncMessage
-    MilDwmAttachDesktopTarget
-    MilDwmDispatchMessage
-
-    MilTSConnector_Create
-    MilTSConnector_Destroy
-    MilTSConnector_GetHDCForRemoteWindow
-    MilTSConnector_ProcessPacket
-    MilTSConnector_SetScale
-    MilTSConnector_SetViewport
-    MilSetMilWindowData
-    MilTS_CreateVCThread
-    MilTS_DestroyVCThread
-    MilSyncCompositionDevice_Present

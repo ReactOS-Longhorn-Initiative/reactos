@@ -2366,7 +2366,7 @@ WORKSTATION_SERVICE_DESCRIPTION="Responsible for creating and maintaining networ
 WUAUSERV_SERVICE="Automatic Updates"
 WUAUSERV_SERVICE_DESCRIPTION="AutoUpdate Service stub."
 
-UXSMS_SERVICE="Desktop Window Manager/User Experience Session Manager"
+UXSMS_SERVICE="Desktop Window Manager Session Manager"
 UXSMS_SERVICE_DESCRIPTION='Provides Desktop Window Manager startup and maintenance services."
 
 ; Keyboard layouts
