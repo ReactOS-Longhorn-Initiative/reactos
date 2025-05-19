@@ -59,7 +59,7 @@
 @ stdcall MilComposition_SyncFlush(ptr)
 @ stdcall MilComposition_PeekNextMessage(ptr)
 @ stdcall MilComposition_WaitForNextMessage(ptr)
-@ stdcall MilResource_CreateOrAddRefOnChannel(ptr)
+@ stdcall MilResource_CreateOrAddRefOnChannel(ptr long ptr)
 @ stdcall MilResource_DuplicateHandle(ptr)
 @ stdcall MilResource_ReleaseOnChannel(ptr)
 @ stdcall MilResource_GetRefCountOnChannel(ptr)

@@ -10,7 +10,7 @@
 /* INCLUDES ******************************************************************/
 #include <std.h>
 
-
+#include "milcoreexports.hpp"
 #include "MilResource.hpp"
 
 HRESULT
