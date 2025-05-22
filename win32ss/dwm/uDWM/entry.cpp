@@ -16,11 +16,10 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 EXTERN_C
 HRESULT
 WINAPI
-DwmClientStartup()
+DwmClientStartup(PRWM_STARTUPINFO StartupInfo, PRWM_COMPOSITIONINFO CompInfo)
 {
     DPRINT1("DwmClientStartup Called:\n");
-    __debugbreak();
-    return 0;
+    return CreateDwmDesktop(StartupInfo, CompInfo);
 }
 
 EXTERN_C

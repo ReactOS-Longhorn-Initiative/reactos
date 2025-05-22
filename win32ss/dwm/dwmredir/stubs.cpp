@@ -39,3 +39,4 @@ DwmRedirectionManagerSetClientChannel(MIL_CHANNEL MilCoreHandle)
 {
 
 }
+
