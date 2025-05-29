@@ -811,3 +811,72 @@ DWORD WINAPI CheckStagingArea(VOID)
     /* Called by native explorer */
     return 0;
 }
+
+/*
+ * Unimplemented
+ */
+
+EXTERN_C HRESULT
+WINAPI
+GetAppPathFromLink(IShellItem* pItem,
+                   LPWSTR pwszPathBuffer,
+                   DWORD dwBufferLen)
+{
+    FIXME("GetAppPathFromLink() stub\n");
+    return S_OK;
+}
+
+/*
+ * Unimplemented
+ */
+EXTERN_C HRESULT
+WINAPI
+GetCurrentProcessExplicitAppUserModelID(PWSTR *AppID)
+{
+    FIXME("GetCurrentProcessExplicitAppUserModelID() stub\n");
+    return S_OK;
+}
+
+/*
+ * Unimplemented
+ */
+EXTERN_C DWORD
+WINAPI
+RunInstallUninstallStubs(VOID)
+{
+    FIXME("RunInstallUninstallStubs() stub!\n");
+    return 0;
+}
+
+/*
+ * Unimplemented
+ */
+EXTERN_C VOID
+WINAPI
+SetExplorerServerMode(UINT unknown)
+{
+    FIXME("SetExplorerServerMode() stub\n");
+}
+
+/*
+ * Unimplemented
+ */
+EXTERN_C DWORD
+WINAPI
+SHGetAppCompatFlags(DWORD dwMask)
+{
+    FIXME("SHGetAppCompatFlags() stub\n");
+    return 0;
+}
+
+/*
+ * Unimplemented
+ */
+EXTERN_C HRESULT
+WINAPI
+SHQueryUserNotificationState(PVOID *pquns) // QUERY_USER_NOTIFICATION_STATE
+{
+    FIXME("SHGetPropertyStoreFromParsingName() stub\n");
+    //*pquns = QUNS_ACCEPTS_NOTIFICATIONS;
+    return S_OK;
+}
