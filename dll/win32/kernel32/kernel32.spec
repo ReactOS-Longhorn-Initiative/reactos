@@ -636,7 +636,7 @@
 @ stdcall GetProfileStringA(str str str ptr long) kernel32_win7.GetProfileStringA
 @ stdcall GetProfileStringW(wstr wstr wstr ptr long) kernel32_win7.GetProfileStringW
 @ stdcall GetQueuedCompletionStatus(long ptr ptr ptr long) kernel32_win7.GetQueuedCompletionStatus
-@ stub -version=0x600+ GetQueuedCompletionStatusEx
+@ stdcall -version=0x600+ GetQueuedCompletionStatusEx(ptr ptr long ptr long long) kernel32_win7.GetQueuedCompletionStatusEx
 @ stdcall GetShortPathNameA(str ptr long)
 @ stdcall GetShortPathNameW(wstr ptr long) kernel32_win7.GetShortPathNameW
 @ stdcall GetStartupInfoA(ptr)
