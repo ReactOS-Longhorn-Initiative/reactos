@@ -49,7 +49,7 @@ list(APPEND SOURCE_STATIC
     memory.c
     process.c
     registry.c
-    security.c
+    #security.c
     string.c
     sync.c
     thread.c

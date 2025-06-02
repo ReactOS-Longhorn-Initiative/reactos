@@ -22,7 +22,7 @@
 @ stdcall AddConsoleAliasA(str str str)
 @ stdcall AddConsoleAliasW(wstr wstr wstr)
 @ stdcall AddDllDirectory(wstr)
-@ stdcall AddMandatoryAce(ptr long long long ptr)
+@ stdcall -stub AddMandatoryAce(ptr long long long ptr)
 @ stdcall AddRefActCtx(ptr)
 # @ stub AddResourceAttributeAce
 # @ stub AddSIDToBoundaryDescriptor
@@ -179,7 +179,7 @@
 # @ stub CouldMultiUserAppsBehaviorBePossibleForPackage
 @ stdcall CreateActCtxW(ptr)
 # @ stub CreateAppContainerToken
-@ stdcall CreateBoundaryDescriptorW(wstr long)
+@ stdcall -stub CreateBoundaryDescriptorW(wstr long)
 @ stdcall CreateConsoleScreenBuffer(long long ptr long ptr)
 @ stdcall CreateDirectoryA(str ptr)
 @ stdcall CreateDirectoryExW(wstr wstr ptr)
@@ -686,7 +686,7 @@
 @ stdcall GetSecurityDescriptorControl(ptr ptr ptr)
 @ stdcall GetSecurityDescriptorDacl(ptr ptr ptr ptr)
 @ stdcall GetSecurityDescriptorGroup(ptr ptr ptr)
-@ stdcall GetSecurityDescriptorLength(ptr)
+@ stdcall GetSecurityDescriptorLength(ptr) ntdll.RtlLengthSecurityDescriptor
 @ stdcall GetSecurityDescriptorOwner(ptr ptr ptr)
 @ stub GetSecurityDescriptorRMControl
 @ stdcall GetSecurityDescriptorSacl(ptr ptr ptr ptr)
@@ -869,21 +869,21 @@
 # @ stub InvalidateAppModelVersionCache
 @ stub InvalidateTzSpecificCache
 @ stdcall -stub IsApiSetImplemented(str)
-@ stdcall IsCharAlphaA(long)
-@ stdcall IsCharAlphaNumericA(long)
-@ stdcall IsCharAlphaNumericW(long)
-@ stdcall IsCharAlphaW(long)
-@ stdcall IsCharBlankW(long)
-@ stdcall IsCharCntrlW(long)
-@ stdcall IsCharDigitW(long)
-@ stdcall IsCharLowerA(long)
-@ stdcall IsCharLowerW(long)
-@ stdcall IsCharPunctW(long)
-@ stdcall IsCharSpaceA(long)
-@ stdcall IsCharSpaceW(long)
-@ stdcall IsCharUpperA(long)
-@ stdcall IsCharUpperW(long)
-@ stdcall IsCharXDigitW(long)
+@ stdcall -stub IsCharAlphaA(long)
+@ stdcall -stub IsCharAlphaNumericA(long)
+@ stdcall -stub IsCharAlphaNumericW(long)
+@ stdcall -stub IsCharAlphaW(long)
+@ stdcall -stub IsCharBlankW(long)
+@ stdcall -stub IsCharCntrlW(long)
+@ stdcall -stub IsCharDigitW(long)
+@ stdcall -stub IsCharLowerA(long)
+@ stdcall -stub IsCharLowerW(long)
+@ stdcall -stub IsCharPunctW(long)
+@ stdcall -stub IsCharSpaceA(long)
+@ stdcall -stub IsCharSpaceW(long)
+@ stdcall -stub IsCharUpperA(long)
+@ stdcall -stub IsCharUpperW(long)
+@ stdcall -stub IsCharXDigitW(long)
 @ stdcall IsDBCSLeadByte(long)
 @ stdcall IsDBCSLeadByteEx(long long)
 @ stdcall IsDebuggerPresent()
@@ -976,7 +976,7 @@
 @ stdcall MakeAbsoluteSD(ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr)
 @ stub MakeAbsoluteSD2
 @ stdcall MakeSelfRelativeSD(ptr ptr ptr)
-@ stdcall MapGenericMask(ptr ptr)
+@ stdcall MapGenericMask(ptr ptr)  ntdll.RtlMapGenericMask
 # @ stub MapPredefinedHandleInternal
 @ stdcall MapUserPhysicalPages(ptr long ptr)
 @ stdcall MapViewOfFile(long long long long long)
@@ -1431,7 +1431,7 @@
 @ stdcall SearchPathA(str str str long ptr ptr)
 @ stdcall SearchPathW(wstr wstr wstr long ptr ptr)
 @ stdcall SetAclInformation(ptr ptr long long)
-@ stdcall SetCachedSigningLevel(ptr long long long)
+@ stdcall -stub -version=0x602+ SetCachedSigningLevel(ptr long long long)
 @ stdcall SetCalendarInfoW(long long long wstr)
 # @ stub SetClientDynamicTimeZoneInformation
 # @ stub SetClientTimeZoneInformation
