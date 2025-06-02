@@ -34,6 +34,9 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(kernelbase);
 
+#ifdef __REACTOS__
+const GUID IID_IUnknown           = {0x00000000, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
+#endif
 
 BOOL is_wow64 = FALSE;
 
@@ -47,7 +50,7 @@ BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
         DisableThreadLibraryCalls( hinst );
         IsWow64Process( GetCurrentProcess(), &is_wow64 );
         init_global_data();
-        init_locale( hinst );
+     //   init_locale( hinst );
         init_startup_info( NtCurrentTeb()->Peb->ProcessParameters );
         init_console();
     }
@@ -178,8 +181,13 @@ static struct perf_provider *perf_provider_from_handle(HANDLE prov)
 /***********************************************************************
  *           PerfCreateInstance   (KERNELBASE.@)
  */
+#ifdef __REACTOS__
+PERF_COUNTERSET_INSTANCE* WINAPI PerfCreateInstance( HANDLE handle, const GUID *guid,
+                                                     const WCHAR *name, ULONG id )
+#else
 PERF_COUNTERSET_INSTANCE WINAPI *PerfCreateInstance( HANDLE handle, const GUID *guid,
                                                      const WCHAR *name, ULONG id )
+#endif
 {
     struct perf_provider *prov = perf_provider_from_handle( handle );
     struct counterset_template *template;

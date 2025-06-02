@@ -13,6 +13,7 @@
 #include <k32.h>
 
 #include <ndk/pofuncs.h>
+#include <ndk/potypes.h>
 
 #define NDEBUG
 #include <debug.h>

@@ -1101,6 +1101,14 @@ static BOOL VersionInfo32_QueryValue( const VS_VERSION_INFO_STRUCT32 *info, LPCW
 
     /* Return value */
     *lplpBuffer = VersionInfo32_Value( info );
+
+#ifdef __REACTOS__
+    /* If the wValueLength is zero, then set a UNICODE_NULL only return string.
+     * Use the NULL terminator from the key string for that. This is what Windows does, too. */
+    if (!info->wValueLength)
+      *lplpBuffer = (PVOID)(info->szKey + wcslen(info->szKey));
+#endif
+
     if (puLen)
         *puLen = info->wValueLength;
     if (pbText)
@@ -1541,7 +1549,6 @@ BOOL WINAPI GetVersionExW( OSVERSIONINFOW *info )
     }
     return TRUE;
 }
-
 
 /***********************************************************************
  *         GetCurrentPackageFamilyName   (kernelbase.@)

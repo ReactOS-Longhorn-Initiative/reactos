@@ -12,8 +12,8 @@ import json
 
 # These are modules we do not have, so redirect them to ones we do have.
 REDIRECT_HOSTS = {
-    'kernelbase.dll': 'kernel32.dll',
-    'kernel.appcore.dll': 'kernel32.dll',
+    'kernelbase.dll': 'kernel32_win7.dll',
+    'kernel.appcore.dll': 'kernel32_win7.dll',
     'combase.dll': 'ole32.dll',
     'ucrtbase.dll': 'msvcrt.dll',
     'shcore.dll': 'shell32.dll',
@@ -75,7 +75,7 @@ class Apiset:
             # Disable forwarders that have an empty host
             prefix = '// '
         else:
-            # Check to see if there is any dll we want to swap (kernelbase -> kernel32)
+            # Check to see if there is any dll we want to swap (kernelbase -> kernel32_win7)
             replace = REDIRECT_HOSTS.get(host.lower(), None)
             if replace:
                 postfix = ' // ' + host

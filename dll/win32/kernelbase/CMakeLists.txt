@@ -16,7 +16,6 @@ spec2def(${kernelbase_name}.dll kernelbase.spec ADD_IMPORTLIB)
 list(APPEND SOURCE
     kernel32/client/actctx.c
     kernel32/client/appcache.c
-    kernel32/client/atom.c
     kernel32/client/compname.c
     kernel32/client/debugger.c
     kernel32/client/dosdev.c
@@ -126,7 +125,7 @@ set_module_type(${kernelbase_name} win32dll ENTRYPOINT DllMain 12)
 set_subsystem(${kernelbase_name} console)
 ################# END  HACK #################
 
-target_link_libraries(${kernelbase_name} kernel32_vista_static kernelbase_static wine chkstk ${PSEH_LIB})
+target_link_libraries(${kernelbase_name} win32_registry kernelbase_path kernel32_vista_static kernelbase_static wine chkstk ${PSEH_LIB})
 add_importlibs(${kernelbase_name} ntdll_vista ntdll)
 add_pch(${kernelbase_name} kernel32/k32.h SOURCE)
 add_dependencies(${kernelbase_name} psdk errcodes asm)

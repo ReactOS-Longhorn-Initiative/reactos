@@ -527,7 +527,7 @@ static BOOL is_perf_key( HKEY key )
             || HandleToUlong(key) == HandleToUlong(HKEY_PERFORMANCE_TEXT)
             || HandleToUlong(key) == HandleToUlong(HKEY_PERFORMANCE_NLSTEXT);
 }
-
+#ifndef __REACTOS__
 
 /******************************************************************************
  * RemapPredefinedHandleInternal   (kernelbase.@)
@@ -3238,6 +3238,7 @@ cleanup:
     return ret;
 }
 
+#endif
 
 /******************************************************************************
  * RegLoadAppKeyA (kernelbase.@)
@@ -3269,7 +3270,7 @@ LSTATUS WINAPI RegLoadAppKeyW(const WCHAR *file, HKEY *result, REGSAM sam, DWORD
     return ERROR_SUCCESS;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  * DnsHostnameToComputerNameExW   (kernelbase.@)
  *
@@ -3515,7 +3516,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetComputerNameExW( COMPUTER_NAME_FORMAT type, con
     if (ret) SetLastError( ret );
     return !ret;
 }
-
+#endif
 struct USKEY
 {
     HKEY  HKCUstart; /* Start key in CU hive */

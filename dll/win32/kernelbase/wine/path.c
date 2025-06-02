@@ -25,7 +25,11 @@
 
 #include "windef.h"
 #include "winbase.h"
+#ifdef __REACTOS__
+#include "wine/pathcch.h"
+#else
 #include "pathcch.h"
+#endif
 #include "strsafe.h"
 #include "shlwapi.h"
 #include "wininet.h"

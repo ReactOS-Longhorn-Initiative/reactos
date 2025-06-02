@@ -5,15 +5,20 @@ include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/subsys)
 spec2def(kernel32.dll kernel32.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
+    client/atom.c
     client/dllmain.c
     client/job.c
     client/pathansi.c
+    client/power.c
     client/startupansi.c
     client/version.c
     client/file/mailslot.c
     client/file/tape.c
     wine/lzexpand.c
+    wine/process.c
     wine/resource.c
+    wine/sync.c
+    wine/transact.c
     k32.h)
 
 
