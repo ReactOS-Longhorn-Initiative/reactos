@@ -537,7 +537,11 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
     if (FAILED(hr)) return hr;
     if (*existing_extension) return S_FALSE;
 
+#ifdef __REACTOS__
+    path_length = lstrlenW(path);
+#else
     path_length = wcsnlen(path, size);
+#endif
     dot_length = has_dot ? 0 : 1;
     extension_length = lstrlenW(extension);
 
@@ -770,8 +774,11 @@ HRESULT WINAPI PathCchRemoveBackslashEx(WCHAR *path, SIZE_T path_size, WCHAR **p
         if (free_size) *free_size = 0;
         return E_INVALIDARG;
     }
-
+#ifdef __REACTOS__
+    path_length = lstrlenW(path);
+#else
     path_length = wcsnlen(path, path_size);
+#endif
     if (path_length == path_size && !path[path_length]) return E_INVALIDARG;
 
     root_end = get_root_end(path);

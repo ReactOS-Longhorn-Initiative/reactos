@@ -3270,7 +3270,6 @@ LSTATUS WINAPI RegLoadAppKeyW(const WCHAR *file, HKEY *result, REGSAM sam, DWORD
     return ERROR_SUCCESS;
 }
 
-#ifndef __REACTOS__
 /***********************************************************************
  * DnsHostnameToComputerNameExW   (kernelbase.@)
  *
@@ -3302,7 +3301,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH DnsHostnameToComputerNameExW( const WCHAR *hostnam
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  * GetComputerNameExA   (kernelbase.@)
  */

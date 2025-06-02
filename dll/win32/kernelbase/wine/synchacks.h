@@ -159,18 +159,7 @@ typedef enum _PROCESS_MITIGATION_POLICY
     MaxProcessMitigationPolicy
 } PROCESS_MITIGATION_POLICY, *PPROCESS_MITIGATION_POLICY;
 
-typedef enum _PROCESS_INFORMATION_CLASS
-{
-    ProcessMemoryPriority,
-    ProcessMemoryExhaustionInfo,
-    ProcessAppMemoryInfo,
-    ProcessInPrivateInfo,
-    ProcessPowerThrottling,
-    ProcessReservedValue1,
-    ProcessTelemetryCoverageInfo,
-    ProcessProtectionLevelInfo,
-    ProcessLeapSecondInfo,
-    ProcessMachineTypeInfo,
-    ProcessInformationClassMax
-} PROCESS_INFORMATION_CLASS;
 
+#define ProcessMemoryPriority 0
+#define ProcessPowerThrottling 77
+#define ProcessLeapSecondInfo 97

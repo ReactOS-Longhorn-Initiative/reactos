@@ -172,11 +172,11 @@
 @ stdcall CreateRemoteThread(long ptr long ptr long long ptr) kernel32_win7.CreateRemoteThread
 @ stdcall -version=0x601+ -stub CreateRemoteThreadEx(long ptr long ptr ptr long ptr ptr) kernel32_win7.CreateRemoteThreadEx
 @ stdcall CreateSemaphoreA(ptr long long str) kernel32_win7.CreateSemaphoreA
-@ stdcall -version=0x600+ CreateSemaphoreExA(ptr long long str long long)
-@ stdcall -version=0x600+ CreateSemaphoreExW(ptr long long wstr long long)
+@ stdcall -version=0x600+ CreateSemaphoreExA(ptr long long str long long) kernel32_win7.CreateSemaphoreExA
+@ stdcall -version=0x600+ CreateSemaphoreExW(ptr long long wstr long long) kernel32_win7.CreateSemaphoreExW
 @ stdcall CreateSemaphoreW(ptr long long wstr) kernel32_win7.CreateSemaphoreW
 @ stdcall -i386 CreateSocketHandle() kernel32_win7.CreateSocketHandle
-@ stdcall -version=0x600+ CreateSymbolicLinkA(str str long)
+@ stdcall -version=0x600+ CreateSymbolicLinkA(str str long) kernel32_win7.CreateSymbolicLinkA
 @ stdcall -stub -version=0x600+ CreateSymbolicLinkTransactedA(str str long ptr)
 @ stdcall -stub -version=0x600+ CreateSymbolicLinkTransactedW(wstr wstr long ptr)
 @ stdcall -version=0x600+ CreateSymbolicLinkW(wstr wstr long)
@@ -331,8 +331,6 @@
 @ stdcall FindFirstVolumeW(ptr long) kernel32_win7.FindFirstVolumeW
 @ stdcall -stub -version=0x600+ FindNLSString(long long wstr long wstr long ptr)
 @ stdcall -stub -version=0x600+ FindNLSStringEx(wstr long wstr long wstr long ptr ptr ptr long)
-@ stub -version=0x600+ FindNLSString
-@ stub -version=0x600+ FindNLSStringEx
 @ stdcall FindNextChangeNotification(long) kernel32_win7.FindNextChangeNotification
 @ stdcall FindNextFileA(long ptr) kernel32_win7.FindNextFileA
 @ stub -version=0x600+ FindNextFileNameW
@@ -374,7 +372,7 @@
 @ stdcall GetACP() kernel32_win7.GetACP
 @ stub -version=0x601+ GetActiveProcessorCount
 @ stub -version=0x601+ GetActiveProcessorGroupCount
-@ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr)
+@ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr) kernel32_win7.GetApplicationRecoveryCallback
 @ stub -version=0x600+ GetApplicationRestartSettings
 @ stdcall GetAtomNameA(long ptr long) kernel32_win7.GetAtomNameA
 @ stdcall GetAtomNameW(long ptr long) kernel32_win7.GetAtomNameW
@@ -434,7 +432,7 @@
 @ stdcall GetConsoleFontInfo(long long long ptr) kernel32_win7.GetConsoleFontInfo
 @ stdcall GetConsoleFontSize(long long) kernel32_win7.GetConsoleFontSize
 @ stdcall GetConsoleHardwareState(long long ptr) kernel32_win7.GetConsoleHardwareState
-@ stdcall -version=0x600+ GetConsoleHistoryInfo(ptr)
+@ stdcall -version=0x600+ GetConsoleHistoryInfo(ptr) kernel32_win7.GetConsoleHistoryInfo
 @ stdcall GetConsoleInputExeNameA(long ptr) kernel32_win7.GetConsoleInputExeNameA
 @ stdcall GetConsoleInputExeNameW(long ptr) kernel32_win7.GetConsoleInputExeNameW
 @ stdcall GetConsoleInputWaitHandle() kernel32_win7.GetConsoleInputWaitHandle
@@ -630,7 +628,7 @@
 @ stdcall GetProcessVersion(long) kernel32_win7.GetProcessVersion
 @ stdcall GetProcessWorkingSetSize(long ptr ptr) kernel32_win7.GetProcessWorkingSetSize
 @ stdcall GetProcessWorkingSetSizeEx(long ptr ptr long) kernel32_win7.GetProcessWorkingSetSizeEx
-@ stdcall -stub -version=0x600+ GetProductInfo(long long long long ptr)
+@ stdcall -version=0x600+ GetProductInfo(long long long long ptr) kernel32_win7.GetProductInfo
 @ stdcall GetProfileIntA(str str long) kernel32_win7.GetProfileIntA
 @ stdcall GetProfileIntW(wstr wstr long) kernel32_win7.GetProfileIntW
 @ stdcall GetProfileSectionA(str ptr long) kernel32_win7.GetProfileSectionA

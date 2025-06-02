@@ -1417,7 +1417,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH AllocateUserPhysicalPagesNuma( HANDLE process, ULO
     if (node) FIXME( "Ignoring preferred node %lu\n", node );
     return AllocateUserPhysicalPages( process, pages, userarray );
 }
-
+#endif
 
 /***********************************************************************
  *             CreateFileMappingNumaW   (kernelbase.@)
@@ -1430,7 +1430,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateFileMappingNumaW( HANDLE file, LPSECURITY_
     return CreateFileMappingW( file, sa, protect, size_high, size_low, name );
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetLogicalProcessorInformation   (kernelbase.@)
  */

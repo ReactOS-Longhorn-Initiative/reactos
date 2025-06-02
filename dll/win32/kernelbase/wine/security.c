@@ -1184,7 +1184,6 @@ BOOL WINAPI SetPrivateObjectSecurity( SECURITY_INFORMATION info, PSECURITY_DESCR
     return TRUE;
 }
 
-#ifndef __REACTOS__
 /*************************************************************************
  * SetPrivateObjectSecurityEx    (kernelbase.@)
  */
@@ -1195,7 +1194,6 @@ BOOL WINAPI SetPrivateObjectSecurityEx( SECURITY_INFORMATION info, PSECURITY_DES
     FIXME( "0x%08lx %p %p %lu %p %p - stub\n", info, descr, obj_descr, flags, mapping, token );
     return TRUE;
 }
-#endif
 
 /******************************************************************************
  * SetSecurityDescriptorControl    (kernelbase.@)

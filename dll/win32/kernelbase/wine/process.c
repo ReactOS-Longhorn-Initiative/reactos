@@ -745,6 +745,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH DuplicateHandle( HANDLE source_process, HANDLE sou
                                             access, inherit ? OBJ_INHERIT : 0, options ));
 }
 
+#endif
 
 /***********************************************************************
  *           GetApplicationRestartSettings   (kernelbase.@)
@@ -756,7 +757,7 @@ HRESULT WINAPI /* DECLSPEC_HOTPATCH */ GetApplicationRestartSettings( HANDLE pro
     return E_NOTIMPL;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetCurrentProcess   (kernelbase.@)
  */

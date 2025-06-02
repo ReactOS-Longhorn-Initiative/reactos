@@ -20,7 +20,7 @@
 @ stdcall RtlSendMsgToSm(ptr ptr) SmSendMsgToSm
 @ stdcall RtlTryAcquireSRWLockExclusive(ptr)
 @ stdcall RtlTryAcquireSRWLockShared(ptr)
-
+@ stdcall RtlGetProductInfo(long long long long long)
 @ stdcall TpAllocCleanupGroup(ptr)
 @ stdcall TpAllocIoCompletion(ptr ptr ptr ptr ptr)
 @ stdcall TpAllocPool(ptr ptr)
