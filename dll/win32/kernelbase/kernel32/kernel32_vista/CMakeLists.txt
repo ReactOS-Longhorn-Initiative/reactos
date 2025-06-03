@@ -8,6 +8,7 @@ include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/subsys ..)
 list(APPEND SOURCE
     firmware.c
     GetFileInformationByHandleEx.c
+    GetFinalPathNameByHandle.c
     GetTickCount64.c
     InitOnce.c
     sync.c

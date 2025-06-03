@@ -395,8 +395,6 @@ CreateSymbolicLinkA(IN LPCSTR lpSymlinkFileName,
     return Ret;
 }
 
-
-
 /*
  * @implemented
  */
@@ -463,7 +461,6 @@ GetFinalPathNameByHandleATest(IN HANDLE hFile,
 
     return Ret;
 }
-
 
 /*
  * @unimplemented

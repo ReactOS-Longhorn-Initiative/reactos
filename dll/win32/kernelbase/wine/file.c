@@ -1768,10 +1768,11 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetFileAttributesExW( LPCWSTR name, GET_FILEEX_INF
 }
 
 
+#endif
 /***********************************************************************
  *	GetFinalPathNameByHandleA   (kernelbase.@)
  */
-DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleA_old( HANDLE file, LPSTR path,
+DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleA( HANDLE file, LPSTR path,
                                                           DWORD count, DWORD flags )
 {
     WCHAR *str;
@@ -1806,8 +1807,6 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleA_old( HANDLE file, LPSTR
     HeapFree(GetProcessHeap(), 0, str);
     return len - 1;
 }
-
-#endif
 
 
 #ifndef __REACTOS__
