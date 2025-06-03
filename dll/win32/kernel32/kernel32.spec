@@ -1,8 +1,8 @@
 @ stdcall -version=0x600+ AcquireSRWLockExclusive(ptr) NTDLL.RtlAcquireSRWLockExclusive
 @ stdcall -version=0x600+ AcquireSRWLockShared(ptr) NTDLL.RtlAcquireSRWLockShared
 @ stdcall ActivateActCtx(ptr ptr) kernelbase.ActivateActCtx
-@ stdcall AddAtomA(str) kernelbase.AddAtomA
-@ stdcall AddAtomW(wstr) kernelbase.AddAtomW
+@ stdcall AddAtomA(str) 
+@ stdcall AddAtomW(wstr)
 @ stdcall AddConsoleAliasA(str str str) kernelbase.AddConsoleAliasA ;check
 @ stdcall AddConsoleAliasW(wstr wstr wstr) kernelbase.AddConsoleAliasW ;check
 @ stdcall -version=0x600+ AddDllDirectory(wstr) kernelbase.AddDllDirectory
@@ -209,7 +209,7 @@
 @ stdcall DefineDosDeviceA(long str str) kernelbase.DefineDosDeviceA
 @ stdcall DefineDosDeviceW(long wstr wstr) kernelbase.DefineDosDeviceW
 @ stdcall DelayLoadFailureHook(str str) kernelbase.DelayLoadFailureHook
-@ stdcall DeleteAtom(long) kernelbase.DeleteAtom
+@ stdcall DeleteAtom(long) 
 @ stub -version=0x600+ DeleteBoundaryDescriptor
 @ stdcall DeleteCriticalSection(ptr) ntdll.RtlDeleteCriticalSection
 @ stdcall DeleteFiber(ptr) kernelbase.DeleteFiber
@@ -308,8 +308,8 @@
 @ stdcall FindActCtxSectionGuid(long ptr long ptr ptr) kernelbase.FindActCtxSectionGuid
 @ stdcall FindActCtxSectionStringA(long ptr long str ptr) kernelbase.FindActCtxSectionStringA
 @ stdcall FindActCtxSectionStringW(long ptr long wstr ptr) kernelbase.FindActCtxSectionStringW
-@ stdcall FindAtomA(str) kernelbase.FindAtomA
-@ stdcall FindAtomW(wstr) kernelbase.FindAtomW
+@ stdcall FindAtomA(str) 
+@ stdcall FindAtomW(wstr)
 @ stdcall FindClose(long) kernelbase.FindClose
 @ stdcall FindCloseChangeNotification(long) kernelbase.FindCloseChangeNotification
 @ stdcall FindFirstChangeNotificationA(str long long) kernelbase.FindFirstChangeNotificationA
@@ -373,8 +373,8 @@
 @ stub -version=0x601+ GetActiveProcessorGroupCount
 @ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr) kernelbase.GetApplicationRecoveryCallback
 @ stub -version=0x600+ GetApplicationRestartSettings
-@ stdcall GetAtomNameA(long ptr long) kernelbase.GetAtomNameA
-@ stdcall GetAtomNameW(long ptr long) kernelbase.GetAtomNameW
+@ stdcall GetAtomNameA(long ptr long)
+@ stdcall GetAtomNameW(long ptr long)
 @ stdcall GetBinaryType(str ptr) kernelbase.GetBinaryTypeA
 @ stdcall GetBinaryTypeA(str ptr) kernelbase.GetBinaryTypeA
 @ stdcall GetBinaryTypeW(wstr ptr) kernelbase.GetBinaryTypeW
@@ -722,18 +722,18 @@
 @ stdcall GetWriteWatch(long ptr long ptr ptr ptr) kernelbase.GetWriteWatch
 @ stub -version=0x601+ -arch=i386,x86_64 GetXStateFeaturesMask
 @ stub -version=0x601+ -arch=i386,x86_64 SetXStateFeaturesMask
-@ stdcall GlobalAddAtomA(str) kernelbase.GlobalAddAtomA
-@ stdcall GlobalAddAtomW(wstr) kernelbase.GlobalAddAtomW
+@ stdcall GlobalAddAtomA(str) 
+@ stdcall GlobalAddAtomW(wstr)
 @ stdcall GlobalAlloc(long long) kernelbase.GlobalAlloc
 @ stdcall GlobalCompact(long) kernelbase.GlobalCompact
-@ stdcall GlobalDeleteAtom(long) kernelbase.GlobalDeleteAtom
-@ stdcall GlobalFindAtomA(str) kernelbase.GlobalFindAtomA
-@ stdcall GlobalFindAtomW(wstr) kernelbase.GlobalFindAtomW
+@ stdcall GlobalDeleteAtom(long)
+@ stdcall GlobalFindAtomA(str) 
+@ stdcall GlobalFindAtomW(wstr)
 @ stdcall GlobalFix(long) kernelbase.GlobalFix
 @ stdcall GlobalFlags(long) kernelbase.GlobalFlags
 @ stdcall GlobalFree(long) kernelbase.GlobalFree
-@ stdcall GlobalGetAtomNameA(long ptr long) kernelbase.GlobalGetAtomNameA
-@ stdcall GlobalGetAtomNameW(long ptr long) kernelbase.GlobalGetAtomNameW
+@ stdcall GlobalGetAtomNameA(long ptr long)
+@ stdcall GlobalGetAtomNameW(long ptr long)
 @ stdcall GlobalHandle(ptr) kernelbase.GlobalHandle
 @ stdcall GlobalLock(long) kernelbase.GlobalLock
 @ stdcall GlobalMemoryStatus(ptr) kernelbase.GlobalMemoryStatus
@@ -769,7 +769,7 @@
 @ stdcall -stub -version=0x600+ IdnToAscii(long wstr long ptr long) kernelbase.IdnToAscii
 @ stdcall -stub -version=0x600+ IdnToNameprepUnicode(long wstr long ptr long) kernelbase.IdnToNameprepUnicode
 @ stdcall -stub -version=0x600+ IdnToUnicode(long wstr long ptr long) kernelbase.IdnToUnicode
-@ stdcall InitAtomTable(long) kernelbase.InitAtomTable
+@ stdcall InitAtomTable(long)
 @ stdcall -version=0x600+ InitOnceBeginInitialize(ptr long ptr ptr) kernelbase.InitOnceBeginInitialize
 @ stdcall -version=0x600+ InitOnceComplete(ptr long ptr) kernelbase.InitOnceComplete
 @ stdcall -version=0x600+ InitOnceExecuteOnce(ptr ptr ptr ptr) kernelbase.InitOnceExecuteOnce
