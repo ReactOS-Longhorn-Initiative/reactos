@@ -4139,7 +4139,7 @@ INT WINAPI CompareStringA(LCID lcid, DWORD flags,
     if (str2W != buf2W) HeapFree(GetProcessHeap(), 0, str2W);
     return ret;
 }
-#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA) || (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
+
 /******************************************************************************
  *           CompareStringOrdinal    (KERNEL32.@)
  */
@@ -4160,7 +4160,7 @@ INT WINAPI CompareStringOrdinal(const WCHAR *str1, INT len1, const WCHAR *str2, 
     if (ret > 0) return CSTR_GREATER_THAN;
     return CSTR_EQUAL;
 }
-#endif
+
 #ifndef __REACTOS__
 /*************************************************************************
  *           lstrcmp     (KERNEL32.@)

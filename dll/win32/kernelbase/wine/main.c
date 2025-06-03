@@ -59,7 +59,7 @@ BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
 }
 #endif
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           MulDiv   (kernelbase.@)
  */
@@ -85,6 +85,7 @@ INT WINAPI MulDiv( INT a, INT b, INT c )
     if (ret > 2147483647 || ret < -2147483647) return -1;
     return ret;
 }
+#endif
 
 /***********************************************************************
  *          AppPolicyGetMediaFoundationCodecLoading (KERNELBASE.@)

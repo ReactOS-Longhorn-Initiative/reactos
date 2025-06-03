@@ -1459,7 +1459,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetProductInfo( DWORD os_major, DWORD os_minor,
     return RtlGetProductInfo( os_major, os_minor, sp_major, sp_minor, type );
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *         GetVersion   (kernelbase.@)
  */
@@ -1549,7 +1549,7 @@ BOOL WINAPI GetVersionExW( OSVERSIONINFOW *info )
     }
     return TRUE;
 }
-
+#endif
 /***********************************************************************
  *         GetCurrentPackageFamilyName   (kernelbase.@)
  */

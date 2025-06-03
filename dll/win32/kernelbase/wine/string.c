@@ -54,7 +54,7 @@ static BOOL char_compare(WORD ch1, WORD ch2, DWORD flags)
 
     return CompareStringA(GetThreadLocale(), flags, str1, -1, str2, -1) - CSTR_EQUAL;
 }
-
+#ifndef __REACTOS__
 int WINAPI lstrcmpA( LPCSTR str1, LPCSTR str2 )
 {
     if (!str1 && !str2) return 0;
@@ -86,7 +86,7 @@ int WINAPI lstrcmpiW(LPCWSTR str1, LPCWSTR str2)
     if (!str2) return 1;
     return CompareStringW( GetThreadLocale(), NORM_IGNORECASE, str1, -1, str2, -1 ) - 2;
 }
-
+#endif
 LPSTR WINAPI KERNELBASE_lstrcpynA( LPSTR dst, LPCSTR src, INT n )
 {
     /* Note: this function differs from the UNIX strncpy, it _always_ writes

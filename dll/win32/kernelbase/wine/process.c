@@ -1254,7 +1254,7 @@ BOOL WINAPI /* DECLSPEC_HOTPATCH */ SetProcessMitigationPolicy( PROCESS_MITIGATI
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           SetProcessPriorityBoost   (kernelbase.@)
  */
@@ -1275,7 +1275,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetProcessShutdownParameters( DWORD level, DWORD f
     shutdown_priority = level;
     return TRUE;
 }
-#ifndef __REACTOS__
 
 /***********************************************************************
  *           SetProcessWorkingSetSizeEx   (kernelbase.@)

@@ -691,7 +691,7 @@
 @ stdcall RtlCompareMemoryUlong(ptr long long)
 @ stdcall RtlCompareString(ptr ptr long)
 @ stdcall RtlCompareUnicodeString (ptr ptr long)
-@ stdcall -version=0x600+ RtlCompareUnicodeStrings(wstr long wstr long long)
+@ stdcall RtlCompareUnicodeStrings(wstr long wstr long long)
 @ stdcall -stub -version=0x600+ -arch=x86_64 RtlCompleteProcessCloning(long)
 @ stdcall RtlCompressBuffer(long ptr long ptr long long ptr ptr)
 @ stdcall RtlComputeCrc32(long ptr long)

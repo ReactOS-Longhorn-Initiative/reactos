@@ -711,7 +711,7 @@
 @ stdcall GetVersionExA(ptr) kernel32_win7.GetVersionExA
 @ stdcall GetVersionExW(ptr) kernel32_win7.GetVersionExW
 @ stdcall GetVolumeInformationA(str ptr long ptr ptr ptr ptr long) kernel32_win7.GetVolumeInformationA
-@ stub -version=0x600+ GetVolumeInformationByHandleW
+@ stdcall GetVolumeInformationByHandleW(ptr ptr long ptr ptr ptr ptr long) kernel32_win7.GetVolumeInformationByHandleW
 @ stdcall GetVolumeInformationW(wstr ptr long ptr ptr ptr ptr long) kernel32_win7.GetVolumeInformationW
 @ stdcall GetVolumeNameForVolumeMountPointA(str ptr long) kernel32_win7.GetVolumeNameForVolumeMountPointA
 @ stdcall GetVolumeNameForVolumeMountPointW(wstr ptr long) kernel32_win7.GetVolumeNameForVolumeMountPointW
