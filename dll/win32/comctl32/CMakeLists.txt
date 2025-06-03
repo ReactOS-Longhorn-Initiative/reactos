@@ -29,7 +29,7 @@ list(APPEND SOURCE
     header.c
     hotkey.c
     imagelist.c
-    IListView.c
+    vista_listview.c
     ipaddress.c
     listbox.c
     listview.c

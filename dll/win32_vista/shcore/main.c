@@ -120,14 +120,6 @@ HRESULT WINAPI _IStream_Read(IStream *stream, void *dest, ULONG size)
     return hr;
 }
 
-HRESULT WINAPI IStream_Reset(IStream *stream)
-{
-    static const LARGE_INTEGER zero;
-
-    TRACE("(%p)\n", stream);
-
-    return IStream_Seek(stream, zero, 0, NULL);
-}
 
 HRESULT WINAPI IStream_Size(IStream *stream, ULARGE_INTEGER *size)
 {

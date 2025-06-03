@@ -16,6 +16,6 @@ add_library(logoncli MODULE
 
 target_link_libraries(logoncli)
 set_module_type(logoncli win32dll ENTRYPOINT DllMain)
-add_importlibs(logoncli ntdll ntdll_vista kernel32_vista advapi32 kernel32)
+add_importlibs(logoncli ntdll ntdll_vista advapi32 kernelbase)
 add_dependencies(logoncli psdk)
 add_cd_file(TARGET logoncli DESTINATION reactos/system32 FOR all)

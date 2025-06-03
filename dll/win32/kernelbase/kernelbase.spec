@@ -1,10 +1,11 @@
 @ stdcall AccessCheck(ptr long long ptr ptr ptr ptr ptr)
 @ stdcall AccessCheckAndAuditAlarmW(wstr ptr wstr wstr ptr long ptr long ptr ptr ptr)
 @ stdcall AccessCheckByType(ptr ptr long long ptr long ptr ptr ptr ptr ptr)
-@ stub AccessCheckByTypeAndAuditAlarmW
-@ stub AccessCheckByTypeResultList
-@ stub AccessCheckByTypeResultListAndAuditAlarmByHandleW
-@ stub AccessCheckByTypeResultListAndAuditAlarmW
+@ stdcall AccessCheckByTypeResultList(ptr ptr long long ptr long ptr ptr ptr ptr ptr)
+@ stdcall AccessCheckByTypeResultListAndAuditAlarmA(str ptr str str ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall AccessCheckByTypeResultListAndAuditAlarmByHandleA(str ptr ptr str str ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall AccessCheckByTypeResultListAndAuditAlarmByHandleW(wstr ptr ptr wstr wstr ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall AccessCheckByTypeResultListAndAuditAlarmW(wstr ptr wstr wstr ptr long long long long ptr long ptr long ptr ptr ptr)
 @ stdcall AcquireSRWLockExclusive(ptr) ntdll.RtlAcquireSRWLockExclusive
 @ stdcall AcquireSRWLockShared(ptr) ntdll.RtlAcquireSRWLockShared
 # @ stub AcquireStateLock
@@ -90,7 +91,7 @@
 # @ stub BaseReadAppCompatDataForProcess
 @ stub BaseReleaseProcessDllPath
 @ stub BaseReleaseProcessExePath
-@ stdcall -version=0x501-0x502 BaseProcessInitPostImport() kernel32_win7.BaseProcessInitPostImport
+@ stdcall -version=0x501-0x502 BaseProcessInitPostImport() kernelbase.BaseProcessInitPostImport
 @ stdcall -version=0x600+ BaseProcessInitPostImport() 
 @ stdcall BaseQueryModuleData(str str ptr ptr ptr) 
 @ stdcall BaseUpdateAppcompatCache(long long long)
@@ -221,6 +222,7 @@
 @ stdcall CreateRemoteThread(long ptr long ptr long long ptr)
 @ stdcall CreateRemoteThreadEx(long ptr long ptr ptr long ptr ptr)
 @ stdcall CreateRestrictedToken(long long long ptr long ptr long ptr ptr)
+@ stdcall CreateSemaphoreExA(ptr long long str long long)
 @ stdcall CreateSemaphoreExW(ptr long long wstr long long)
 @ stdcall CreateSemaphoreW(ptr long long wstr)
 # @ stub CreateStateAtom
@@ -228,6 +230,7 @@
 # @ stub CreateStateContainer
 # @ stub CreateStateLock
 # @ stub CreateStateSubcontainer
+@ stdcall CreateSymbolicLinkA(str str long)
 @ stdcall CreateSymbolicLinkW(wstr wstr long)
 @ stdcall CreateThread(ptr long ptr long long ptr)
 @ stdcall CreateThreadpool(ptr)
@@ -423,7 +426,7 @@
 # @ stub GetAppContainerNamedObjectPath
 # @ stub GetAppDataFolder
 # @ stub GetAppModelVersion
-# @ stub GetApplicationRecoveryCallback
+@ stdcall GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr)
 @ stdcall GetApplicationRestartSettings(long ptr ptr ptr)
 # @ stub GetApplicationUserModelId
 # @ stub GetApplicationUserModelIdFromToken
@@ -469,6 +472,7 @@
 @ stdcall GetConsoleFontSize(long long)
 @ stdcall GetConsoleInputExeNameA(long ptr)
 @ stdcall GetConsoleInputExeNameW(long ptr)
+@ stdcall GetConsoleHistoryInfo(ptr)
 @ stdcall GetConsoleMode(long ptr)
 @ stdcall -version=0x600+ GetConsoleOriginalTitleA(ptr long)
 @ stdcall -version=0x600+ GetConsoleOriginalTitleW(ptr long)
@@ -680,7 +684,7 @@
 # @ stub GetPublisherCacheFolder
 # @ stub GetPublisherRootFolder
 @ stdcall GetQueuedCompletionStatus(long ptr ptr ptr long)
-@ stdcall -stub GetQueuedCompletionStatusEx(ptr ptr long ptr long long)
+@ stdcall GetQueuedCompletionStatusEx(ptr ptr long ptr long long)
 # @ stub GetRegistryExtensionFlags
 # @ stub GetRoamingLastObservedChangeTime
 @ stdcall GetSecurityDescriptorControl(ptr ptr ptr)
@@ -688,7 +692,7 @@
 @ stdcall GetSecurityDescriptorGroup(ptr ptr ptr)
 @ stdcall GetSecurityDescriptorLength(ptr) ntdll.RtlLengthSecurityDescriptor
 @ stdcall GetSecurityDescriptorOwner(ptr ptr ptr)
-@ stub GetSecurityDescriptorRMControl
+@ stdcall GetSecurityDescriptorRMControl(ptr ptr)
 @ stdcall GetSecurityDescriptorSacl(ptr ptr ptr ptr)
 # @ stub GetSerializedAtomBytes
 # @ stub GetSharedLocalFolder
@@ -773,7 +777,7 @@
 @ stdcall GetTraceEnableFlags(int64) ntdll.EtwGetTraceEnableFlags
 @ stdcall GetTraceEnableLevel(int64) ntdll.EtwGetTraceEnableLevel
 @ stdcall -ret64 GetTraceLoggerHandle(ptr) ntdll.EtwGetTraceLoggerHandle
-@ stub GetUILanguageInfo
+@ stdcall -version=0x600+ GetUILanguageInfo(long wstr wstr ptr ptr)
 # @ stub GetUnicodeStringToEightBitSizeRoutine
 # @ stub GetUnicodeStringToEightBitStringRoutine
 @ stdcall -stub -version=0xA00+ GetUserDefaultGeoName(ptr long)
@@ -974,7 +978,7 @@
 @ stdcall LockFileEx(long long long long long ptr)
 @ stdcall LockResource(long)
 @ stdcall MakeAbsoluteSD(ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr)
-@ stub MakeAbsoluteSD2
+@ stdcall MakeAbsoluteSD2(ptr ptr)
 @ stdcall MakeSelfRelativeSD(ptr ptr ptr)
 @ stdcall MapGenericMask(ptr ptr)  ntdll.RtlMapGenericMask
 # @ stub MapPredefinedHandleInternal
@@ -1250,7 +1254,7 @@
 @ stub QueryProcessAffinityUpdateMode
 @ stdcall -stub QueryProcessCycleTime(long ptr)
 # @ stub QueryProtectedPolicy
-@ stub QuerySecurityAccessMask
+@ stdcall QuerySecurityAccessMask(ptr ptr)
 # @ stub QueryStateAtomValueInfo
 # @ stub QueryStateContainerCreatedNew
 # @ stub QueryStateContainerItemInfo
@@ -1511,12 +1515,12 @@
 @ stdcall SetProcessWorkingSetSizeEx(long long long long)
 # @ stub SetProtectedPolicy
 # @ stub SetRoamingLastObservedChangeTime
-@ stub SetSecurityAccessMask
+@ stdcall SetSecurityAccessMask(ptr ptr)
 @ stdcall SetSecurityDescriptorControl(ptr long long)
 @ stdcall SetSecurityDescriptorDacl(ptr long ptr long)
 @ stdcall SetSecurityDescriptorGroup(ptr ptr long)
 @ stdcall SetSecurityDescriptorOwner(ptr ptr long)
-@ stub SetSecurityDescriptorRMControl
+@ stdcall SetSecurityDescriptorRMControl(ptr ptr)
 @ stdcall SetSecurityDescriptorSacl(ptr long ptr long)
 # @ stub SetStateVersion
 @ stdcall SetStdHandle(long long)
@@ -1815,7 +1819,6 @@
 @ stdcall _lclose(long)
 @ stdcall _lcreat(str long)
 @ stdcall _llseek(long long long)
-@ stdcall -arch=x86_64,arm64 _local_unwind() ntdll._local_unwind
 @ stdcall _lopen(str long)
 @ stdcall _lread(long ptr long) _hread
 @ stdcall _lwrite(long ptr long) _hwrite
@@ -2128,3 +2131,6 @@
 ; ReactOS Specific
 @ stdcall BaseSetLastNTError(long)
 @ stdcall Basep8BitStringToDynamicUnicodeString(wstr str)
+@ stdcall GetFileBandwidthReservation(ptr ptr ptr ptr ptr ptr)
+@ stdcall -version=0x600+ SetConsoleHistoryInfo(ptr)
+@ stdcall -version=0x600+ SetFileBandwidthReservation(ptr long long long ptr ptr)

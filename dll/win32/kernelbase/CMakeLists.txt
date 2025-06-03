@@ -1,5 +1,5 @@
 if (DLL_EXPORT_VERSION LESS 0x601)
-    set(kernelbase_name kernel32_win7)
+    set(kernelbase_name kernelbase)
 else()
     set(kernelbase_name kernelbase)
 endif()

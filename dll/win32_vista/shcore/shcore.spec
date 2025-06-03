@@ -18,7 +18,7 @@
 @ stub IStream_Copy
 @ stdcall IStream_Read(ptr ptr long) _IStream_Read
 @ stub IStream_ReadStr
-@ stdcall IStream_Reset(ptr)
+@ stdcall -stub IStream_Reset(ptr)
 @ stdcall IStream_Size(ptr ptr)
 @ stdcall IStream_Write(ptr ptr long) _IStream_Write
 @ stub IStream_WriteStr

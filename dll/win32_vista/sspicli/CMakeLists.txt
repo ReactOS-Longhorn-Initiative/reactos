@@ -16,6 +16,6 @@ add_library(sspicli MODULE
 
 target_link_libraries(sspicli)
 set_module_type(sspicli win32dll ENTRYPOINT DllMain)
-add_importlibs(sspicli ntdll ntdll_vista kernel32_vista advapi32 kernel32)
+add_importlibs(sspicli ntdll ntdll_vista advapi32 kernelbase)
 add_dependencies(sspicli psdk)
 add_cd_file(TARGET sspicli DESTINATION reactos/system32 FOR all)

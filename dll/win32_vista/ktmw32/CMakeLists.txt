@@ -16,6 +16,6 @@ add_library(ktmw32 MODULE
 
 target_link_libraries(ktmw32)
 set_module_type(ktmw32 win32dll ENTRYPOINT DllMain)
-add_importlibs(ktmw32 ntdll ntdll_vista kernel32_vista advapi32 kernel32)
+add_importlibs(ktmw32 ntdll ntdll_vista advapi32 kernelbase)
 add_dependencies(ktmw32 psdk)
 add_cd_file(TARGET ktmw32 DESTINATION reactos/system32 FOR all)

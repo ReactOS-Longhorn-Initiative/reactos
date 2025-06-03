@@ -39,7 +39,7 @@ set_module_type(kernel32 win32dll ENTRYPOINT DllMain 12)
 set_subsystem(kernel32 console)
 ################# END  HACK #################
 target_link_libraries(kernel32 chkstk ${PSEH_LIB})
-add_importlibs(kernel32 kernel32_win7 ntdll)
+add_importlibs(kernel32 kernelbase ntdll)
 add_pch(kernel32 k32.h SOURCE)
 add_dependencies(kernel32 psdk errcodes asm)
 add_cd_file(TARGET kernel32 DESTINATION reactos/system32 FOR all)
