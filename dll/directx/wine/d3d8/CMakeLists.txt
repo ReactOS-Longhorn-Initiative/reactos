@@ -30,5 +30,5 @@ add_library(d3d8 MODULE
 
 set_module_type(d3d8 win32dll UNICODE)
 target_link_libraries(d3d8 uuid wine)
-add_importlibs(d3d8 d3dwine msvcrt kernel32 ntdll)
+add_importlibs(d3d8 d3dwine msvcrt  kernelbase ntdll)
 add_cd_file(TARGET d3d8 DESTINATION reactos/system32 FOR all)

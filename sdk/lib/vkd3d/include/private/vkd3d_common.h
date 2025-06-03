@@ -53,24 +53,6 @@
 #define _interlockedadd _InterlockedAdd
 #else
 #ifdef _WIN64
-#undef _InterlockedAdd
-#define _InterlockedAdd _InlineInterlockedAdd
-FORCEINLINE
-LONG
-_InlineInterlockedAdd(
-    _Inout_ _Interlocked_operand_ volatile LONG *Target,
-    _In_ LONG Value)
-{
-    LONG Old, Prev, New;
-    for (Old = *Target; ; Old = Prev)
-    {
-        New = Old + Value;
-        Prev = _InterlockedCompareExchange((volatile long *)Target, New, Old);
-        if (Prev == Old)
-            return New;
-    }
-}
-#else
 #define _interlockedadd _InterlockedAdd
 #endif
 #endif

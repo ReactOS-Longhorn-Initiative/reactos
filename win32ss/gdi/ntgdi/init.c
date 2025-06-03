@@ -75,7 +75,9 @@ GdiThreadDestroy(PETHREAD Thread)
     return STATUS_SUCCESS;
 }
 
+
 VOID
+APIENTRY
 DxStartupDxgkInt(VOID);
 
 BOOL

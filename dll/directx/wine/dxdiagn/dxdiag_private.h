@@ -22,7 +22,9 @@
 #define __WINE_DXDIAG_PRIVATE_H
 
 #include <stdarg.h>
+#ifndef NULL
 #define NULL 0
+#endif
 #include "wine/list.h"
 #include "dxdiag.h"
 #include "resource.h"

@@ -30,20 +30,6 @@ WINE_DEFAULT_DEBUG_CHANNEL(dxtrans);
 
 HRESULT WINAPI DllGetClassObject(REFCLSID clsid, REFIID riid, void **out)
 {
-<<<<<<< HEAD:dll/directx/wine/d3dcompiler_43/main.c
-    switch (reason)
-    {
-#ifndef __REACTOS__
-        case DLL_WINE_PREATTACH:
-            return FALSE; /* prefer native version */
-#endif
-        case DLL_PROCESS_ATTACH:
-            DisableThreadLibraryCalls(inst);
-            break;
-    }
-    return TRUE;
-=======
     FIXME("(%s, %s, %p) stub!\n", debugstr_guid(clsid), debugstr_guid(riid), out);
     return CLASS_E_CLASSNOTAVAILABLE;
->>>>>>> ec90f6b1353 ([DIRECTX:WINE] New DirectX stack based on WINE 10.1):dll/directx/wine/dxtrans/main.c
 }

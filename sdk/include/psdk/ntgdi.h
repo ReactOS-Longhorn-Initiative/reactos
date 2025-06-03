@@ -4104,13 +4104,8 @@ W32KAPI
 NTSTATUS
 APIENTRY
 NtGdiDdDDIGetProcessSchedulingPriorityClass(
-<<<<<<< HEAD
     _In_  HANDLE unnamedParam1,
     _Out_ D3DKMT_SCHEDULINGPRIORITYCLASS *unnamedParam2);
-=======
-    _In_  HANDLE                                unnamedParam1,
-    _Out_ D3DKMT_SCHEDULINGPRIORITYCLASS        *unnamedParam2);
->>>>>>> cb58e3bc055 ([NT6 DIRECTX] Rather messed up import)
 
 __kernel_entry
 W32KAPI
@@ -4251,20 +4246,14 @@ NTSTATUS
 APIENTRY
 NtGdiDdDDISetDisplayMode(
     _In_ const D3DKMT_SETDISPLAYMODE* unnamedParam1);
-<<<<<<< HEAD
-
-=======
->>>>>>> cb58e3bc055 ([NT6 DIRECTX] Rather messed up import)
+    
 __kernel_entry
 W32KAPI
 NTSTATUS
 APIENTRY
 NtGdiDdDDISetDisplayPrivateDriverFormat(
     _In_ const D3DKMT_SETDISPLAYPRIVATEDRIVERFORMAT* unnamedParam1);
-<<<<<<< HEAD
 
-=======
->>>>>>> cb58e3bc055 ([NT6 DIRECTX] Rather messed up import)
 __kernel_entry
 W32KAPI
 NTSTATUS
@@ -4277,13 +4266,8 @@ W32KAPI
 NTSTATUS
 APIENTRY
 NtGdiDdDDISetProcessSchedulingPriorityClass(
-<<<<<<< HEAD
     _In_ HANDLE unnamedParam1,
     _In_ D3DKMT_SCHEDULINGPRIORITYCLASS unnamedParam2);
-=======
-                    _In_ HANDLE                                    unnamedParam1,
-                    _In_ D3DKMT_SCHEDULINGPRIORITYCLASS            unnamedParam2);
->>>>>>> cb58e3bc055 ([NT6 DIRECTX] Rather messed up import)
 
 __kernel_entry
 W32KAPI

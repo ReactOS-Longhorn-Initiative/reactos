@@ -19,6 +19,6 @@ add_library(amstream MODULE
 
 set_module_type(amstream win32dll)
 target_link_libraries(amstream strmbase strmiids uuid wine)
-add_importlibs(amstream ole32 ddraw user32 msvcrt kernel32 ntdll)
+add_importlibs(amstream ole32 ddraw user32 msvcrt  kernelbase ntdll)
 add_pch(amstream precomp.h SOURCE)
 add_cd_file(TARGET amstream DESTINATION reactos/system32 FOR all)

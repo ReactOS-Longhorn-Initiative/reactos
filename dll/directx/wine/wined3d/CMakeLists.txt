@@ -57,7 +57,7 @@ add_library(d3dwine MODULE
 
 set_module_type(d3dwine win32dll)
 target_link_libraries(d3dwine vkd3d vkd3d-shader vkd3d-common wine wpp uuid )
-add_importlibs(d3dwine user32 opengl32 gdi32 gdi32_vista advapi32 msvcrt ucrtbase kernel32 kernel32_vista ntdll)
+add_importlibs(d3dwine user32 opengl32 gdi32 gdi32_vista advapi32 msvcrt ucrtbase  kernelbase ntdll)
 add_pch(d3dwine precomp.h SOURCE)
 add_cd_file(TARGET d3dwine DESTINATION reactos/system32 FOR all)
 add_dependencies(d3dwine psdk xdk wineheaders d3d_idl_headers)

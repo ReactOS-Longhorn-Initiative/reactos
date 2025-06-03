@@ -29,6 +29,6 @@ set_wine_module_FIXME(dinput_data_formats) # CORE-5743: No ARRAY_SIZE macro
 
 set_module_type(dinput win32dll)
 target_link_libraries(dinput dxguid uuid wine)
-add_importlibs(dinput comctl32 ole32 user32 advapi32 msvcrt kernel32 ntdll)
+add_importlibs(dinput comctl32 ole32 user32 advapi32 msvcrt  kernelbase ntdll)
 add_pch(dinput precomp.h SOURCE)
 add_cd_file(TARGET dinput DESTINATION reactos/system32 FOR all)

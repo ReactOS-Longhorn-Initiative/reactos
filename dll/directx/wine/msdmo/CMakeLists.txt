@@ -17,6 +17,6 @@ add_library(msdmo MODULE
 
 set_module_type(msdmo win32dll)
 target_link_libraries(msdmo uuid wine mediaobj_guid)
-add_importlibs(msdmo user32 advapi32 ole32 msvcrt kernel32 ntdll)
+add_importlibs(msdmo user32 advapi32 ole32 msvcrt  kernelbase ntdll)
 add_pch(msdmo precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET msdmo DESTINATION reactos/system32 FOR all)

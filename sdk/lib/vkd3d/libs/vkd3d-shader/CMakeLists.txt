@@ -43,7 +43,7 @@ add_dependencies(vkd3d-shader psdk d3d_idl_headers)
 if(MSVC)
     # Disable warning C4715: not all control paths return a value
     # Disable warning C4098: 'foo': 'void' function returning a value.
-    target_compile_options(vkd3d-shader PRIVATE /wd4715 /wd4098)
+    target_compile_options(vkd3d-shader PRIVATE /wd4267 /wd4309 /wd4305 /wd4715 /wd4098)
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")

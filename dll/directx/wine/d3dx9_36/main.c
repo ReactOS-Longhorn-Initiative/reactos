@@ -26,24 +26,6 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(d3dx);
 
-<<<<<<< HEAD
-BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
-{
-    switch(reason)
-    {
-#ifndef __REACTOS__
-    case DLL_WINE_PREATTACH:
-        return FALSE; /* prefer native version */
-#endif
-    case DLL_PROCESS_ATTACH:
-        DisableThreadLibraryCalls(inst);
-        break;
-    }
-    return TRUE;
-}
-
-=======
->>>>>>> ec90f6b1353 ([DIRECTX:WINE] New DirectX stack based on WINE 10.1)
 BOOL WINAPI D3DXCheckVersion(UINT d3d_sdk_ver, UINT d3dx_sdk_ver)
 {
     return d3d_sdk_ver == D3D_SDK_VERSION && d3dx_sdk_ver == D3DX_SDK_VERSION;

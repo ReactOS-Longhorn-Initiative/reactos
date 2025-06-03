@@ -44,13 +44,17 @@ add_library(d3d10 SHARED
     ${CMAKE_CURRENT_BINARY_DIR}/d3d10_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/d3d10.def)
 
+if(MSVC)
+    # Disable warning C4267: '=': conversion from 'size_t' to 'WCHAR', possible loss of data
+    target_compile_options(d3d10 PRIVATE /wd4267)
+endif()
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     target_compile_options(d3d10 PRIVATE -Wno-incompatible-pointer-types -Wno-unused-but-set-variable -Wno-switch -Wno-error) # Our favourite compiler :)
 endif()
 
 set_module_type(d3d10 win32dll)
 target_link_libraries(d3d10 wine dx10guid dxguid uuid)
-add_importlibs(d3d10 d3d11 d3dwine msvcrt ucrtbase d3dcompiler_39 d3d10core dxgi kernel32 ntdll)
+add_importlibs(d3d10 d3d11 d3dwine msvcrt ucrtbase d3dcompiler_39 d3d10core dxgi  kernelbase ntdll)
 add_pch(d3d10 d3d10_private.h SOURCE)
 add_dependencies(d3d10 wineheaders d3d_idl_headers)
 add_cd_file(TARGET d3d10 DESTINATION reactos/system32 FOR all)

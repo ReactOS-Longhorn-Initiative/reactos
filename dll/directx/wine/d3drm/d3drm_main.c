@@ -20,27 +20,6 @@
 #include "initguid.h"
 #include "d3drm_private.h"
 
-<<<<<<< HEAD
-/***********************************************************************
- *		DllMain  (D3DRM.@)
- */
-BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, void *reserved)
-{
-    switch(reason)
-    {
-#ifndef __REACTOS__
-    case DLL_WINE_PREATTACH:
-        return FALSE;  /* prefer native version */
-#endif
-    case DLL_PROCESS_ATTACH:
-        DisableThreadLibraryCalls( inst );
-        break;
-    }
-    return TRUE;
-}
-
-=======
->>>>>>> ec90f6b1353 ([DIRECTX:WINE] New DirectX stack based on WINE 10.1)
 void d3drm_object_init(struct d3drm_object *object, const char *classname)
 {
     object->ref = 1;
