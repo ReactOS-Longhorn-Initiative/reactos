@@ -1,11 +1,11 @@
 @ stdcall AccessCheck(ptr long long ptr ptr ptr ptr ptr)
 @ stdcall AccessCheckAndAuditAlarmW(wstr ptr wstr wstr ptr long ptr long ptr ptr ptr)
 @ stdcall AccessCheckByType(ptr ptr long long ptr long ptr ptr ptr ptr ptr)
-@ stdcall AccessCheckByTypeResultList(ptr ptr long long ptr long ptr ptr ptr ptr ptr)
-@ stdcall AccessCheckByTypeResultListAndAuditAlarmA(str ptr str str ptr long long long long ptr long ptr long ptr ptr ptr)
-@ stdcall AccessCheckByTypeResultListAndAuditAlarmByHandleA(str ptr ptr str str ptr long long long long ptr long ptr long ptr ptr ptr)
-@ stdcall AccessCheckByTypeResultListAndAuditAlarmByHandleW(wstr ptr ptr wstr wstr ptr long long long long ptr long ptr long ptr ptr ptr)
-@ stdcall AccessCheckByTypeResultListAndAuditAlarmW(wstr ptr wstr wstr ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall -stub AccessCheckByTypeResultList(ptr ptr long long ptr long ptr ptr ptr ptr ptr)
+@ stdcall -stub AccessCheckByTypeResultListAndAuditAlarmA(str ptr str str ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall -stub AccessCheckByTypeResultListAndAuditAlarmByHandleA(str ptr ptr str str ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall -stub AccessCheckByTypeResultListAndAuditAlarmByHandleW(wstr ptr ptr wstr wstr ptr long long long long ptr long ptr long ptr ptr ptr)
+@ stdcall -stub AccessCheckByTypeResultListAndAuditAlarmW(wstr ptr wstr wstr ptr long long long long ptr long ptr long ptr ptr ptr)
 @ stdcall AcquireSRWLockExclusive(ptr) ntdll.RtlAcquireSRWLockExclusive
 @ stdcall AcquireSRWLockShared(ptr) ntdll.RtlAcquireSRWLockShared
 # @ stub AcquireStateLock
@@ -23,7 +23,7 @@
 @ stdcall AddConsoleAliasA(str str str)
 @ stdcall AddConsoleAliasW(wstr wstr wstr)
 @ stdcall AddDllDirectory(wstr)
-@ stdcall -stub AddMandatoryAce(ptr long long long ptr)
+@ stdcall AddMandatoryAce(ptr long long long ptr)
 @ stdcall AddRefActCtx(ptr)
 # @ stub AddResourceAttributeAce
 # @ stub AddSIDToBoundaryDescriptor
@@ -180,7 +180,7 @@
 # @ stub CouldMultiUserAppsBehaviorBePossibleForPackage
 @ stdcall CreateActCtxW(ptr)
 # @ stub CreateAppContainerToken
-@ stdcall -stub CreateBoundaryDescriptorW(wstr long)
+@ stdcall CreateBoundaryDescriptorW(wstr long)
 @ stdcall CreateConsoleScreenBuffer(long long ptr long ptr)
 @ stdcall CreateDirectoryA(str ptr)
 @ stdcall CreateDirectoryExW(wstr wstr ptr)
@@ -213,8 +213,8 @@
 @ stdcall CreatePrivateObjectSecurityEx(ptr ptr ptr ptr long long long ptr)
 @ stdcall CreatePrivateObjectSecurityWithMultipleInheritance(ptr ptr ptr ptr long long long long ptr)
 @ stdcall CreateProcessA(str str ptr ptr long long ptr str ptr ptr)
-@ stdcall CreateProcessAsUserA(long str str ptr ptr long long ptr str ptr ptr)
-@ stdcall CreateProcessAsUserW(long wstr wstr ptr ptr long long ptr wstr ptr ptr)
+@ stdcall -stub CreateProcessAsUserA(long str str ptr ptr long long ptr str ptr ptr)
+@ stdcall -stub CreateProcessAsUserW(long wstr wstr ptr ptr long long ptr wstr ptr ptr)
 @ stdcall CreateProcessInternalA(long str str ptr ptr long long ptr str ptr ptr ptr)
 @ stdcall CreateProcessInternalW(long wstr wstr ptr ptr long long ptr wstr ptr ptr ptr)
 @ stdcall CreateProcessW(wstr wstr ptr ptr long long ptr wstr ptr ptr)
@@ -692,7 +692,7 @@
 @ stdcall GetSecurityDescriptorGroup(ptr ptr ptr)
 @ stdcall GetSecurityDescriptorLength(ptr) ntdll.RtlLengthSecurityDescriptor
 @ stdcall GetSecurityDescriptorOwner(ptr ptr ptr)
-@ stdcall GetSecurityDescriptorRMControl(ptr ptr)
+@ stdcall -stub GetSecurityDescriptorRMControl(ptr ptr)
 @ stdcall GetSecurityDescriptorSacl(ptr ptr ptr ptr)
 # @ stub GetSerializedAtomBytes
 # @ stub GetSharedLocalFolder
@@ -978,7 +978,7 @@
 @ stdcall LockFileEx(long long long long long ptr)
 @ stdcall LockResource(long)
 @ stdcall MakeAbsoluteSD(ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr)
-@ stdcall MakeAbsoluteSD2(ptr ptr)
+@ stdcall -stub MakeAbsoluteSD2(ptr ptr)
 @ stdcall MakeSelfRelativeSD(ptr ptr ptr)
 @ stdcall MapGenericMask(ptr ptr)  ntdll.RtlMapGenericMask
 # @ stub MapPredefinedHandleInternal
@@ -1254,7 +1254,7 @@
 @ stub QueryProcessAffinityUpdateMode
 @ stdcall -stub QueryProcessCycleTime(long ptr)
 # @ stub QueryProtectedPolicy
-@ stdcall QuerySecurityAccessMask(ptr ptr)
+@ stdcall -stub QuerySecurityAccessMask(ptr ptr)
 # @ stub QueryStateAtomValueInfo
 # @ stub QueryStateContainerCreatedNew
 # @ stub QueryStateContainerItemInfo
@@ -1515,12 +1515,12 @@
 @ stdcall SetProcessWorkingSetSizeEx(long long long long)
 # @ stub SetProtectedPolicy
 # @ stub SetRoamingLastObservedChangeTime
-@ stdcall SetSecurityAccessMask(ptr ptr)
+@ stdcall -stub SetSecurityAccessMask(ptr ptr)
 @ stdcall SetSecurityDescriptorControl(ptr long long)
 @ stdcall SetSecurityDescriptorDacl(ptr long ptr long)
 @ stdcall SetSecurityDescriptorGroup(ptr ptr long)
 @ stdcall SetSecurityDescriptorOwner(ptr ptr long)
-@ stdcall SetSecurityDescriptorRMControl(ptr ptr)
+@ stdcall -stub SetSecurityDescriptorRMControl(ptr ptr)
 @ stdcall SetSecurityDescriptorSacl(ptr long ptr long)
 # @ stub SetStateVersion
 @ stdcall SetStdHandle(long long)

@@ -606,7 +606,7 @@
 @ stub SetNamedSecurityInfoExW
 @ stdcall SetNamedSecurityInfoW(wstr long ptr ptr ptr ptr ptr)
 @ stdcall SetPrivateObjectSecurity(long ptr ptr ptr long)
-@ stub SetPrivateObjectSecurityEx
+@ stdcall -stub SetPrivateObjectSecurityEx(long ptr ptr long ptr long)
 @ stdcall SetSecurityDescriptorControl(ptr long long)
 @ stdcall SetSecurityDescriptorDacl(ptr long ptr long)
 @ stdcall SetSecurityDescriptorGroup(ptr ptr long)

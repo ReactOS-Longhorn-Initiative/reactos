@@ -930,8 +930,8 @@
 @ stdcall -version=0x600+ OpenFileById(ptr ptr long long ptr long) kernelbase.OpenFileById
 @ stdcall OpenFileMappingA(long long str) kernelbase.OpenFileMappingA
 @ stdcall OpenFileMappingW(long long wstr) kernelbase.OpenFileMappingW
-@ stdcall OpenJobObjectA(long long str) kernelbase.OpenJobObjectA
-@ stdcall OpenJobObjectW(long long wstr) kernelbase.OpenJobObjectW
+@ stdcall OpenJobObjectA(long long str) 
+@ stdcall OpenJobObjectW(long long wstr)
 @ stdcall OpenMutexA(long long str) kernelbase.OpenMutexA
 @ stdcall OpenMutexW(long long wstr) kernelbase.OpenMutexW
 @ stub -version=0x600+ OpenPrivateNamespaceA
@@ -974,7 +974,7 @@
 @ stdcall -version=0x600+ QueryFullProcessImageNameW(ptr long wstr ptr) kernelbase.QueryFullProcessImageNameW
 @ stdcall -version=0x600+ QueryIdleProcessorCycleTime(ptr ptr) kernelbase.QueryIdleProcessorCycleTime
 @ stdcall -version=0x601+ QueryIdleProcessorCycleTimeEx(long ptr ptr) kernelbase.QueryIdleProcessorCycleTimeEx
-@ stdcall QueryInformationJobObject(long long ptr long ptr) kernelbase.QueryInformationJobObject
+@ stdcall QueryInformationJobObject(long long ptr long ptr)
 @ stdcall QueryMemoryResourceNotification(ptr ptr) kernelbase.QueryMemoryResourceNotification
 @ stdcall QueryPerformanceCounter(ptr) kernelbase.QueryPerformanceCounter
 @ stdcall QueryPerformanceFrequency(ptr) kernelbase.QueryPerformanceFrequency
@@ -1196,7 +1196,7 @@
 @ stdcall -i386 SetHandleContext(long long) kernelbase.SetHandleContext
 @ stdcall SetHandleCount(long) kernelbase.SetHandleCount
 @ stdcall SetHandleInformation(long long long) kernelbase.SetHandleInformation
-@ stdcall SetInformationJobObject(long long ptr long) kernelbase.SetInformationJobObject
+@ stdcall SetInformationJobObject(long long ptr long)
 @ stdcall SetLastConsoleEventActive() kernelbase.SetLastConsoleEventActive ; missing in XP SP3
 @ stdcall SetLastError(long) ntdll.RtlSetLastWin32Error
 @ stdcall SetLocalPrimaryComputerNameA(long long) kernelbase.SetLocalPrimaryComputerNameA ; missing in XP SP3
@@ -1279,7 +1279,7 @@
 @ stdcall SwitchToThread() kernelbase.SwitchToThread
 @ stdcall SystemTimeToFileTime(ptr ptr) kernelbase.SystemTimeToFileTime
 @ stdcall SystemTimeToTzSpecificLocalTime(ptr ptr ptr) kernelbase.SystemTimeToTzSpecificLocalTime
-@ stdcall TerminateJobObject(ptr long) kernelbase.TerminateJobObject
+@ stdcall TerminateJobObject(ptr long)
 @ stdcall TerminateProcess(ptr long) kernelbase.TerminateProcess
 @ stdcall TerminateThread(ptr long) kernelbase.TerminateThread
 @ stdcall TermsrvAppInstallMode() kernelbase.TermsrvAppInstallMode
@@ -1432,3 +1432,5 @@
 ;@ stdcall -arch=x86_64 uaw_wcslen(wstr)
 ;@ stdcall -arch=x86_64 uaw_wcsrchr(wstr long)
 
+
+@ stdcall -stub ResolveLocaleName(wstr ptr long)
