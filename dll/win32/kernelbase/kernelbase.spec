@@ -1435,7 +1435,7 @@
 @ stdcall SearchPathA(str str str long ptr ptr)
 @ stdcall SearchPathW(wstr wstr wstr long ptr ptr)
 @ stdcall SetAclInformation(ptr ptr long long)
-@ stdcall -stub -version=0x602+ SetCachedSigningLevel(ptr long long long)
+@ stdcall -version=0x602+ SetCachedSigningLevel(ptr long long long)
 @ stdcall SetCalendarInfoW(long long long wstr)
 # @ stub SetClientDynamicTimeZoneInformation
 # @ stub SetClientTimeZoneInformation
@@ -1949,6 +1949,9 @@
 @ stdcall GetDllDirectoryW(long ptr)
 @ stdcall GetFirmwareEnvironmentVariableA(str str ptr long)
 @ stdcall GetFirmwareEnvironmentVariableW(wstr wstr ptr long)
+@ stdcall -version=0x602+ GetFirmwareEnvironmentVariableExA(str str ptr long long)
+@ stdcall -version=0x602+ GetFirmwareEnvironmentVariableExW(wstr wstr ptr long long)
+@ stdcall -version=0x602+ GetFirmwareType(ptr)
 @ stdcall GetGeoInfoA(long long ptr long long)
 @ stdcall GetHandleContext(long)
 @ stdcall GetLinguistLangSize(ptr)
@@ -2080,6 +2083,8 @@
 @ stdcall SetFileShortNameW(long wstr)
 @ stdcall SetFirmwareEnvironmentVariableA(str str ptr long)
 @ stdcall SetFirmwareEnvironmentVariableW(wstr wstr ptr long)
+@ stdcall -version=0x602+ SetFirmwareEnvironmentVariableExA(str str ptr long long)
+@ stdcall -version=0x602+ SetFirmwareEnvironmentVariableExW(str str ptr long long)
 @ stdcall SetHandleContext(long long)
 @ stdcall SetLocalPrimaryComputerNameA(long long)
 @ stdcall SetLocalPrimaryComputerNameW(long long)
