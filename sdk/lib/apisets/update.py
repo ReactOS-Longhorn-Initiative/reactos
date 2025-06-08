@@ -50,7 +50,7 @@ def winver_to_name(version):
         return 'APISET_WIN81'
     if (major, minor) == (10, 0):
         if build < 22000:
-            return 'APISET_WIN10'
+            return 'APISET_WIN7'
         return 'APISET_WIN11'
     assert False, (major, minor, build)
 

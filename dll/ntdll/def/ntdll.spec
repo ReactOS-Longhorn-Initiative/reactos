@@ -1928,3 +1928,7 @@
 @ stdcall -arch=arm __rt_srsh()
 @ stdcall -stub -version=0x601+ RtlQueryUnbiasedInterruptTime(ptr)
 @ stdcall -stub -ret64 RtlGetSystemTimePrecise()
+
+
+@ stdcall RtlQueryPerformanceCounter(ptr) 
+@ stdcall -stub RtlQueryPerformanceFrequency(ptr)

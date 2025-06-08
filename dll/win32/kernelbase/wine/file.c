@@ -1807,7 +1807,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleA( HANDLE file, LPSTR pat
     return len - 1;
 }
 
-
+#endif
 /***********************************************************************
  *	GetFinalPathNameByHandleW   (kernelbase.@)
  */
@@ -1946,7 +1946,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleW( HANDLE file, LPWSTR pa
     return result;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	GetFullPathNameA   (kernelbase.@)
  */

@@ -31,6 +31,7 @@
 @ stdcall CoFileTimeToDosDateTime(ptr ptr ptr) kernel32.FileTimeToDosDateTime
 @ stdcall CoFreeAllLibraries()
 @ stdcall CoFreeLibrary(long)
+@ stdcall CoGetApartmentType(ptr ptr)
 @ stdcall CoFreeUnusedLibraries()
 @ stdcall CoFreeUnusedLibrariesEx(long long)
 # CoGetApartmentID

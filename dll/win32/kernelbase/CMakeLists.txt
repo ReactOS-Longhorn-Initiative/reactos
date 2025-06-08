@@ -126,7 +126,7 @@ set_subsystem(${kernelbase_name} console)
 ################# END  HACK #################
 
 target_link_libraries(${kernelbase_name} win32_registry kernelbase_path kernel32_vista_static kernelbase_static cryptlib wine chkstk ${PSEH_LIB})
-add_importlibs(${kernelbase_name} ntdll_vista ntdll)
+add_importlibs(${kernelbase_name} ntdll)
 add_pch(${kernelbase_name} kernel32/k32.h SOURCE)
 add_dependencies(${kernelbase_name} psdk errcodes asm)
 add_cd_file(TARGET ${kernelbase_name} DESTINATION reactos/system32 FOR all)

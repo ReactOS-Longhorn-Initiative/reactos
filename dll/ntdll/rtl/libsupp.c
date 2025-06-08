@@ -1157,6 +1157,12 @@ LdrpApplyFileNameRedirection(
     return Status;
 }
 
+BOOL WINAPI DECLSPEC_HOTPATCH RtlQueryPerformanceCounter( LARGE_INTEGER *counter )
+{
+    NtQueryPerformanceCounter( counter, NULL );
+    return TRUE;
+}
+
 /*
  * @implemented
  */

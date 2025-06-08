@@ -18,3 +18,4 @@ add_subdirectory(winusb)
 add_subdirectory(sspicli)
 
 
+add_subdirectory(bcryptprimitives)

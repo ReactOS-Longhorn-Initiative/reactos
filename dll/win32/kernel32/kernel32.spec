@@ -1285,6 +1285,7 @@
 @ stdcall TermsrvAppInstallMode() kernelbase.TermsrvAppInstallMode
 @ stdcall Thread32First(long ptr) kernelbase.Thread32First
 @ stdcall Thread32Next(long ptr) kernelbase.Thread32Next
+@ stdcall RaiseFailFastException(ptr ptr long) kernelbase.RaiseFailFastException
 @ stdcall TlsAlloc() kernelbase.TlsAlloc
 @ stdcall TlsFree(long) kernelbase.TlsFree
 @ stdcall -norelay TlsGetValue(long) kernelbase.TlsGetValue
