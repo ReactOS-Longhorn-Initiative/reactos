@@ -36,6 +36,15 @@
 #endif
 #include "dwrite_2.h"
 
+
+#include <float.h>
+#ifdef __REACTOS__
+  #ifndef M_PI
+  #define M_PI (3.1415926)
+  #endif
+  int isinf(double x);
+#endif
+
 enum d2d_brush_type
 {
     D2D_BRUSH_TYPE_SOLID,

@@ -850,8 +850,11 @@ static HRESULT parse_effect_inputs(IXmlReader *reader, struct d2d_effect_registr
             if (node_type != XmlNodeType_Element) return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
 
             if (FAILED(hr = parse_effect_get_attribute(reader, L"name", &name))) return hr;
-
+#ifdef __REACTOS__
+            swprintf(buffW, L"%lu", input_count);
+#else
             swprintf(buffW, ARRAY_SIZE(buffW), L"%lu", input_count);
+#endif
             d2d_effect_subproperties_add(subproperties, buffW, input_count, D2D1_PROPERTY_TYPE_STRING, name);
             input_count++;
 
@@ -894,7 +897,11 @@ static HRESULT parse_effect_inputs(IXmlReader *reader, struct d2d_effect_registr
     /* Apply default value to a missing property. If both properties are missing, add them. */
     if (min_inputs != max_inputs)
     {
+#ifdef __REACTOS__
+        swprintf(buffW, L"%lu", min_inputs ? min_inputs_value : max_inputs_value);
+#else
         swprintf(buffW, ARRAY_SIZE(buffW), L"%lu", min_inputs ? min_inputs_value : max_inputs_value);
+#endif
         if (min_inputs)
             hr = d2d_effect_properties_add(effect->properties, L"MaxInputs", D2D1_PROPERTY_MAX_INPUTS, D2D1_PROPERTY_TYPE_UINT32, buffW);
         else
@@ -902,7 +909,11 @@ static HRESULT parse_effect_inputs(IXmlReader *reader, struct d2d_effect_registr
     }
     else if (!min_inputs)
     {
+#ifdef __REACTOS__
+        swprintf(buffW, L"%lu", input_count);
+#else
         swprintf(buffW, ARRAY_SIZE(buffW), L"%lu", input_count);
+#endif
         hr = d2d_effect_properties_add(effect->properties, L"MinInputs", D2D1_PROPERTY_MIN_INPUTS, D2D1_PROPERTY_TYPE_UINT32, buffW);
         if (SUCCEEDED(hr))
             hr = d2d_effect_properties_add(effect->properties, L"MaxInputs", D2D1_PROPERTY_MAX_INPUTS, D2D1_PROPERTY_TYPE_UINT32, buffW);
