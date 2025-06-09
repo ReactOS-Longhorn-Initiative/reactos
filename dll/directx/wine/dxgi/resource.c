@@ -205,8 +205,9 @@ static HRESULT STDMETHODCALLTYPE dxgi_surface_GetDC(IDXGISurface1 *iface, BOOL d
     struct dxgi_resource *resource = impl_from_IDXGISurface1(iface);
     HRESULT hr;
 
-    FIXME("iface %p, discard %d, hdc %p semi-stub!\n", iface, discard, hdc);
-
+ //   FIXME("iface %p, discard %d, hdc %p semi-stub!\n", iface, discard, hdc);
+    UNREFERENCED_PARAMETER(discard);
+    UNREFERENCED_PARAMETER(iface);
     if (!hdc)
         return E_INVALIDARG;
 
