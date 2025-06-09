@@ -95,6 +95,8 @@ list(APPEND SOURCE
     emptyvc.idl
     endpointvolume.idl
     exdisp.idl
+    evr.idl
+    evr9.idl
     fusion.idl
     hlink.idl
     htiface.idl
@@ -110,8 +112,12 @@ list(APPEND SOURCE
     inseng.idl
     mediaobj.idl
     metahost.idl
+    mfd3d12.idl
     mfidl.idl
+    mfmediaengine.idl
     mfobjects.idl
+    mfplay.idl
+    mfreadwrite.idl
     mftransform.idl
     mimeinfo.idl
     mimeole.idl

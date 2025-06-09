@@ -54,6 +54,39 @@ float roundf(float arg)
 }
 
 
+float __cdecl truncf(_In_ float _X)
+{
+    if (_X < 0.0)
+        return ceilf(_X - 0.5);
+    else
+        return floorf(_X + 0.5);
+}
+
+double __cdecl trunc(_In_ double _X)
+{
+    if (_X < 0.0)
+        return ceil(_X - 0.5);
+    else
+        return floor(_X + 0.5);
+}
+
+long      __cdecl lround(_In_ double _X)
+{
+ return trunc(_X);
+}
+long lroundf(
+   float x
+)
+{
+  return truncf(x);
+}
+long lroundl(
+   long double x
+)
+{
+ return lround(x);
+}
+
 // The following stubs cannot be implemented as stubs by spec2def, because they are intrinsics
 
 #ifdef _MSC_VER

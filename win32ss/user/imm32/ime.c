@@ -715,7 +715,7 @@ UINT WINAPI ImmGetIMEFileNameW(HKL hKL, LPWSTR lpszFileName, UINT uBufLen)
 
     if (!ImmGetImeInfoEx(&info, ImeInfoExKeyboardLayout, &hKL))
     {
-        ERR("\n");
+       // ERR("\n");
         if (uBufLen > 0)
             lpszFileName[0] = 0;
         return 0;
