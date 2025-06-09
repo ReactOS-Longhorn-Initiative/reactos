@@ -733,3 +733,9 @@
 @ stub WmiSetSingleItemW
 @ stub Wow64Win32ApiEntry
 @ stdcall WriteEncryptedFileRaw(ptr ptr ptr)
+
+@ stdcall RegCreateKeyTransactedA(long str long ptr long long ptr ptr ptr long ptr)
+@ stdcall RegCreateKeyTransactedW(long wstr long ptr long long ptr ptr ptr long ptr)
+@ stdcall RegDeleteKeyValueW(long wstr wstr)
+@ stdcall RegDeleteKeyValueA(long str str)
+@ stdcall -stub RegRenameKey(ptr)

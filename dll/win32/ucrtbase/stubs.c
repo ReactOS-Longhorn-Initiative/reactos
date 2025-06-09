@@ -34,6 +34,26 @@ int __cdecl __acrt_initialize_sse2(void)
     return 0;
 }
 
+
+double round(double arg)
+{
+    if (arg < 0.0)
+        return ceil(arg - 0.5);
+    else
+        return floor(arg + 0.5);
+}
+
+
+
+float roundf(float arg)
+{
+    if (arg < 0.0)
+        return ceilf(arg - 0.5);
+    else
+        return floorf(arg + 0.5);
+}
+
+
 // The following stubs cannot be implemented as stubs by spec2def, because they are intrinsics
 
 #ifdef _MSC_VER

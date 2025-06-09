@@ -1932,3 +1932,5 @@
 
 @ stdcall RtlQueryPerformanceCounter(ptr) 
 @ stdcall -stub RtlQueryPerformanceFrequency(ptr)
+@ stdcall -stub RtlAddGrowableFunctionTable(ptr ptr ptr)
+@ stdcall ApiSetQueryApiSetPresence(wstr ptr)

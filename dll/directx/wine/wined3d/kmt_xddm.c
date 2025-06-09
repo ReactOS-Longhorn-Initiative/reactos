@@ -12,9 +12,15 @@
 */
 NTSTATUS
 WINAPI
-D3DKMTOpenAdapterFromLuid_wined3d(_Inout_ CONST D3DKMT_OPENADAPTERFROMLUID* unnamedParam1)
+D3DKMTOpenAdapterFromLuid_wined3d(_Inout_ D3DKMT_OPENADAPTERFROMLUID* unnamedParam1)
 {
-    DbgBreakPoint();
+
+    LUID luid = {0, 0};
+
+    unnamedParam1->AdapterLuid = luid;
+    unnamedParam1->hAdapter = 0; // This is a stub, so we don't actually open an adapter.
+
+  //  DbgBreakPoint();
     return 0;
 }
 

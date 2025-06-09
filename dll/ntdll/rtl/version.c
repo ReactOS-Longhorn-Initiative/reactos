@@ -229,3 +229,19 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
 }
 
 /* EOF */
+
+BOOLEAN
+NTAPI
+ ApiSetQueryApiSetPresence(
+  _In_  PCUNICODE_STRING Namespace,
+  _Out_ PBOOLEAN         Present
+)
+{
+    UNREFERENCED_PARAMETER(Namespace);
+    UNREFERENCED_PARAMETER(Present);
+
+    /* This function is not implemented in ReactOS */
+    DPRINT1("ApiSetQueryApiSetPresence is not implemented %ls\n", Namespace->Buffer);
+    *Present = FALSE;
+    return FALSE;
+}

@@ -15,6 +15,6 @@ NTSTATUS
 WINAPI
 D3DKMTOpenAdapterFromGdiDisplayName(_Inout_ D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME* unnamedParam1)
 {
-    return STATUS_PROCEDURE_NOT_FOUND;
+    return 0;
 }
 

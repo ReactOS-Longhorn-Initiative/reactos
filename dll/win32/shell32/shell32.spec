@@ -564,3 +564,11 @@
 @   stdcall -version=0x600+ Shell_GetCachedImageIndexA(str long long)
 @   stdcall -version=0x600+ Shell_GetCachedImageIndexW(wstr long long) Shell_GetCachedImageIndexAW
 @   stdcall -stub -version=0x601+ Shell_NotifyIconGetRect(ptr ptr)
+
+
+@ stdcall -stub GetProcessDpiAwarenessInternal(ptr ptr);
+@ stdcall -stub SetProcessDpiAwarenessInternal(long);
+@ stdcall -stub GetDpiForMonitorInternal(ptr long ptr ptr)
+@ stdcall -stub GetDpiForMonitor(ptr)
+@ stdcall -stub IsProcessDPIAware()
+@ stdcall -stub SetProcessDPIAware()

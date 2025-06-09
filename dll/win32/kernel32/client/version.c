@@ -38,3 +38,4 @@ VerifyVersionInfoA(IN LPOSVERSIONINFOEXA lpVersionInformation,
     viex.wReserved = lpVersionInformation->wReserved;
     return VerifyVersionInfoW(&viex, dwTypeMask, dwlConditionMask);
 }
+

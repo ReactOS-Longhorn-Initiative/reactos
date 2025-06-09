@@ -488,7 +488,6 @@
 @ stub -version=0x600+ GetDurationFormatEx
 @ stdcall -stub -version=0x600+ GetDynamicTimeZoneInformation(ptr)
 @ stdcall -stub -version=0x602+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
-@ stdcall -stub -version=0x601+ -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures()
 @ stdcall GetEnvironmentStrings() kernelbase.GetEnvironmentStrings
 @ stdcall GetEnvironmentStringsA() kernelbase.GetEnvironmentStringsA
 @ stdcall GetEnvironmentStringsW() kernelbase.GetEnvironmentStringsW
@@ -548,8 +547,8 @@
 @ stub -version=0x600+ GetLongPathNameTransactedW
 @ stdcall GetLongPathNameW(wstr long long) kernelbase.GetLongPathNameW
 @ stdcall GetMailslotInfo(long ptr ptr ptr ptr) kernelbase.GetMailslotInfo
-@ stdcall -version=0x601+ GetMaximumProcessorCount(long) kernelbase.GetMaximumProcessorCount
-@ stdcall -version=0x601+ GetMaximumProcessorGroupCount() kernelbase.GetMaximumProcessorGroupCount
+@ stdcall -version=0x601+ GetMaximumProcessorCount(long)
+@ stdcall -version=0x601+ GetMaximumProcessorGroupCount()
 @ stdcall GetModuleFileNameA(long ptr long) kernelbase.GetModuleFileNameA
 @ stdcall GetModuleFileNameW(long ptr long) kernelbase.GetModuleFileNameW
 @ stdcall GetModuleHandleA(str) kernelbase.GetModuleHandleA
@@ -573,12 +572,12 @@
 @ stdcall GetNextVDMCommand(long) kernelbase.GetNextVDMCommand
 @ stdcall -version=0x500-0x502 GetNlsSectionName(long long long str str long) kernelbase.GetNlsSectionName
 @ stdcall GetNumaAvailableMemoryNode(long ptr) kernelbase.GetNumaAvailableMemoryNode
-@ stdcall -version=0x601+ GetNumaAvailableMemoryNodeEx(long ptr) kernelbase.GetNumaAvailableMemoryNodeEx
+@ stdcall -version=0x601+ GetNumaAvailableMemoryNodeEx(long ptr)
 @ stdcall GetNumaHighestNodeNumber(ptr) kernelbase.GetNumaHighestNodeNumber
 @ stdcall GetNumaNodeProcessorMask(long ptr) kernelbase.GetNumaNodeProcessorMask
 @ stdcall -version=0x601+ -stub GetNumaNodeProcessorMaskEx(long ptr)
 @ stdcall GetNumaProcessorNode(long ptr) kernelbase.GetNumaProcessorNode
-@ stdcall -version=0x601+ GetNumaProcessorNodeEx(ptr ptr) kernelbase.GetNumaProcessorNodeEx
+@ stdcall -version=0x601+ GetNumaProcessorNodeEx(ptr ptr)
 @ stdcall -version=0x600+ GetNumaProximityNode(long ptr)
 @ stdcall -stub -version=0x601+ GetNumaProximityNodeEx(long ptr)
 @ stdcall GetNumberFormatA(long long str ptr ptr long) kernelbase.GetNumberFormatA
@@ -609,7 +608,7 @@
 @ stdcall GetPrivateProfileStructW(wstr wstr ptr long wstr) kernelbase.GetPrivateProfileStructW
 @ stdcall GetProcAddress(long str) kernelbase.GetProcAddress
 @ stdcall GetProcessAffinityMask(long ptr ptr) kernelbase.GetProcessAffinityMask
-@ stdcall -version=0x600+ GetProcessDEPPolicy(ptr ptr ptr) kernelbase.GetProcessDEPPolicy
+@ stdcall -version=0x600+ GetProcessDEPPolicy(ptr ptr ptr)
 @ stdcall -version=0x601+ GetProcessGroupAffinity(long ptr ptr) kernelbase.GetProcessGroupAffinity
 @ stdcall GetProcessHandleCount(long ptr) kernelbase.GetProcessHandleCount
 @ stdcall -norelay GetProcessHeap() kernelbase.GetProcessHeap
@@ -720,8 +719,6 @@
 @ stdcall GetWindowsDirectoryA(ptr long) kernelbase.GetWindowsDirectoryA
 @ stdcall GetWindowsDirectoryW(ptr long) kernelbase.GetWindowsDirectoryW
 @ stdcall GetWriteWatch(long ptr long ptr ptr ptr) kernelbase.GetWriteWatch
-@ stub -version=0x601+ -arch=i386,x86_64 GetXStateFeaturesMask
-@ stub -version=0x601+ -arch=i386,x86_64 SetXStateFeaturesMask
 @ stdcall GlobalAddAtomA(str) 
 @ stdcall GlobalAddAtomW(wstr)
 @ stdcall GlobalAlloc(long long) kernelbase.GlobalAlloc
@@ -1435,3 +1432,11 @@
 
 
 @ stdcall -stub ResolveLocaleName(wstr ptr long)
+
+@ stdcall -stub -version=0x601+ -arch=i386,x86_64 LocateXStateFeature(ptr long ptr)
+@ stdcall -stub -arch=i386,x86_64 GetXStateFeaturesMask(ptr ptr)
+@ stdcall -stub -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures()
+@ stdcall -stub -arch=i386,x86_64 SetXStateFeaturesMask(ptr int64)
+
+@ stdcall -stub InitializeContext(ptr long ptr ptr)
+@ stdcall -stub GetThreadIdealProcessorEx(long ptr)

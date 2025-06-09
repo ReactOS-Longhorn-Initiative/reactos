@@ -293,7 +293,7 @@
 @ stub JetSetSystemParameterA
 @ stub JetSetSystemParameterW
 @ stub JetOpenTableW
-@ stub JetOpenDataBaseW
+@ stub JetOpenDatabaseW
 @ stub JetGetTableColumnInfoW
 @ stub JetAttachDatabase2W
 @ stub JetBeginSessionW

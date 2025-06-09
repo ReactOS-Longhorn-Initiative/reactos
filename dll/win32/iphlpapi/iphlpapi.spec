@@ -164,3 +164,7 @@
 @ stdcall -stub ConvertInterfaceLuidToIndex(ptr ptr)
 @ stdcall -stub ConvertInterfaceLuidToNameW(ptr wstr long)
 @ stdcall -stub ConvertInterfaceNameToLuidW(ptr ptr)
+
+@ stdcall -stub if_indextoname(ptr)
+
+@ stdcall -stub if_nametoindex(ptr)

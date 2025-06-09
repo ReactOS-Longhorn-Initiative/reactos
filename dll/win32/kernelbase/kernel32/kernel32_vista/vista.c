@@ -655,8 +655,8 @@ SetProcessPreferredUILanguages(
     PULONG pulNumLanguages)
 {
     DPRINT1("%x %p %p\n", dwFlags, pwszLanguagesBuffer, pulNumLanguages);
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+    SetLastError(ERROR_SUCCESS);
+    return TRUE;
 }
 
 /*
@@ -671,7 +671,7 @@ SetThreadPreferredUILanguages(
     )
 {
     DPRINT1("%x %p %p\n", dwFlags, pwszLanguagesBuffer, pulNumLanguages);
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+    SetLastError(ERROR_SUCCESS);
+    return TRUE;
 }
 
