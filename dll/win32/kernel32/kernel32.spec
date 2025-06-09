@@ -372,7 +372,7 @@
 @ stdcall -version=0x601+ GetActiveProcessorCount(long)
 @ stdcall -version=0x601+ GetActiveProcessorGroupCount()
 @ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr) kernelbase.GetApplicationRecoveryCallback
-@ stub -version=0x600+ GetApplicationRestartSettings
+@ stdcall GetApplicationRestartSettings(long ptr ptr ptr) kernelbase.GetApplicationRestartSettings
 @ stdcall GetAtomNameA(long ptr long)
 @ stdcall GetAtomNameW(long ptr long)
 @ stdcall GetBinaryType(str ptr) kernelbase.GetBinaryTypeA
@@ -981,7 +981,7 @@
 @ stub -version=0x601+ QueryThreadProfiling
 @ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr) kernelbase.QueryThreadpoolStackInformation
 @ stdcall -version=0x601+ -arch=win64 QueryUmsThreadInformation(ptr long ptr long ptr)
-@ stub -version=0x601+ QueryUnbiasedInterruptTime(ptr)
+@ stdcall QueryUnbiasedInterruptTime(ptr) ntdll.RtlQueryUnbiasedInterruptTime
 @ stdcall QueueUserAPC(ptr long long) kernelbase.QueueUserAPC
 @ stdcall QueueUserWorkItem(ptr ptr long) kernelbase.QueueUserWorkItem
 @ stdcall -norelay RaiseException(long long long ptr) kernelbase.RaiseException

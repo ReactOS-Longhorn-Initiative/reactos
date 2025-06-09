@@ -603,3 +603,5 @@
 @ stub pSetupVerifyQueuedCatalogs
 @ stub pSetupWriteLogEntry
 @ stub pSetupWriteLogError
+@ stdcall -stub SetupDiGetDevicePropertyW(ptr ptr ptr ptr ptr long ptr long)
+@ stdcall -stub SetupGetInfDriverStoreLocationW(ptr)
