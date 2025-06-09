@@ -976,7 +976,7 @@
 @ stdcall QueryPerformanceCounter(ptr) kernelbase.QueryPerformanceCounter
 @ stdcall QueryPerformanceFrequency(ptr) kernelbase.QueryPerformanceFrequency
 @ stub -version=0x600+ QueryProcessAffinityUpdateMode
-@ stub -version=0x600+ QueryProcessCycleTime
+@ stdcall -stub QueryProcessCycleTime(long ptr)
 @ stub -version=0x600+ QueryThreadCycleTime
 @ stub -version=0x601+ QueryThreadProfiling
 @ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr) kernelbase.QueryThreadpoolStackInformation
@@ -1440,3 +1440,4 @@
 
 @ stdcall -stub InitializeContext(ptr long ptr ptr)
 @ stdcall -stub GetThreadIdealProcessorEx(long ptr)
+@ stdcall GetCurrentApplicationUserModelId(ptr wstr) kernelbase.GetCurrentApplicationUserModelId
