@@ -45,22 +45,49 @@ NTSTATUS WINAPI LdrSetDefaultDllDirectories( ULONG flags )
  *
  * Returns TRUE if the input is valid, FALSE otherwise
  */
-BOOLEAN WINAPI RtlGetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion, DWORD dwSpMajorVersion,
-                                 DWORD dwSpMinorVersion, PDWORD pdwReturnedProductType)
+BOOLEAN 
+WINAPI 
+RtlGetProductInfo(
+	DWORD dwOSMajorVersion, 
+	DWORD dwOSMinorVersion, 
+	DWORD dwSpMajorVersion,
+    DWORD dwSpMinorVersion, 
+	PDWORD pdwReturnedProductType
+)
 {
-    DPRINT1("(%ld, %ld, %ld, %ld, %p)\n", dwOSMajorVersion, dwOSMinorVersion,
-          dwSpMajorVersion, dwSpMinorVersion, pdwReturnedProductType);
+    RTL_OSVERSIONINFOEXW VersionInformation;
+	
+	VersionInformation.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOEXW);
+	
+	RtlGetVersion((PRTL_OSVERSIONINFOW)&VersionInformation);
 
     if (!pdwReturnedProductType)
         return FALSE;
 
-    if (dwOSMajorVersion < 6)
-    {
-        *pdwReturnedProductType = PRODUCT_UNDEFINED;
-        return FALSE;
-    }
-
-    *pdwReturnedProductType = PRODUCT_ULTIMATE_N;
+    if (VersionInformation.wProductType == VER_NT_WORKSTATION)
+	{
+		if(VersionInformation.wSuiteMask == VER_SUITE_PERSONAL)
+			*pdwReturnedProductType = PRODUCT_HOME_PREMIUM;
+		else
+			*pdwReturnedProductType = PRODUCT_ULTIMATE;
+	}else{
+		if(VersionInformation.wSuiteMask == VER_SUITE_BLADE)
+			*pdwReturnedProductType = PRODUCT_WEB_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_COMPUTE_SERVER)
+			*pdwReturnedProductType = PRODUCT_CLUSTER_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_DATACENTER)
+			*pdwReturnedProductType = PRODUCT_DATACENTER_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_ENTERPRISE)
+			*pdwReturnedProductType = PRODUCT_ENTERPRISE_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_SMALLBUSINESS)
+			*pdwReturnedProductType = PRODUCT_SMALLBUSINESS_SERVER;		
+		if(VersionInformation.wSuiteMask == VER_SUITE_SMALLBUSINESS_RESTRICTED)
+			*pdwReturnedProductType = PRODUCT_SB_SOLUTION_SERVER;	
+		if(VersionInformation.wSuiteMask == VER_SUITE_STORAGE_SERVER)
+			*pdwReturnedProductType = PRODUCT_STORAGE_ENTERPRISE_SERVER;		
+		if(VersionInformation.wSuiteMask == VER_SUITE_WH_SERVER)
+			*pdwReturnedProductType = PRODUCT_HOME_PREMIUM_SERVER;			
+	}        
 
     return TRUE;
 }

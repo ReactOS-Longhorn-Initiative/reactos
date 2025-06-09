@@ -871,8 +871,9 @@ static HRESULT WINAPI InputProcessorProfileMgr_GetActiveProfile(ITfInputProcesso
         TF_INPUTPROCESSORPROFILE *pProfile)
 {
     InputProcessorProfiles *This = impl_from_ITfInputProcessorProfileMgr(iface);
-    FIXME("(%p)->(%s %p)\n", This, debugstr_guid(catid), pProfile);
-    return E_NOTIMPL;
+ //   FIXME("(%p)->(%s %p)\n", This, debugstr_guid(catid), pProfile);
+ UNREFERENCED_PARAMETER(This);
+    return 0;
 }
 
 static const ITfInputProcessorProfileMgrVtbl InputProcessorProfileMgrVtbl = {
