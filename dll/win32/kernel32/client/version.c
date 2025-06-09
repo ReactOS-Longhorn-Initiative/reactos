@@ -39,3 +39,16 @@ VerifyVersionInfoA(IN LPOSVERSIONINFOEXA lpVersionInformation,
     return VerifyVersionInfoW(&viex, dwTypeMask, dwlConditionMask);
 }
 
+
+WORD WINAPI GetActiveProcessorGroupCount()
+{
+    return 1;
+}
+
+
+DWORD GetActiveProcessorCount(
+  WORD GroupNumber
+)
+{
+    return 1;
+}

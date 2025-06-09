@@ -369,8 +369,8 @@
 @ stdcall FreeUserPhysicalPages(long long long) kernelbase.FreeUserPhysicalPages
 @ stdcall GenerateConsoleCtrlEvent(long long) kernelbase.GenerateConsoleCtrlEvent
 @ stdcall GetACP() kernelbase.GetACP
-@ stub -version=0x601+ GetActiveProcessorCount
-@ stub -version=0x601+ GetActiveProcessorGroupCount
+@ stdcall -version=0x601+ GetActiveProcessorCount(long)
+@ stdcall -version=0x601+ GetActiveProcessorGroupCount()
 @ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr) kernelbase.GetApplicationRecoveryCallback
 @ stub -version=0x600+ GetApplicationRestartSettings
 @ stdcall GetAtomNameA(long ptr long)
