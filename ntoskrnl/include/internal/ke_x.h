@@ -11,6 +11,14 @@ extern "C"
 {
 #endif
 
+FORCEINLINE
+PKPROCESS
+KeGetCurrentProcess(VOID)
+{
+    /* Get the current process */
+    return KeGetCurrentThread()->ApcState.Process;
+}
+
 #ifndef _M_ARM
 FORCEINLINE
 KPROCESSOR_MODE
@@ -423,6 +431,8 @@ KiSetThreadSwapBusy(IN PKTHREAD Thread)
 {
     /* Make sure nobody already set it */
     ASSERT(Thread->SwapBusy == FALSE);
+    ASSERT(KeGetCurrentIrql() >= DISPATCH_LEVEL);
+    ASSERT(Thread == KeGetCurrentThread());
 
     /* Set it ourselves */
     Thread->SwapBusy = TRUE;

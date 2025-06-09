@@ -499,6 +499,9 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     /* Get the current CPU number */
     Cpu = KeNumberProcessors++; // FIXME
 
+    /* Set processor as active */
+    KeActiveProcessors |= 1ULL << Cpu;
+
     /* LoaderBlock initialization for Cpu 0 */
     if (Cpu == 0)
     {
@@ -547,8 +550,8 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
         if (KdPollBreakIn()) DbgBreakPointWithStatus(DBG_STATUS_CONTROL_C);
     }
 
-    DPRINT1("Pcr = %p, Gdt = %p, Idt = %p, Tss = %p\n",
-           Pcr, Pcr->GdtBase, Pcr->IdtBase, Pcr->TssBase);
+    DPRINT1("Cpu %u: Pcr = %p, Gdt = %p, Idt = %p, Tss = %p\n",
+            Cpu, Pcr, Pcr->GdtBase, Pcr->IdtBase, Pcr->TssBase);
 
     /* Acquire lock */
     while (InterlockedBitTestAndSet64((PLONG64)&KiFreezeExecutionLock, 0))
@@ -560,14 +563,15 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     /* Initialize the Processor with HAL */
     HalInitializeProcessor(Cpu, KeLoaderBlock);
 
-    /* Set processor as active */
-    KeActiveProcessors |= 1ULL << Cpu;
+    /* We are running the initial system process now */
+    InterlockedOr64(&KiInitialProcess.Pcb.ActiveProcessors, 1ULL << Cpu);
 
     /* Release lock */
     InterlockedAnd64((PLONG64)&KiFreezeExecutionLock, 0);
 
     /* Raise to HIGH_LEVEL */
     KfRaiseIrql(HIGH_LEVEL);
+
 
     /* Machine specific kernel initialization */
     if (Cpu == 0) KiInitializeKernelMachineDependent(&Pcr->Prcb, LoaderBlock);
