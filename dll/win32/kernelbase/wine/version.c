@@ -1759,3 +1759,11 @@ LONG WINAPI PackageIdFromFullName(const WCHAR *full_name, UINT32 flags, UINT32 *
 
     return ERROR_SUCCESS;
 }
+
+LONG WINAPI GetCurrentApplicationUserModelId(UINT32 *applicationUserModelIdLength, PWSTR  applicationUserModelId)
+{
+	FIXME( "(%p %p): stub\n", applicationUserModelIdLength, applicationUserModelId );
+    return APPMODEL_ERROR_NO_PACKAGE;	
+}
+
+ 
