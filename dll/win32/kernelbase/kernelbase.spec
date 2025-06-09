@@ -1260,7 +1260,7 @@
 # @ stub QueryStateContainerItemInfo
 @ stdcall -stub QueryThreadCycleTime(long ptr)
 @ stdcall QueryThreadpoolStackInformation(ptr ptr)
-@ stdcall -stub QueryUnbiasedInterruptTime(ptr) ;ntdll.RtlQueryUnbiasedInterruptTime
+@ stdcall QueryUnbiasedInterruptTime(ptr) ntdll.RtlQueryUnbiasedInterruptTime
 @ stdcall -stub -version=0xA00+ QueryUnbiasedInterruptTimePrecise(ptr)
 @ stdcall -stub -version=0xA00+ QueryVirtualMemoryInformation(long ptr long ptr long ptr)
 @ stdcall QueryWorkingSet(long ptr long)
@@ -1751,10 +1751,10 @@
 @ stdcall WaitForThreadpoolWorkCallbacks(ptr long) ntdll.TpWaitForWork
 # @ stub WaitForUserPolicyForegroundProcessingInternal
 @ stdcall WaitNamedPipeW(wstr long)
-@ stub WaitOnAddress(ptr ptr long long)
+@ stub -version=0x603+ WaitOnAddress(ptr ptr long long)
 @ stdcall WakeAllConditionVariable(ptr) ntdll.RtlWakeAllConditionVariable
-@ stub  WakeByAddressAll ;RtlWakeAddressAll
-@ stub  WakeByAddressSingle ;RtlWakeAddressSingle
+@ stub -version=0x603+ WakeByAddressAll ;RtlWakeAddressAll
+@ stub -version=0x603+ WakeByAddressSingle ;RtlWakeAddressSingle
 @ stdcall WakeConditionVariable(ptr) ntdll.RtlWakeConditionVariable
 @ stdcall WerGetFlags(ptr ptr)
 @ stdcall WerRegisterFile(wstr long long)

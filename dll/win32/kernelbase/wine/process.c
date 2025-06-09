@@ -754,7 +754,9 @@ HRESULT WINAPI /* DECLSPEC_HOTPATCH */ GetApplicationRestartSettings( HANDLE pro
                                                                       DWORD *size, DWORD *flags )
 {
     FIXME( "%p, %p, %p, %p)\n", process, cmdline, size, flags );
-    return E_NOTIMPL;
+    cmdline = NULL;
+	size = 0;
+    return S_OK;
 }
 
 #ifndef __REACTOS__

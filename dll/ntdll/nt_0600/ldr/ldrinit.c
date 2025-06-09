@@ -64,3 +64,27 @@ BOOLEAN WINAPI RtlGetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion,
 
     return TRUE;
 }
+
+struct _KUSER_SHARED_DATA *user_shared_data = (void *)0x7ffe0000;
+
+BOOL WINAPI RtlQueryUnbiasedInterruptTime(ULONGLONG *time)
+{
+    ULONG high, low;
+
+    if (!time)
+    {
+        RtlSetLastWin32ErrorAndNtStatusFromNtStatus( STATUS_INVALID_PARAMETER );
+        return FALSE;
+    }
+
+    do
+    {
+        high = user_shared_data->InterruptTime.High1Time;
+        low = user_shared_data->InterruptTime.LowPart;
+    }
+    while (high != user_shared_data->InterruptTime.High2Time);
+    /* FIXME: should probably subtract InterruptTimeBias */
+    *time = (ULONGLONG)high << 32 | low;
+    return TRUE;
+}
+

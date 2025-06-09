@@ -402,7 +402,7 @@ CreateSymbolicLinkA(IN LPCSTR lpSymlinkFileName,
  */
 DWORD
 WINAPI
-GetFinalPathNameByHandleA(IN HANDLE hFile,
+GetFinalPathNameByHandleATest(IN HANDLE hFile,
                           OUT LPSTR lpszFilePath,
                           IN DWORD cchFilePath,
                           IN DWORD dwFlags)
