@@ -134,3 +134,14 @@ long int lrintf(float x)
     __debugbreak();
     return 0;
 }
+
+
+int __cdecl _fdsign(float x)
+{
+    if (x > 0.0f)
+        return 1;
+    else if (x < 0.0f)
+        return -1;
+    else
+        return 0;
+}

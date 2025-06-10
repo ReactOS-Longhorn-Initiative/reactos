@@ -349,7 +349,7 @@
 @ cdecl -stub _fdpcomp(float float)
 @ cdecl -stub _fdpoly(float ptr long)
 @ cdecl -stub _fdscale(ptr long)
-@ cdecl -stub _fdsign(float)
+@ cdecl _fdsign(float)
 @ cdecl -stub _fdsin(float long)
 @ cdecl _fdtest(ptr)
 @ cdecl -stub _fdunscale(ptr ptr)
