@@ -331,7 +331,7 @@ DhcpRequestParams(DWORD Flags,
                   LPDWORD pSize,
                   LPWSTR RequestIdStr)
 {
-    UNIMPLEMENTED;
+    UNIMPLEMENTED_ONCE;
     return 0;
 }
 
