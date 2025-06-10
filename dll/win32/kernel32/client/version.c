@@ -46,7 +46,7 @@ WORD WINAPI GetActiveProcessorGroupCount()
 }
 
 
-DWORD GetActiveProcessorCount(
+DWORD WINAPI GetActiveProcessorCount(
   WORD GroupNumber
 )
 {

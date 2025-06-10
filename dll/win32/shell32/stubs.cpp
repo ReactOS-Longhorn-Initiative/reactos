@@ -826,12 +826,14 @@ GetAppPathFromLink(IShellItem* pItem,
     return S_OK;
 }
 
+EXTERN_C
 HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(const WCHAR *appid)
 {
     FIXME("%s: stub\n", debugstr_w(appid));
     return S_OK;
 }
 
+EXTERN_C
 HRESULT WINAPI GetCurrentProcessExplicitAppUserModelID(const WCHAR **appid)
 {
     FIXME("%p: stub\n", appid);
