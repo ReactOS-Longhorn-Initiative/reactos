@@ -1,1 +1,1 @@
-@ stdcall DWriteCreateFactory(long ptr ptr)
+@ stdcall DWriteCreateFactory(long ptr ptr) DWriteCreateFactory_loc

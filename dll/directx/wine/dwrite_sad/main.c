@@ -12,11 +12,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD reason, LPVOID reserved)
     }
     return TRUE;
 }
-typedef enum _DWRITE_FACTORY_TYPE {
-    DWRITE_FACTORY_TYPE_ISOLATED = 1
-} DWRITE_FACTORY_TYPE;
 
-HRESULT WINAPI DWriteCreateFactory(DWRITE_FACTORY_TYPE type, REFIID riid, IUnknown **ret)
+HRESULT WINAPI DWriteCreateFactory_loc(ULONG type, REFIID riid, IUnknown **ret)
 {
     return 0;
 }
