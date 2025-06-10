@@ -218,6 +218,34 @@ int WINAPI WSCGetProviderInfo(
     LPINT                  lpErrno
 )
 {
-    DPRINT1("WSCGetProviderInfo Triggered: Please replace ws2_32\n");
+    if (!lpProviderId || !Info || !InfoSize || !lpErrno)
+    {
+        if (lpErrno) *lpErrno = WSAEFAULT;
+        return SOCKET_ERROR;
+    }
+
+    // This is a stub implementation, as ReactOS does not yet support LSP categories or provider audit info.
+    switch (InfoType)
+    {
+        case ProviderInfoLspCategories:
+            if (*InfoSize < sizeof(DWORD))
+            {
+                *InfoSize = sizeof(DWORD);
+                *lpErrno = WSAEFAULT;
+                return SOCKET_ERROR;
+            }
+            *(DWORD*)Info = 0; // No LSP categories
+            *InfoSize = sizeof(DWORD);
+            *lpErrno = 0;
+            return 0;
+
+        case ProviderInfoAudit:
+            *lpErrno = WSAEOPNOTSUPP;
+            return SOCKET_ERROR;
+
+        default:
+            *lpErrno = WSAEINVAL;
+            return SOCKET_ERROR;
+    }
     return 0;
 }
