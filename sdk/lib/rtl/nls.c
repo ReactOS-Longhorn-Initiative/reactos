@@ -1100,7 +1100,8 @@ typedef struct
 #define LOCALE_CUSTOM_UNSPECIFIED MAKELCID(MAKELANGID(LANG_NEUTRAL, SUBLANG_CUSTOM_UNSPECIFIED), SORT_DEFAULT)
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
 
- 
+
+#if 0 // gcc unused warning
 static LCID system_lcid;
 static const NLS_LOCALE_LCID_INDEX *lcids_index;
 static const NLS_LOCALE_HEADER *locale_table;
@@ -1110,7 +1111,7 @@ static const NLS_LOCALE_DATA *get_locale_data( UINT idx )
     ULONG offset = locale_table->locales_offset + idx * locale_table->locale_size;
     return (const NLS_LOCALE_DATA *)((const char *)locale_table + offset);
 }
- static const NLS_LOCALE_LCID_INDEX *find_lcid_entry( LCID lcid )
+static const NLS_LOCALE_LCID_INDEX *find_lcid_entry( LCID lcid )
 {
     int min = 0, max = locale_table->nb_lcids - 1;
     while (min <= max)
@@ -1122,6 +1123,7 @@ static const NLS_LOCALE_DATA *get_locale_data( UINT idx )
     }
     return NULL;
 }
+#endif
 /******************************************************************
  *      RtlLcidToLocaleName   (NTDLL.@)
  */

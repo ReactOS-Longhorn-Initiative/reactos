@@ -5,8 +5,7 @@ add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 add_definitions(
     -D__WINESRC__
     -D__ROS_LONG64__
-    -D_WINE
-    -bcryptprimitives)
+    -D_WINE)
 
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 spec2def(bcryptprimitives.dll bcryptprimitives.spec ADD_IMPORTLIB)
