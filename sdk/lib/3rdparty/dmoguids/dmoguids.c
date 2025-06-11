@@ -1,5 +1,7 @@
 /*
- * Copyright 2012 Stefan Leichter
+ * GUID definitions
+ *
+ * Copyright 2018 Zebediah Figura
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,22 +18,11 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#include <stdarg.h>
-#include "windef.h"
-#include "winbase.h"
-#include "wine/debug.h"
+/* Don't define those GUIDs here */
+#include "strmif.h"
 
-WINE_DEFAULT_DEBUG_CHANNEL(mfplat);
+#include "initguid.h"
 
-BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
-{
-    TRACE("%p, %u, %p\n", hinst, reason, reserved);
-
-    switch (reason)
-    {
-        case DLL_PROCESS_ATTACH:
-            DisableThreadLibraryCalls( hinst );
-            break;
-    }
-    return TRUE;
-}
+#include "mediaobj.h"
+#include "dmoreg.h"
+#include "dmodshow.h"
