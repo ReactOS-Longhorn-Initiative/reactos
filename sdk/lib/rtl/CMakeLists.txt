@@ -11,6 +11,8 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 
     add_compile_options(-Wno-incompatible-pointer-types)
     add_compile_options(-Wno-missing-braces)
+    add_compile_options(-Wno-unused-function)
+    add_compile_options(-Wno-unused-variable)
 endif()
 
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
