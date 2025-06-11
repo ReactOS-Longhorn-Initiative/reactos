@@ -486,7 +486,7 @@
 @ stdcall GetDriveTypeW(wstr) kernelbase.GetDriveTypeW
 @ stub -version=0x600+ GetDurationFormat
 @ stub -version=0x600+ GetDurationFormatEx
-@ stdcall -stub -version=0x600+ GetDynamicTimeZoneInformation(ptr)
+@ stdcall -version=0x600+ GetDynamicTimeZoneInformation(ptr) kernelbase.GetDynamicTimeZoneInformation
 @ stdcall -stub -version=0x602+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
 @ stdcall GetEnvironmentStrings() kernelbase.GetEnvironmentStrings
 @ stdcall GetEnvironmentStringsA() kernelbase.GetEnvironmentStringsA
@@ -695,7 +695,7 @@
 @ stdcall -version=0x600+ GetTimeFormatEx(wstr long ptr wstr wstr long) kernelbase.GetTimeFormatEx
 @ stdcall GetTimeFormatW(long long ptr wstr ptr long) kernelbase.GetTimeFormatW
 @ stdcall GetTimeZoneInformation(ptr) kernelbase.GetTimeZoneInformation
-@ stdcall -stub -version=0x600+ GetTimeZoneInformationForYear(long ptr ptr) kernelbase.GetTimeZoneInformationForYear
+@ stdcall -version=0x600+ GetTimeZoneInformationForYear(long ptr ptr) kernelbase.GetTimeZoneInformationForYear
 @ stdcall -version=0x600+ GetUILanguageInfo(long wstr wstr ptr ptr) kernelbase.GetUILanguageInfo
 @ stdcall GetUserDefaultLCID() kernelbase.GetUserDefaultLCID
 @ stdcall GetUserDefaultLangID() kernelbase.GetUserDefaultLangID
@@ -976,7 +976,7 @@
 @ stdcall QueryPerformanceCounter(ptr) kernelbase.QueryPerformanceCounter
 @ stdcall QueryPerformanceFrequency(ptr) kernelbase.QueryPerformanceFrequency
 @ stub -version=0x600+ QueryProcessAffinityUpdateMode
-@ stdcall -stub QueryProcessCycleTime(long ptr)
+@ stdcall -version=0x600+ QueryProcessCycleTime(long ptr) kernelbase.QueryProcessCycleTime
 @ stub -version=0x600+ QueryThreadCycleTime
 @ stub -version=0x601+ QueryThreadProfiling
 @ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr) kernelbase.QueryThreadpoolStackInformation
@@ -1161,7 +1161,7 @@
 @ stdcall -version=0x600+ SetDefaultDllDirectories(long) kernelbase.SetDefaultDllDirectories
 @ stdcall SetDllDirectoryA(str) kernelbase.SetDllDirectoryA
 @ stdcall SetDllDirectoryW(wstr) kernelbase.SetDllDirectoryW
-@ stub -version=0x600+ SetDynamicTimeZoneInformation
+@ stdcall -version=0x600+ SetDynamicTimeZoneInformation(ptr) kernelbase.SetDynamicTimeZoneInformation
 @ stdcall SetEndOfFile(long) kernelbase.SetEndOfFile
 @ stdcall SetEnvironmentStringsA(ptr) kernelbase.SetEnvironmentStringsA
 @ stdcall SetEnvironmentStringsW(ptr) kernelbase.SetEnvironmentStringsW

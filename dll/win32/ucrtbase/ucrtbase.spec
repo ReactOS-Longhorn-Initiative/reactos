@@ -306,7 +306,7 @@
 @ cdecl -stub _dpcomp(double double)
 @ cdecl -stub _dpoly(double ptr long)
 @ cdecl -stub _dscale(ptr long)
-@ cdecl -stub _dsign(double)
+@ cdecl _dsign(double)
 @ cdecl -stub _dsin(double long)
 @ cdecl _dtest(ptr)
 @ cdecl -stub _dunscale(ptr ptr)
@@ -2514,8 +2514,8 @@
 @ cdecl -stub nextafter(double double)
 @ cdecl -stub nextafterf(float float)
 @ cdecl nextafterl(double double) nextafter
-@ cdecl -stub nexttoward(double double) nexttoward
-@ cdecl -stub nexttowardf(float double) nexttowardf
+@ cdecl nexttoward(double double)
+@ cdecl nexttowardf(float double)
 @ cdecl nexttowardl(double double) nexttoward
 @ stub norm
 @ stub normf

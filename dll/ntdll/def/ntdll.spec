@@ -1079,7 +1079,7 @@
 @ stdcall RtlQueryAtomInAtomTable(ptr long ptr ptr ptr ptr)
 @ stdcall -stub -version=0x600+ RtlQueryCriticalSectionOwner(ptr)
 @ stdcall RtlQueryDepthSList(ptr)
-@ stdcall -stub -version=0x600+ RtlQueryDynamicTimeZoneInformation(ptr)
+@ stdcall -version=0x600+ RtlQueryDynamicTimeZoneInformation(ptr) RtlQueryTimeZoneInformation
 @ stdcall -stub -version=0x600+ RtlQueryElevationFlags(ptr)
 @ stdcall -stub -version=0x600+ RtlQueryEnvironmentVariable(ptr ptr long ptr long ptr)
 @ stdcall RtlQueryEnvironmentVariable_U(ptr ptr ptr)

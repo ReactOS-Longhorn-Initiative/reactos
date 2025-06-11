@@ -369,6 +369,38 @@ SetTimeZoneInformation(CONST TIME_ZONE_INFORMATION *lpTimeZoneInformation)
     return TRUE;
 }
 
+BOOL 
+WINAPI 
+SetDynamicTimeZoneInformation(
+	const DYNAMIC_TIME_ZONE_INFORMATION* lpTimeZoneDynamicInformation
+)
+{
+	TIME_ZONE_INFORMATION lpTimeZoneInformation;
+
+	RtlCopyMemory(&lpTimeZoneInformation.StandardName,&lpTimeZoneDynamicInformation->StandardName,sizeof(lpTimeZoneInformation.StandardName));
+	RtlCopyMemory(&lpTimeZoneInformation.DaylightName,&lpTimeZoneDynamicInformation->DaylightName,sizeof(lpTimeZoneInformation.DaylightName));
+	
+	lpTimeZoneInformation.Bias = lpTimeZoneDynamicInformation->Bias;
+	lpTimeZoneInformation.StandardDate = lpTimeZoneDynamicInformation->StandardDate;
+	lpTimeZoneInformation.StandardBias = lpTimeZoneDynamicInformation->StandardBias;
+	lpTimeZoneInformation.DaylightDate = lpTimeZoneDynamicInformation->DaylightDate;
+	lpTimeZoneInformation.DaylightBias = lpTimeZoneDynamicInformation->DaylightBias;
+	
+	return SetTimeZoneInformation(&lpTimeZoneInformation);
+}
+
+
+BOOL 
+WINAPI 
+GetTimeZoneInformationForYear( 
+	USHORT wYear,
+    PDYNAMIC_TIME_ZONE_INFORMATION pdtzi, 
+	LPTIME_ZONE_INFORMATION ptzi
+)
+{
+    return GetTimeZoneInformation(ptzi) != TIME_ZONE_ID_INVALID;
+}
+
 /*
  * @implemented
  */
@@ -447,5 +479,29 @@ TzSpecificLocalTimeToSystemTime(LPTIME_ZONE_INFORMATION lpTimeZoneInformation,
     LL2FILETIME( t, &ft)
     return FileTimeToSystemTime(&ft, lpUniversalTime);
 }
-
+typedef struct _RTL_TIME_DYNAMIC_ZONE_INFORMATION
+{
+    LONG Bias;
+    WCHAR StandardName[32];
+    TIME_FIELDS StandardDate;
+    LONG StandardBias;
+    WCHAR DaylightName[32];
+    TIME_FIELDS DaylightDate;
+    LONG DaylightBias;
+    WCHAR TimeZoneKeyName[128];
+    BOOLEAN DynamicDaylightTimeDisabled;
+} RTL_DYNAMIC_TIME_ZONE_INFORMATION, *PRTL_DYNAMIC_TIME_ZONE_INFORMATION;
+NTSTATUS WINAPI RtlQueryDynamicTimeZoneInformation(RTL_DYNAMIC_TIME_ZONE_INFORMATION*);
 /* EOF */
+DWORD WINAPI GetDynamicTimeZoneInformation(DYNAMIC_TIME_ZONE_INFORMATION *tzinfo)
+{
+     NTSTATUS status;
+ 
+     status = RtlQueryDynamicTimeZoneInformation( (RTL_DYNAMIC_TIME_ZONE_INFORMATION*)tzinfo );
+     if ( status != STATUS_SUCCESS )
+     {
+        SetLastError( RtlNtStatusToDosError(status) );
+        return TIME_ZONE_ID_INVALID;
+     }
+     return TIME_ZoneID( (TIME_ZONE_INFORMATION*)tzinfo );
+}
