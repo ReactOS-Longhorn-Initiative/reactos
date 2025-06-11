@@ -1136,7 +1136,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH ProcessIdToSessionId( DWORD pid, DWORD *id )
     CloseHandle( process );
     return set_ntstatus( status );
 }
-
+ 
 
 /***********************************************************************
  *           QueryProcessCycleTime   (kernelbase.@)
@@ -1152,7 +1152,28 @@ BOOL WINAPI DECLSPEC_HOTPATCH QueryProcessCycleTime( HANDLE process, ULONG64 *cy
     return TRUE;
 }
 
+#endif
+BOOL 
+WINAPI 
+QueryProcessCycleTime(
+  _In_  HANDLE   ThreadHandle,
+  _Out_ PULONG64 CycleTime
+)
+{
+	LARGE_INTEGER ltime;
+	UINT32 cycles; 
+	BOOL resp;
+	
+	resp = QueryPerformanceCounter(&ltime);
 
+	cycles = (UINT32) ((ltime.QuadPart >> 8) & 0xFFFFFFF);	
+	
+	*CycleTime = cycles;
+	return resp;
+}
+
+
+#ifndef __REACTOS__
 /***********************************************************************
  *           SetErrorMode   (kernelbase.@)
  */

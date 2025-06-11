@@ -523,7 +523,7 @@
 @ stdcall GetDriveTypeA(str)
 @ stdcall GetDriveTypeW(wstr)
 # @ stub GetDurationFormatEx
-@ stdcall -stub GetDynamicTimeZoneInformation(ptr)
+@ stdcall GetDynamicTimeZoneInformation(ptr)
 @ stdcall -stub GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
 # @ stub GetEffectivePackageStatusForUser
 # @ stub GetEightBitStringToUnicodeSizeRoutine
@@ -772,7 +772,7 @@
 @ stdcall -version=0x600+ GetTimeFormatEx(wstr long ptr wstr ptr long)
 @ stdcall GetTimeFormatW(long long ptr wstr ptr long)
 @ stdcall GetTimeZoneInformation(ptr)
-@ stdcall -stub GetTimeZoneInformationForYear(long ptr ptr)
+@ stdcall GetTimeZoneInformationForYear(long ptr ptr)
 @ stdcall GetTokenInformation(long long ptr long ptr)
 @ stdcall GetTraceEnableFlags(int64) ntdll.EtwGetTraceEnableFlags
 @ stdcall GetTraceEnableLevel(int64) ntdll.EtwGetTraceEnableLevel
@@ -1252,7 +1252,7 @@
 @ stdcall QueryPerformanceCounter(ptr)
 @ stdcall QueryPerformanceFrequency(ptr)
 @ stub QueryProcessAffinityUpdateMode
-@ stdcall -stub QueryProcessCycleTime(long ptr)
+@ stdcall QueryProcessCycleTime(long ptr)
 # @ stub QueryProtectedPolicy
 @ stdcall -stub QuerySecurityAccessMask(ptr ptr)
 # @ stub QueryStateAtomValueInfo
@@ -1470,7 +1470,7 @@
 @ stdcall SetCurrentDirectoryA(str)
 @ stdcall SetCurrentDirectoryW(wstr)
 @ stdcall SetDefaultDllDirectories(long)
-# @ stub SetDynamicTimeZoneInformation
+@ stdcall -version=0x600+ SetDynamicTimeZoneInformation(ptr)
 @ stdcall SetEndOfFile(long)
 @ stdcall SetEnvironmentStringsA(str)
 @ stdcall SetEnvironmentStringsW(wstr)

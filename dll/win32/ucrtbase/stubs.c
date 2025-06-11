@@ -146,4 +146,50 @@ int __cdecl _fdsign(float x)
         return 0;
 }
 
+float nexttowardf(float x, long double y)
+{
+    if (isnan(x) || isnan(y))
+        return x + (float)y;
+    if (x == (float)y)
+        return (float)y;
+    if (x == 0.0f) {
+        union { float f; uint32_t u; } u = { 0.0f };
+        u.u = 1;
+        return (y > 0.0) ? u.f : -u.f;
+    }
+    union { float f; uint32_t u; } u = { x };
+    if ((x > (float)y) == (x > 0.0f))
+        u.u--;
+    else
+        u.u++;
+    return u.f;
+}
 
+double nexttoward(double x, long double y)
+{
+    if (isnan(x) || isnan(y))
+        return x + y;
+    if (x == (double)y)
+        return y;
+    if (x == 0.0) {
+        union { double d; uint64_t u; } u = { 0.0 };
+        u.u = 1;
+        return (y > 0.0) ? u.d : -u.d;
+    }
+    union { double d; uint64_t u; } u = { x };
+    if ((x > (double)y) == (x > 0.0))
+        u.u--;
+    else
+        u.u++;
+    return u.d;
+}
+
+int __cdecl _dsign(double x)
+{
+    if (x > 0.0)
+        return 1;
+    else if (x < 0.0)
+        return -1;
+    else
+        return 0;
+}
