@@ -30,7 +30,37 @@ UserGetMouseButtonsState(VOID)
 
     return wRet;
 }
+extern BOOLEAN RawInputEnabled;
+VOID NTAPI
+UserRawInputMouseProcess(MOUSEINPUT* mi)
+{
+    PUSER_MESSAGE_QUEUE pFocusQueue;
+    PTHREADINFO pti = PsGetCurrentThreadWin32Thread();
+     POINT ptCursor;
+    /* Find the target thread whose locale is in effect */
+    pFocusQueue = IntGetFocusMessageQueue();
+    ptCursor = gpsi->ptCursor;
+    MSG Msg;
+    TRACE("Get MousePacket");
 
+    // CREATE THE MOSUE PACKET 
+    RAWMOUSE rm;
+    rm.ulButtons = UserGetMouseButtonsState();
+    rm.lLastX   = mi->dx;
+    rm.lLastY   = mi->dy;
+    rm.usFlags = mi->dwFlags;
+    rm.ulExtraInformation = mi->dwExtraInfo;
+    __debugbreak();
+      /* Init message fields */
+        Msg.wParam = RIM_INPUT;
+        Msg.lParam =  MAKELPARAM(rm.ulButtons, rm.usFlags);
+        Msg.pt = ptCursor;
+        Msg.time = mi->time;
+        Msg.message = WM_INPUT;
+       //MessageQueue = pti->MessageQueue;
+
+    MsqPostMessage(pti, &Msg, TRUE, QS_INPUT , 0, mi->dwExtraInfo);
+}
 /*
  * UserProcessMouseInput
  *
@@ -48,6 +78,8 @@ UserProcessMouseInput(PMOUSE_INPUT_DATA mid)
     mi.dwFlags = 0;
     mi.time = 0;
     mi.dwExtraInfo = mid->ExtraInformation;
+    if (RawInputEnabled == TRUE)
+        UserRawInputMouseProcess(&mi);
 
     /* Mouse position */
     if (mi.dx != 0 || mi.dy != 0)

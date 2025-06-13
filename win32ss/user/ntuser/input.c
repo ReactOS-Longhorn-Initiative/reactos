@@ -19,7 +19,7 @@ INT paiCount = 0;
 HANDLE ghKeyboardDevice = NULL;
 
 static DWORD LastInputTick = 0;
-static HANDLE ghMouseDevice;
+HANDLE ghMouseDevice;
 
 /* FUNCTIONS *****************************************************************/
 
@@ -305,6 +305,7 @@ RawInputThreadMain(VOID)
 
             /* Process data */
             UserEnterExclusive();
+            // Beep
             UserProcessMouseInput(&MouseInput);
             UserLeave();
         }
@@ -323,6 +324,7 @@ RawInputThreadMain(VOID)
 
             /* Process data */
             UserEnterExclusive();
+            // Meep
             UserProcessKeyboardInput(&KeyInput);
             UserLeave();
         }

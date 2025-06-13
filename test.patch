@@ -1,0 +1,431 @@
+diff --git a/win32ss/CMakeLists.txt b/win32ss/CMakeLists.txt
+index 806525e4113..52455754780 100644
+--- a/win32ss/CMakeLists.txt
++++ b/win32ss/CMakeLists.txt
+@@ -146,6 +146,7 @@ list(APPEND SOURCE
+     user/ntuser/painting.c
+     user/ntuser/power.c
+     user/ntuser/prop.c
++    user/ntuser/rawinput.c
+     user/ntuser/scrollbar.c
+     user/ntuser/scrollex.c
+     user/ntuser/security.c
+diff --git a/win32ss/user/ntuser/input.c b/win32ss/user/ntuser/input.c
+index f153bcf59a6..02fc7ad953d 100644
+--- a/win32ss/user/ntuser/input.c
++++ b/win32ss/user/ntuser/input.c
+@@ -19,7 +19,7 @@ INT paiCount = 0;
+ HANDLE ghKeyboardDevice = NULL;
+ 
+ static DWORD LastInputTick = 0;
+-static HANDLE ghMouseDevice;
++HANDLE ghMouseDevice;
+ 
+ /* FUNCTIONS *****************************************************************/
+ 
+@@ -305,6 +305,7 @@ RawInputThreadMain(VOID)
+ 
+             /* Process data */
+             UserEnterExclusive();
++            // Beep
+             UserProcessMouseInput(&MouseInput);
+             UserLeave();
+         }
+@@ -323,6 +324,7 @@ RawInputThreadMain(VOID)
+ 
+             /* Process data */
+             UserEnterExclusive();
++            // Meep
+             UserProcessKeyboardInput(&KeyInput);
+             UserLeave();
+         }
+diff --git a/win32ss/user/ntuser/message.c b/win32ss/user/ntuser/message.c
+index e0f4f987678..388b4ed922f 100644
+--- a/win32ss/user/ntuser/message.c
++++ b/win32ss/user/ntuser/message.c
+@@ -11,7 +11,7 @@
+ 
+ DBG_DEFAULT_CHANNEL(UserMsg);
+ 
+-#define PM_BADMSGFLAGS ~((QS_RAWINPUT << 16)|PM_QS_SENDMESSAGE|PM_QS_PAINT|PM_QS_POSTMESSAGE|PM_QS_INPUT|PM_NOYIELD|PM_REMOVE)
++#define PM_BADMSGFLAGS ~(PM_QS_SENDMESSAGE|PM_QS_PAINT|PM_QS_POSTMESSAGE|PM_QS_INPUT|PM_NOYIELD|PM_REMOVE)
+ 
+ /* Strings that are OK to pass between user and kernel mode.
+  * There may be other strings needed that can easily be added here. */
+@@ -1105,7 +1105,7 @@ co_IntPeekMessage( PMSG Msg,
+         }
+ 
+         /* Check for hardware events. */
+-        if ((ProcessMask & QS_INPUT) &&
++        if ((ProcessMask & QS_INPUT || ProcessMask & QS_RAWINPUT) &&
+             co_MsqPeekHardwareMessage( pti,
+                                        RemoveMessages,
+                                        Window,
+diff --git a/win32ss/user/ntuser/misc.c b/win32ss/user/ntuser/misc.c
+index 1912fd3e859..49c1d8c8b88 100644
+--- a/win32ss/user/ntuser/misc.c
++++ b/win32ss/user/ntuser/misc.c
+@@ -309,7 +309,7 @@ NtUserGetThreadState(
+          break;
+ 
+       case THREADSTATE_GETINPUTSTATE:
+-         ret = LOWORD(IntGetQueueStatus(QS_POSTMESSAGE|QS_TIMER|QS_PAINT|QS_SENDMESSAGE|QS_INPUT)) & (QS_KEY | QS_MOUSEBUTTON);
++         ret = LOWORD(IntGetQueueStatus(QS_POSTMESSAGE|QS_TIMER|QS_PAINT|QS_SENDMESSAGE|QS_INPUT|QS_RAWINPUT)) & (QS_KEY | QS_MOUSEBUTTON);
+          break;
+ 
+       case THREADSTATE_FOREGROUNDTHREAD:
+diff --git a/win32ss/user/ntuser/mouse.c b/win32ss/user/ntuser/mouse.c
+index 8c5da97f557..5fa17f83c51 100644
+--- a/win32ss/user/ntuser/mouse.c
++++ b/win32ss/user/ntuser/mouse.c
+@@ -30,7 +30,39 @@ UserGetMouseButtonsState(VOID)
+ 
+     return wRet;
+ }
++extern BOOLEAN RawInputEnabled;
++VOID NTAPI
++UserRawInputMouseProcess(MOUSEINPUT* mi)
++{
++    PUSER_MESSAGE_QUEUE pFocusQueue;
++    PTHREADINFO pti = PsGetCurrentThreadWin32Thread();
++     POINT ptCursor;
++    /* Find the target thread whose locale is in effect */
++    pFocusQueue = IntGetFocusMessageQueue();
++    ptCursor = gpsi->ptCursor;
++    MSG Msg;
++    TRACE("Get MousePacket");
++
++    // CREATE THE MOSUE PACKET 
++    RAWMOUSE rm;
++    rm.ulButtons = UserGetMouseButtonsState();
++    rm.lLastX   = mi->dx;
++    rm.lLastY   = mi->dy;
++    rm.usFlags = mi->dwFlags;
++    rm.ulExtraInformation = mi->dwExtraInfo;
+ 
++
++
++      /* Init message fields */
++        Msg.wParam = RIM_INPUT;
++        Msg.lParam =  (LPARAM)&rm;
++        Msg.pt = ptCursor;
++        Msg.time = mi->time;
++        Msg.message = WM_INPUT;
++       //MessageQueue = pti->MessageQueue;
++
++    MsqPostMessage(pti, &Msg, TRUE, QS_RAWINPUT , 0, mi->dwExtraInfo);
++}
+ /*
+  * UserProcessMouseInput
+  *
+@@ -48,7 +80,7 @@ UserProcessMouseInput(PMOUSE_INPUT_DATA mid)
+     mi.dwFlags = 0;
+     mi.time = 0;
+     mi.dwExtraInfo = mid->ExtraInformation;
+-
++    UserRawInputMouseProcess(&mi);
+     /* Mouse position */
+     if (mi.dx != 0 || mi.dy != 0)
+         mi.dwFlags |= MOUSEEVENTF_MOVE;
+diff --git a/win32ss/user/ntuser/ntstubs.c b/win32ss/user/ntuser/ntstubs.c
+index 6cd41dc4c13..8aae5d47efb 100644
+--- a/win32ss/user/ntuser/ntstubs.c
++++ b/win32ss/user/ntuser/ntstubs.c
+@@ -388,65 +388,6 @@ NtUserYieldTask(VOID)
+    return 0;
+ }
+ 
+-DWORD
+-APIENTRY
+-NtUserGetRawInputBuffer(
+-    PRAWINPUT pData,
+-    PUINT pcbSize,
+-    UINT cbSizeHeader)
+-{
+-    STUB;
+-    return 0;
+-}
+-
+-DWORD
+-APIENTRY
+-NtUserGetRawInputData(
+-    HRAWINPUT hRawInput,
+-    UINT uiCommand,
+-    LPVOID pData,
+-    PUINT pcbSize,
+-    UINT cbSizeHeader)
+-{
+-    STUB;
+-    return 0;
+-}
+-
+-DWORD
+-APIENTRY
+-NtUserGetRawInputDeviceInfo(
+-    HANDLE hDevice,
+-    UINT uiCommand,
+-    LPVOID pData,
+-    PUINT pcbSize
+-)
+-{
+-    STUB;
+-    return 0;
+-}
+-
+-DWORD
+-APIENTRY
+-NtUserGetRawInputDeviceList(
+-    PRAWINPUTDEVICELIST pRawInputDeviceList,
+-    PUINT puiNumDevices,
+-    UINT cbSize)
+-{
+-    STUB;
+-    return 0;
+-}
+-
+-DWORD
+-APIENTRY
+-NtUserGetRegisteredRawInputDevices(
+-    PRAWINPUTDEVICE pRawInputDevices,
+-    PUINT puiNumDevices,
+-    UINT cbSize)
+-{
+-    STUB;
+-    return 0;
+-}
+-
+ DWORD
+ APIENTRY
+ NtUserHardErrorControl(
+@@ -635,17 +576,6 @@ NtUserRealWaitMessageEx(
+     return 0;
+ }
+ 
+-BOOL
+-APIENTRY
+-NtUserRegisterRawInputDevices(
+-    IN PCRAWINPUTDEVICE pRawInputDevices,
+-    IN UINT uiNumDevices,
+-    IN UINT cbSize)
+-{
+-    STUB;
+-    return 0;
+-}
+-
+ DWORD APIENTRY
+ NtUserResolveDesktopForWOW(DWORD Unknown0)
+ {
+diff --git a/win32ss/user/user32/misc/stubs.c b/win32ss/user/user32/misc/stubs.c
+index bb1754b781f..73f74efbadb 100644
+--- a/win32ss/user/user32/misc/stubs.c
++++ b/win32ss/user/user32/misc/stubs.c
+@@ -217,21 +217,6 @@ GetAccCursorInfo ( PCURSORINFO pci )
+   return FALSE;
+ }
+ 
+-/*
+- * @unimplemented
+- */
+-UINT
+-WINAPI
+-GetRawInputDeviceInfoW(
+-    HANDLE hDevice,
+-    UINT uiCommand,
+-    LPVOID pData,
+-    PUINT pcbSize)
+-{
+-  UNIMPLEMENTED;
+-  return 0;
+-}
+-
+ /*
+  * @unimplemented
+  */
+@@ -250,7 +235,7 @@ CsrBroadcastSystemMessageExW(
+ }
+ 
+ /*
+- * @unimplemented
++ * @ implemented
+  */
+ UINT
+ WINAPI
+@@ -260,8 +245,36 @@ GetRawInputDeviceInfoA(
+     LPVOID pData,
+     PUINT pcbSize)
+ {
+-  UNIMPLEMENTED;
+-  return 0;
++    TRACE( "device %p, command %#x, data %p, size %p.\n", hDevice, uiCommand, pData, pcbSize );
++
++    /* RIDI_DEVICENAME size is in chars, not bytes */
++    if (uiCommand == RIDI_DEVICENAME)
++    {
++        WCHAR *nameW;
++        UINT ret, sizeW;
++
++        if (!pcbSize) return ~0U;
++
++        sizeW = *pcbSize;
++
++        if (pData && sizeW > 0)
++            nameW = HeapAlloc( GetProcessHeap(), 0, sizeof(WCHAR) * sizeW );
++        else
++            nameW = NULL;
++
++        ret = NtUserGetRawInputDeviceInfo( hDevice, uiCommand, nameW, &sizeW );
++
++        if (ret && ret != ~0U)
++            WideCharToMultiByte( CP_ACP, 0, nameW, -1, pData, *pcbSize, NULL, NULL );
++
++        *pcbSize = sizeW;
++
++        HeapFree( GetProcessHeap(), 0, nameW );
++
++        return ret;
++    }
++
++    return NtUserGetRawInputDeviceInfo( hDevice, uiCommand, pData, pcbSize );
+ }
+ 
+ /*
+@@ -290,86 +303,6 @@ DefRawInputProc(
+   return 1;
+ }
+ 
+-/*
+- * @unimplemented
+- */
+-UINT
+-WINAPI
+-DECLSPEC_HOTPATCH
+-GetRawInputBuffer(
+-    PRAWINPUT pData,
+-    PUINT pcbSize,
+-    UINT cbSizeHeader)
+-{
+-  UNIMPLEMENTED;
+-  return 0;
+-}
+-
+-/*
+- * @unimplemented
+- */
+-UINT
+-WINAPI
+-GetRawInputData(
+-    HRAWINPUT hRawInput,
+-    UINT uiCommand,
+-    LPVOID pData,
+-    PUINT pcbSize,
+-    UINT cbSizeHeader)
+-{
+-  UNIMPLEMENTED;
+-  return 0;
+-}
+-
+-/*
+- * @unimplemented
+- */
+-UINT
+-WINAPI
+-GetRawInputDeviceList(
+-    PRAWINPUTDEVICELIST pRawInputDeviceList,
+-    PUINT puiNumDevices,
+-    UINT cbSize)
+-{
+-    if(pRawInputDeviceList)
+-        memset(pRawInputDeviceList, 0, sizeof *pRawInputDeviceList);
+-    if(puiNumDevices)
+-       *puiNumDevices = 0;
+-
+-    UNIMPLEMENTED;
+-    return 0;
+-}
+-
+-/*
+- * @unimplemented
+- */
+-UINT
+-WINAPI
+-DECLSPEC_HOTPATCH
+-GetRegisteredRawInputDevices(
+-    PRAWINPUTDEVICE pRawInputDevices,
+-    PUINT puiNumDevices,
+-    UINT cbSize)
+-{
+-  UNIMPLEMENTED;
+-  return 0;
+-}
+-
+-/*
+- * @unimplemented
+- */
+-BOOL
+-WINAPI
+-DECLSPEC_HOTPATCH
+-RegisterRawInputDevices(
+-    PCRAWINPUTDEVICE pRawInputDevices,
+-    UINT uiNumDevices,
+-    UINT cbSize)
+-{
+-  UNIMPLEMENTED;
+-  return FALSE;
+-}
+-
+ /*
+  * @unimplemented
+  */
+diff --git a/win32ss/user/user32/user32.spec b/win32ss/user/user32/user32.spec
+index 4423f96312b..e37561137ad 100644
+--- a/win32ss/user/user32/user32.spec
++++ b/win32ss/user/user32/user32.spec
+@@ -360,13 +360,13 @@
+ @ stdcall GetPropA(long str)
+ @ stdcall GetPropW(long wstr)
+ @ stdcall GetQueueStatus(long)
+-@ stdcall GetRawInputBuffer(ptr ptr long)
+-@ stdcall GetRawInputData(ptr long ptr ptr long)
++@ stdcall GetRawInputBuffer(ptr ptr long) NtUserGetRawInputBuffer
++@ stdcall GetRawInputData(ptr long ptr ptr long) NtUserGetRawInputData
+ @ stdcall GetRawInputDeviceInfoA(ptr long ptr ptr)
+-@ stdcall GetRawInputDeviceInfoW(ptr long ptr ptr)
+-@ stdcall GetRawInputDeviceList(ptr ptr long)
++@ stdcall GetRawInputDeviceInfoW(ptr long ptr ptr) NtUserGetRawInputDeviceInfo
++@ stdcall GetRawInputDeviceList(ptr ptr long) NtUserGetRawInputDeviceList
+ @ stdcall GetReasonTitleFromReasonCode(long long long)
+-@ stdcall GetRegisteredRawInputDevices(ptr ptr long)
++@ stdcall GetRegisteredRawInputDevices(ptr ptr long) NtUserGetRegisteredRawInputDevices
+ # GetRipFlags
+ @ stdcall GetScrollBarInfo(long long ptr) ; NtUserGetScrollBarInfo
+ @ stdcall GetScrollInfo(long long ptr)
+@@ -590,7 +590,7 @@
+ @ stdcall RegisterMessagePumpHook(ptr)
+ @ stdcall -version=0x602+ RegisterPointerDeviceNotifications(long long)
+ @ stdcall -version=0x600+ RegisterPowerSettingNotification(long ptr long)
+-@ stdcall RegisterRawInputDevices(ptr long long)
++@ stdcall RegisterRawInputDevices(ptr long long) NtUserRegisterRawInputDevices
+ @ stdcall RegisterServicesProcess(long)
+ @ stdcall RegisterShellHookWindow(long)
+ @ stdcall RegisterSystemThread(long long)
+diff --git a/win32ss/user/user32/windows/message.c b/win32ss/user/user32/windows/message.c
+index 2ef4ddc110a..3e859eb5bc8 100644
+--- a/win32ss/user/user32/windows/message.c
++++ b/win32ss/user/user32/windows/message.c
+@@ -2905,16 +2905,6 @@ RealGetQueueStatus(UINT flags)
+       SetLastError( ERROR_INVALID_FLAGS );
+       return 0;
+    }
+-   /** ATM, we do not support QS_RAWINPUT, but we need to support apps that pass
+-    ** this flag along, while also working around QS_RAWINPUT checks in winetests.
+-    ** Just set the last error to ERROR_INVALID_FLAGS but do not fail the call.
+-    **/
+-   if (flags & QS_RAWINPUT)
+-   {
+-      SetLastError(ERROR_INVALID_FLAGS);
+-      flags &= ~QS_RAWINPUT;
+-   }
+-   /**/
+    return NtUserxGetQueueStatus(flags);
+ }
+ 
