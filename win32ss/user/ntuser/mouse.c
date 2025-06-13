@@ -32,34 +32,75 @@ UserGetMouseButtonsState(VOID)
 }
 extern BOOLEAN RawInputEnabled;
 VOID NTAPI
-UserRawInputMouseProcess(MOUSEINPUT* mi)
+UserRawInputMouseProcess(PMOUSE_INPUT_DATA mid)
 {
     PUSER_MESSAGE_QUEUE pFocusQueue;
-    PTHREADINFO pti = PsGetCurrentThreadWin32Thread();
+    PTHREADINFO pti;
      POINT ptCursor;
     /* Find the target thread whose locale is in effect */
     pFocusQueue = IntGetFocusMessageQueue();
-    ptCursor = gpsi->ptCursor;
-    MSG Msg;
-    TRACE("Get MousePacket");
+    if ( pFocusQueue)
+    {
+         ptCursor = gpsi->ptCursor;
+        MSG Msg;
+        PWND pWnd = pFocusQueue->spwndFocus;
 
-    // CREATE THE MOSUE PACKET 
-    RAWMOUSE rm;
-    rm.ulButtons = UserGetMouseButtonsState();
-    rm.lLastX   = mi->dx;
-    rm.lLastY   = mi->dy;
-    rm.usFlags = mi->dwFlags;
-    rm.ulExtraInformation = mi->dwExtraInfo;
-    __debugbreak();
-      /* Init message fields */
+        
+   
+         // CREATE THE MOSUE PACKET 
+         RAWMOUSE rm = {0};
+         if (mid->LastX != 0 || mid->LastY != 0)
+         {
+             rm.usFlags |= MOUSE_MOVE_RELATIVE;
+         }
+
+             /* Flags for absolute move */
+          if (mid->Flags & MOUSE_MOVE_ABSOLUTE)
+              rm.usFlags |= MOUSE_MOVE_ABSOLUTE;
+          if (mid->Flags & MOUSE_VIRTUAL_DESKTOP)
+              rm.usFlags |= MOUSE_VIRTUAL_DESKTOP;
+
+          /* Left button */
+          if (mid->ButtonFlags & MOUSE_LEFT_BUTTON_DOWN)
+              rm.usButtonData |= RI_MOUSE_LEFT_BUTTON_DOWN;
+          if (mid->ButtonFlags & MOUSE_LEFT_BUTTON_UP)
+              rm.usButtonData |= RI_MOUSE_LEFT_BUTTON_UP;
+
+          /* Middle button */
+          if (mid->ButtonFlags & MOUSE_MIDDLE_BUTTON_DOWN)
+              rm.usButtonData |= MOUSEEVENTF_MIDDLEDOWN;
+          if (mid->ButtonFlags & MOUSE_MIDDLE_BUTTON_UP)
+              rm.usButtonData |= MOUSEEVENTF_MIDDLEUP;
+
+          /* Right button */
+          if (mid->ButtonFlags & MOUSE_RIGHT_BUTTON_DOWN)
+              rm.usButtonData |= RI_MOUSE_RIGHT_BUTTON_DOWN;
+          if (mid->ButtonFlags & MOUSE_RIGHT_BUTTON_UP)
+              rm.usButtonData |= RI_MOUSE_RIGHT_BUTTON_UP;
+
+         rm.lLastX   = mid->LastX;
+         rm.lLastY   = mid->LastY;
+         __debugbreak();
+         RAWINPUT rmInput = {0};
+            rmInput.header.dwType = RIM_TYPEMOUSE;
+            rmInput.header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFF); // Device handle, not used here
+            rmInput.header.wParam = mid->ExtraInformation;
+            rmInput.header.dwSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE);
+            rmInput.data.mouse = rm;
+    /* Init message fields */
+
+    /* Init message fields */
         Msg.wParam = RIM_INPUT;
-        Msg.lParam =  MAKELPARAM(rm.ulButtons, rm.usFlags);
+        Msg.lParam = (LPARAM)(&rmInput);
         Msg.pt = ptCursor;
-        Msg.time = mi->time;
+        //Msg.time = mid->time;
         Msg.message = WM_INPUT;
+        pti = pWnd->head.pti;
        //MessageQueue = pti->MessageQueue;
 
-    MsqPostMessage(pti, &Msg, TRUE, QS_INPUT , 0, mi->dwExtraInfo);
+      MsqPostMessage(pti, &Msg, TRUE, QS_RAWINPUT , 0, 0);
+    }
+
 }
 /*
  * UserProcessMouseInput
@@ -78,9 +119,8 @@ UserProcessMouseInput(PMOUSE_INPUT_DATA mid)
     mi.dwFlags = 0;
     mi.time = 0;
     mi.dwExtraInfo = mid->ExtraInformation;
-    if (RawInputEnabled == TRUE)
-        UserRawInputMouseProcess(&mi);
-
+    if (RawInputEnabled== TRUE)
+        UserRawInputMouseProcess(mid);
     /* Mouse position */
     if (mi.dx != 0 || mi.dy != 0)
         mi.dwFlags |= MOUSEEVENTF_MOVE;
