@@ -41,7 +41,7 @@ HRESULT
 WINAPI
 DwmVisual::DrawBullshit()
 {
-    MILCMD_COLORRESOURCE cmd = {0};
+    MILCMD_COLORRESOURCE cmd = {};
     cmd.Type = MilCmdColorResource;
     cmd.Handle = MilResource->GlobalResourceHandle;
     cmd.Value = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -60,7 +60,7 @@ MilResourceCreateType(MIL_RESOURCE_TYPE type,
 VOID
 DwmVisual::HideVisual()
 {
-    MILCMD_VISUAL_SETALPHA cmd = {0};
+    MILCMD_VISUAL_SETALPHA cmd = {};
     cmd.alpha = 0.0;
     cmd.Type = MilCmdVisualSetAlpha;
     MilResource->SendCommand(

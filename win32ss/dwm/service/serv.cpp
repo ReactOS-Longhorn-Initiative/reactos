@@ -22,6 +22,7 @@ PSVCHOST_GLOBAL_DATA lpServiceGlobals;
 
 /* FUNCTIONS *****************************************************************/
 
+EXTERN_C
 VOID
 WINAPI
 SvchostPushServiceGlobals(
