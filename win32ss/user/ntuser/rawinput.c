@@ -82,14 +82,13 @@ NtUserGetRawInputData(
     UINT cbSizeHeader)
 {
     __debugbreak();
-    PRAWINPUT RawInput = (PRAWINPUT)pData;
-    RAWMOUSE* MosueInput = (RAWMOUSE*)hRawInput;
+    PRAWINPUT RawInput = (PRAWINPUT)hRawInput;
     ULONG OutputDataSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE) - sizeof(*pcbSize);
 
-    DPRINT1("MosueInput: Buttons: %x, LastX: %d, LastY: %d, Flags: %x, ExtraInfo: %x\n",
-            MosueInput->ulButtons, MosueInput->lLastX, MosueInput->lLastY,
-            MosueInput->usFlags, MosueInput->ulExtraInformation);
-        __debugbreak();
+
+    DPRINT1("NtUserGetRawInputData: hRawInput %p, uiCommand %u, pData %p, pcbSize %p, cbSizeHeader %u\n",
+           hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
     if (!pData)
     {
         *pcbSize = OutputDataSize;
@@ -98,13 +97,7 @@ NtUserGetRawInputData(
     }
     DPRINT1("Input data size: %d\n", *pcbSize);
 
-    RawInput->header.dwType  = RIM_TYPEMOUSE;
-    RawInput->header.hDevice = UlongToHandle( 1 );
-    RawInput->header.wParam  = MosueInput->ulExtraInformation;
-    RawInput->data.mouse = *(RAWMOUSE *)(hRawInput + 1);
-    RawInput->header.dwSize = OutputDataSize;
-
-
+    RtlCopyMemory(pData, RawInput, sizeof(PRAWINPUT));
     return RawInput->header.dwSize;
 }
 
