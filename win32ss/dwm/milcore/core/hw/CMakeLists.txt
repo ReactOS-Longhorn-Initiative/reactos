@@ -108,4 +108,4 @@ set_target_cpp_properties(hw WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(hw PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(hw PRIVATE cppstl)
+target_link_libraries(hw PRIVATE cppstl targets)

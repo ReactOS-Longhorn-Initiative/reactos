@@ -59,4 +59,4 @@ set_target_cpp_properties(swlib WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(swlib PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(swlib PRIVATE cppstl)
+target_link_libraries(swlib PRIVATE cppstl scanop)

@@ -124,7 +124,6 @@ VOID
 WINAPI
 DestroyServicePort()
 {
-    NTSTATUS Status;
     if (lpcCreateLib)
     {
         lpcCreateLib->StopPortThread();
@@ -133,7 +132,7 @@ DestroyServicePort()
     }
     if (PortHandle)
     {
-        Status = NtClose(PortHandle);
+        NtClose(PortHandle);
         PortHandle = NULL;
     }
 }

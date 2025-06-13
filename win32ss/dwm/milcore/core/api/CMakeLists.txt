@@ -51,4 +51,4 @@ set_target_cpp_properties(milcoreApi WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(milcoreApi PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(milcoreApi PRIVATE cppstl)
+target_link_libraries(milcoreApi PRIVATE cppstl milcoreMeta)

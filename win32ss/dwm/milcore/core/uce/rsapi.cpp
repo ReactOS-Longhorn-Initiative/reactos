@@ -38,6 +38,7 @@ typedef HRESULT (WINAPI *PFNDWMPDETACHMILCONTENT)(HWND hwnd);
 
 CCriticalSection g_csGraphicsStream;
 
+EXTERN_C
 HRESULT
 WINAPI
 MilGraphicsStream_Close(PVOID Adapter)
@@ -46,6 +47,7 @@ MilGraphicsStream_Close(PVOID Adapter)
     return S_OK;
 }
 
+EXTERN_C
 HRESULT
 WINAPI
 MilGraphicsStream_Open(PVOID MilConnectionManager, PVOID MILGraphicsStreamClien, MIL_MATRIX3X2D* pTransform)
@@ -54,6 +56,7 @@ MilGraphicsStream_Open(PVOID MilConnectionManager, PVOID MILGraphicsStreamClien,
     return S_OK;
 }
 
+EXTERN_C
 HRESULT
 WINAPI
 MilGraphicsStream_SetTransformHint(MIL_MATRIX3X2D* pTransform)
@@ -62,6 +65,7 @@ MilGraphicsStream_SetTransformHint(MIL_MATRIX3X2D* pTransform)
     return S_OK;
 }
 
+EXTERN_C
 HRESULT
 WINAPI
 MilGraphicsStream_GetTransformHint(
@@ -191,7 +195,7 @@ Cleanup:
 //  Method: MilGraphicsContent_AttachToHwnd
 //
 //------------------------------------------------------------------------------
-HRESULT WINAPI 
+EXTERN_C HRESULT WINAPI 
 MilContent_AttachToHwnd(HWND hwnd)
 {
     HRESULT hr = S_OK;
@@ -228,7 +232,7 @@ MilContent_AttachToHwnd(HWND hwnd)
 //  Method: MilGraphicsContent_DetachFromHwnd
 //
 //------------------------------------------------------------------------------
-HRESULT WINAPI 
+EXTERN_C HRESULT WINAPI 
 MilContent_DetachFromHwnd(HWND hwnd)
 {
     HRESULT hr = S_OK;

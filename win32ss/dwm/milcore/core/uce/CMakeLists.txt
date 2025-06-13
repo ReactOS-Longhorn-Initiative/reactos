@@ -64,8 +64,8 @@ VisualCacheSet.cpp
 vt_api.cpp
     )
 
-add_library(uce ${SOURCE})
-add_dependencies(uce xdk)
+add_library(uce STATIC ${SOURCE})
+add_dependencies(uce xdk milcoreCommon)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
@@ -82,4 +82,4 @@ set_target_cpp_properties(uce WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(uce PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(uce PRIVATE cppstl)
+target_link_libraries(uce PRIVATE cppstl milcoreResources)

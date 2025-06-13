@@ -136,4 +136,4 @@ set_target_cpp_properties(milcoreResources WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(milcoreResources PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(milcoreResources PRIVATE cppstl)
+target_link_libraries(milcoreResources PRIVATE cppstl uce milcoreCommon milcoreApi hw geometry swlib)

@@ -14,7 +14,7 @@
 
 #include "precomp.h"
 
-extern "C" _Success_(return != 0) unsigned char _BitScanReverse(_Out_ unsigned long * Index, _In_ unsigned long Mask);
+extern "C" _Success_(return != 0) unsigned char _BitScanReverse(unsigned long * const Index, const unsigned long Mask);
 #pragma intrinsic(_BitScanReverse)
 
 //+-----------------------------------------------------------------------------

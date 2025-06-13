@@ -148,7 +148,7 @@ HRESULT InitializePen(
     RRETURN(SetPenDoubleDashArray(pPen, pDashArray, cDash));
 }
 
-HRESULT WINAPI MilUtility_PathGeometryWiden(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryWiden(
     __in_ecount(1) MilPenData *pPenData,
     __in_bcount(pPenData->DashArraySize) double *pDashArray,
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix, //applied to the geometry but not to the pen
@@ -216,7 +216,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilUtility_PathGeometryOutline(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryOutline(
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix,
     IN MilFillMode::Enum fillRule,
     __in_bcount(nSize) MilPathGeometry *pPathData,
@@ -275,7 +275,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilUtility_GetPointAtLengthFraction(
+EXTERN_C HRESULT WINAPI MilUtility_GetPointAtLengthFraction(
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix,
     IN MilFillMode::Enum fillRule,
     __in_bcount(nSize) MilPathGeometry *pPathData,
@@ -329,7 +329,7 @@ Cleanup:
 }
 
 
-HRESULT WINAPI MilUtility_PathGeometryCombine(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryCombine(
     __in_ecount_opt(1) MilMatrix3x2D *pGeometryMatrix,
         // Matrix applied to the final result
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix1,
@@ -418,7 +418,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilUtility_PathGeometryFlatten(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryFlatten(
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix,
     IN MilFillMode::Enum fillRule,
     __in_bcount(nSize) MilPathGeometry *pPathData,
@@ -473,7 +473,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilUtility_PolygonBounds(
+EXTERN_C HRESULT WINAPI MilUtility_PolygonBounds(
     __in_ecount_opt(1) MilMatrix3x2D *pWorldMatrix,
         // Transformation matrix to be applied to both pen and geometry
     __in_ecount(1) MilPenData *pPenData,
@@ -532,7 +532,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilUtility_PathGeometryBounds(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryBounds(
     __in_ecount(1) MilPenData *pPenData,
         // Pen data
     __in_bcount_opt(pPenData->DashArraySize) double *pDashArray,
@@ -609,7 +609,7 @@ Cleanup:
 //
 //------------------------------------------------------------------------------
 
-HRESULT WINAPI MilUtility_PolygonHitTest(
+EXTERN_C HRESULT WINAPI MilUtility_PolygonHitTest(
     __in_ecount_opt(1) MilMatrix3x2D       *pMatrix,    // Geometry (and not pen) transformation
     __in_ecount(1) MilPenData             *pPenData,   // Pen, hit test the stroke if not null
     __in_bcount_opt(pPenData->DashArraySize) double* pDashArray, // Dash array
@@ -681,7 +681,7 @@ Cleanup:
 //  Notes:    The path is as MIL_PATHGEOMETRY
 //
 //------------------------------------------------------------------------------
-HRESULT WINAPI MilUtility_PathGeometryHitTest(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryHitTest(
     __in_ecount_opt(1) MilMatrix3x2D       *pMatrix,    // Transformation matrix  
     __in_ecount(1) MilPenData             *pPenData,   // Pen, hit test the stroke if not null
     __in_bcount_opt(pPenData->DashArraySize) double* pDashArray, // Dash array
@@ -751,7 +751,7 @@ Cleanup:
 }
 #undef DASH_COUNT
 
-HRESULT WINAPI MilUtility_PathGeometryHitTestPathGeometry(
+EXTERN_C HRESULT WINAPI MilUtility_PathGeometryHitTestPathGeometry(
     __in_ecount_opt(1) MilMatrix3x2D *pMatrix1,
     IN MilFillMode::Enum fillRule1,
     __in_bcount(nSize1) MilPathGeometry *pPathData1,
@@ -806,7 +806,7 @@ Routine Description:
 
 --*/
 
-HRESULT WINAPI MilUtility_GeometryGetArea(
+EXTERN_C HRESULT WINAPI MilUtility_GeometryGetArea(
     IN MilFillMode::Enum fillRule,
         // Path fill rule
     __in_ecount(nSize) MilPathGeometry *pPathData,
@@ -858,7 +858,7 @@ Cleanup:
 //                      cPieces = -1 indicates that the arc degenerates to a point 
 //
 //------------------------------------------------------------------------------
-void
+EXTERN_C WINAPI void
 MilUtility_ArcToBezier(
     _In_ MilPoint2D ptStart,
         // The arc's start point

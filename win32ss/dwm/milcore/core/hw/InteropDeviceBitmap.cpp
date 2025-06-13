@@ -25,7 +25,7 @@ MtDefine(CInteropDeviceBitmap, MILRender, "CInteropDeviceBitmap");
 //      UI thread
 //
 //------------------------------------------------------------------------------
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 InteropDeviceBitmap_Create(
     _In_ IUnknown *pIUserD3DResource,
     __in_range(0, DBL_MAX) double dpiX,
@@ -86,7 +86,7 @@ Cleanup:
 //      UI thread
 //
 //------------------------------------------------------------------------------
-void WINAPI
+EXTERN_C void WINAPI
 InteropDeviceBitmap_Detach(
     _In_ CInteropDeviceBitmap *pInteropDeviceBitmap
     )
@@ -109,7 +109,7 @@ InteropDeviceBitmap_Detach(
 //      UI thread
 //
 //------------------------------------------------------------------------------
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 InteropDeviceBitmap_AddDirtyRect(
     int iX, 
     int iY, 
@@ -158,7 +158,7 @@ Cleanup:
 //
 //------------------------------------------------------------------------------
 
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 InteropDeviceBitmap_GetAsSoftwareBitmap(
     _In_ CInteropDeviceBitmap *pInteropDeviceBitmap,
     __deref_out IWICBitmapSource **ppIWICBitmapSource

@@ -19,6 +19,11 @@ extern void DumpInstrumentationData();
 
 ExternTag(tagMILConnection);
 
+UINT g_uMilPerfInstrumentationFlags = 0;
+
+extern "C"
+{
+
 //+-----------------------------------------------------------------------------
 //
 //    Function:
@@ -138,6 +143,7 @@ Cleanup:
     RRETURN(hr);
 }
 
+EXTERN_C
 HRESULT
 WINAPI
 MilTransport_Create(PVOID CMilConnectionManager,
@@ -223,6 +229,7 @@ Cleanup:
     RRETURN(hr);
 }
 
+EXTERN_C
 HRESULT
 WINAPI
 MilTransport_InitializeConnectionManager(PVOID IMilRedirectedGDISurfaceManager, PULONG * ConnectionManager)
@@ -567,6 +574,7 @@ Cleanup:
     RRETURN(hr);
 }
 
+EXTERN_C
 HRESULT WINAPI
 MilResource_GetRefCountOnChannel(
     MIL_CHANNEL hChannel,
@@ -785,7 +793,7 @@ Routine Description:
 MtDefine(BitmapMemory, MILRender, "BitmapMemory");
 MtDefine(PaletteMemory, MILRender, "PaletteMemory");
 
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 MilResource_CreateCWICWrapperBitmap(
     __in_ecount(1) IWICBitmapSource *pIBitmapSource,
     __out_ecount(1) IWICBitmapSource **ppCWICWrapperBitmap
@@ -948,7 +956,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilPlayer_Process(
+EXTERN_C HRESULT WINAPI MilPlayer_Process(
     __in_ecount(1) HMIL_PLAYER hPlayer,
     _In_reads_(sizeof(MIL_REC_PACKET_HEADER)) const BYTE* pbHeader,
     _In_opt_count_(sizeof(UCE_RDP_HEADER)) const BYTE* pbRdpHeader,
@@ -1011,7 +1019,7 @@ HRESULT WINAPI MilCompositionEngine_GetComposedEventId(
 //      to external callers (e.g., managed code).
 //
 //-------------------------------------------------------------------------
-VOID WINAPI
+EXTERN_C VOID WINAPI
 MilUtility_GetTileBrushMapping(
     __in_ecount_opt(1) const D3DMATRIX *pTransform,
         // Transform that is applied to the Viewport
@@ -1076,7 +1084,6 @@ Routine Description:
     See comments for "MilPerfInstrumentationFlags" in partition.h.
 --*/
 
-UINT g_uMilPerfInstrumentationFlags = 0;
 VOID WINAPI SetMilPerfInstrumentationFlags(UINT flags)
 {
     g_uMilPerfInstrumentationFlags = flags;
@@ -1093,7 +1100,7 @@ VOID WINAPI SetMilPerfInstrumentationFlags(UINT flags)
 //
 //------------------------------------------------------------------------------
 
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 MilGlyphRun_GetGlyphOutline(
     _In_ IDWriteFontFace* pFontFace,
     USHORT glyphIndex, 
@@ -1178,6 +1185,7 @@ __int64 _InterlockedCompareExchange64(__int64 volatile *, __int64, __int64);
 #endif
 }
 
+EXTERN_C
 LONGLONG WINAPI
 GetNextPerfElementId()
 {
@@ -1192,3 +1200,4 @@ GetNextPerfElementId()
 }
 
 
+}

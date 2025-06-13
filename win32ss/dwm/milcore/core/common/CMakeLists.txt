@@ -79,4 +79,4 @@ set_target_cpp_properties(milcoreCommon WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(milcoreCommon PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(milcoreCommon PRIVATE cppstl)
+target_link_libraries(milcoreCommon PRIVATE cppstl commonShared)

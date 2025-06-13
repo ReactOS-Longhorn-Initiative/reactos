@@ -707,7 +707,7 @@ HRESULT HrMallocAlign(
 }
 
 } // namespace WPF
-
+#if 0
 //------------------------------------------------------------------------------
 // new/delete that asserts if info isn't carried through - - - - - - - - - - -
 // NOTE:    We may want to do something here with a default meter/heap so that
@@ -765,5 +765,5 @@ operator delete[](void * pv)
     WPFFree(ProcessHeap, pv);
 }
 #endif
-
+#endif
 
