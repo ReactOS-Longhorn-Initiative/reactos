@@ -26,6 +26,7 @@ list(APPEND SOURCE
     parser.c
     query.c
     queue.c
+    prop.c
     setupcab.c
     stringtable.c
     stubs.c

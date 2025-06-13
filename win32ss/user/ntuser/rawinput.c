@@ -1,5 +1,6 @@
  
 #include <win32k.h>
+#define NDEBUG
 #include <debug.h>
 
 /* it seems like reactos only can handle one input device at a time due to driver limitations? */
@@ -81,13 +82,33 @@ NtUserGetRawInputData(
     PUINT pcbSize,
     UINT cbSizeHeader)
 {
-    __debugbreak();
     PRAWINPUT RawInput = (PRAWINPUT)hRawInput;
-    ULONG OutputDataSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE) - sizeof(*pcbSize);
-
-
-    DPRINT1("NtUserGetRawInputData: hRawInput %p, uiCommand %u, pData %p, pcbSize %p, cbSizeHeader %u\n",
-           hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+    ULONG OutputDataSize;
+    if (RawInput->header.dwType  == RIM_TYPEMOUSE)
+    {
+        OutputDataSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE) - sizeof(*pcbSize);
+        RawInput->header.dwType = RIM_TYPEMOUSE; // Assume mouse for now.
+        RawInput->header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFF); // Device handle, not used here
+        RawInput->header.wParam = RIM_INPUT ; // No wParam, not used here.
+        RawInput->header.dwSize = OutputDataSize; // Size of the output data.
+    
+    }
+    else if (RawInput->header.dwType == RIM_TYPEKEYBOARD)
+    {
+        OutputDataSize = sizeof(RAWINPUTHEADER) + sizeof(RAWKEYBOARD) - sizeof(*pcbSize);
+        RawInput->header.dwType = RIM_TYPEKEYBOARD; // Assume keyboard for now.
+        RawInput->header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFC); // Device handle, not used here
+        RawInput->header.wParam = RIM_INPUT ; // No wParam, not used here.
+        RawInput->header.dwSize = OutputDataSize; // Size of the output data.
+        DPRINT("RawINput Keyboard Info: keyboard.MakeCode: %d, keyboard.Flags: %d, keyboard.VKey: %d\n",
+                RawInput->data.keyboard.MakeCode,
+                RawInput->data.keyboard.Flags,
+                RawInput->data.keyboard.VKey);
+    }
+    else
+    {
+        __debugbreak();
+    }
 
     if (!pData)
     {
@@ -95,10 +116,8 @@ NtUserGetRawInputData(
         EngSetLastError(ERROR_SUCCESS);
         return 0; // Return the size needed.
     }
-    DPRINT1("Input data size: %d\n", *pcbSize);
-
-    RtlCopyMemory(pData, RawInput, sizeof(PRAWINPUT));
-    return RawInput->header.dwSize;
+    RtlCopyMemory(pData, RawInput, OutputDataSize);
+    return OutputDataSize;
 }
 
 RIDDevice
@@ -115,7 +134,7 @@ GetDeviceFromHandle(HANDLE hDevice)
 
     return (RIDDevice){ NULL, {0}, 0 }; // Return an empty RIDDevice if not found.
 }
-
+#define NAME L"ReactOS Raw Input Device"
 DWORD
 APIENTRY
 NtUserGetRawInputDeviceInfo(
@@ -125,6 +144,7 @@ NtUserGetRawInputDeviceInfo(
     PUINT pcbSize
 )
 {
+    WCHAR NAMELoc[] = NAME;
     DWORD len, data_len;
     len = data_len = *pcbSize;
     RIDDevice RIDDevicesLoc = GetDeviceFromHandle(hDevice);
@@ -132,7 +152,10 @@ NtUserGetRawInputDeviceInfo(
     switch (uiCommand)
     {
     case RIDI_DEVICENAME:
-        __debugbreak();
+          if ((len = wcslen( NAME ) + 1) <= data_len && pData)
+            memcpy( pData, NAMELoc, len * sizeof(WCHAR) );
+        *pcbSize = len;
+        break;
         break;
 
     case RIDI_DEVICEINFO:
@@ -201,6 +224,7 @@ skip:
 
     return 0;
 }
+PRAWINPUTDEVICE global_pRawInputDevices = NULL;
 
 DWORD
 APIENTRY
@@ -209,9 +233,15 @@ NtUserGetRegisteredRawInputDevices(
     PUINT puiNumDevices,
     UINT cbSize)
 {
-    STUB;
-     __debugbreak();
-    return 0;
+    *puiNumDevices = 2;
+    if (!pRawInputDevices)
+    {
+        EngSetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return  -1;
+    }
+    
+    RtlCopyMemory(pRawInputDevices, global_pRawInputDevices, 2 * sizeof(RAWINPUTDEVICE));
+    return 2;
 }
 
 BOOL
@@ -222,5 +252,7 @@ NtUserRegisterRawInputDevices(
     IN UINT cbSize)
 {
     RawInputEnabled = TRUE;
+         global_pRawInputDevices = EngAllocMem(NonPagedPool, 2 * sizeof(RAWINPUTDEVICE), 'CCCC');
+
     return TRUE;
 }
