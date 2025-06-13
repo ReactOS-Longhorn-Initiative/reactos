@@ -823,7 +823,7 @@
 @ stdcall -version=0x601+ K32EnumPageFilesA(ptr ptr) kernelbase.K32EnumPageFilesA
 @ stdcall -version=0x601+ K32EnumPageFilesW(ptr ptr) kernelbase.K32EnumPageFilesW
 @ stdcall -version=0x601+ K32EnumProcessModules(long ptr long ptr) kernelbase.K32EnumProcessModules
-@ stdcall -stub -version=0x601+ K32EnumProcessModulesEx(long ptr long ptr long) kernelbase.K32EnumProcessModulesEx
+@ stdcall -version=0x601+ K32EnumProcessModulesEx(long ptr long ptr long) kernelbase.K32EnumProcessModulesEx
 @ stdcall -version=0x601+ K32EnumProcesses(ptr long ptr) kernelbase.K32EnumProcesses
 @ stdcall -version=0x601+ K32GetDeviceDriverBaseNameA(ptr ptr long) kernelbase.K32GetDeviceDriverBaseNameA
 @ stdcall -version=0x601+ K32GetDeviceDriverBaseNameW(ptr ptr long) kernelbase.K32GetDeviceDriverBaseNameW
