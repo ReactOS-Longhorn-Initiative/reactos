@@ -1,6 +1,6 @@
 /*
  * Copyright 2001 Andreas Mohr
- * Copyright 2005-2006 Hervé Poussineau
+ * Copyright 2005-2006 Hervï¿½ Poussineau
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

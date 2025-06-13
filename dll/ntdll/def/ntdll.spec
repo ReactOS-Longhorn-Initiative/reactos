@@ -1932,5 +1932,5 @@
 @ stdcall -version=0x601+ RtlQueryUnbiasedInterruptTime(ptr)
 @ stdcall -stub -ret64 RtlGetSystemTimePrecise()
  
-@ stdcall -stub RtlAddGrowableFunctionTable(ptr ptr ptr)
+@ stdcall -version=0x602+ -stub RtlAddGrowableFunctionTable(ptr ptr ptr)
 @ stdcall ApiSetQueryApiSetPresence(wstr ptr)
