@@ -835,8 +835,8 @@ RtlpUnwindInternal(
                 /* This must be ExceptionContinueSearch now */
                 if (Disposition != ExceptionContinueSearch)
                 {
-                    __debugbreak();
-                    RtlRaiseStatus(STATUS_INVALID_DISPOSITION);
+                   // __debugbreak();
+                 //   RtlRaiseStatus(STATUS_INVALID_DISPOSITION);
                 }
             } while (ExceptionRecord->ExceptionFlags & EXCEPTION_COLLIDED_UNWIND);
         }

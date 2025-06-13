@@ -313,7 +313,7 @@
 @ stdcall EnumPageFilesA(ptr ptr)
 @ stdcall EnumPageFilesW(ptr ptr)
 @ stdcall EnumProcessModules(long ptr long ptr)
-@ stdcall -stub EnumProcessModulesEx(long ptr long ptr long)
+@ stdcall EnumProcessModulesEx(long ptr long ptr long)
 @ stdcall EnumProcesses(ptr long ptr)
 @ stdcall EnumResourceLanguagesExA(long str str ptr long long long)
 @ stdcall EnumResourceLanguagesExW(long wstr wstr ptr long long long)

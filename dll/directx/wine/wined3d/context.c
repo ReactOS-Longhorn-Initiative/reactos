@@ -275,8 +275,14 @@ void context_update_stream_info(struct wined3d_context *context, const struct wi
 
         i = wined3d_bit_scan(&map);
         element = &stream_info->elements[i];
-        buffer = state->streams[element->stream_idx].buffer;
+        if (state->streams[element->stream_idx].buffer)
+        {
+            buffer = state->streams[element->stream_idx].buffer;
 
+        }
+        else{
+            __debugbreak();
+        }
         /* We can't use VBOs if the base vertex index is negative. OpenGL
          * doesn't accept negative offsets (or rather offsets bigger than the
          * VBO, because the pointer is unsigned), so use system memory

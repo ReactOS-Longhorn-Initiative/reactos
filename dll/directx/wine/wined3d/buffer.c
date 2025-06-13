@@ -269,6 +269,8 @@ static void wined3d_buffer_unload_location(struct wined3d_buffer *buffer,
 BOOL wined3d_buffer_load_location(struct wined3d_buffer *buffer,
         struct wined3d_context *context, uint32_t location)
 {
+    if (buffer)
+    {
     struct wined3d_bo_address src, dst;
     struct wined3d_range range;
 
@@ -354,16 +356,29 @@ BOOL wined3d_buffer_load_location(struct wined3d_buffer *buffer,
     if (buffer->resource.heap_memory && location == WINED3D_LOCATION_BUFFER
             && !(buffer->resource.usage & WINED3DUSAGE_DYNAMIC))
         wined3d_buffer_evict_sysmem(buffer);
-
+    }
+    else
+    {
+        return FALSE;
+    }
     return TRUE;
 }
 
 /* Context activation is done by the caller. */
 void *wined3d_buffer_load_sysmem(struct wined3d_buffer *buffer, struct wined3d_context *context)
 {
-    if (wined3d_buffer_load_location(buffer, context, WINED3D_LOCATION_SYSMEM))
-        buffer->resource.pin_sysmem = 1;
-    return buffer->resource.heap_memory;
+    if (buffer)
+    {
+        if (wined3d_buffer_load_location(buffer, context, WINED3D_LOCATION_SYSMEM))
+            buffer->resource.pin_sysmem = 1;
+        return buffer->resource.heap_memory;
+    }
+    else
+    {
+        ERR("Invalid buffer %p.\n", buffer);
+        __debugbreak();
+        return NULL;
+    }
 }
 
 DWORD wined3d_buffer_get_memory(struct wined3d_buffer *buffer, struct wined3d_context *context,
