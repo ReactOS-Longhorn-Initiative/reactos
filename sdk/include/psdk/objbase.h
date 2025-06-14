@@ -247,6 +247,7 @@ typedef interface IRpcChannelBuffer IRpcChannelBuffer;
 #include <stdlib.h>
 #endif
 
+#include <combaseapi.h>
 #include <wtypes.h>
 #include <unknwn.h>
 #include <objidl.h>

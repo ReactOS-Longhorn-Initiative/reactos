@@ -2848,6 +2848,7 @@
 #define CO_E_FAILEDTOOPENPROCESSTOKEN                      _HRESULT_TYPEDEF_(0x80040219L)
 #define CO_E_DECODEFAILED                                  _HRESULT_TYPEDEF_(0x8004021AL)
 #define CO_E_ACNOTINITIALIZED                              _HRESULT_TYPEDEF_(0x8004021BL)
+#define CO_E_CANCEL_DISABLED                               _HRESULT_TYPEDEF_(0x80010140L)
 
 #define E_ACCESSDENIED                                     _HRESULT_TYPEDEF_(0x80070005L)
 #define E_HANDLE                                           _HRESULT_TYPEDEF_(0x80070006L)

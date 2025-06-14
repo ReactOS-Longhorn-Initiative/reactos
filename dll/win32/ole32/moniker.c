@@ -428,7 +428,7 @@ RunningObjectTableImpl_Release(IRunningObjectTable* iface)
  *        RunningObjectTable_Register
  *
  * PARAMS
- * grfFlags       [in] Registration options 
+ * grfFlags       [in] Registration options
  * punkObject     [in] the object being registered
  * pmkObjectName  [in] the moniker of the object being registered
  * pdwRegister    [out] the value identifying the registration
@@ -606,7 +606,7 @@ RunningObjectTableImpl_Register(IRunningObjectTable* iface, DWORD grfFlags,
  *  dwRegister [in] Value identifying registration to be revoked
  */
 static HRESULT WINAPI
-RunningObjectTableImpl_Revoke( IRunningObjectTable* iface, DWORD dwRegister) 
+RunningObjectTableImpl_Revoke( IRunningObjectTable* iface, DWORD dwRegister)
 {
     RunningObjectTableImpl *This = impl_from_IRunningObjectTable(iface);
     struct rot_entry *rot_entry;
@@ -634,7 +634,7 @@ RunningObjectTableImpl_Revoke( IRunningObjectTable* iface, DWORD dwRegister)
  *        RunningObjectTable_IsRunning
  *
  * PARAMS
- *  pmkObjectName [in]  moniker of the object whose status is desired 
+ *  pmkObjectName [in]  moniker of the object whose status is desired
  */
 static HRESULT WINAPI
 RunningObjectTableImpl_IsRunning( IRunningObjectTable* iface, IMoniker *pmkObjectName)
@@ -698,7 +698,7 @@ RunningObjectTableImpl_IsRunning( IRunningObjectTable* iface, IMoniker *pmkObjec
  *        RunningObjectTable_GetObject
  *
  * PARAMS
- * pmkObjectName [in] Pointer to the moniker on the object 
+ * pmkObjectName [in] Pointer to the moniker on the object
  * ppunkObject   [out] variable that receives the IUnknown interface pointer
  */
 static HRESULT WINAPI
@@ -846,7 +846,7 @@ done:
  *        RunningObjectTable_GetTimeOfLastChange
  *
  * PARAMS
- *  pmkObjectName  [in]  moniker of the object whose status is desired 
+ *  pmkObjectName  [in]  moniker of the object whose status is desired
  *  pfiletime      [out] structure that receives object's last change time
  */
 static HRESULT WINAPI
@@ -918,7 +918,7 @@ RunningObjectTableImpl_GetTimeOfLastChange(IRunningObjectTable* iface,
  *        RunningObjectTable_EnumRunning
  *
  * PARAMS
- *  ppenumMoniker  [out]  receives the IEnumMoniker interface pointer 
+ *  ppenumMoniker  [out]  receives the IEnumMoniker interface pointer
  */
 static HRESULT WINAPI
 RunningObjectTableImpl_EnumRunning(IRunningObjectTable* iface,
@@ -1049,6 +1049,24 @@ GetRunningObjectTable(DWORD reserved, LPRUNNINGOBJECTTABLE *pprot)
                                              &riid,(void**)pprot);
 
     return res;
+}
+
+/***********************************************************************
+ *        DestroyRunningObjectTable    (ole32.@)
+*/
+void WINAPI DestroyRunningObjectTable(void)
+{
+    struct rot_entry *rot_entry, *cursor2;
+
+    TRACE("\n");
+
+    EnterCriticalSection(&rot.lock);
+    LIST_FOR_EACH_ENTRY_SAFE(rot_entry, cursor2, &rot.rot, struct rot_entry, entry)
+    {
+        list_remove(&rot_entry->entry);
+        rot_entry_delete(rot_entry);
+    }
+    LeaveCriticalSection(&rot.lock);
 }
 
 static HRESULT get_moniker_for_progid_display_name(LPBC pbc,
@@ -1465,7 +1483,7 @@ static HRESULT   WINAPI EnumMonikerImpl_Clone(IEnumMoniker* iface, IEnumMoniker 
         memcpy(moniker_list->interfaces[i], This->moniker_list->interfaces[i], size);
     }
 
-    /* copy the enum structure */ 
+    /* copy the enum structure */
     return EnumMonikerImpl_CreateEnumROTMoniker(moniker_list, This->pos, ppenum);
 }
 
@@ -1620,7 +1638,7 @@ static HRESULT WINAPI MonikerMarshal_GetMarshalSizeMax(
     return hr;
 }
 
-static HRESULT WINAPI MonikerMarshal_MarshalInterface(LPMARSHAL iface, IStream *pStm, 
+static HRESULT WINAPI MonikerMarshal_MarshalInterface(LPMARSHAL iface, IStream *pStm,
     REFIID riid, void* pv, DWORD dwDestContext,
     void* pvDestContext, DWORD mshlflags)
 {

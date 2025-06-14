@@ -268,3 +268,7 @@ if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
     add_subdirectory(dwmapi)
     add_subdirectory(wer)
 endif()
+
+if(DLL_EXPORT_VERSION GREATER_EQUAL 0xA00)
+    add_subdirectory(combase)
+endif()
