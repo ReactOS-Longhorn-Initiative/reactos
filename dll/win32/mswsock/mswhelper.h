@@ -57,7 +57,7 @@ mswBufferAppendLst(
   _Inout_ PMSW_BUFFER mswBuf,
   _In_ void **lst,
   _In_ DWORD itemByteLength,
-  _In_opt_ int deltaofs);
+  _In_opt_ LONGLONG ptrofs);
 
 BOOL
 mswBufferAppendStrLstA(
