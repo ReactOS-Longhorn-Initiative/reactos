@@ -104,7 +104,7 @@ BOOL
 mswBufferAppendLst(_Inout_ PMSW_BUFFER mswBuf,
                    _In_ void **lst,
                    _In_ DWORD itemByteLength,
-                   _In_opt_ LONGLONG ptrofs)
+                   _In_opt_ LONG_PTR ptrofs)
 {
     DWORD lstItemCount;
     DWORD lstByteSize;
@@ -159,7 +159,7 @@ mswBufferAppendLst(_Inout_ PMSW_BUFFER mswBuf,
 BOOL
 mswBufferAppendStrLstA(_Inout_ PMSW_BUFFER mswBuf,
                        _In_ void **lst,
-                       _In_opt_ int ptrofs)
+                       _In_opt_ LONG_PTR ptrofs)
 {
     DWORD lstItemLen[MAX_ARRAY_SIZE];
     DWORD lstItemCount;
@@ -277,7 +277,7 @@ mswBufferAppendBlob_Hostent(_Inout_ PMSW_BUFFER mswBuf,
 
     phe->h_addr_list = (char**)(mswBufferEndPtr(mswBuf) - bytesOfs);
 
-    if (!mswBufferAppendLst(mswBuf, lst, sizeof(*lst), -(LONG_PTR)bytesOfs))
+    if (!mswBufferAppendLst(mswBuf, lst, 4, -(LONG_PTR)bytesOfs))
         return FALSE;
 
     /* name */
