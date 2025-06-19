@@ -81,20 +81,20 @@ UserRawInputMouseProcess(PMOUSE_INPUT_DATA mid)
           if (mid->ButtonFlags & MOUSE_RIGHT_BUTTON_UP)
               rm.usButtonFlags |= RI_MOUSE_RIGHT_BUTTON_UP;
 
-         rm.lLastX   = mid->LastX;
-         rm.lLastY   = mid->LastY;
+        rm.lLastX   = mid->LastX;
+        rm.lLastY   = mid->LastY;
      
-         PRAWINPUT rmInput =   EngAllocMem(0, sizeof(RAWINPUT), 'cccc');
-            rmInput->header.dwType = RIM_TYPEMOUSE;
-            rmInput->header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFF); // Device handle, not used here
-            rmInput->header.wParam = mid->ExtraInformation;
-            rmInput->header.dwSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE);
-            rmInput->data.mouse = rm;
+        RAWINPUT rmInput;
+        rmInput.header.dwType = RIM_TYPEMOUSE;
+            rmInput.header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFF); // Device handle, not used here
+            rmInput.header.wParam = mid->ExtraInformation;
+            rmInput.header.dwSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE);
+            rmInput.data.mouse = rm;
     /* Init message fields */
 
     /* Init message fields */
         Msg.wParam = RIM_INPUT;
-        Msg.lParam = (LPARAM)(rmInput);
+        Msg.lParam = (LPARAM)(&rmInput);
         Msg.pt = ptCursor;
         //Msg.time = mid->time;
         Msg.message = WM_INPUT;

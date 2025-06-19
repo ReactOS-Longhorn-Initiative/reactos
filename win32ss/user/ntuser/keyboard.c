@@ -1230,17 +1230,17 @@ UserRawInputProcessKeyboardInput(
             }
 
             kb.ExtraInformation = pKbdInputData->ExtraInformation;
-         PRAWINPUT rmInput =   EngAllocMem(0, sizeof(RAWINPUT), 'cccc');
-            rmInput->header.dwType = RIM_TYPEKEYBOARD;
-            rmInput->header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFC); // Device handle, not used here
-            rmInput->header.wParam = pKbdInputData->ExtraInformation;
-            rmInput->header.dwSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE);
-            rmInput->data.keyboard  = kb;
+         PRAWINPUT rmInput;
+            rmInput.header.dwType = RIM_TYPEKEYBOARD;
+            rmInput.header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFC); // Device handle, not used here
+            rmInput.header.wParam = pKbdInputData->ExtraInformation;
+            rmInput.header.dwSize = sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE);
+            rmInput.data.keyboard  = kb;
     /* Init message fields */
 
     /* Init message fields */
         Msg.wParam = RIM_INPUT;
-        Msg.lParam = (LPARAM)(rmInput);
+        Msg.lParam = (LPARAM)(&rmInput);
         Msg.pt = ptCursor;
         //Msg.time = mid->time;
         Msg.message = WM_INPUT;
