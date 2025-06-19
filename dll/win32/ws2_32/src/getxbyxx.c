@@ -295,18 +295,8 @@ gethostbyname(IN const char FAR * name)
     if (Results != ResultsBuffer) HeapFree(WsSockHeap, 0, Results);
 
     /* Notify RAS Auto-dial helper */
-    if (Hostent) 
-    {
-        __try
-        {
-            // Notify RAS Auto-dial helper
-            WSNoteSuccessfulHostentLookup(name, *Hostent->h_addr);
-        }
-        __except(EXCEPTION_EXECUTE_HANDLER)
-        {
-            // Handle exception (optional: log or ignore)
-        }
-    }
+    if (Hostent) WSNoteSuccessfulHostentLookup(name, *Hostent->h_addr);
+
     /* Return the hostent */
     return Hostent;
 }
