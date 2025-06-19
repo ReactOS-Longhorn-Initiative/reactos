@@ -1230,7 +1230,7 @@ UserRawInputProcessKeyboardInput(
             }
 
             kb.ExtraInformation = pKbdInputData->ExtraInformation;
-         PRAWINPUT rmInput;
+         RAWINPUT rmInput;
             rmInput.header.dwType = RIM_TYPEKEYBOARD;
             rmInput.header.hDevice = (HANDLE)UlongToHandle((ULONG)0xFFFC); // Device handle, not used here
             rmInput.header.wParam = pKbdInputData->ExtraInformation;
