@@ -21,7 +21,11 @@ list(APPEND SOURCE
     LocaleNameToLCID.c
     SetThreadDescription.c
     sync.c
+<<<<<<< HEAD
     threadpool.c
+=======
+    Tp.c
+>>>>>>> af250d9dc4e ([SDK][DIRECTX:WINE] Build the New WINED3D Stack)
     vista.c)
 
 # These functions are not exported from kernel32_vista (yet).

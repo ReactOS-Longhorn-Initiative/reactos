@@ -143,6 +143,7 @@ list(APPEND SOURCE_VISTA
     srw.c
     threadpool.c
     unicode_vista.c
+    threadpool.c
     utf8.c)
 
 add_library(rtl_vista ${SOURCE_VISTA})
