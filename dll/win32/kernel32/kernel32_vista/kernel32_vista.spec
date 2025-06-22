@@ -63,6 +63,10 @@
 @ stdcall GetThreadDescription(ptr ptr) # Win 10
 @ stdcall SetThreadDescription(ptr wstr) # Win 10
 @ stdcall GetSystemTimePreciseAsFileTime(ptr) kernel32.GetSystemTimeAsFileTime
+
+@ stdcall WaitForThreadpoolWorkCallbacks(ptr long) ntdll_vista.TpWaitForWork
+@ stdcall CreateThreadpoolWork(ptr ptr ptr)
 @ stdcall TrySubmitThreadpoolCallback(ptr ptr ptr)
 @ stdcall FreeLibraryWhenCallbackReturns(ptr ptr) ntdll_vista.TpCallbackUnloadDllOnCompletion
 @ stdcall GetProductInfo(long long long long ptr) ntdll_vista.RtlGetProductInfo
+@ stdcall SubmitThreadpoolWork(ptr) ntdll_vista.TpPostWork
