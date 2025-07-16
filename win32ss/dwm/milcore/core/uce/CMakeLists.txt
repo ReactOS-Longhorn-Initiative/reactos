@@ -82,4 +82,4 @@ set_target_cpp_properties(uce WITH_EXCEPTIONS WITH_RTTI)
 
 target_compile_options(uce PRIVATE -DUNICODE -D_UNICODE)
 
-target_link_libraries(uce PRIVATE cppstl milcoreResources)
+target_link_libraries(uce PRIVATE cppstl)

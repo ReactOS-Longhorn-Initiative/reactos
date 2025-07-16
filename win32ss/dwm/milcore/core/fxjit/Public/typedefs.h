@@ -1345,7 +1345,6 @@ typedef OLECHAR *BSTR;
 typedef const OLECHAR *LPCOLESTR;
 
 // Definitions for XMLLite
-#define __assume(p)
 #define AssertSz(x,y)
 //#define SIZE_T size_t
 #define HINSTANCE void *

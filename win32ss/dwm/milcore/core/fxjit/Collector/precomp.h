@@ -14,6 +14,8 @@
 #include <WPFSDL.h>
 #include <sal.h>
 //#include <salextra.h>
+#include <intrin.h>
+#include <specstrings.h>
 
 #include "Types.h"
 #include "warpplatform.h"

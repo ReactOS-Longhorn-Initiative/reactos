@@ -270,7 +270,7 @@ HRESULT CSoftwareRasterizer::DrawBitmap(
 
         CMilColorF defColor;
 
-        MIL_THR(m_pCSCreator->GetCS_PrefilterAndResample(
+        MIL_THR(m_pCSCreator->GetCS_PFAndResample(
             pIBitmap,
             MilBitmapWrapMode::Extend,
             &defColor,
@@ -863,7 +863,7 @@ CSoftwareRasterizer::GetCS_Brush(
                 OUT matBitmapToDeviceHPC
                 );
 
-            hr = m_pCSCreator->GetCS_PrefilterAndResample(
+            hr = m_pCSCreator->GetCS_PFAndResample(
                 pBitmapBrush->GetTextureNoAddRef(),
                 pBitmapBrush->GetWrapMode(),
                 &pBitmapBrush->GetBorderColorRef(),
@@ -1103,7 +1103,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT CColorSourceCreator::GetCS_PrefilterAndResample(
+HRESULT CColorSourceCreator::GetCS_PFAndResample(
     __in_ecount(1) IWGXBitmapSource *pIBitmapSource,
     MilBitmapWrapMode::Enum wrapMode,
     __in_ecount_opt(1) const MilColorF *pBorderColor,

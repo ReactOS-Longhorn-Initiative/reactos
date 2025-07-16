@@ -41,6 +41,15 @@ endif()
 
 set_target_cpp_properties(milcore WITH_EXCEPTIONS WITH_RTTI)
 set_module_type(milcore win32dll UNICODE)
-target_link_libraries(milcore milcoreCommon cppstl uuid dxguid UtilLib DebugLib commonShared targets hw gcutil glyph swlib milcoreMeta milcoreApi geometry effects scanop milcoreResources PixelShader Collector Platform Compiler uce)
-add_importlibs(milcore winmm ole32 oleaut32 windowscodecs d3dx9_40 d3d10 d3d10_1 advapi32 user32 gdi32 msvcrt kernel32 ntdll)
+
+list(APPEND milcoreLibs dxguid uce milcoreApi swlib hw milcoreCommon commonShared targets gcutil glyph milcoreMeta effects scanop milcoreResources PixelShader geometry Collector Platform Compiler libgdi32 UtilLib DebugLib)
+
+# TODO: Once CMake is upgraded to 3.24+, use LINK_GROUP
+if(MSVC)
+target_link_libraries(milcore cppstl uuid ${milcoreLibs})
+else()
+target_link_libraries(milcore cppstl uuid -Wl,--start-group ${milcoreLibs} "-Wl,--end-group")
+endif()
+
+add_importlibs(milcore ole32 oleaut32 windowscodecs advapi32 user32 winmm d3dx9_36 d3d10 d3d10_1 msvcrt kernel32 ntdll)
 add_cd_file(TARGET milcore DESTINATION reactos/system32 FOR all)

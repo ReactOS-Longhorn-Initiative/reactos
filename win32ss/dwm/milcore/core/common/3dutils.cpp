@@ -691,6 +691,9 @@ CalcProjectedBounds(
         prcTargetRect
         );
 }
+
+template void CalcProjectedBounds<CoordinateSpace::PageInPixels>(CMatrix<CoordinateSpace::Local3D, CoordinateSpace::PageInPixels> const&, CMilPointAndSize3F const*, CRectF<CoordinateSpace::PageInPixels>*);
+
 //+------------------------------------------------------------------------
 //
 //  Function:  MIL3DCalcProjected2DBounds

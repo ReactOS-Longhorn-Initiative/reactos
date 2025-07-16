@@ -19,9 +19,7 @@ struct SpanLink;
 class CSpanList;
 class CBitArray;
 
-#ifndef __in_range
-#define __in_range(a,b)
-#endif
+#include <intrin.h>
 
 #define MAX_FLOWS 5
 

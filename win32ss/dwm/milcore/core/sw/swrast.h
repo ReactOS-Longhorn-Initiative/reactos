@@ -221,7 +221,7 @@ public:
         ) = 0;
 
 
-    HRESULT GetCS_PrefilterAndResample(
+    HRESULT GetCS_PFAndResample(
         __in_ecount(1) IWGXBitmapSource *pIBitmapSource,
         MilBitmapWrapMode::Enum wrapMode,
         __in_ecount_opt(1) const MilColorF *pBorderColor,

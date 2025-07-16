@@ -4408,7 +4408,7 @@ HRESULT CMaskAlphaSpan::Initialize(
         reinterpret_cast<void**>(&m_pBuffer)
         ));
 
-    IFC( m_Creator_sRGB.GetCS_PrefilterAndResample(
+    IFC( m_Creator_sRGB.GetCS_PFAndResample(
         pIMask,
         MilBitmapWrapMode::Extend,
         NULL,
@@ -4639,7 +4639,7 @@ HRESULT CMaskAlphaSpan_scRGB::Initialize(
         reinterpret_cast<void**>(&m_pBuffer)
         ));
 
-    IFC( m_Creator_scRGB.GetCS_PrefilterAndResample(
+    IFC( m_Creator_scRGB.GetCS_PFAndResample(
         pIMask,
         MilBitmapWrapMode::Extend,
         NULL,
