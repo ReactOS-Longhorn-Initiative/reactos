@@ -273,12 +273,12 @@ HRESULT CDesktopRenderTarget::Init(
            //    this is acceptable.
         || (DisplaySet()->GetDisplayCount() > 1);
 
-    // If we're not HW only, we may fall back to SW at a later time and not 
-    // know. Assume we only have a single device when we're HW only, and 
+    // If we're not HW only, we may fall back to SW at a later time and not
+    // know. Assume we only have a single device when we're HW only, and
     // then while creating the RTs in the loop below, we'll set it to false
     // if we learn that's not the case.
     UINT uCacheIndex = CMILResourceCache::InvalidToken;
-    
+
     //
     // Create all of the render targets
     //
@@ -426,7 +426,7 @@ HRESULT CDesktopRenderTarget::Init(
             metadata.m_data.m_desktop.pInternalRTHWND = metadata.m_data.m_desktop.pInternalRTHWND;
             metadata.pInternalRT = metadata.m_data.m_desktop.pHwDisplayRT;
 
-            UINT uCurrentCacheIndex = 
+            UINT uCurrentCacheIndex =
                 metadata.m_data.m_desktop.pHwDisplayRT->GetRealizationCacheIndex();
 
             Assert(uCurrentCacheIndex != CMILResourceCache::SwRealizationCacheIndex);
@@ -630,7 +630,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
         m_rcSurfaceBounds.right,
         m_rcSurfaceBounds.bottom
         };
- 
+
 #if DBG
     static bool fDbgClearToAqua = false;
 #endif
@@ -756,7 +756,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
 Cleanup:
 
     // Note: There didn't appear to be a compelling reason to check for
-    //       NeedRecreate and avoid ClearDirtyList while investigating an 
+    //       NeedRecreate and avoid ClearDirtyList while investigating an
     //       an Assert in CHwHWNDRenderTarget::UpdateFlippingChain on mode changes.
     //       However the bug was fixed by allowing to
     //       SetPosition to be called even when the dirty list hasn't been
@@ -835,17 +835,17 @@ STDMETHODIMP CDesktopRenderTarget::ScrollBlt(
                     -m_rgMetaData[i].ptInternalRTOffset.x,
                     -m_rgMetaData[i].ptInternalRTOffset.y);
 
-                OffsetRect(&dest, 
+                OffsetRect(&dest,
                     -m_rgMetaData[i].ptInternalRTOffset.x,
                     -m_rgMetaData[i].ptInternalRTOffset.y);
 
                 HRESULT hrScroll = S_OK;
-                
+
                 hrScroll = THR(m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND->ScrollBlt(
                     &source,
                     &dest
                     ));
-    
+
                 if (FAILED(hrScroll))
                 {
                     // If the display state has changed that is the error
@@ -877,7 +877,7 @@ STDMETHODIMP CDesktopRenderTarget::ScrollBlt(
 Cleanup:
     RRETURN(hr);
 }
-    
+
 
 
 //+-----------------------------------------------------------------------------
@@ -1180,55 +1180,6 @@ Cleanup:
 //+-----------------------------------------------------------------------------
 //
 //  Member:
-//      CDesktopRenderTarget::TransitionToState
-//
-//  Synopsis:
-//      Set new state (Validate in debug)
-//
-//------------------------------------------------------------------------------
-MIL_FORCEINLINE void
-CDesktopRenderTarget::TransitionToState(
-    enum State eNewState
-#if DBG
-    , const char *pszMethod
-#endif
-    )
-{
-    #if DBG
-    Assert(DbgIsValidTransition(eNewState));
-    #endif
-
-    if (IsTagEnabled(tagMILTraceDesktopState))
-    {
-        static const char * const rgStateName[] = {
-            "Invalid",
-            "Ready",
-            "NeedSetPosition",
-            "NeedResize",
-            "NeedRecreate",
-        };
-
-        static_assert(ARRAY_SIZE(rgStateName) == NeedRecreate + 1, "ARRAY_SIZE(rgStateName) == NeedRecreate + 1");
-
-        #if DBG
-        TraceTag((tagMILTraceDesktopState,
-                  "0x%p Desktop::%s: %s to %s",
-                  this,
-                  pszMethod,
-                  rgStateName[m_eState],
-                  rgStateName[eNewState]
-                  ));
-        #endif
-    }
-
-    m_eState = eNewState;
-
-    return;
-}
-
-//+-----------------------------------------------------------------------------
-//
-//  Member:
 //      CDesktopRenderTarget::GetBounds
 //
 //  Synopsis:
@@ -1323,21 +1274,21 @@ CDesktopRenderTarget::GetNumQueuedPresents(
 //
 //  Synopsis:
 //      Determines if the current HWND straddles more than 1 monitor. If it does,
-//      we currently can't accelerate scrolling due to known bug. 
-// Details: 
-// If the app is straddling an edge of the screen which does not align with another 
-// monitor(eg the right side of the right hand monitor), we do not present the content 
-// that is offscreen.This means that the content in the DWM thumbnailand flip3d is 
+//      we currently can't accelerate scrolling due to known bug.
+// Details:
+// If the app is straddling an edge of the screen which does not align with another
+// monitor(eg the right side of the right hand monitor), we do not present the content
+// that is offscreen.This means that the content in the DWM thumbnailand flip3d is
 // incorrect.
 //
-// In singlemon, we appear to present the whole rect regardless.Somewhere we 
+// In singlemon, we appear to present the whole rect regardless.Somewhere we
 // make an incorrect optimization for the multimon case.If the app straddles 2 monitors,
 // we can present the partial rects to each monitor, and DWM will splice them together
 // for the thumbnail.We appear to be taking excessive advantage of this optimization.
 //
 //------------------------------------------------------------------------------
 
-STDMETHODIMP 
+STDMETHODIMP
 CDesktopRenderTarget::CanAccelerateScroll(
     __out_ecount(1) bool *pfCanAccelerateScroll
     )
@@ -1348,15 +1299,15 @@ CDesktopRenderTarget::CanAccelerateScroll(
     DynArray<bool> rgActiveDisplays;
     {
     // Now check if this Hwnd extends onto multiple physical displays. If so, we can't scroll
-    // because that would involve BLTing from one display to another, which we don't support 
-    // currently.              
+    // because that would involve BLTing from one display to another, which we don't support
+    // currently.
 
     const CDisplaySet *pDisplaySet = NULL;
     g_DisplayManager.GetCurrentDisplaySet(&pDisplaySet);
 
     UINT displayCount = pDisplaySet->GetDisplayCount();
 
-    ReleaseInterface(pDisplaySet);                
+    ReleaseInterface(pDisplaySet);
 
     IFC(rgActiveDisplays.AddAndSet(displayCount, false));
     IFC(ReadEnabledDisplays(&rgActiveDisplays));

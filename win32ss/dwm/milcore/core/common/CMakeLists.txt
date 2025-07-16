@@ -71,7 +71,12 @@ target_compile_options(milcoreCommon PRIVATE /wd5043 /wd5033)
 endif()
 
 if(NOT MSVC)
-target_compile_options(milcoreCommon PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized)
+# Disable MilRect<int, tagRECT, RectUniqueness::_CMILSurfaceRect_>::sc_rcInfinite' to be defined as 'TMilRect_<int, tagRECT, MilPointAndSizeL, RectUniqueness::_CMILSurfaceRect_>::sc_rcInfinite
+get_target_property(target_options milcoreCommon COMPILE_OPTIONS)
+list(REMOVE_ITEM target_options "-Werror")
+set_property(TARGET milcoreCommon PROPERTY COMPILE_OPTIONS ${target_options})
+
+target_compile_options(milcoreCommon PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -fpermissive)
 endif()
 #add_pch(milcoreCommon precomp.cpp SOURCE)
 

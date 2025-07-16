@@ -38,5 +38,6 @@ else()
         startup/gccmain.c
         startup/pseudo-reloc.c
         startup/pseudo-reloc-list.c
+        startup/usermatherr.c
     )
 endif()

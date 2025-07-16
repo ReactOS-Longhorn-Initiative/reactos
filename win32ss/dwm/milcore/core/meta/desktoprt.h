@@ -57,6 +57,8 @@ enum State {
     NeedRecreate = 4,
 };
 
+ExternTag(tagMILTraceDesktopState);
+
 class CDesktopRenderTarget:
     public CMILCOMBase,
     public CMetaRenderTarget,
@@ -99,13 +101,54 @@ protected:
         MilRTInitialization::Flags dwFlags
         );
 
-    
-    void TransitionToState(
-        enum State eNewState
+
+    //+-----------------------------------------------------------------------------
+    //
+    //  Member:
+    //      CDesktopRenderTarget::TransitionToState
+    //
+    //  Synopsis:
+    //      Set new state (Validate in debug)
+    //
+    //------------------------------------------------------------------------------
+    MIL_FORCEINLINE void TransitionToState(
+        State eNewState
 #if DBG
         , const char *pszMethod = NULL
 #endif
-        );
+        )
+    {
+#if DBG
+        Assert(DbgIsValidTransition(eNewState));
+#endif
+
+        if (IsTagEnabled(tagMILTraceDesktopState))
+        {
+            static const char * const rgStateName[] = {
+                "Invalid",
+                "Ready",
+                "NeedSetPosition",
+                "NeedResize",
+                "NeedRecreate",
+            };
+
+            static_assert(ARRAY_SIZE(rgStateName) == NeedRecreate + 1, "ARRAY_SIZE(rgStateName) == NeedRecreate + 1");
+
+#if DBG
+            TraceTag((tagMILTraceDesktopState,
+                      "0x%p Desktop::%s: %s to %s",
+                      this,
+                      pszMethod,
+                      rgStateName[m_eState],
+                      rgStateName[eNewState]
+                      ));
+#endif
+        }
+
+        m_eState = eNewState;
+
+        return;
+    }
 
     // Note: This call is dangerous since the caller must handle or propagate the mode change
     //       if this returns true, otherwise the DisplaySet can change in the middle of processing

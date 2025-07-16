@@ -48,7 +48,7 @@ class TRect_ : public TBaseMILRect
     //
     //-------------------------------------------------------------------------
 
-   
+
 public:
  typedef TBaseMILRect BaseMILRectType;
 
@@ -192,7 +192,7 @@ public:
 //
 //-----------------------------------------------------------------------------
 
-template <typename Space> 
+template <typename Space>
 class CRectF : public TRect_<CMilRectF, Space>
 {
 public:

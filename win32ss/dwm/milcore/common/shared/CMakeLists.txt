@@ -49,6 +49,11 @@ target_compile_options(commonShared PRIVATE /wd5043 /wd5033)
 endif()
 
 if(NOT MSVC)
+# Disable MilRect<int, tagRECT, RectUniqueness::_CMILSurfaceRect_>::sc_rcInfinite' to be defined as 'TMilRect_<int, tagRECT, MilPointAndSizeL, RectUniqueness::_CMILSurfaceRect_>::sc_rcInfinite
+get_target_property(target_options commonShared COMPILE_OPTIONS)
+list(REMOVE_ITEM target_options "-Werror")
+set_property(TARGET commonShared PROPERTY COMPILE_OPTIONS ${target_options})
+
 target_compile_options(commonShared PRIVATE -Wno-comment -Wno-sign-compare -Wno-class-memaccess -Wno-uninitialized -Wno-switch -Wno-reorder -fpermissive)
 endif()
 

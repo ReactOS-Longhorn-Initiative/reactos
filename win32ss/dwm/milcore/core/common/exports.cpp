@@ -11,38 +11,7 @@
 
 #include "precomp.hpp"
 
-//+------------------------------------------------------------------------
-//
-//  Function:  MIL3DCalcProjected2DBounds
-//
-//  Synopsis:  Computes the 2D screen bounds of the CMilPointAndSize3F after
-//             projecting with the current 3D world, view, and projection
-//             transforms and clipping to the camera's Near and Far
-//             planes.
-//
-//-------------------------------------------------------------------------
 
-EXTERN_C HRESULT WINAPI
-MIL3DCalcProjected2DBounds(
-    __in_ecount(1) const CMatrix<CoordinateSpace::Local3D,CoordinateSpace::PageInPixels> *pFullTransform3D,
-    __in_ecount(1) const CMilPointAndSize3F *pboxBounds,
-    __out_ecount(1) CRectF<CoordinateSpace::PageInPixels> *prcTargetRect
-    )
-{
-    HRESULT hr =  S_OK;
-
-    CFloatFPU oGuard;
-
-    if (pFullTransform3D == NULL || pboxBounds == NULL || prcTargetRect == NULL)
-    {
-        IFC(E_INVALIDARG);
-    }
-
-    CalcProjectedBounds(*pFullTransform3D, pboxBounds, prcTargetRect);
-
-Cleanup:
-    RRETURN(hr);
-}
 
 
 //+-----------------------------------------------------------------------------
@@ -321,7 +290,7 @@ MilUtility_CopyPixelBuffer(
         IFC(E_INVALIDARG);
     }
 
-   
+
     IFC(UIntAdd(outputBufferOffsetInBits, copyWidthInBits, &minimumOutputBufferStrideInBits));
     minimumOutputBufferStride = BitsToBytes(minimumOutputBufferStrideInBits);
     if (outputBufferStride < minimumOutputBufferStride)
