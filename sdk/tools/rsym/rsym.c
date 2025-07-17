@@ -327,7 +327,7 @@ ConvertStabs(ULONG *SymbolsCount, PROSSYM_ENTRY *SymbolsBase,
                 if (sizeof(FuncName) <= NameLen)
                 {
                     free(*SymbolsBase);
-                    fprintf(stderr, "Function name too long\n");
+                    fprintf(stderr, "Function name too long: %s, must be %d but was %d\n", FuncName, sizeof(FuncName), NameLen);
                     return 1;
                 }
                 memcpy(FuncName, Name, NameLen);
@@ -377,7 +377,7 @@ ConvertCoffs(ULONG *SymbolsCount, PROSSYM_ENTRY *SymbolsBase,
 {
     ULONG Count, i;
     PCOFF_SYMENT CoffEntry;
-    char FuncName[256], FileName[1024];
+    char FuncName[512], FileName[1024];
     char *p;
     PROSSYM_ENTRY Current;
     struct StringHashTable StringHash;
@@ -420,7 +420,7 @@ ConvertCoffs(ULONG *SymbolsCount, PROSSYM_ENTRY *SymbolsBase,
                 if (sizeof(FuncName) <= strlen((char *) CoffStringsBase + CoffEntry[i].e.e.e_offset))
                 {
                     free(*SymbolsBase);
-                    fprintf(stderr, "Function name too long\n");
+                    fprintf(stderr, "Function name too long: %s, cannot be %d <= %d\n", (char *) CoffStringsBase + CoffEntry[i].e.e.e_offset, sizeof(FuncName), strlen((char *) CoffStringsBase + CoffEntry[i].e.e.e_offset));
                     StringHashTableFree(&StringHash);
                     return 1;
                 }
