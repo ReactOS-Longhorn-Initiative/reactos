@@ -262,10 +262,10 @@
 #define OpcodeUINT64Assign32             0
 #define OpcodeUINT32Assign64             0
 #define OpcodeUINT64Add                  add
-#define OpcodeUINT64Or                   or
-#define OpcodeUINT64And                  and
+#define OpcodeUINT64Or                   _or
+#define OpcodeUINT64And                  _and
 #define OpcodeUINT64Sub                  sub
-#define OpcodeUINT64Xor                  xor
+#define OpcodeUINT64Xor                  _xor
 #define OpcodeUINT64Mul                  imul
 
 #define OpcodeUINT64ImmAssign            0

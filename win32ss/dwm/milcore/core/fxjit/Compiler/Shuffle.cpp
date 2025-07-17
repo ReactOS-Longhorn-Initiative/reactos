@@ -251,6 +251,7 @@ CProgram::ShuffleSpan(OpSpan * pSpan)
 {
 #if DBG
     UINT32 uSpanIdx = static_cast<UINT32>(pSpan - m_pSpanGraph);
+    uSpanIdx;
 #endif
     UINT32 uLongestChainSize = 0;
 

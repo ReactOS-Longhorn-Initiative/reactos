@@ -858,7 +858,7 @@ Cleanup:
 //                      cPieces = -1 indicates that the arc degenerates to a point 
 //
 //------------------------------------------------------------------------------
-EXTERN_C WINAPI void
+EXTERN_C void WINAPI
 MilUtility_ArcToBezier(
     _In_ MilPoint2D ptStart,
         // The arc's start point

@@ -207,6 +207,7 @@ C_u32::operator*(UINT32 src) const
         // src is power if two, use shift instead
         unsigned long shift;
         auto success = _BitScanReverse(&shift, src);
+        success;
         Assert(success != FALSE);
 
         SOperator *pOperator = pProgram->AddOperator(otUINT32ImmShiftLeft, tmp.m_ID, m_ID);

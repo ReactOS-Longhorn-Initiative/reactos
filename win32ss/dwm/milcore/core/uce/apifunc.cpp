@@ -235,7 +235,7 @@ WINAPI
 MilTransport_InitializeConnectionManager(PVOID IMilRedirectedGDISurfaceManager, PULONG * ConnectionManager)
 {
     __debugbreak();
-    *ConnectionManager = (PULONG)0xFFFFFFFF;
+    *ConnectionManager = (PULONG)1;
     return S_OK;
 }
 HRESULT

@@ -986,7 +986,7 @@ Cleanup:
 //      Calls GetExifColorSpace on the incoming IWICColorContext*
 //
 //----------------------------------------------------------------------------
-EXTERN_C WINAPI HRESULT
+HRESULT WINAPI
 IWICColorContext_GetExifColorSpace_Proxy(
     __in_ecount(1) IWICColorContext *pICC,
     __out_ecount(1) UINT *pValue

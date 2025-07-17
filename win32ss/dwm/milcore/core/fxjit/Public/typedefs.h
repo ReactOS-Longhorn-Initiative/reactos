@@ -548,14 +548,14 @@ typedef unsigned long       ULONG;
         return( (void *)(ULONG_PTR)ul );
     }
 
-    __inline
+    /*__inline
     unsigned long
     PtrToUlong(
         const void  *p
         )
     {
         return((unsigned long) (ULONG_PTR) p );
-    }
+    }*/
 #else
     #ifndef INT_PTR_DEFINED
     typedef _W64 int INT_PTR, *PINT_PTR;

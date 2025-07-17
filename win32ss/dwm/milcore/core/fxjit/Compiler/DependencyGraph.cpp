@@ -706,6 +706,7 @@ CProgram::ConvertToSSA()
                 for (Link * pLink2 = pConsumer->m_pProviders; pLink2; pLink2 = pLink2->m_pNextProvider)
                 {
                     const COperator * pDbgProvider = pLink2->m_pProvider;
+                    pDbgProvider;
                     WarpAssert(pDbgProvider == pNextProvider || pDbgProvider->m_vResult != uVarID);
                 }
 #endif
