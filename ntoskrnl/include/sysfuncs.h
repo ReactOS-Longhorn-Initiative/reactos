@@ -69,6 +69,7 @@
     SVC_(DeleteValueKey, 2)
     SVC_(DeviceIoControlFile, 10)
     SVC_(DisplayString, 1)
+    SVC_(DrawText, 1)
     SVC_(DuplicateObject, 7)
     SVC_(DuplicateToken, 6)
     SVC_(EnumerateBootEntries, 2)
