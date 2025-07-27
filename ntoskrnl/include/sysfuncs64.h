@@ -270,6 +270,7 @@ SVC_(DeleteWnfStateName, 0) // FIXME
 SVC_(DisableLastKnownGood, 0)
 #endif
 SVC_(DisplayString, 1)
+SVC_(DrawText, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(DrawText, 1)
 SVC_(EnableLastKnownGood, 0)
