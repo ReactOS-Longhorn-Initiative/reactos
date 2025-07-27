@@ -439,7 +439,7 @@ InbvRotationThread(
 
         InbvReleaseLock();
     }
-
+    if(InbvBootDriverInstalled) FinalizeBootLogo();
     PsTerminateSystemThread(STATUS_SUCCESS);
 }
 
@@ -823,12 +823,6 @@ FinalizeBootLogo(VOID)
 {
     /* Acquire lock and check the display state */
     InbvAcquireLock();
-    if (InbvGetDisplayState() == INBV_DISPLAY_STATE_OWNED)
-    {
-        /* Clear the screen */
-        VidSolidColorFill(0, 0, SCREEN_WIDTH-1, SCREEN_HEIGHT-1, BV_COLOR_BLACK);
-    }
-
     /* Reset progress bar and lock */
 #ifdef INBV_ROTBAR_IMPLEMENTED
     PltRotBarStatus = RBS_STOP_ANIMATE;
