@@ -6,7 +6,6 @@
  */
 /*
  * TODO:
- * fix renew / release
  * implement registerdns, showclassid, setclassid
  */
 
@@ -20,10 +19,7 @@
 #include <winreg.h>
 #include <winnls.h>
 #include <stdio.h>
-#include <tchar.h>
 #include <time.h>
-//#include <winsock2.h>
-//#include <iptypes.h>
 #include <iphlpapi.h>
 #include <ndk/rtlfuncs.h>
 #include <inaddr.h>
@@ -42,7 +38,7 @@
 typedef struct _RECORDTYPE
 {
     WORD wRecordType;
-    LPTSTR pszRecordName;
+    LPWSTR pszRecordName;
 } RECORDTYPE, *PRECORDTYPE;
 
 #define GUID_LEN 40
@@ -52,67 +48,67 @@ HANDLE ProcessHeap;
 
 RECORDTYPE TypeArray[] =
 {
-    {DNS_TYPE_ZERO,    _T("ZERO")},
-    {DNS_TYPE_A,       _T("A")},
-    {DNS_TYPE_NS,      _T("NS")},
-    {DNS_TYPE_MD,      _T("MD")},
-    {DNS_TYPE_MF,      _T("MF")},
-    {DNS_TYPE_CNAME,   _T("CNAME")},
-    {DNS_TYPE_SOA,     _T("SOA")},
-    {DNS_TYPE_MB,      _T("MB")},
-    {DNS_TYPE_MG,      _T("MG")},
-    {DNS_TYPE_MR,      _T("MR")},
-    {DNS_TYPE_NULL,    _T("NULL")},
-    {DNS_TYPE_WKS,     _T("WKS")},
-    {DNS_TYPE_PTR,     _T("PTR")},
-    {DNS_TYPE_HINFO,   _T("HINFO")},
-    {DNS_TYPE_MINFO,   _T("MINFO")},
-    {DNS_TYPE_MX,      _T("MX")},
-    {DNS_TYPE_TEXT,    _T("TXT")},
-    {DNS_TYPE_RP,      _T("RP")},
-    {DNS_TYPE_AFSDB,   _T("AFSDB")},
-    {DNS_TYPE_X25,     _T("X25")},
-    {DNS_TYPE_ISDN,    _T("ISDN")},
-    {DNS_TYPE_RT,      _T("RT")},
-    {DNS_TYPE_NSAP,    _T("NSAP")},
-    {DNS_TYPE_NSAPPTR, _T("NSAPPTR")},
-    {DNS_TYPE_SIG,     _T("SIG")},
-    {DNS_TYPE_KEY,     _T("KEY")},
-    {DNS_TYPE_PX,      _T("PX")},
-    {DNS_TYPE_GPOS,    _T("GPOS")},
-    {DNS_TYPE_AAAA,    _T("AAAA")},
-    {DNS_TYPE_LOC,     _T("LOC")},
-    {DNS_TYPE_NXT,     _T("NXT")},
-    {DNS_TYPE_EID,     _T("EID")},
-    {DNS_TYPE_NIMLOC,  _T("NIMLOC")},
-    {DNS_TYPE_SRV,     _T("SRV")},
-    {DNS_TYPE_ATMA,    _T("ATMA")},
-    {DNS_TYPE_NAPTR,   _T("NAPTR")},
-    {DNS_TYPE_KX,      _T("KX")},
-    {DNS_TYPE_CERT,    _T("CERT")},
-    {DNS_TYPE_A6,      _T("A6")},
-    {DNS_TYPE_DNAME,   _T("DNAME")},
-    {DNS_TYPE_SINK,    _T("SINK")},
-    {DNS_TYPE_OPT,     _T("OPT")},
-    {DNS_TYPE_UINFO,   _T("UINFO")},
-    {DNS_TYPE_UID,     _T("UID")},
-    {DNS_TYPE_GID,     _T("GID")},
-    {DNS_TYPE_UNSPEC,  _T("UNSPEC")},
-    {DNS_TYPE_ADDRS,   _T("ADDRS")},
-    {DNS_TYPE_TKEY,    _T("TKEY")},
-    {DNS_TYPE_TSIG,    _T("TSIG")},
-    {DNS_TYPE_IXFR,    _T("IXFR")},
-    {DNS_TYPE_AXFR,    _T("AXFR")},
-    {DNS_TYPE_MAILB,   _T("MAILB")},
-    {DNS_TYPE_MAILA,   _T("MAILA")},
-    {DNS_TYPE_ALL,     _T("ALL")},
+    {DNS_TYPE_ZERO,    L"ZERO"},
+    {DNS_TYPE_A,       L"A"},
+    {DNS_TYPE_NS,      L"NS"},
+    {DNS_TYPE_MD,      L"MD"},
+    {DNS_TYPE_MF,      L"MF"},
+    {DNS_TYPE_CNAME,   L"CNAME"},
+    {DNS_TYPE_SOA,     L"SOA"},
+    {DNS_TYPE_MB,      L"MB"},
+    {DNS_TYPE_MG,      L"MG"},
+    {DNS_TYPE_MR,      L"MR"},
+    {DNS_TYPE_NULL,    L"NULL"},
+    {DNS_TYPE_WKS,     L"WKS"},
+    {DNS_TYPE_PTR,     L"PTR"},
+    {DNS_TYPE_HINFO,   L"HINFO"},
+    {DNS_TYPE_MINFO,   L"MINFO"},
+    {DNS_TYPE_MX,      L"MX"},
+    {DNS_TYPE_TEXT,    L"TXT"},
+    {DNS_TYPE_RP,      L"RP"},
+    {DNS_TYPE_AFSDB,   L"AFSDB"},
+    {DNS_TYPE_X25,     L"X25"},
+    {DNS_TYPE_ISDN,    L"ISDN"},
+    {DNS_TYPE_RT,      L"RT"},
+    {DNS_TYPE_NSAP,    L"NSAP"},
+    {DNS_TYPE_NSAPPTR, L"NSAPPTR"},
+    {DNS_TYPE_SIG,     L"SIG"},
+    {DNS_TYPE_KEY,     L"KEY"},
+    {DNS_TYPE_PX,      L"PX"},
+    {DNS_TYPE_GPOS,    L"GPOS"},
+    {DNS_TYPE_AAAA,    L"AAAA"},
+    {DNS_TYPE_LOC,     L"LOC"},
+    {DNS_TYPE_NXT,     L"NXT"},
+    {DNS_TYPE_EID,     L"EID"},
+    {DNS_TYPE_NIMLOC,  L"NIMLOC"},
+    {DNS_TYPE_SRV,     L"SRV"},
+    {DNS_TYPE_ATMA,    L"ATMA"},
+    {DNS_TYPE_NAPTR,   L"NAPTR"},
+    {DNS_TYPE_KX,      L"KX"},
+    {DNS_TYPE_CERT,    L"CERT"},
+    {DNS_TYPE_A6,      L"A6"},
+    {DNS_TYPE_DNAME,   L"DNAME"},
+    {DNS_TYPE_SINK,    L"SINK"},
+    {DNS_TYPE_OPT,     L"OPT"},
+    {DNS_TYPE_UINFO,   L"UINFO"},
+    {DNS_TYPE_UID,     L"UID"},
+    {DNS_TYPE_GID,     L"GID"},
+    {DNS_TYPE_UNSPEC,  L"UNSPEC"},
+    {DNS_TYPE_ADDRS,   L"ADDRS"},
+    {DNS_TYPE_TKEY,    L"TKEY"},
+    {DNS_TYPE_TSIG,    L"TSIG"},
+    {DNS_TYPE_IXFR,    L"IXFR"},
+    {DNS_TYPE_AXFR,    L"AXFR"},
+    {DNS_TYPE_MAILB,   L"MAILB"},
+    {DNS_TYPE_MAILA,   L"MAILA"},
+    {DNS_TYPE_ALL,     L"ALL"},
     {0, NULL}
 };
 
-LPTSTR
+LPWSTR
 GetRecordTypeName(WORD wType)
 {
-    static TCHAR szType[8];
+    static WCHAR szType[8];
     INT i;
 
     for (i = 0; ; i++)
@@ -124,7 +120,7 @@ GetRecordTypeName(WORD wType)
              return TypeArray[i].pszRecordName;
     }
 
-    _stprintf(szType, _T("%hu"), wType);
+    swprintf(szType, L"%hu", wType);
 
     return szType;
 }
@@ -142,12 +138,12 @@ PCHAR PrintMacAddr(PBYTE Mac)
 
 
 /* convert time_t to localized string */
-_Ret_opt_z_ PTSTR timeToStr(_In_ time_t TimeStamp)
+_Ret_opt_z_ PWSTR timeToStr(_In_ time_t TimeStamp)
 {
     struct tm* ptm;
     SYSTEMTIME SystemTime;
     INT DateCchSize, TimeCchSize, TotalCchSize, i;
-    PTSTR DateTimeString, psz;
+    PWSTR DateTimeString, psz;
 
     /* Convert Unix time to SYSTEMTIME */
     /* localtime_s may be preferred if available */
@@ -164,12 +160,12 @@ _Ret_opt_z_ PTSTR timeToStr(_In_ time_t TimeStamp)
     SystemTime.wSecond = ptm->tm_sec;
 
     /* Get total size in characters required of buffer */
-    DateCchSize = GetDateFormat(LOCALE_USER_DEFAULT, DATE_LONGDATE, &SystemTime, NULL, NULL, 0);
+    DateCchSize = GetDateFormatW(LOCALE_USER_DEFAULT, DATE_LONGDATE, &SystemTime, NULL, NULL, 0);
     if (!DateCchSize)
     {
         return NULL;
     }
-    TimeCchSize = GetTimeFormat(LOCALE_USER_DEFAULT, 0, &SystemTime, NULL, NULL, 0);
+    TimeCchSize = GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &SystemTime, NULL, NULL, 0);
     if (!TimeCchSize)
     {
         return NULL;
@@ -178,23 +174,23 @@ _Ret_opt_z_ PTSTR timeToStr(_In_ time_t TimeStamp)
     TotalCchSize = DateCchSize + TimeCchSize;
 
     /* Allocate buffer and format datetime string */
-    DateTimeString = (PTSTR)HeapAlloc(ProcessHeap, 0, TotalCchSize * sizeof(TCHAR));
+    DateTimeString = (PWSTR)HeapAlloc(ProcessHeap, 0, TotalCchSize * sizeof(WCHAR));
     if (!DateTimeString)
     {
         return NULL;
     }
 
     /* Get date string */
-    i = GetDateFormat(LOCALE_USER_DEFAULT, DATE_LONGDATE, &SystemTime, NULL, DateTimeString, TotalCchSize);
+    i = GetDateFormatW(LOCALE_USER_DEFAULT, DATE_LONGDATE, &SystemTime, NULL, DateTimeString, TotalCchSize);
     if (i)
     {
         /* Append space and move pointer */
-        DateTimeString[i - 1] = _T(' ');
+        DateTimeString[i - 1] = L' ';
         psz = DateTimeString + i;
         TotalCchSize -= i;
 
         /* Get time string */
-        if (GetTimeFormat(LOCALE_USER_DEFAULT, 0, &SystemTime, NULL, psz, TotalCchSize))
+        if (GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &SystemTime, NULL, psz, TotalCchSize))
         {
             return DateTimeString;
         }
@@ -205,7 +201,9 @@ _Ret_opt_z_ PTSTR timeToStr(_In_ time_t TimeStamp)
 }
 
 
-VOID DoFormatMessage(LONG ErrorCode)
+VOID
+DoFormatMessage(
+    _In_ LONG ErrorCode)
 {
     LPVOID lpMsgBuf;
     //DWORD ErrorCode;
@@ -213,17 +211,17 @@ VOID DoFormatMessage(LONG ErrorCode)
     if (ErrorCode == 0)
         ErrorCode = GetLastError();
 
-    if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+    if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                         FORMAT_MESSAGE_FROM_SYSTEM |
                         FORMAT_MESSAGE_IGNORE_INSERTS,
-                      NULL,
-                      ErrorCode,
-                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
-                      (LPTSTR) &lpMsgBuf,
-                      0,
-                      NULL))
+                       NULL,
+                       ErrorCode,
+                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+                       (LPWSTR)&lpMsgBuf,
+                       0,
+                       NULL))
     {
-        _tprintf(_T("%s"), (LPTSTR)lpMsgBuf);
+        ConPuts(StdOut, (LPWSTR)lpMsgBuf);
         LocalFree(lpMsgBuf);
     }
 }
@@ -338,17 +336,17 @@ PrintAdapterDescription(LPSTR lpClass)
     HKEY hClassKey = NULL;
     LPSTR lpKeyClass = NULL;
     LPSTR lpConDesc = NULL;
-    LPTSTR lpPath = NULL;
-    TCHAR szPrePath[] = _T("SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}\\");
+    LPWSTR lpPath = NULL;
+    WCHAR szPrePath[] = L"SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}\\";
     DWORD dwType;
     DWORD dwDataSize;
     INT i;
 
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                     szPrePath,
-                     0,
-                     KEY_READ,
-                     &hBaseKey) != ERROR_SUCCESS)
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                      szPrePath,
+                      0,
+                      KEY_READ,
+                      &hBaseKey) != ERROR_SUCCESS)
     {
         return;
     }
@@ -357,17 +355,17 @@ PrintAdapterDescription(LPSTR lpClass)
     {
         DWORD PathSize;
         LONG Status;
-        TCHAR szName[10];
+        WCHAR szName[10];
         DWORD NameLen = 9;
 
-        if ((Status = RegEnumKeyEx(hBaseKey,
-                                   i,
-                                   szName,
-                                   &NameLen,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   NULL)) != ERROR_SUCCESS)
+        if ((Status = RegEnumKeyExW(hBaseKey,
+                                    i,
+                                    szName,
+                                    &NameLen,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL)) != ERROR_SUCCESS)
         {
             if (Status == ERROR_NO_MORE_ITEMS)
             {
@@ -379,22 +377,22 @@ PrintAdapterDescription(LPSTR lpClass)
                 continue;
         }
 
-        PathSize = lstrlen(szPrePath) + lstrlen(szName) + 1;
-        lpPath = (LPTSTR)HeapAlloc(ProcessHeap,
+        PathSize = wcslen(szPrePath) + wcslen(szName) + 1;
+        lpPath = (LPWSTR)HeapAlloc(ProcessHeap,
                                    0,
-                                   PathSize * sizeof(TCHAR));
+                                   PathSize * sizeof(WCHAR));
         if (lpPath == NULL)
             goto CLEANUP;
 
-        wsprintf(lpPath, _T("%s%s"), szPrePath, szName);
+        wsprintf(lpPath, L"%s%s", szPrePath, szName);
 
         //MessageBox(NULL, lpPath, NULL, 0);
 
-        if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                         lpPath,
-                         0,
-                         KEY_READ,
-                         &hClassKey) != ERROR_SUCCESS)
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                          lpPath,
+                          0,
+                          KEY_READ,
+                          &hClassKey) != ERROR_SUCCESS)
         {
             goto CLEANUP;
         }
@@ -579,7 +577,7 @@ ShowInfo(
     {
         pszDomainName = HeapAlloc(ProcessHeap,
                                   0,
-                                  dwDomainNameSize * sizeof(TCHAR));
+                                  dwDomainNameSize * sizeof(CHAR));
         if (pszDomainName != NULL)
             GetComputerNameExA(ComputerNameDnsDomain,
                                pszDomainName,
@@ -746,7 +744,7 @@ ShowInfo(
             pIPAddr = pFixedInfo->DnsServerList.Next;
             while (pIPAddr)
             {
-                ConResPrintf(StdOut, IDS_EMPTYLINE, pIPAddr ->IpAddress.String);
+                ConResPrintf(StdOut, IDS_EMPTYLINE, pIPAddr->IpAddress.String);
                 pIPAddr = pIPAddr->Next;
             }
 
@@ -758,15 +756,15 @@ ShowInfo(
 
             if (pAdapter->DhcpEnabled && strcmp(pAdapter->DhcpServer.IpAddress.String, "255.255.255.255"))
             {
-                PTSTR DateTimeString;
+                PWSTR DateTimeString;
                 DateTimeString = timeToStr(pAdapter->LeaseObtained);
-                ConResPrintf(StdOut, IDS_LEASEOBTAINED, DateTimeString ? DateTimeString : _T("N/A"));
+                ConResPrintf(StdOut, IDS_LEASEOBTAINED, DateTimeString ? DateTimeString : L"N/A");
                 if (DateTimeString)
                 {
                     HeapFree(ProcessHeap, 0, DateTimeString);
                 }
                 DateTimeString = timeToStr(pAdapter->LeaseExpires);
-                ConResPrintf(StdOut, IDS_LEASEEXPIRES, DateTimeString ? DateTimeString : _T("N/A"));
+                ConResPrintf(StdOut, IDS_LEASEEXPIRES, DateTimeString ? DateTimeString : L"N/A");
                 if (DateTimeString)
                 {
                     HeapFree(ProcessHeap, 0, DateTimeString);
@@ -863,7 +861,7 @@ Release(
     pAdapterInfo = (IP_ADAPTER_INFO *)HeapAlloc(ProcessHeap, 0, adaptOutBufLen);
     if (pAdapterInfo == NULL)
     {
-        _tprintf(_T("memory allocation error"));
+        DoFormatMessage(ERROR_NOT_ENOUGH_MEMORY);
         return;
     }
 
@@ -969,7 +967,7 @@ Renew(
     pAdapterInfo = (IP_ADAPTER_INFO *)HeapAlloc(ProcessHeap, 0, adaptOutBufLen);
     if (pAdapterInfo == NULL)
     {
-        _tprintf(_T("memory allocation error"));
+        DoFormatMessage(ERROR_NOT_ENOUGH_MEMORY);
         return;
     }
 
@@ -1061,7 +1059,7 @@ VOID
 RegisterDns(VOID)
 {
     /* FIXME */
-    _tprintf(_T("\nSorry /registerdns is not implemented yet\n"));
+    printf("\nSorry /registerdns is not implemented yet\n");
 }
 
 static
@@ -1232,7 +1230,7 @@ VOID
 ShowClassId(
     LPWSTR pszAdapterName)
 {
-    _tprintf(_T("\nSorry /showclassid adapter is not implemented yet\n"));
+    printf("\nSorry /showclassid adapter is not implemented yet\n");
 }
 
 VOID
@@ -1262,7 +1260,7 @@ SetClassId(
     pAdapterInfo = (IP_ADAPTER_INFO *)HeapAlloc(ProcessHeap, 0, adaptOutBufLen);
     if (pAdapterInfo == NULL)
     {
-        _tprintf(_T("memory allocation error"));
+        DoFormatMessage(ERROR_NOT_ENOUGH_MEMORY);
         return;
     }
 
@@ -1331,8 +1329,11 @@ done:
 }
 
 VOID
-Usage(VOID)
+Usage(
+    _In_ BOOL Error)
 {
+    if (Error)
+        ConResPrintf(StdOut, IDS_CMDLINEERROR);
     ConResPrintf(StdOut, IDS_USAGE);
 }
 
@@ -1355,41 +1356,41 @@ int wmain(int argc, wchar_t *argv[])
     ProcessHeap = GetProcessHeap();
 
     /* Parse command line for options we have been given. */
-    if ((argc > 1) && (argv[1][0]=='/' || argv[1][0]=='-'))
+    if ((argc > 1) && (argv[1][0] == L'/' || argv[1][0] == L'-'))
     {
-        if (!_tcsicmp(&argv[1][1], _T("?")))
+        if (!_wcsicmp(&argv[1][1], L"?"))
         {
             DoUsage = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("ALL"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"ALL", wcslen(&argv[1][1])))
         {
             DoAll = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("RELEASE"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"RELEASE", wcslen(&argv[1][1])))
         {
             DoRelease = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("RENEW"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"RENEW", wcslen(&argv[1][1])))
         {
             DoRenew = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("FLUSHDNS"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"FLUSHDNS", wcslen(&argv[1][1])))
         {
             DoFlushdns = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("FLUSHREGISTERDNS"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"FLUSHREGISTERDNS", wcslen(&argv[1][1])))
         {
             DoRegisterdns = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("DISPLAYDNS"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"DISPLAYDNS", wcslen(&argv[1][1])))
         {
             DoDisplaydns = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("SHOWCLASSID"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"SHOWCLASSID", wcslen(&argv[1][1])))
         {
             DoShowclassid = TRUE;
         }
-        else if (!_tcsnicmp(&argv[1][1], _T("SETCLASSID"), _tcslen(&argv[1][1])))
+        else if (!_wcsnicmp(&argv[1][1], L"SETCLASSID", wcslen(&argv[1][1])))
         {
             DoSetclassid = TRUE;
         }
@@ -1402,7 +1403,7 @@ int wmain(int argc, wchar_t *argv[])
             break;
         case 2:  /* Process all the options that take no parameters */
             if (DoUsage)
-                Usage();
+                Usage(FALSE);
             else if (DoAll)
                 ShowInfo(TRUE, TRUE);
             else if (DoRelease)
@@ -1416,7 +1417,7 @@ int wmain(int argc, wchar_t *argv[])
             else if (DoDisplaydns)
                 DisplayDns();
             else
-                Usage();
+                Usage(TRUE);
             break;
         case 3: /* Process all the options that can have 1 parameter */
             if (DoRelease)
@@ -1428,16 +1429,16 @@ int wmain(int argc, wchar_t *argv[])
             else if (DoSetclassid)
                 SetClassId(argv[2], NULL);
             else
-                Usage();
+                Usage(TRUE);
             break;
         case 4:  /* Process all the options that can have 2 parameters */
             if (DoSetclassid)
                 SetClassId(argv[2], argv[3]);
             else
-                Usage();
+                Usage(TRUE);
             break;
         default:
-            Usage();
+            Usage(TRUE);
     }
 
     return 0;
