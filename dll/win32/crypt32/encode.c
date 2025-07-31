@@ -5065,3 +5065,16 @@ BOOL WINAPI CryptImportPublicKeyInfoEx(HCRYPTPROV hCryptProv,
         CryptFreeOIDFunctionAddress(hFunc, 0);
     return ret;
 }
+
+BOOL WINAPI CryptImportPublicKeyInfoEx2(DWORD dwCertEncodingType,
+ PCERT_PUBLIC_KEY_INFO pInfo, DWORD dwFlags, void *pvAuxInfo,
+ BCRYPT_KEY_HANDLE *phKey)
+{
+    TRACE_(crypt)("(%ld, %p, %08lx, %p, %p)\n", dwCertEncodingType, pInfo,
+     dwFlags, pvAuxInfo, phKey);
+
+    if (dwFlags)
+        FIXME("flags %#lx ignored\n", dwFlags);
+
+    return CNG_ImportPubKey(pInfo, phKey);
+}
