@@ -1,6 +1,6 @@
 
 remove_definitions(-D_WIN32_WINNT=0x502)
-add_definitions(-D_WIN32_WINNT=0x600)
+add_definitions(-D_WIN32_WINNT=0x600 -DINSTALL_DATADIR="""")
 
 spec2def(mscoree.dll mscoree.spec)
 
@@ -24,8 +24,8 @@ add_library(mscoree MODULE
     ${CMAKE_CURRENT_BINARY_DIR}/mscoree.def)
 
 set_module_type(mscoree win32dll)
-target_link_libraries(mscoree uuid wine)
+target_link_libraries(mscoree uuid wine oldnames)
 add_importlibs(mscoree dbghelp advapi32 shell32 ole32 shlwapi msvcrt kernel32 ntdll)
-add_pch(mscoree mscoree_private.h "${PCH_SKIP_SOURCE}")
+add_pch(mscoree precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET mscoree DESTINATION reactos/system32 FOR all)
 set_wine_module_FIXME(mscoree) # CORE-5743: No CONST_VTABLE
