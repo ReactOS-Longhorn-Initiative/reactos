@@ -572,3 +572,6 @@
 @ stdcall -stub GetDpiForMonitor(ptr)
 @ stdcall -stub IsProcessDPIAware()
 @ stdcall -stub SetProcessDPIAware()
+
+@ stdcall -stub GetProcessDpiAwareness(ptr ptr)
+@ stdcall -stub SetProcessDpiAwareness(long)

@@ -101,6 +101,21 @@ NtAllocateVirtualMemory(
     _In_ ULONG Protect
 );
 
+_Must_inspect_result_
+_At_(*BaseAddress, __drv_allocatesMem(Mem))
+__kernel_entry
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAllocateVirtualMemoryEx(
+    _In_ HANDLE ProcessHandle,
+    _Inout_ _Outptr_result_buffer_(*RegionSize) PVOID *BaseAddress,
+    _In_ PSIZE_T RegionSize,
+    _Inout_ ULONG AllocationType,
+    _In_ ULONG PageProtection,
+    _Inout_ void* ExtendedParameters,
+    _In_ ULONG ExtendedParameterCount);
+
 NTSYSCALLAPI
 NTSTATUS
 NTAPI

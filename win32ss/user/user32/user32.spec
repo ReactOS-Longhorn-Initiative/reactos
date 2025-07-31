@@ -760,6 +760,7 @@
 @ stdcall UnregisterDeviceNotification(long)
 @ stdcall UnregisterHotKey(long long) NtUserUnregisterHotKey
 @ stdcall UnregisterMessagePumpHook()
+@ stdcall -version=0x602+ RegisterSuspendResumeNotification(ptr long)
 @ stdcall -version=0x601+ UnregisterTouchWindow(ptr)
 @ stdcall -version=0x600+ UnregisterPowerSettingNotification(ptr)
 @ stdcall -version=0x602+ UnregisterSuspendResumeNotification(ptr)
@@ -800,3 +801,8 @@
 @ varargs wsprintfW(ptr wstr)
 @ stdcall wvsprintfA(ptr str ptr)
 @ stdcall wvsprintfW(ptr wstr ptr)
+@ stdcall -stub GetPointerPenInfo(long ptr)
+@ stdcall -stub GetPointerPenInfoHistory(long ptr ptr)
+@ stdcall -stub GetThreadDpiAwarenessContext()
+@ stdcall -stub GetAwarenessFromDpiAwarenessContext(ptr)
+@ stdcall -stub GetSystemDpiForProcess(ptr)

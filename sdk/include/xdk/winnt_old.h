@@ -1085,6 +1085,7 @@ typedef VOID (NTAPI *WORKERCALLBACKFUNC)(PVOID);
 #define ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES 9
 #define ACTIVATION_CONTEXT_SECTION_APPLICATION_SETTINGS 10
 #define ACTIVATION_CONTEXT_SECTION_COMPATIBILITY_INFO 11
+#define ACTIVATION_CONTEXT_SECTION_WINRT_ACTIVATABLE_CLASSES 12
 #endif /* (_WIN32_WINNT >= 0x0501) */
 #define BTYPE(x) ((x)&N_BTMASK)
 #define ISPTR(x) (((x)&N_TMASK)==(IMAGE_SYM_DTYPE_POINTER<<N_BTSHFT))
@@ -2641,6 +2642,36 @@ typedef struct _MEMORY_BASIC_INFORMATION {
   DWORD Protect;
   DWORD Type;
 } MEMORY_BASIC_INFORMATION, *PMEMORY_BASIC_INFORMATION;
+
+#define MEM_EXTENDED_PARAMETER_TYPE_BITS 8
+
+typedef enum MEM_EXTENDED_PARAMETER_TYPE {
+    MemExtendedParameterInvalidType = 0,
+    MemExtendedParameterAddressRequirements,
+    MemExtendedParameterNumaNode,
+    MemExtendedParameterPartitionHandle,
+    MemExtendedParameterUserPhysicalHandle,
+    MemExtendedParameterAttributeFlags,
+    MemExtendedParameterImageMachine,
+    MemExtendedParameterMax
+} MEM_EXTENDED_PARAMETER_TYPE, *PMEM_EXTENDED_PARAMETER_TYPE;
+
+typedef struct DECLSPEC_ALIGN(8) MEM_EXTENDED_PARAMETER {
+    struct
+    {
+        DWORD64 Type : MEM_EXTENDED_PARAMETER_TYPE_BITS;
+        DWORD64 Reserved : 64 - MEM_EXTENDED_PARAMETER_TYPE_BITS;
+    } DUMMYSTRUCTNAME;
+
+    union
+    {
+        DWORD64 ULong64;
+        PVOID Pointer;
+        SIZE_T Size;
+        HANDLE Handle;
+        DWORD ULong;
+    } DUMMYUNIONNAME;
+} MEM_EXTENDED_PARAMETER, *PMEM_EXTENDED_PARAMETER;
 
 typedef struct _MESSAGE_RESOURCE_ENTRY {
   WORD Length;

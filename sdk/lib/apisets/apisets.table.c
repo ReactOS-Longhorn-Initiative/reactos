@@ -127,6 +127,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l1-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l1-2-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l1-2-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 }, // kernelbase.dll
+    { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l1-2-2"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l1-2-3"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l2-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-file-l2-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 }, // kernelbase.dll
@@ -157,6 +158,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-MS-Win-Core-LibraryLoader-L1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN7 | APISET_WIN8 | APISET_WIN81 | APISET_WIN10  }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-libraryloader-l1-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-libraryloader-l1-2-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 | APISET_WIN10  }, // kernelbase.dll
+    { RTL_CONSTANT_STRING(L"api-ms-win-core-libraryloader-l1-2-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-libraryloader-l1-2-2"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-libraryloader-l2-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-libraryloader-private-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
@@ -164,6 +166,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-MS-Win-Core-Localization-L1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN7 | APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-localization-l1-2-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-localization-l1-2-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 }, // kernelbase.dll
+    { RTL_CONSTANT_STRING(L"api-ms-win-core-localization-l1-2-2"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-localization-l1-2-4"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-localization-l2-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-localization-obsolete-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll

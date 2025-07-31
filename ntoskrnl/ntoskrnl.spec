@@ -845,6 +845,7 @@
 @ stdcall NtAllocateLocallyUniqueId(ptr)
 @ stdcall NtAllocateUuids(ptr ptr ptr ptr)
 @ stdcall NtAllocateVirtualMemory(ptr ptr long ptr long long)
+@ stdcall NtAllocateVirtualMemoryEx(long ptr ptr long long ptr long)
 @ extern NtBuildNumber
 @ stdcall NtClose(ptr)
 @ stdcall NtConnectPort(ptr ptr ptr ptr ptr ptr ptr ptr)
@@ -1421,6 +1422,7 @@
 @ stdcall ZwAdjustPrivilegesToken(ptr long ptr long ptr ptr)
 @ stdcall ZwAlertThread(ptr)
 @ stdcall ZwAllocateVirtualMemory(ptr ptr long ptr long long)
+@ stdcall ZwAllocateVirtualMemoryEx(long ptr ptr long long ptr long)
 @ stdcall ZwAssignProcessToJobObject(ptr ptr)
 @ stdcall ZwCancelIoFile(ptr ptr)
 @ stdcall ZwCancelTimer(ptr ptr)

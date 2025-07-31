@@ -5186,6 +5186,19 @@ FailPathNoLock:
 }
 
 /*
+ * @stub
+ */
+NTSTATUS
+NTAPI
+NtAllocateVirtualMemoryEx(HANDLE ProcessHandle, IN OUT PVOID* UBaseAddress, PSIZE_T RegionSize, ULONG AllocationType,
+                                           ULONG PageProtection, IN OUT PMEM_EXTENDED_PARAMETER ExtendedParameters OPTIONAL,
+                                           ULONG ExtendedParameterCount)
+{
+    DPRINT1("NtAllocateVirtualMemoryEx stub\n");
+    return NtAllocateVirtualMemory(ProcessHandle, UBaseAddress, 0, RegionSize, AllocationType, PageProtection);
+}
+
+/*
  * @implemented
  */
 NTSTATUS

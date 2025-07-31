@@ -17,6 +17,7 @@
     SVC_(AllocateUserPhysicalPages, 3)
     SVC_(AllocateUuids, 4)
     SVC_(AllocateVirtualMemory, 6)
+    SVC_(AllocateVirtualMemoryEx, 7)
     SVC_(ApphelpCacheControl, 2)
     SVC_(AreMappedFilesTheSame, 2)
     SVC_(AssignProcessToJobObject, 2)

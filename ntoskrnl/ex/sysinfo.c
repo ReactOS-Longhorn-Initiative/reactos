@@ -15,6 +15,7 @@
 #include <wmistr.h>
 #define NDEBUG
 #include <debug.h>
+#include <winerror.h>
 
 /* The maximum size of an environment value (in bytes) */
 #define MAX_ENVVAL_SIZE 1024
@@ -558,7 +559,8 @@ NtEnumerateSystemEnvironmentValuesEx(IN ULONG InformationClass,
                                      IN PVOID Buffer,
                                      IN ULONG BufferLength)
 {
-    UNIMPLEMENTED;
+    DPRINT1("NtEnumerateSystemEnvironmentValuesEx is unimplemented, %d %d %d", InformationClass, Buffer, BufferLength);
+    __debugbreak();
     return STATUS_NOT_IMPLEMENTED;
 }
 

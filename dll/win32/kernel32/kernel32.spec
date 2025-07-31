@@ -546,7 +546,7 @@
 @ stub -version=0x600+ GetLongPathNameTransactedA
 @ stub -version=0x600+ GetLongPathNameTransactedW
 @ stdcall GetLongPathNameW(wstr long long) kernelbase.GetLongPathNameW
-@ stdcall GetMailslotInfo(long ptr ptr ptr ptr) kernelbase.GetMailslotInfo
+@ stdcall GetMailslotInfo(long ptr ptr ptr ptr)
 @ stdcall -version=0x601+ GetMaximumProcessorCount(long)
 @ stdcall -version=0x601+ GetMaximumProcessorGroupCount()
 @ stdcall GetModuleFileNameA(long ptr long) kernelbase.GetModuleFileNameA
@@ -1229,6 +1229,7 @@
 @ stdcall SetTermsrvAppInstallMode(long) kernelbase.SetTermsrvAppInstallMode
 @ stdcall SetThreadAffinityMask(long long) kernelbase.SetThreadAffinityMask
 @ stdcall SetThreadContext(long ptr) kernelbase.SetThreadContext
+@ stdcall -version=0xA00+ SetThreadDescription(ptr wstr) kernelbase.SetThreadDescription
 @ stdcall -version=0x600+ SetThreadErrorMode(long ptr) kernelbase.SetThreadErrorMode
 @ stdcall SetThreadExecutionState(long) kernelbase.SetThreadExecutionState
 @ stdcall -version=0x601+ SetThreadGroupAffinity(long ptr ptr) kernelbase.SetThreadGroupAffinity
@@ -1291,7 +1292,7 @@
 @ stdcall TransactNamedPipe(long ptr long ptr long ptr ptr) kernelbase.TransactNamedPipe
 @ stdcall TransmitCommChar(long long) kernelbase.TransmitCommChar
 @ stdcall -version=0x601+ TryAcquireSRWLockExclusive(ptr) NTDLL.RtlTryAcquireSRWLockExclusive
-@ stdcall -version=0x601 TryAcquireSRWLockShared(ptr) NTDLL.RtlTryAcquireSRWLockShared
+@ stdcall -version=0x601+ TryAcquireSRWLockShared(ptr) NTDLL.RtlTryAcquireSRWLockShared
 @ stdcall TryEnterCriticalSection(ptr) ntdll.RtlTryEnterCriticalSection
 @ stdcall TrySubmitThreadpoolCallback(ptr ptr ptr) kernelbase.TrySubmitThreadpoolCallback
 @ stdcall TzSpecificLocalTimeToSystemTime(ptr ptr ptr) kernelbase.TzSpecificLocalTimeToSystemTime
