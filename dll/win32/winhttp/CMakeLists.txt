@@ -1,6 +1,6 @@
 
 remove_definitions(-D_WIN32_WINNT=0x502)
-add_definitions(-D_WIN32_WINNT=0x600)
+add_definitions(-D_WIN32_WINNT=0x600 -D_WINHTTP_INTERNAL_)
 
 add_definitions(
     -D_WINE)
@@ -24,11 +24,19 @@ add_library(winhttp MODULE
     ${SOURCE}
     rsrc.rc
     ${CMAKE_CURRENT_BINARY_DIR}/winhttp.def)
+if(MSVC)
+    # Disable warning C4267: 'initializing': conversion from 'size_t' to 'DWORD', possible loss of data
+    target_compile_options(winhttp PRIVATE /wd4267)
+else()
+    target_compile_options(winhttp PRIVATE -Wno-attributes)
+endif()
+
+remove_definitions(-D_CRT_NON_CONFORMING_SWPRINTFS)
 
 set_module_type(winhttp win32dll)
-target_link_libraries(winhttp uuid wine)
-add_delay_importlibs(winhttp oleaut32 crypt32 secur32)
-add_importlibs(winhttp user32 advapi32 ws2_32 jsproxy msvcrt kernelbase ntdll)
+target_link_libraries(winhttp uuid wine wine_dll_register)
+add_delay_importlibs(winhttp oleaut32 crypt32 secur32 iphlpapi dhcpcsvc)
+add_importlibs(winhttp user32 advapi32 ws2_32 jsproxy kernelbase msvcrt kernel32 ntdll)
 add_dependencies(winhttp stdole2)
 add_pch(winhttp precomp.h SOURCE)
 add_cd_file(TARGET winhttp DESTINATION reactos/system32 FOR all)
