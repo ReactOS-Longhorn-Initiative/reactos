@@ -1,8 +1,5 @@
 HKCR
 {
-    NoRemove Interface
-    {
-    }
     NoRemove CLSID
     {
         '{90F1A06E-7712-4762-86B5-7A5EBA6BDB01}' = s 'Microsoft Common Language Runtime Host V2'

@@ -56,7 +56,8 @@ list(APPEND SOURCE
     stg_stream.c
     storage32.c
     stubmanager.c
-    usrmarshal.c)
+    usrmarshal.c
+    winrt.c)
 
 if(MSVC AND (ARCH STREQUAL "i386"))
     list(APPEND SOURCE msvc-thiscall.c)

@@ -9,6 +9,7 @@
 #define __ROAPI_H_
 
 #include <sal.h>
+#include <activation.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +26,14 @@ typedef enum RO_INIT_TYPE
     RO_INIT_SINGLETHREADED = 0,
     RO_INIT_MULTITHREADED  = 1,
 } RO_INIT_TYPE;
+
+#ifdef __cplusplus
+typedef struct {} *RO_REGISTRATION_COOKIE;
+#else
+typedef struct _RO_REGISTRATION_COOKIE *RO_REGISTRATION_COOKIE;
+#endif
+typedef HRESULT (WINAPI *PFNGETACTIVATIONFACTORY)(HSTRING, IActivationFactory **);
+
 
 ROAPI
 _Check_return_
