@@ -266,3 +266,9 @@ done:
     if (module) FreeLibrary(module);
     return hr;
 }
+
+HRESULT WINAPI RoGetAgileReference(enum AgileReferenceOptions option, REFIID riid, IUnknown *obj,
+                                   IAgileReference **agile_reference)
+                                   {
+                                    return E_NOTIMPL;
+                                   }

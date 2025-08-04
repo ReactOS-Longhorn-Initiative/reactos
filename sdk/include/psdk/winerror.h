@@ -2365,6 +2365,9 @@
 #define E_POINTER                                          _HRESULT_TYPEDEF_(0x80004003L)
 #define E_ABORT                                            _HRESULT_TYPEDEF_(0x80004004L)
 #define E_FAIL                                             _HRESULT_TYPEDEF_(0x80004005L)
+#define E_ILLEGAL_METHOD_CALL                              _HRESULT_TYPEDEF_(0x8000000EL)
+#define WEB_E_INVALID_JSON_STRING                          _HRESULT_TYPEDEF_(0x83750007L)
+#define WEB_E_INVALID_JSON_NUMBER                          _HRESULT_TYPEDEF_(0x83750008L)
 
 
 #define CO_E_INIT_TLS                                      _HRESULT_TYPEDEF_(0x80004006L)

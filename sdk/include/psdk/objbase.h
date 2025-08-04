@@ -281,6 +281,8 @@ typedef enum tagCOINIT
     COINIT_SPEED_OVER_MEMORY  = 0x8  /* Trade memory for speed */
 } COINIT;
 
+DECLARE_HANDLE(CO_MTA_USAGE_COOKIE);
+
 _Check_return_ HRESULT WINAPI CoInitialize(_In_opt_ LPVOID lpReserved);
 
 _Check_return_

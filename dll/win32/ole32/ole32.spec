@@ -325,7 +325,10 @@
 @ stdcall WriteFmtUserTypeStg(ptr long ptr)
 @ stub WriteOleStg
 @ stub WriteStringStream
+
+; HACK
 @ stdcall RoOriginateError(long ptr)
 @ stdcall RoOriginateErrorW(long long ptr)
 @ stdcall RoOriginateLanguageException(long ptr ptr)
 @ stdcall RoGetActivationFactory(ptr ptr ptr)
+@ stdcall RoGetAgileReference(long ptr ptr ptr)

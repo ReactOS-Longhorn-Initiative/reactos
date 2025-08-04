@@ -31,7 +31,7 @@ function(add_idl_headers TARGET)
     get_includes(INCLUDES)
     get_defines(DEFINES)
     foreach(FILE ${ARGN})
-        get_filename_component(NAME ${FILE} NAME_WE)
+        cmake_path(GET FILE STEM LAST_ONLY NAME)
         set(HEADER ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.h)
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.h
