@@ -16,6 +16,7 @@ endif()
 list(APPEND RTL_WINE_SOURCE
     actctx.c
     timerqueue.c
+    wake.c
     threadpool.c
 )
 list(APPEND RTL_WINE_SOURCE_VISTA
