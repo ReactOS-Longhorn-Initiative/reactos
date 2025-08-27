@@ -20,6 +20,7 @@ include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 list(APPEND RTL_WINE_SOURCE
     actctx.c
     timerqueue.c
+    wake.c
     threadpool.c
 )
 set_source_files_properties(threadpool.c PROPERTIES COMPILE_DEFINITIONS __WINESRC__)
