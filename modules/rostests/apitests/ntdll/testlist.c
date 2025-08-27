@@ -138,6 +138,7 @@ extern void func_RtlxUnicodeStringToOemSize(void);
 extern void func_StackOverflow(void);
 extern void func_TimerResolution(void);
 extern void func_UserModeException(void);
+extern void func_WakeAddress(void);
 
 const struct test winetest_testlist[] =
 {
@@ -272,6 +273,7 @@ const struct test winetest_testlist[] =
     { "RtlUnicodeToOemN",               func_RtlUnicodeToOemN },
     { "RtlUpcaseUnicodeStringToCountedOemString", func_RtlUpcaseUnicodeStringToCountedOemString },
     { "RtlValidateUnicodeString",       func_RtlValidateUnicodeString },
+    { "RtlWaitOnAddress",               func_WakeAddress },
     { "StackOverflow",                  func_StackOverflow },
     { "TimerResolution",                func_TimerResolution },
     { "UserModeException",              func_UserModeException },
