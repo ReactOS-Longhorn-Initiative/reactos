@@ -20,6 +20,9 @@ DWORD gdwLanguageToggleKey = 1;
 INT gLayoutToggleKeyState = 0;
 DWORD gdwLayoutToggleKey = 2;
 
+extern BOOLEAN RawInputEnabled;
+extern HANDLE ghKeyboardDevice;
+
 /* FUNCTIONS *****************************************************************/
 
 /*
@@ -1186,6 +1189,69 @@ UserSendKeyboardInput(KEYBDINPUT *pKbdInput, BOOL bInjected)
     return ProcessKeyEvent(wVk, wScanCode, pKbdInput->dwFlags, bInjected, dwTime, pKbdInput->dwExtraInfo);
 }
 
+VOID
+WINAPI
+UserRawInputProcessKeyboardInput(
+    PKEYBOARD_INPUT_DATA pKbdInputData,
+    WORD wScanCode, WORD wVk)
+{
+    PUSER_MESSAGE_QUEUE pFocusQueue;
+    PTHREADINFO pti;
+    POINT ptCursor;
+
+    RAWKEYBOARD kb = {0};
+
+    /* Find the target thread whose locale is in effect */
+    pFocusQueue = IntGetFocusMessageQueue();
+    if ( pFocusQueue)
+    {
+        ptCursor = gpsi->ptCursor;
+        MSG Msg;
+        PWND pWnd = pFocusQueue->spwndFocus;
+        if (pWnd)
+        {
+            pti = pWnd->head.pti;
+            BOOL bIsDown = (pKbdInputData->Flags & KEY_BREAK) ? FALSE : TRUE;
+
+            kb.MakeCode = wScanCode & 0x7F;
+
+            if (bIsDown)
+                kb.Flags = RI_KEY_MAKE;
+            else
+                kb.Flags = RI_KEY_BREAK;
+            kb.VKey = wVk & 0xFF; // Note: wVk is simplified by msg queue
+
+            if (bIsDown)
+                kb.Message = WM_KEYDOWN;
+            else
+                kb.Message = WM_KEYUP;
+            if (pKbdInputData->Flags & KEY_E1)
+            {
+                kb.Flags |= RI_KEY_E1;
+            }
+            if (pKbdInputData->Flags & KEY_E0)
+            {
+                kb.Flags |= RI_KEY_E0;
+            }
+
+            kb.ExtraInformation = pKbdInputData->ExtraInformation;
+            PRAWINPUT rmInput = EngAllocMem(0, sizeof(RAWINPUT), 'iwar');
+            rmInput->header.dwType = RIM_TYPEKEYBOARD;
+            rmInput->header.hDevice = (HANDLE)UlongToHandle((ULONG_PTR)ghKeyboardDevice);
+            rmInput->header.wParam = pKbdInputData->ExtraInformation;
+            rmInput->header.dwSize = sizeof(RAWINPUTHEADER) + sizeof(RAWKEYBOARD);
+            rmInput->data.keyboard  = kb;
+            Msg.wParam = RIM_INPUT;
+            Msg.lParam = (LPARAM)(rmInput);
+            Msg.pt = ptCursor;
+            //Msg.time = mid->time;
+            Msg.message = WM_INPUT;
+
+            //MessageQueue = pti->MessageQueue;
+            MsqPostMessage(pti, &Msg, TRUE, QS_RAWINPUT , 0, 0);
+        }
+    }
+}
 /*
  * UserProcessKeyboardInput
  *
@@ -1228,6 +1294,9 @@ UserProcessKeyboardInput(
     wVk = IntVscToVk(wScanCode, pKbdTbl);
     TRACE("UserProcessKeyboardInput: %x (break: %u) -> %x\n",
           wScanCode, (pKbdInputData->Flags & KEY_BREAK) ? 1u : 0, wVk);
+
+    if (RawInputEnabled == TRUE)
+        UserRawInputProcessKeyboardInput(pKbdInputData, wScanCode, wVk);
 
     if (wVk)
     {
