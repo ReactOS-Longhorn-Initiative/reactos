@@ -96,6 +96,7 @@ list(APPEND SOURCE
     version.c
     wait.c
     workitem.c
+    xcontext.c
     rtl.h)
 
 if(ARCH STREQUAL "i386")
