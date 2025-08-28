@@ -93,6 +93,7 @@ list(APPEND SOURCE
     vectoreh.c
     version.c
     workitem.c
+    xcontext.c
     rtl.h)
 
 if(ARCH STREQUAL "i386")
