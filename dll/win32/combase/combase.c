@@ -311,6 +311,11 @@ HRESULT open_key_for_clsid(REFCLSID clsid, const WCHAR *keyname, REGSAM access, 
     lstrcpyW(path, clsidW);
     StringFromGUID2(clsid, path + lstrlenW(clsidW), CHARS_IN_GUID);
     res = open_classes_key(HKEY_CLASSES_ROOT, path, access, &key);
+
+    WCHAR data[100];
+    swprintf(data, 99, L"!!RESULT %d for path %s!!\n", res, path);
+
+    OutputDebugStringW( data);
     if (res == ERROR_FILE_NOT_FOUND)
         return REGDB_E_CLASSNOTREG;
     else if (res != ERROR_SUCCESS)

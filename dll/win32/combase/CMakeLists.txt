@@ -1,7 +1,7 @@
 
 remove_definitions(-D_CRT_NON_CONFORMING_SWPRINTFS)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
-spec2def(combase.dll combase.spec)
+spec2def(combase.dll combase.spec ADD_IMPORTLIB)
 add_idl_headers(combase_idlheader dcom.idl)
 add_rpc_files(client irpcss.idl)
 

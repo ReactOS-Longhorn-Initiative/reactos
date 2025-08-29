@@ -82,7 +82,8 @@ HRESULT WINAPI SetProcessDpiAwareness(PROCESS_DPI_AWARENESS value)
 
 HRESULT WINAPI GetDpiForMonitor(HMONITOR monitor, MONITOR_DPI_TYPE type, UINT *x, UINT *y)
 {
-
+*x=96;
+*y=96;
     return HRESULT_FROM_WIN32( GetLastError() );
 }
 
