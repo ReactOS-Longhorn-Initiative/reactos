@@ -125,7 +125,7 @@ void WINAPI DECLSPEC_HOTPATCH FreeLibraryAndExitThread( HINSTANCE module, DWORD 
     RtlExitUserThread( exit_code );
 }
 
-
+#endif
 /***********************************************************************
  *	     GetCurrentThreadStackLimits   (kernelbase.@)
  */
@@ -134,7 +134,7 @@ void WINAPI DECLSPEC_HOTPATCH GetCurrentThreadStackLimits( ULONG_PTR *low, ULONG
     *low = (ULONG_PTR)NtCurrentTeb()->DeallocationStack;
     *high = (ULONG_PTR)NtCurrentTeb()->Tib.StackBase;
 }
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetCurrentThread   (kernelbase.@)
  */

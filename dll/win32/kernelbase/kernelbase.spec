@@ -171,7 +171,7 @@
 @ stdcall ConvertThreadToFiber(ptr)
 @ stdcall ConvertThreadToFiberEx(ptr long)
 @ stdcall ConvertToAutoInheritPrivateObjectSecurity(ptr ptr ptr ptr long ptr)
-@ stub CopyContext
+@ stdcall -version=0x601+ CopyContext(ptr long ptr)
 @ stdcall CopyFile2(wstr wstr ptr)
 @ stdcall CopyFileExW(wstr wstr ptr ptr ptr long)
 @ stdcall CopyFileW(wstr wstr long)
@@ -508,7 +508,7 @@
 # @ stub GetCurrentTargetPlatformContext
 @ stdcall -norelay GetCurrentThread() 
 @ stdcall -norelay GetCurrentThreadId()
-@ stdcall -stub GetCurrentThreadStackLimits(ptr ptr)
+@ stdcall GetCurrentThreadStackLimits(ptr ptr)
 @ stdcall GetDateFormatA(long long ptr str ptr long)
 @ stdcall -version=0x600+ GetDateFormatEx(wstr long ptr wstr ptr long wstr)
 @ stdcall GetDateFormatW(long long ptr wstr ptr long)
@@ -528,7 +528,7 @@
 # @ stub GetEffectivePackageStatusForUser
 # @ stub GetEightBitStringToUnicodeSizeRoutine
 # @ stub GetEightBitStringToUnicodeStringRoutine
-@ stdcall -stub -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures()
+@ stdcall -version=0x601+ -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures()
 @ stdcall GetEnvironmentStrings()
 @ stdcall GetEnvironmentStringsA() GetEnvironmentStrings
 @ stdcall GetEnvironmentStringsW()
@@ -668,9 +668,9 @@
 @ stdcall GetProcessIdOfThread(long)
 @ stdcall GetProcessImageFileNameA(long ptr long)
 @ stdcall GetProcessImageFileNameW(long ptr long)
-@ stdcall -stub -version=0x602+ GetProcessInformation(long long ptr long)
+@ stdcall -version=0x602+ GetProcessInformation(long long ptr long)
 @ stdcall GetProcessMemoryInfo(long ptr long)
-@ stdcall -stub -version=0x602+ GetProcessMitigationPolicy(long long ptr long)
+@ stdcall -version=0x602+ GetProcessMitigationPolicy(long long ptr long)
 @ stdcall -stub GetProcessPreferredUILanguages(long ptr ptr ptr)
 @ stdcall GetProcessPriorityBoost(long ptr)
 @ stdcall GetProcessShutdownParameters(ptr ptr)
@@ -806,7 +806,7 @@
 @ stdcall GetWriteWatch(long ptr long ptr ptr ptr)
 @ stdcall GetWsChanges(long ptr long)
 @ stdcall GetWsChangesEx(long ptr ptr)
-@ stdcall -stub -arch=i386,x86_64 GetXStateFeaturesMask(ptr ptr)
+@ stdcall -version=0x601+ -arch=i386,x86_64 GetXStateFeaturesMask(ptr ptr)
 @ stdcall GlobalAlloc(long long)
 @ stdcall GlobalFree(long)
 @ stdcall GlobalMemoryStatusEx(ptr)
@@ -841,8 +841,8 @@
 @ stdcall InitOnceInitialize(ptr) ntdll.RtlRunOnceInitialize
 @ stdcall InitializeAcl(ptr long long)
 @ stdcall InitializeConditionVariable(ptr) ntdll.RtlInitializeConditionVariable
-@ stub  InitializeContext
-@ stub -version=0xA00+ InitializeContext2
+@ stdcall -version=0x601+ InitializeContext(ptr long ptr ptr)
+@ stdcall -version=0xA00+ InitializeContext2(ptr long ptr ptr int64)
 @ stdcall InitializeCriticalSection(ptr) ntdll.RtlInitializeCriticalSection
 @ stdcall InitializeCriticalSectionAndSpinCount(ptr long)
 @ stdcall InitializeCriticalSectionEx(ptr long long)
@@ -919,7 +919,7 @@
 @ stdcall IsValidSid(ptr)
 @ stdcall IsWellKnownSid(ptr long)
 @ stdcall IsWow64Process(ptr ptr)
-@ stdcall -stub -version=0xA00+ IsWow64Process2(ptr ptr ptr)
+@ stdcall -version=0xA00+ IsWow64Process2(ptr ptr ptr)
 @ stdcall K32EmptyWorkingSet(long) EmptyWorkingSet
 @ stdcall K32EnumDeviceDrivers(ptr long ptr) EnumDeviceDrivers
 @ stdcall K32EnumPageFilesA(ptr ptr) EnumPageFilesA
@@ -973,7 +973,7 @@
 @ stdcall LocalReAlloc(long long long)
 @ stdcall LocalUnlock(long)
 @ stdcall LocaleNameToLCID(wstr long)
-@ stdcall -stub -version=0x601+ -arch=i386,x86_64 LocateXStateFeature(ptr long ptr)
+@ stdcall -version=0x601+ -arch=i386,x86_64 LocateXStateFeature(ptr long ptr)
 @ stdcall LockFile(long long long long long)
 @ stdcall LockFileEx(long long long long long ptr)
 @ stdcall LockResource(long)
@@ -1245,8 +1245,8 @@
 @ stdcall QueryIoRingCapabilities(ptr)
 @ stdcall QueryIdleProcessorCycleTime(ptr ptr)
 @ stdcall QueryIdleProcessorCycleTimeEx(long ptr ptr)
-@ stdcall -stub -version=0xA00+ QueryInterruptTime(ptr)
-@ stdcall -stub -version=0xA00+ QueryInterruptTimePrecise(ptr)
+@ stdcall -version=0xA00+ QueryInterruptTime(ptr)
+@ stdcall -version=0xA00+ QueryInterruptTimePrecise(ptr)
 @ stdcall QueryMemoryResourceNotification(ptr ptr)
 # @ stub QueryOptionalDelayLoadedAPI
 @ stdcall QueryPerformanceCounter(ptr)
@@ -1258,7 +1258,7 @@
 # @ stub QueryStateAtomValueInfo
 # @ stub QueryStateContainerCreatedNew
 # @ stub QueryStateContainerItemInfo
-@ stdcall -stub QueryThreadCycleTime(long ptr)
+@ stdcall QueryThreadCycleTime(long ptr)
 @ stdcall QueryThreadpoolStackInformation(ptr ptr)
 @ stdcall QueryUnbiasedInterruptTime(ptr) ntdll.RtlQueryUnbiasedInterruptTime
 @ stdcall -stub -version=0xA00+ QueryUnbiasedInterruptTimePrecise(ptr)
@@ -1557,7 +1557,7 @@
 @ stdcall -stub SetUserGeoName(wstr)
 @ stdcall SetWaitableTimer(long ptr long ptr ptr long)
 @ stdcall SetWaitableTimerEx(long ptr long ptr ptr ptr long)
-@ stdcall -stub -arch=i386,x86_64 SetXStateFeaturesMask(ptr int64)
+@ stdcall -version=0x601+ -arch=i386,x86_64 SetXStateFeaturesMask(ptr int64)
 @ stdcall SetupComm(long long long)
 # @ stub SharedLocalIsEnabled
 @ stdcall SignalObjectAndWait(long long long long)
@@ -1720,7 +1720,7 @@
 # @ stub VerifyPackageId
 # @ stub VerifyPackageRelativeApplicationId
 # @ stub VerifyScripts
-@ stdcall -stub -version=0xA00+ VirtualAlloc2(long ptr long long long ptr long)
+@ stdcall -version=0xA00+ VirtualAlloc2(long ptr long long long ptr long)
 @ stdcall -stub -version=0xA00+ VirtualAlloc2FromApp(long ptr long long long ptr long)
 @ stdcall VirtualAlloc(ptr long long long)
 @ stdcall VirtualAllocEx(long ptr long long long)
@@ -1751,10 +1751,10 @@
 @ stdcall WaitForThreadpoolWorkCallbacks(ptr long) ntdll.TpWaitForWork
 # @ stub WaitForUserPolicyForegroundProcessingInternal
 @ stdcall WaitNamedPipeW(wstr long)
-@ stub -version=0x603+ WaitOnAddress(ptr ptr long long)
+@ stdcall -version=0x603+ WaitOnAddress(ptr ptr long long)
 @ stdcall WakeAllConditionVariable(ptr) ntdll.RtlWakeAllConditionVariable
-@ stub -version=0x603+ WakeByAddressAll ;RtlWakeAddressAll
-@ stub -version=0x603+ WakeByAddressSingle ;RtlWakeAddressSingle
+@ stdcall -version=0x603+ WakeByAddressAll(ptr) ntdll.RtlWakeAddressAll
+@ stdcall -version=0x603+ WakeByAddressSingle(ptr) ntdll.RtlWakeAddressSingle
 @ stdcall WakeConditionVariable(ptr) ntdll.RtlWakeConditionVariable
 @ stdcall WerGetFlags(ptr ptr)
 @ stdcall WerRegisterFile(wstr long long)
@@ -2139,3 +2139,4 @@
 @ stdcall GetFileBandwidthReservation(ptr ptr ptr ptr ptr ptr)
 @ stdcall -version=0x600+ SetConsoleHistoryInfo(ptr)
 @ stdcall -version=0x600+ SetFileBandwidthReservation(ptr long long long ptr ptr)
+@ stdcall -stub SetUserDefaultGeoName(wstr)

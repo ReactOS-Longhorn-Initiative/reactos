@@ -118,7 +118,12 @@ add_library(${kernelbase_name} MODULE
     kernelbase.rc
     ${CMAKE_CURRENT_BINARY_DIR}/${kernelbase_name}_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/${kernelbase_name}.def)
-
+if(MSVC)
+    # Disable warning C4133: 'function': incompatible types - from 'WICPixelFormatNumericRepresentation *' to 'DWORD *'
+    # Disable warning C4146: unary minus operator applied to unsigned type, result still unsigned
+    target_compile_options(${kernelbase_name} PRIVATE /wd4047 /wd4024 /wd4133 /wd4146)
+ 
+endif()
 set_module_type(${kernelbase_name} win32dll ENTRYPOINT DllMain 12)
 #############################################
 ## HACK FOR MSVC COMPILATION WITH win32dll ##

@@ -107,7 +107,7 @@
 @ stdcall -stub -version=0x600+ ConvertSystemTimeToCalDateTime(ptr long ptr)
 @ stdcall ConvertThreadToFiber(ptr) kernelbase.ConvertThreadToFiber
 @ stdcall ConvertThreadToFiberEx(ptr long) kernelbase.ConvertThreadToFiberEx
-@ stdcall -version=0x601+ -stub CopyContext(ptr long ptr)
+@ stdcall -version=0x601+ CopyContext(ptr long ptr) kernelbase.CopyContext
 @ stdcall -version=0x602+ CopyFile2(wstr wstr ptr) kernelbase.CopyFile2
 @ stdcall CopyFileA(str str long) kernelbase.CopyFileA
 @ stdcall CopyFileExA(str str ptr ptr ptr long) kernelbase.CopyFileExA
@@ -467,7 +467,7 @@
 @ stub GetCurrentProcessorNumberEx(ptr) ;NTDLL.RtlGetCurrentProcessorNumberEx
 @ stdcall -norelay GetCurrentThread() kernelbase.GetCurrentThread
 @ stdcall -norelay GetCurrentThreadId() kernelbase.GetCurrentThreadId
-@ stdcall -stub -version=0x602+  GetCurrentThreadStackLimits(ptr ptr)
+@ stdcall -version=0x602+  GetCurrentThreadStackLimits(ptr ptr) kernelbase.GetCurrentThreadStackLimits
 @ stdcall -version=0x601+ -arch=win64 GetCurrentUmsThread()
 @ stdcall GetDateFormatA(long long ptr str ptr long) kernelbase.GetDateFormatA
 @ stdcall -version=0x600+ GetDateFormatEx(wstr long ptr wstr wstr long wstr)
@@ -615,9 +615,9 @@
 @ stdcall GetProcessHeaps(long ptr) kernelbase.GetProcessHeaps
 @ stdcall GetProcessId(long) kernelbase.GetProcessId
 @ stdcall GetProcessIdOfThread(ptr) kernelbase.GetProcessIdOfThread
-@ stdcall -stub -version=0x602+ GetProcessInformation(long long ptr long)
+@ stdcall  -version=0x602+ GetProcessInformation(long long ptr long) kernelbase.GetProcessInformation
 @ stdcall GetProcessIoCounters(long ptr) kernelbase.GetProcessIoCounters
-@ stdcall -stub -version=0x602+ GetProcessMitigationPolicy(long long ptr long)
+@ stdcall -version=0x602+ GetProcessMitigationPolicy(long long ptr long) kernelbase.GetProcessMitigationPolicy
 @ stdcall -stub -version=0x601+ GetProcessPreferredUILanguages(long ptr ptr ptr)
 @ stdcall GetProcessPriorityBoost(long ptr) kernelbase.GetProcessPriorityBoost
 @ stdcall GetProcessShutdownParameters(ptr ptr) kernelbase.GetProcessShutdownParameters
@@ -817,7 +817,7 @@
 @ stdcall -version=0x501-0x502 IsValidUILanguage(long) kernelbase.IsValidUILanguage
 @ stdcall -stub -version=0x602+ IsValidNLSVersion(long wstr ptr)
 @ stdcall IsWow64Process(ptr ptr) kernelbase.IsWow64Process
-@ stdcall -stub -version=0xA00+ IsWow64Process2(ptr ptr ptr)
+@ stdcall -version=0xA00+ IsWow64Process2(ptr ptr ptr) kernelbase.IsWow64Process2
 @ stdcall -version=0x601+ K32EmptyWorkingSet(long) kernelbase.K32EmptyWorkingSet
 @ stdcall -version=0x601+ K32EnumDeviceDrivers(ptr long ptr) kernelbase.K32EnumDeviceDrivers
 @ stdcall -version=0x601+ K32EnumPageFilesA(ptr ptr) kernelbase.K32EnumPageFilesA
@@ -977,8 +977,8 @@
 @ stdcall QueryPerformanceFrequency(ptr) kernelbase.QueryPerformanceFrequency
 @ stub -version=0x600+ QueryProcessAffinityUpdateMode
 @ stdcall -version=0x600+ QueryProcessCycleTime(long ptr) kernelbase.QueryProcessCycleTime
-@ stub -version=0x600+ QueryThreadCycleTime
-@ stub -version=0x601+ QueryThreadProfiling
+@ stdcall -version=0x600+ QueryThreadCycleTime(long ptr) kernelbase.QueryThreadCycleTime
+@ stdcall -stub -version=0x601+ QueryThreadProfiling(ptr ptr)
 @ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr) kernelbase.QueryThreadpoolStackInformation
 @ stdcall -version=0x601+ -arch=win64 QueryUmsThreadInformation(ptr long ptr long ptr)
 @ stdcall QueryUnbiasedInterruptTime(ptr) ntdll.RtlQueryUnbiasedInterruptTime
@@ -1210,7 +1210,7 @@
 @ stub -version=0x600+ SetProcessAffinityUpdateMode
 @ stdcall -stub -version=0xA00+ SetProcessDefaultCpuSets(ptr ptr long)
 @ stdcall -version=0x600+ SetProcessDEPPolicy(ptr) kernelbase.SetProcessDEPPolicy
-@ stdcall -stub -version=0x602+ SetProcessInformation(long long ptr long)
+@ stdcall -version=0x602+ SetProcessInformation(long long ptr long) kernelbase.SetProcessInformation
 @ stdcall -stub -version=0x602+ SetProcessMitigationPolicy(long ptr long)
 @ stdcall -version=0x601+ SetProcessPreferredUILanguages(long ptr ptr) kernelbase.SetProcessPreferredUILanguages
 @ stdcall SetProcessPriorityBoost(long long) kernelbase.SetProcessPriorityBoost
@@ -1309,8 +1309,8 @@
 @ stdcall UnregisterWaitEx(long long) kernelbase.UnregisterWaitEx
 @ stub -version=0x600+ UpdateCalendarDayOfWeek
 @ stdcall -version=0x600+ UpdateProcThreadAttribute(ptr long ptr ptr ptr ptr ptr) kernelbase.UpdateProcThreadAttribute
-@ stdcall UpdateResourceA(long str str long ptr long) kernelbase.UpdateResourceA
-@ stdcall UpdateResourceW(long wstr wstr long ptr long) kernelbase.UpdateResourceW
+@ stdcall UpdateResourceA(long str str long ptr long)
+@ stdcall UpdateResourceW(long wstr wstr long ptr long)
 @ stdcall VDMConsoleOperation(long long) kernelbase.VDMConsoleOperation
 @ stdcall VDMOperationStarted(long) kernelbase.VDMOperationStarted
 @ stdcall -version=0x500-0x502 ValidateLCType(long long ptr ptr) kernelbase.ValidateLCType
@@ -1324,6 +1324,7 @@
 @ stdcall VerifyVersionInfoW(long long double) kernelbase.VerifyVersionInfoW
 @ stdcall VirtualAlloc(ptr long long long) kernelbase.VirtualAlloc
 @ stdcall VirtualAllocEx(long ptr long long long) kernelbase.VirtualAllocEx
+@ stdcall -version=0xA00+ VirtualAlloc2(long ptr long long long ptr long) kernelbase.VirtualAlloc2
 @ stub -version=0x600+ VirtualAllocExNuma
 @ stdcall VirtualFree(ptr long long) kernelbase.VirtualFree
 @ stdcall VirtualFreeEx(long ptr long long) kernelbase.VirtualFreeEx
@@ -1434,11 +1435,18 @@
 
 @ stdcall -stub ResolveLocaleName(wstr ptr long)
 
-@ stdcall -stub -version=0x601+ -arch=i386,x86_64 LocateXStateFeature(ptr long ptr)
-@ stdcall -stub -arch=i386,x86_64 GetXStateFeaturesMask(ptr ptr)
-@ stdcall -stub -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures()
-@ stdcall -stub -arch=i386,x86_64 SetXStateFeaturesMask(ptr int64)
-
-@ stdcall -stub InitializeContext(ptr long ptr ptr)
+@ stdcall -version=0x601+ -arch=i386,x86_64 LocateXStateFeature(ptr long ptr) kernelbase.LocateXStateFeature
+@ stdcall -arch=i386,x86_64 GetXStateFeaturesMask(ptr ptr) kernelbase.GetXStateFeaturesMask
+@ stdcall -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures() kernelbase.GetEnabledXStateFeatures
+@ stdcall -arch=i386,x86_64 SetXStateFeaturesMask(ptr int64) kernelbase.SetXStateFeaturesMask
+@ stdcall -version=0x601+ InitializeContext(ptr long ptr ptr) kernelbase.InitializeContext
 @ stdcall -stub GetThreadIdealProcessorEx(long ptr)
 @ stdcall GetCurrentApplicationUserModelId(ptr wstr) kernelbase.GetCurrentApplicationUserModelId
+
+@ stdcall -version=0xA00+ InitializeContext2(ptr long ptr ptr int64) kernelbase.InitializeContext2
+@ stdcall SetUserDefaultGeoName(wstr) kernelbase.SetUserDefaultGeoName
+
+
+@ stdcall -version=0x603+ WaitOnAddress(ptr ptr long long) kernelbase.WaitOnAddress
+@ stdcall -version=0x603+ WakeByAddressAll(ptr) kernelbase.WakeByAddressAll
+@ stdcall -version=0x603+ WakeByAddressSingle(ptr) kernelbase.WakeByAddressSingle

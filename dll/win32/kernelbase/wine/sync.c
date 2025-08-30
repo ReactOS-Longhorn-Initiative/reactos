@@ -236,18 +236,6 @@ void WINAPI DECLSPEC_HOTPATCH QueryInterruptTime( ULONGLONG *time )
     *time = (ULONGLONG)high << 32 | low;
 }
 
-
-/******************************************************************************
- *           QueryInterruptTimePrecise  (kernelbase.@)
- */
-void WINAPI DECLSPEC_HOTPATCH QueryInterruptTimePrecise( ULONGLONG *time )
-{
-    static int once;
-    if (!once++) FIXME( "(%p) semi-stub\n", time );
-
-    QueryInterruptTime( time );
-}
-
 /***********************************************************************
  *           QueryUnbiasedInterruptTimePrecise  (kernelbase.@)
  */
@@ -508,18 +496,21 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEventEx( DEBUG_EVENT *event, DWORD tim
     }
 #endif
 }
-
-#ifndef __REACTOS__
+#ifdef __REACTOS__
+NTSTATUS 
+WINAPI 
+RtlWaitOnAddress( 
+	const void *addr, 
+	const void *cmp, 
+	SIZE_T size,
+    const LARGE_INTEGER *timeout 
+);
+#endif
 /***********************************************************************
  *           WaitOnAddress   (kernelbase.@)
  */
 BOOL WINAPI DECLSPEC_HOTPATCH WaitOnAddress( volatile void *addr, void *cmp, SIZE_T size, DWORD timeout )
 {
-#ifdef __REACTOS__
-    //TODO: We don't Implement WaitOnAddress
-    __debugbreak();
-    return 0;
-#else
     LARGE_INTEGER to;
 
     if (timeout != INFINITE)
@@ -528,10 +519,9 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitOnAddress( volatile void *addr, void *cmp, SIZ
         return set_ntstatus( RtlWaitOnAddress( (const void *)addr, cmp, size, &to ));
     }
     return set_ntstatus( RtlWaitOnAddress( (const void *)addr, cmp, size, NULL ));
-#endif
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  * Events
  ***********************************************************************/

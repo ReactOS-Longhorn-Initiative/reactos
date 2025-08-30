@@ -854,9 +854,22 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetPriorityClass( HANDLE process )
  */
 BOOL WINAPI DECLSPEC_HOTPATCH GetProcessGroupAffinity( HANDLE process, USHORT *count, USHORT *array )
 {
-    FIXME( "(%p,%p,%p): stub\n", process, count, array );
-    SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
-    return FALSE;
+	USHORT LastGroupCount;
+    if (!count) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+    LastGroupCount = *count;
+    *count = 1;
+    if(LastGroupCount == 0)
+    {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
+    if(!GetProcessId(process))
+        return FALSE;
+    array[0] = 1;
+    return TRUE;
 }
 
 #ifndef __REACTOS__
@@ -892,7 +905,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetProcessId( HANDLE process )
         return 0;
     return pbi.UniqueProcessId;
 }
-
+#endif
 
 /**********************************************************************
  *           GetProcessMitigationPolicy   (kernelbase.@)
@@ -904,7 +917,7 @@ BOOL WINAPI /* DECLSPEC_HOTPATCH */ GetProcessMitigationPolicy( HANDLE process, 
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetProcessPriorityBoost   (kernelbase.@)
  */
@@ -1016,6 +1029,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH IsProcessorFeaturePresent ( DWORD feature )
 {
     return RtlIsProcessorFeaturePresent( feature );
 }
+#endif
 
 
 /**********************************************************************
@@ -1023,10 +1037,10 @@ BOOL WINAPI DECLSPEC_HOTPATCH IsProcessorFeaturePresent ( DWORD feature )
  */
 BOOL WINAPI DECLSPEC_HOTPATCH IsWow64Process2( HANDLE process, USHORT *machine, USHORT *native_machine )
 {
-    return set_ntstatus( RtlWow64GetProcessMachines( process, machine, native_machine ));
+    return FALSE;
 }
 
-
+#ifndef __REACTOS__
 /**********************************************************************
  *           IsWow64Process   (kernelbase.@)
  */

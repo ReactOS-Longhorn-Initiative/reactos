@@ -7,10 +7,7 @@
 #define RtlReleasePath( path ) RtlFreeHeap( GetProcessHeap(), 0, path );
 #endif
 #define IMAGE_FILE_MACHINE_TARGET_HOST       0x0001 
-#ifndef RTL_CONSTANT_STRING
-#define RTL_CONSTANT_STRING(s)  { sizeof(s)-sizeof((s)[0]), sizeof(s), s }
-#endif
-
+ 
 //def ndk
 NTSYSAPI
 BOOLEAN
@@ -164,3 +161,16 @@ typedef enum _PROCESS_MITIGATION_POLICY
 #define ProcessMemoryPriority 0
 #define ProcessPowerThrottling 77
 #define ProcessLeapSecondInfo 97
+
+typedef struct _CONTEXT_CHUNK {
+  LONG Offset;
+  ULONG Length;
+} CONTEXT_CHUNK, *PCONTEXT_CHUNK;
+
+typedef struct _CONTEXT_EX {
+  CONTEXT_CHUNK All;
+  CONTEXT_CHUNK Legacy;
+  CONTEXT_CHUNK XState;
+} CONTEXT_EX, *PCONTEXT_EX;
+#define STATUS_NOT_SUPPORTED                    ((NTSTATUS)0xC00000BB)
+NTSTATUS NTAPI RtlCopyContext( CONTEXT *dst, DWORD context_flags, CONTEXT *src );
