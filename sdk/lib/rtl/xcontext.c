@@ -1072,10 +1072,10 @@ void * WINAPI RtlLocateExtendedFeature2( CONTEXT_EX *context_ex, ULONG feature_i
 
     if (xstate_config->CompactionEnabled)
     {
-        if (!(xs->CompactionMask & feature_mask)) return NULL;
+        if (!(xs->Mask & feature_mask)) return NULL;
         offset = sizeof(XSAVE_AREA_HEADER);
         for (i = 2; i < feature_id; ++i)
-            offset = next_compacted_xstate_offset( offset, xs->CompactionMask, i );
+            offset = next_compacted_xstate_offset( offset, xs->Mask, i );
     }
     else
     {
@@ -1241,11 +1241,11 @@ NTSTATUS WINAPI RtlCopyExtendedContext( CONTEXT_EX *dst, ULONG context_flags, CO
 
     memset(dst_xs, 0, sizeof(XSAVE_AREA_HEADER));
     dst_xs->Mask = (src_xs->Mask & ~(ULONG64)3) & feature_mask;
-    dst_xs->CompactionMask = user_shared_data->XState.CompactionEnabled
-            ? ((ULONG64)1 << 63) | (src_xs->CompactionMask & feature_mask) : 0;
+    dst_xs->Mask = user_shared_data->XState.CompactionEnabled
+            ? ((ULONG64)1 << 63) | (src_xs->Mask & feature_mask) : 0;
 
 
-    if (dst_xs->CompactionMask) feature_mask &= dst_xs->CompactionMask;
+    if (dst_xs->Mask) feature_mask &= dst_xs->Mask;
     feature_mask = dst_xs->Mask >> 2;
 
     i = 2;
@@ -1254,13 +1254,13 @@ NTSTATUS WINAPI RtlCopyExtendedContext( CONTEXT_EX *dst, ULONG context_flags, CO
     {
         if (feature_mask & 1)
         {
-            if (!dst_xs->CompactionMask) off = user_shared_data->XState.Features[i].Offset - sizeof(XSAVE_FORMAT);
+            if (!dst_xs->Mask) off = user_shared_data->XState.Features[i].Offset - sizeof(XSAVE_FORMAT);
             size = user_shared_data->XState.Features[i].Size;
             if (src->XState.Length < off + size || dst->XState.Length < off + size) break;
             memcpy( (BYTE *)dst_xs + off, (BYTE *)src_xs + off, size );
         }
         if (!(feature_mask >>= 1)) break;
-        if (dst_xs->CompactionMask) off = next_compacted_xstate_offset( off, dst_xs->CompactionMask, i);
+        if (dst_xs->Mask) off = next_compacted_xstate_offset( off, dst_xs->Mask, i);
         ++i;
     }
     return STATUS_SUCCESS;

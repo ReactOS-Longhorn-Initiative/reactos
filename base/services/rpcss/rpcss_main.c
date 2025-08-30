@@ -21,7 +21,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <assert.h>
-
+#define COBJMACROS
 #include "windef.h"
 #include "winbase.h"
 #include "winnt.h"

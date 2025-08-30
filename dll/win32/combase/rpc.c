@@ -34,6 +34,7 @@
 
 #include "irpcss.h"
 
+#include "irot_s.h"
 WINE_DEFAULT_DEBUG_CHANNEL(ole);
 
 static void __RPC_STUB dispatch_rpc(RPC_MESSAGE *msg);

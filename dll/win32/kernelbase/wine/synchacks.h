@@ -7,8 +7,9 @@
 #define RtlReleasePath( path ) RtlFreeHeap( GetProcessHeap(), 0, path );
 #endif
 #define IMAGE_FILE_MACHINE_TARGET_HOST       0x0001 
+#ifndef RTL_CONSTANT_STRING
 #define RTL_CONSTANT_STRING(s)  { sizeof(s)-sizeof((s)[0]), sizeof(s), s }
-
+#endif
 
 //def ndk
 NTSYSAPI
