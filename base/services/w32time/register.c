@@ -42,6 +42,8 @@ static
 HRESULT
 RegisterService(VOID)
 {
+    return S_OK;
+
     SC_HANDLE hServiceManager = NULL;
     SC_HANDLE hService = NULL;
     HKEY hKey = NULL;
