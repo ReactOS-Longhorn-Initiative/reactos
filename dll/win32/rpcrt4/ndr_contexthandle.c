@@ -116,6 +116,12 @@ void WINAPI NDRCContextMarshall(NDR_CCONTEXT CContext, void *pBuff)
     {
         EnterCriticalSection(&ndr_context_cs);
         che = get_context_entry(CContext);
+        if (!che)
+        {
+            LeaveCriticalSection(&ndr_context_cs);
+            RpcRaiseException(RPC_X_SS_CONTEXT_MISMATCH);
+            return;
+        }
         memcpy(pBuff, &che->wire_data, sizeof (ndr_context_handle));
         LeaveCriticalSection(&ndr_context_cs);
     }
