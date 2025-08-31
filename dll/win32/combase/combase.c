@@ -217,7 +217,11 @@ static HKEY create_classes_root_hkey(DWORD access)
 {
     HKEY hkey, ret = 0;
     OBJECT_ATTRIBUTES attr;
+#ifdef __REACTOS__
+    UNICODE_STRING name = RTL_CONSTANT_STRING(L"\\REGISTRY\\Machine\\Software\\Classes");
+#else
     UNICODE_STRING name = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\Software\\Classes");
+#endif
 
     attr.Length = sizeof(attr);
     attr.RootDirectory = 0;
@@ -312,10 +316,6 @@ HRESULT open_key_for_clsid(REFCLSID clsid, const WCHAR *keyname, REGSAM access, 
     StringFromGUID2(clsid, path + lstrlenW(clsidW), CHARS_IN_GUID);
     res = open_classes_key(HKEY_CLASSES_ROOT, path, access, &key);
 
-    WCHAR data[100];
-    swprintf(data, 99, L"!!RESULT %d for path %s!!\n", res, path);
-
-    OutputDebugStringW( data);
     if (res == ERROR_FILE_NOT_FOUND)
         return REGDB_E_CLASSNOTREG;
     else if (res != ERROR_SUCCESS)
