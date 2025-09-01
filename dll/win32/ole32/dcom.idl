@@ -23,6 +23,7 @@
 #pragma makedep register
 
 #include "wine/orpc.idl"
+#include "unknwn.idl"
 
 [
     threading(both),

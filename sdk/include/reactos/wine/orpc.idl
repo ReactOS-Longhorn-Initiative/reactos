@@ -18,7 +18,11 @@
 
 #pragma makedep header
 
-import "unknwn.idl";
+//#ifdef __REACTOS__ /* Fix unknwn.h compilation failure. */
+import "wtypes.idl";
+//#else
+//import "unknwn.idl";
+//#endif
 
 [
     uuid(99fcfe60-5260-101b-bbcb-00aa0021347a),
