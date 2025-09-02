@@ -46,6 +46,7 @@
 @ stdcall CoGetPSClsid(ptr ptr) combase.CoGetPSClsid
 @ stdcall CoGetStandardMarshal(ptr ptr long ptr long ptr) combase.CoGetStandardMarshal
 @ stdcall CoGetState(ptr)
+@ stdcall -stub CoGetStdMarshalEx(ptr long ptr)
 @ stub CoGetTIDFromIPID
 @ stdcall CoGetTreatAsClass(ptr ptr) combase.CoGetTreatAsClass
 @ stdcall CoImpersonateClient() combase.CoImpersonateClient
