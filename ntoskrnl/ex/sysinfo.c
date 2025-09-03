@@ -566,6 +566,15 @@ NtEnumerateSystemEnvironmentValuesEx(IN ULONG InformationClass,
 
 NTSTATUS
 NTAPI
+NtWorkerFactoryWorkerReady(IN ULONG TheUnknown)
+{
+    DPRINT1("WorkerFactoryWorkerReady is unimplemented, %d", TheUnknown);
+    __debugbreak();
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS
+NTAPI
 NtQuerySystemEnvironmentValueEx(
     _In_ PUNICODE_STRING VariableName,
     _In_ LPGUID VendorGuid,

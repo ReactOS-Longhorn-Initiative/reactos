@@ -22,7 +22,6 @@
 #pragma makedep header
 
 #include "wine/orpc.idl"
-#include "unknwn.idl"
 
 [
     object,

@@ -64,6 +64,13 @@ NtAcceptConnectPort(
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
+NtWorkerFactoryWorkerReady(
+    ULONG
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
 NtCompleteConnectPort(
     _In_ HANDLE PortHandle
 );
