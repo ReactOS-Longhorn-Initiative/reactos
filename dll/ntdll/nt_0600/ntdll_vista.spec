@@ -24,5 +24,4 @@
 @ stdcall LdrAddDllDirectory(ptr ptr)
 @ stdcall LdrSetDllDirectory(ptr)
 @ stdcall LdrGetDllDirectory(ptr)
-@ stdcall LdrRemoveDllDirectory(ptr)
-@ stdcall LdrSetDefaultDllDirectories(long)
+ 
