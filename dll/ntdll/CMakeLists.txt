@@ -35,6 +35,7 @@ list(APPEND SOURCE
     dbg/dbgui.c
     ldr/ldrapi.c
     ldr/ldrinit.c
+    ldr/ldrcor.c
     ldr/ldrpe.c
     ldr/ldrutils.c
     ldr/verifier.c)
