@@ -13,6 +13,51 @@
 
 #define NDEBUG
 #include <debug.h>
+/* Expose DLL directories control */
+extern ULONG LdrpDefaultDllDirectories;
+extern RTL_CRITICAL_SECTION LdrpDllDirectoryLock;
+typedef struct _LDRP_DLL_DIR_ENTRY {
+    LIST_ENTRY Links;
+    UNICODE_STRING Path;
+} LDRP_DLL_DIR_ENTRY, *PLDRP_DLL_DIR_ENTRY;
+extern LIST_ENTRY LdrpDllDirectoryList;
+
+NTSTATUS NTAPI LdrAddDllDirectory(IN PUNICODE_STRING NewDirectory, OUT PVOID* Cookie)
+{
+    PLDRP_DLL_DIR_ENTRY Entry;
+    if (!NewDirectory || !NewDirectory->Buffer || !Cookie) return STATUS_INVALID_PARAMETER;
+    Entry = RtlAllocateHeap(LdrpHeap, HEAP_ZERO_MEMORY, sizeof(*Entry));
+    if (!Entry) return STATUS_NO_MEMORY;
+    Entry->Path = *NewDirectory;
+    Entry->Path.Buffer = RtlAllocateHeap(LdrpHeap, 0, Entry->Path.Length + sizeof(WCHAR));
+    if (!Entry->Path.Buffer) { RtlFreeHeap(LdrpHeap, 0, Entry); return STATUS_NO_MEMORY; }
+    RtlCopyMemory(Entry->Path.Buffer, NewDirectory->Buffer, Entry->Path.Length);
+    Entry->Path.Buffer[Entry->Path.Length/sizeof(WCHAR)] = UNICODE_NULL;
+    Entry->Path.MaximumLength = Entry->Path.Length + sizeof(WCHAR);
+    RtlEnterCriticalSection(&LdrpDllDirectoryLock);
+    InsertHeadList(&LdrpDllDirectoryList, &Entry->Links);
+    RtlLeaveCriticalSection(&LdrpDllDirectoryLock);
+    *Cookie = Entry;
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS NTAPI LdrRemoveDllDirectory(IN PVOID Cookie)
+{
+    PLDRP_DLL_DIR_ENTRY Entry = (PLDRP_DLL_DIR_ENTRY)Cookie;
+    if (!Entry) return STATUS_INVALID_PARAMETER;
+    RtlEnterCriticalSection(&LdrpDllDirectoryLock);
+    RemoveEntryList(&Entry->Links);
+    RtlLeaveCriticalSection(&LdrpDllDirectoryLock);
+    if (Entry->Path.Buffer) RtlFreeHeap(LdrpHeap, 0, Entry->Path.Buffer);
+    RtlFreeHeap(LdrpHeap, 0, Entry);
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS NTAPI LdrSetDefaultDllDirectories(ULONG Flags)
+{
+    LdrpDefaultDllDirectories = Flags;
+    return STATUS_SUCCESS;
+}
 
 /* GLOBALS *******************************************************************/
 
