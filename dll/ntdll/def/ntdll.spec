@@ -235,6 +235,7 @@
 @ stdcall NtAssignProcessToJobObject(long long)
 @ stdcall NtCallbackReturn(ptr long long)
 @ stdcall NtCancelDeviceWakeupRequest(ptr)
+@ stdcall -version=0x600+ NtCancelIoFileEx(ptr ptr ptr)
 @ stdcall NtCancelIoFile(long ptr)
 @ stdcall NtCancelTimer(long ptr)
 @ stdcall NtClearEvent(long)
