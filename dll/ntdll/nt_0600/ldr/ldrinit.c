@@ -16,21 +16,3 @@ NTSTATUS WINAPI LdrSetDllDirectory( const UNICODE_STRING *dir )
     UNIMPLEMENTED;
     return STATUS_SUCCESS;
 }
-
-NTSTATUS WINAPI LdrAddDllDirectory( const UNICODE_STRING *dir, void **cookie )
-{
-    UNIMPLEMENTED;
-    return STATUS_UNSUCCESSFUL;
-}
-
-NTSTATUS WINAPI LdrRemoveDllDirectory( void *cookie )
-{
-    UNIMPLEMENTED;
-    return STATUS_SUCCESS;
-}
-
-NTSTATUS WINAPI LdrSetDefaultDllDirectories( ULONG flags )
-{
-    UNIMPLEMENTED;
-    return STATUS_SUCCESS;
-}
