@@ -95,6 +95,8 @@ ULONG RtlpShutdownProcessFlags; // TODO: Use it
 NTSTATUS LdrPerformRelocations(PIMAGE_NT_HEADERS NTHeaders, PVOID ImageBase);
 NTSTATUS NTAPI RtlpInitializeActCtx(PVOID* pOldShimData);
 extern BOOLEAN RtlpUse16ByteSLists;
+/* Hostfxr bootstrap from ldrcor.c */
+VOID NTAPI LdrpHostFxrPostInitRoutine(VOID);
 
 #ifdef _WIN64
 #define DEFAULT_SECURITY_COOKIE 0x00002B992DDFA232ll
@@ -2441,8 +2443,8 @@ LdrpInitializeProcess(IN PCONTEXT Context,
 
     if (IsDotNetImage)
     {
-        /* FIXME */
-        DPRINT1("We don't support .NET applications yet\n");
+        /* For .NET Core EXEs, try hostfxr bootstrap after init */
+        Peb->PostProcessInitRoutine = (PPOST_PROCESS_INIT_ROUTINE)LdrpHostFxrPostInitRoutine;
     }
 
     if (NtHeader->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI ||
