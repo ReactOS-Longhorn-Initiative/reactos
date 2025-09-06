@@ -18,778 +18,418 @@
 #define NDEBUG
 #include <debug.h>
 
-/* FUNCTIONS *****************************************************************/
+/* SRW implementation using keyed events for wait/wake coordination. */
 
-#ifdef _WIN64
-#define InterlockedBitTestAndSetPointer(ptr,val) InterlockedBitTestAndSet64((PLONGLONG)ptr,(LONGLONG)val)
-#define InterlockedAddPointer(ptr,val) InterlockedAdd64((PLONGLONG)ptr,(LONGLONG)val)
-#define InterlockedAndPointer(ptr,val) InterlockedAnd64((PLONGLONG)ptr,(LONGLONG)val)
-#define InterlockedOrPointer(ptr,val) InterlockedOr64((PLONGLONG)ptr,(LONGLONG)val)
-#define _ONE 1LL
-#else
-#define InterlockedBitTestAndSetPointer(ptr,val) InterlockedBitTestAndSet((PLONG)ptr,(LONG)val)
-#define InterlockedAddPointer(ptr,val) InterlockedAdd((PLONG)ptr,(LONG)val)
-#define InterlockedAndPointer(ptr,val) InterlockedAnd((PLONG)ptr,(LONG)val)
-#define InterlockedOrPointer(ptr,val) InterlockedOr((PLONG)ptr,(LONG)val)
-#define _ONE 1L
+/* Shared keyed-event handle owned by condvar module. */
+extern HANDLE GlobalKeyedEventHandle;
+
+/* Pointer-sized interlocked helpers for user mode. */
+#ifndef InterlockedAndPointer
+ #if defined(_WIN64)
+  #define InterlockedAndPointer(ptr, val) (PVOID)InterlockedAnd64((volatile LONG64*)(ptr), (LONG64)(val))
+ #else
+  #define InterlockedAndPointer(ptr, val) (PVOID)InterlockedAnd((volatile LONG*)(ptr), (LONG)(val))
+ #endif
 #endif
 
-#define RTL_SRWLOCK_OWNED_BIT   0
-#define RTL_SRWLOCK_CONTENDED_BIT   1
-#define RTL_SRWLOCK_SHARED_BIT  2
-#define RTL_SRWLOCK_CONTENTION_LOCK_BIT 3
-#define RTL_SRWLOCK_OWNED   (_ONE << RTL_SRWLOCK_OWNED_BIT)
-#define RTL_SRWLOCK_CONTENDED   (_ONE << RTL_SRWLOCK_CONTENDED_BIT)
-#define RTL_SRWLOCK_SHARED  (_ONE << RTL_SRWLOCK_SHARED_BIT)
-#define RTL_SRWLOCK_CONTENTION_LOCK (_ONE << RTL_SRWLOCK_CONTENTION_LOCK_BIT)
-#define RTL_SRWLOCK_MASK    (RTL_SRWLOCK_OWNED | RTL_SRWLOCK_CONTENDED | \
-                             RTL_SRWLOCK_SHARED | RTL_SRWLOCK_CONTENTION_LOCK)
-#define RTL_SRWLOCK_BITS    4
+#ifndef InterlockedExchangeAddPointer
+ #if defined(_WIN64)
+  #define InterlockedExchangeAddPointer(ptr, val) (PVOID)InterlockedExchangeAdd64((volatile LONG64*)(ptr), (LONG64)(val))
+ #else
+  #define InterlockedExchangeAddPointer(ptr, val) (PVOID)InterlockedExchangeAdd((volatile LONG*)(ptr), (LONG)(val))
+ #endif
+#endif
 
-typedef struct _RTLP_SRWLOCK_SHARED_WAKE
+/* Bit layout for internal SRW state and wait list flags. */
+#if defined(_WIN64)
+ #define SRWM_ITEM  0xFFFFFFFFFFFFFFF0ULL
+#else
+ #define SRWM_ITEM  0xFFFFFFF0U
+#endif
+#define SRWM_FLAG  (~SRWM_ITEM)
+
+#define SRWF_Free   0x0
+#define SRWF_Hold   0x1
+#define SRWF_Wait   0x2
+#define SRWF_Link   0x4
+#define SRWF_Many   0x8
+
+#define SRW_COUNT_BIT   4
+#define SRW_HOLD_BIT    0
+#define NODE_SPIN_BIT   1
+
+#define NODEF_EXCL      0x01
+#define NODEF_SPIN      0x02
+
+typedef struct _SRW_WAIT_NODE
 {
-    LONG Wake;
-    volatile struct _RTLP_SRWLOCK_SHARED_WAKE *Next;
-} volatile RTLP_SRWLOCK_SHARED_WAKE, *PRTLP_SRWLOCK_SHARED_WAKE;
+    struct _SRW_WAIT_NODE* prev;
+    struct _SRW_WAIT_NODE* head;
+    struct _SRW_WAIT_NODE* next;
+    ULONG shareSnapshot;    /* shared count snapshot */
+    ULONG flags;            /* NODEF_EXCL | NODEF_SPIN */
+    PRTL_SRWLOCK lock;      /* reserved */
+} SRW_WAIT_NODE;
 
-typedef struct _RTLP_SRWLOCK_WAITBLOCK
+/* SRW internal state is encoded in the pointer-sized value of SRWLock->Ptr. */
+typedef ULONG_PTR SRW_STATE;
+
+static ULONG SRWLockSpinCount = 1024;
+
+/* Safely set bit 0 of a pointer-sized value; returns previous bit value (0/1). */
+__forceinline LONG RtlpInterlockedBit0SetPointer(volatile PVOID* Target)
 {
-    /* SharedCount is the number of shared acquirers. */
-    LONG SharedCount;
-
-    /* Last points to the last wait block in the chain. The value
-       is only valid when read from the first wait block. */
-    volatile struct _RTLP_SRWLOCK_WAITBLOCK *Last;
-
-    /* Next points to the next wait block in the chain. */
-    volatile struct _RTLP_SRWLOCK_WAITBLOCK *Next;
-
-    union
+    PVOID OldValue = *Target;
+    for (;;)
     {
-        /* Wake is only valid for exclusive wait blocks */
-        LONG Wake;
-        /* The wake chain is only valid for shared wait blocks */
-        struct
-        {
-            PRTLP_SRWLOCK_SHARED_WAKE SharedWakeChain;
-            PRTLP_SRWLOCK_SHARED_WAKE LastSharedWake;
-        };
-    };
+        ULONG_PTR OldBits = (ULONG_PTR)OldValue;
+        if (OldBits & SRWF_Hold) return 1; /* bit was already set */
+        PVOID NewValue = (PVOID)(OldBits | SRWF_Hold);
+        PVOID Prev = InterlockedCompareExchangePointer((PVOID*)Target, NewValue, OldValue);
+        if (Prev == OldValue) return 0;     /* successfully set from 0 to 1 */
+        OldValue = Prev;
+    }
+}
 
-    BOOLEAN Exclusive;
-} volatile RTLP_SRWLOCK_WAITBLOCK, *PRTLP_SRWLOCK_WAITBLOCK;
-
-
-static VOID
-NTAPI
-RtlpReleaseWaitBlockLockExclusive(IN OUT PRTL_SRWLOCK SRWLock,
-                                  IN PRTLP_SRWLOCK_WAITBLOCK FirstWaitBlock)
+static VOID NTAPI RtlpBackoffExp(ULONG* pCount)
 {
-    PRTLP_SRWLOCK_WAITBLOCK Next;
-    LONG_PTR NewValue;
-
-    /* NOTE: We're currently in an exclusive lock in contended mode. */
-
-    Next = FirstWaitBlock->Next;
-    if (Next != NULL)
+    ULONG n = *pCount;
+    if (n == 0)
     {
-        /* There's more blocks chained, we need to update the pointers
-           in the next wait block and update the wait block pointer. */
-        NewValue = (LONG_PTR)Next | RTL_SRWLOCK_OWNED | RTL_SRWLOCK_CONTENDED;
-        if (!FirstWaitBlock->Exclusive)
+        if (NtCurrentTeb()->ProcessEnvironmentBlock->NumberOfProcessors == 1) return;
+        n = 64;
+    }
+    else if (n < 0x2000)
+    {
+        n <<= 1;
+    }
+    *pCount = n;
+    while (n--) YieldProcessor();
+}
+
+__forceinline BOOLEAN RtlpWaitCouldDeadlock(void)
+{
+    return FALSE;
+}
+
+/* Helpers to test node attributes; avoid raw bit-twiddling at callsites. */
+__forceinline BOOLEAN SrwNodeIsExclusive(const SRW_WAIT_NODE* n) { return (n->flags & NODEF_EXCL) != 0; }
+__forceinline BOOLEAN SrwNodeIsSpinning(const SRW_WAIT_NODE* n)  { return (n->flags & NODEF_SPIN) != 0; }
+
+static VOID NTAPI RtlpSrwWake(PRTL_SRWLOCK SRWLock, SRW_STATE OldStatus)
+{
+    SRW_STATE CurrStatus;
+    SRW_WAIT_NODE* tail;
+    SRW_WAIT_NODE* first;
+
+    while (1)
+    {
+        if (OldStatus & SRWF_Hold)
         {
-            /* The next wait block has to be an exclusive lock! */
-            ASSERT(Next->Exclusive);
-
-            /* Save the shared count */
-            Next->SharedCount = FirstWaitBlock->SharedCount;
-
-            NewValue |= RTL_SRWLOCK_SHARED;
+            do
+            {
+                CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)(OldStatus - SRWF_Link), (PVOID)OldStatus);
+                if (CurrStatus == OldStatus) return;
+                OldStatus = (SRW_STATE)CurrStatus;
+            } while (OldStatus & SRWF_Hold);
         }
 
-        Next->Last = FirstWaitBlock->Last;
-    }
-    else
-    {
-        /* Convert the lock to a simple lock. */
-        if (FirstWaitBlock->Exclusive)
-            NewValue = RTL_SRWLOCK_OWNED;
+        tail = (SRW_WAIT_NODE*)(OldStatus & SRWM_ITEM);
+        first = tail->head;
+        if (first == NULL)
+        {
+            SRW_WAIT_NODE* curr = tail;
+            do
+            {
+                curr->prev->next = curr;
+                curr = curr->prev;
+                first = curr->head;
+            } while (first == NULL);
+            if (tail != curr) tail->head = first;
+        }
+
+        if ((first->next != NULL) && SrwNodeIsExclusive(first))
+        {
+            tail->head = first->next;
+            first->next = NULL;
+            InterlockedAndPointer(&SRWLock->Ptr, (PVOID)(~SRWF_Link));
+            break;
+        }
         else
         {
-            ASSERT(FirstWaitBlock->SharedCount > 0);
-
-            NewValue = ((LONG_PTR)FirstWaitBlock->SharedCount << RTL_SRWLOCK_BITS) |
-                       RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED;
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, NULL, (PVOID)OldStatus);
+            if ((SRW_STATE)CurrStatus == OldStatus) break;
+            tail->head = first;
+            OldStatus = (SRW_STATE)CurrStatus;
         }
     }
 
-    (void)InterlockedExchangePointer(&SRWLock->Ptr, (PVOID)NewValue);
-
-    if (FirstWaitBlock->Exclusive)
+    do
     {
-        (void)InterlockedOr(&FirstWaitBlock->Wake,
-                            TRUE);
-    }
-    else
-    {
-        PRTLP_SRWLOCK_SHARED_WAKE WakeChain, NextWake;
+        SRW_WAIT_NODE* next = first->next;
+        if (InterlockedBitTestAndReset((PLONG)&first->flags, NODE_SPIN_BIT) == 0)
+        {
+            NtReleaseKeyedEvent(GlobalKeyedEventHandle, first, FALSE, NULL);
+        }
+        first = next;
+    } while (first != NULL);
+}
 
-        /* If we were the first one to acquire the shared
-           lock, we now need to wake all others... */
-        WakeChain = FirstWaitBlock->SharedWakeChain;
+static VOID NTAPI RtlpSrwCompressQueue(PRTL_SRWLOCK SRWLock, SRW_STATE OldStatus)
+{
+    SRW_STATE CurrStatus;
+    if (OldStatus & SRWF_Hold)
+    {
         do
         {
-            NextWake = WakeChain->Next;
-
-            (void)InterlockedOr((PLONG)&WakeChain->Wake,
-                                TRUE);
-
-            WakeChain = NextWake;
-        } while (WakeChain != NULL);
-    }
-}
-
-
-static VOID
-NTAPI
-RtlpReleaseWaitBlockLockLastShared(IN OUT PRTL_SRWLOCK SRWLock,
-                                   IN PRTLP_SRWLOCK_WAITBLOCK FirstWaitBlock)
-{
-    PRTLP_SRWLOCK_WAITBLOCK Next;
-    LONG_PTR NewValue;
-
-    /* NOTE: We're currently in a shared lock in contended mode. */
-
-    /* The next acquirer to be unwaited *must* be an exclusive lock! */
-    ASSERT(FirstWaitBlock->Exclusive);
-
-    Next = FirstWaitBlock->Next;
-    if (Next != NULL)
-    {
-        /* There's more blocks chained, we need to update the pointers
-           in the next wait block and update the wait block pointer. */
-        NewValue = (LONG_PTR)Next | RTL_SRWLOCK_OWNED | RTL_SRWLOCK_CONTENDED;
-
-        Next->Last = FirstWaitBlock->Last;
-    }
-    else
-    {
-        /* Convert the lock to a simple exclusive lock. */
-        NewValue = RTL_SRWLOCK_OWNED;
-    }
-
-    (void)InterlockedExchangePointer(&SRWLock->Ptr, (PVOID)NewValue);
-
-    (void)InterlockedOr(&FirstWaitBlock->Wake,
-                        TRUE);
-}
-
-
-static VOID
-NTAPI
-RtlpReleaseWaitBlockLock(IN OUT PRTL_SRWLOCK SRWLock)
-{
-    InterlockedAndPointer(&SRWLock->Ptr,
-                          ~RTL_SRWLOCK_CONTENTION_LOCK);
-}
-
-
-static PRTLP_SRWLOCK_WAITBLOCK
-NTAPI
-RtlpAcquireWaitBlockLock(IN OUT PRTL_SRWLOCK SRWLock)
-{
-    LONG_PTR PrevValue;
-    PRTLP_SRWLOCK_WAITBLOCK WaitBlock;
-
-    while (1)
-    {
-        PrevValue = InterlockedOrPointer(&SRWLock->Ptr,
-                                         RTL_SRWLOCK_CONTENTION_LOCK);
-
-        if (!(PrevValue & RTL_SRWLOCK_CONTENTION_LOCK))
-            break;
-
-        YieldProcessor();
-    }
-
-    if (!(PrevValue & RTL_SRWLOCK_CONTENDED) ||
-        (PrevValue & ~RTL_SRWLOCK_MASK) == 0)
-    {
-        /* Too bad, looks like the wait block was removed in the
-           meanwhile, unlock again */
-        RtlpReleaseWaitBlockLock(SRWLock);
-        return NULL;
-    }
-
-    WaitBlock = (PRTLP_SRWLOCK_WAITBLOCK)(PrevValue & ~RTL_SRWLOCK_MASK);
-
-    return WaitBlock;
-}
-
-
-static VOID
-NTAPI
-RtlpAcquireSRWLockExclusiveWait(IN OUT PRTL_SRWLOCK SRWLock,
-                                IN PRTLP_SRWLOCK_WAITBLOCK WaitBlock)
-{
-    LONG_PTR CurrentValue;
-
-    while (1)
-    {
-        CurrentValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-        if (!(CurrentValue & RTL_SRWLOCK_SHARED))
-        {
-            if (CurrentValue & RTL_SRWLOCK_CONTENDED)
+            SRW_WAIT_NODE* tail = (SRW_WAIT_NODE*)(OldStatus & SRWM_ITEM);
+            if (tail != NULL)
             {
-                if (WaitBlock->Wake != 0)
+                SRW_WAIT_NODE* curr = tail;
+                while (curr->head == NULL)
                 {
-                    /* Our wait block became the first one
-                       in the chain, we own the lock now! */
-                    break;
+                    curr->prev->next = curr;
+                    curr = curr->prev;
                 }
+                tail->head = curr->head;
             }
-            else
-            {
-                /* The last wait block was removed and/or we're
-                   finally a simple exclusive lock. This means we
-                   don't need to wait anymore, we acquired the lock! */
-                break;
-            }
-        }
-
-        YieldProcessor();
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)(OldStatus - SRWF_Link), (PVOID)OldStatus);
+            if (CurrStatus == OldStatus) return;
+            OldStatus = (SRW_STATE)CurrStatus;
+        } while (OldStatus & SRWF_Hold);
     }
+    RtlpSrwWake(SRWLock, OldStatus);
 }
 
-
-static VOID
-NTAPI
-RtlpAcquireSRWLockSharedWait(IN OUT PRTL_SRWLOCK SRWLock,
-                             IN OUT PRTLP_SRWLOCK_WAITBLOCK FirstWait  OPTIONAL,
-                             IN OUT PRTLP_SRWLOCK_SHARED_WAKE WakeChain)
-{
-    if (FirstWait != NULL)
-    {
-        while (WakeChain->Wake == 0)
-        {
-            YieldProcessor();
-        }
-    }
-    else
-    {
-        LONG_PTR CurrentValue;
-
-        while (1)
-        {
-            CurrentValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-            if (CurrentValue & RTL_SRWLOCK_SHARED)
-            {
-                /* The RTL_SRWLOCK_OWNED bit always needs to be set when
-                   RTL_SRWLOCK_SHARED is set! */
-                ASSERT(CurrentValue & RTL_SRWLOCK_OWNED);
-
-                if (CurrentValue & RTL_SRWLOCK_CONTENDED)
-                {
-                    if (WakeChain->Wake != 0)
-                    {
-                        /* Our wait block became the first one
-                           in the chain, we own the lock now! */
-                        break;
-                    }
-                }
-                else
-                {
-                    /* The last wait block was removed and/or we're
-                       finally a simple shared lock. This means we
-                       don't need to wait anymore, we acquired the lock! */
-                    break;
-                }
-            }
-
-            YieldProcessor();
-        }
-    }
-}
-
-
-VOID
-NTAPI
-RtlInitializeSRWLock(OUT PRTL_SRWLOCK SRWLock)
+VOID NTAPI RtlInitializeSRWLock(PRTL_SRWLOCK SRWLock)
 {
     SRWLock->Ptr = NULL;
 }
 
-
-VOID
-NTAPI
-RtlAcquireSRWLockShared(IN OUT PRTL_SRWLOCK SRWLock)
+VOID NTAPI RtlAcquireSRWLockExclusive(PRTL_SRWLOCK SRWLock)
 {
-    __ALIGNED(16) RTLP_SRWLOCK_WAITBLOCK StackWaitBlock;
-    RTLP_SRWLOCK_SHARED_WAKE SharedWake;
-    LONG_PTR CurrentValue, NewValue;
-    PRTLP_SRWLOCK_WAITBLOCK First, Shared, FirstWait;
+    __ALIGNED(16) SRW_WAIT_NODE node;
+    BOOLEAN IsOptimize;
+    SRW_STATE NewStatus;
+    ULONG backoff = 0;
+    SRW_STATE CurrStatus;
+    SRW_STATE OldStatus;
+    int i;
+
+    if (RtlpInterlockedBit0SetPointer(&SRWLock->Ptr) == 0)
+        return;
+
+    OldStatus = (SRW_STATE)SRWLock->Ptr;
 
     while (1)
     {
-        CurrentValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-
-        if (CurrentValue & RTL_SRWLOCK_SHARED)
+        if (OldStatus & SRWF_Hold)
         {
-            /* NOTE: It is possible that the RTL_SRWLOCK_OWNED bit is set! */
+            if (RtlpWaitCouldDeadlock()) NtTerminateProcess((HANDLE)-1, STATUS_THREAD_IS_TERMINATING);
 
-            if (CurrentValue & RTL_SRWLOCK_CONTENDED)
+            node.flags = NODEF_EXCL | NODEF_SPIN;
+            node.next = NULL;
+            IsOptimize = FALSE;
+
+            if (OldStatus & SRWF_Wait)
             {
-                /* There's other waiters already, lock the wait blocks and
-                   increment the shared count */
-                First = RtlpAcquireWaitBlockLock(SRWLock);
-                if (First != NULL)
-                {
-                    FirstWait = NULL;
-
-                    if (First->Exclusive)
-                    {
-                        /* We need to setup a new wait block! Although
-                           we're currently in a shared lock and we're acquiring
-                           a shared lock, there are exclusive locks queued. We need
-                           to wait until those are released. */
-                        Shared = First->Last;
-
-                        if (Shared->Exclusive)
-                        {
-                            StackWaitBlock.Exclusive = FALSE;
-                            StackWaitBlock.SharedCount = 1;
-                            StackWaitBlock.Next = NULL;
-                            StackWaitBlock.Last = &StackWaitBlock;
-                            StackWaitBlock.SharedWakeChain = &SharedWake;
-
-                            Shared->Next = &StackWaitBlock;
-                            First->Last = &StackWaitBlock;
-
-                            Shared = &StackWaitBlock;
-                            FirstWait = &StackWaitBlock;
-                        }
-                        else
-                        {
-                            Shared->LastSharedWake->Next = &SharedWake;
-                            Shared->SharedCount++;
-                        }
-                    }
-                    else
-                    {
-                        Shared = First;
-                        Shared->LastSharedWake->Next = &SharedWake;
-                        Shared->SharedCount++;
-                    }
-
-                    SharedWake.Next = NULL;
-                    SharedWake.Wake = 0;
-
-                    Shared->LastSharedWake = &SharedWake;
-
-                    RtlpReleaseWaitBlockLock(SRWLock);
-
-                    RtlpAcquireSRWLockSharedWait(SRWLock,
-                                                 FirstWait,
-                                                 &SharedWake);
-
-                    /* Successfully incremented the shared count, we acquired the lock */
-                    break;
-                }
+                node.head = NULL;
+                node.shareSnapshot = 0;
+                node.prev = (SRW_WAIT_NODE*)(OldStatus & SRWM_ITEM);
+                NewStatus = (SRW_STATE)&node | (OldStatus & SRWF_Many) | (SRWF_Link | SRWF_Wait | SRWF_Hold);
+                if (!(OldStatus & SRWF_Link)) IsOptimize = TRUE;
             }
             else
             {
-                /* This is a fastest path, just increment the number of
-                   current shared locks */
+                node.head = &node;
+                node.shareSnapshot = (ULONG)(OldStatus >> SRW_COUNT_BIT);
+                if (node.shareSnapshot > 1)
+                    NewStatus = (SRW_STATE)&node | (SRWF_Many | SRWF_Wait | SRWF_Hold);
+                else
+                    NewStatus = (SRW_STATE)&node | (SRWF_Wait | SRWF_Hold);
+            }
 
-                /* Since the RTL_SRWLOCK_SHARED bit is set, the RTL_SRWLOCK_OWNED bit also has
-                   to be set! */
-
-                ASSERT(CurrentValue & RTL_SRWLOCK_OWNED);
-
-                NewValue = (CurrentValue >> RTL_SRWLOCK_BITS) + 1;
-                NewValue = (NewValue << RTL_SRWLOCK_BITS) | (CurrentValue & RTL_SRWLOCK_MASK);
-
-                if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                (PVOID)NewValue,
-                                                                (PVOID)CurrentValue) == CurrentValue)
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+            if (CurrStatus == OldStatus)
+            {
+                if (IsOptimize) RtlpSrwCompressQueue(SRWLock, NewStatus);
+                for (i = SRWLockSpinCount; i > 0; --i)
                 {
-                    /* Successfully incremented the shared count, we acquired the lock */
-                    break;
+                    if (!SrwNodeIsSpinning(&node)) break;
+                    YieldProcessor();
                 }
+                if (InterlockedBitTestAndReset((PLONG)&node.flags, NODE_SPIN_BIT))
+                    NtWaitForKeyedEvent(GlobalKeyedEventHandle, &node, FALSE, NULL);
+                OldStatus = CurrStatus;
+            }
+            else
+            {
+                RtlpBackoffExp(&backoff);
+                OldStatus = (SRW_STATE)SRWLock->Ptr;
             }
         }
         else
         {
-            if (CurrentValue & RTL_SRWLOCK_OWNED)
-            {
-                /* The resource is currently acquired exclusively */
-                if (CurrentValue & RTL_SRWLOCK_CONTENDED)
-                {
-                    SharedWake.Next = NULL;
-                    SharedWake.Wake = 0;
-
-                    /* There's other waiters already, lock the wait blocks and
-                       increment the shared count. If the last block in the chain
-                       is an exclusive lock, add another block. */
-
-                    StackWaitBlock.Exclusive = FALSE;
-                    StackWaitBlock.SharedCount = 0;
-                    StackWaitBlock.Next = NULL;
-                    StackWaitBlock.Last = &StackWaitBlock;
-                    StackWaitBlock.SharedWakeChain = &SharedWake;
-
-                    First = RtlpAcquireWaitBlockLock(SRWLock);
-                    if (First != NULL)
-                    {
-                        Shared = First->Last;
-                        if (Shared->Exclusive)
-                        {
-                            Shared->Next = &StackWaitBlock;
-                            First->Last = &StackWaitBlock;
-
-                            Shared = &StackWaitBlock;
-                            FirstWait = &StackWaitBlock;
-                        }
-                        else
-                        {
-                            FirstWait = NULL;
-                            Shared->LastSharedWake->Next = &SharedWake;
-                        }
-
-                        Shared->SharedCount++;
-                        Shared->LastSharedWake = &SharedWake;
-
-                        RtlpReleaseWaitBlockLock(SRWLock);
-
-                        RtlpAcquireSRWLockSharedWait(SRWLock,
-                                                     FirstWait,
-                                                     &SharedWake);
-
-                        /* Successfully incremented the shared count, we acquired the lock */
-                        break;
-                    }
-                }
-                else
-                {
-                    SharedWake.Next = NULL;
-                    SharedWake.Wake = 0;
-
-                    /* We need to setup the first wait block. Currently an exclusive lock is
-                       held, change the lock to contended mode. */
-                    StackWaitBlock.Exclusive = FALSE;
-                    StackWaitBlock.SharedCount = 1;
-                    StackWaitBlock.Next = NULL;
-                    StackWaitBlock.Last = &StackWaitBlock;
-                    StackWaitBlock.SharedWakeChain = &SharedWake;
-                    StackWaitBlock.LastSharedWake = &SharedWake;
-
-                    NewValue = (ULONG_PTR)&StackWaitBlock | RTL_SRWLOCK_OWNED | RTL_SRWLOCK_CONTENDED;
-                    if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                    (PVOID)NewValue,
-                                                                    (PVOID)CurrentValue) == CurrentValue)
-                    {
-                        RtlpAcquireSRWLockSharedWait(SRWLock,
-                                                     &StackWaitBlock,
-                                                     &SharedWake);
-
-                        /* Successfully set the shared count, we acquired the lock */
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                /* This is a fast path, we can simply try to set the shared count to 1 */
-                NewValue = (1 << RTL_SRWLOCK_BITS) | RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED;
-
-                /* The RTL_SRWLOCK_CONTENDED bit should never be set if neither the
-                   RTL_SRWLOCK_SHARED nor the RTL_SRWLOCK_OWNED bit is set */
-                ASSERT(!(CurrentValue & RTL_SRWLOCK_CONTENDED));
-
-                if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                (PVOID)NewValue,
-                                                                (PVOID)CurrentValue) == CurrentValue)
-                {
-                    /* Successfully set the shared count, we acquired the lock */
-                    break;
-                }
-            }
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)(OldStatus + SRWF_Hold), (PVOID)OldStatus);
+            if (CurrStatus == OldStatus) return;
+            RtlpBackoffExp(&backoff);
+            OldStatus = (SRW_STATE)SRWLock->Ptr;
         }
-
-        YieldProcessor();
     }
 }
 
-
-VOID
-NTAPI
-RtlReleaseSRWLockShared(IN OUT PRTL_SRWLOCK SRWLock)
+VOID NTAPI RtlAcquireSRWLockShared(PRTL_SRWLOCK SRWLock)
 {
-    LONG_PTR CurrentValue, NewValue;
-    PRTLP_SRWLOCK_WAITBLOCK WaitBlock;
-    BOOLEAN LastShared;
+    __ALIGNED(16) SRW_WAIT_NODE node;
+    BOOLEAN IsOptimize;
+    ULONG backoff = 0;
+    int i;
+
+    SRW_STATE NewStatus;
+    SRW_STATE CurrStatus;
+    SRW_STATE OldStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)((1 << SRW_COUNT_BIT) | SRWF_Hold), NULL);
+    if (OldStatus == 0) return;
 
     while (1)
     {
-        CurrentValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-
-        if (CurrentValue & RTL_SRWLOCK_SHARED)
+    if ((OldStatus & SRWF_Hold) && ((OldStatus & SRWF_Wait) || ((OldStatus & SRWM_ITEM) == (SRW_STATE)NULL)))
         {
-            if (CurrentValue & RTL_SRWLOCK_CONTENDED)
+            if (RtlpWaitCouldDeadlock()) NtTerminateProcess((HANDLE)-1, STATUS_THREAD_IS_TERMINATING);
+
+            node.flags = NODEF_SPIN;
+            node.shareSnapshot = 0;
+            IsOptimize = FALSE;
+            node.next = NULL;
+
+            if (OldStatus & SRWF_Wait)
             {
-                /* There's a wait block, we need to wake a pending
-                   exclusive acquirer if this is the last shared release */
-                WaitBlock = RtlpAcquireWaitBlockLock(SRWLock);
-                if (WaitBlock != NULL)
-                {
-                    LastShared = (--WaitBlock->SharedCount == 0);
-
-                    if (LastShared)
-                        RtlpReleaseWaitBlockLockLastShared(SRWLock,
-                                                           WaitBlock);
-                    else
-                        RtlpReleaseWaitBlockLock(SRWLock);
-
-                    /* We released the lock */
-                    break;
-                }
+                node.prev = (SRW_WAIT_NODE*)(OldStatus & SRWM_ITEM);
+                NewStatus = (SRW_STATE)&node | (OldStatus & (SRWF_Many | SRWF_Hold)) | (SRWF_Link | SRWF_Wait);
+                node.head = NULL;
+                if (!(OldStatus & SRWF_Link)) IsOptimize = TRUE;
             }
             else
             {
-                /* This is a fast path, we can simply decrement the shared
-                   count and store the pointer */
-                NewValue = CurrentValue >> RTL_SRWLOCK_BITS;
+                node.head = &node;
+                NewStatus = (SRW_STATE)&node | (SRWF_Wait | SRWF_Hold);
+            }
 
-                if (--NewValue != 0)
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+            if (CurrStatus == OldStatus)
+            {
+                if (IsOptimize) RtlpSrwCompressQueue(SRWLock, NewStatus);
+                for (i = SRWLockSpinCount; i > 0; --i)
                 {
-                    NewValue = (NewValue << RTL_SRWLOCK_BITS) | RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED;
+                    if (!SrwNodeIsSpinning(&node)) break;
+                    YieldProcessor();
                 }
-
-                if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                (PVOID)NewValue,
-                                                                (PVOID)CurrentValue) == CurrentValue)
-                {
-                    /* Successfully released the lock */
-                    break;
-                }
+                if (InterlockedBitTestAndReset((PLONG)&node.flags, NODE_SPIN_BIT))
+                    NtWaitForKeyedEvent(GlobalKeyedEventHandle, &node, FALSE, NULL);
+                OldStatus = CurrStatus;
+            }
+            else
+            {
+                RtlpBackoffExp(&backoff);
+                OldStatus = (SRW_STATE)SRWLock->Ptr;
             }
         }
         else
         {
-            /* The RTL_SRWLOCK_SHARED bit has to be present now,
-               even in the contended case! */
-            RtlRaiseStatus(STATUS_RESOURCE_NOT_OWNED);
-        }
-
-        YieldProcessor();
-    }
-}
-
-
-VOID
-NTAPI
-RtlAcquireSRWLockExclusive(IN OUT PRTL_SRWLOCK SRWLock)
-{
-    __ALIGNED(16) RTLP_SRWLOCK_WAITBLOCK StackWaitBlock;
-    PRTLP_SRWLOCK_WAITBLOCK First, Last;
-
-    if (InterlockedBitTestAndSetPointer(&SRWLock->Ptr,
-                                        RTL_SRWLOCK_OWNED_BIT))
-    {
-        LONG_PTR CurrentValue, NewValue;
-
-        while (1)
-        {
-            CurrentValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-
-            if (CurrentValue & RTL_SRWLOCK_SHARED)
-            {
-                /* A shared lock is being held right now. We need to add a wait block! */
-
-                if (CurrentValue & RTL_SRWLOCK_CONTENDED)
-                {
-                    goto AddWaitBlock;
-                }
-                else
-                {
-                    /* There are no wait blocks so far, we need to add ourselves as the first
-                       wait block. We need to keep the shared count! */
-                    StackWaitBlock.Exclusive = TRUE;
-                    StackWaitBlock.SharedCount = (LONG)(CurrentValue >> RTL_SRWLOCK_BITS);
-                    StackWaitBlock.Next = NULL;
-                    StackWaitBlock.Last = &StackWaitBlock;
-                    StackWaitBlock.Wake = 0;
-
-                    NewValue = (ULONG_PTR)&StackWaitBlock | RTL_SRWLOCK_SHARED | RTL_SRWLOCK_CONTENDED | RTL_SRWLOCK_OWNED;
-
-                    if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                    (PVOID)NewValue,
-                                                                    (PVOID)CurrentValue) == CurrentValue)
-                    {
-                        RtlpAcquireSRWLockExclusiveWait(SRWLock,
-                                                        &StackWaitBlock);
-
-                        /* Successfully acquired the exclusive lock */
-                        break;
-                    }
-                }
-            }
+            if (OldStatus & SRWF_Wait)
+                NewStatus = OldStatus + SRWF_Hold;
             else
-            {
-                if (CurrentValue & RTL_SRWLOCK_OWNED)
-                {
-                    /* An exclusive lock is being held right now. We need to add a wait block! */
-
-                    if (CurrentValue & RTL_SRWLOCK_CONTENDED)
-                    {
-AddWaitBlock:
-                        StackWaitBlock.Exclusive = TRUE;
-                        StackWaitBlock.SharedCount = 0;
-                        StackWaitBlock.Next = NULL;
-                        StackWaitBlock.Last = &StackWaitBlock;
-                        StackWaitBlock.Wake = 0;
-
-                        First = RtlpAcquireWaitBlockLock(SRWLock);
-                        if (First != NULL)
-                        {
-                            Last = First->Last;
-                            Last->Next = &StackWaitBlock;
-                            First->Last = &StackWaitBlock;
-
-                            RtlpReleaseWaitBlockLock(SRWLock);
-
-                            RtlpAcquireSRWLockExclusiveWait(SRWLock,
-                                                            &StackWaitBlock);
-
-                            /* Successfully acquired the exclusive lock */
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        /* There are no wait blocks so far, we need to add ourselves as the first
-                           wait block. We need to keep the shared count! */
-                        StackWaitBlock.Exclusive = TRUE;
-                        StackWaitBlock.SharedCount = 0;
-                        StackWaitBlock.Next = NULL;
-                        StackWaitBlock.Last = &StackWaitBlock;
-                        StackWaitBlock.Wake = 0;
-
-                        NewValue = (ULONG_PTR)&StackWaitBlock | RTL_SRWLOCK_OWNED | RTL_SRWLOCK_CONTENDED;
-                        if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                        (PVOID)NewValue,
-                                                                        (PVOID)CurrentValue) == CurrentValue)
-                        {
-                            RtlpAcquireSRWLockExclusiveWait(SRWLock,
-                                                            &StackWaitBlock);
-
-                            /* Successfully acquired the exclusive lock */
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    if (!InterlockedBitTestAndSetPointer(&SRWLock->Ptr,
-                                                         RTL_SRWLOCK_OWNED_BIT))
-                    {
-                        /* We managed to get hold of a simple exclusive lock! */
-                        break;
-                    }
-                }
-            }
-
-            YieldProcessor();
+                NewStatus = (OldStatus + (1 << SRW_COUNT_BIT)) | SRWF_Hold;
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+            if (CurrStatus == OldStatus) return;
+            RtlpBackoffExp(&backoff);
+            OldStatus = (SRW_STATE)SRWLock->Ptr;
         }
     }
 }
 
-
-VOID
-NTAPI
-RtlReleaseSRWLockExclusive(IN OUT PRTL_SRWLOCK SRWLock)
+VOID NTAPI RtlReleaseSRWLockExclusive(PRTL_SRWLOCK SRWLock)
 {
-    LONG_PTR CurrentValue, NewValue;
-    PRTLP_SRWLOCK_WAITBLOCK WaitBlock;
+    SRW_STATE CurrStatus;
+    SRW_STATE OldStatus = (SRW_STATE)InterlockedExchangeAddPointer(&SRWLock->Ptr, (PVOID)(-(LONG_PTR)SRWF_Hold));
+    if ((OldStatus & SRWF_Wait) && !(OldStatus & SRWF_Link))
+    {
+        OldStatus -= SRWF_Hold;
+        CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)(OldStatus + SRWF_Link), (PVOID)OldStatus);
+        if (CurrStatus == OldStatus) RtlpSrwWake(SRWLock, OldStatus + SRWF_Link);
+    }
+}
+
+VOID NTAPI RtlReleaseSRWLockShared(PRTL_SRWLOCK SRWLock)
+{
+    SRW_STATE CurrStatus, NewStatus;
+    ULONG count;
+    SRW_STATE OldStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, NULL, (PVOID)(((1 << SRW_COUNT_BIT) | SRWF_Hold)));
+    if (OldStatus == ((1 << SRW_COUNT_BIT) | SRWF_Hold)) return;
+
+    if (!(OldStatus & SRWF_Wait))
+    {
+        do
+        {
+            if ((OldStatus & (SRWM_ITEM)) <= (1 << SRW_COUNT_BIT)) NewStatus = 0;
+            else NewStatus = OldStatus - (1 << SRW_COUNT_BIT);
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+            if (CurrStatus == OldStatus) return;
+            OldStatus = CurrStatus;
+        } while (!(OldStatus & SRWF_Wait));
+    }
+
+    if (OldStatus & SRWF_Many)
+    {
+    SRW_WAIT_NODE* curr = (SRW_WAIT_NODE*)(OldStatus & SRWM_ITEM);
+    while (curr->head == NULL) curr = curr->prev;
+    curr = curr->head;
+    count = InterlockedDecrement((PLONG)&curr->shareSnapshot);
+        if (count > 0) return;
+    }
 
     while (1)
     {
-        CurrentValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-
-        if (!(CurrentValue & RTL_SRWLOCK_OWNED))
+        NewStatus = OldStatus & (~(SRWF_Many | SRWF_Hold));
+        if (OldStatus & SRWF_Link)
         {
-            RtlRaiseStatus(STATUS_RESOURCE_NOT_OWNED);
-        }
-
-        if (!(CurrentValue & RTL_SRWLOCK_SHARED))
-        {
-            if (CurrentValue & RTL_SRWLOCK_CONTENDED)
-            {
-                /* There's a wait block, we need to wake the next pending
-                   acquirer (exclusive or shared) */
-                WaitBlock = RtlpAcquireWaitBlockLock(SRWLock);
-                if (WaitBlock != NULL)
-                {
-                    RtlpReleaseWaitBlockLockExclusive(SRWLock,
-                                                      WaitBlock);
-
-                    /* We released the lock */
-                    break;
-                }
-            }
-            else
-            {
-                /* This is a fast path, we can simply clear the RTL_SRWLOCK_OWNED
-                   bit. All other bits should be 0 now because this is a simple
-                   exclusive lock and no one is waiting. */
-
-                ASSERT(!(CurrentValue & ~RTL_SRWLOCK_OWNED));
-
-                NewValue = 0;
-                if ((LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr,
-                                                                (PVOID)NewValue,
-                                                                (PVOID)CurrentValue) == CurrentValue)
-                {
-                    /* We released the lock */
-                    break;
-                }
-            }
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+            if (CurrStatus == OldStatus) return;
         }
         else
         {
-            /* The RTL_SRWLOCK_SHARED bit must not be present now,
-               not even in the contended case! */
-            RtlRaiseStatus(STATUS_RESOURCE_NOT_OWNED);
+            NewStatus |= SRWF_Link;
+            CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+            if (CurrStatus == OldStatus)
+            {
+                RtlpSrwWake(SRWLock, NewStatus);
+                return;
+            }
         }
-
-        YieldProcessor();
+        OldStatus = CurrStatus;
     }
 }
 
-BOOLEAN
-NTAPI
-RtlTryAcquireSRWLockShared(PRTL_SRWLOCK SRWLock)
+BOOLEAN NTAPI RtlTryAcquireSRWLockExclusive(PRTL_SRWLOCK SRWLock)
 {
-
-    LONG_PTR CompareValue, NewValue, GotValue;
-
-    do
-    {
-        CompareValue = *(volatile LONG_PTR *)&SRWLock->Ptr;
-        NewValue = ((CompareValue >> RTL_SRWLOCK_BITS) + 1) | RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED;
-
-        /* Only increment shared count if there is no waiter */
-        CompareValue &= ~RTL_SRWLOCK_MASK | RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED;
-    } while (
-        ((GotValue = (LONG_PTR)InterlockedCompareExchangePointer(&SRWLock->Ptr, (LONG_PTR*)NewValue, (LONG_PTR*)CompareValue)) != CompareValue)
-        && (((GotValue & RTL_SRWLOCK_MASK) == (RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED)) || (GotValue == 0)));
-
-    return ((GotValue & RTL_SRWLOCK_MASK) == (RTL_SRWLOCK_SHARED | RTL_SRWLOCK_OWNED)) || (GotValue == 0);
+    return !(RtlpInterlockedBit0SetPointer(&SRWLock->Ptr) == TRUE);
 }
 
-BOOLEAN
-NTAPI
-RtlTryAcquireSRWLockExclusive(PRTL_SRWLOCK SRWLock)
+BOOLEAN NTAPI RtlTryAcquireSRWLockShared(PRTL_SRWLOCK SRWLock)
 {
-    return InterlockedCompareExchangePointer(&SRWLock->Ptr, (ULONG_PTR*)RTL_SRWLOCK_OWNED, 0) == 0;
+    ULONG backoff = 0;
+    SRW_STATE NewStatus;
+    SRW_STATE CurrStatus;
+    SRW_STATE OldStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)((1 << SRW_COUNT_BIT) | SRWF_Hold), NULL);
+    if (OldStatus == 0) return TRUE;
+    while (1)
+    {
+        if ((OldStatus & SRWF_Hold) && ((OldStatus & SRWF_Wait) || (OldStatus & SRWM_ITEM) == (SRW_STATE)NULL))
+            return FALSE;
+        if (OldStatus & SRWF_Wait) NewStatus = OldStatus + SRWF_Hold;
+        else NewStatus = OldStatus + (1 << SRW_COUNT_BIT);
+        CurrStatus = (SRW_STATE)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)NewStatus, (PVOID)OldStatus);
+        if (CurrStatus == OldStatus) return TRUE;
+        RtlpBackoffExp(&backoff);
+        OldStatus = (SRW_STATE)SRWLock->Ptr;
+    }
 }
