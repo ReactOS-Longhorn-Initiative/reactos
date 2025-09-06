@@ -20,506 +20,527 @@
 
 /* INTERNAL TYPES ************************************************************/
 
-#define COND_VAR_UNUSED_FLAG         ((ULONG_PTR)1)
-#define COND_VAR_LOCKED_FLAG         ((ULONG_PTR)2)
-#define COND_VAR_FLAGS_MASK          ((ULONG_PTR)3)
-#define COND_VAR_ADDRESS_MASK        (~COND_VAR_FLAGS_MASK)
-
-typedef struct _COND_VAR_WAIT_ENTRY
+/* Internal wait-node used for condition variable queues. Cooperates with SRW. */
+typedef struct DECLSPEC_ALIGN(16) _CV_WAIT_NODE
 {
-    /* ListEntry must have an alignment of at least 32-bits, since we
-       want COND_VAR_ADDRESS_MASK to cover all of the address. */
-    LIST_ENTRY ListEntry;
-    PVOID WaitKey;
-    BOOLEAN ListRemovalHandled;
-} COND_VAR_WAIT_ENTRY, * PCOND_VAR_WAIT_ENTRY;
+    struct _CV_WAIT_NODE* prev;     /* stack link while building */
+    struct _CV_WAIT_NODE* notify;   /* head of a FIFO chain to wake */
+    struct _CV_WAIT_NODE* next;     /* temporary forward link */
+    SIZE_T  shared;                 /* snapshot of shared count for SRW handoff */
+    SIZE_T  flags;                  /* bit 0: exclusive-hint, bit 1: spin, bit 2: shared-hint */
+    PRTL_SRWLOCK  Srw;              /* optional SRW lock to requeue onto */
+    SIZE_T wakerTid;                /* used by 2-phase keyed-event wake */
+} CV_WAIT_NODE;
 
-#define CONTAINING_COND_VAR_WAIT_ENTRY(address, field) \
-    CONTAINING_RECORD(address, COND_VAR_WAIT_ENTRY, field)
+#define CV_MASK  (0x0000000F)
+#define CV_NODE(CV) ((CV_WAIT_NODE*)((SIZE_T)(CV) & (~(SIZE_T)CV_MASK)))
 
-/* GLOBALS *******************************************************************/
+/* Flag helpers (kept numerically identical to preserve behavior) */
+#define CVF_EXCLUSIVE_HINT  0x1
+#define CVF_SPIN            0x2
+#define CVF_SHARED_HINT     0x4
 
-static HANDLE CondVarKeyedEventHandle = NULL;
+/* Shared keyed event handle used across SRW and condvars. */
+HANDLE GlobalKeyedEventHandle = NULL;
 
-/* INTERNAL FUNCTIONS ********************************************************/
-
-FORCEINLINE
-ULONG_PTR
-InternalCmpXChgCondVarAcq(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-                          IN ULONG_PTR Exchange,
-                          IN ULONG_PTR Comperand)
+static VOID InitializeGlobalKeyedEventHandle(void)
 {
-    return (ULONG_PTR)InterlockedCompareExchangePointerAcquire(&ConditionVariable->Ptr,
-                                                               (PVOID)Exchange,
-                                                               (PVOID)Comperand);
+    if (GlobalKeyedEventHandle == NULL)
+    {
+        NtCreateKeyedEvent(&GlobalKeyedEventHandle, EVENT_ALL_ACCESS, NULL, 0);
+    }
 }
 
-FORCEINLINE
-ULONG_PTR
-InternalCmpXChgCondVarRel(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-                          IN ULONG_PTR Exchange,
-                          IN ULONG_PTR Comperand)
+/* Keep compatibility with ntdll initialization which calls these. */
+VOID NTAPI RtlpInitializeKeyedEvent(VOID)
 {
-    return (ULONG_PTR)InterlockedCompareExchangePointerRelease(&ConditionVariable->Ptr,
-                                                               (PVOID)Exchange,
-                                                               (PVOID)Comperand);
+    InitializeGlobalKeyedEventHandle();
 }
 
-FORCEINLINE
-BOOLEAN *
-InternalGetListRemovalHandledFlag(IN PCOND_VAR_WAIT_ENTRY Entry)
+VOID NTAPI RtlpCloseKeyedEvent(VOID)
 {
-    return (BOOLEAN *)&Entry->ListRemovalHandled;
+    HANDLE h = (HANDLE)InterlockedExchangePointer((PVOID*)&GlobalKeyedEventHandle, NULL);
+    if (h)
+    {
+        NtClose(h);
+    }
 }
 
-static
-PCOND_VAR_WAIT_ENTRY
-InternalLockCondVar(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-                    IN PCOND_VAR_WAIT_ENTRY InsertEntry OPTIONAL,
-                    IN BOOLEAN * AbortIfLocked OPTIONAL)
+static NTSTATUS NTAPI CvWaitKeyedEventSecondPhase(
+    IN HANDLE KeyedEventHandle,
+    IN CV_WAIT_NODE* Key,
+    IN BOOLEAN Alertable,
+    IN PLARGE_INTEGER Timeout OPTIONAL)
 {
-    /* InsertEntry and AbortIfLocked may be NULL on entry. This routine
-       will return NULL if the lock was not acquired. Otherwise it has
-       successfully acquired the lock and the return value is a valid
-       reference to the list head associated with ConditionVariable.
-       The caller must in this case call InternalUnlockCondVar later
-       in order to unlock the condition variable.
+    if (Timeout == NULL)
+    {
+        LARGE_INTEGER _t; _t.QuadPart = 0;
+        while (Key->wakerTid == 0)
+        {
+            NTSTATUS s = NtWaitForKeyedEvent(KeyedEventHandle, Key, Alertable, &_t);
+            if (s != STATUS_TIMEOUT) return STATUS_TIMEOUT;
+        }
+        _t.QuadPart = -50000; /* ~5ms */
+        NtWaitForKeyedEvent(KeyedEventHandle, Key, Alertable, &_t);
+        return STATUS_SUCCESS;
+    }
+    return NtWaitForKeyedEvent(KeyedEventHandle, Key, Alertable, Timeout);
+}
 
-       If InsertEntry is NULL and there are no entries on the list, this
-       routine will not acquire the lock and return NULL. If InsertEntry
-       is not NULL this routine ensures that InsertEntry will be on the
-       list when it returns successfully.
+static NTSTATUS NTAPI CvSignalKeyedEventWithMark(
+    IN HANDLE KeyedEventHandle,
+    IN CV_WAIT_NODE* Key,
+    IN BOOLEAN Alertable,
+    IN PLARGE_INTEGER Timeout OPTIONAL)
+{
+    InterlockedExchangePointer((PVOID*)&Key->wakerTid, NtCurrentTeb()->ClientId.UniqueThread);
+    return NtReleaseKeyedEvent(KeyedEventHandle, Key, Alertable, Timeout);
+}
 
-       If the lock is owned by another thread and AbortIfLocked is NULL,
-       this routine will block until it acquires the lock. If AbortIfLocked
-       is not NULL and the lock is owned by another thread, this routine
-       will periodically check if *AbortIfLocked is nonzero and if so, will
-       return NULL instead of continuing the wait. */
-
-    ULONG_PTR OldVal = (ULONG_PTR)ConditionVariable->Ptr;
+static VOID __fastcall CvNormalizeWaitChain(PRTL_CONDITION_VARIABLE ConditionVariable, SIZE_T ConditionVariableStatus)
+{
+    CV_WAIT_NODE *pWaitNode;
+    CV_WAIT_NODE *pItem;
+    CV_WAIT_NODE *temp;
+    SIZE_T LastStatus;
 
     for (;;)
     {
-        ULONG_PTR NewVal, LockRes;
-        PLIST_ENTRY OldListHead;
+        pWaitNode = CV_NODE(ConditionVariableStatus);
+        pItem = pWaitNode;
 
-        if (OldVal & COND_VAR_LOCKED_FLAG)
+        for (; pItem->notify == NULL;)
         {
-            /* The locked flag is set, indicating someone else currently
-               holds the lock. We'll spin until this flag becomes
-               clear or we're asked to abort. */
-            YieldProcessor();
-
-            if ((AbortIfLocked != NULL) && *AbortIfLocked)
-            {
-                /* The caller wants us to abort in this case. */
-                return NULL;
-            }
-
-            /* Refresh OldVal and try again. */
-            OldVal = *(ULONG_PTR *)&ConditionVariable->Ptr;
-            continue;
+            temp = pItem;
+            pItem = pItem->prev;
+            pItem->next = temp;
         }
 
-        /* Retrieve the list head currently associated with the
-           condition variable. */
-        OldListHead = (PLIST_ENTRY)(OldVal & COND_VAR_ADDRESS_MASK);
-        if (InsertEntry == NULL)
+        pWaitNode->notify = pItem->notify;
+
+        LastStatus = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)pWaitNode, (PVOID)ConditionVariableStatus);
+        if (LastStatus == ConditionVariableStatus) return;
+        if (LastStatus & 7)
         {
-            /* The caller doesn't want to put any entry on the list. */
-            if (OldListHead == NULL)
-            {
-                /* The list is empty, so there is nothing to lock. */
-                return NULL;
-            }
-
-            /* The list isn't empty. In this case we need to preserve
-               all of OldVal. */
-            NewVal = OldVal;
+            /* Someone is waking; delegate. */
+            /* fall back to wake path below */
+            break;
         }
-        else
-        {
-            /* Let InsertEntry be the new list head. Preserve only the
-               bits inside the COND_VAR_FLAGS_MASK range. */
-            NewVal = ((OldVal & COND_VAR_FLAGS_MASK) |
-                      (ULONG_PTR)&InsertEntry->ListEntry);
-        }
-
-        /* Set the flag that indicates someone is holding the lock and
-           try to update the condition variable thread-safe. */
-        NewVal |= COND_VAR_LOCKED_FLAG;
-        LockRes = InternalCmpXChgCondVarAcq(ConditionVariable, NewVal, OldVal);
-        if (LockRes == OldVal)
-        {
-            /* We successfully updated ConditionVariable the way we
-               wanted and now hold the lock. */
-            if (InsertEntry == NULL)
-            {
-                /* We know that OldVal contains a valid address in
-                   this case. */
-                ASSERT(OldListHead != NULL);
-                return CONTAINING_COND_VAR_WAIT_ENTRY(OldListHead, ListEntry);
-            }
-
-            /* InsertEntry is not on the list yet, so add it. In any
-               case InsertEntry will be the new list head. */
-            if (OldListHead == NULL)
-            {
-                /* List was empty before. */
-                InitializeListHead(&InsertEntry->ListEntry);
-            }
-            else
-            {
-                /* Make InsertEntry the last entry of the old list.
-                   As InsertEntry will take the role as new list head,
-                   OldListHead will become the second entry (InsertEntry->Flink)
-                   on the new list. */
-                InsertTailList(OldListHead, &InsertEntry->ListEntry);
-            }
-
-            return InsertEntry;
-        }
-
-        /* We didn't manage to update ConditionVariable, so try again. */
-        OldVal = LockRes;
+        ConditionVariableStatus = LastStatus;
     }
 }
 
-static
-VOID
-InternalUnlockCondVar(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-                      IN PCOND_VAR_WAIT_ENTRY RemoveEntry OPTIONAL)
+static BOOL __fastcall CvTryAttachToSrw(CV_WAIT_NODE* node, RTL_SRWLOCK *SRWLock, ULONG SrwSharedMark)
 {
-    /* This routine assumes that the lock is being held on entry.
-       RemoveEntry may be NULL. If it is not NULL, this routine
-       assumes that RemoveEntry is on the list and will remove it
-       before releasing the lock. */
-    ULONG_PTR OldVal = (ULONG_PTR)ConditionVariable->Ptr;
-    PLIST_ENTRY NewHeadEntry;
+    SIZE_T shared;
+    SIZE_T Current;
+    SIZE_T New;
+    ULONG backoff = 0;
 
-    ASSERT((OldVal & COND_VAR_LOCKED_FLAG) &&
-           (OldVal & COND_VAR_ADDRESS_MASK));
-
-    NewHeadEntry = (PLIST_ENTRY)(OldVal & COND_VAR_ADDRESS_MASK);
-    if (RemoveEntry != NULL)
-    {
-        /* We have to drop RemoveEntry from the list. */
-        if (&RemoveEntry->ListEntry == NewHeadEntry)
-        {
-            /* RemoveEntry is the list head. */
-            if (!IsListEmpty(NewHeadEntry))
-            {
-                /* The second entry in the list will become the new
-                   list head. It's from the thread that arrived
-                   right before the owner of RemoveEntry. */
-                NewHeadEntry = NewHeadEntry->Flink;
-                RemoveEntryList(&RemoveEntry->ListEntry);
-            }
-            else
-            {
-                /* The list will be empty, so discard the list. */
-                NewHeadEntry = NULL;
-            }
-        }
-        else
-        {
-            /* RemoveEntry is not the list head. The current list head
-               will remain. */
-            RemoveEntryList(&RemoveEntry->ListEntry);
-        }
-
-        /* Indicate to the owner of RemoveEntry that the entry
-           was removed from the list. RemoveEntry may not be touched
-           from here on. We don't use volatile semantics here since
-           the cache will anyway be flushed soon when we update
-           ConditionVariable. */
-        RemoveEntry->ListRemovalHandled = TRUE;
-    }
-
-    /* Now unlock thread-safe, while preserving any flags within the
-       COND_VAR_FLAGS_MASK range except for COND_VAR_LOCKED_FLAG. */
     for (;;)
     {
-        ULONG_PTR NewVal = ((OldVal & (COND_VAR_FLAGS_MASK ^ COND_VAR_LOCKED_FLAG)) |
-                            (ULONG_PTR)NewHeadEntry);
-        ULONG_PTR LockRes = InternalCmpXChgCondVarRel(ConditionVariable, NewVal, OldVal);
-        if (LockRes == OldVal)
+        Current = (SIZE_T)SRWLock->Ptr;
+        if ((Current & 0x1) == 0) break;
+
+        if (SrwSharedMark == 0)
         {
-            /* We unlocked. */
+            node->flags |= CVF_EXCLUSIVE_HINT;
+        }
+        else if ((Current & 0x2) == 0 && (Current & ~0xF))
+        {
+            return FALSE;
+        }
+
+        node->next = NULL;
+        if (Current & 0x2)
+        {
+            node->notify = NULL;
+            node->shared = 0;
+            node->prev = (CV_WAIT_NODE*)(Current & ~0xF);
+            New = (SIZE_T)node | (Current & 0xF);
+        }
+        else
+        {
+            shared = Current >> 4;
+            node->shared = shared;
+            node->notify = node;
+            New = shared <= 1 ? (SIZE_T)node | 0x3 : (SIZE_T)node | 0xB;
+        }
+
+        if ((SIZE_T)InterlockedCompareExchangePointer(&SRWLock->Ptr, (PVOID)New, (PVOID)Current) == Current)
+            return TRUE;
+        backoff++;
+        YieldProcessor();
+    }
+    return FALSE;
+}
+
+static VOID __fastcall CvDispatchWake(PRTL_CONDITION_VARIABLE *ConditionVariable, SIZE_T ConditionVariableStatus, SIZE_T WakeCount)
+{
+    CV_WAIT_NODE* notify = NULL;
+    CV_WAIT_NODE* toWake = NULL;
+    CV_WAIT_NODE* waitHead;
+    CV_WAIT_NODE* block;
+    CV_WAIT_NODE* tmp;
+    CV_WAIT_NODE* next;
+    CV_WAIT_NODE* prev;
+    CV_WAIT_NODE** insertAt = &toWake;
+    SIZE_T LastStatus;
+    SIZE_T MaxWakeCount;
+    SIZE_T Count = 0;
+
+    for (;;)
+    {
+        waitHead = CV_NODE(ConditionVariableStatus);
+        if ((ConditionVariableStatus & 0x7) == 0x7)
+        {
+            ConditionVariableStatus = (SIZE_T)InterlockedExchangePointer((PVOID*)ConditionVariable, 0);
+            *insertAt = CV_NODE(ConditionVariableStatus);
             break;
         }
 
-        /* Try again. */
-        OldVal = LockRes;
-    }
-}
-
-static
-VOID
-InternalWake(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-             IN BOOLEAN ReleaseAll)
-{
-    /* If ReleaseAll is zero on entry, one thread at most will be woken.
-       Otherwise all waiting threads are woken. Wakeups happen in FIFO
-       order. */
-    PCOND_VAR_WAIT_ENTRY CONST HeadEntry = InternalLockCondVar(ConditionVariable, NULL, NULL);
-    PCOND_VAR_WAIT_ENTRY Entry;
-    PCOND_VAR_WAIT_ENTRY NextEntry;
-    LARGE_INTEGER Timeout;
-    PCOND_VAR_WAIT_ENTRY RemoveOnUnlockEntry;
-
-    ASSERT(CondVarKeyedEventHandle != NULL);
-
-    if (HeadEntry == NULL)
-    {
-        /* There is noone there to wake up. In this case do nothing
-           and return immediately. We don't stockpile releases. */
-        return;
-    }
-
-    Timeout.QuadPart = 0;
-    RemoveOnUnlockEntry = NULL;
-
-    /* Release sleeping threads. We will iterate from the last entry on
-       the list to the first. Note that the loop condition is always
-       true for the initial test. */
-    for (Entry = CONTAINING_COND_VAR_WAIT_ENTRY(HeadEntry->ListEntry.Blink, ListEntry);
-         Entry != NULL;
-         Entry = NextEntry)
-    {
-        NTSTATUS Status;
-
-        if (HeadEntry == Entry)
+        MaxWakeCount = WakeCount + (ConditionVariableStatus & 7);
+        block = waitHead;
+        for (; block->notify == NULL;)
         {
-            /* After the current entry we've iterated through the
-               entire list in backward direction. Then exit.*/
-            NextEntry = NULL;
+            tmp = block;
+            block = block->prev;
+            block->next = tmp;
+        }
+
+        if (MaxWakeCount <= Count)
+        {
+            LastStatus = (SIZE_T)InterlockedCompareExchangePointer(&(*ConditionVariable)->Ptr, (PVOID)(waitHead), (PVOID)ConditionVariableStatus);
+            if (LastStatus == ConditionVariableStatus) break;
+            ConditionVariableStatus = LastStatus;
         }
         else
         {
-            /* Store away the next reference right now, since we may
-               not touch Entry anymore at the end of the block. */
-            NextEntry = CONTAINING_COND_VAR_WAIT_ENTRY(Entry->ListEntry.Blink, ListEntry);
+            notify = block->notify;
+            while (MaxWakeCount > Count && notify->next)
+            {
+                ++Count;
+                *insertAt = notify;
+                notify->prev = NULL;
+                next = notify->next;
+                waitHead->notify = next;
+                next->prev = NULL;
+                insertAt = &notify->prev;
+                notify = next;
+            }
+
+            if (MaxWakeCount <= Count)
+            {
+                LastStatus = (SIZE_T)InterlockedCompareExchangePointer(&(*ConditionVariable)->Ptr, (PVOID)(waitHead), (PVOID)ConditionVariableStatus);
+                if (LastStatus == ConditionVariableStatus) break;
+                ConditionVariableStatus = LastStatus;
+            }
+            else
+            {
+                LastStatus = (SIZE_T)InterlockedCompareExchangePointer(&(*ConditionVariable)->Ptr, 0, (PVOID)ConditionVariableStatus);
+                if (LastStatus == ConditionVariableStatus)
+                {
+                    *insertAt = notify;
+                    notify->prev = 0;
+                    break;
+                }
+                ConditionVariableStatus = LastStatus;
+            }
         }
+    }
 
-        /* Wake the thread associated with this event. We will
-           immediately return if we failed (zero timeout). */
-        Status = NtReleaseKeyedEvent(CondVarKeyedEventHandle,
-                                     &Entry->WaitKey,
-                                     FALSE,
-                                     &Timeout);
-
-        if (!NT_SUCCESS(Status))
+    for (; toWake;)
+    {
+        prev = toWake->prev;
+        if (!InterlockedBitTestAndReset((PLONG)&toWake->flags, 1))
         {
-            /* We failed to wake a thread. We'll keep trying. */
-            ASSERT(STATUS_INVALID_HANDLE != Status);
-            continue;
+            if (toWake->Srw == NULL || CvTryAttachToSrw(toWake, toWake->Srw, (ULONG)((toWake->flags >> 2) & 0x1)) == FALSE)
+            {
+                CvSignalKeyedEventWithMark(GlobalKeyedEventHandle, toWake, FALSE, NULL);
+            }
         }
+        toWake = prev;
+    }
+}
 
-        /* We've woken a thread and will make sure this thread
-           is removed from the list. */
-        if (HeadEntry == Entry)
+static BOOL __fastcall CvTryStealSelf(PRTL_CONDITION_VARIABLE ConditionVariable, CV_WAIT_NODE* node)
+{
+    SIZE_T Current = (SIZE_T)ConditionVariable->Ptr;
+    CV_WAIT_NODE *pWaitNode;
+    CV_WAIT_NODE *pSuccessor;
+    SIZE_T Last;
+    SIZE_T New;
+    SIZE_T back;
+    CV_WAIT_NODE* notify;
+    BOOL bRet;
+
+    while (Current && (Current & 0x7) != 0x7)
+    {
+        if (Current & 0x8)
         {
-            /* This is the list head. We can't remove it as easily as
-               other entries and will pass it to the unlock routine
-               later (we will exit the loop after this round anyway). */
-            RemoveOnUnlockEntry = HeadEntry;
+            Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)(Current | 0x7), (PVOID)Current);
+            if (Last == Current) return FALSE;
+            Current = Last;
         }
         else
         {
-            /* We can remove the entry right away. */
-            RemoveEntryList(&Entry->ListEntry);
-
-            /* Now tell the woken thread that removal from the list was
-               already taken care of here so that this thread can resume
-               its normal operation more quickly. We may not touch
-               Entry after signaling this, since it may lie in invalid
-               memory from there on. */
-            *InternalGetListRemovalHandledFlag(Entry) = TRUE;
-        }
-
-        if (!ReleaseAll)
-        {
-            /* We've successfully woken one thread as the caller
-               demanded. */
-            break;
-        }
-    }
-
-    InternalUnlockCondVar(ConditionVariable, RemoveOnUnlockEntry);
-}
-
-VOID
-NTAPI
-RtlAcquireSRWLockExclusive(IN OUT PRTL_SRWLOCK SRWLock);
-VOID
-NTAPI
-RtlAcquireSRWLockShared(IN OUT PRTL_SRWLOCK SRWLock);
-VOID
-NTAPI
-RtlReleaseSRWLockExclusive(IN OUT PRTL_SRWLOCK SRWLock);
-VOID
-NTAPI
-RtlReleaseSRWLockShared(IN OUT PRTL_SRWLOCK SRWLock);
-
-static
-NTSTATUS
-InternalSleep(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-              IN OUT PRTL_CRITICAL_SECTION CriticalSection OPTIONAL,
-              IN OUT PRTL_SRWLOCK SRWLock OPTIONAL,
-              IN ULONG SRWFlags,
-              IN const LARGE_INTEGER * TimeOut OPTIONAL)
-{
-    /* Either CriticalSection or SRWLock must be NULL, but not both.
-       These caller provided lock must be held on entry and will be
-       held again on return. */
-
-    COND_VAR_WAIT_ENTRY OwnEntry;
-    NTSTATUS Status;
-
-    ASSERT(CondVarKeyedEventHandle != NULL);
-    ASSERT((CriticalSection == NULL) != (SRWLock == NULL));
-
-    RtlZeroMemory(&OwnEntry, sizeof(OwnEntry));
-
-    /* Put OwnEntry on the list. */
-    InternalLockCondVar(ConditionVariable, &OwnEntry, NULL);
-    InternalUnlockCondVar(ConditionVariable, NULL);
-
-    /* We can now drop the caller provided lock as a preparation for
-       going to sleep. */
-    if (CriticalSection == NULL)
-    {
-        if (0 == (RTL_CONDITION_VARIABLE_LOCKMODE_SHARED & SRWFlags))
-        {
-            RtlReleaseSRWLockExclusive(SRWLock);
-        }
-        else
-        {
-            RtlReleaseSRWLockShared(SRWLock);
+            New = Current | 0x8;
+            Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)New, (PVOID)Current);
+            if (Last == Current)
+            {
+                Current = New;
+                notify = NULL;
+                bRet = FALSE;
+                pWaitNode = CV_NODE(Current);
+                pSuccessor = pWaitNode;
+                if (pWaitNode)
+                {
+                    while (pWaitNode)
+                    {
+                        if (pWaitNode == node)
+                        {
+                            if (notify)
+                            {
+                                pWaitNode = pWaitNode->prev;
+                                bRet = TRUE;
+                                notify->prev = pWaitNode;
+                                if (!pWaitNode) break;
+                                pWaitNode->next = notify;
+                            }
+                            else
+                            {
+                                back = (SIZE_T)(pWaitNode->prev);
+                                New = back == 0 ? back : back ^ ((New ^ back) & 0xF);
+                                Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)New, (PVOID)Current);
+                                if (Last == Current)
+                                {
+                                    Current = New;
+                                    if (back == 0) return TRUE;
+                                    bRet = TRUE;
+                                }
+                                else
+                                {
+                                    Current = Last;
+                                }
+                                pSuccessor = pWaitNode = CV_NODE(Current);
+                                notify = NULL;
+                            }
+                        }
+                        else
+                        {
+                            pWaitNode->next = notify;
+                            notify = pWaitNode;
+                            pWaitNode = pWaitNode->prev;
+                        }
+                    }
+                    if (pSuccessor) pSuccessor->notify = notify;
+                }
+                CvDispatchWake(&ConditionVariable, Current, 0);
+                return bRet;
+            }
+            Current = Last;
         }
     }
-    else
-    {
-        RtlLeaveCriticalSection(CriticalSection);
-    }
-
-    /* Now sleep using the caller provided timeout. */
-    Status = NtWaitForKeyedEvent(CondVarKeyedEventHandle,
-                                 &OwnEntry.WaitKey,
-                                 FALSE,
-                                 (PLARGE_INTEGER)TimeOut);
-
-    ASSERT(STATUS_INVALID_HANDLE != Status);
-
-    if (!*InternalGetListRemovalHandledFlag(&OwnEntry))
-    {
-        /* Remove OwnEntry from the list again, since it still seems to
-           be on the list. We will know for sure once we've acquired
-           the lock. */
-        if (InternalLockCondVar(ConditionVariable,
-                                NULL,
-                                InternalGetListRemovalHandledFlag(&OwnEntry)))
-        {
-            /* Unlock and potentially remove OwnEntry. Self-removal is
-               usually only necessary when a timeout occurred. */
-            InternalUnlockCondVar(ConditionVariable,
-                                  !OwnEntry.ListRemovalHandled ?
-                                  &OwnEntry : NULL);
-        }
-    }
-
-#ifdef _DEBUG
-    /* Clear OwnEntry to aid in detecting bugs. */
-    RtlZeroMemory(&OwnEntry, sizeof(OwnEntry));
-#endif
-
-    /* Reacquire the caller provided lock, as we are about to return. */
-    if (CriticalSection == NULL)
-    {
-        if (0 == (RTL_CONDITION_VARIABLE_LOCKMODE_SHARED & SRWFlags))
-        {
-            RtlAcquireSRWLockExclusive(SRWLock);
-        }
-        else
-        {
-            RtlAcquireSRWLockShared(SRWLock);
-        }
-    }
-    else
-    {
-        RtlEnterCriticalSection(CriticalSection);
-    }
-
-    /* Return whatever NtWaitForKeyedEvent returned. */
-    return Status;
-}
-
-VOID
-NTAPI
-RtlpInitializeKeyedEvent(VOID)
-{
-    ASSERT(CondVarKeyedEventHandle == NULL);
-    NtCreateKeyedEvent(&CondVarKeyedEventHandle, EVENT_ALL_ACCESS, NULL, 0);
-}
-
-VOID
-NTAPI
-RtlpCloseKeyedEvent(VOID)
-{
-    ASSERT(CondVarKeyedEventHandle != NULL);
-    NtClose(CondVarKeyedEventHandle);
-    CondVarKeyedEventHandle = NULL;
+    return FALSE;
 }
 
 /* EXPORTED FUNCTIONS ********************************************************/
 
-VOID
-NTAPI
-RtlInitializeConditionVariable(OUT PRTL_CONDITION_VARIABLE ConditionVariable)
+VOID NTAPI RtlInitializeConditionVariable(OUT PRTL_CONDITION_VARIABLE ConditionVariable)
 {
     ConditionVariable->Ptr = NULL;
 }
 
-VOID
-NTAPI
-RtlWakeConditionVariable(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable)
+VOID NTAPI RtlWakeConditionVariable(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable)
 {
-    InternalWake(ConditionVariable, FALSE);
+    SIZE_T Current;
+    SIZE_T Last;
+
+    Current = (SIZE_T)ConditionVariable->Ptr;
+    for (; Current; Current = Last)
+    {
+        if (Current & 0x8)
+        {
+            if ((Current & 0x7) == 0x7) return;
+            Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)(Current + 1), (PVOID)Current);
+            if (Last == Current) return;
+        }
+        else
+        {
+            Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)(Current | 0x8), (PVOID)Current);
+            if (Last == Current)
+            {
+                InitializeGlobalKeyedEventHandle();
+                CvDispatchWake(&ConditionVariable, Current + 8, 1);
+                return;
+            }
+        }
+    }
 }
 
-VOID
-NTAPI
-RtlWakeAllConditionVariable(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable)
+VOID NTAPI RtlWakeAllConditionVariable(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable)
 {
-    InternalWake(ConditionVariable, TRUE);
+    SIZE_T Current = (SIZE_T)ConditionVariable->Ptr;
+    SIZE_T Last;
+    CV_WAIT_NODE* node;
+    CV_WAIT_NODE* Tmp;
+
+    for (; Current && (Current & 0x7) != 0x7; Current = Last)
+    {
+        if (Current & 0x8)
+        {
+            Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)(Current | 0x7), (PVOID)Current);
+            if (Last == Current) return;
+        }
+        else
+        {
+            Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, 0, (PVOID)Current);
+            if (Last == Current)
+            {
+                InitializeGlobalKeyedEventHandle();
+                for (node = CV_NODE(Current); node;)
+                {
+                    Tmp = node->prev;
+                    if (!InterlockedBitTestAndReset((PLONG)&node->flags, 1))
+                    {
+                        CvSignalKeyedEventWithMark(GlobalKeyedEventHandle, node, FALSE, NULL);
+                    }
+                    node = Tmp;
+                }
+                return;
+            }
+        }
+    }
 }
 
-NTSTATUS
-NTAPI
-RtlSleepConditionVariableCS(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-                            IN OUT PRTL_CRITICAL_SECTION CriticalSection,
-                            IN PLARGE_INTEGER TimeOut OPTIONAL)
+NTSTATUS NTAPI RtlSleepConditionVariableCS(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
+                                           IN OUT PRTL_CRITICAL_SECTION CriticalSection,
+                                           IN PLARGE_INTEGER TimeOut OPTIONAL)
 {
-    return InternalSleep(ConditionVariable,
-                         CriticalSection,
-                         (PRTL_SRWLOCK)NULL,
-                         0,
-                         TimeOut);
+    CV_WAIT_NODE StackNode;
+    SIZE_T OldConditionVariable;
+    SIZE_T NewConditionVariable;
+    SIZE_T LastConditionVariable;
+    SIZE_T SpinCount;
+    NTSTATUS Status = STATUS_SUCCESS;
+
+    StackNode.next = NULL;
+    StackNode.flags = CVF_SPIN;
+    StackNode.Srw = NULL;
+    StackNode.wakerTid = 0;
+    OldConditionVariable = (SIZE_T)ConditionVariable->Ptr;
+
+    for (;;)
+    {
+        NewConditionVariable = (SIZE_T)(&StackNode) | (OldConditionVariable & CV_MASK);
+        StackNode.prev = CV_NODE(OldConditionVariable);
+        if (StackNode.prev)
+        {
+            StackNode.notify = NULL;
+            NewConditionVariable |= 0x8;
+        }
+        else
+        {
+            StackNode.notify = &StackNode;
+        }
+        LastConditionVariable = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)NewConditionVariable, (PVOID)OldConditionVariable);
+        if (LastConditionVariable == OldConditionVariable) break;
+        OldConditionVariable = LastConditionVariable;
+    }
+
+    RtlLeaveCriticalSection(CriticalSection);
+    if ((OldConditionVariable ^ NewConditionVariable) & 0x8)
+    {
+    CvNormalizeWaitChain(ConditionVariable, NewConditionVariable);
+    }
+
+    InitializeGlobalKeyedEventHandle();
+    for (SpinCount = 1024; SpinCount; --SpinCount)
+    {
+        if (!(StackNode.flags & CVF_SPIN)) break;
+        YieldProcessor();
+    }
+    if (InterlockedBitTestAndReset((PLONG)&StackNode.flags, 1))
+    {
+        Status = NtWaitForKeyedEvent(GlobalKeyedEventHandle, &StackNode, FALSE, TimeOut);
+        if (Status == STATUS_TIMEOUT && CvTryStealSelf(ConditionVariable, &StackNode) == FALSE)
+        {
+            CvWaitKeyedEventSecondPhase(GlobalKeyedEventHandle, &StackNode, FALSE, NULL);
+            Status = STATUS_SUCCESS;
+        }
+    }
+    RtlEnterCriticalSection(CriticalSection);
+    return Status;
 }
 
-NTSTATUS
-NTAPI
-RtlSleepConditionVariableSRW(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
-                             IN OUT PRTL_SRWLOCK SRWLock,
-                             IN PLARGE_INTEGER TimeOut OPTIONAL,
-                             IN ULONG Flags)
+NTSTATUS NTAPI RtlSleepConditionVariableSRW(IN OUT PRTL_CONDITION_VARIABLE ConditionVariable,
+                                            IN OUT PRTL_SRWLOCK SRWLock,
+                                            IN PLARGE_INTEGER TimeOut OPTIONAL,
+                                            IN ULONG Flags)
 {
-    return InternalSleep(ConditionVariable,
-                         (PRTL_CRITICAL_SECTION)NULL,
-                         SRWLock,
-                         Flags,
-                         TimeOut);
+    SIZE_T SpinCount;
+    CV_WAIT_NODE StackNode;
+    SIZE_T Current;
+    SIZE_T New;
+    SIZE_T Last;
+    NTSTATUS Status = STATUS_SUCCESS;
+
+    if (Flags & ~RTL_CONDITION_VARIABLE_LOCKMODE_SHARED)
+        return STATUS_INVALID_PARAMETER;
+
+    StackNode.next = NULL;
+    StackNode.flags = CVF_SPIN;
+    StackNode.Srw = NULL;
+    StackNode.wakerTid = 0;
+    if (Flags & RTL_CONDITION_VARIABLE_LOCKMODE_SHARED) StackNode.flags |= CVF_SHARED_HINT;
+
+    Current = (SIZE_T)ConditionVariable->Ptr;
+    for (;;)
+    {
+        New = (SIZE_T)(&StackNode) | (Current & CV_MASK);
+        StackNode.prev = CV_NODE(Current);
+        if (StackNode.prev)
+        {
+            StackNode.notify = NULL;
+            New |= 0x8;
+        }
+        else
+        {
+            StackNode.notify = &StackNode;
+        }
+        Last = (SIZE_T)InterlockedCompareExchangePointer(&ConditionVariable->Ptr, (PVOID)New, (PVOID)Current);
+        if (Last == Current) break;
+        Current = Last;
+    }
+
+    if (Flags & RTL_CONDITION_VARIABLE_LOCKMODE_SHARED)
+        RtlReleaseSRWLockShared(SRWLock);
+    else
+        RtlReleaseSRWLockExclusive(SRWLock);
+
+    if ((Current ^ New) & 0x8) CvNormalizeWaitChain(ConditionVariable, New);
+    InitializeGlobalKeyedEventHandle();
+    for (SpinCount = 1024; SpinCount; --SpinCount)
+    {
+        if (!(StackNode.flags & CVF_SPIN)) break;
+        YieldProcessor();
+    }
+    if (InterlockedBitTestAndReset((PLONG)&StackNode.flags, 1))
+    {
+        Status = NtWaitForKeyedEvent(GlobalKeyedEventHandle, &StackNode, FALSE, TimeOut);
+        if (Status == STATUS_TIMEOUT && CvTryStealSelf(ConditionVariable, &StackNode) == FALSE)
+        {
+            CvWaitKeyedEventSecondPhase(GlobalKeyedEventHandle, &StackNode, FALSE, NULL);
+            Status = STATUS_SUCCESS;
+        }
+    }
+
+    if (Flags & RTL_CONDITION_VARIABLE_LOCKMODE_SHARED)
+    RtlAcquireSRWLockShared(SRWLock);
+    else
+    RtlAcquireSRWLockExclusive(SRWLock);
+
+    return Status;
 }
 
 /* EOF */
