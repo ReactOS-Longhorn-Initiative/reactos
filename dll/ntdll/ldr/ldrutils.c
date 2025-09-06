@@ -18,6 +18,15 @@
 
 PLDR_DATA_TABLE_ENTRY LdrpLoadedDllHandleCache, LdrpGetModuleHandleCache;
 
+/* DLL directories support */
+ ULONG LdrpDefaultDllDirectories; /* flags from SetDefaultDllDirectories */
+typedef struct _LDRP_DLL_DIR_ENTRY {
+    LIST_ENTRY Links;
+    UNICODE_STRING Path;
+} LDRP_DLL_DIR_ENTRY, *PLDRP_DLL_DIR_ENTRY;
+ LIST_ENTRY LdrpDllDirectoryList = { &LdrpDllDirectoryList, &LdrpDllDirectoryList };
+ RTL_CRITICAL_SECTION LdrpDllDirectoryLock;
+
 BOOLEAN g_ShimsEnabled;
 PVOID g_pShimEngineModule;
 PVOID g_pfnSE_DllLoaded;
@@ -27,6 +36,13 @@ PVOID g_pfnSE_InstallAfterInit;
 PVOID g_pfnSE_ProcessDying;
 
 /* FUNCTIONS *****************************************************************/
+
+/* CLR helpers (implemented in ldrcor.c) */
+NTSTATUS NTAPI LdrpCorValidateImage(IN PVOID ImageBase, IN LPCWSTR FileName);
+BOOL NTAPI LdrpIsILOnlyImage(PVOID BaseAddress);
+NTSTATUS NTAPI LdrpCorEnsureMscoreeLoaded(VOID);
+PVOID NTAPI LdrpCorGetCorDllMain(VOID);
+BOOLEAN NTAPI LdrpCorTryValidateViaMscoree(IN OUT PVOID* ImageBase, IN LPCWSTR FileName, OUT NTSTATUS* StatusOptional);
 
 NTSTATUS
 NTAPI
@@ -679,6 +695,23 @@ LdrpResolveDllName(PWSTR DllPath,
     ULONG Length;
     ULONG BufSize = 500;
 
+    /* Honor added DLL directories first (Win8+) */
+    if (IsListEmpty(&LdrpDllDirectoryList) == FALSE && DllPath == NULL)
+    {
+        PLIST_ENTRY e;
+        RtlEnterCriticalSection(&LdrpDllDirectoryLock);
+        for (e = LdrpDllDirectoryList.Flink; e != &LdrpDllDirectoryList; e = e->Flink)
+        {
+            PLDRP_DLL_DIR_ENTRY ent = CONTAINING_RECORD(e, LDRP_DLL_DIR_ENTRY, Links);
+            if (LdrpResolveDllName(ent->Path.Buffer, DllName, FullDllName, BaseDllName))
+            {
+                RtlLeaveCriticalSection(&LdrpDllDirectoryLock);
+                return TRUE;
+            }
+        }
+        RtlLeaveCriticalSection(&LdrpDllDirectoryLock);
+    }
+
     /* Allocate space for full DLL name */
     FullDllName->Buffer = RtlAllocateHeap(LdrpHeap, 0, BufSize + sizeof(UNICODE_NULL));
     if (!FullDllName->Buffer) return FALSE;
@@ -1196,7 +1229,47 @@ SkipCheck:
         return STATUS_INVALID_IMAGE_FORMAT;
     }
 
-    // FIXME: .NET support is missing
+    /* Detect and validate .NET (CLR) images early */
+    {
+        ULONG CorSectionSize = 0;
+        PVOID CorDir = RtlImageDirectoryEntryToData(ViewBase,
+                                                    TRUE,
+                                                    IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR,
+                                                    &CorSectionSize);
+        if (CorDir)
+        {
+            NTSTATUS CorStatus = STATUS_SUCCESS;
+            BOOLEAN UsedMscoree = LdrpCorTryValidateViaMscoree(&ViewBase, FullDllName.Buffer, &CorStatus);
+            if (!UsedMscoree || !NT_SUCCESS(CorStatus))
+            {
+                /* Fall back to local validation when mscoree is not usable */
+                CorStatus = LdrpCorValidateImage(ViewBase, FullDllName.Buffer);
+            }
+            if (!NT_SUCCESS(CorStatus))
+            {
+                NtUnmapViewOfSection(NtCurrentProcess(), ViewBase);
+                NtClose(SectionHandle);
+                return CorStatus;
+            }
+
+            /* If this is a pure IL image and we have no real CLR entrypoint, fail the load */
+            if (LdrpIsILOnlyImage(ViewBase))
+            {
+                PVOID CorDllMain = LdrpCorGetCorDllMain();
+                if (!CorDllMain)
+                {
+                    if (NT_SUCCESS(LdrpCorEnsureMscoreeLoaded()))
+                        CorDllMain = LdrpCorGetCorDllMain();
+                }
+                if (!CorDllMain)
+                {
+                    NtUnmapViewOfSection(NtCurrentProcess(), ViewBase);
+                    NtClose(SectionHandle);
+                    return STATUS_INVALID_IMAGE_FORMAT;
+                }
+            }
+        }
+    }
 
     /* Allocate an entry */
     if (!(LdrEntry = LdrpAllocateDataTableEntry(ViewBase)))
@@ -1214,6 +1287,49 @@ SkipCheck:
     LdrEntry->FullDllName = FullDllName;
     LdrEntry->BaseDllName = BaseDllName;
     LdrEntry->EntryPoint = LdrpFetchAddressOfEntryPoint(LdrEntry->DllBase);
+
+    /* Mark CLR images and avoid native DllMain for IL-only */
+    {
+        ULONG CorSectionSize = 0;
+        PVOID CorDir = RtlImageDirectoryEntryToData(LdrEntry->DllBase,
+                                                    TRUE,
+                                                    IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR,
+                                                    &CorSectionSize);
+        if (CorDir)
+        {
+            LdrEntry->Flags |= LDRP_COR_IMAGE;
+            if (LdrpIsILOnlyImage(LdrEntry->DllBase))
+            {
+                /* For IL-only images, prefer CorDllMain if available */
+                PVOID CorDllMain = LdrpCorGetCorDllMain();
+                if (!CorDllMain)
+                {
+                    if (NT_SUCCESS(LdrpCorEnsureMscoreeLoaded()))
+                        CorDllMain = LdrpCorGetCorDllMain();
+                }
+                LdrEntry->EntryPoint = (PDLL_INIT_ROUTINE)CorDllMain; /* may be NULL, but early check prevents IL-only w/o CLR */
+            }
+            else
+            {
+                /* Mixed-mode (native) assemblies may use _CorDllMain if available */
+                PVOID CorDllMain = LdrpCorGetCorDllMain();
+                if (!CorDllMain)
+                {
+                    /* Try load mscoree lazily and resolve _CorDllMain */
+                    if (NT_SUCCESS(LdrpCorEnsureMscoreeLoaded()))
+                    {
+                        CorDllMain = LdrpCorGetCorDllMain();
+                    }
+                }
+
+                if (CorDllMain)
+                {
+                    LdrEntry->EntryPoint = (PDLL_INIT_ROUTINE)CorDllMain;
+                    LdrEntry->Flags |= LDR_COR_OWNS_UNMAP; /* avoid unmapping if CLR takes ownership */
+                }
+            }
+        }
+    }
 
     /* Show debug message */
     if (ShowSnaps)
