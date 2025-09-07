@@ -70,15 +70,9 @@ typedef struct _ALPC_COMPLETION_LIST_STATE
 		{
 			ULONG64 Head : 24;
 			ULONG64 Tail : 24;
-			ULONG64 ActiveThreadCount : 16;
-		} s1;
-		ULONG64 Value;
-	} u1;
-} ALPC_COMPLETION_LIST_STATE, *PALPC_COMPLETION_LIST_STATE;
-
-#define ALPC_COMPLETION_LIST_BUFFER_GRANULARITY_MASK 0x3f // dbg
-
-// symbols
+    #define ALPC_LISTEN_MAP_ENTRY 0x1 // Placeholder for context
+    typedef struct _ALPC_LISTEN_MAP_ENTRY { // Placeholder for context
+        LIST_ENTRY Entry; // Placeholder for context
 typedef struct DECLSPEC_ALIGN(128) _ALPC_COMPLETION_LIST_HEADER
 {
 	ULONG64 StartMagic;
@@ -262,12 +256,17 @@ typedef struct _ALPC_MESSAGE_HANDLE_INFORMATION
 	ACCESS_MASK GrantedAccess;
 } ALPC_MESSAGE_HANDLE_INFORMATION, *PALPC_MESSAGE_HANDLE_INFORMATION;
 
-typedef struct _KALPC_MESSAGE_ATTRIBUTES
+typedef struct _ALPC_MESSAGE_ATTRIBUTES
 {
     VOID* ClientContext;                                                    //0x0
     VOID* ServerContext;                                                    //0x4
     VOID* PortContext;                                                      //0x8
     VOID* CancelPortContext;                                                //0xc
+#if 1
+    // Bookkeeping fields used by initialization helpers
+    ULONG AllocatedAttributes;                                              // which attributes the buffer can hold
+    ULONG ValidAttributes;                                                  // which are currently valid
+#endif
 #if 0
     TODO:
     struct _KALPC_SECURITY_DATA* SecurityData;                              //0x10
@@ -278,6 +277,78 @@ typedef struct _KALPC_MESSAGE_ATTRIBUTES
 #endif
 } ALPC_MESSAGE_ATTRIBUTES, *PALPC_MESSAGE_ATTRIBUTES; 
 
+#if 0
+struct _ALPC_PORT
+{
+    struct _LIST_ENTRY PortListEntry;                                       //0x0
+    struct _ALPC_COMMUNICATION_INFO* CommunicationInfo;                     //0x8
+    struct _EPROCESS* OwnerProcess;                                         //0xc
+    VOID* CompletionPort;                                                   //0x10
+    VOID* CompletionKey;                                                    //0x14
+    struct _ALPC_COMPLETION_PACKET_LOOKASIDE* CompletionPacketLookaside;    //0x18
+    VOID* PortContext;                                                      //0x1c
+    struct _SECURITY_CLIENT_CONTEXT StaticSecurity;                         //0x20
+    struct _EX_PUSH_LOCK IncomingQueueLock;                                 //0x5c
+    struct _LIST_ENTRY MainQueue;                                           //0x60
+    struct _LIST_ENTRY LargeMessageQueue;                                   //0x68
+    struct _EX_PUSH_LOCK PendingQueueLock;                                  //0x70
+    struct _LIST_ENTRY PendingQueue;                                        //0x74
+    struct _EX_PUSH_LOCK DirectQueueLock;                                   //0x7c
+    struct _LIST_ENTRY DirectQueue;                                         //0x80
+    struct _EX_PUSH_LOCK WaitQueueLock;                                     //0x88
+    struct _LIST_ENTRY WaitQueue;                                           //0x8c
+    union
+    {
+        struct _KSEMAPHORE* Semaphore;                                      //0x94
+        struct _KEVENT* DummyEvent;                                         //0x94
+    };
+    struct _ALPC_PORT_ATTRIBUTES PortAttributes;                            //0x98
+    struct _EX_PUSH_LOCK ResourceListLock;                                  //0xc4
+    struct _LIST_ENTRY ResourceListHead;                                    //0xc8
+    struct _EX_PUSH_LOCK PortObjectLock;                                    //0xd0
+    struct _ALPC_COMPLETION_LIST* CompletionList;                           //0xd4
+    struct _CALLBACK_OBJECT* CallbackObject;                                //0xd8
+    VOID* CallbackContext;                                                  //0xdc
+    struct _LIST_ENTRY CanceledQueue;                                       //0xe0
+    LONG SequenceNo;                                                        //0xe8
+    LONG ReferenceNo;                                                       //0xec
+    struct _PALPC_PORT_REFERENCE_WAIT_BLOCK* ReferenceNoWait;               //0xf0
+    union
+    {
+        struct
+        {
+            ULONG Initialized:1;                                            //0xf4
+            ULONG Type:2;                                                   //0xf4
+            ULONG ConnectionPending:1;                                      //0xf4
+            ULONG ConnectionRefused:1;                                      //0xf4
+            ULONG Disconnected:1;                                           //0xf4
+            ULONG Closed:1;                                                 //0xf4
+            ULONG NoFlushOnClose:1;                                         //0xf4
+            ULONG ReturnExtendedInfo:1;                                     //0xf4
+            ULONG Waitable:1;                                               //0xf4
+            ULONG DynamicSecurity:1;                                        //0xf4
+            ULONG Wow64CompletionList:1;                                    //0xf4
+            ULONG Lpc:1;                                                    //0xf4
+            ULONG LpcToLpc:1;                                               //0xf4
+            ULONG HasCompletionList:1;                                      //0xf4
+            ULONG HadCompletionList:1;                                      //0xf4
+            ULONG EnableCompletionList:1;                                   //0xf4
+        } s1;                                                               //0xf4
+        ULONG State;                                                        //0xf4
+    } u1;                                                                   //0xf4
+    struct _ALPC_PORT* TargetQueuePort;                                     //0xf8
+    struct _ALPC_PORT* TargetSequencePort;                                  //0xfc
+    struct _KALPC_MESSAGE* CachedMessage;                                   //0x100
+    ULONG MainQueueLength;                                                  //0x104
+    ULONG LargeMessageQueueLength;                                          //0x108
+    ULONG PendingQueueLength;                                               //0x10c
+    ULONG DirectQueueLength;                                                //0x110
+    ULONG CanceledQueueLength;                                              //0x114
+    ULONG WaitQueueLength;                                                  //0x118
+}; 
+#endif
+
+
 // ALPC Port (expanded, with refcount and basic fields)
 typedef struct _ALPC_PORT {
     LONG RefCount;
@@ -286,6 +357,19 @@ typedef struct _ALPC_PORT {
     PVOID OwnerProcess;
     PVOID CommunicationInfo;
     LIST_ENTRY PortListEntry;
+    KSPIN_LOCK QueueLock;
+    LIST_ENTRY MainQueue;
+    KSEMAPHORE MsgSemaphore;
+    BOOLEAN Waitable;
+    UNICODE_STRING Name;      // copied from ObjectAttributes->ObjectName (if any)
+    PWSTR NameBuffer;         // allocated buffer for Name
+    // Connection handling (minimal)
+    LIST_ENTRY ConnectionQueue;    // pending connection requests
+    KSEMAPHORE ConnSemaphore;      // semaphore to signal new connection requests
+    LIST_ENTRY PendingConnQueue;   // listened requests awaiting accept
+    volatile LONG SequenceNo;      // sequence for MessageId on connection requests
+    struct _ALPC_PORT* ConnectedPort; // peer communication port when established
+    ULONG PortKind;               // 0: connection port, 1: server comm, 2: client comm
     // TODO: Add message queues, security, etc.
 } ALPC_PORT, *PALPC_PORT;
 
@@ -321,7 +405,7 @@ typedef struct _KALPC_RESERVE
     struct _KALPC_MESSAGE* Message;                                       //0xc
     LONG Active;                                                    //0x10
 } KALPC_RESERVE, *PKALPC_RESERVE;
-// Global ALPC port list (for demo, real impl will use object manager)
+// Global ALPC port list (debug/diagnostic only; objects are managed by Ob)
 extern LIST_ENTRY AlpcPortList;
 extern FAST_MUTEX AlpcPortListLock;
 
@@ -330,8 +414,23 @@ PALPC_PORT AlpcReferencePort(PALPC_PORT Port);
 void AlpcDereferencePort(PALPC_PORT Port);
 
 // Port allocation and system init
-PALPC_PORT AlpcAllocatePort(PALPC_PORT_ATTRIBUTES PortAttributes);
 VOID AlpcpInitSystem(VOID);
+
+// Handle and queue helpers
+PALPC_PORT AlpcFromHandle(HANDLE PortHandle);
+NTSTATUS AlpcReceiveMessage(HANDLE PortHandle, PPORT_MESSAGE ReceiveMessage, PLARGE_INTEGER Timeout);
+
+// Minimal connection request used for handshake
+typedef struct _ALPC_CONNECTION_REQUEST
+{
+    LIST_ENTRY Entry;
+    KEVENT Event;                // signaled by server accept
+    NTSTATUS Status;             // completion status
+    PALPC_PORT ClientPort;       // pre-created by client for its communication port
+    HANDLE ServerHandle;         // produced by server accept
+    ULONG MessageId;             // identifier exposed via PORT_MESSAGE.MessageId
+    CLIENT_ID ClientId;          // captured on connect
+} ALPC_CONNECTION_REQUEST, *PALPC_CONNECTION_REQUEST;
 
 // KALPC Message (expanded, partial)
 typedef struct _KALPC_MESSAGE
@@ -370,7 +469,7 @@ typedef struct _KALPC_MESSAGE
     LONG CancelSequenceNo;                                          //0x28
     LIST_ENTRY CancelListEntry;                                     //0x2c
     KALPC_RESERVE* Reserve;                                         //0x34
-    struct _KALPC_MESSAGE_ATTRIBUTES MessageAttributes;                     //0x38
+    ALPC_MESSAGE_ATTRIBUTES MessageAttributes;                               //0x38
     VOID* DataUserVa;                                               //0x60
     struct _ALPC_COMMUNICATION_INFO* CommunicationInfo;                     //0x64
     ALPC_PORT* ConnectionPort;                                      //0x68
@@ -407,5 +506,6 @@ NTSTATUS AlpcCreatePort(PHANDLE PortHandle, POBJECT_ATTRIBUTES ObjectAttributes,
 NTSTATUS AlpcConnectPort(PHANDLE PortHandle, PUNICODE_STRING PortName, PALPC_PORT_ATTRIBUTES PortAttributes, PALPC_PORT_VIEW PortView, PALPC_REMOTE_PORT_VIEW RemotePortView, PVOID ConnectionInformation, PULONG ConnectionInformationLength);
 NTSTATUS AlpcSendWaitReceivePort(HANDLE PortHandle, ULONG Flags, PVOID SendMessage, PALPC_MESSAGE_ATTRIBUTES SendMessageAttributes, PVOID ReceiveMessage, PALPC_MESSAGE_ATTRIBUTES ReceiveMessageAttributes, PLARGE_INTEGER Timeout);
 NTSTATUS AlpcAcceptConnectPort(PHANDLE PortHandle, HANDLE ConnectionPortHandle, ULONG Flags, PALPC_PORT_ATTRIBUTES PortAttributes, PALPC_PORT_VIEW PortView, PALPC_REMOTE_PORT_VIEW RemotePortView, PVOID ConnectionInformation, PULONG ConnectionInformationLength);
+
 
 #endif // _NTOSKRNL_ALPC_H_
