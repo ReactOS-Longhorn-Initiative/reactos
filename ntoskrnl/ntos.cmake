@@ -196,6 +196,7 @@ list(APPEND SOURCE
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/time.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/timerobj.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/wait.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/alpc.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/close.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/complete.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/connect.c
