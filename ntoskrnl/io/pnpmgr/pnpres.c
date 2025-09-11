@@ -582,7 +582,11 @@ IopCheckResourceDescriptor(
             if (ResDesc->ShareDisposition == CmResourceShareShared &&
                 ResDesc2->ShareDisposition == CmResourceShareShared)
                 continue;
-
+          
+            if (ResDesc2->ShareDisposition == CmResourceShareDriverExclusive || 
+                ResDesc->ShareDisposition == CmResourceShareDriverExclusive)
+                continue;
+        
             /* Make sure we're comparing the same types */
             if (ResDesc->Type != ResDesc2->Type)
                 continue;
