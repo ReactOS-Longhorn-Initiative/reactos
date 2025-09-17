@@ -1,5 +1,6 @@
 /*
- * Copyright 2007 Juan Lang
+ * The Wine project - Xinput Joystick Library
+ * Copyright 2008 Andrew Fenn
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,14 +16,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
-#ifndef __WINTRUST_PRIV_H__
-#define __WINTRUST_PRIV_H__
 
-BOOL WINAPI WINTRUST_AddStore(CRYPT_PROVIDER_DATA *data, HCERTSTORE store);
-BOOL WINAPI WINTRUST_AddSgnr(CRYPT_PROVIDER_DATA *data,
- BOOL fCounterSigner, DWORD idxSigner, CRYPT_PROVIDER_SGNR *sgnr);
-BOOL WINAPI WINTRUST_AddCert(CRYPT_PROVIDER_DATA *data, DWORD idxSigner,
- BOOL fCounterSigner, DWORD idxCounterSigner, PCCERT_CONTEXT pCert2Add);
-BOOL WINAPI WINTRUST_AddPrivData(CRYPT_PROVIDER_DATA *data, CRYPT_PROVIDER_PRIVDATA *pPrivData2Add);
+#define WINE_FILEDESCRIPTION_STR "Wine Common Controller API"
+#define WINE_FILENAME_STR "xinput1_3.dll"
+#define WINE_FILEVERSION 9,15,779,0000
+#define WINE_FILEVERSION_STR "9.15.779.0000"
+#define WINE_PRODUCTVERSION 9,15,779,0000
+#define WINE_PRODUCTVERSION_STR "9.15"
 
-#endif /* ndef __WINTRUST_PRIV_H__ */
+#include "wine/wine_common_ver.rc"

@@ -795,6 +795,12 @@ CMP_UnregisterNotification(
 
     pNotifyData = (PNOTIFY_DATA)hDevNotify;
 
+    if(IsBadReadPtr(pNotifyData, 4))
+    {
+TRACE("CMP_UnregisterNotification BAD(%p)\n", hDevNotify);
+ return CR_INVALID_POINTER;
+    }
+
     if ((pNotifyData == NULL) ||
         (pNotifyData->ulMagic != NOTIFY_MAGIC))
         return CR_INVALID_POINTER;

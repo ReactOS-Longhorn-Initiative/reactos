@@ -83,6 +83,9 @@ NtQueryInformationProcess(
     if (!NT_SUCCESS(Status))
     {
         DPRINT1("NtQueryInformationProcess(): Information verification class failed! (Status -> 0x%lx, ProcessInformationClass -> %lx)\n", Status, ProcessInformationClass);
+
+        if (ProcessInformationClass != 0x26)
+        __debugbreak();
         return Status;
     }
 
@@ -2683,6 +2686,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
     ULONG Length = 0;
     PTHREAD_BASIC_INFORMATION ThreadBasicInfo =
         (PTHREAD_BASIC_INFORMATION)ThreadInformation;
+    PTHREAD_CYCLE_TIME_INFORMATION ThreadCycleInfo = (PTHREAD_CYCLE_TIME_INFORMATION)ThreadInformation;
     PKERNEL_USER_TIMES ThreadTime = (PKERNEL_USER_TIMES)ThreadInformation;
     KIRQL OldIrql;
     ULONG ThreadTerminated;
@@ -3062,6 +3066,51 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 Status = _SEH2_GetExceptionCode();
             }
             _SEH2_END;
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+
+        case ThreadCycleTime:
+            
+            DPRINT1("!!ThreadCycleTime stub\n");
+            /* Set the return length */
+            Length = sizeof(ThreadCycleInfo);
+            if (ThreadInformationLength != Length)
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            ThreadCycleInfo->AccumulatedCycles = 0;
+            ThreadCycleInfo->CurrentCycleCount = 0;
+            break;
+
+        case ThreadHideFromDebugger:
+            DPRINT1("!!ThreadHideFromDebugger\n");
+
+            /* Set the return length */
+            Length = sizeof(BOOLEAN);
+
+            if (ThreadInformationLength != Length)
+            {
+                DPRINT1("!!ThreadHideFromDebugger invalid length\n");
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            /* Reference the thread */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               Access,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+                break;
+
+            /* Get the flag */
+            *((BOOLEAN*)ThreadInformation) = !!(Thread->CrossThreadFlags & CT_HIDE_FROM_DEBUGGER_BIT);
 
             /* Dereference the thread */
             ObDereferenceObject(Thread);

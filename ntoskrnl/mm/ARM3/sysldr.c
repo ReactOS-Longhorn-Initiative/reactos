@@ -1120,7 +1120,8 @@ MiResolveImageReferences(IN PVOID ImageBase,
                      ((_strnicmp(ImportName, "win32k", sizeof("win32k") - 1)) &&
                       (_strnicmp(ImportName, "dxapi", sizeof("dxapi") - 1)) &&
                       (_strnicmp(ImportName, "coverage", sizeof("coverage") - 1)) &&
-                      (_strnicmp(ImportName, "irt", sizeof("irt") - 1)));
+                      (_strnicmp(ImportName, "irt", sizeof("irt") - 1))) &&
+                      (_strnicmp(ImportName, "psapi", sizeof("psapi") - 1));
 
         /* Check if this is a valid GDI driver */
         if (GdiLink && NormalLink)

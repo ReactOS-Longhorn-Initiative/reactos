@@ -508,7 +508,7 @@ static const INFORMATION_CLASS_INFO PsThreadInfoClass[] =
     (
         CHAR,
         ULONG,
-        ICIF_SET | ICIF_SET_SIZE_VARIABLE
+        ICIF_QUERY | ICIF_SET | ICIF_SET_SIZE_VARIABLE
     ),
 
     /* ThreadBreakOnTermination */
@@ -542,7 +542,12 @@ static const INFORMATION_CLASS_INFO PsThreadInfoClass[] =
     IQS_NONE,
 
     /* ThreadCycleTime */
-    IQS_NONE,
+    IQS_SAME
+    (
+        THREAD_CYCLE_TIME_INFORMATION,
+        ULONG,
+        ICIF_QUERY
+    ),
 
     /* ThreadPagePriority */
     IQS_NONE,
