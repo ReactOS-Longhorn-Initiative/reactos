@@ -1,5 +1,5 @@
 
-remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502 -D_CRT_NON_CONFORMING_SWPRINTFS)
 add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 
 add_definitions(
@@ -27,6 +27,7 @@ list(APPEND SOURCE
     msg.c
     object.c
     oid.c
+    pfx.c
     proplist.c
     protectdata.c
     provstore.c
@@ -35,7 +36,8 @@ list(APPEND SOURCE
     serialize.c
     sip.c
     store.c
-    str.c)
+    str.c
+    unixlib.c)
 
 list(APPEND PCH_SKIP_SOURCE
     ${CMAKE_CURRENT_BINARY_DIR}/crypt32_stubs.c)
