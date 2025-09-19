@@ -55,9 +55,11 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, PVOID pvReserved)
             DisableThreadLibraryCalls(hInst);
             init_empty_store();
             crypt_oid_init();
+#ifndef __REACTOS__
             if (__wine_init_unix_call())
                 return FALSE;
             CRYPT32_CALL( process_attach, NULL );
+#endif
             break;
         case DLL_PROCESS_DETACH:
             if (pvReserved) break;
@@ -65,7 +67,9 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, PVOID pvReserved)
             crypt_sip_free();
             default_chain_engine_free();
             if (hDefProv) CryptReleaseContext(hDefProv, 0);
+#ifndef __REACTOS__
             CRYPT32_CALL( process_detach, NULL );
+#endif
             break;
     }
     return TRUE;

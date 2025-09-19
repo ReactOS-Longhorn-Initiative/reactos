@@ -20,7 +20,9 @@
 #define __CRYPT32_PRIVATE_H__
 
 #include "wine/list.h"
+#ifndef __REACTOS__
 #include "wine/unixlib.h"
+#endif
 
 BOOL CNG_ImportPubKey(CERT_PUBLIC_KEY_INFO *pubKeyInfo, BCRYPT_KEY_HANDLE *key);
 BOOL cng_prepare_signature(const char *alg_oid, BYTE *encoded_sig, DWORD encoded_sig_len,

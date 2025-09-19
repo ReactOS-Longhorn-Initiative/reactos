@@ -168,6 +168,59 @@ static void check_and_store_certs(HCERTSTORE cached, HCERTSTORE new, HCERTSTORE 
     TRACE("Added %ld root certificates\n", root_count);
 }
 
+
+
+#ifdef __REACTOS__
+
+static BOOL WINAPI CRYPT_RootWriteCert(HCERTSTORE hCertStore,
+ PCCERT_CONTEXT cert, DWORD dwFlags)
+{
+    /* The root store can't have certs added */
+    return FALSE;
+}
+
+static BOOL WINAPI CRYPT_RootDeleteCert(HCERTSTORE hCertStore,
+ PCCERT_CONTEXT cert, DWORD dwFlags)
+{
+    /* The root store can't have certs deleted */
+    return FALSE;
+}
+
+static BOOL WINAPI CRYPT_RootWriteCRL(HCERTSTORE hCertStore,
+ PCCRL_CONTEXT crl, DWORD dwFlags)
+{
+    /* The root store can have CRLs added.  At worst, a malicious application
+     * can DoS itself, as the changes aren't persisted in any way.
+     */
+    return TRUE;
+}
+
+static BOOL WINAPI CRYPT_RootDeleteCRL(HCERTSTORE hCertStore,
+ PCCRL_CONTEXT crl, DWORD dwFlags)
+{
+    /* The root store can't have CRLs deleted */
+    return FALSE;
+}
+
+static void *rootProvFuncs[] = {
+    NULL, /* CERT_STORE_PROV_CLOSE_FUNC */
+    NULL, /* CERT_STORE_PROV_READ_CERT_FUNC */
+    CRYPT_RootWriteCert,
+    CRYPT_RootDeleteCert,
+    NULL, /* CERT_STORE_PROV_SET_CERT_PROPERTY_FUNC */
+    NULL, /* CERT_STORE_PROV_READ_CRL_FUNC */
+    CRYPT_RootWriteCRL,
+    CRYPT_RootDeleteCRL,
+    NULL, /* CERT_STORE_PROV_SET_CRL_PROPERTY_FUNC */
+    NULL, /* CERT_STORE_PROV_READ_CTL_FUNC */
+    NULL, /* CERT_STORE_PROV_WRITE_CTL_FUNC */
+    NULL, /* CERT_STORE_PROV_DELETE_CTL_FUNC */
+    NULL, /* CERT_STORE_PROV_SET_CTL_PROPERTY_FUNC */
+    NULL, /* CERT_STORE_PROV_CONTROL_FUNC */
+};
+
+#endif /* __REACTOS__ */
+
 static const BYTE authenticode[] = {
 0x30,0x82,0x03,0xd6,0x30,0x82,0x02,0xbe,0xa0,0x03,0x02,0x01,0x02,0x02,0x01,0x01,
 0x30,0x0d,0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x04,0x05,0x00,0x30,
@@ -630,11 +683,13 @@ static void read_trusted_roots_from_known_locations(HCERTSTORE store, HCERTSTORE
     DWORD needed, size;
     struct enum_root_certs_params params = { NULL, 2048, &needed };
     HCRYPTPROV prov;
+#ifndef __REACTOS__
     HCRYPTHASH hash;
     BYTE hashval[20];
     DWORD hashlen;
     CRYPT_HASH_BLOB hash_blob = { sizeof(hashval), hashval };
     CRYPT_DATA_BLOB exists_blob = { 0, NULL };
+#endif
     PCCERT_CONTEXT cert, existing;
     unsigned int existing_count = 0, new_count = 0;
     unsigned int cached_count = 0;
@@ -648,6 +703,7 @@ static void read_trusted_roots_from_known_locations(HCERTSTORE store, HCERTSTORE
 
     CryptAcquireContextW( &prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT );
     params.buffer = CryptMemAlloc( params.size );
+#ifndef __REACTOS__
     while (!CRYPT32_CALL( enum_root_certs, &params ))
     {
         if (needed > params.size)
@@ -684,6 +740,7 @@ static void read_trusted_roots_from_known_locations(HCERTSTORE store, HCERTSTORE
         CertFreeCertificateContext( cert );
         ++new_count;
     }
+#endif
     CryptMemFree( params.buffer );
     CryptReleaseContext( prov, 0 );
 
@@ -720,6 +777,9 @@ static void read_trusted_roots_from_known_locations(HCERTSTORE store, HCERTSTORE
 
 static HCERTSTORE create_root_store(HCERTSTORE cached, BOOL *delete)
 {
+#ifdef __REACTOS__
+    HCERTSTORE root = NULL;
+#endif
     HCERTSTORE memStore = CertOpenStore(CERT_STORE_PROV_MEMORY,
      X509_ASN_ENCODING, 0, CERT_STORE_CREATE_NEW_FLAG, NULL);
 
@@ -727,12 +787,39 @@ static HCERTSTORE create_root_store(HCERTSTORE cached, BOOL *delete)
     *delete = FALSE;
     if (memStore)
     {
+#ifdef __REACTOS__
+        HCERTSTORE regStore;
+        CERT_STORE_PROV_INFO provInfo = {
+         sizeof(CERT_STORE_PROV_INFO),
+         sizeof(rootProvFuncs) / sizeof(rootProvFuncs[0]),
+         rootProvFuncs,
+         NULL,
+         0,
+         NULL
+        };
+#endif
         add_ms_root_certs(memStore, cached);
         read_trusted_roots_from_known_locations(memStore, cached, delete);
+#ifdef __REACTOS__
+        root = CRYPT_ProvCreateStore(0, memStore, &provInfo);
+        regStore = CertOpenStore(CERT_STORE_PROV_SYSTEM_W, 0, 0, CERT_SYSTEM_STORE_LOCAL_MACHINE, L"AuthRoot");
+        if (regStore)
+        {
+            HCERTSTORE collStore = CertOpenStore(CERT_STORE_PROV_COLLECTION, 0, 0,
+                CERT_STORE_CREATE_NEW_FLAG, NULL);
+            CertAddStoreToCollection(collStore, regStore, 0, 0);
+            CertAddStoreToCollection(collStore, root, 0, 0);
+            root = collStore;
+        }
+#endif
     }
-
+#ifdef __REACTOS__
+    TRACE("returning %p\n", root);
+    return root;
+#else
     TRACE("returning %p\n", memStore);
     return memStore;
+#endif
 }
 
 void CRYPT_ImportSystemRootCertsToReg(void)

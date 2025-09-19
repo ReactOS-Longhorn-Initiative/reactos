@@ -33,6 +33,10 @@
 #include "rpc.h"
 #include "wine/debug.h"
 #include "crypt32_private.h"
+#ifdef __REACTOS__
+#include <winternl.h>
+#include <stringapiset.h>
+#endif
 
 WINE_DEFAULT_DEBUG_CHANNEL(crypt);
 
@@ -3695,7 +3699,7 @@ static void CRYPT_MakeCertInfo(PCERT_INFO info, const CRYPT_DATA_BLOB *pSerialNu
         info->rgExtension = NULL;
     }
 }
- 
+
 typedef RPC_STATUS (RPC_ENTRY *UuidCreateFunc)(UUID *);
 typedef RPC_STATUS (RPC_ENTRY *UuidToStringFunc)(UUID *, unsigned char **);
 typedef RPC_STATUS (RPC_ENTRY *RpcStringFreeFunc)(unsigned char **);

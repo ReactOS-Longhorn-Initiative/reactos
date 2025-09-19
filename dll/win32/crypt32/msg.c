@@ -29,6 +29,9 @@
 #include "wine/debug.h"
 #include "wine/exception.h"
 #include "crypt32_private.h"
+#ifdef __REACTOS__
+#include <winternl.h>
+#endif
 
 WINE_DEFAULT_DEBUG_CHANNEL(crypt);
 

@@ -42,6 +42,9 @@
 #include "wine/debug.h"
 #include "wine/exception.h"
 #include "crypt32_private.h"
+#ifdef __REACTOS__
+#include <stringapiset.h>
+#endif
 
 WINE_DEFAULT_DEBUG_CHANNEL(cryptasn);
 WINE_DECLARE_DEBUG_CHANNEL(crypt);
@@ -365,7 +368,7 @@ static BOOL WINAPI CRYPT_AsnEncodeValidity(DWORD dwCertEncodingType,
      { timePtr + 1, CRYPT_AsnEncodeChoiceOfTime, 0 },
     };
 
-    ret = CRYPT_AsnEncodeSequence(dwCertEncodingType, items, 
+    ret = CRYPT_AsnEncodeSequence(dwCertEncodingType, items,
      ARRAY_SIZE(items), dwFlags, pEncodePara, pbEncoded,
      pcbEncoded);
     return ret;
@@ -462,7 +465,7 @@ static BOOL WINAPI CRYPT_AsnEncodeCert(DWORD dwCertEncodingType,
 
         if (dwFlags & CRYPT_ENCODE_NO_SIGNATURE_BYTE_REVERSAL_FLAG)
             items[2].encodeFunc = CRYPT_AsnEncodeBits;
-        ret = CRYPT_AsnEncodeSequence(dwCertEncodingType, items, 
+        ret = CRYPT_AsnEncodeSequence(dwCertEncodingType, items,
          ARRAY_SIZE(items), dwFlags, pEncodePara, pbEncoded,
          pcbEncoded);
     }
@@ -3195,7 +3198,7 @@ static BOOL WINAPI CRYPT_AsnEncodeRsaPubKey(DWORD dwCertEncodingType,
              ((const BYTE *)pvStructInfo + sizeof(BLOBHEADER));
             CRYPT_INTEGER_BLOB blob = { rsaPubKey->bitlen / 8,
              (BYTE *)pvStructInfo + sizeof(BLOBHEADER) + sizeof(RSAPUBKEY) };
-            struct AsnEncodeSequenceItem items[] = { 
+            struct AsnEncodeSequenceItem items[] = {
              { &blob, CRYPT_AsnEncodeUnsignedInteger, 0 },
              { &rsaPubKey->pubexp, CRYPT_AsnEncodeInt, 0 },
             };

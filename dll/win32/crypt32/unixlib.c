@@ -27,7 +27,9 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifndef __REACTOS__
 #include <dlfcn.h>
+#endif
 #include <sys/stat.h>
 #ifdef __APPLE__
 #include <Security/Security.h>
@@ -664,6 +666,7 @@ static void load_root_certs(void)
         import_certs_from_path( CRYPT_knownLocations[i], TRUE );
 }
 
+#ifndef __REACTOS__
 static NTSTATUS enum_root_certs( void *args )
 {
     struct enum_root_certs_params *params = args;
@@ -698,6 +701,7 @@ const unixlib_entry_t __wine_unix_call_funcs[] =
 };
 
 C_ASSERT( ARRAYSIZE(__wine_unix_call_funcs) == unix_funcs_count );
+#endif
 
 #ifdef _WIN64
 
@@ -789,6 +793,7 @@ static NTSTATUS wow64_enum_root_certs( void *args )
     return enum_root_certs( &params );
 }
 
+#ifndef __REACTOS__
 const unixlib_entry_t __wine_unix_call_wow64_funcs[] =
 {
     process_attach,
@@ -801,5 +806,6 @@ const unixlib_entry_t __wine_unix_call_wow64_funcs[] =
 };
 
 C_ASSERT( ARRAYSIZE(__wine_unix_call_wow64_funcs) == unix_funcs_count );
+#endif
 
 #endif  /* _WIN64 */

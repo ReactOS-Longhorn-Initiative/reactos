@@ -23,16 +23,17 @@
 #include "windef.h"
 #include "winbase.h"
 #include "wincrypt.h"
-#ifdef __REACTOS__
-#include <winnls.h>
-#endif
 #include "snmp.h"
 #include "crypt32_private.h"
+#ifdef __REACTOS__
+#include <winternl.h>
+#endif
 
 #include "wine/debug.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(crypt);
 
+#ifndef __REACTOS__
 static HCRYPTPROV import_key( cert_store_data_t data, DWORD flags )
 {
     HCRYPTPROV prov = 0;
@@ -41,7 +42,9 @@ static HCRYPTPROV import_key( cert_store_data_t data, DWORD flags )
     void *key;
     struct import_store_key_params params = { data, NULL, &size };
 
+#ifndef __REACTOS__
     if (CRYPT32_CALL( import_store_key, &params ) != STATUS_BUFFER_TOO_SMALL) return 0;
+#endif
 
     acquire_flags = (flags & CRYPT_MACHINE_KEYSET) | CRYPT_NEWKEYSET;
     if (!CryptAcquireContextW( &prov, NULL, MS_ENHANCED_PROV_W, PROV_RSA_FULL, acquire_flags ))
@@ -57,8 +60,12 @@ static HCRYPTPROV import_key( cert_store_data_t data, DWORD flags )
     }
 
     params.buf = key = CryptMemAlloc( size );
+#ifndef __REACTOS__
     if (CRYPT32_CALL( import_store_key, &params ) ||
         !CryptImportKey( prov, key, size, 0, flags & CRYPT_EXPORTABLE, &cryptkey ))
+#else
+    if (!CryptImportKey( prov, key, size, 0, flags & CRYPT_EXPORTABLE, &cryptkey ))
+#endif
     {
         WARN( "CryptImportKey failed %08lx\n", GetLastError() );
         CryptReleaseContext( prov, 0 );
@@ -140,9 +147,14 @@ static BOOL set_key_prov_info( const void *ctx, HCRYPTPROV prov )
     CryptMemFree( container );
     return ret;
 }
+#endif
 
 HCERTSTORE WINAPI PFXImportCertStore( CRYPT_DATA_BLOB *pfx, const WCHAR *password, DWORD flags )
 {
+#ifdef __REACTOS__
+    FIXME("PFXImportCertStore stub\n");
+    return NULL;
+#else
     DWORD i = 0, size;
     HCERTSTORE store = NULL;
     HCRYPTPROV prov = 0;
@@ -160,6 +172,7 @@ HCERTSTORE WINAPI PFXImportCertStore( CRYPT_DATA_BLOB *pfx, const WCHAR *passwor
         FIXME( "flags %08lx not supported\n", flags );
         return NULL;
     }
+
     if (CRYPT32_CALL( open_cert_store, &open_params )) return NULL;
 
     prov = import_key( data, flags );
@@ -221,6 +234,7 @@ error:
     close_params.data = data;
     CRYPT32_CALL( close_cert_store, &close_params );
     return NULL;
+#endif
 }
 
 BOOL WINAPI PFXVerifyPassword( CRYPT_DATA_BLOB *pfx, const WCHAR *password, DWORD flags )
