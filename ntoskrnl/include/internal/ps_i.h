@@ -10,6 +10,31 @@
 #include "icif.h"
 
 //
+// Thread Information Structures
+//
+typedef struct _THREAD_TEB_INFORMATION
+{
+    PVOID TebInformation;
+    ULONG TebOffset;
+    ULONG BytesToRead;
+} THREAD_TEB_INFORMATION, *PTHREAD_TEB_INFORMATION;
+
+typedef struct _THREAD_UMS_INFORMATION
+{
+    ULONG UmsVersion;
+    union
+    {
+        struct
+        {
+            ULONG IsUmsSchedulerThread : 1;
+            ULONG IsUmsWorkerThread : 1;
+            ULONG SpareBits : 30;
+        } DUMMYSTRUCTNAME;
+        ULONG ThreadUmsFlags;
+    } DUMMYUNIONNAME;
+} THREAD_UMS_INFORMATION, *PTHREAD_UMS_INFORMATION;
+
+//
 // Process Information Classes
 //
 static const INFORMATION_CLASS_INFO PsProcessInfoClass[] =
@@ -478,10 +503,8 @@ static const INFORMATION_CLASS_INFO PsThreadInfoClass[] =
     ),
 
     /* ThreadPriorityBoost */
-    IQS
+    IQS_SAME
     (
-        ULONG,
-        ULONG,
         ULONG_PTR,
         ULONG,
         ICIF_QUERY | ICIF_SET
@@ -556,8 +579,66 @@ static const INFORMATION_CLASS_INFO PsThreadInfoClass[] =
     IQS_NONE,
 
     /* ThreadTebInformation */
-    IQS_NONE,
+    IQS_SAME
+    (
+        THREAD_TEB_INFORMATION,
+        ULONG,
+        ICIF_QUERY
+    ),
 
     /* ThreadCSwitchMon */
     IQS_NONE,
+
+    /* ThreadCSwitchPmu */
+    IQS_NONE,
+
+    /* ThreadWow64Context */
+    IQS_NONE,
+
+    /* ThreadGroupInformation */
+    IQS_NONE,
+
+    /* ThreadUmsInformation */
+    IQS_SAME
+    (
+        THREAD_UMS_INFORMATION,
+        ULONG,
+        ICIF_QUERY | ICIF_SET
+    ),
+
+    /* ThreadCounterProfiling */
+    IQS_NONE,
+
+    /* ThreadIdealProcessorEx */
+    IQS_NONE,
+
+    /* ThreadCpuAccountingInformation */
+    IQS_NONE,
+
+    /* ThreadSuspendCount */
+    IQS_NONE,
+
+    /* ThreadHeterogeneousCpuPolicy */
+    IQS_NONE,
+
+    /* ThreadContainerId */
+    IQS_NONE,
+
+    /* ThreadNameInformation */
+    IQS_NONE,
+
+    /* ThreadSelectedCpuSets */
+    IQS_NONE,
+
+    /* ThreadSystemThreadInformation */
+    IQS_NONE,
+
+    /* ThreadActualGroupAffinity */
+    IQS_SAME
+    (
+        GROUP_AFFINITY,
+        ULONG,
+        ICIF_QUERY
+    ),
 };
+

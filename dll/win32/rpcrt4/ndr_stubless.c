@@ -1014,6 +1014,18 @@ __ASM_GLOBAL_FUNC( NdrClientCall2,
                    __ASM_CFI(".cfi_adjust_cfa_offset -0x28\n\t")
                    "ret" );
 
+__ASM_GLOBAL_FUNC( NdrClientCall3,
+                   "movq %r8,0x18(%rsp)\n\t"
+                   "movq %r9,0x20(%rsp)\n\t"
+                   "leaq 0x18(%rsp),%r8\n\t"
+                   "xorq %r9,%r9\n\t"
+                   "subq $0x28,%rsp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset 0x28\n\t")
+                   "call " __ASM_NAME("ndr_client_call") "\n\t"
+                   "addq $0x28,%rsp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset -0x28\n\t")
+                   "ret" );
+
 #else  /* __x86_64__ */
 
 /***********************************************************************
@@ -1025,6 +1037,27 @@ CLIENT_CALL_RETURN WINAPIV NdrClientCall2( PMIDL_STUB_DESC desc, PFORMAT_STRING 
     LONG_PTR ret;
 
     __ms_va_start( args, format );
+    ret = ndr_client_call( desc, format, va_arg( args, void ** ), NULL );
+    __ms_va_end( args );
+    return *(CLIENT_CALL_RETURN *)&ret;
+}
+
+/***********************************************************************
+ *            NdrClientCall3 [RPCRT4.@]
+ *
+ * Newer version of NdrClientCall2 with enhanced capabilities.
+ * Used by stubless MIDL-generated code for newer RPC interfaces.
+ */
+CLIENT_CALL_RETURN WINAPIV NdrClientCall3( PMIDL_STUB_DESC desc, PFORMAT_STRING format, ... )
+{
+    __ms_va_list args;
+    LONG_PTR ret;
+
+    TRACE("NdrClientCall3(%p, %p, ...)\n", desc, format);
+
+    __ms_va_start( args, format );
+    /* NdrClientCall3 uses the same underlying implementation as NdrClientCall2 */
+    /* The difference is mainly in how newer MIDL compilers generate the format strings */
     ret = ndr_client_call( desc, format, va_arg( args, void ** ), NULL );
     __ms_va_end( args );
     return *(CLIENT_CALL_RETURN *)&ret;
@@ -1922,6 +1955,19 @@ __ASM_GLOBAL_FUNC( NdrAsyncClientCall,
                    __ASM_CFI(".cfi_adjust_cfa_offset -0x28\n\t")
                    "ret" );
 
+__ASM_GLOBAL_FUNC( Ndr64AsyncClientCall,
+                   "subq $0x28,%rsp\n\t"
+                   __ASM_SEH(".seh_stackalloc 0x28\n\t")
+                   __ASM_SEH(".seh_endprologue\n\t")
+                   __ASM_CFI(".cfi_adjust_cfa_offset 0x28\n\t")
+                   "movq %r8,0x40(%rsp)\n\t"
+                   "movq %r9,0x48(%rsp)\n\t"
+                   "leaq 0x40(%rsp),%r8\n\t"
+                   "call " __ASM_NAME("ndr_async_client_call") "\n\t"
+                   "addq $0x28,%rsp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset -0x28\n\t")
+                   "ret" );
+
 #else  /* __x86_64__ */
 
 /***********************************************************************
@@ -1933,6 +1979,28 @@ CLIENT_CALL_RETURN WINAPIV NdrAsyncClientCall( PMIDL_STUB_DESC desc, PFORMAT_STR
     LONG_PTR ret;
 
     __ms_va_start( args, format );
+    ret = ndr_async_client_call( desc, format, va_arg( args, void ** ));
+    __ms_va_end( args );
+    return *(CLIENT_CALL_RETURN *)&ret;
+}
+
+/***********************************************************************
+ *            Ndr64AsyncClientCall [RPCRT4.@]
+ *
+ * Newer version of NdrAsyncClientCall using NDR64 transfer syntax.
+ * Used by stubless MIDL-generated code for newer RPC interfaces.
+ */
+CLIENT_CALL_RETURN WINAPIV Ndr64AsyncClientCall( PMIDL_STUB_DESC desc, PFORMAT_STRING format, ... )
+{
+    __ms_va_list args;
+    LONG_PTR ret;
+
+    TRACE("Ndr64AsyncClientCall(%p, %p, ...)\n", desc, format);
+
+    __ms_va_start( args, format );
+    /* NDR64 async calls use the same underlying implementation as regular async calls */
+    /* The difference is mainly in how newer MIDL compilers generate the format strings */
+    /* For now, we delegate to the existing async implementation */
     ret = ndr_async_client_call( desc, format, va_arg( args, void ** ));
     __ms_va_end( args );
     return *(CLIENT_CALL_RETURN *)&ret;

@@ -137,9 +137,44 @@ FUNC NdrClientCall2
     ret
 ENDFUNC
 
+PUBLIC NdrClientCall3
+FUNC NdrClientCall3
+    mov [rsp + 18h], r8
+    .SAVEREG r8, 18h
+    mov [rsp + 20h], r9
+    .SAVEREG r9, 20h
+    sub rsp, 28h
+    .ALLOCSTACK 28h
+    .ENDPROLOG
+
+    lea r8, [rsp + 28h + 18h]
+    xor r9, r9
+    call ndr_client_call
+
+    add rsp, 28h
+    ret
+ENDFUNC
+
 EXTERN ndr_async_client_call:PROC
 PUBLIC NdrAsyncClientCall
 FUNC NdrAsyncClientCall
+    mov [rsp + 18h], r8
+    .SAVEREG r8, 18h
+    mov [rsp + 20h], r9
+    .SAVEREG r9, 20h
+    sub rsp, 28h
+    .ALLOCSTACK 28h
+    .ENDPROLOG
+
+    lea r8, [rsp + 28h + 18h]
+    call ndr_async_client_call
+
+    add rsp, 28h
+    ret
+ENDFUNC
+
+PUBLIC Ndr64AsyncClientCall
+FUNC Ndr64AsyncClientCall
     mov [rsp + 18h], r8
     .SAVEREG r8, 18h
     mov [rsp + 20h], r9

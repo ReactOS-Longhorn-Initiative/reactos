@@ -18,6 +18,6 @@ add_library(cryptbase MODULE
 	${CMAKE_CURRENT_BINARY_DIR}/cryptbase_stubs.c)
 
 set_module_type(cryptbase win32dll ENTRYPOINT DllMain)
-add_importlibs(cryptbase kernel32 ntdll msvcrt user32)
+add_importlibs(cryptbase advapi32 kernel32 ntdll msvcrt user32)
 add_dependencies(cryptbase psdk)
 add_cd_file(TARGET cryptbase DESTINATION reactos/system32 FOR all)

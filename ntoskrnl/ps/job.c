@@ -2034,6 +2034,24 @@ NtQueryInformationJobObject(
         break;
     }
     case JobObjectBasicUIRestrictions:
+    {
+        JOBOBJECT_BASIC_UI_RESTRICTIONS BasicUIRestrictions;
+        
+        /* Lock the job object */
+        KeEnterGuardedRegionThread(CurrentThread);
+        ExAcquireResourceSharedLite(&Job->JobLock, TRUE);
+        
+        /* Fill in the UI restrictions information */
+        BasicUIRestrictions.UIRestrictionsClass = Job->UIRestrictionsClass;
+        
+        /* Release the job lock */
+        ExReleaseResourceLite(&Job->JobLock);
+        KeLeaveGuardedRegionThread(CurrentThread);
+        
+        JobInfoBuffer = &BasicUIRestrictions;
+        Status = STATUS_SUCCESS;
+        break;
+    }
     case JobObjectSecurityLimitInformation:
     case JobObjectEndOfJobTimeInformation:
     case JobObjectAssociateCompletionPortInformation:
@@ -2251,10 +2269,42 @@ NtSetInformationJobObject(
         Status = PspAssociateCompletionPortWithJob(Job, &AssociateCpInfo);
         break;
     }
+    case JobObjectBasicUIRestrictions:
+    {
+        JOBOBJECT_BASIC_UI_RESTRICTIONS BasicUIRestrictions;
+        
+        _SEH2_TRY
+        {
+            /* Copy the UI restrictions information from user buffer */
+            RtlCopyMemory(&BasicUIRestrictions,
+                          JobInformation,
+                          sizeof(BasicUIRestrictions));
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            Status = _SEH2_GetExceptionCode();
+            break;
+        }
+        _SEH2_END;
+        
+        /* Lock the job object */
+        KeEnterGuardedRegionThread(CurrentThread);
+        ExAcquireResourceExclusiveLite(&Job->JobLock, TRUE);
+        
+        /* Set the UI restrictions class */
+        Job->UIRestrictionsClass = BasicUIRestrictions.UIRestrictionsClass;
+        
+        /* Release the job lock */
+        ExReleaseResourceLite(&Job->JobLock);
+        KeLeaveGuardedRegionThread(CurrentThread);
+        
+        Status = STATUS_SUCCESS;
+        DPRINT("Set UI restrictions class to %lu\n", BasicUIRestrictions.UIRestrictionsClass);
+        break;
+    }
     case JobObjectBasicAccountingInformation:
     case JobObjectBasicAndIoAccountingInformation:
     case JobObjectBasicProcessIdList:
-    case JobObjectBasicUIRestrictions:
     case JobObjectEndOfJobTimeInformation:
     case JobObjectJobSetInformation:
     case JobObjectSecurityLimitInformation:

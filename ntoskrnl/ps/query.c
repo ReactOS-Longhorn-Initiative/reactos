@@ -2736,7 +2736,31 @@ NtSetInformationThread(IN HANDLE ThreadHandle,
             ObDereferenceObject(Thread);
             break;
 
-        /* Anything else */
+        case ThreadUmsInformation:
+        {
+            PTHREAD_UMS_INFORMATION UmsInfo = (PTHREAD_UMS_INFORMATION)ThreadInformation;
+
+            /* ReactOS doesn't support UMS threads, so we just validate the structure */
+            _SEH2_TRY
+            {
+                /* Validate the structure but don't actually set anything */
+                volatile ULONG TestRead = UmsInfo->UmsVersion;
+                TestRead = UmsInfo->ThreadUmsFlags;
+                UNREFERENCED_PARAMETER(TestRead);
+                
+                /* Return success but don't change anything */
+                Status = STATUS_SUCCESS;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                /* Get exception code */
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            break;
+        }
+
         default:
             /* Not yet implemented */
             DPRINT1("Not implemented: %lu\n", ThreadInformationClass);
@@ -3229,6 +3253,127 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
             /* Dereference the thread */
             ObDereferenceObject(Thread);
             break;
+
+        case ThreadTebInformation:
+        {
+            PTHREAD_TEB_INFORMATION TebInfo = (PTHREAD_TEB_INFORMATION)ThreadInformation;
+
+            /* Set the return length */
+            Length = sizeof(THREAD_TEB_INFORMATION);
+
+            if (ThreadInformationLength != Length)
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            /* Reference the thread */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               Access,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+                break;
+
+            /* Protect writes with SEH */
+            _SEH2_TRY
+            {
+                /* Return TEB information */
+                TebInfo->TebInformation = Thread->Tcb.Teb;
+                TebInfo->TebOffset = 0;
+                TebInfo->BytesToRead = sizeof(TEB);
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                /* Get exception code */
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+        }
+
+        case ThreadUmsInformation:
+        {
+            PTHREAD_UMS_INFORMATION UmsInfo = (PTHREAD_UMS_INFORMATION)ThreadInformation;
+
+            /* Set the return length */
+            Length = sizeof(THREAD_UMS_INFORMATION);
+
+            if (ThreadInformationLength != Length)
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            /* Protect writes with SEH */
+            _SEH2_TRY
+            {
+                /* ReactOS doesn't support UMS threads, so return default values */
+                UmsInfo->UmsVersion = 0;
+                UmsInfo->ThreadUmsFlags = 0; /* Not a UMS thread */
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                /* Get exception code */
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            break;
+        }
+
+        case ThreadActualGroupAffinity:
+        {
+            PGROUP_AFFINITY GroupAffinity = (PGROUP_AFFINITY)ThreadInformation;
+
+            /* Set the return length */
+            Length = sizeof(GROUP_AFFINITY);
+
+            if (ThreadInformationLength != Length)
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            /* Get thread reference */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               Access,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+            {
+                break;
+            }
+
+            /* Protect writes with SEH */
+            _SEH2_TRY
+            {
+                /* Return the actual group affinity of the thread */
+                /* ReactOS doesn't support processor groups yet, so we use group 0 */
+                GroupAffinity->Mask = Thread->Tcb.Affinity;
+                GroupAffinity->Group = 0; /* Default group */
+                GroupAffinity->Reserved[0] = 0;
+                GroupAffinity->Reserved[1] = 0;
+                GroupAffinity->Reserved[2] = 0;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                /* Get exception code */
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+        }
 
         /* Anything else */
         default:

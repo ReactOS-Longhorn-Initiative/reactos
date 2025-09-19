@@ -16,6 +16,7 @@
 @ stdcall AddVectoredExceptionHandler(long ptr) ntdll.RtlAddVectoredExceptionHandler
 @ stdcall -stub -version=0x600+ AdjustCalendarDate(ptr long long)
 @ stdcall AllocConsole() kernelbase.AllocConsole
+@ stdcall -stub PrefetchVirtualMemory(ptr ptr ptr long)
 @ stdcall AllocateUserPhysicalPages(long ptr ptr) kernelbase.AllocateUserPhysicalPages
 @ stdcall -stub -version=0x600+ AllocateUserPhysicalPagesNuma(ptr ptr ptr long)
 @ stdcall -version=0x600+ ApplicationRecoveryFinished(long)
@@ -219,7 +220,7 @@
 @ stdcall DeleteFileW(wstr) kernelbase.DeleteFileW
 @ stdcall -version=0x600+ DeleteProcThreadAttributeList(ptr) kernelbase.DeleteProcThreadAttributeList
 # @ stub -version=0x601+ DisableThreadProfiling
-@ stdcall -stub -version=0xA00+ DiscardVirtualMemory(ptr long)
+@ stdcall -version=0xA00+ DiscardVirtualMemory(ptr long) kernelbase.DiscardVirtualMemory
 @ stdcall DeleteTimerQueue(long) kernelbase.DeleteTimerQueue
 @ stdcall DeleteTimerQueueEx(long long) kernelbase.DeleteTimerQueueEx
 @ stdcall DeleteTimerQueueTimer(long long long) kernelbase.DeleteTimerQueueTimer

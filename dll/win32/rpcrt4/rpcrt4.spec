@@ -125,6 +125,7 @@
 125 stdcall NdrAllocate(ptr long)
 126 varargs NdrAsyncClientCall(ptr ptr)
 127 stdcall NdrAsyncServerCall(ptr)
+@ varargs Ndr64AsyncClientCall(ptr ptr)
 128 stdcall NdrByteCountPointerBufferSize(ptr ptr ptr)
 129 stdcall NdrByteCountPointerFree(ptr ptr ptr)
 130 stdcall NdrByteCountPointerMarshall(ptr ptr ptr)
@@ -134,6 +135,7 @@
 134 stdcall NdrClearOutParameters(ptr ptr ptr)
 135 varargs -arch=i386 NdrClientCall(ptr ptr) NdrClientCall2
 136 varargs NdrClientCall2(ptr ptr)
+@ varargs NdrClientCall3(ptr ptr)
 137 stdcall NdrClientContextMarshall(ptr ptr long)
 138 stdcall NdrClientContextUnmarshall(ptr ptr ptr)
 139 stub NdrClientInitialize

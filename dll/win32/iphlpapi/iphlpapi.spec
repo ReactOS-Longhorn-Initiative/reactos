@@ -31,6 +31,7 @@
 @ stdcall GetBestInterfaceEx(ptr ptr)
 @ stub GetBestInterfaceFromStack
 @ stdcall GetBestRoute(long long long)
+@ stdcall GetBestRoute2(ptr long ptr ptr long ptr ptr)
 @ stub GetBestRouteFromStack
 @ stdcall GetExtendedTcpTable(ptr ptr long long long long)
 @ stdcall GetExtendedUdpTable(ptr ptr long long long long)
@@ -168,3 +169,6 @@
 @ stdcall -stub if_indextoname(ptr)
 
 @ stdcall -stub if_nametoindex(ptr)
+@ stdcall GetIpInterfaceTable(ptr ptr)
+@ stdcall GetIpForwardTable2(ptr ptr)
+@ stdcall NotifyRouteChange2(ptr ptr ptr long ptr)

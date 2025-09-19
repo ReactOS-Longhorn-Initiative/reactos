@@ -1,6 +1,7 @@
 132 stdcall CreateEnvironmentBlock(ptr ptr long)
 133 stdcall DeleteProfileA(str str str)
 134 stdcall DeleteProfileW(wstr wstr wstr)
+@ stdcall DeriveAppContainerSidFromAppContainerName(wstr ptr)
 176 stdcall DestroyEnvironmentBlock(ptr)
 @ stub -private DllCanUnloadNow                                              #stdcall DllCanUnloadNow()
 @ stub -private DllGetClassObject                                            #stdcall DllGetClassObject(ptr ptr ptr)
