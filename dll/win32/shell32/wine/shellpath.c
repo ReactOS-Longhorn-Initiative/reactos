@@ -1649,6 +1649,12 @@ static const CSIDL_DATA CSIDL_Data[] =
         NULL,
         NULL
     },
+        { /* 0x4e - CSIDL_APPDATA_LOCALLOW */
+        &FOLDERID_LocalAppDataLow,
+        CSIDL_Type_User,
+        NULL,
+        L"AppData\\LocalLow"
+    },
 /* Cannot use #if _WIN32_WINNT >= 0x0600 because _WIN32_WINNT == 0x0600 here. */
 #ifndef __REACTOS__
     { /* 0x3f */

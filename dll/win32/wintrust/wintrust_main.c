@@ -715,6 +715,23 @@ LONG WINAPI WinVerifyTrust( HWND hwnd, GUID *ActionID, LPVOID ActionData )
         }
     }
 
+    if (err && actionData->dwUnionChoice == 1)
+    {
+        FIXME("!!!WinVerifyTrust: overriding! File name: %S. Previous result: 0x%x\n", actionData->pFile->pcwszFilePath, err);
+
+        err = 0;
+    }
+    else if (!err && actionData->dwUnionChoice == 1)
+    {
+        FIXME("!!!WinVerifyTrust: SUCCESS for file name: %S\n", actionData->pFile->pcwszFilePath);
+
+        err = 0;
+    }
+    else if (err)
+    {
+         FIXME("!!!WinVerifyTrust: FAILED FOR NON FILE result 0x%x\n", err);
+    }
+
     if (err) SetLastError(err);
     TRACE("returning %08lx\n", err);
     return err;
