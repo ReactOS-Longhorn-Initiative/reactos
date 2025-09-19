@@ -1,5 +1,5 @@
 
-add_subdirectory(autochk)
+#add_subdirectory(autochk)
 add_subdirectory(bootok)
 add_subdirectory(chkdsk)
 add_subdirectory(diskpart)

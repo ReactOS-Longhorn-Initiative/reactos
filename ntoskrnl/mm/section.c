@@ -4268,8 +4268,8 @@ MmCanFileBeTruncated(
     _In_ PSECTION_OBJECT_POINTERS SectionObjectPointer,
     _In_opt_ PLARGE_INTEGER NewFileSize)
 {
-    BOOLEAN Ret;
     PMM_SECTION_SEGMENT Segment;
+    BOOLEAN Ret = FALSE;
 
     /* Check whether an ImageSectionObject exists */
     if (SectionObjectPointer->ImageSectionObject != NULL)
@@ -4294,14 +4294,17 @@ MmCanFileBeTruncated(
     }
     else if (NewFileSize != NULL)
     {
-        /* We can't shrink, but we can extend */
-        Ret = NewFileSize->QuadPart >= Segment->RawLength.QuadPart;
-#if DBG
-        if (!Ret)
+        if (NewFileSize != NULL)
         {
-            DPRINT1("Cannot truncate data: New Size %I64d, Segment Size %I64d\n", NewFileSize->QuadPart, Segment->RawLength.QuadPart);
-        }
+            /* We can't shrink, but we can extend */
+            Ret = NewFileSize->QuadPart >= Segment->RawLength.QuadPart;
+#if DBG
+            if (!Ret)
+            {
+                DPRINT1("Cannot truncate data: New Size %I64d, Segment Size %I64d\n", NewFileSize->QuadPart, Segment->RawLength.QuadPart);
+            }
 #endif
+        }
     }
     else
     {
@@ -4848,6 +4851,13 @@ MmPurgeSegment(
 {
     LARGE_INTEGER PurgeStart, PurgeEnd;
     PMM_SECTION_SEGMENT Segment;
+
+    Segment = MiGrabDataSection(SectionObjectPointer);
+    if (!Segment)
+    {
+        /* Nothing to purge */
+        return TRUE;
+    }
 
     PurgeStart.QuadPart = Offset ? Offset->QuadPart : 0LL;
     if (Length && Offset)
