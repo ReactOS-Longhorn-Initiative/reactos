@@ -21,15 +21,17 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#define WIN32_NO_STATUS
+#define WIN32_LEAN_AND_MEAN
 
-#include "windef.h"
-#include "winbase.h"
+//#include <string.h>
+#include <stdarg.h>
+
+#include <windef.h>
+#include <winbase.h>
 #include "handle.h"
 
-#include "wine/debug.h"
+#include <wine/debug.h>
 
 WINE_DEFAULT_DEBUG_CHANNEL(handle);
 
@@ -55,7 +57,7 @@ void init_handle_table(struct handle_table *lpTable)
     lpTable->paEntries = NULL;
     lpTable->iEntries = 0;
     lpTable->iFirstFree = 0;
-    InitializeCriticalSectionEx(&lpTable->mutex, 0, RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO);
+    InitializeCriticalSection(&lpTable->mutex);
     lpTable->mutex.DebugInfo->Spare[0] = (DWORD_PTR)(__FILE__ ": HANDLETABLE.mutex");
 }
 
@@ -71,7 +73,7 @@ void destroy_handle_table(struct handle_table *lpTable)
 {
     TRACE("(lpTable=%p)\n", lpTable);
         
-    free(lpTable->paEntries);
+    HeapFree(GetProcessHeap(), 0, lpTable->paEntries);
     lpTable->mutex.DebugInfo->Spare[0] = 0;
     DeleteCriticalSection(&lpTable->mutex);
 }
@@ -96,7 +98,7 @@ BOOL is_valid_handle(struct handle_table *lpTable, HCRYPTKEY handle, DWORD dwTyp
     unsigned int index = HANDLE2INDEX(handle);
     BOOL ret = FALSE;
 
-    TRACE("(lpTable=%p, handle=%Id)\n", lpTable, handle);
+    TRACE("(lpTable=%p, handle=%ld)\n", lpTable, handle);
     
     EnterCriticalSection(&lpTable->mutex);
         
@@ -140,14 +142,14 @@ static BOOL grow_handle_table(struct handle_table *lpTable)
 
     newIEntries = lpTable->iEntries + TABLE_SIZE_INCREMENT;
 
-    newEntries = malloc(sizeof(struct handle_table_entry)*newIEntries);
+    newEntries = HeapAlloc(GetProcessHeap(), 0, sizeof(struct handle_table_entry)*newIEntries);
     if (!newEntries)
         return FALSE;
 
     if (lpTable->paEntries)
     {
         memcpy(newEntries, lpTable->paEntries, sizeof(struct handle_table_entry)*lpTable->iEntries);
-        free(lpTable->paEntries);
+        HeapFree(GetProcessHeap(), 0, lpTable->paEntries);
     }
 
     for (i=lpTable->iEntries; i<newIEntries; i++)
@@ -231,7 +233,7 @@ BOOL release_handle(struct handle_table *lpTable, HCRYPTKEY handle, DWORD dwType
     OBJECTHDR *pObject;
     BOOL ret = FALSE;
 
-    TRACE("(lpTable=%p, handle=%Id)\n", lpTable, handle);
+    TRACE("(lpTable=%p, handle=%ld)\n", lpTable, handle);
     
     EnterCriticalSection(&lpTable->mutex);
     
@@ -241,7 +243,7 @@ BOOL release_handle(struct handle_table *lpTable, HCRYPTKEY handle, DWORD dwType
     pObject = lpTable->paEntries[index].pObject;
     if (InterlockedDecrement(&pObject->refcount) == 0)
     {
-        TRACE("destroying handle %Id\n", handle);
+        TRACE("destroying handle %ld\n", handle);
         if (pObject->destructor)
             pObject->destructor(pObject);
     }
@@ -274,7 +276,7 @@ BOOL lookup_handle(struct handle_table *lpTable, HCRYPTKEY handle, DWORD dwType,
 {
     BOOL ret = FALSE;
 
-    TRACE("(lpTable=%p, handle=%Id, lplpObject=%p)\n", lpTable, handle, lplpObject);
+    TRACE("(lpTable=%p, handle=%ld, lplpObject=%p)\n", lpTable, handle, lplpObject);
     
     EnterCriticalSection(&lpTable->mutex);
     if (!is_valid_handle(lpTable, handle, dwType)) 
@@ -310,7 +312,7 @@ BOOL copy_handle(struct handle_table *lpTable, HCRYPTKEY handle, DWORD dwType, H
     OBJECTHDR *pObject;
     BOOL ret;
 
-    TRACE("(lpTable=%p, handle=%Id, copy=%p)\n", lpTable, handle, copy);
+    TRACE("(lpTable=%p, handle=%ld, copy=%p)\n", lpTable, handle, copy);
 
     EnterCriticalSection(&lpTable->mutex);
     if (!lookup_handle(lpTable, handle, dwType, &pObject)) 
@@ -357,7 +359,7 @@ HCRYPTKEY new_object(struct handle_table *lpTable, size_t cbSize, DWORD dwType, 
     if (ppObject)
         *ppObject = NULL;
 
-    pObject = malloc(cbSize);
+    pObject = HeapAlloc(GetProcessHeap(), 0, cbSize);
     if (!pObject)
         return (HCRYPTKEY)INVALID_HANDLE_VALUE;
 
@@ -366,7 +368,7 @@ HCRYPTKEY new_object(struct handle_table *lpTable, size_t cbSize, DWORD dwType, 
     pObject->destructor = destructor;
 
     if (!alloc_handle(lpTable, pObject, &hObject))
-        free(pObject);
+        HeapFree(GetProcessHeap(), 0, pObject);
     else
         if (ppObject)
             *ppObject = pObject;
