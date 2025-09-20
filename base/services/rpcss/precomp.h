@@ -2,6 +2,7 @@
 #ifndef _RPCSS_PRECOMP_H_
 #define _RPCSS_PRECOMP_H_
 
+/*
 #include <stdarg.h>
 
 #define WIN32_NO_STATUS
@@ -18,5 +19,6 @@
 #include <epm_s.h>
 
 #include <wine/list.h>
+*/
 
 #endif /* !_RPCSS_PRECOMP_H_ */
