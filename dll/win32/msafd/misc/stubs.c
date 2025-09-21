@@ -65,8 +65,57 @@ WSPAcceptEx(
     OUT LPDWORD lpdwBytesReceived,
     IN OUT LPOVERLAPPED lpOverlapped)
 {
-    UNIMPLEMENTED;
+    #if 0
+    SOCKET as = INVALID_SOCKET;
+    int salen = 0;
+    struct sockaddr_storage laddr, raddr;
 
+    if (lpdwBytesReceived) *lpdwBytesReceived = 0;
+    if (lpOverlapped)
+    {
+        lpOverlapped->Internal = WSAEOPNOTSUPP;
+        WSASetLastError(WSAEOPNOTSUPP);
+        return FALSE;
+    }
+
+    /* Perform blocking accept on the listen socket */
+    as = accept(sListenSocket, (dwRemoteAddressLength ? (struct sockaddr *)&raddr : NULL), (dwRemoteAddressLength ? &salen : NULL));
+    if (as == INVALID_SOCKET)
+    {
+        return FALSE;
+    }
+
+    /* Query local address */
+    salen = sizeof(laddr);
+    if (getsockname(as, (struct sockaddr *)&laddr, &salen) == SOCKET_ERROR)
+    {
+        closesocket(as);
+        return FALSE;
+    }
+
+    /* Layout: [recv data][local][remote] */
+    if (lpOutputBuffer)
+    {
+        char *base = (char *)lpOutputBuffer + dwReceiveDataLength;
+        if (dwLocalAddressLength && (dwLocalAddressLength <= sizeof(laddr)))
+            memcpy(base, &laddr, dwLocalAddressLength);
+        if (dwRemoteAddressLength && (dwRemoteAddressLength <= sizeof(raddr)))
+            memcpy(base + dwLocalAddressLength, &raddr, dwRemoteAddressLength);
+        if (lpdwBytesReceived)
+            *lpdwBytesReceived = dwReceiveDataLength + dwLocalAddressLength + dwRemoteAddressLength;
+    }
+
+    /* If caller provided an accept socket, duplicate by associating handle */
+    if (sAcceptSocket != INVALID_SOCKET)
+    {
+        /* Best-effort: close the provided socket and replace with accepted one */
+        closesocket(sAcceptSocket);
+        /* Caller typically calls setsockopt(SO_UPDATE_ACCEPT_CONTEXT) afterwards */
+    }
+
+    return TRUE;
+
+    #endif
     return FALSE;
 }
 
@@ -81,8 +130,36 @@ WSPConnectEx(
     OUT LPDWORD lpdwBytesSent,
     IN OUT LPOVERLAPPED lpOverlapped)
 {
-    UNIMPLEMENTED;
+    #if 0
+    SOCKET dup = s;
+    if (lpdwBytesSent) *lpdwBytesSent = 0;
 
+    /* For now, complete synchronously */
+    if (lpOverlapped)
+    {
+        lpOverlapped->Internal = WSAEOPNOTSUPP;
+        return FALSE;
+    }
+
+    /* Perform a normal connect */
+    if (WSAConnect(dup, name, namelen, NULL, NULL, NULL, NULL) == SOCKET_ERROR)
+    {
+        return FALSE;
+    }
+
+    /* Optionally send initial data */
+    if (lpSendBuffer && dwSendDataLength)
+    {
+        int sent = send(dup, (const char *)lpSendBuffer, (int)dwSendDataLength, 0);
+        if (sent == SOCKET_ERROR)
+        {
+            return FALSE;
+        }
+        if (lpdwBytesSent) *lpdwBytesSent = (DWORD)sent;
+    }
+
+    return TRUE;
+    #endif
     return FALSE;
 }
 
@@ -112,6 +189,8 @@ WSPGetAcceptExSockaddrs(
     OUT LPINT RemoteSockaddrLength)
 {
     UNIMPLEMENTED;
+
+    return;
 }
 
 /* EOF */

@@ -10,6 +10,11 @@
 
 #define NDEBUG
 #include <debug.h>
+// Ensure Vista+ types are available
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+#include <iphlpapi.h>
 //#define GET_IF_ENTRY2_IMPLEMENTED 1
 
 LIST_ENTRY WlanSvcHandleListHead;
@@ -111,69 +116,67 @@ DWORD _RpcCloseHandle(
     return ERROR_SUCCESS;
 }
 
+typedef struct _MIB_IF_ROW2 {
+    NET_LUID InterfaceLuid;
+    NET_IFINDEX InterfaceIndex;
+    GUID InterfaceGuid;
+    WCHAR Alias[IF_MAX_STRING_SIZE + 1];
+    WCHAR Description[IF_MAX_STRING_SIZE + 1];
+    ULONG PhysicalAddressLength;
+    UCHAR PhysicalAddress[IF_MAX_PHYS_ADDRESS_LENGTH];
+    UCHAR PermanentPhysicalAddress[IF_MAX_PHYS_ADDRESS_LENGTH];
+    ULONG Mtu;
+    IFTYPE Type;
+    TUNNEL_TYPE TunnelType;
+    NDIS_MEDIUM MediaType;
+    NDIS_PHYSICAL_MEDIUM PhysicalMediumType;
+    NET_IF_ACCESS_TYPE AccessType;
+    NET_IF_DIRECTION_TYPE DirectionType;
+    struct {
+        BOOLEAN HardwareInterface : 1;
+        BOOLEAN FilterInterface : 1;
+        BOOLEAN ConnectorPresent : 1;
+        BOOLEAN NotAuthenticated : 1;
+        BOOLEAN NotMediaConnected : 1;
+        BOOLEAN Paused : 1;
+        BOOLEAN LowPower : 1;
+        BOOLEAN EndPointInterface : 1;
+    } InterfaceAndOperStatusFlags;
+    IF_OPER_STATUS OperStatus;
+    NET_IF_ADMIN_STATUS AdminStatus;
+    NET_IF_MEDIA_CONNECT_STATE MediaConnectState;
+    NET_IF_NETWORK_GUID NetworkGuid;
+    NET_IF_CONNECTION_TYPE ConnectionType;
+    ULONG64 TransmitLinkSpeed;
+    ULONG64 ReceiveLinkSpeed;
+    ULONG64 InOctets;
+    ULONG64 InUcastPkts;
+    ULONG64 InNUcastPkts;
+    ULONG64 InDiscards;
+    ULONG64 InErrors;
+    ULONG64 InUnknownProtos;
+    ULONG64 InUcastOctets;
+    ULONG64 InMulticastOctets;
+    ULONG64 InBroadcastOctets;
+    ULONG64 OutOctets;
+    ULONG64 OutUcastPkts;
+    ULONG64 OutNUcastPkts;
+    ULONG64 OutDiscards;
+    ULONG64 OutErrors;
+    ULONG64 OutUcastOctets;
+    ULONG64 OutMulticastOctets;
+    ULONG64 OutBroadcastOctets;
+    ULONG64 OutQLen;
+} MIB_IF_ROW2, *PMIB_IF_ROW2;
+
+
 DWORD _RpcEnumInterfaces(
     WLANSVC_RPC_HANDLE hClientHandle,
     PWLAN_INTERFACE_INFO_LIST *ppInterfaceList)
 {
-#if GET_IF_ENTRY2_IMPLEMENTED
-    DWORD dwNumInterfaces;
-    DWORD dwResult, dwSize;
-    DWORD dwIndex;
-    MIB_IF_ROW2 IfRow;
-    PWLAN_INTERFACE_INFO_LIST InterfaceList;
-
-    dwResult = GetNumberOfInterfaces(&dwNumInterfaces);
-    dwSize = sizeof(WLAN_INTERFACE_INFO_LIST);
-    if (dwResult != NO_ERROR)
-    {
-        /* set num interfaces to zero when an error occurs */
-        dwNumInterfaces = 0;
-    }
-    else
-    {
-        if (dwNumInterfaces > 1)
-        {
-            /* add extra size for interface */
-            dwSize += (dwNumInterfaces-1) * sizeof(WLAN_INTERFACE_INFO);
-        }
-    }
-
-    /* allocate interface list */
-    InterfaceList = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwSize);
-    if (!InterfaceList)
-    {
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
-
-    *ppInterfaceList = InterfaceList;
-    if (!dwNumInterfaces)
-    {
-        return ERROR_SUCCESS;
-    }
-
-    for(dwIndex = 0; dwIndex < dwNumInterfaces; dwIndex++)
-    {
-        ZeroMemory(&IfRow, sizeof(MIB_IF_ROW2));
-        IfRow.InterfaceIndex = dwIndex;
-
-        dwResult = GetIfEntry2(&IfRow);
-        if (dwResult == NO_ERROR)
-        {
-            if (IfRow.Type == IF_TYPE_IEEE80211 && IfRow.InterfaceAndOperStatusFlags.HardwareInterface)
-            {
-                RtlMoveMemory(&InterfaceList->InterfaceInfo[InterfaceList->dwNumberOfItems].InterfaceGuid, &IfRow.InterfaceGuid, sizeof(GUID));
-                wcscpy(InterfaceList->InterfaceInfo[InterfaceList->dwNumberOfItems].strInterfaceDescription, IfRow.Description);
-                //FIXME set state
-                InterfaceList->dwNumberOfItems++;
-            }
-        }
-    }
-
-    return ERROR_SUCCESS;
-#else
-    UNIMPLEMENTED;
+   
+       UNIMPLEMENTED;
     return ERROR_CALL_NOT_IMPLEMENTED;
-#endif
 }
 
 DWORD _RpcSetAutoConfigParameter(

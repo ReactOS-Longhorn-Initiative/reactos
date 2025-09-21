@@ -688,6 +688,12 @@ SECURITY_STATUS schan_imp_recv(schan_imp_session session, void *buffer,
         TRACE("MBEDTLS schan_imp_recv: ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY -> SEC_E_OK\n");
         return SEC_E_OK;
     }
+    else if (ret == MBEDTLS_ERR_SSL_CONN_EOF)
+    {
+        *length = 0;
+        TRACE("MBEDTLS schan_imp_recv: ret == MBEDTLS_ERR_SSL_CONN_EOF -> SEC_E_OK\n");
+        return SEC_E_OK;
+    }
     else
     {
         ERR("MBEDTLS schan_imp_recv: mbedtls_ssl_read failed with -%x\n", -ret);
