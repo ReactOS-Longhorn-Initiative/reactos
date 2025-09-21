@@ -233,6 +233,10 @@ RtlGetSaclSecurityDescriptor(IN PSECURITY_DESCRIPTOR SecurityDescriptor,
     PISECURITY_DESCRIPTOR Sd = (PISECURITY_DESCRIPTOR)SecurityDescriptor;
     PAGED_CODE_RTL();
 
+    *SaclPresent = FALSE;
+    *Sacl = NULL;
+    *SaclDefaulted = FALSE;
+
     /* Fail on invalid revisions */
     if (Sd->Revision != SECURITY_DESCRIPTOR_REVISION) return STATUS_UNKNOWN_REVISION;
 

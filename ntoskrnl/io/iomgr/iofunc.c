@@ -2368,7 +2368,11 @@ NtQueryInformationFile(IN HANDLE FileHandle,
                                        PreviousMode,
                                        (PVOID *)&FileObject,
                                        &HandleInformation);
-    if (!NT_SUCCESS(Status)) return Status;
+    if (!NT_SUCCESS(Status))
+    {
+  //      __debugbreak();
+        return Status;
+    } 
 
     /* Check if this is a direct open or not */
     if (FileObject->Flags & FO_DIRECT_DEVICE_OPEN)
@@ -2575,6 +2579,54 @@ NtQueryInformationFile(IN HANDLE FileHandle,
         Irp->IoStatus.Information = sizeof(FILE_ACCESS_INFORMATION) +
                                     sizeof(FILE_MODE_INFORMATION) +
                                     sizeof(FILE_ALIGNMENT_INFORMATION);
+    }
+
+    /* Handle FileIoCompletionNotificationInformation query locally */
+    if (FileInformationClass == FileIoCompletionNotificationInformation)
+    {
+        PFILE_IO_COMPLETION_NOTIFICATION_INFORMATION outInfo;
+        ULONG flags = 0;
+        outInfo = (PFILE_IO_COMPLETION_NOTIFICATION_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+
+        if (FileObject->Flags & FO_SKIP_COMPLETION_PORT) flags |= FILE_SKIP_COMPLETION_PORT_ON_SUCCESS;
+        if (FileObject->Flags & FO_SKIP_SET_EVENT) flags |= FILE_SKIP_SET_EVENT_ON_HANDLE;
+        if (FileObject->Flags & FO_SKIP_SET_FAST_IO) flags |= FILE_SKIP_SET_USER_EVENT_ON_FAST_IO;
+
+        outInfo->Flags = flags;
+        Irp->IoStatus.Information = sizeof(FILE_IO_COMPLETION_NOTIFICATION_INFORMATION);
+        Status = STATUS_SUCCESS;
+        Irp->IoStatus.Status = STATUS_SUCCESS;
+        CallDriver = FALSE;
+    }
+
+    /* Handle FileIoPriorityHintInformation query locally */
+    if (FileInformationClass == FileIoPriorityHintInformation)
+    {
+        PFILE_IO_PRIORITY_HINT_INFORMATION outPrio;
+        if (BooleanFlagOn(FileObject->Flags, FO_FILE_OBJECT_HAS_EXTENSION))
+        {
+            outPrio = (PFILE_IO_PRIORITY_HINT_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+            outPrio->PriorityHint = ((PFILE_OBJECT_EXTENSION)FileObject->FileObjectExtension)->IoPriorityHint;
+            Irp->IoStatus.Information = sizeof(FILE_IO_PRIORITY_HINT_INFORMATION);
+            Status = STATUS_SUCCESS;
+            Irp->IoStatus.Status = STATUS_SUCCESS;
+            CallDriver = FALSE;
+        }
+    }
+
+    /* Handle FileIoStatusBlockRangeInformation query locally */
+    if (FileInformationClass == FileIoStatusBlockRangeInformation)
+    {
+        PFILE_IOSTATUSBLOCK_RANGE_INFORMATION outRange;
+        if (BooleanFlagOn(FileObject->Flags, FO_FILE_OBJECT_HAS_EXTENSION))
+        {
+            outRange = (PFILE_IOSTATUSBLOCK_RANGE_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+            *outRange = ((PFILE_OBJECT_EXTENSION)FileObject->FileObjectExtension)->IoStatusBlockRange;
+            Irp->IoStatus.Information = sizeof(FILE_IOSTATUSBLOCK_RANGE_INFORMATION);
+            Status = STATUS_SUCCESS;
+            Irp->IoStatus.Status = STATUS_SUCCESS;
+            CallDriver = FALSE;
+        }
     }
 
     /* Call the Driver */
@@ -2919,10 +2971,13 @@ NtReadFile(IN HANDLE FileHandle,
                 }
                 _SEH2_END;
 
-                /* Signal the completion event */
+                /* Signal the completion event unless skipped by flags */
                 if (EventObject)
                 {
-                    KeSetEvent(EventObject, 0, FALSE);
+                    if (!(FileObject->Flags & FO_SKIP_SET_FAST_IO))
+                    {
+                        KeSetEvent(EventObject, 0, FALSE);
+                    }
                     ObDereferenceObject(EventObject);
                 }
 
@@ -3177,13 +3232,24 @@ NtSetInformationFile(IN HANDLE FileHandle,
     }
 
     /* Reference the Handle */
-    Status = ObReferenceObjectByHandle(FileHandle,
-                                       IopSetOperationAccess
-                                       [FileInformationClass],
-                                       IoFileObjectType,
-                                       PreviousMode,
-                                       (PVOID *)&FileObject,
-                                       NULL);
+    {
+        ACCESS_MASK DesiredAccess = IopSetOperationAccess[FileInformationClass];
+        /* Win8: these Vista+ info classes impose no specific access mask */
+        if (FileInformationClass == FileIoCompletionNotificationInformation ||
+            FileInformationClass == FileIoStatusBlockRangeInformation ||
+            FileInformationClass == FileIoPriorityHintInformation ||
+            FileInformationClass == 0x3D)
+        {
+            DesiredAccess = 0;
+        }
+
+        Status = ObReferenceObjectByHandle(FileHandle,
+                                           DesiredAccess,
+                                           IoFileObjectType,
+                                           PreviousMode,
+                                           (PVOID *)&FileObject,
+                                           NULL);
+    }
     if (!NT_SUCCESS(Status)) return Status;
 
     /* Check if this is a direct open or not */
@@ -3372,6 +3438,219 @@ NtSetInformationFile(IN HANDLE FileHandle,
         }
 
         /* Set the IRP Status */
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == 0x3D)
+    {
+        /* Replace completion port/key atomically. Input is FILE_COMPLETION_INFORMATION */
+        PFILE_COMPLETION_INFORMATION NewInfo = (PFILE_COMPLETION_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+        PVOID NewQueue = NULL;
+        PVOID OldQueue = NULL;
+        PVOID OldKey = NULL;
+
+        /* If a new port is specified, reference it */
+        if (NewInfo->Port)
+        {
+            Status = ObReferenceObjectByHandle(NewInfo->Port,
+                                               IO_COMPLETION_MODIFY_STATE,
+                                               IoCompletionType,
+                                               PreviousMode,
+                                               &NewQueue,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+            {
+                Irp->IoStatus.Status = Status;
+                Irp->IoStatus.Information = 0;
+                goto CompleteSetInfo;
+            }
+        }
+
+        /* Swap the completion context */
+        if (FileObject->CompletionContext)
+        {
+            OldQueue = FileObject->CompletionContext->Port;
+            OldKey = FileObject->CompletionContext->Key;
+        }
+
+        if (!FileObject->CompletionContext)
+        {
+            if (NewQueue)
+            {
+                PIO_COMPLETION_CONTEXT Context = ExAllocatePoolWithTag(PagedPool,
+                                                                       sizeof(IO_COMPLETION_CONTEXT),
+                                                                       IOC_TAG);
+                if (!Context)
+                {
+                    if (NewQueue) ObDereferenceObject(NewQueue);
+                    Status = STATUS_INSUFFICIENT_RESOURCES;
+                }
+                else
+                {
+                    Context->Port = NewQueue;
+                    Context->Key = NewInfo->Key;
+                    if (InterlockedCompareExchangePointer((PVOID*)&FileObject->CompletionContext,
+                                                          Context,
+                                                          NULL))
+                    {
+                        ExFreePoolWithTag(Context, IOC_TAG);
+                        if (NewQueue) ObDereferenceObject(NewQueue);
+                        Status = STATUS_INVALID_PARAMETER;
+                    }
+                    else
+                    {
+                        Status = STATUS_SUCCESS;
+                    }
+                }
+            }
+            else
+            {
+                /* No existing context and no new port: nothing to do */
+                Status = STATUS_SUCCESS;
+            }
+        }
+        else
+        {
+            /* There is an existing context */
+            if (NewQueue)
+            {
+                /* Replace both port and key */
+                FileObject->CompletionContext->Port = NewQueue;
+                FileObject->CompletionContext->Key = NewInfo->Key;
+                /* Drop old queue reference, hold new */
+                if (OldQueue) ObDereferenceObject(OldQueue);
+                Status = STATUS_SUCCESS;
+            }
+            else
+            {
+                /* Disassociate: free context and drop old ref */
+                PIO_COMPLETION_CONTEXT Ctx = (PIO_COMPLETION_CONTEXT)InterlockedExchangePointer((PVOID*)&FileObject->CompletionContext, NULL);
+                if (OldQueue) ObDereferenceObject(OldQueue);
+                if (Ctx) ExFreePoolWithTag(Ctx, IOC_TAG);
+                Status = STATUS_SUCCESS;
+            }
+        }
+
+CompleteSetInfo:
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == FileIoCompletionNotificationInformation)
+    {
+        ULONG flags;
+        PFILE_IO_COMPLETION_NOTIFICATION_INFORMATION ioNotif;
+
+        ioNotif = (PFILE_IO_COMPLETION_NOTIFICATION_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+        flags = ioNotif->Flags;
+
+        /* Only FILE_SKIP_COMPLETION_PORT_ON_SUCCESS, FILE_SKIP_SET_EVENT_ON_HANDLE, FILE_SKIP_SET_USER_EVENT_ON_FAST_IO */
+        if (flags & ~(FILE_SKIP_COMPLETION_PORT_ON_SUCCESS | FILE_SKIP_SET_EVENT_ON_HANDLE | FILE_SKIP_SET_USER_EVENT_ON_FAST_IO))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+        }
+        else if (FileObject->Flags & FO_SYNCHRONOUS_IO)
+        {
+            /* Synchronous handles are not allowed */
+            Status = STATUS_INVALID_PARAMETER;
+        }
+        else
+        {
+            /* OR-in requested flags; don't clear previously set flags */
+            if (flags & FILE_SKIP_COMPLETION_PORT_ON_SUCCESS)
+                FileObject->Flags |= FO_SKIP_COMPLETION_PORT;
+            if (flags & FILE_SKIP_SET_EVENT_ON_HANDLE)
+                FileObject->Flags |= FO_SKIP_SET_EVENT;
+            if (flags & FILE_SKIP_SET_USER_EVENT_ON_FAST_IO)
+                FileObject->Flags |= FO_SKIP_SET_FAST_IO;
+
+            Status = STATUS_SUCCESS;
+        }
+
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == FileIoStatusBlockRangeInformation)
+    {
+        PFILE_IOSTATUSBLOCK_RANGE_INFORMATION rangeInfo;
+        PFILE_OBJECT_EXTENSION FileObjectExtension;
+
+        if (!BooleanFlagOn(FileObject->Flags, FO_FILE_OBJECT_HAS_EXTENSION))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+        }
+        else
+        {
+            rangeInfo = (PFILE_IOSTATUSBLOCK_RANGE_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+            FileObjectExtension = FileObject->FileObjectExtension;
+            FileObjectExtension->IoStatusBlockRange.IoStatusBlockRange = rangeInfo->IoStatusBlockRange;
+            FileObjectExtension->IoStatusBlockRange.Length = rangeInfo->Length;
+            FileObjectExtension->IoStatusBlockRangeSet = TRUE;
+            Status = STATUS_SUCCESS;
+        }
+
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == FileIoPriorityHintInformation)
+    {
+        PFILE_IO_PRIORITY_HINT_INFORMATION prioInfo;
+        PFILE_OBJECT_EXTENSION FileObjectExtension;
+
+        if (!BooleanFlagOn(FileObject->Flags, FO_FILE_OBJECT_HAS_EXTENSION))
+        {
+            Status = STATUS_INVALID_PARAMETER;
+        }
+        else
+        {
+            prioInfo = (PFILE_IO_PRIORITY_HINT_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+            if (prioInfo->PriorityHint >= MaxIoPriorityTypes)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                FileObjectExtension = FileObject->FileObjectExtension;
+                FileObjectExtension->IoPriorityHint = prioInfo->PriorityHint;
+                Status = STATUS_SUCCESS;
+            }
+        }
+
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+   else if (FileInformationClass == 61)
+    {
+        DPRINT1("FileReplaceCompletionInformation not implemented\n");
+        // Handle replacing the completion port
+        // For now, just fail if not implemented
+        Status = STATUS_NOT_IMPLEMENTED;
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == 0x29)
+    {
+        DPRINT1("FileIoCompletionNotificationInformation not implemented\n");
+        // Han1dle setting completion notification flags
+        // For now, just fail if not implemented
+        Status = STATUS_NOT_IMPLEMENTED;
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == 0x2A)
+    {
+        DPRINT1("FileIoStatusBlockRangeInformation not implemented\n");
+        // Handle setting IOSB range
+        // For now, just fail if not implemented
+        Status = STATUS_NOT_IMPLEMENTED;
+        Irp->IoStatus.Status = Status;
+        Irp->IoStatus.Information = 0;
+    }
+    else if (FileInformationClass == 0x2B)
+    {
+        DPRINT1("FileIoPriorityHintInformation not implemented\n");
+        // Handle setting IO priority hint
+        // For now, just fail if not implemented
+        Status = STATUS_NOT_IMPLEMENTED;
         Irp->IoStatus.Status = Status;
         Irp->IoStatus.Information = 0;
     }
@@ -3990,10 +4269,13 @@ NtWriteFile(IN HANDLE FileHandle,
                 }
                 _SEH2_END;
 
-                /* Signal the completion event */
+                /* Signal the completion event unless skipped by flags */
                 if (EventObject)
                 {
-                    KeSetEvent(EventObject, 0, FALSE);
+                    if (!(FileObject->Flags & FO_SKIP_SET_FAST_IO))
+                    {
+                        KeSetEvent(EventObject, 0, FALSE);
+                    }
                     ObDereferenceObject(EventObject);
                 }
 

@@ -3880,9 +3880,11 @@ NtQuerySection(
         {
             SECTION_BASIC_INFORMATION Sbi = { 0 };
 
+           // Set base address and size
+            Sbi.BaseAddress = (PVOID)Section->Address.StartingVpn;
             Sbi.Size = Section->SizeOfSection;
-            Sbi.BaseAddress = NULL;
 
+            // Set attributes for all supported flags
             if (Section->u.Flags.File)
                 Sbi.Attributes |= SEC_FILE;
             if (Section->u.Flags.Image)
@@ -3891,26 +3893,45 @@ NtQuerySection(
                 Sbi.Attributes |= SEC_COMMIT;
             if (Section->u.Flags.Reserve)
                 Sbi.Attributes |= SEC_RESERVE;
+            if (Section->u.Flags.NoChange)
+                Sbi.Attributes |= SEC_NO_CHANGE;
             if (Section->u.Flags.Based)
                 Sbi.Attributes |= SEC_BASED;
+            /* LargePages is not present in MMSECTION_FLAGS, check allocation attribute if needed */
+            if (Section->u.Flags.NoCache)
+                Sbi.Attributes |= SEC_NOCACHE;
+            if (Section->u.Flags.WriteCombined)
+                Sbi.Attributes |= SEC_WRITECOMBINE;
 
+            // Special handling for image sections
             if (Section->u.Flags.Image)
             {
-                if (!MiIsRosSectionObject(Section))
+                if (MiIsRosSectionObject(Section))
                 {
-                    /* Not supported yet */
-                    ASSERT(FALSE);
+                    PMM_IMAGE_SECTION_OBJECT ImageSectionObject = ((PMM_IMAGE_SECTION_OBJECT)Section->Segment);
+                    Sbi.BaseAddress = 0;
+                    Sbi.Size.QuadPart = ImageSectionObject->ImageInformation.ImageFileSize;
+                }
+                else if (Section->Segment && Section->Segment->u2.ImageInformation)
+                {
+                    Sbi.BaseAddress = 0;
+                    Sbi.Size.QuadPart = Section->Segment->u2.ImageInformation->ImageFileSize;
                 }
             }
+            // Special handling for ROS section objects
             else if (MiIsRosSectionObject(Section))
             {
                 Sbi.BaseAddress = (PVOID)((PMM_SECTION_SEGMENT)Section->Segment)->Image.VirtualAddress;
+                Sbi.Size.QuadPart = ((PMM_SECTION_SEGMENT)Section->Segment)->RawLength.QuadPart;
             }
-            else
+            // Fallback for other section types
+            else if (Section->u.Flags.Reserve)
             {
-                Sbi.BaseAddress = Section->Segment->BasedAddress;
+                Sbi.BaseAddress = NULL;
+                // Size is already set
             }
-
+            
+            // If none of the above, leave defaults
             _SEH2_TRY
             {
                 *((SECTION_BASIC_INFORMATION*)SectionInformation) = Sbi;

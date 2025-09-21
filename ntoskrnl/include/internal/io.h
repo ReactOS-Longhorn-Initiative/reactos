@@ -101,6 +101,10 @@ typedef struct _FILE_OBJECT_EXTENSION
 {
     PDEVICE_OBJECT TopDeviceObjectHint;
     PVOID FilterContext;
+    /* Vista+ per-handle additions */
+    IO_PRIORITY_HINT IoPriorityHint;
+    FILE_IOSTATUSBLOCK_RANGE_INFORMATION IoStatusBlockRange;
+    BOOLEAN IoStatusBlockRangeSet;
 
 } FILE_OBJECT_EXTENSION, *PFILE_OBJECT_EXTENSION;
 

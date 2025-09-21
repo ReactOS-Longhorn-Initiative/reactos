@@ -945,4 +945,58 @@ RtlUpperChar(IN CHAR Source)
     return Destination;
 }
 
+#define MUI_LANGUAGE_ID               0x04
+
+/******************************************************************
+ *      RtlLcidToLocaleName   (NTDLL.@)
+ */
+NTSTATUS WINAPI RtlLcidToLocaleName( LCID lcid, UNICODE_STRING *str, ULONG flags, BOOLEAN alloc );
+
+static NTSTATUS get_dummy_preferred_ui_language( DWORD flags, LANGID lang, ULONG *count,
+                                                 WCHAR *buffer, ULONG *size )
+{
+    WCHAR name[LOCALE_NAME_MAX_LENGTH + 2];
+    NTSTATUS status;
+    ULONG len;
+   // FIXME("(0x%lx %#x %p %p %p) returning a dummy value (current locale)\n", flags, lang, count, buffer, size);
+    if (flags & MUI_LANGUAGE_ID) _swprintf( name, L"%04lX", lang );
+    else
+    {
+        UNICODE_STRING str;
+        if (lang == LOCALE_CUSTOM_UNSPECIFIED)
+            NtQueryInstallUILanguage( &lang );
+        str.Buffer = name;
+        str.MaximumLength = sizeof(name);
+        status = RtlLcidToLocaleName( lang, &str, 0, FALSE );
+        if (status) return status;
+    }
+    len = wcslen( name ) + 2;
+    name[len - 1] = 0;
+    if (buffer)
+    {
+        if (len > *size)
+        {
+            *size = len;
+            return STATUS_BUFFER_TOO_SMALL;
+        }
+        memcpy( buffer, name, len * sizeof(WCHAR) );
+    }
+    *size = len;
+    *count = 1;
+//    TRACE("returned variable content: %ld, \"%s\", %ld\n", *count, debugstr_w(buffer), *size);
+    return STATUS_SUCCESS;
+}
+/**************************************************************************
+ *      RtlGetThreadPreferredUILanguages   (NTDLL.@)
+ */
+NTSTATUS WINAPI RtlGetThreadPreferredUILanguages( DWORD flags, ULONG *count, WCHAR *buffer, ULONG *size )
+{
+    LANGID ui_language;
+ //   FIXME( "%08lx, %p, %p %p\n", flags, count, buffer, size );
+    NtQueryDefaultUILanguage( &ui_language );
+    return get_dummy_preferred_ui_language( flags, ui_language, count, buffer, size );
+}
+
+
 /* EOF */
+

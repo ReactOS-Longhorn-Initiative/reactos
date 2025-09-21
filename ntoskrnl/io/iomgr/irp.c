@@ -391,8 +391,13 @@ IopCompleteRequest(IN PKAPC Apc,
         /* Check if we have an event or a file object */
         if (Irp->UserEvent)
         {
-            /* At the very least, this is a PKEVENT, so signal it always */
-            KeSetEvent(Irp->UserEvent, 0, FALSE);
+            /* At the very least, this is a PKEVENT, so signal it unless skipped for fast I/O */
+            if (!(FileObject && (FileObject->Flags & FO_SKIP_SET_FAST_IO) &&
+                  (Irp->Flags & (IRP_READ_OPERATION | IRP_WRITE_OPERATION)) &&
+                  (Irp->Flags & IRP_DEFER_IO_COMPLETION)))
+            {
+                KeSetEvent(Irp->UserEvent, 0, FALSE);
+            }
 
             /* Check if we also have a File Object */
             if (FileObject)
@@ -410,7 +415,8 @@ IopCompleteRequest(IN PKAPC Apc,
                  * and instead, we will signal the File Object
                  */
                 if ((FileObject->Flags & FO_SYNCHRONOUS_IO) &&
-                    !(Irp->Flags & IRP_OB_QUERY_NAME))
+                    !(Irp->Flags & IRP_OB_QUERY_NAME) &&
+                    !(FileObject->Flags & FO_SKIP_SET_EVENT))
                 {
                     /* Signal the file object and set the status */
                     KeSetEvent(&FileObject->Event, 0, FALSE);
@@ -431,8 +437,11 @@ IopCompleteRequest(IN PKAPC Apc,
         }
         else if (FileObject)
         {
-            /* Signal the file object and set the status */
-            KeSetEvent(&FileObject->Event, 0, FALSE);
+            /* Signal the file object and set the status unless skipped */
+            if (!(FileObject->Flags & FO_SKIP_SET_EVENT))
+            {
+                KeSetEvent(&FileObject->Event, 0, FALSE);
+            }
             FileObject->FinalStatus = Irp->IoStatus.Status;
 
             /*
@@ -494,10 +503,15 @@ IopCompleteRequest(IN PKAPC Apc,
         else if ((Port) &&
                  (Irp->Overlay.AsynchronousParameters.UserApcContext))
         {
-            /* We have an I/O Completion setup... create the special Overlay */
-            Irp->Tail.CompletionKey = Key;
-            Irp->Tail.Overlay.PacketType = IopCompletionPacketIrp;
-            KeInsertQueue(Port, &Irp->Tail.Overlay.ListEntry);
+            /* We have an I/O Completion setup... maybe skip posting on synchronous success */
+            if (!((FileObject && (FileObject->Flags & FO_SKIP_COMPLETION_PORT)) &&
+                  !Irp->PendingReturned &&
+                  NT_SUCCESS(Irp->IoStatus.Status)))
+            {
+                Irp->Tail.CompletionKey = Key;
+                Irp->Tail.Overlay.PacketType = IopCompletionPacketIrp;
+                KeInsertQueue(Port, &Irp->Tail.Overlay.ListEntry);
+            }
         }
         else
         {
@@ -529,13 +543,19 @@ IopCompleteRequest(IN PKAPC Apc,
                 /* Now check if the user gave an event */
                 if (Irp->UserEvent)
                 {
-                    /* Signal it */
-                    KeSetEvent(Irp->UserEvent, 0, FALSE);
+                    /* Signal it unless fast I/O skip is requested */
+                    if (!(FileObject && (FileObject->Flags & FO_SKIP_SET_FAST_IO)))
+                    {
+                        KeSetEvent(Irp->UserEvent, 0, FALSE);
+                    }
                 }
                 else
                 {
-                    /* No event was given, so signal the FO instead */
-                    KeSetEvent(&FileObject->Event, 0, FALSE);
+                    /* No event was given, so signal the FO instead unless skipped */
+                    if (!(FileObject->Flags & FO_SKIP_SET_EVENT))
+                    {
+                        KeSetEvent(&FileObject->Event, 0, FALSE);
+                    }
                 }
             }
             else
@@ -545,7 +565,10 @@ IopCompleteRequest(IN PKAPC Apc,
                  * that was opened this way. Signal its event.
                  */
                 FileObject->FinalStatus = Irp->IoStatus.Status;
-                KeSetEvent(&FileObject->Event, 0, FALSE);
+                if (!(FileObject->Flags & FO_SKIP_SET_EVENT))
+                {
+                    KeSetEvent(&FileObject->Event, 0, FALSE);
+                }
             }
         }
 
