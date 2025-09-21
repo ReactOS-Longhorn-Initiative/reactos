@@ -834,7 +834,7 @@
 @ stdcall -stub -version=0x600+ RtlGetSystemPreferredUILanguages(long ptr ptr ptr ptr)
 @ stdcall RtlGetThreadErrorMode()
 @ stdcall -stub -version=0x600+ RtlGetThreadLangIdByIndex(long long ptr ptr)
-@ stdcall -stub -version=0x600+ RtlGetThreadPreferredUILanguages(long long ptr ptr)
+@ stdcall -version=0x600+ RtlGetThreadPreferredUILanguages(long long ptr ptr)
 @ stdcall -stub -version=0x600+ RtlGetUILanguageInfo(long ptr long ptr ptr)
 @ stdcall RtlGetUnloadEventTrace()
 @ stdcall -version=0x600+ RtlGetUnloadEventTraceEx(ptr ptr ptr)

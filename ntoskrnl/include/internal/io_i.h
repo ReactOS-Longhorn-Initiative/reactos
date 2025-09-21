@@ -52,7 +52,7 @@ UCHAR IopQueryOperationLength[] =
     0,
     0,
     0,
-#if 0 // VISTA
+#if 1 // VISTA
     sizeof(FILE_IO_COMPLETION_NOTIFICATION_INFORMATION),
     sizeof(FILE_IOSTATUSBLOCK_RANGE_INFORMATION),
     sizeof(FILE_IO_PRIORITY_HINT_INFORMATION),
@@ -109,6 +109,16 @@ UCHAR IopSetOperationLength[] =
     0,
     sizeof(FILE_VALID_DATA_LENGTH_INFORMATION),
     sizeof(UNICODE_STRING),
+    /* Vista+ file info classes */
+    sizeof(FILE_IO_COMPLETION_NOTIFICATION_INFORMATION),
+    sizeof(FILE_IOSTATUSBLOCK_RANGE_INFORMATION),
+    sizeof(FILE_IO_PRIORITY_HINT_INFORMATION),
+    sizeof(FILE_SFIO_RESERVE_INFORMATION),
+    sizeof(FILE_SFIO_VOLUME_INFORMATION),
+    0,
+    0,
+    0,
+    0,
     0xFF
 };
 
@@ -155,6 +165,16 @@ ACCESS_MASK IopQueryOperationAccess[] =
     0,
     0,
     0,
+    /* Vista+ file info classes (query) */
+    0, /* FileIoCompletionNotificationInformation */
+    0, /* FileIoStatusBlockRangeInformation */
+    0, /* FileIoPriorityHintInformation */
+    0, /* FileSfioReserveInformation */
+    0, /* FileSfioVolumeInformation */
+    0, /* FileHardLinkInformation */
+    0, /* FileProcessIdsUsingFileInformation */
+    0, /* FileNormalizedNameInformation */
+    0, /* FileNetworkPhysicalNameInformation */
     0xFFFFFFFF
 };
 
@@ -201,6 +221,16 @@ ACCESS_MASK IopSetOperationAccess[] =
     0,
     FILE_WRITE_DATA,
     DELETE,
+    /* Vista+ file info classes (set) */
+    0, /* FileIoCompletionNotificationInformation */
+    0, /* FileIoStatusBlockRangeInformation (privilege checked in code) */
+    0, /* FileIoPriorityHintInformation */
+    0, /* FileSfioReserveInformation */
+    0, /* FileSfioVolumeInformation */
+    0, /* FileHardLinkInformation */
+    0, /* FileProcessIdsUsingFileInformation */
+    0, /* FileNormalizedNameInformation */
+    0, /* FileNetworkPhysicalNameInformation */
     0xFFFFFFFF
 };
 
@@ -219,7 +249,7 @@ UCHAR IopQueryFsOperationLength[] =
     sizeof(FILE_FS_FULL_SIZE_INFORMATION),
     sizeof(FILE_FS_OBJECTID_INFORMATION),
     sizeof(FILE_FS_DRIVER_PATH_INFORMATION),
-#if 0 // VISTA
+#if 1 // VISTA
     sizeof(FILE_FS_VOLUME_FLAGS_INFORMATION),
 #endif
     0xFF
@@ -237,7 +267,7 @@ UCHAR IopSetFsOperationLength[] =
     0,
     sizeof(FILE_FS_OBJECTID_INFORMATION),
     0,
-#if 0 // VISTA
+#if 1 // VISTA
     sizeof(FILE_FS_VOLUME_FLAGS_INFORMATION),
 #endif
     0xFF
@@ -255,7 +285,7 @@ ULONG IopQueryFsOperationAccess[] =
     0,
     0,
     0,
-#if 0 // VISTA
+#if 1 // VISTA
     0,
 #endif
     0xFFFFFFFF
@@ -273,7 +303,7 @@ ULONG IopSetFsOperationAccess[] =
     0,
     FILE_WRITE_DATA,
     0,
-#if 0 // VISTA
+#if 1 // VISTA
     0,
 #endif
     0xFFFFFFFF
