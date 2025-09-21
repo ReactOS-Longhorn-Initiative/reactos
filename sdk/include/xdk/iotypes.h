@@ -648,7 +648,7 @@ typedef struct _BOOTDISK_INFORMATION_LITE {
 
 #else
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1//(NTDDI_VERSION >= NTDDI_VISTA)
 typedef struct _BOOTDISK_INFORMATION_LITE {
   ULONG BootDeviceSignature;
   ULONG SystemDeviceSignature;
@@ -1021,7 +1021,7 @@ typedef struct _TARGET_DEVICE_REMOVAL_NOTIFICATION {
   struct _FILE_OBJECT *FileObject;
 } TARGET_DEVICE_REMOVAL_NOTIFICATION, *PTARGET_DEVICE_REMOVAL_NOTIFICATION;
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1//(NTDDI_VERSION >= NTDDI_VISTA)
 #include <devpropdef.h>
 #define PLUGPLAY_PROPERTY_PERSISTENT   0x00000001
 #endif
@@ -1294,7 +1294,7 @@ typedef enum _FILE_INFORMATION_CLASS {
   FileIdFullDirectoryInformation,
   FileValidDataLengthInformation,
   FileShortNameInformation,
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1//(NTDDI_VERSION >= NTDDI_VISTA)
   FileIoCompletionNotificationInformation,
   FileIoStatusBlockRangeInformation,
   FileIoPriorityHintInformation,
@@ -1305,7 +1305,7 @@ typedef enum _FILE_INFORMATION_CLASS {
   FileNormalizedNameInformation,
   FileNetworkPhysicalNameInformation,
 #endif
-#if (NTDDI_VERSION >= NTDDI_WIN7)
+#if 1//(NTDDI_VERSION >= NTDDI_WIN7)
   FileIdGlobalTxDirectoryInformation,
   FileIsRemoteDeviceInformation,
   FileAttributeCacheInformation,
@@ -7453,7 +7453,7 @@ extern NTKERNELAPI LARGE_INTEGER IoOtherTransferCount;
 #define IO_FILE_OBJECT_NON_PAGED_POOL_CHARGE    64
 #define IO_FILE_OBJECT_PAGED_POOL_CHARGE        1024
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1//(NTDDI_VERSION >= NTDDI_VISTA)
 typedef struct _IO_PRIORITY_INFO {
   ULONG Size;
   ULONG ThreadPriority;

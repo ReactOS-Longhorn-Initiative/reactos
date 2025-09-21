@@ -20,9 +20,12 @@
 #include <tcpioctl.h>
 #include <tdilib.h>
 #include <ws2tcpip.h>
+#include <mstcpip.h>
+#include <mswsock.h>
 #include <rtlfuncs.h>
 #include <mstcpip.h>
 
+#  define SIO_IDEAL_SEND_BACKLOG_QUERY _IOR('t', 123, ULONG)
 #define EXPORT WINAPI
 
 #define DD_TCP_DEVICE_NAME      L"\\Device\\Tcp"
