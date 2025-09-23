@@ -21,160 +21,70 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
-#define WIN32_NO_STATUS
-#define WIN32_LEAN_AND_MEAN
 
-#include <config.h>
-
-//#include "wine/port.h"
-#include <wine/library.h>
-
-//#include "windef.h"
-#include <wincrypt.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "windef.h"
+#include "winbase.h"
+#include "wincrypt.h"
 
 #include "implglue.h"
 
-//#include <stdio.h>
+prng_state prng = { 0 };
+int wprng = 0;
 
-/* Function prototypes copied from dlls/advapi32/crypt_md4.c */
-VOID WINAPI MD4Init( MD4_CTX *ctx );
-VOID WINAPI MD4Update( MD4_CTX *ctx, const unsigned char *buf, unsigned int len );
-VOID WINAPI MD4Final( MD4_CTX *ctx );
-/* Function prototypes copied from dlls/advapi32/crypt_md5.c */
-VOID WINAPI MD5Init( MD5_CTX *ctx );
-VOID WINAPI MD5Update( MD5_CTX *ctx, const unsigned char *buf, unsigned int len );
-VOID WINAPI MD5Final( MD5_CTX *ctx );
-/* Function prototypes copied from dlls/advapi32/crypt_sha.c */
-VOID WINAPI A_SHAInit(PSHA_CTX Context);
-VOID WINAPI A_SHAUpdate(PSHA_CTX Context, const unsigned char *Buffer, UINT BufferSize);
-VOID WINAPI A_SHAFinal(PSHA_CTX Context, PULONG Result);
-/* Function prototype copied from dlls/advapi32/crypt.c */
-BOOL WINAPI SystemFunction036(PVOID pbBuffer, ULONG dwLen);
-        
-BOOL init_hash_impl(ALG_ID aiAlgid, HASH_CONTEXT *pHashContext) 
+BOOL init_hash_impl( ALG_ID algid, struct hash *hash )
 {
-    switch (aiAlgid) 
+    memset( hash, 0, sizeof(*hash) );
+
+    switch (algid)
     {
-        case CALG_MD2:
-            md2_init(&pHashContext->md2);
-            break;
-        
-        case CALG_MD4:
-            MD4Init(&pHashContext->md4);
-            break;
-        
-        case CALG_MD5:
-            MD5Init(&pHashContext->md5);
-            break;
-        
-        case CALG_SHA:
-            A_SHAInit(&pHashContext->sha);
-            break;
+    case CALG_MD2:
+        hash->desc = &md2_desc;
+        break;
 
-        case CALG_SHA_256:
-            SHA256_Init(&pHashContext->sha256);
-            break;
+    case CALG_MD4:
+        hash->desc = &md4_desc;
+        break;
 
-        case CALG_SHA_384:
-            SHA384_Init(&pHashContext->sha384);
-            break;
+    case CALG_MD5:
+        hash->desc = &md5_desc;
+        break;
 
-        case CALG_SHA_512:
-            SHA512_Init(&pHashContext->sha512);
-            break;
+    case CALG_SHA:
+        hash->desc = &sha1_desc;
+        break;
+
+    case CALG_SHA_256:
+        hash->desc = &sha256_desc;
+        break;
+
+    case CALG_SHA_384:
+        hash->desc = &sha384_desc;
+        break;
+
+    case CALG_SHA_512:
+        hash->desc = &sha512_desc;
+        break;
+
+    default:
+        return TRUE;
     }
 
+    hash->desc->init( &hash->state );
     return TRUE;
 }
 
-BOOL update_hash_impl(ALG_ID aiAlgid, HASH_CONTEXT *pHashContext, const BYTE *pbData,
-                      DWORD dwDataLen) 
+BOOL update_hash_impl( struct hash *hash, const BYTE *data, DWORD len )
 {
-    switch (aiAlgid)
-    {
-        case CALG_MD2:
-            md2_process(&pHashContext->md2, pbData, dwDataLen);
-            break;
-        
-        case CALG_MD4:
-            MD4Update(&pHashContext->md4, pbData, dwDataLen);
-            break;
-    
-        case CALG_MD5:
-            MD5Update(&pHashContext->md5, pbData, dwDataLen);
-            break;
-        
-        case CALG_SHA:
-            A_SHAUpdate(&pHashContext->sha, pbData, dwDataLen);
-            break;
-        
-        case CALG_SHA_256:
-            SHA256_Update(&pHashContext->sha256, pbData, dwDataLen);
-            break;
-
-        case CALG_SHA_384:
-            SHA384_Update(&pHashContext->sha384, pbData, dwDataLen);
-            break;
-
-        case CALG_SHA_512:
-            SHA512_Update(&pHashContext->sha512, pbData, dwDataLen);
-            break;
-
-        default:
-            SetLastError(NTE_BAD_ALGID);
-            return FALSE;
-    }
-
+    hash->desc->process( &hash->state, data, len );
     return TRUE;
 }
 
-BOOL finalize_hash_impl(ALG_ID aiAlgid, HASH_CONTEXT *pHashContext, BYTE *pbHashValue) 
+BOOL finalize_hash_impl( struct hash *hash, BYTE *hash_value, DWORD hash_size )
 {
-    switch (aiAlgid)
-    {
-        case CALG_MD2:
-            md2_done(&pHashContext->md2, pbHashValue);
-            break;
-        
-        case CALG_MD4:
-            MD4Final(&pHashContext->md4);
-            memcpy(pbHashValue, pHashContext->md4.digest, 16);
-            break;
-        
-        case CALG_MD5:
-            MD5Final(&pHashContext->md5);
-            memcpy(pbHashValue, pHashContext->md5.digest, 16);
-            break;
-        
-        case CALG_SHA:
-            A_SHAFinal(&pHashContext->sha, (PULONG)pbHashValue);
-            break;
-        
-        case CALG_SHA_256:
-            SHA256_Final(pbHashValue, &pHashContext->sha256);
-            break;
-
-        case CALG_SHA_384:
-            SHA384_Final(pbHashValue, &pHashContext->sha384);
-            break;
-
-        case CALG_SHA_512:
-            SHA512_Final(pbHashValue, &pHashContext->sha512);
-            break;
-
-        default:
-            SetLastError(NTE_BAD_ALGID);
-            return FALSE;
-    }
-
-    return TRUE;
-}
-
-BOOL duplicate_hash_impl(ALG_ID aiAlgid, const HASH_CONTEXT *pSrcHashContext,
-                         HASH_CONTEXT *pDestHashContext) 
-{
-    *pDestHashContext = *pSrcHashContext;
-
+    hash->desc->done( &hash->state, hash_value );
     return TRUE;
 }
 
@@ -184,7 +94,7 @@ BOOL new_key_impl(ALG_ID aiAlgid, KEY_CONTEXT *pKeyContext, DWORD dwKeyLen)
     {
         case CALG_RSA_KEYX:
         case CALG_RSA_SIGN:
-            if (rsa_make_key((int)dwKeyLen, 65537, &pKeyContext->rsa) != CRYPT_OK) {
+            if (rsa_make_key( &prng, wprng, dwKeyLen, 65537, &pKeyContext->rsa ) != CRYPT_OK) {
                 SetLastError(NTE_FAIL);
                 return FALSE;
             }
@@ -212,40 +122,50 @@ BOOL setup_key_impl(ALG_ID aiAlgid, KEY_CONTEXT *pKeyContext, DWORD dwKeyLen,
     switch (aiAlgid) 
     {
         case CALG_RC4:
-            rc4_start(&pKeyContext->rc4);
-            rc4_add_entropy(abKeyValue, dwKeyLen + dwSaltLen, &pKeyContext->rc4);
-            rc4_ready(&pKeyContext->rc4);
+            rc4_start(&pKeyContext->prng);
+            rc4_add_entropy(abKeyValue, dwKeyLen + dwSaltLen, &pKeyContext->prng);
+            /* bypass rc4_ready() to avoid the workaround for the Fluhrer, Mantin and Shamir attack,
+             * since Windows doesn't do that */
+            /* rc4_ready(&pKeyContext->prng); */
+            {
+                unsigned char buf[256];
+                ULONG len = MIN(pKeyContext->prng.rc4.s.x, sizeof(buf));
+
+                memcpy(buf, pKeyContext->prng.rc4.s.buf, sizeof(buf));
+                rc4_stream_setup(&pKeyContext->prng.rc4.s, buf, len);
+                pKeyContext->prng.ready = 1;
+            }
             break;
-        
+
         case CALG_RC2:
-            rc2_setup(abKeyValue, dwKeyLen + dwSaltLen, dwEffectiveKeyLen ?
-                      dwEffectiveKeyLen : dwKeyLen << 3, 0, &pKeyContext->rc2);
+            rc2_setup_ex(abKeyValue, dwKeyLen + dwSaltLen, dwEffectiveKeyLen ?
+                         dwEffectiveKeyLen : dwKeyLen << 3, 0, &pKeyContext->key);
             break;
-        
+
         case CALG_3DES:
-            des3_setup(abKeyValue, 24, 0, &pKeyContext->des3);
+            des3_setup(abKeyValue, 24, 0, &pKeyContext->key);
             break;
 
         case CALG_3DES_112:
             memcpy(abKeyValue+16, abKeyValue, 8);
-            des3_setup(abKeyValue, 24, 0, &pKeyContext->des3);
+            des3_setup(abKeyValue, 24, 0, &pKeyContext->key);
             break;
-        
+
         case CALG_DES:
-            des_setup(abKeyValue, 8, 0, &pKeyContext->des);
+            des_setup(abKeyValue, 8, 0, &pKeyContext->key);
             break;
 
         case CALG_AES:
         case CALG_AES_128:
-            aes_setup(abKeyValue, 16, 0, &pKeyContext->aes);
+            aes_setup(abKeyValue, 16, 0, &pKeyContext->key);
             break;
 
         case CALG_AES_192:
-            aes_setup(abKeyValue, 24, 0, &pKeyContext->aes);
+            aes_setup(abKeyValue, 24, 0, &pKeyContext->key);
             break;
 
         case CALG_AES_256:
-            aes_setup(abKeyValue, 32, 0, &pKeyContext->aes);
+            aes_setup(abKeyValue, 32, 0, &pKeyContext->key);
             break;
     }
 
@@ -271,14 +191,14 @@ BOOL duplicate_key_impl(ALG_ID aiAlgid, const KEY_CONTEXT *pSrcKeyContext,
         case CALG_RSA_KEYX:
         case CALG_RSA_SIGN:
             pDestKeyContext->rsa.type = pSrcKeyContext->rsa.type;
-            mp_init_copy(&pDestKeyContext->rsa.e, &pSrcKeyContext->rsa.e);
-            mp_init_copy(&pDestKeyContext->rsa.d, &pSrcKeyContext->rsa.d);
-            mp_init_copy(&pDestKeyContext->rsa.N, &pSrcKeyContext->rsa.N);
-            mp_init_copy(&pDestKeyContext->rsa.p, &pSrcKeyContext->rsa.p);
-            mp_init_copy(&pDestKeyContext->rsa.q, &pSrcKeyContext->rsa.q);
-            mp_init_copy(&pDestKeyContext->rsa.qP, &pSrcKeyContext->rsa.qP);
-            mp_init_copy(&pDestKeyContext->rsa.dP, &pSrcKeyContext->rsa.dP);
-            mp_init_copy(&pDestKeyContext->rsa.dQ, &pSrcKeyContext->rsa.dQ);
+            mp_init_copy(&pDestKeyContext->rsa.e, pSrcKeyContext->rsa.e);
+            mp_init_copy(&pDestKeyContext->rsa.d, pSrcKeyContext->rsa.d);
+            mp_init_copy(&pDestKeyContext->rsa.N, pSrcKeyContext->rsa.N);
+            mp_init_copy(&pDestKeyContext->rsa.p, pSrcKeyContext->rsa.p);
+            mp_init_copy(&pDestKeyContext->rsa.q, pSrcKeyContext->rsa.q);
+            mp_init_copy(&pDestKeyContext->rsa.qP, pSrcKeyContext->rsa.qP);
+            mp_init_copy(&pDestKeyContext->rsa.dP, pSrcKeyContext->rsa.dP);
+            mp_init_copy(&pDestKeyContext->rsa.dQ, pSrcKeyContext->rsa.dQ);
             break;
         
         default:
@@ -301,73 +221,94 @@ static inline void reverse_bytes(BYTE *pbData, DWORD dwLen) {
 }
 
 BOOL encrypt_block_impl(ALG_ID aiAlgid, DWORD dwKeySpec, KEY_CONTEXT *pKeyContext, const BYTE *in,
-                        BYTE *out, DWORD enc)
+                        BYTE *out)
 {
     unsigned long inlen, outlen;
-    BYTE *in_reversed = NULL;
-        
+
     switch (aiAlgid) {
         case CALG_RC2:
-            if (enc) {
-                rc2_ecb_encrypt(in, out, &pKeyContext->rc2);
-            } else {
-                rc2_ecb_decrypt(in, out, &pKeyContext->rc2);
-            }
+            rc2_ecb_encrypt(in, out, &pKeyContext->key);
             break;
 
         case CALG_3DES:
         case CALG_3DES_112:
-            if (enc) {
-                des3_ecb_encrypt(in, out, &pKeyContext->des3);
-            } else {
-                des3_ecb_decrypt(in, out, &pKeyContext->des3);
-            }
+            des3_ecb_encrypt(in, out, &pKeyContext->key);
             break;
 
         case CALG_DES:
-            if (enc) {
-                des_ecb_encrypt(in, out, &pKeyContext->des);
-            } else {
-                des_ecb_decrypt(in, out, &pKeyContext->des);
-            }
+            des_ecb_encrypt(in, out, &pKeyContext->key);
             break;
 
         case CALG_AES:
         case CALG_AES_128:
         case CALG_AES_192:
         case CALG_AES_256:
-            if (enc) {
-                aes_ecb_encrypt(in, out, &pKeyContext->aes);
-            } else {
-                aes_ecb_decrypt(in, out, &pKeyContext->aes);
-            }
+            aes_ecb_encrypt(in, out, &pKeyContext->key);
             break;
 
         case CALG_RSA_KEYX:
         case CALG_RSA_SIGN:
         case CALG_SSL3_SHAMD5:
-            outlen = inlen = (mp_count_bits(&pKeyContext->rsa.N)+7)/8;
-            if (enc) {
-                if (rsa_exptmod(in, inlen, out, &outlen, dwKeySpec, &pKeyContext->rsa) != CRYPT_OK) {
-                    SetLastError(NTE_FAIL);
-                    return FALSE;
-                }
-                reverse_bytes(out, outlen);
-            } else {
-                in_reversed = HeapAlloc(GetProcessHeap(), 0, inlen);
-                if (!in_reversed) {
-                    SetLastError(NTE_NO_MEMORY);
-                    return FALSE;
-                }
-                memcpy(in_reversed, in, inlen);
-                reverse_bytes(in_reversed, inlen);
-                if (rsa_exptmod(in_reversed, inlen, out, &outlen, dwKeySpec, &pKeyContext->rsa) != CRYPT_OK) {
-                    HeapFree(GetProcessHeap(), 0, in_reversed);
-                    SetLastError(NTE_FAIL);
-                    return FALSE;
-                }
-                HeapFree(GetProcessHeap(), 0, in_reversed);
+            outlen = inlen = (mp_count_bits(pKeyContext->rsa.N)+7)/8;
+            if (rsa_exptmod(in, inlen, out, &outlen, dwKeySpec, &pKeyContext->rsa) != CRYPT_OK) {
+                SetLastError(NTE_FAIL);
+                return FALSE;
             }
+            reverse_bytes(out, outlen);
+            break;
+
+        default:
+            SetLastError(NTE_BAD_ALGID);
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+BOOL decrypt_block_impl(ALG_ID aiAlgid, DWORD dwKeySpec, KEY_CONTEXT *pKeyContext, const BYTE *in,
+                        BYTE *out)
+{
+    unsigned long inlen, outlen;
+    BYTE *in_reversed;
+
+    switch (aiAlgid) {
+        case CALG_RC2:
+            rc2_ecb_decrypt(in, out, &pKeyContext->key);
+            break;
+
+        case CALG_3DES:
+        case CALG_3DES_112:
+            des3_ecb_decrypt(in, out, &pKeyContext->key);
+            break;
+
+        case CALG_DES:
+            des_ecb_decrypt(in, out, &pKeyContext->key);
+            break;
+
+        case CALG_AES:
+        case CALG_AES_128:
+        case CALG_AES_192:
+        case CALG_AES_256:
+            aes_ecb_decrypt(in, out, &pKeyContext->key);
+            break;
+
+        case CALG_RSA_KEYX:
+        case CALG_RSA_SIGN:
+        case CALG_SSL3_SHAMD5:
+            outlen = inlen = (mp_count_bits(pKeyContext->rsa.N)+7)/8;
+            in_reversed = malloc(inlen);
+            if (!in_reversed) {
+                SetLastError(NTE_NO_MEMORY);
+                return FALSE;
+            }
+            memcpy(in_reversed, in, inlen);
+            reverse_bytes(in_reversed, inlen);
+            if (rsa_exptmod(in_reversed, inlen, out, &outlen, dwKeySpec, &pKeyContext->rsa) != CRYPT_OK) {
+                free(in_reversed);
+                SetLastError(NTE_FAIL);
+                return FALSE;
+            }
+            free(in_reversed);
             break;
 
         default:
@@ -382,7 +323,7 @@ BOOL encrypt_stream_impl(ALG_ID aiAlgid, KEY_CONTEXT *pKeyContext, BYTE *stream,
 {
     switch (aiAlgid) {
         case CALG_RC4:
-            rc4_read(stream, dwLen, &pKeyContext->rc4);
+            rc4_stream_crypt(&pKeyContext->prng.rc4.s, stream, dwLen, stream);
             break;
 
         default:
@@ -393,19 +334,14 @@ BOOL encrypt_stream_impl(ALG_ID aiAlgid, KEY_CONTEXT *pKeyContext, BYTE *stream,
     return TRUE;
 }
 
-BOOL gen_rand_impl(BYTE *pbBuffer, DWORD dwLen)
-{
-    return SystemFunction036(pbBuffer, dwLen);
-}
-
 BOOL export_public_key_impl(BYTE *pbDest, const KEY_CONTEXT *pKeyContext, DWORD dwKeyLen,DWORD *pdwPubExp)
 {
-    mp_to_unsigned_bin(&pKeyContext->rsa.N, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.N));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.N) < dwKeyLen)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.N), 0,
-               dwKeyLen - mp_unsigned_bin_size(&pKeyContext->rsa.N));
-    *pdwPubExp = (DWORD)mp_get_int(&pKeyContext->rsa.e);
+    mp_to_unsigned_bin(pKeyContext->rsa.N, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.N));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.N) < dwKeyLen)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.N), 0,
+               dwKeyLen - mp_unsigned_bin_size(pKeyContext->rsa.N));
+    *pdwPubExp = (DWORD)mp_get_int(pKeyContext->rsa.e);
     return TRUE;
 }
 
@@ -416,21 +352,21 @@ BOOL import_public_key_impl(const BYTE *pbSrc, KEY_CONTEXT *pKeyContext, DWORD d
 
     if (mp_init_multi(&pKeyContext->rsa.e, &pKeyContext->rsa.d, &pKeyContext->rsa.N, 
                       &pKeyContext->rsa.dQ,&pKeyContext->rsa.dP,&pKeyContext->rsa.qP, 
-                      &pKeyContext->rsa.p, &pKeyContext->rsa.q, NULL) != MP_OKAY)
+                      &pKeyContext->rsa.p, &pKeyContext->rsa.q, NULL))
     {
         SetLastError(NTE_FAIL);
         return FALSE;
     }
 
-    pbTemp = HeapAlloc(GetProcessHeap(), 0, dwKeyLen);
+    pbTemp = malloc(dwKeyLen);
     if (!pbTemp) return FALSE;
     memcpy(pbTemp, pbSrc, dwKeyLen);
     
     pKeyContext->rsa.type = PK_PUBLIC;
     reverse_bytes(pbTemp, dwKeyLen);
-    mp_read_unsigned_bin(&pKeyContext->rsa.N, pbTemp, dwKeyLen);
-    HeapFree(GetProcessHeap(), 0, pbTemp);
-    mp_set_int(&pKeyContext->rsa.e, dwPubExp);
+    mp_read_unsigned_bin(pKeyContext->rsa.N, pbTemp, dwKeyLen);
+    free(pbTemp);
+    mp_set_int(pKeyContext->rsa.e, dwPubExp);
 
     return TRUE;    
 }
@@ -438,48 +374,48 @@ BOOL import_public_key_impl(const BYTE *pbSrc, KEY_CONTEXT *pKeyContext, DWORD d
 BOOL export_private_key_impl(BYTE *pbDest, const KEY_CONTEXT *pKeyContext, DWORD dwKeyLen,
                              DWORD *pdwPubExp)
 {
-    mp_to_unsigned_bin(&pKeyContext->rsa.N, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.N));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.N) < dwKeyLen)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.N), 0,
-               dwKeyLen - mp_unsigned_bin_size(&pKeyContext->rsa.N));
+    mp_to_unsigned_bin(pKeyContext->rsa.N, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.N));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.N) < dwKeyLen)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.N), 0,
+               dwKeyLen - mp_unsigned_bin_size(pKeyContext->rsa.N));
     pbDest += dwKeyLen;
-    mp_to_unsigned_bin(&pKeyContext->rsa.p, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.p));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.p) < (dwKeyLen+1)>>1)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.p), 0,
-               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(&pKeyContext->rsa.p));
+    mp_to_unsigned_bin(pKeyContext->rsa.p, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.p));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.p) < (dwKeyLen+1)>>1)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.p), 0,
+               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(pKeyContext->rsa.p));
     pbDest += (dwKeyLen+1)>>1;
-    mp_to_unsigned_bin(&pKeyContext->rsa.q, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.q));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.q) < (dwKeyLen+1)>>1)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.q), 0,
-               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(&pKeyContext->rsa.q));
+    mp_to_unsigned_bin(pKeyContext->rsa.q, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.q));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.q) < (dwKeyLen+1)>>1)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.q), 0,
+               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(pKeyContext->rsa.q));
     pbDest += (dwKeyLen+1)>>1;
-    mp_to_unsigned_bin(&pKeyContext->rsa.dP, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.dP));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.dP) < (dwKeyLen+1)>>1)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.dP), 0,
-               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(&pKeyContext->rsa.dP));
+    mp_to_unsigned_bin(pKeyContext->rsa.dP, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.dP));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.dP) < (dwKeyLen+1)>>1)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.dP), 0,
+               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(pKeyContext->rsa.dP));
     pbDest += (dwKeyLen+1)>>1;
-    mp_to_unsigned_bin(&pKeyContext->rsa.dQ, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.dQ));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.dQ) < (dwKeyLen+1)>>1)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.dQ), 0,
-               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(&pKeyContext->rsa.dQ));
+    mp_to_unsigned_bin(pKeyContext->rsa.dQ, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.dQ));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.dQ) < (dwKeyLen+1)>>1)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.dQ), 0,
+               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(pKeyContext->rsa.dQ));
     pbDest += (dwKeyLen+1)>>1;
-    mp_to_unsigned_bin(&pKeyContext->rsa.qP, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.qP));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.qP) < (dwKeyLen+1)>>1)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.qP), 0,
-               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(&pKeyContext->rsa.qP));
+    mp_to_unsigned_bin(pKeyContext->rsa.qP, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.qP));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.qP) < (dwKeyLen+1)>>1)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.qP), 0,
+               ((dwKeyLen+1)>>1) - mp_unsigned_bin_size(pKeyContext->rsa.qP));
     pbDest += (dwKeyLen+1)>>1;
-    mp_to_unsigned_bin(&pKeyContext->rsa.d, pbDest);
-    reverse_bytes(pbDest, mp_unsigned_bin_size(&pKeyContext->rsa.d));
-    if (mp_unsigned_bin_size(&pKeyContext->rsa.d) < dwKeyLen)
-        memset(pbDest + mp_unsigned_bin_size(&pKeyContext->rsa.d), 0,
-               dwKeyLen - mp_unsigned_bin_size(&pKeyContext->rsa.d));
-    *pdwPubExp = (DWORD)mp_get_int(&pKeyContext->rsa.e);
+    mp_to_unsigned_bin(pKeyContext->rsa.d, pbDest);
+    reverse_bytes(pbDest, mp_unsigned_bin_size(pKeyContext->rsa.d));
+    if (mp_unsigned_bin_size(pKeyContext->rsa.d) < dwKeyLen)
+        memset(pbDest + mp_unsigned_bin_size(pKeyContext->rsa.d), 0,
+               dwKeyLen - mp_unsigned_bin_size(pKeyContext->rsa.d));
+    *pdwPubExp = (DWORD)mp_get_int(pKeyContext->rsa.e);
 
     return TRUE;
 }
@@ -491,44 +427,44 @@ BOOL import_private_key_impl(const BYTE *pbSrc, KEY_CONTEXT *pKeyContext, DWORD 
 
     if (mp_init_multi(&pKeyContext->rsa.e, &pKeyContext->rsa.d, &pKeyContext->rsa.N, 
                       &pKeyContext->rsa.dQ,&pKeyContext->rsa.dP,&pKeyContext->rsa.qP, 
-                      &pKeyContext->rsa.p, &pKeyContext->rsa.q, NULL) != MP_OKAY)
+                      &pKeyContext->rsa.p, &pKeyContext->rsa.q, NULL))
     {
         SetLastError(NTE_FAIL);
         return FALSE;
     }
 
-    pbTemp = HeapAlloc(GetProcessHeap(), 0, 2*dwKeyLen+5*((dwKeyLen+1)>>1));
+    pbTemp = malloc(2*dwKeyLen+5*((dwKeyLen+1)>>1));
     if (!pbTemp) return FALSE;
     memcpy(pbTemp, pbSrc, min(dwDataLen, 2*dwKeyLen+5*((dwKeyLen+1)>>1)));
     pbBigNum = pbTemp;
 
     pKeyContext->rsa.type = PK_PRIVATE;
     reverse_bytes(pbBigNum, dwKeyLen);
-    mp_read_unsigned_bin(&pKeyContext->rsa.N, pbBigNum, dwKeyLen);
+    mp_read_unsigned_bin(pKeyContext->rsa.N, pbBigNum, dwKeyLen);
     pbBigNum += dwKeyLen;
     reverse_bytes(pbBigNum, (dwKeyLen+1)>>1);
-    mp_read_unsigned_bin(&pKeyContext->rsa.p, pbBigNum, (dwKeyLen+1)>>1);
+    mp_read_unsigned_bin(pKeyContext->rsa.p, pbBigNum, (dwKeyLen+1)>>1);
     pbBigNum += (dwKeyLen+1)>>1;
     reverse_bytes(pbBigNum, (dwKeyLen+1)>>1);
-    mp_read_unsigned_bin(&pKeyContext->rsa.q, pbBigNum, (dwKeyLen+1)>>1);
+    mp_read_unsigned_bin(pKeyContext->rsa.q, pbBigNum, (dwKeyLen+1)>>1);
     pbBigNum += (dwKeyLen+1)>>1;
     reverse_bytes(pbBigNum, (dwKeyLen+1)>>1);
-    mp_read_unsigned_bin(&pKeyContext->rsa.dP, pbBigNum, (dwKeyLen+1)>>1);
+    mp_read_unsigned_bin(pKeyContext->rsa.dP, pbBigNum, (dwKeyLen+1)>>1);
     pbBigNum += (dwKeyLen+1)>>1;
     reverse_bytes(pbBigNum, (dwKeyLen+1)>>1);
-    mp_read_unsigned_bin(&pKeyContext->rsa.dQ, pbBigNum, (dwKeyLen+1)>>1);
+    mp_read_unsigned_bin(pKeyContext->rsa.dQ, pbBigNum, (dwKeyLen+1)>>1);
     pbBigNum += (dwKeyLen+1)>>1;
     reverse_bytes(pbBigNum, (dwKeyLen+1)>>1);
-    mp_read_unsigned_bin(&pKeyContext->rsa.qP, pbBigNum, (dwKeyLen+1)>>1);
+    mp_read_unsigned_bin(pKeyContext->rsa.qP, pbBigNum, (dwKeyLen+1)>>1);
     pbBigNum += (dwKeyLen+1)>>1;
     /* The size of the private exponent d is inferred from the remaining
      * data length.
      */
     dwKeyLen = min(dwKeyLen, dwDataLen - (pbBigNum - pbTemp));
     reverse_bytes(pbBigNum, dwKeyLen);
-    mp_read_unsigned_bin(&pKeyContext->rsa.d, pbBigNum, dwKeyLen);
-    mp_set_int(&pKeyContext->rsa.e, dwPubExp);
+    mp_read_unsigned_bin(pKeyContext->rsa.d, pbBigNum, dwKeyLen);
+    mp_set_int(pKeyContext->rsa.e, dwPubExp);
     
-    HeapFree(GetProcessHeap(), 0, pbTemp);
+    free(pbTemp);
     return TRUE;
 }

@@ -26,6 +26,7 @@ add_executable(crypt32_winetest
     ${PCH_SKIP_SOURCE})
 
 set_module_type(crypt32_winetest win32cui)
-add_importlibs(crypt32_winetest crypt32 advapi32 user32 shlwapi shell32 msvcrt kernel32)
+add_importlibs(crypt32_winetest crypt32 bcrypt advapi32 user32 shlwapi shell32 msvcrt kernel32)
+target_link_libraries(crypt32_winetest oldnames)
 add_pch(crypt32_winetest precomp.h "${PCH_SKIP_SOURCE}")
 add_rostests_file(TARGET crypt32_winetest)

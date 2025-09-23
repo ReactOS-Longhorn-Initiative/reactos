@@ -1,7 +1,7 @@
 
-spec2def(wintrust.dll wintrust.spec ADD_IMPORTLIB)
 remove_definitions(-D_CRT_NON_CONFORMING_SWPRINTFS)
-add_definitions(-D__ROS_LONG64__)
+
+spec2def(wintrust.dll wintrust.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
     asn.c
@@ -19,8 +19,7 @@ add_library(wintrust MODULE
 
 if(MSVC)
     # Disable warning C4090: 'function': different 'const' qualifiers
-    # Disable warning C4047: '=': 'WCHAR *' differs in levels of indirection from 'int'
-    target_compile_options(wintrust PRIVATE /wd4090 /wd4047) 
+    target_compile_options(wintrust PRIVATE /wd4090)
 endif()
 
 set_module_type(wintrust win32dll)

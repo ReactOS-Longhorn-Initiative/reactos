@@ -199,6 +199,8 @@ SHGetFolderPathAndSubDirW(
 
 #define SHGetFolderPathAndSubDir WINELIB_NAME_AW(SHGetFolderPathAndSubDir)
 
+HRESULT WINAPI SHGetKnownFolderPath(REFKNOWNFOLDERID,DWORD,HANDLE,PWSTR*);
+
 HRESULT WINAPI
 SHSetFolderPathA(
     _In_ INT csidl,

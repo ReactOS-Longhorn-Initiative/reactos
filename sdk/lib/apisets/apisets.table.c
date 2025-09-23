@@ -29,6 +29,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-internal-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-internal-l1-1-7"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 },
+    { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-2"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN7|APISET_WIN81|APISET_WIN10 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-3"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-state-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 },
@@ -627,7 +628,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-MS-Win-Security-SDDL-L1-1-0"), RTL_CONSTANT_STRING(L"sechost.dll"), APISET_WIN7 | APISET_WIN8 | APISET_WIN81 | APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"api-ms-win-security-sddl-private-l1-1-0"), RTL_CONSTANT_STRING(L"sechost.dll"), APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"api-ms-win-security-sddlparsecond-l1-1-0"), RTL_CONSTANT_STRING(L"sechost.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 },
-    { RTL_CONSTANT_STRING(L"api-ms-win-security-systemfunctions-l1-1-0"), RTL_CONSTANT_STRING(L"advapi32.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 },
+    { RTL_CONSTANT_STRING(L"api-ms-win-security-systemfunctions-l1-1-0"), RTL_CONSTANT_STRING(L"advapi32.dll"), APISET_WIN7|APISET_WIN8 | APISET_WIN81 | APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"api-ms-win-security-trustee-l1-1-0"), RTL_CONSTANT_STRING(L"advapi32.dll"), APISET_WIN8 | APISET_WIN81 },
     { RTL_CONSTANT_STRING(L"api-ms-win-security-trustee-l1-1-1"), RTL_CONSTANT_STRING(L"advapi32.dll"), APISET_WIN81 },
     { RTL_CONSTANT_STRING(L"api-ms-win-security-trustee-l1-1-2"), RTL_CONSTANT_STRING(L"advapi32.dll"), APISET_WIN10 },
