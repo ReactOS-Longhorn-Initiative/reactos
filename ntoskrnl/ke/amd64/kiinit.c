@@ -518,9 +518,6 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     /* Set the PRCB for this Processor */
     KiProcessorBlock[Cpu] = &Pcr->Prcb;
 
-    /* Align stack to 16 bytes */
-    LoaderBlock->KernelStack &= ~(16 - 1);
-
     /* Save the initial thread */
     InitialThread = (PKTHREAD)LoaderBlock->Thread;
 
@@ -580,7 +577,7 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     KiInitializeXStateConfiguration(Cpu);
 
     /* Calculate the initial stack pointer */
-    InitialStack = (LoaderBlock->KernelStack - KeXStateLength) & ~63;
+    InitialStack = ALIGN_DOWN_BY(LoaderBlock->KernelStack - KeXStateLength, 64);
 
     /* Switch to new kernel stack and start kernel bootstrapping */
     KiSwitchToBootStack(InitialStack);

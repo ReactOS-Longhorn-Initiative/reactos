@@ -12023,6 +12023,7 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wParam == SPI_SETNONCLIENTMETRICS ||
         (!wParam && !lParam))
     {
+      HFONT hOldDefaultFont = infoPtr->hDefaultFont;
       BOOL bDefaultOrNullFont = (infoPtr->hDefaultFont == infoPtr->hFont || !infoPtr->hFont);
       LOGFONTW logFont;
       SystemParametersInfoW(SPI_GETICONTITLELOGFONT, 0, &logFont, 0);
@@ -12035,7 +12036,12 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       infoPtr->hDefaultFont = CreateFontIndirectW(&logFont);
 
       if (bDefaultOrNullFont)
+      {
         infoPtr->hFont = infoPtr->hDefaultFont;
+        // Check if we just deleted the font the header is using
+        if (infoPtr->hwndHeader && hOldDefaultFont == GetWindowFont(infoPtr->hwndHeader))
+            SendMessageW(infoPtr->hwndHeader, WM_SETFONT, (WPARAM)infoPtr->hFont, TRUE);
+      }
 
       LISTVIEW_SaveTextMetrics(infoPtr);
       LISTVIEW_UpdateItemSize(infoPtr);

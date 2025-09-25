@@ -15,6 +15,23 @@ extern "C" {
 #define DTBG_COMPUTINGREGION        0x00000010
 #define DTBG_MIRRORDC               0x00000020
 #define DTT_GRAYED                  0x00000001
+// Vista+
+#define DTT_TEXTCOLOR               0x00000001
+#define DTT_BORDERCOLOR             0x00000002
+#define DTT_SHADOWCOLOR             0x00000004
+#define DTT_SHADOWTYPE              0x00000008
+#define DTT_SHADOWOFFSET            0x00000010
+#define DTT_BORDERSIZE              0x00000020
+#define DTT_FONTPROP                0x00000040
+#define DTT_COLORPROP               0x00000080
+#define DTT_STATEID                 0x00000100
+#define DTT_CALCRECT                0x00000200
+#define DTT_APPLYOVERLAY            0x00000400
+#define DTT_GLOWSIZE                0x00000800
+#define DTT_CALLBACK                0x00001000
+#define DTT_COMPOSITED              0x00002000
+#define DTT_VALIDBITS               0x00003fff
+
 #define ETDT_DISABLE                0x00000001
 #define ETDT_ENABLE                 0x00000002
 #define ETDT_USETABTEXTURE          0x00000004
@@ -39,6 +56,9 @@ extern "C" {
 
 typedef HANDLE HPAINTBUFFER;
 typedef HANDLE HTHEME;
+// Vista+
+typedef HANDLE HANIMATIONBUFFER;
+typedef int (WINAPI *DTT_CALLBACK_PROC)(HDC,LPWSTR,int,RECT*,UINT,LPARAM);
 
 typedef enum _BP_BUFFERFORMAT
 {
@@ -47,6 +67,7 @@ typedef enum _BP_BUFFERFORMAT
 	BPBF_TOPDOWNDIB,
 	BPBF_TOPDOWNMONODIB
 } BP_BUFFERFORMAT;
+
 
 typedef struct _BP_PAINTPARAMS
 {
@@ -70,6 +91,21 @@ typedef enum THEMESIZE {
     TS_DRAW
 } THEMESIZE;
 
+// Vista+
+
+typedef enum _BP_ANIMATIONSTYLE
+{
+    BPAS_NONE,
+    BPAS_LINEAR,
+    BPAS_CUBIC,
+    BPAS_SINE
+} BP_ANIMATIONSTYLE;
+enum WINDOWTHEMEATTRIBUTETYPE
+{
+    WTA_NONCLIENT = 1
+};
+
+
 typedef struct _DTBGOPTS {
     DWORD dwSize;
     DWORD dwFlags;
@@ -89,6 +125,33 @@ typedef struct _MARGINS {
     int cyTopHeight;
     int cyBottomHeight;
 } MARGINS, *PMARGINS;
+
+// Vista+
+typedef struct _DTTOPTS {
+    DWORD dwSize;
+    DWORD dwFlags;
+    COLORREF crText;
+    COLORREF crBorder;
+    COLORREF crShadow;
+    int iTextShadowType;
+    POINT ptShadowOffset;
+    int iBorderSize;
+    int iFontPropId;
+    int iColorPropId;
+    int iStateId;
+    BOOL fApplyOverlay;
+    int iGlowSize;
+    DTT_CALLBACK_PROC pfnDrawTextCallback;
+    LPARAM lParam;
+} DTTOPTS, *PDTTOPTS;
+
+typedef struct _BP_ANIMATIONPARAMS
+{
+    DWORD cbSize;
+    DWORD dwFlags;
+    BP_ANIMATIONSTYLE style;
+    DWORD dwDuration;
+} BP_ANIMATIONPARAMS, *PBP_ANIMATIONPARAMS;
 
 HRESULT WINAPI CloseThemeData(HTHEME);
 HRESULT WINAPI DrawThemeBackground(HTHEME,HDC,int,int,const RECT*,const RECT*);
@@ -140,47 +203,8 @@ HTHEME WINAPI OpenThemeDataEx(HWND,LPCWSTR,DWORD);
 void WINAPI SetThemeAppProperties(DWORD);
 HRESULT WINAPI SetWindowTheme(HWND,LPCWSTR,LPCWSTR);
 
-#if (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) || defined(_UXTHEME_PCH_)
-/* In Windows these are Vista+ along with DrawThemeTextEx itself, but we
- * use them within ReactOS's uxtheme itself to implement DrawThemeText
- * as well, hence also defining them here if _UXTHEME_PCH_ is defined
- */
-#define DTT_TEXTCOLOR    0x00000001
-#define DTT_BORDERCOLOR  0x00000002
-#define DTT_SHADOWCOLOR  0x00000004
-#define DTT_SHADOWTYPE   0x00000008
-#define DTT_SHADOWOFFSET 0x00000010
-#define DTT_BORDERSIZE   0x00000020
-#define DTT_FONTPROP     0x00000040
-#define DTT_COLORPROP    0x00000080
-#define DTT_STATEID      0x00000100
-#define DTT_CALCRECT     0x00000200
-#define DTT_APPLYOVERLAY 0x00000400
-#define DTT_GLOWSIZE     0x00000800
-#define DTT_CALLBACK     0x00001000
-#define DTT_COMPOSITED   0x00002000
-#define DTT_VALIDBITS    0x00003fff
-
-typedef int (WINAPI *DTT_CALLBACK_PROC)(HDC,LPWSTR,int,RECT*,UINT,LPARAM);
-
-typedef struct _DTTOPTS {
-    DWORD dwSize;
-    DWORD dwFlags;
-    COLORREF crText;
-    COLORREF crBorder;
-    COLORREF crShadow;
-    int iTextShadowType;
-    POINT ptShadowOffset;
-    int iBorderSize;
-    int iFontPropId;
-    int iColorPropId;
-    int iStateId;
-    BOOL fApplyOverlay;
-    int iGlowSize;
-    DTT_CALLBACK_PROC pfnDrawTextCallback;
-    LPARAM lParam;
-} DTTOPTS, *PDTTOPTS;
-
+/* Undocumented and not exported in Windows XP/2003
+ * In public headers since Vista+ */
 HRESULT
 WINAPI
 DrawThemeTextEx(
@@ -194,31 +218,27 @@ DrawThemeTextEx(
     _Inout_ LPRECT pRect,
     _In_ const DTTOPTS *options
 );
-#endif /* (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) || defined(_UXTHEME_PCH_) */
 
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
-typedef HANDLE HANIMATIONBUFFER;
-
-typedef enum _BP_ANIMATIONSTYLE
-{
-    BPAS_NONE,
-    BPAS_LINEAR,
-    BPAS_CUBIC,
-    BPAS_SINE
-} BP_ANIMATIONSTYLE;
-
-typedef struct _BP_ANIMATIONPARAMS
-{
-    DWORD cbSize;
-    DWORD dwFlags;
-    BP_ANIMATIONSTYLE style;
-    DWORD dwDuration;
-} BP_ANIMATIONPARAMS, *PBP_ANIMATIONPARAMS;
-
-enum WINDOWTHEMEATTRIBUTETYPE { WTA_NONCLIENT = 1 };
-
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+// Vista+
+HRESULT WINAPI BufferedPaintInit(VOID);
+HRESULT WINAPI BufferedPaintUnInit(VOID);
+HPAINTBUFFER WINAPI BeginBufferedPaint(HDC, const RECT *, BP_BUFFERFORMAT,
+                                       BP_PAINTPARAMS *,HDC *);
+HRESULT WINAPI EndBufferedPaint(HPAINTBUFFER, BOOL);
+HRESULT WINAPI BufferedPaintClear(HPAINTBUFFER, const RECT *);
+HRESULT WINAPI BufferedPaintSetAlpha(HPAINTBUFFER, const RECT *, BYTE);
+HRESULT WINAPI GetBufferedPaintBits(HPAINTBUFFER, RGBQUAD **, int *);
+HDC WINAPI GetBufferedPaintDC(HPAINTBUFFER);
+HDC WINAPI GetBufferedPaintTargetDC(HPAINTBUFFER);
+HRESULT WINAPI GetBufferedPaintTargetRect(HPAINTBUFFER, RECT *prc);
+HANIMATIONBUFFER WINAPI BeginBufferedAnimation(HWND, HDC, const RECT *,
+                                               BP_BUFFERFORMAT, BP_PAINTPARAMS *,
+                                               BP_ANIMATIONPARAMS *, HDC *, HDC *);
+BOOL WINAPI BufferedPaintRenderAnimation(HWND, HDC);
+HRESULT WINAPI BufferedPaintStopAllAnimations(HWND);
+HRESULT WINAPI EndBufferedAnimation(HANIMATIONBUFFER, BOOL);
 #endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -70,7 +70,7 @@ NtQueryInformationProcess(
 
     PAGED_CODE();
 
-    /* Verify Information Class validity */
+    /* Validate the information class */
     Status = DefaultQueryInfoBufferCheck(ProcessInformationClass,
                                          PsProcessInfoClass,
                                          RTL_NUMBER_OF(PsProcessInfoClass),
@@ -82,10 +82,8 @@ NtQueryInformationProcess(
                                          PreviousMode);
     if (!NT_SUCCESS(Status))
     {
-        DPRINT1("NtQueryInformationProcess(): Information verification class failed! (Status -> 0x%lx, ProcessInformationClass -> %lx)\n", Status, ProcessInformationClass);
-
-        if (ProcessInformationClass != 0x26)
-        __debugbreak();
+        DPRINT1("NtQueryInformationProcess(ProcessInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
+                ProcessInformationClass, Status);
         return Status;
     }
 
@@ -115,7 +113,7 @@ NtQueryInformationProcess(
                 break;
             }
 
-            /* Set return length */
+            /* Set the return length */
             Length = sizeof(PROCESS_BASIC_INFORMATION);
 
             /* Reference the process */
@@ -166,7 +164,7 @@ NtQueryInformationProcess(
                 break;
             }
 
-            /* Set return length */
+            /* Set the return length */
             Length = ProcessInformationLength;
             Extended = (Length == sizeof(QUOTA_LIMITS_EX));
 
@@ -340,7 +338,7 @@ NtQueryInformationProcess(
                 break;
             }
 
-            /* Set return length */
+            /* Set the return length */
             Length = sizeof(HANDLE);
 
             /* Reference the process */
@@ -711,7 +709,7 @@ NtQueryInformationProcess(
             Status = SeLocateProcessImageName(Process, &ImageName);
             if (NT_SUCCESS(Status))
             {
-                /* Set return length */
+                /* Set the return length */
                 Length = ImageName->MaximumLength +
                          sizeof(OBJECT_NAME_INFORMATION);
 
@@ -750,6 +748,76 @@ NtQueryInformationProcess(
             ObDereferenceObject(Process);
             break;
         }
+
+#if (NTDDI_VERSION >= NTDDI_VISTA) || (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
+        case ProcessImageFileNameWin32:
+        {
+            PFILE_OBJECT FileObject;
+            POBJECT_NAME_INFORMATION ObjectNameInformation;
+
+            /* Reference the process */
+            Status = ObReferenceObjectByHandle(ProcessHandle,
+                                               PROCESS_QUERY_INFORMATION, // FIXME: Use PROCESS_QUERY_LIMITED_INFORMATION if implemented
+                                               PsProcessType,
+                                               PreviousMode,
+                                               (PVOID*)&Process,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+            {
+                break;
+            }
+
+            /* Get the image path */
+            Status = PsReferenceProcessFilePointer(Process, &FileObject);
+            ObDereferenceObject(Process);
+            if (!NT_SUCCESS(Status))
+            {
+                break;
+            }
+            Status = IoQueryFileDosDeviceName(FileObject, &ObjectNameInformation);
+            ObDereferenceObject(FileObject);
+            if (!NT_SUCCESS(Status))
+            {
+                break;
+            }
+
+            /* Determine return length and output */
+            Length = sizeof(UNICODE_STRING) + ObjectNameInformation->Name.MaximumLength;
+            if (Length <= ProcessInformationLength)
+            {
+                _SEH2_TRY
+                {
+                    PUNICODE_STRING ImageName = (PUNICODE_STRING)ProcessInformation;
+                    ImageName->Length = ObjectNameInformation->Name.Length;
+                    ImageName->MaximumLength = ObjectNameInformation->Name.MaximumLength;
+                    if (ObjectNameInformation->Name.MaximumLength)
+                    {
+                        ImageName->Buffer = (PWSTR)(ImageName + 1);
+                        RtlCopyMemory(ImageName->Buffer,
+                                      ObjectNameInformation->Name.Buffer,
+                                      ObjectNameInformation->Name.MaximumLength);
+                    }
+                    else
+                    {
+                        ASSERT(ImageName->Length == 0);
+                        ImageName->Buffer = NULL;
+                    }
+                }
+                _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+                {
+                    Status = _SEH2_GetExceptionCode();
+                }
+                _SEH2_END;
+            }
+            else
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+            }
+            ExFreePool(ObjectNameInformation);
+
+            break;
+        }
+#endif /* (NTDDI_VERSION >= NTDDI_VISTA) || (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) */
 
         case ProcessDebugFlags:
 
@@ -858,7 +926,7 @@ NtQueryInformationProcess(
                                                     Cookie);
                 if (!Cookie) Cookie = NewCookie;
 
-                /* Set return length */
+                /* Set the return length */
                 Length = sizeof(ULONG);
             }
 
@@ -892,6 +960,9 @@ NtQueryInformationProcess(
             /* Set the length required and validate it */
             Length = sizeof(SECTION_IMAGE_INFORMATION);
 
+            /* Indicate success */
+            Status = STATUS_SUCCESS;
+
             /* Enter SEH to protect write */
             _SEH2_TRY
             {
@@ -903,14 +974,11 @@ NtQueryInformationProcess(
                 Status = _SEH2_GetExceptionCode();
             }
             _SEH2_END;
-
-            /* Indicate success */
-            Status = STATUS_SUCCESS;
             break;
 
         case ProcessDebugObjectHandle:
         {
-            HANDLE DebugPort = 0;
+            HANDLE DebugPort = NULL;
 
             if (ProcessInformationLength != sizeof(HANDLE))
             {
@@ -930,7 +998,7 @@ NtQueryInformationProcess(
                                                NULL);
             if (!NT_SUCCESS(Status)) break;
 
-            /* Get the debug port */
+            /* Get the debug port. Continue even if this fails. */
             Status = DbgkOpenProcessDebugPort(Process, PreviousMode, &DebugPort);
 
             /* Let go of the process */
@@ -944,7 +1012,11 @@ NtQueryInformationProcess(
             }
             _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
             {
-                /* Get the exception code */
+                if (DebugPort)
+                    ObCloseHandle(DebugPort, PreviousMode);
+
+                /* Get the exception code.
+                 * Note: This overwrites any previous failure status. */
                 Status = _SEH2_GetExceptionCode();
             }
             _SEH2_END;
@@ -952,7 +1024,7 @@ NtQueryInformationProcess(
         }
 
         case ProcessHandleTracing:
-            DPRINT1("Handle tracing Not implemented: %lx\n", ProcessInformationClass);
+            DPRINT1("Handle tracing not implemented: %lu\n", ProcessInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;
             break;
 
@@ -1031,7 +1103,7 @@ NtQueryInformationProcess(
                 break;
             }
 
-            /* Set return length */
+            /* Set the return length */
             Length = sizeof(ULONG_PTR);
 
             /* Reference the process */
@@ -1043,23 +1115,24 @@ NtQueryInformationProcess(
                                                NULL);
             if (!NT_SUCCESS(Status)) break;
 
+#ifdef _WIN64
             /* Make sure the process isn't dying */
             if (ExAcquireRundownProtection(&Process->RundownProtect))
             {
                 /* Get the WOW64 process structure */
-#ifdef _WIN64
                 Wow64 = (ULONG_PTR)Process->Wow64Process;
-#else
-                Wow64 = 0;
-#endif
                 /* Release the lock */
                 ExReleaseRundownProtection(&Process->RundownProtect);
             }
+#endif
+
+            /* Dereference the process */
+            ObDereferenceObject(Process);
 
             /* Protect write with SEH */
             _SEH2_TRY
             {
-                /* Return whether or not we have a debug port */
+                /* Return the Wow64 process information */
                 *(PULONG_PTR)ProcessInformation = Wow64;
             }
             _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
@@ -1068,9 +1141,6 @@ NtQueryInformationProcess(
                 Status = _SEH2_GetExceptionCode();
             }
             _SEH2_END;
-
-            /* Dereference the process */
-            ObDereferenceObject(Process);
             break;
         }
 
@@ -1084,12 +1154,13 @@ NtQueryInformationProcess(
                 break;
             }
 
-            /* Set return length */
+            /* Set the return length */
             Length = sizeof(ULONG);
 
             if (ProcessHandle != NtCurrentProcess())
             {
-                return STATUS_INVALID_PARAMETER;
+                Status = STATUS_INVALID_PARAMETER;
+                break;
             }
 
             /* Get the options */
@@ -1113,38 +1184,42 @@ NtQueryInformationProcess(
         }
 
         case ProcessLdtInformation:
-            DPRINT1("VDM/16-bit not implemented: %lx\n", ProcessInformationClass);
+            DPRINT1("VDM/16-bit not implemented: %lu\n", ProcessInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;
             break;
 
         case ProcessWorkingSetWatch:
-            DPRINT1("WS Watch Not implemented: %lx\n", ProcessInformationClass);
+            DPRINT1("WS Watch not implemented: %lu\n", ProcessInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;
             break;
 
         case ProcessPooledUsageAndLimits:
-            DPRINT1("Pool limits Not implemented: %lx\n", ProcessInformationClass);
+            DPRINT1("Pool limits not implemented: %lu\n", ProcessInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;
             break;
 
         /* Not supported by Server 2003 */
         default:
-            DPRINT1("Unsupported info class: %lx\n", ProcessInformationClass);
+            DPRINT1("Unsupported info class: %lu\n", ProcessInformationClass);
             Status = STATUS_INVALID_INFO_CLASS;
     }
 
-    /* Protect write with SEH */
-    _SEH2_TRY
+    /* Check if caller wants the return length and if there is one */
+    if (ReturnLength != NULL && Length != 0)
     {
-        /* Check if caller wanted return length */
-        if ((ReturnLength) && (Length)) *ReturnLength = Length;
+        /* Protect write with SEH */
+        _SEH2_TRY
+        {
+            *ReturnLength = Length;
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            /* Get exception code.
+             * Note: This overwrites any previous failure status. */
+            Status = _SEH2_GetExceptionCode();
+        }
+        _SEH2_END;
     }
-    _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
-    {
-        /* Get exception code */
-        Status = _SEH2_GetExceptionCode();
-    }
-    _SEH2_END;
 
     return Status;
 }
@@ -1183,7 +1258,7 @@ NtSetInformationProcess(IN HANDLE ProcessHandle,
     PETHREAD Thread;
     PAGED_CODE();
 
-    /* Verify Information Class validity */
+    /* Validate the information class */
     Status = DefaultSetInfoBufferCheck(ProcessInformationClass,
                                        PsProcessInfoClass,
                                        RTL_NUMBER_OF(PsProcessInfoClass),
@@ -1192,7 +1267,8 @@ NtSetInformationProcess(IN HANDLE ProcessHandle,
                                        PreviousMode);
     if (!NT_SUCCESS(Status))
     {
-        DPRINT1("NtSetInformationProcess(): Information verification class failed! (Status -> 0x%lx, ProcessInformationClass -> %lx)\n", Status, ProcessInformationClass);
+        DPRINT1("NtSetInformationProcess(ProcessInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
+                ProcessInformationClass, Status);
         return Status;
     }
 
@@ -1620,7 +1696,7 @@ NtSetInformationProcess(IN HANDLE ProcessHandle,
                 if (!HasPrivilege)
                 {
                     ObDereferenceObject(Process);
-                    DPRINT1("Privilege to change priority from %lx to %lx lacking\n", BasePriority, Process->Pcb.BasePriority);
+                    DPRINT1("Privilege to change priority from %lx to %lx lacking\n", Process->Pcb.BasePriority, BasePriority);
                     return STATUS_PRIVILEGE_NOT_HELD;
                 }
             }
@@ -2028,7 +2104,7 @@ NtSetInformationProcess(IN HANDLE ProcessHandle,
         case ProcessLdtInformation:
         case ProcessLdtSize:
         case ProcessIoPortHandlers:
-             DPRINT1("VDM/16-bit Request not implemented: %lx\n", ProcessInformationClass);
+             DPRINT1("VDM/16-bit Request not implemented: %lu\n", ProcessInformationClass);
              Status = STATUS_NOT_IMPLEMENTED;
              break;
 
@@ -2053,7 +2129,7 @@ NtSetInformationProcess(IN HANDLE ProcessHandle,
 
         /* Anything else is invalid */
         default:
-            DPRINT1("Invalid Server 2003 Info Class: %lx\n", ProcessInformationClass);
+            DPRINT1("Invalid Server 2003 Info Class: %lu\n", ProcessInformationClass);
             Status = STATUS_INVALID_INFO_CLASS;
     }
 
@@ -2090,7 +2166,7 @@ NtSetInformationThread(IN HANDLE ThreadHandle,
     BOOLEAN HasPrivilege;
     PAGED_CODE();
 
-    /* Verify Information Class validity */
+    /* Validate the information class */
     Status = DefaultSetInfoBufferCheck(ThreadInformationClass,
                                        PsThreadInfoClass,
                                        RTL_NUMBER_OF(PsThreadInfoClass),
@@ -2099,7 +2175,8 @@ NtSetInformationThread(IN HANDLE ThreadHandle,
                                        PreviousMode);
     if (!NT_SUCCESS(Status))
     {
-        DPRINT1("NtSetInformationThread(): Information verification class failed! (Status -> 0x%lx, ThreadInformationClass -> %lx)\n", Status, ThreadInformationClass);
+        DPRINT1("NtSetInformationThread(ThreadInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
+                ThreadInformationClass, Status);
         return Status;
     }
 
@@ -2659,9 +2736,10 @@ NtSetInformationThread(IN HANDLE ThreadHandle,
             ObDereferenceObject(Thread);
             break;
 
+        /* Anything else */
         default:
-            /* We don't implement it yet */
-            DPRINT1("Not implemented: %d\n", ThreadInformationClass);
+            /* Not yet implemented */
+            DPRINT1("Not implemented: %lu\n", ThreadInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;
     }
 
@@ -2692,7 +2770,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
     ULONG ThreadTerminated;
     PAGED_CODE();
 
-    /* Verify Information Class validity */
+    /* Validate the information class */
     Status = DefaultQueryInfoBufferCheck(ThreadInformationClass,
                                          PsThreadInfoClass,
                                          RTL_NUMBER_OF(PsThreadInfoClass),
@@ -2704,7 +2782,8 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                                          PreviousMode);
     if (!NT_SUCCESS(Status))
     {
-        DPRINT1("NtQueryInformationThread(): Information verification class failed! (Status -> 0x%lx , ThreadInformationClass -> %lx)\n", Status, ThreadInformationClass);
+        DPRINT1("NtQueryInformationThread(ThreadInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
+                ThreadInformationClass, Status);
         return Status;
     }
 
@@ -2717,7 +2796,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
         /* Basic thread information */
         case ThreadBasicInformation:
 
-            /* Set return length */
+            /* Set the return length */
             Length = sizeof(THREAD_BASIC_INFORMATION);
 
             if (ThreadInformationLength != Length)
@@ -2726,7 +2805,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -2770,7 +2849,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -2820,7 +2899,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -2858,7 +2937,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -2896,7 +2975,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -2938,7 +3017,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -2975,7 +3054,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
         case ThreadDescriptorTableEntry:
 
 #if defined(_X86_)
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -3010,7 +3089,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -3034,6 +3113,41 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
             ObDereferenceObject(Thread);
             break;
 
+        case ThreadBreakOnTermination:
+
+            /* Set the return length */
+            Length = sizeof(ULONG);
+
+            if (ThreadInformationLength != Length)
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            /* Reference the thread */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               Access,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+                break;
+
+            _SEH2_TRY
+            {
+                *(PULONG)ThreadInformation = Thread->BreakOnTermination;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+
         case ThreadIsTerminated:
 
             /* Set the return length*/
@@ -3045,7 +3159,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
                 break;
             }
 
-            /* Reference the process */
+            /* Reference the thread */
             Status = ObReferenceObjectByHandle(ThreadHandle,
                                                Access,
                                                PsThreadType,
@@ -3118,9 +3232,8 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
 
         /* Anything else */
         default:
-
             /* Not yet implemented */
-            DPRINT1("Not implemented: %lx\n", ThreadInformationClass);
+            DPRINT1("Not implemented: %lu\n", ThreadInformationClass);
             Status = STATUS_NOT_IMPLEMENTED;
     }
 

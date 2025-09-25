@@ -59,3 +59,5 @@
 @ stdcall LdrSetDllDirectory(ptr)
 @ stdcall LdrGetDllDirectory(ptr)
  
+@ stdcall RtlLcidToLocaleName(long ptr long long)
+@ stdcall RtlLocaleNameToLcid(wstr ptr long)

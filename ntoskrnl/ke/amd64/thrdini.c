@@ -58,6 +58,25 @@ KiInitializeContextThread(IN PKTHREAD Thread,
     Thread->StateSaveArea = InitialStack;
     RtlZeroMemory(Thread->StateSaveArea, KeXStateLength);
     Thread->StateSaveArea->MxCsr = INITIAL_MXCSR;
+    Thread->StateSaveArea->ControlWord = INITIAL_FPCSR;
+
+    /* Check if we use XSAVE */
+    if (KeFeatureBits & KF_XSTATE)
+    {
+        /* Enable the mask for legacy floating point state */
+        PXSAVE_AREA XSaveArea = (PXSAVE_AREA)Thread->StateSaveArea;
+        XSaveArea->Header.Mask |= XSTATE_MASK_LEGACY_FLOATING_POINT;
+
+        /* Special initialization for XSAVES */
+        if (KeFeatureBits & KF_XSAVES)
+        {
+            /* Set bit 63 in XCOMP_BV to mark the area as compacted.
+               XRSTORS requires this and will #GP otherwise.
+               Also mark legacy FP as compacted. */
+            XSaveArea->Header.CompactionMask |= 0x8000000000000000ULL |
+                                                XSTATE_MASK_LEGACY_FLOATING_POINT;
+        }
+    }
 
     /* Check if this is a With-Context Thread */
     if (Context)
@@ -162,10 +181,16 @@ KiSwapContextResume(
     Pcr->Prcb.RspBase = Pcr->TssBase->Rsp0;
 
     /* Save old thread's extended state */
-    KiSaveXState(OldThread->StateSaveArea, OldThread->NpxState);
+    if (OldThread->NpxState != 0)
+    {
+        KiSaveXState(OldThread->StateSaveArea, OldThread->NpxState);
+    }
 
     /* Load new thread's extended state */
-    KiRestoreXState(NewThread->StateSaveArea, NewThread->NpxState);
+    if (NewThread->NpxState != 0)
+    {
+        KiRestoreXState(NewThread->StateSaveArea, NewThread->NpxState);
+    }
 
     /* Now we are the new thread. Check if it's in a new process */
     OldProcess = OldThread->ApcState.Process;

@@ -67,10 +67,7 @@ HPAINTBUFFER WINAPI BeginBufferedPaint(HDC targetdc, const RECT *rect,
         BP_BUFFERFORMAT format, BP_PAINTPARAMS *params, HDC *retdc)
 {
 #if (defined(_MSC_VER))
-    RGBQUAD rgb;
-    //TODO: Fix this for MSVC
-    __debugbreak();
-    char bmibuf[sizeof(rgb) * 256];
+    char bmibuf[FIELD_OFFSET(BITMAPINFO, bmiColors) + 256 * sizeof(RGBQUAD)];
 #else
     char bmibuf[FIELD_OFFSET(BITMAPINFO, bmiColors[256])];
 #endif

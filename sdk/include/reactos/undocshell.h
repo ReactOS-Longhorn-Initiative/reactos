@@ -26,6 +26,16 @@
 extern "C" {
 #endif /* defined(__cplusplus) */
 
+// Because ReactOS installs as Server by default, we ignore OS_SERVERADMINUI
+// in certain places to present a Client/Server hybrid UI.
+
+// Windows defaults to FVM_DETAILS for Administrators on OS_ANYSERVER (instead of FVM_ICON).
+#define ROSPOLICY_DESKTOPFOLDER_DEFLARGEICONS 1
+#define ROSPOLICY_DRIVESFOLDER_DEFLARGEICONS 1
+#define ROSPOLICY_CONTROLSFOLDER_DEFLARGEICONS 1
+
+#define ROSPOLICY_SHELL_NODEFKEYBOARDCUES 1
+
 #if (NTDDI_VERSION < NTDDI_LONGHORN)
 #define DBIMF_NOGRIPPER         0x0800
 #define DBIMF_ALWAYSGRIPPER     0x1000
@@ -678,10 +688,12 @@ HRESULT WINAPI ShellExecCmdLine(
  * CMINVOKECOMMANDINFOEX structure.
  */
 #define SEE_MASK_UNKNOWN_0x1000 0x00001000 // FIXME: Name
+#define SEE_MASK_NO_HOOKS       0x00002000 // https://www.yisu.com/ask/30968554.html
 #define SEE_MASK_HASLINKNAME    0x00010000
 #define SEE_MASK_FLAG_SEPVDM    0x00020000
 #define SEE_MASK_USE_RESERVED   0x00040000
 #define SEE_MASK_HASTITLE       0x00080000
+#define SEE_MASK_FILEANDURL     0x00400000 // https://textslashplain.com/2019/09/25/web-to-app-communication-directinvoke/
 
 HINSTANCE WINAPI
 RealShellExecuteA(
@@ -782,6 +794,13 @@ HRESULT WINAPI SHCreateDefClassObject(
     REFIID riidObject);
 
 void WINAPI SHFreeUnusedLibraries(void);
+
+HRESULT WINAPI SHExtCoCreateInstance(
+    _In_opt_ LPCWSTR aclsid,
+    _In_opt_ const CLSID *clsid,
+    _In_opt_ LPUNKNOWN pUnkOuter,
+    _In_ REFIID refiid,
+    _Out_ LPVOID *ppv);
 
 /* SHCreateLinks flags */
 #define SHCLF_PREFIXNAME       0x01

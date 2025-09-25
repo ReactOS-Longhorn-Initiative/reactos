@@ -1,14 +1,14 @@
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 add_definitions(-D__WINESRC__ -D__ROS_LONG64__)
 
-set(_specname uxtheme)
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
-    set(_specname ${_specname}_vista)
+    spec2def(uxtheme.dll uxtheme_vista.spec ADD_IMPORTLIB)
+else()
+    spec2def(uxtheme.dll uxtheme.spec ADD_IMPORTLIB)
 endif()
-spec2def(uxtheme.dll ${_specname}.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
+    buffer.c
     draw.c
     errinfo.c
     main.c
@@ -28,8 +28,6 @@ list(APPEND SOURCE
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
     add_definitions(-DENABLE_PNG_SUPPORT)
 
-    list(PREPEND SOURCE
-        buffer.c)
     list(APPEND SOURCE
         pngsup.cpp)
 endif()

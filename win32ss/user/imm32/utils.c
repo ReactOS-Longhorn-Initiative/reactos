@@ -13,7 +13,7 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(imm);
 
-HANDLE ghImmHeap = NULL; // Win: pImmHeap
+HANDLE ghImmHeap = NULL;
 
 PTHREADINFO FASTCALL Imm32CurrentPti(VOID)
 {
@@ -22,15 +22,14 @@ PTHREADINFO FASTCALL Imm32CurrentPti(VOID)
     return NtCurrentTeb()->Win32ThreadInfo;
 }
 
-BOOL APIENTRY Imm32IsCrossThreadAccess(HIMC hIMC)
+BOOL Imm32IsCrossThreadAccess(HIMC hIMC)
 {
     DWORD_PTR dwImeThreadId = NtUserQueryInputContext(hIMC, QIC_INPUTTHREADID);
     DWORD_PTR dwCurrentThreadId = GetCurrentThreadId();
     return dwImeThreadId != dwCurrentThreadId;
 }
 
-// Win: TestWindowProcess
-BOOL APIENTRY Imm32IsCrossProcessAccess(HWND hWnd)
+BOOL Imm32IsCrossProcessAccess(HWND hWnd)
 {
     DWORD_PTR WndPID = NtUserQueryWindow(hWnd, QUERY_WINDOW_UNIQUE_PROCESS_ID);
     DWORD_PTR CurrentPID = (DWORD_PTR)NtCurrentTeb()->ClientId.UniqueProcess;
@@ -94,18 +93,18 @@ BOOL Imm32IsImcAnsi(HIMC hIMC)
     return ret;
 }
 
-LPWSTR APIENTRY Imm32WideFromAnsi(UINT uCodePage, LPCSTR pszA)
+LPWSTR Imm32WideFromAnsi(UINT uCodePage, LPCSTR pszA)
 {
     INT cch = lstrlenA(pszA);
     LPWSTR pszW = ImmLocalAlloc(0, (cch + 1) * sizeof(WCHAR));
     if (IS_NULL_UNEXPECTEDLY(pszW))
         return NULL;
     cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, pszA, cch, pszW, cch + 1);
-    pszW[cch] = 0;
+    pszW[cch] = UNICODE_NULL;
     return pszW;
 }
 
-LPSTR APIENTRY Imm32AnsiFromWide(UINT uCodePage, LPCWSTR pszW)
+LPSTR Imm32AnsiFromWide(UINT uCodePage, LPCWSTR pszW)
 {
     INT cchW = lstrlenW(pszW);
     INT cchA = (cchW + 1) * sizeof(WCHAR);
@@ -113,13 +112,12 @@ LPSTR APIENTRY Imm32AnsiFromWide(UINT uCodePage, LPCWSTR pszW)
     if (IS_NULL_UNEXPECTEDLY(pszA))
         return NULL;
     cchA = WideCharToMultiByte(uCodePage, 0, pszW, cchW, pszA, cchA, NULL, NULL);
-    pszA[cchA] = 0;
+    pszA[cchA] = ANSI_NULL;
     return pszA;
 }
 
 /* Converts the character index */
-/* Win: CalcCharacterPositionAtoW */
-LONG APIENTRY IchWideFromAnsi(LONG cchAnsi, LPCSTR pchAnsi, UINT uCodePage)
+LONG IchWideFromAnsi(LONG cchAnsi, LPCSTR pchAnsi, UINT uCodePage)
 {
     LONG cchWide;
     for (cchWide = 0; cchAnsi > 0; ++cchWide)
@@ -139,8 +137,7 @@ LONG APIENTRY IchWideFromAnsi(LONG cchAnsi, LPCSTR pchAnsi, UINT uCodePage)
 }
 
 /* Converts the character index */
-/* Win: CalcCharacterPositionWtoA */
-LONG APIENTRY IchAnsiFromWide(LONG cchWide, LPCWSTR pchWide, UINT uCodePage)
+LONG IchAnsiFromWide(LONG cchWide, LPCWSTR pchWide, UINT uCodePage)
 {
     LONG cb, cchAnsi;
     for (cchAnsi = 0; cchWide > 0; ++cchAnsi, ++pchWide, --cchWide)
@@ -152,7 +149,6 @@ LONG APIENTRY IchAnsiFromWide(LONG cchWide, LPCWSTR pchWide, UINT uCodePage)
     return cchAnsi;
 }
 
-// Win: InternalGetSystemPathName
 BOOL Imm32GetSystemLibraryPath(LPWSTR pszPath, DWORD cchPath, LPCWSTR pszFileName)
 {
     if (!pszFileName[0] || !GetSystemDirectoryW(pszPath, cchPath))
@@ -165,8 +161,7 @@ BOOL Imm32GetSystemLibraryPath(LPWSTR pszPath, DWORD cchPath, LPCWSTR pszFileNam
     return TRUE;
 }
 
-// Win: LFontAtoLFontW
-VOID APIENTRY LogFontAnsiToWide(const LOGFONTA *plfA, LPLOGFONTW plfW)
+VOID LogFontAnsiToWide(const LOGFONTA *plfA, LPLOGFONTW plfW)
 {
     size_t cch;
     RtlCopyMemory(plfW, plfA, offsetof(LOGFONTA, lfFaceName));
@@ -175,11 +170,10 @@ VOID APIENTRY LogFontAnsiToWide(const LOGFONTA *plfA, LPLOGFONTW plfW)
                               plfW->lfFaceName, _countof(plfW->lfFaceName));
     if (cch > _countof(plfW->lfFaceName) - 1)
         cch = _countof(plfW->lfFaceName) - 1;
-    plfW->lfFaceName[cch] = 0;
+    plfW->lfFaceName[cch] = UNICODE_NULL;
 }
 
-// Win: LFontWtoLFontA
-VOID APIENTRY LogFontWideToAnsi(const LOGFONTW *plfW, LPLOGFONTA plfA)
+VOID LogFontWideToAnsi(const LOGFONTW *plfW, LPLOGFONTA plfA)
 {
     size_t cch;
     RtlCopyMemory(plfA, plfW, offsetof(LOGFONTW, lfFaceName));
@@ -188,7 +182,7 @@ VOID APIENTRY LogFontWideToAnsi(const LOGFONTW *plfW, LPLOGFONTA plfA)
                               plfA->lfFaceName, _countof(plfA->lfFaceName), NULL, NULL);
     if (cch > _countof(plfA->lfFaceName) - 1)
         cch = _countof(plfA->lfFaceName) - 1;
-    plfA->lfFaceName[cch] = 0;
+    plfA->lfFaceName[cch] = ANSI_NULL;
 }
 
 static PVOID FASTCALL DesktopPtrToUser(PVOID ptr)
@@ -204,7 +198,6 @@ static PVOID FASTCALL DesktopPtrToUser(PVOID ptr)
         return (PVOID)NtUserCallOneParam((DWORD_PTR)ptr, ONEPARAM_ROUTINE_GETDESKTOPMAPPING);
 }
 
-// Win: HMValidateHandleNoRip
 LPVOID FASTCALL ValidateHandleNoErr(HANDLE hObject, UINT uType)
 {
     UINT index;
@@ -243,7 +236,6 @@ LPVOID FASTCALL ValidateHandleNoErr(HANDLE hObject, UINT uType)
     return ptr;
 }
 
-// Win: HMValidateHandle
 LPVOID FASTCALL ValidateHandle(HANDLE hObject, UINT uType)
 {
     LPVOID pvObj = ValidateHandleNoErr(hObject, uType);
@@ -257,8 +249,7 @@ LPVOID FASTCALL ValidateHandle(HANDLE hObject, UINT uType)
     return NULL;
 }
 
-// Win: TestInputContextProcess
-BOOL APIENTRY Imm32CheckImcProcess(PIMC pIMC)
+BOOL Imm32CheckImcProcess(PIMC pIMC)
 {
     HIMC hIMC;
     DWORD_PTR dwPID1, dwPID2;
@@ -344,8 +335,7 @@ Imm32MakeIMENotify(
     return TRUE;
 }
 
-// Win: BuildHimcList
-DWORD APIENTRY Imm32BuildHimcList(DWORD dwThreadId, HIMC **pphList)
+DWORD Imm32BuildHimcList(DWORD dwThreadId, HIMC **pphList)
 {
 #define INITIAL_COUNT 0x40
 #define MAX_RETRY 10
@@ -384,8 +374,7 @@ DWORD APIENTRY Imm32BuildHimcList(DWORD dwThreadId, HIMC **pphList)
 #undef MAX_RETRY
 }
 
-// Win: GetImeModeSaver
-PIME_STATE APIENTRY
+PIME_STATE
 Imm32FetchImeState(LPINPUTCONTEXTDX pIC, HKL hKL)
 {
     PIME_STATE pState;
@@ -408,8 +397,7 @@ Imm32FetchImeState(LPINPUTCONTEXTDX pIC, HKL hKL)
     return pState;
 }
 
-// Win: GetImePrivateModeSaver
-PIME_SUBSTATE APIENTRY
+PIME_SUBSTATE
 Imm32FetchImeSubState(PIME_STATE pState, HKL hKL)
 {
     PIME_SUBSTATE pSubState;
@@ -428,8 +416,7 @@ Imm32FetchImeSubState(PIME_STATE pState, HKL hKL)
     return pSubState;
 }
 
-// Win: RestorePrivateMode
-BOOL APIENTRY
+BOOL
 Imm32LoadImeStateSentence(LPINPUTCONTEXTDX pIC, PIME_STATE pState, HKL hKL)
 {
     PIME_SUBSTATE pSubState = Imm32FetchImeSubState(pState, hKL);
@@ -440,8 +427,7 @@ Imm32LoadImeStateSentence(LPINPUTCONTEXTDX pIC, PIME_STATE pState, HKL hKL)
     return TRUE;
 }
 
-// Win: SavePrivateMode
-BOOL APIENTRY
+BOOL
 Imm32SaveImeStateSentence(LPINPUTCONTEXTDX pIC, PIME_STATE pState, HKL hKL)
 {
     PIME_SUBSTATE pSubState = Imm32FetchImeSubState(pState, hKL);
@@ -461,7 +447,7 @@ Imm32SaveImeStateSentence(LPINPUTCONTEXTDX pIC, PIME_STATE pState, HKL hKL)
  * dwCompStrOffset, and dwTargetStrOffset are the byte offset.
  */
 
-DWORD APIENTRY
+DWORD
 Imm32ReconvertWideFromAnsi(LPRECONVERTSTRING pDest, const RECONVERTSTRING *pSrc, UINT uCodePage)
 {
     DWORD cch0, cchDest, cbDest;
@@ -518,13 +504,13 @@ Imm32ReconvertWideFromAnsi(LPRECONVERTSTRING pDest, const RECONVERTSTRING *pSrc,
     pchDest = (LPWSTR)((LPBYTE)pDest + pDest->dwStrOffset);
     cchDest = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, pchSrc, pSrc->dwStrLen,
                                   pchDest, cchDest);
-    pchDest[cchDest] = 0;
+    pchDest[cchDest] = UNICODE_NULL;
 
     TRACE("cbDest: 0x%X\n", cbDest);
     return cbDest;
 }
 
-DWORD APIENTRY
+DWORD
 Imm32ReconvertAnsiFromWide(LPRECONVERTSTRING pDest, const RECONVERTSTRING *pSrc, UINT uCodePage)
 {
     DWORD cch0, cch1, cchDest, cbDest;
@@ -583,7 +569,7 @@ Imm32ReconvertAnsiFromWide(LPRECONVERTSTRING pDest, const RECONVERTSTRING *pSrc,
     pchDest = (LPSTR)pDest + pDest->dwStrOffset;
     cchDest = WideCharToMultiByte(uCodePage, 0, pchSrc, pSrc->dwStrLen,
                                   pchDest, cchDest, NULL, NULL);
-    pchDest[cchDest] = 0;
+    pchDest[cchDest] = ANSI_NULL;
 
     TRACE("cchDest: 0x%X\n", cchDest);
     return cbDest;
@@ -592,7 +578,8 @@ Imm32ReconvertAnsiFromWide(LPRECONVERTSTRING pDest, const RECONVERTSTRING *pSrc,
 /***********************************************************************
  *		ImmCreateIMCC(IMM32.@)
  */
-HIMCC WINAPI ImmCreateIMCC(DWORD size)
+HIMCC WINAPI
+ImmCreateIMCC(_In_ DWORD size)
 {
     if (size < sizeof(DWORD))
         size = sizeof(DWORD);
@@ -602,7 +589,8 @@ HIMCC WINAPI ImmCreateIMCC(DWORD size)
 /***********************************************************************
  *       ImmDestroyIMCC(IMM32.@)
  */
-HIMCC WINAPI ImmDestroyIMCC(HIMCC block)
+HIMCC WINAPI
+ImmDestroyIMCC(_In_ HIMCC block)
 {
     if (block)
         return LocalFree(block);
@@ -612,7 +600,8 @@ HIMCC WINAPI ImmDestroyIMCC(HIMCC block)
 /***********************************************************************
  *		ImmLockIMCC(IMM32.@)
  */
-LPVOID WINAPI ImmLockIMCC(HIMCC imcc)
+LPVOID WINAPI
+ImmLockIMCC(_In_ HIMCC imcc)
 {
     if (imcc)
         return LocalLock(imcc);
@@ -622,7 +611,8 @@ LPVOID WINAPI ImmLockIMCC(HIMCC imcc)
 /***********************************************************************
  *		ImmUnlockIMCC(IMM32.@)
  */
-BOOL WINAPI ImmUnlockIMCC(HIMCC imcc)
+BOOL WINAPI
+ImmUnlockIMCC(_In_ HIMCC imcc)
 {
     if (imcc)
         return LocalUnlock(imcc);
@@ -632,7 +622,8 @@ BOOL WINAPI ImmUnlockIMCC(HIMCC imcc)
 /***********************************************************************
  *		ImmGetIMCCLockCount(IMM32.@)
  */
-DWORD WINAPI ImmGetIMCCLockCount(HIMCC imcc)
+DWORD WINAPI
+ImmGetIMCCLockCount(_In_ HIMCC imcc)
 {
     return LocalFlags(imcc) & LMEM_LOCKCOUNT;
 }
@@ -640,7 +631,10 @@ DWORD WINAPI ImmGetIMCCLockCount(HIMCC imcc)
 /***********************************************************************
  *		ImmReSizeIMCC(IMM32.@)
  */
-HIMCC WINAPI ImmReSizeIMCC(HIMCC imcc, DWORD size)
+HIMCC WINAPI
+ImmReSizeIMCC(
+    _In_ HIMCC imcc,
+    _In_ DWORD size)
 {
     if (!imcc)
         return NULL;
@@ -650,7 +644,8 @@ HIMCC WINAPI ImmReSizeIMCC(HIMCC imcc, DWORD size)
 /***********************************************************************
  *		ImmGetIMCCSize(IMM32.@)
  */
-DWORD WINAPI ImmGetIMCCSize(HIMCC imcc)
+DWORD WINAPI
+ImmGetIMCCSize(_In_ HIMCC imcc)
 {
     if (imcc)
         return LocalSize(imcc);
@@ -660,7 +655,8 @@ DWORD WINAPI ImmGetIMCCSize(HIMCC imcc)
 /***********************************************************************
  *		ImmGetIMCLockCount(IMM32.@)
  */
-DWORD WINAPI ImmGetIMCLockCount(HIMC hIMC)
+DWORD WINAPI
+ImmGetIMCLockCount(_In_ HIMC hIMC)
 {
     DWORD ret;
     HANDLE hInputContext;

@@ -1,38 +1,23 @@
 /*
- * PROJECT:     ReactOS msctf.dll
- * LICENSE:     LGPL-2.1-or-later (https://spdx.org/licenses/LGPL-2.1-or-later)
+ * PROJECT:     ReactOS CTF
+ * LICENSE:     LGPL-2.0-or-later (https://spdx.org/licenses/LGPL-2.0-or-later)
  * PURPOSE:     Text Framework Services
  * COPYRIGHT:   Copyright 2023-2025 Katayama Hirofumi MZ <katayama.hirofumi.mz@gmail.com>
  */
 
-#include <stdlib.h>
+#include "precomp.h"
 
-#define WIN32_LEAN_AND_MEAN
-#define WIN32_NO_STATUS
-#define COBJMACROS
-#define INITGUID
-#define _EXTYPES_H
-
-#include <windows.h>
 #include <sddl.h>
 #include <imm.h>
-#include <cguid.h>
-#include <tchar.h>
-#include <msctf.h>
-#include <msctf_undoc.h>
 #include <ctffunc.h>
 #include <shlwapi.h>
-#include <strsafe.h>
 
-#include <cicarray.h>
-#include <cicreg.h>
 #include <cicmutex.h>
 #include <cicfmap.h>
 
 #include "mlng.h"
 
 #include <wine/debug.h>
-
 WINE_DEFAULT_DEBUG_CHANNEL(msctf);
 
 BOOL gf_CRT_INIT = FALSE;
@@ -92,6 +77,13 @@ UINT g_uLangHotKeyVKey2 = 0;
 UINT g_uKeyTipHotKeyModifiers = 0;
 UINT g_uKeyTipHotKeyVKey = 0;
 UINT g_uKeyTipHotKeyVKey2 = 0;
+
+// Handle pure virtual function call errors
+extern "C" void __cxa_pure_virtual(void)
+{
+    ERR("__cxa_pure_virtual\n");
+    DebugBreak();
+}
 
 /**
  * @implemented
@@ -258,15 +250,13 @@ TF_GetThreadFlags(
 /***********************************************************************
  *      TF_CreateCategoryMgr (MSCTF.@)
  *
- * @unimplemented
+ * @implemented
  */
 EXTERN_C HRESULT WINAPI
 TF_CreateCategoryMgr(_Out_ ITfCategoryMgr **ppcat)
 {
-    FIXME("(%p)\n", ppcat);
-    if (ppcat)
-        *ppcat = NULL;
-    return E_NOTIMPL;
+    TRACE("(%p)\n", ppcat);
+    return CategoryMgr_Constructor(NULL, (IUnknown **)ppcat);
 }
 
 /***********************************************************************
@@ -278,7 +268,7 @@ EXTERN_C HANDLE WINAPI
 TF_CreateCicLoadMutex(_Out_ LPBOOL pfWinLogon)
 {
     FIXME("(%p)\n", pfWinLogon);
-    if (pfWinLogon == NULL)
+    if (!pfWinLogon)
         return NULL;
     *pfWinLogon = FALSE;
     return NULL;
@@ -287,14 +277,13 @@ TF_CreateCicLoadMutex(_Out_ LPBOOL pfWinLogon)
 /***********************************************************************
  *      TF_CreateDisplayAttributeMgr (MSCTF.@)
  *
- * @unimplemented
+ * @implemented
  */
 EXTERN_C HRESULT WINAPI
 TF_CreateDisplayAttributeMgr(_Out_ ITfDisplayAttributeMgr **ppdam)
 {
-    FIXME("(%p)\n", ppdam);
-    *ppdam = NULL;
-    return E_NOTIMPL;
+    TRACE("(%p)\n", ppdam);
+    return DisplayAttributeMgr_Constructor(NULL, (IUnknown **)ppdam);
 }
 
 /***********************************************************************
@@ -483,7 +472,7 @@ TF_RegisterLangBarAddIn(
 {
     TRACE("(%s, %s, 0x%lX)\n", debugstr_guid(&rguid), debugstr_w(pszFilePath), dwFlags);
 
-    if (!pszFilePath || IsEqualGUID(rguid, GUID_NULL))
+    if (!pszFilePath || rguid == GUID_NULL)
     {
         ERR("E_INVALIDARG\n");
         return E_INVALIDARG;
@@ -519,7 +508,7 @@ TF_UnregisterLangBarAddIn(
 {
     TRACE("(%s, 0x%lX)\n", debugstr_guid(&rguid), dwFlags);
 
-    if (IsEqualGUID(rguid, GUID_NULL))
+    if (rguid == GUID_NULL)
     {
         ERR("E_INVALIDARG\n");
         return E_INVALIDARG;
@@ -773,10 +762,8 @@ EXTERN_C VOID TFUninitLib(VOID)
     // Do nothing
 }
 
-/**
- * @unimplemented
- */
-BOOL ProcessAttach(HINSTANCE hinstDLL) // FIXME: Call me from DllMain
+/// @unimplemented
+BOOL ProcessAttach(HINSTANCE hinstDLL)
 {
     gf_CRT_INIT = TRUE;
 
@@ -849,10 +836,8 @@ BOOL ProcessAttach(HINSTANCE hinstDLL) // FIXME: Call me from DllMain
     return TRUE;
 }
 
-/**
- * @unimplemented
- */
-VOID ProcessDetach(HINSTANCE hinstDLL) // FIXME: Call me from DllMain
+/// @unimplemented
+VOID ProcessDetach(HINSTANCE hinstDLL)
 {
     if (!gf_CRT_INIT)
     {

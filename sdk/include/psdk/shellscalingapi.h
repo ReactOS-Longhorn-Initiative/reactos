@@ -1,35 +1,23 @@
 /*
- * Copyright 2016 Sebastian Lackner
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+ * PROJECT:     ReactOS SDK
+ * LICENSE:     MIT (https://spdx.org/licenses/MIT)
+ * PURPOSE:     API definitions for api-ms-win-shcore-scaling-l1-1-1.dll
+ * COPYRIGHT:   Copyright 2025 Carl Bialorucki (carl.bialorucki@reactos.org)
  */
 
-#ifndef __WINE_SHELLSCALINGAPI_H
-#define __WINE_SHELLSCALINGAPI_H
+#pragma once
 
 #include <shtypes.h>
 
-typedef enum MONITOR_DPI_TYPE
+typedef enum
 {
-    MDT_EFFECTIVE_DPI   = 0,
-    MDT_ANGULAR_DPI     = 1,
-    MDT_RAW_DPI         = 2,
-    MDT_DEFAULT         = MDT_EFFECTIVE_DPI,
+    MDT_EFFECTIVE_DPI,
+    MDT_ANGULAR_DPI,
+    MDT_RAW_DPI,
+    MDT_DEFAULT = MDT_EFFECTIVE_DPI
 } MONITOR_DPI_TYPE;
 
-typedef enum PROCESS_DPI_AWARENESS
+typedef enum
 {
     PROCESS_DPI_UNAWARE,
     PROCESS_SYSTEM_DPI_AWARE,
@@ -38,37 +26,39 @@ typedef enum PROCESS_DPI_AWARENESS
 
 typedef enum
 {
-    DEVICE_PRIMARY   = 0,
-    DEVICE_IMMERSIVE = 1,
+    DEVICE_PRIMARY,
+    DEVICE_IMMERSIVE,
 } DISPLAY_DEVICE_TYPE;
 
+typedef enum
+{
+    SCF_VALUE_NONE,
+    SCF_SCALE,
+    SCF_PHYSICAL,
+} SCALE_CHANGE_FLAGS;
 
-typedef /* [v1_enum] */
-enum DEVICE_SCALE_FACTOR
-    {
-        DEVICE_SCALE_FACTOR_INVALID	= 0,
-        SCALE_100_PERCENT	= 100,
-        SCALE_120_PERCENT	= 120,
-        SCALE_125_PERCENT	= 125,
-        SCALE_140_PERCENT	= 140,
-        SCALE_150_PERCENT	= 150,
-        SCALE_160_PERCENT	= 160,
-        SCALE_175_PERCENT	= 175,
-        SCALE_180_PERCENT	= 180,
-        SCALE_200_PERCENT	= 200,
-        SCALE_225_PERCENT	= 225,
-        SCALE_250_PERCENT	= 250,
-        SCALE_300_PERCENT	= 300,
-        SCALE_350_PERCENT	= 350,
-        SCALE_400_PERCENT	= 400,
-        SCALE_450_PERCENT	= 450,
-        SCALE_500_PERCENT	= 500
-    } 	DEVICE_SCALE_FACTOR;
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+DEVICE_SCALE_FACTOR WINAPI GetScaleFactorForDevice(_In_ DISPLAY_DEVICE_TYPE deviceType);
+HRESULT WINAPI RegisterScaleChangeNotifications(_In_ DISPLAY_DEVICE_TYPE displayDevice, _In_ HWND hwndNotify, _In_ UINT uMsgNotify, _Out_ DWORD *pdwCookie);
+HRESULT WINAPI RevokeScaleChangeNotifications(_In_ DISPLAY_DEVICE_TYPE displayDevice, _In_ DWORD dwCookie);
+#endif // (NTDDI_VERSION >= NTDDI_WIN8)
 
-HRESULT WINAPI GetDpiForMonitor(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
-HRESULT WINAPI GetProcessDpiAwareness(HANDLE,PROCESS_DPI_AWARENESS*);
-DEVICE_SCALE_FACTOR WINAPI GetScaleFactorForDevice(DISPLAY_DEVICE_TYPE device_type);
-HRESULT WINAPI GetScaleFactorForMonitor(HMONITOR,DEVICE_SCALE_FACTOR*);
-HRESULT WINAPI SetProcessDpiAwareness(PROCESS_DPI_AWARENESS);
+#if (NTDDI_VERSION >= NTDDI_WINBLUE)
+HRESULT WINAPI GetScaleFactorForMonitor(_In_ HMONITOR hMon, _Out_ DEVICE_SCALE_FACTOR *pScale);
+HRESULT WINAPI RegisterScaleChangeEvent(_In_ HANDLE hEvent, _Out_ DWORD_PTR *pdwCookie);
+HRESULT WINAPI UnregisterScaleChangeEvent(_In_ DWORD_PTR dwCookie);
+HRESULT WINAPI SetProcessDpiAwareness(_In_ PROCESS_DPI_AWARENESS value);
+HRESULT WINAPI GetProcessDpiAwareness(_In_opt_ HANDLE hprocess, _Out_ PROCESS_DPI_AWARENESS *value);
+HRESULT WINAPI GetDpiForMonitor(_In_ HMONITOR hmonitor, _In_ MONITOR_DPI_TYPE dpiType, _Out_ UINT *dpiX, _Out_ UINT *dpiY);
+#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
 
-#endif /* __WINE_SHELLSCALINGAPI_H */
+#if (NTDDI_VERSION >= NTDDI_WIN10)
+typedef enum
+{
+    SHELL_UI_COMPONENT_TASKBARS,
+    SHELL_UI_COMPONENT_NOTIFICATIONAREA,
+    SHELL_UI_COMPONENT_DESKBAND,
+} SHELL_UI_COMPONENT;
+
+UINT WINAPI GetDpiForShellUIComponent(_In_ SHELL_UI_COMPONENT);
+#endif // (NTDDI_VERSION >= NTDDI_WIN10)

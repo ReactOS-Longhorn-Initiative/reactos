@@ -520,22 +520,26 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000406","Layout File",
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000406","Layout Text",0x00000000,%DANISH%
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000406","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5007"
 
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00030407","Layout File",0x00000000,"kbdgerg.dll"
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00030407","Layout Text",0x00000000,%GERMAN_ERGO%
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00030407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5139"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00060407","Layout File",0x00000000,"kbdgerg.dll"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00060407","Layout Text",0x00000000,%GERMAN_ERGO%
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00060407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5139"
 
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00020407","Layout File",0x00000000,"kbdgneo.dll"
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00020407","Layout Text",0x00000000,%GERMAN_NEO%
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00020407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5138"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00050407","Layout File",0x00000000,"kbdgneo.dll"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00050407","Layout Text",0x00000000,%GERMAN_NEO%
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00050407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5138"
 
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout File",0x00000000,"kbdgr1.dll"
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout Id",  0x00000000,"0012"
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout Text",0x00000000,%GERMAN_RISTOME%
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5137"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00040407","Layout File",0x00000000,"kbdgrist.dll"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00040407","Layout Id",  0x00000000,"0012"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00040407","Layout Text",0x00000000,%GERMAN_RISTOME%
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00040407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5137"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000407","Layout File",0x00000000,"kbdgr.dll"
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000407","Layout Text",0x00000000,%GERMAN%
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5011"
+
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout File",0x00000000,"kbdgr1.dll"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout Text",0x00000000,%GERMAN_IBM%
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010407","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5012"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000807","Layout File",0x00000000,"kbdsg.dll"
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000807","Layout Text",0x00000000,%SWISS_GERMAN%
@@ -762,6 +766,7 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000426","Layout Displa
 
 ; HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010426","Layout File",0x00000000,"kbdlv1.dll"
 ; HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010426","Layout Text",0x00000000,%LATVIAN_QWERTY%
+; HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010426","Layout Id",0x00000000,"0015"
 ; HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010426","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5044"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010427","Layout File",0x00000000,"kbdlt1.dll"
@@ -779,6 +784,7 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000042b","Layout Displa
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0001042b","Layout File",0x00000000,"kbdarmw.dll"
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0001042b","Layout Text",0x00000000,%ARMENIAN_WESTERN%
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0001042b","Layout Id",0x00000000,"0025"
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0001042b","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5121"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000042c","Layout File",0x00000000,"kbdazel.dll"
@@ -831,7 +837,7 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000447","Layout Displa
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000044c","Layout File",0x00000000,"kbdinmal.dll"
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000044c","Layout Text",0x00000000,%MALAYALAM%
-HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000044c","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5139"
+HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000044c","Layout Display Name",0x00000000,"@%SystemRoot%\system32\input.dll,-5099"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000044d","Layout File",0x00000000,"kbdinasa.dll"
 HKLM,"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000044d","Layout Text",0x00000000,%ASSAMESE%
@@ -989,11 +995,16 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","1255",0x00000000,"c_1255.n
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","1256",0x00000000,"c_1256.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","1257",0x00000000,"c_1257.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","1258",0x00000000,"c_1258.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","1361",0x00000000,"c_1361.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10000",0x00000000,"c_10000.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10001",0x00000000,"c_10001.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10002",0x00000000,"c_10002.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10003",0x00000000,"c_10003.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10004",0x00000000,"c_10004.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10005",0x00000000,"c_10005.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10006",0x00000000,"c_10006.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10007",0x00000000,"c_10007.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10008",0x00000000,"c_10008.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10010",0x00000000,"c_10010.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10017",0x00000000,"c_10017.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10021",0x00000000,"c_10021.nls"
@@ -1001,11 +1012,18 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10029",0x00000000,"c_10029
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10079",0x00000000,"c_10079.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10081",0x00000000,"c_10081.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","10082",0x00000000,"c_10082.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20000",0x00000000,"c_20000.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20001",0x00000000,"c_20001.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20002",0x00000000,"c_20002.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20003",0x00000000,"c_20003.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20004",0x00000000,"c_20004.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20005",0x00000000,"c_20005.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20105",0x00000000,"c_20105.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20106",0x00000000,"c_20106.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20107",0x00000000,"c_20107.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20108",0x00000000,"c_20108.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20127",0x00000000,"c_20127.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20261",0x00000000,"c_20261.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20269",0x00000000,"c_20269.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20273",0x00000000,"c_20273.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","20277",0x00000000,"c_20277.nls"
@@ -1043,6 +1061,7 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","28603",0x00000000,"c_28603
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","28604",0x00000000,"c_28604.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","28605",0x00000000,"c_28605.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","28606",0x00000000,"c_28606.nls"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","29001",0x00000000,"c_29001.nls"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","ACP",0x00000000,"1252"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","OEMCP",0x00000000,"437"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\CodePage","MACCP",0x00000000,"10000"
@@ -1310,6 +1329,7 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000443",0x00000000,"6"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000843",0x00000000,"5"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000444",0x00000000,"5"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000445",0x00000000,"f"
+HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000845",0x00000000,"f"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000455",0x00000000,"1"
 HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","00000456",0x00000000,"1"
 ;HKLM,"SYSTEM\CurrentControlSet\Control\Nls\Locale","0000048f",0x00000000,"1" ; tdd-Tale-CN, reserved
@@ -2334,6 +2354,7 @@ DUTCH = "Dutch"
 ESPERANTO = "Esperanto"
 ESTONIAN = "Estonian"
 GERMAN_ERGO = "German (de_ergo)"
+GERMAN_IBM = "German (IBM)"
 GERMAN_NEO = "German (NEO-1.1)"
 GERMAN_RISTOME = "German (RISTOME)"
 GERMAN = "German"
@@ -2490,6 +2511,7 @@ DUTCH = "Holandés"
 ESPERANTO = "Esperanto"
 ESTONIAN = "Estonio"
 GERMAN_ERGO = "Alemán (de_ergo)"
+GERMAN_IBM = "Alemán (IBM)"
 GERMAN_NEO = "Alemán (NEO-1.1)"
 GERMAN_RISTOME = "Alemán (RISTOME)"
 GERMAN = "Alemán"
@@ -2646,6 +2668,7 @@ DUTCH = "Holenderski"
 ESPERANTO = "Esperanto"
 ESTONIAN = "Estoński"
 GERMAN_ERGO = "Niemiecki (de_ergo)"
+GERMAN_IBM = "Niemiecki (IBM)"
 GERMAN_NEO = "Niemiecki (NEO-1.1)"
 GERMAN_RISTOME = "Niemiecki (RISTOME)"
 GERMAN = "Niemiecki"
@@ -2802,6 +2825,7 @@ DUTCH = "Holandês"
 ESPERANTO = "Esperanto"
 ESTONIAN = "Estonio"
 GERMAN_ERGO = "Alemão (de_ergo)"
+GERMAN_IBM = "Alemão (IBM)"
 GERMAN_NEO = "Alemão (NEO-1.1)"
 GERMAN_RISTOME = "Alemão (RISTOME)"
 GERMAN = "Alemão"
@@ -2955,6 +2979,7 @@ DUTCH = "Olandeză"
 ESPERANTO = "Esperanto"
 ESTONIAN = "Estonă"
 GERMAN_ERGO = "Germană (de_ergo)"
+GERMAN_IBM = "Germană (IBM)"
 GERMAN_NEO = "Germană (NEO-1.1)"
 GERMAN_RISTOME = "Germană (RISTOME)"
 GERMAN = "Germană"
@@ -3111,6 +3136,7 @@ DUTCH = "Голландская"
 ESPERANTO = "Эсперанто"
 ESTONIAN = "Эстонская"
 GERMAN_ERGO = "Немецкая (de_ergo)"
+GERMAN_IBM = "Немецкая (IBM)"
 GERMAN_NEO = "Немецкая (NEO-1.1)"
 GERMAN_RISTOME = "Немецкая (RISTOME)"
 GERMAN = "Немецкая"
@@ -3267,6 +3293,7 @@ DUTCH = "Hollandaca"
 ESPERANTO = "Esperanto"
 ESTONIAN = "Estonca"
 GERMAN_ERGO = "Almanca (de_ergo)"
+GERMAN_IBM = "Almanca (IBM)"
 GERMAN_NEO = "Almanca (NEO-1.1)"
 GERMAN_RISTOME = "Almanca (RISTOME)"
 GERMAN = "Almanca"

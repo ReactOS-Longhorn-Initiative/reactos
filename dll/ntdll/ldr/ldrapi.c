@@ -1621,9 +1621,6 @@ LdrProcessRelocationBlock(
     return LdrProcessRelocationBlockLongLong(Address, Count, TypeOffset, Delta);
 }
 
-/* FIXME: Add to ntstatus.mc */
-#define STATUS_MUI_FILE_NOT_FOUND        ((NTSTATUS)0xC00B0001L)
-
 /*
  * @implemented
  */
@@ -1679,7 +1676,7 @@ LdrFlushAlternateResourceModules(VOID)
 
 /*
  * @unimplemented
- * See https://www.kernelmode.info/forum/viewtopic.php?t=991
+ * See https://web.archive.org/web/20231210142610/https://kernelmode.info/forum/viewtopic3973.html?t=991
  */
 NTSTATUS
 NTAPI

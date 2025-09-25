@@ -1957,20 +1957,18 @@ public:
         Data.pTray = m_Tray;
         ::EnumDisplayMonitors(NULL, NULL, FullScreenEnumProc, (LPARAM)&Data);
 
-        // Make the taskbar bottom or top
-        UINT uFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER;
-        HWND hwndTray = m_Tray->GetHWND();
-        ::SetWindowPos(hwndTray, (hwndRude ? HWND_BOTTOM : HWND_TOP), 0, 0, 0, 0, uFlags);
-
         if (hwndRude)
         {
+            // Make the taskbar bottom
+            UINT uFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER;
+            HWND hwndTray = m_Tray->GetHWND();
+            ::SetWindowPos(hwndTray, HWND_BOTTOM, 0, 0, 0, 0, uFlags);
+
+            // Switch to the rude app if necessary
             DWORD exstyle = (DWORD)::GetWindowLongPtrW(hwndRude, GWL_EXSTYLE);
             if (!(exstyle & WS_EX_TOPMOST) && !SHELL_IsRudeWindowActive(hwndRude))
                 ::SwitchToThisWindow(hwndRude, TRUE);
         }
-
-        // FIXME: NIN_BALLOONHIDE
-        // FIXME: NIN_POPUPCLOSE
     }
 
     HWND FindRudeApp(_In_opt_ HWND hwndFirstCheck)
@@ -2010,6 +2008,8 @@ public:
     // HSHELL_WINDOWDESTROYED
     void OnWindowDestroyed(_In_ HWND hwndTarget)
     {
+        if (!FindTaskItem(hwndTarget))
+            return;
         HWND hwndRude = FindRudeApp(hwndTarget);
         HandleFullScreenApp(hwndRude);
     }
@@ -2170,22 +2170,26 @@ public:
         switch (wParam)
         {
 #if DUMP_TASKS != 0
-        case 1:
-            DumpTasks();
-            break;
+            case 1:
+                DumpTasks();
+                break;
 #endif
-        case TIMER_ID_VALIDATE_RUDE_APP:
-            // Real activation of rude app might take some time after HSHELL_...ACTIVATED.
-            // Wait up to 5 seconds with validating the rude app at each second.
+            case TIMER_ID_VALIDATE_RUDE_APP:
             {
+                // Real activation of rude app might take some time after HSHELL_...ACTIVATED.
+                // Wait up to 5 seconds with validating the rude app at each second.
                 HWND hwndRude = FindRudeApp(NULL);
                 HandleFullScreenApp(hwndRude);
 
-                // Retry with next timer id if any when no rude detected
                 KillTimer(wParam);
                 ++m_nRudeAppValidationCounter;
-                if (!hwndRude && m_nRudeAppValidationCounter < VALIDATE_RUDE_MAX_COUNT)
+                if (m_nRudeAppValidationCounter < VALIDATE_RUDE_MAX_COUNT && !hwndRude)
                     SetTimer(wParam, VALIDATE_RUDE_INTERVAL, NULL);
+                break;
+            }
+            default:
+            {
+                WARN("Unknown timer ID: %p\n", wParam);
                 break;
             }
         }

@@ -684,6 +684,9 @@ START_TEST(oid)
     test_OIDToAlgID();
     test_AlgIDToOID();
     test_enumOIDInfo();
+#ifdef __REACTOS__
+    if ((GetVersion() & 0xFF) > 5) // test_findOIDInfo() crashes on Server 2003
+#endif
     test_findOIDInfo();
     test_registerOIDInfo();
     test_oidFunctionSet();

@@ -33,7 +33,7 @@ if(CMAKE_CROSSCOMPILING)
         -Dstrtoll=_strtoi64
         -Dopen=_open
         -Dclose=_close)
-    include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+    include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 endif()
 
 include_directories(${REACTOS_SOURCE_DIR}/sdk/tools/widl)

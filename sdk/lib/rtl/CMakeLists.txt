@@ -15,8 +15,6 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wno-unused-variable)
 endif()
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
-
 list(APPEND RTL_WINE_SOURCE
     actctx.c
     timerqueue.c
@@ -92,6 +90,7 @@ list(APPEND SOURCE
     unicodeprefix.c
     vectoreh.c
     version.c
+    wait.c
     workitem.c
     xcontext.c
     rtl.h)
@@ -111,7 +110,8 @@ elseif(ARCH STREQUAL "amd64")
     list(APPEND ASM_SOURCE
         amd64/debug_asm.S
         amd64/except_asm.S
-        amd64/slist.S)
+        amd64/slist.S
+        amd64/unwind-asm.s)
     list(APPEND SOURCE
         bitmap64.c
         byteswap.c
@@ -136,6 +136,7 @@ add_dependencies(rtl psdk asm)
 
 list(APPEND SOURCE_VISTA
     condvar.c
+    locale.c
     runonce.c
     srw.c
     threadpool.c

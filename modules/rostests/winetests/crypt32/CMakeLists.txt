@@ -1,4 +1,5 @@
 
+add_definitions(-D__ROS_LONG64__)
 add_definitions(-DUSE_WINE_TODOS)
 
 list(APPEND SOURCE
@@ -25,8 +26,14 @@ add_executable(crypt32_winetest
     ${SOURCE}
     ${PCH_SKIP_SOURCE})
 
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
+   CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(crypt32_winetest PRIVATE -Wno-format)
+endif()
+
 set_module_type(crypt32_winetest win32cui)
 add_importlibs(crypt32_winetest crypt32 bcrypt advapi32 user32 shlwapi shell32 msvcrt kernel32)
 target_link_libraries(crypt32_winetest oldnames)
 add_pch(crypt32_winetest precomp.h "${PCH_SKIP_SOURCE}")
 add_rostests_file(TARGET crypt32_winetest)
+target_compile_definitions(crypt32_winetest PRIVATE wcsicmp=_wcsicmp)

@@ -14,9 +14,11 @@ list(APPEND SOURCE
     FLS.c
     FormatMessage.c
     GetComputerNameEx.c
+    GetCPInfo.c
     GetCurrentDirectory.c
     GetDriveType.c
     GetFinalPathNameByHandle.c
+    GetLocaleInfo.c
     GetModuleFileName.c
     GetVolumeInformation.c
     InitOnce.c
@@ -25,6 +27,7 @@ list(APPEND SOURCE
     JapaneseCalendar.c
     LCMapString.c
     LoadLibraryExW.c
+    LocaleNameToLCID.c
     lstrcpynW.c
     lstrlen.c
     Mailslot.c

@@ -1,8 +1,8 @@
 
 add_rpc_files(server
-    ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine/epm.idl
-    ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine/irot.idl
-    ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine/irpcss.idl)
+    ${REACTOS_SOURCE_DIR}/sdk/include/wine/epm.idl
+    ${REACTOS_SOURCE_DIR}/sdk/include/wine/irot.idl
+    ${REACTOS_SOURCE_DIR}/sdk/include/wine/irpcss.idl)
 
 
 list(APPEND SOURCE

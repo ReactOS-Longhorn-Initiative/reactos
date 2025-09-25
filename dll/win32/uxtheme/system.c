@@ -545,12 +545,21 @@ static HRESULT UXTHEME_ApplyTheme(PTHEME_FILE tf)
 		(lstrlenW(tf->pszSelectedSize)+1)*sizeof(WCHAR));
             RegSetValueExW(hKey, szDllName, 0, REG_SZ, (const BYTE*)tf->szThemeFile, 
 		(lstrlenW(tf->szThemeFile)+1)*sizeof(WCHAR));
+#ifdef __REACTOS__
+        {
+            WCHAR buf[sizeof("4294967295")];
+            UINT cch = wsprintfW(buf, L"%u", GetUserDefaultUILanguage());
+            RegSetValueExW(hKey, L"LastUserLangID", 0, REG_SZ, (const BYTE*)buf, ++cch * sizeof(WCHAR));
+        }
+#endif
         }
         else {
             RegDeleteValueW(hKey, szColorName);
             RegDeleteValueW(hKey, szSizeName);
             RegDeleteValueW(hKey, szDllName);
-
+#ifdef __REACTOS__
+            RegDeleteValueW(hKey, L"LastUserLangID");
+#endif
         }
         RegCloseKey(hKey);
     }
@@ -648,58 +657,35 @@ BOOL WINAPI IsThemeActive(void)
     return bActive;
 }
 
-#ifndef WINE_IsCompositionActive
-typedef HRESULT
-(WINAPI *_DwmIsCompositionEnabled)(
-    _Out_ BOOL *pfEnabled
-);
-static _DwmIsCompositionEnabled fnDwmIsCompositionEnabled;
+typedef HRESULT (WINAPI* DWMISCOMPOSITIONENABLED)(BOOL *enabled);
 
-static
-BOOL
-TryLoadDwmIsCompositionEnabled()
-{
-    if (fnDwmIsCompositionEnabled)
-        return TRUE;
-
-    HINSTANCE hinstDwmApi = LoadLibraryW(L"dwmapi.dll");
-    if (!hinstDwmApi)
-    {
-        SetLastError(ERROR_DLL_NOT_FOUND);
-        return FALSE;
-    }
-
-    fnDwmIsCompositionEnabled = (_DwmIsCompositionEnabled)GetProcAddress(hinstDwmApi, "DwmIsCompositionEnabled");
-    if (!fnDwmIsCompositionEnabled)
-    {
-        SetLastError(ERROR_DLL_MIGHT_BE_INCOMPATIBLE);
-        return FALSE;
-    }
-    return TRUE;
-}
-#endif /* WINE_IsCompositionActive */
 /************************************************************
 *       IsCompositionActive   (UXTHEME.@)
 */
 BOOL WINAPI IsCompositionActive(void)
 {
-#ifdef WINE_IsCompositionActive
-    FIXME(": stub\n");
+    BOOL bIsCompositionActive;
+    DWMISCOMPOSITIONENABLED pDwmIsCompositionEnabled;
+    HMODULE hdwmapi = GetModuleHandleW(L"dwmapi.dll");
 
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    if (!hdwmapi)
+    {
+        hdwmapi = LoadLibraryW(L"dwmapi.dll");
+        if (!hdwmapi)
+        {
+            ERR("Failed to load dwmapi\n");
+            return FALSE;
+        }
 
-    return FALSE;
-#else
-    BOOL bIsCompositionActive = FALSE;
-
-    if (!TryLoadDwmIsCompositionEnabled())
+        pDwmIsCompositionEnabled = (DWMISCOMPOSITIONENABLED)GetProcAddress(hdwmapi, "DwmIsCompositionEnabled");
+    }
+    if (!pDwmIsCompositionEnabled)
         return FALSE;
-
-    if (SUCCEEDED(fnDwmIsCompositionEnabled(&bIsCompositionActive)))
+    
+    if (pDwmIsCompositionEnabled(&bIsCompositionActive) == S_OK)
         return bIsCompositionActive;
 
     return FALSE;
-#endif /* WINE_IsCompositionActive */
 }
 
 /***********************************************************************
@@ -899,25 +885,25 @@ HTHEME WINAPI OpenThemeDataFromFile(HTHEMEFILE hThemeFile, HWND hwnd, LPCWSTR ps
 }
 
 /***********************************************************************
+ *      OpenThemeData                                       (UXTHEME.@)
+ */
+HTHEME WINAPI OpenThemeData(HWND hwnd, LPCWSTR pszClassList)
+{
+    return OpenThemeDataInternal(g_ActiveThemeFile, hwnd, pszClassList, 0);
+}
+
+/***********************************************************************
  *      OpenThemeDataForDpi                                 (UXTHEME.@)
  */
 HTHEME
 WINAPI
 OpenThemeDataForDpi(
     _In_ HWND hwnd,
-    _In_ LPCWSTR classlist,
+    _In_ LPCWSTR pszClassList,
     _In_ UINT dpi)
 {
     FIXME("dpi (%x) is currently ignored", dpi);
-    return OpenThemeDataInternal(g_ActiveThemeFile, hwnd, classlist, 0);
-}
-
-/***********************************************************************
- *      OpenThemeData                                       (UXTHEME.@)
- */
-HTHEME WINAPI OpenThemeData(HWND hwnd, LPCWSTR classlist)
-{
-    return OpenThemeDataInternal(g_ActiveThemeFile, hwnd, classlist, 0);
+    return OpenThemeDataInternal(g_ActiveThemeFile, hwnd, pszClassList, 0);
 }
 
 /***********************************************************************
@@ -971,7 +957,7 @@ HRESULT WINAPI SetWindowTheme(HWND hwnd, LPCWSTR pszSubAppName,
     return hr;
 }
 
-#if DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA
+#if (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
 /***********************************************************************
  *      SetWindowThemeAttribute                             (UXTHEME.@)
  */
@@ -979,14 +965,14 @@ HRESULT
 WINAPI
 SetWindowThemeAttribute(
     _In_ HWND hwnd,
-    _In_ enum WINDOWTHEMEATTRIBUTETYPE type,
-    _In_ PVOID attribute,
-    _In_ DWORD size)
+    _In_ enum WINDOWTHEMEATTRIBUTETYPE eAttribute,
+    _In_ PVOID pvAttribute,
+    _In_ DWORD cbAttribute)
 {
-   FIXME("(%p,%d,%p,%ld): stub\n", hwnd, type, attribute, size);
+   FIXME("(%p,%d,%p,%ld): stub\n", hwnd, eAttribute, pvAttribute, cbAttribute);
    return E_NOTIMPL;
 }
-#endif /* DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA */
+#endif /* (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA) */
 
 /***********************************************************************
  *      GetCurrentThemeName                                 (UXTHEME.@)
@@ -1238,31 +1224,61 @@ HRESULT WINAPI CloseThemeFile(HTHEMEFILE hThemeFile)
  *
  * PARAMS
  *     hThemeFile           Handle to theme file
- *     unknown              See notes
+ *     Flags                Unknown flag bits
  *     hWnd                 Window requesting the theme change
  *
  * RETURNS
  *     Success: S_OK
  *     Failure: HRESULT error-code
- *
- * NOTES
- * I'm not sure what the second parameter is (the datatype is likely wrong), other then this:
- * Under XP if I pass
- * char b[] = "";
- *   the theme is applied with the screen redrawing really badly (flickers)
- * char b[] = "\0"; where \0 can be one or more of any character, makes no difference
- *   the theme is applied smoothly (screen does not flicker)
- * char *b = "\0" or NULL; where \0 can be zero or more of any character, makes no difference
- *   the function fails returning invalid parameter... very strange
  */
+#ifdef __REACTOS__
+HRESULT WINAPI ApplyTheme(HTHEMEFILE hThemeFile, UINT Flags, HWND hWnd)
+#else
 HRESULT WINAPI ApplyTheme(HTHEMEFILE hThemeFile, char *unknown, HWND hWnd)
+#endif
 {
     HRESULT hr;
+#ifdef __REACTOS__
+    TRACE("(%p,%#x,%p)\n", hThemeFile, Flags, hWnd);
+#else
     TRACE("(%p,%s,%p)\n", hThemeFile, unknown, hWnd);
+#endif
     hr = UXTHEME_ApplyTheme(hThemeFile);
     UXTHEME_broadcast_theme_changed (NULL, (g_ActiveThemeFile != NULL));
     return hr;
 }
+
+#ifdef __REACTOS__
+/**********************************************************************
+ *      SetSystemVisualStyle                              (UXTHEME.65)
+ */
+HRESULT WINAPI SetSystemVisualStyle(PCWSTR pszStyleFile, PCWSTR pszColor, PCWSTR pszSize, UINT Flags)
+{
+    PTHEME_FILE pThemeFile = NULL;
+    HRESULT hr;
+
+    if (pszStyleFile)
+    {
+        if (!g_bThemeHooksActive)
+            return E_FAIL;
+
+        if (pszColor && !*pszColor)
+            pszColor = NULL;
+        if (pszSize && !*pszSize)
+            pszSize = NULL;
+
+        hr = MSSTYLES_OpenThemeFile(pszStyleFile, pszColor, pszSize, &pThemeFile);
+        if (FAILED(hr))
+            return hr;
+    }
+    hr = ApplyTheme(pThemeFile, Flags, NULL);
+
+    if (pThemeFile)
+        MSSTYLES_CloseThemeFile(pThemeFile);
+
+    return hr;
+}
+#endif // __REACTOS__
 
 /**********************************************************************
  *      GetThemeDefaults                                   (UXTHEME.7)
@@ -1296,8 +1312,15 @@ HRESULT WINAPI GetThemeDefaults(LPCWSTR pszThemeFileName, LPWSTR pszColorName,
     hr = MSSTYLES_OpenThemeFile(pszThemeFileName, NULL, NULL, &pt);
     if(FAILED(hr)) return hr;
 
+#ifdef __REACTOS__
+    if (pszColorName)
+        lstrcpynW(pszColorName, pt->pszSelectedColor, dwColorNameLen);
+    if (pszSizeName)
+        lstrcpynW(pszSizeName, pt->pszSelectedSize, dwSizeNameLen);
+#else
     lstrcpynW(pszColorName, pt->pszSelectedColor, dwColorNameLen);
     lstrcpynW(pszSizeName, pt->pszSelectedSize, dwSizeNameLen);
+#endif
 
     MSSTYLES_CloseThemeFile(pt);
     return S_OK;

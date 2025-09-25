@@ -98,7 +98,7 @@
 99 stdcall -noname SetAppStartingCursor(long long)
 100 stdcall SHRestricted(long)
 101 stdcall OpenAs_RunDLLA(long long str long)
-102 stdcall SHCoCreateInstance(wstr ptr long ptr ptr)
+102 stdcall SHCoCreateInstance(wstr ptr ptr ptr ptr)
 103 stdcall SignalFileOpen(ptr)
 104 stdcall OpenAs_RunDLLW(long long wstr long)
 105 stdcall Activate_RunDLL(ptr ptr wstr long)
@@ -461,7 +461,7 @@
 748 stdcall -noname SHLimitInputCombo(ptr ptr)
 749 stdcall -noname -version=0x501-0x502 SHGetShellStyleHInstance()
 750 stdcall -noname SHGetAttributesFromDataObject(ptr long ptr ptr)
-751 stub -noname SHSimulateDropOnClsid
+751 stdcall -noname SHSimulateDropOnClsid(ptr ptr ptr)
 752 stdcall -noname SHGetComputerDisplayNameW(wstr long ptr long)
 753 stdcall -noname CheckStagingArea()
 754 stub -noname SHLimitInputEditWithFlags

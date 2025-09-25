@@ -213,7 +213,7 @@ __INTRIN_INLINE void _fxsave(void *__P)
 #if 0 // Needs newer GCC
     __builtin_ia32_fxsave(__P);
 #else
-    asm volatile ("fxsave (%0)" : : "r"(__P));
+    __asm__ __volatile__("fxsave (%0)" : : "r"(__P));
 #endif
 }
 
@@ -222,7 +222,7 @@ __INTRIN_INLINE void _fxrstor(void const *__P)
 #if 0 // Needs newer GCC
     __builtin_ia32_fxrstor((void*)__P);
 #else
-    asm volatile ("fxrstor (%0)" : : "r"(__P));
+    __asm__ __volatile__("fxrstor (%0)" : : "r"(__P));
 #endif
 }
 
@@ -255,7 +255,7 @@ __INTRIN_INLINE_XSAVE void _xsavec(void *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xsavec(__P, __M);
 #else
-	__asm __volatile("xsavec %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
+    __asm__ __volatile__("xsavec %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
 #endif
 }
 
@@ -264,7 +264,7 @@ __INTRIN_INLINE_XSAVE void _xsaveopt(void *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xsaveopt(__P, __M);
 #else
-	__asm __volatile("xsaveopt %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
+    __asm__ __volatile__("xsaveopt %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
 #endif
 }
 
@@ -273,7 +273,7 @@ __INTRIN_INLINE_XSAVE void _xsaves(void *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xsaves(__P, __M);
 #else
-	__asm __volatile("xsaves %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
+    __asm__ __volatile__("xsaves %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
 #endif
 }
 
@@ -287,7 +287,7 @@ __INTRIN_INLINE_XSAVE void _xrstors(void const *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xrstors((void*)__P, __M);
 #else
-	__asm __volatile("xrstors %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
+    __asm__ __volatile__("xrstors %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) :"memory");
 #endif
 }
 
@@ -302,7 +302,7 @@ __INTRIN_INLINE_XSAVE void _xsavec64(void *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xsavec64(__P, __M);
 #else
-    __asm __volatile("xsavec %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
+    __asm__ __volatile__("xsavec %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
 #endif
 }
 
@@ -311,7 +311,7 @@ __INTRIN_INLINE_XSAVE void _xsaveopt64(void *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xsaveopt64(__P, __M);
 #else
-    __asm __volatile("xsaveopt %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
+    __asm__ __volatile__("xsaveopt %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
 #endif
 }
 
@@ -320,7 +320,7 @@ __INTRIN_INLINE_XSAVE void _xsaves64(void *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xsaves64(__P, __M);
 #else
-    __asm __volatile("xsaves %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
+    __asm__ __volatile__("xsaves %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
 #endif
 }
 
@@ -334,7 +334,7 @@ __INTRIN_INLINE_XSAVE void _xrstors64(void const *__P, unsigned __int64 __M)
 #if 0 // Needs newer GCC
     __builtin_ia32_xrstors64((void*)__P, __M);
 #else
-    __asm __volatile("xrstors %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
+    __asm__ __volatile__("xrstors %0" : "=m" (*(char*)__P) : "a" ((unsigned int)__M), "d" ((unsigned int)(__M >> 32)) : "memory");
 #endif
 }
 #endif // __x86_64__

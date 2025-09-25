@@ -118,7 +118,7 @@ START_TEST(NtQueryObject)
                              FILE_ATTRIBUTE_NORMAL,
                              NULL);
     ok(FileHandle != INVALID_HANDLE_VALUE,
-        "File '%S': Opening failed\n", ExecutablePath);
+       "File '%S': Opening failed\n", ExecutablePath);
     if (FileHandle == INVALID_HANDLE_VALUE)
     {
         skip("File '%S': Opening failed\n", ExecutablePath);
@@ -133,8 +133,8 @@ START_TEST(NtQueryObject)
                            &BufferSize3);
     ok_ntstatus(Status, STATUS_SUCCESS);
 
-    /* Validte that the name starts with "\\Device" */
+    /* Validate that the name starts with "\\Device" */
     ok(wcsncmp(ObjectName->Buffer, L"\\Device", 7) == 0,
-        "ObjectName->Buffer: '%S' does not start with '\\Device'\n",
-        ObjectName->Buffer);
+       "ObjectName->Buffer: '%S' does not start with '\\Device'\n",
+       ObjectName->Buffer);
 }

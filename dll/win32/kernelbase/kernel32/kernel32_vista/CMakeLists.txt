@@ -7,10 +7,16 @@ include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/subsys ..)
 
 list(APPEND SOURCE
     firmware.c
+    EnumSystemLocalesEx.c
+    GetLocaleInfoEx.c
     GetFileInformationByHandleEx.c
     GetFinalPathNameByHandle.c
     GetTickCount64.c
+    GetUserDefaultLocaleName.c
     InitOnce.c
+    IsValidLocaleName.c
+    LCIDToLocaleName.c
+    LocaleNameToLCID.c
     sync.c
     vista.c)
 

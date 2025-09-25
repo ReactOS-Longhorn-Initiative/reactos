@@ -58,13 +58,15 @@ wmain(
     LPCWSTR pszFileName = NULL;
     int index;
     int result = EXIT_SUCCESS;
+    BOOL bDone = FALSE;
 
-    DPRINT("main()\n");
+    DPRINT("wmain(%S)\n", GetCommandLineW());
 
     /* Initialize the Console Standard Streams */
     ConInitStdStreams();
 
     /* FIXME: Init code goes here */
+    CreateRootHelper();
     CreateRootContext();
     LoadHelpers();
 
@@ -93,7 +95,7 @@ wmain(
                 }
 
                 /* Run a command from the command line */
-                if (InterpretCommand((LPWSTR*)&argv[index], argc - index) == FALSE)
+                if (InterpretCommand((LPWSTR*)&argv[index], argc - index, &bDone) != ERROR_SUCCESS)
                     result = EXIT_FAILURE;
                 goto done;
             }
@@ -186,6 +188,7 @@ wmain(
 
 done:
     /* FIXME: Cleanup code goes here */
+    CleanupContext();
     UnloadHelpers();
 
     return result;
@@ -201,8 +204,23 @@ MatchEnumTag(
     _In_ const TOKEN_VALUE *pEnumTable,
     _Out_ PDWORD pdwValue)
 {
-    DPRINT1("MatchEnumTag()\n");
-    return 0;
+    DWORD i;
+
+    DPRINT("MatchEnumTag(%p %p %lu %p %p)\n", hModule, pwcArg, dwNumArg, pEnumTable, pdwValue);
+
+    if ((pEnumTable == NULL) || (pdwValue == NULL))
+        return ERROR_INVALID_PARAMETER;
+
+    for (i = 0; i < dwNumArg; i++)
+    {
+        if (MatchToken(pwcArg, pEnumTable[i].pwszToken))
+        {
+            *pdwValue = pEnumTable[i].dwValue;
+            return ERROR_SUCCESS;
+        }
+    }
+
+    return ERROR_NOT_FOUND;
 }
 
 BOOL
@@ -211,8 +229,29 @@ MatchToken(
     _In_ LPCWSTR pwszUserToken,
     _In_ LPCWSTR pwszCmdToken)
 {
-    DPRINT1("MatchToken %S %S\n", pwszUserToken, pwszCmdToken);
-    return (_wcsicmp(pwszUserToken, pwszCmdToken) == 0) ? TRUE : FALSE;
+    DPRINT("MatchToken(%S %S)\n", pwszUserToken, pwszCmdToken);
+
+    if ((pwszUserToken == NULL) || (pwszCmdToken == NULL))
+        return FALSE;
+
+    return (_wcsnicmp(pwszUserToken, pwszCmdToken, wcslen(pwszUserToken)) == 0) ? TRUE : FALSE;
+}
+
+DWORD
+WINAPI
+PreprocessCommand(
+    _In_ HANDLE hModule,
+    _Inout_ LPWSTR *ppwcArguments,
+    _In_ DWORD dwCurrentIndex,
+    _In_ DWORD dwArgCount,
+    _In_ TAG_TYPE *pttTags,
+    _In_ DWORD dwTagCount,
+    _In_ DWORD dwMinArgs,
+    _In_ DWORD dwMaxArgs,
+    _Out_ DWORD *pdwTagType)
+{
+    DPRINT1("PreprocessCommand()\n");
+    return 0;
 }
 
 DWORD
@@ -233,8 +272,16 @@ PrintMessageFromModule(
     _In_ DWORD  dwMsgId,
     ...)
 {
-    DPRINT1("PrintMessageFromModule()\n");
-    return 1;
+    INT Length;
+    va_list ap;
+
+    va_start(ap, dwMsgId);
+    Length = ConResPrintfExV(StdOut, hModule, dwMsgId,
+                             MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+                             ap);
+    va_end(ap);
+
+    return Length;
 }
 
 DWORD
@@ -247,7 +294,7 @@ PrintMessage(
     va_list ap;
 
     va_start(ap, pwszFormat);
-    Length = ConPrintf(StdOut, pwszFormat);
+    Length = ConPrintfV(StdOut, pwszFormat, ap);
     va_end(ap);
 
     return Length;
