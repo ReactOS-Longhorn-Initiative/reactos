@@ -632,6 +632,7 @@ MiInsertPageInFreeList(IN PFN_NUMBER PageFrameIndex)
     ASSERT(Pfn1->u3.e1.RemovalRequested == 0);
     ASSERT(Pfn1->u4.VerifierAllocation == 0);
     ASSERT(Pfn1->u3.e2.ReferenceCount == 0);
+//    Pfn1->PteAddress = NULL;
 
     /* Get the free page list and increment its count */
     ListHead = &MmFreePageListHead;
@@ -1151,6 +1152,8 @@ MiDecrementShareCount(IN PMMPFN Pfn1,
 
     DPRINT("Decrementing %p from %p\n", Pfn1, _ReturnAddress());
 
+    //if (Pfn1->Dbg1.IsStackPfn) __debugbreak();
+
     /* Page must be in-use */
     if ((Pfn1->u3.e1.PageLocation != ActiveAndValid) &&
         (Pfn1->u3.e1.PageLocation != StandbyPageList))
@@ -1170,6 +1173,14 @@ MiDecrementShareCount(IN PMMPFN Pfn1,
     ASSERT(Pfn1->u2.ShareCount < 0xF000000);
     if (!--Pfn1->u2.ShareCount)
     {
+#if 0
+        if (Pfn1->u3.e1.PageLocation == ActiveAndValid)
+        {
+            PMMPTE PteAddress = (PMMPTE)((ULONG_PTR)Pfn1->PteAddress & ~7);
+            if (MmIsAddressValid(PteAddress) &&
+                (PteAddress->u.Hard.Valid)) __debugbreak();
+        }
+#endif
         /* Was this a prototype PTE? */
         if (Pfn1->u3.e1.PrototypePte)
         {
@@ -1281,6 +1292,8 @@ MiDecrementReferenceCount(IN PMMPFN Pfn1,
         MiInsertPageInFreeList(PageFrameIndex);
         return;
     }
+
+//    Pfn1->PteAddress = NULL;
 
     /* Check to see which list this page should go into */
     if (Pfn1->u3.e1.Modified == 1)

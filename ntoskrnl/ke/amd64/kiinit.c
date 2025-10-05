@@ -542,6 +542,9 @@ KiSystemStartup(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 
         /* Check for break-in */
         if (KdPollBreakIn()) DbgBreakPointWithStatus(DBG_STATUS_CONTROL_C);
+
+        /* Initialize the kernel VA layout */
+        MiInitializeKernelVaLayout(LoaderBlock);
     }
 
     DPRINT1("Pcr = %p, Gdt = %p, Idt = %p, Tss = %p\n",
