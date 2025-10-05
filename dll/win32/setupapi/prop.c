@@ -22,10 +22,12 @@
 #include "wine/list.h"
  typedef GUID  DEVPROPGUID, *PDEVPROPGUID;
 typedef ULONG DEVPROPID,   *PDEVPROPID;
+#ifndef DEVPROPKEY_DEFINED
 typedef struct _DEVPROPKEY {
     DEVPROPGUID fmtid;
     DEVPROPID   pid;
 } DEVPROPKEY, *PDEVPROPKEY;
+#endif
 //
 typedef ULONG DEVPROPTYPE, *PDEVPROPTYPE;
 
@@ -101,10 +103,19 @@ static void SETUPDI_GuidToString(const GUID *guid, LPWSTR guidStr)
         '0','2','X','}',0};
 
     swprintf(
-	guidStr, 
+	guidStr,
 	fmt, guid->Data1, guid->Data2, guid->Data3,
         guid->Data4[0], guid->Data4[1], guid->Data4[2], guid->Data4[3],
         guid->Data4[4], guid->Data4[5], guid->Data4[6], guid->Data4[7]);
+}
+
+static BOOL SETUPDI_StringToGuid(LPCWSTR guidStr, GUID *guid)
+{
+    /* Parse GUID in format: {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} */
+    return swscanf(guidStr, L"{%08X-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
+                   &guid->Data1, &guid->Data2, &guid->Data3,
+                   &guid->Data4[0], &guid->Data4[1], &guid->Data4[2], &guid->Data4[3],
+                   &guid->Data4[4], &guid->Data4[5], &guid->Data4[6], &guid->Data4[7]) == 11;
 }
 
 static DEVINST alloc_devnode(struct device *device)
@@ -419,5 +430,366 @@ BOOL WINAPI SetupDiGetDevicePropertyW(HDEVINFO devinfo, PSP_DEVINFO_DATA device_
     SetLastError(ls);
     return !ls;
 }
- 
+
+/***********************************************************************
+ *              SetupDiGetDeviceInterfacePropertyKeys (SETUPAPI.@)
+ */
+BOOL WINAPI SetupDiGetDeviceInterfacePropertyKeys(HDEVINFO devinfo, PSP_DEVICE_INTERFACE_DATA interface_data,
+                DEVPROPKEY *prop_key_array, DWORD prop_key_count, DWORD *required_count, DWORD flags)
+{
+    struct DeviceInfoSet *set;
+    struct DeviceInterface *interface_info;
+    HKEY interface_key = NULL, properties_key = NULL;
+    WCHAR key_path[55] = L"Properties";
+    DWORD i, max_subkey_len, subkey_count;
+    LSTATUS ls = ERROR_SUCCESS;
+    BOOL ret = FALSE;
+
+    TRACE("%p, %p, %p, %d, %p, %#x\n", devinfo, interface_data, prop_key_array, prop_key_count,
+          required_count, flags);
+
+    if (!(set = get_device_set(devinfo)))
+        return FALSE;
+
+    if (!interface_data || interface_data->cbSize != sizeof(*interface_data) || !interface_data->Reserved)
+    {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    interface_info = (struct DeviceInterface *)interface_data->Reserved;
+
+    if (flags)
+    {
+        SetLastError(ERROR_INVALID_FLAGS);
+        return FALSE;
+    }
+
+    /* Open the device interface registry key */
+    interface_key = SetupDiOpenDeviceInterfaceRegKey(devinfo, interface_data, 0, KEY_READ);
+    if (interface_key == INVALID_HANDLE_VALUE)
+        return FALSE;
+
+    /* Open the Properties subkey */
+    ls = RegOpenKeyExW(interface_key, key_path, 0, KEY_ENUMERATE_SUB_KEYS, &properties_key);
+    if (ls == ERROR_FILE_NOT_FOUND)
+    {
+        /* No properties, return success with count 0 */
+        if (required_count)
+            *required_count = 0;
+        ret = TRUE;
+        goto cleanup;
+    }
+    if (ls != ERROR_SUCCESS)
+    {
+        SetLastError(ls);
+        goto cleanup;
+    }
+
+    /* Get information about the properties subkeys */
+    ls = RegQueryInfoKeyW(properties_key, NULL, NULL, NULL, &subkey_count, &max_subkey_len,
+                         NULL, NULL, NULL, NULL, NULL, NULL);
+    if (ls != ERROR_SUCCESS)
+    {
+        SetLastError(ls);
+        goto cleanup;
+    }
+
+    if (required_count)
+        *required_count = subkey_count;
+
+    if (!prop_key_array || !prop_key_count)
+    {
+        ret = TRUE;
+        goto cleanup;
+    }
+
+    if (prop_key_count < subkey_count)
+    {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        goto cleanup;
+    }
+
+    /* Enumerate the property keys */
+    for (i = 0; i < subkey_count; i++)
+    {
+        WCHAR subkey_name[MAX_GUID_STRING_LEN + 5]; /* GUID + \\ + 4 hex digits + null */
+        DWORD name_len = sizeof(subkey_name) / sizeof(WCHAR);
+        WCHAR guid_str[MAX_GUID_STRING_LEN];
+        GUID guid;
+        DWORD pid;
+
+        ls = RegEnumKeyExW(properties_key, i, subkey_name, &name_len, NULL, NULL, NULL, NULL);
+        if (ls != ERROR_SUCCESS)
+            break;
+
+        /* Parse the subkey name as GUID\PID format */
+        if (swscanf(subkey_name, L"%36[^\\]\\%04X", guid_str, &pid) != 2)
+        {
+            WARN("Invalid property key format: %s\n", debugstr_w(subkey_name));
+            continue;
+        }
+
+        /* Convert GUID string back to GUID */
+        if (!SETUPDI_StringToGuid(guid_str, &guid))
+        {
+            WARN("Failed to parse GUID: %s\n", debugstr_w(guid_str));
+            continue;
+        }
+
+        prop_key_array[i].fmtid = guid;
+        prop_key_array[i].pid = pid;
+    }
+
+    if (ls == ERROR_SUCCESS)
+        ret = TRUE;
+    else
+        SetLastError(ls);
+
+cleanup:
+    if (properties_key)
+        RegCloseKey(properties_key);
+    if (interface_key)
+        RegCloseKey(interface_key);
+
+    return ret;
+}
+
+/***********************************************************************
+ *              SetupDiGetDeviceInterfacePropertyW (SETUPAPI.@)
+ */
+BOOL WINAPI SetupDiGetDeviceInterfacePropertyW(HDEVINFO devinfo, PSP_DEVICE_INTERFACE_DATA interface_data,
+                const DEVPROPKEY *prop_key, DEVPROPTYPE *prop_type, BYTE *prop_buff,
+                DWORD prop_buff_size, DWORD *required_size, DWORD flags)
+{
+    struct DeviceInfoSet *set;
+    struct DeviceInterface *interface_info;
+    HKEY interface_key = NULL, property_key = NULL;
+    WCHAR key_path[55] = L"Properties\\";
+    DWORD value_type, value_size = 0;
+    LSTATUS ls;
+
+    TRACE("%p, %p, %p, %p, %p, %d, %p, %#x\n", devinfo, interface_data, prop_key, prop_type, prop_buff,
+          prop_buff_size, required_size, flags);
+
+    if (!(set = get_device_set(devinfo)))
+        return FALSE;
+
+    if (!interface_data || interface_data->cbSize != sizeof(*interface_data) || !interface_data->Reserved)
+    {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    if (!prop_key)
+    {
+        SetLastError(ERROR_INVALID_DATA);
+        return FALSE;
+    }
+
+    if (!prop_type || (!prop_buff && prop_buff_size))
+    {
+        SetLastError(ERROR_INVALID_USER_BUFFER);
+        return FALSE;
+    }
+
+    if (flags)
+    {
+        SetLastError(ERROR_INVALID_FLAGS);
+        return FALSE;
+    }
+
+    interface_info = (struct DeviceInterface *)interface_data->Reserved;
+
+    /* Open the device interface registry key */
+    interface_key = SetupDiOpenDeviceInterfaceRegKey(devinfo, interface_data, 0, KEY_READ);
+    if (interface_key == INVALID_HANDLE_VALUE)
+        return FALSE;
+
+    /* Build the property key path */
+    SETUPDI_GuidToString(&prop_key->fmtid, key_path + 11);
+    swprintf(key_path + 49, L"\\%04X", prop_key->pid);
+
+    /* Open the property key */
+    ls = RegOpenKeyExW(interface_key, key_path, 0, KEY_QUERY_VALUE, &property_key);
+    if (ls != ERROR_SUCCESS)
+    {
+        if (ls == ERROR_FILE_NOT_FOUND)
+        {
+            *prop_type = DEVPROP_TYPE_EMPTY;
+            if (required_size)
+                *required_size = 0;
+            SetLastError(ERROR_NOT_FOUND);
+            RegCloseKey(interface_key);
+            return FALSE;
+        }
+        SetLastError(ls);
+        RegCloseKey(interface_key);
+        return FALSE;
+    }
+
+    /* Query the property value */
+    value_size = prop_buff_size;
+    ls = RegQueryValueExW(property_key, NULL, NULL, &value_type, prop_buff, &value_size);
+
+    switch (ls)
+    {
+    case NO_ERROR:
+    case ERROR_MORE_DATA:
+        *prop_type = 0xffff & value_type;
+        ls = (ls == ERROR_MORE_DATA || !prop_buff) ? ERROR_INSUFFICIENT_BUFFER : NO_ERROR;
+        break;
+    case ERROR_FILE_NOT_FOUND:
+        *prop_type = DEVPROP_TYPE_EMPTY;
+        value_size = 0;
+        ls = ERROR_NOT_FOUND;
+        break;
+    default:
+        *prop_type = DEVPROP_TYPE_EMPTY;
+        value_size = 0;
+        FIXME("Unhandled error %#x\n", ls);
+        break;
+    }
+
+    if (required_size)
+        *required_size = value_size;
+
+    RegCloseKey(property_key);
+    RegCloseKey(interface_key);
+
+    SetLastError(ls);
+    return !ls;
+}
+
+/***********************************************************************
+ *              SetupDiSetDeviceInterfacePropertyW (SETUPAPI.@)
+ */
+BOOL WINAPI SetupDiSetDeviceInterfacePropertyW(HDEVINFO devinfo, PSP_DEVICE_INTERFACE_DATA interface_data,
+                const DEVPROPKEY *prop_key, DEVPROPTYPE prop_type, const BYTE *prop_buff,
+                DWORD prop_buff_size, DWORD flags)
+{
+    static const WCHAR propertiesW[] = {'P', 'r', 'o', 'p', 'e', 'r', 't', 'i', 'e', 's', 0};
+    static const WCHAR formatW[] = {'\\', '%', '0', '4', 'X', 0};
+    struct DeviceInfoSet *set;
+    struct DeviceInterface *interface_info;
+    HKEY interface_key = NULL, properties_key = NULL, property_key = NULL;
+    WCHAR property_key_path[44];
+    LSTATUS ls;
+
+    TRACE("%p, %p, %p, %#x, %p, %d, %#x\n", devinfo, interface_data, prop_key, prop_type, prop_buff,
+          prop_buff_size, flags);
+
+    if (!(set = get_device_set(devinfo)))
+        return FALSE;
+
+    if (!interface_data || interface_data->cbSize != sizeof(*interface_data) || !interface_data->Reserved)
+    {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    if (!prop_key || !is_valid_property_type(prop_type)
+        || (prop_buff && !prop_buff_size && !(prop_type == DEVPROP_TYPE_EMPTY || prop_type == DEVPROP_TYPE_NULL))
+        || (prop_buff && prop_buff_size && (prop_type == DEVPROP_TYPE_EMPTY || prop_type == DEVPROP_TYPE_NULL)))
+    {
+        SetLastError(ERROR_INVALID_DATA);
+        return FALSE;
+    }
+
+    if (prop_buff_size && !prop_buff)
+    {
+        SetLastError(ERROR_INVALID_USER_BUFFER);
+        return FALSE;
+    }
+
+    if (flags)
+    {
+        SetLastError(ERROR_INVALID_FLAGS);
+        return FALSE;
+    }
+
+    interface_info = (struct DeviceInterface *)interface_data->Reserved;
+
+    /* Open the device interface registry key */
+    interface_key = SetupDiOpenDeviceInterfaceRegKey(devinfo, interface_data, 0, KEY_READ | KEY_WRITE);
+    if (interface_key == INVALID_HANDLE_VALUE)
+        return FALSE;
+
+    /* Create/open the Properties key */
+    ls = RegCreateKeyExW(interface_key, propertiesW, 0, NULL, 0, KEY_READ | KEY_WRITE, NULL, &properties_key, NULL);
+    if (ls)
+    {
+        SetLastError(ls);
+        RegCloseKey(interface_key);
+        return FALSE;
+    }
+
+    /* Build the property key path */
+    SETUPDI_GuidToString(&prop_key->fmtid, property_key_path);
+    swprintf(property_key_path + 38, formatW, prop_key->pid);
+
+    if (prop_type == DEVPROP_TYPE_EMPTY)
+    {
+        /* Delete the property */
+        ls = RegDeleteKeyW(properties_key, property_key_path);
+        RegCloseKey(properties_key);
+        RegCloseKey(interface_key);
+        SetLastError(ls == ERROR_FILE_NOT_FOUND ? ERROR_NOT_FOUND : ls);
+        return !ls;
+    }
+    else if (prop_type == DEVPROP_TYPE_NULL)
+    {
+        /* Set to NULL (delete the value) */
+        if (!(ls = RegCreateKeyExW(properties_key, property_key_path, 0, NULL, 0, KEY_READ | KEY_WRITE, NULL,
+                                  &property_key, NULL)))
+        {
+            ls = RegDeleteValueW(property_key, NULL);
+            RegCloseKey(property_key);
+        }
+
+        RegCloseKey(properties_key);
+        RegCloseKey(interface_key);
+        SetLastError(ls == ERROR_FILE_NOT_FOUND ? ERROR_NOT_FOUND : ls);
+        return !ls;
+    }
+    else
+    {
+        /* Set the property value */
+        if (!(ls = RegCreateKeyExW(properties_key, property_key_path, 0, NULL, 0, KEY_READ | KEY_WRITE, NULL,
+                                  &property_key, NULL)))
+        {
+            ls = RegSetValueExW(property_key, NULL, 0, 0xffff0000 | (0xffff & prop_type), prop_buff, prop_buff_size);
+            RegCloseKey(property_key);
+        }
+
+        RegCloseKey(properties_key);
+        RegCloseKey(interface_key);
+        SetLastError(ls);
+        return !ls;
+    }
+}
+
+/***********************************************************************
+ *              SetupDiGetDeviceInterfacePropertyA (SETUPAPI.@)
+ */
+BOOL WINAPI SetupDiGetDeviceInterfacePropertyA(HDEVINFO devinfo, PSP_DEVICE_INTERFACE_DATA interface_data,
+                const DEVPROPKEY *prop_key, DEVPROPTYPE *prop_type, PBYTE prop_buff,
+                DWORD prop_buff_size, PDWORD required_size, DWORD flags)
+{
+    FIXME("ANSI version not implemented\n");
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE;
+}
+
+/***********************************************************************
+ *              SetupDiSetDeviceInterfacePropertyA (SETUPAPI.@)
+ */
+BOOL WINAPI SetupDiSetDeviceInterfacePropertyA(HDEVINFO devinfo, PSP_DEVICE_INTERFACE_DATA interface_data,
+                const DEVPROPKEY *prop_key, DEVPROPTYPE prop_type, const PBYTE prop_buff,
+                DWORD prop_buff_size, DWORD flags)
+{
+    FIXME("ANSI version not implemented\n");
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE;
+} 
  

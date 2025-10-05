@@ -750,7 +750,7 @@ CloseStreamRoutine(
     This = (CPortPinWaveRT*)Ctx->Pin;
 
     // Safety check - ensure the pin object is still valid
-    if (!This || !((PVOID*)This->m_IrpQueue)[0]) // Check if vtable is null
+    if (!This || !((PVOID*)This->m_IrpQueue)) // Check if vtable is null
     {
         DPRINT("CloseStreamRoutine: Invalid pin object %p\n", This);
         goto cleanup;
