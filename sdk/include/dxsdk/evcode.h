@@ -54,6 +54,8 @@
 #define EC_VMR_RECONNECTION_FAILED                  0x55
 #define EC_VIDEO_SIZE_CHANGED                       0x0A
 #define EC_WINDOW_DESTROYED                         0x15
+#define EC_PROCESSING_LATENCY                       0x21
+#define EC_SAMPLE_NEEDED                            0x20
 #define EC_WMT_EVENT_BASE                           0x0251
 #define EC_WMT_INDEX_EVENT                          EC_WMT_EVENT_BASE
 #define EC_WMT_EVENT                                EC_WMT_EVENT_BASE+1

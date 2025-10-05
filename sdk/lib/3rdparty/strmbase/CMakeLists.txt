@@ -1,6 +1,9 @@
 
 remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
-add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600 -D__WINESRC__)
+add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
+
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+add_definitions(-D__WINESRC__)
 
 list(APPEND SOURCE
     dispatch.c
@@ -13,5 +16,6 @@ list(APPEND SOURCE
     precomp.h)
 
 add_library(strmbase ${SOURCE})
+target_link_libraries(strmbase uuid)
 add_pch(strmbase precomp.h SOURCE)
 add_dependencies(strmbase psdk dxsdk)

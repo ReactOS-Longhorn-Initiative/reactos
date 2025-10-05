@@ -911,11 +911,7 @@ static HRESULT WINAPI FileAsyncReader_BeginFlush(IAsyncReader * iface)
     filter->flushing = TRUE;
     for (i = 0; i < filter->max_requests; ++i)
         filter->requests[i].sample = NULL;
-#ifdef __REACTOS__
-    CancelIo(filter->file);
-#else
     CancelIoEx(filter->file, NULL);
-#endif
     WakeAllConditionVariable(&filter->sample_cv);
 
     LeaveCriticalSection(&filter->sample_cs);

@@ -1,7 +1,11 @@
 /*
+<<<<<<<< HEAD:modules/rostests/winetests/mscoree/resource.rc
  * Resources for mscoree test suite.
  *
  * Copyright 2018 Fabian Maurer
+========
+ * Copyright 2019 Nikolay Sivov for CodeWeavers
+>>>>>>>> d34fa7f7992 ([XAUDIO2_7][MEDIAFOUNDATION][DSOUND][AMSTREAM][QCAP][QEDIT][EVR][STRMIIDS][MFUUID][STRMBASE] Sync to Wine-10.0):dll/win32/mf/mf.rc
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +24,7 @@
 
 #include "windef.h"
 
+<<<<<<<< HEAD:modules/rostests/winetests/mscoree/resource.rc
 /* @makedep: comtest.cs */
 comtest.cs RCDATA comtest.cs
 
@@ -37,3 +42,13 @@ loadpaths.dll.cs RCDATA loadpaths.dll.cs
 
 /* @makedep: loadpaths.exe.config */
 loadpaths.exe.config RCDATA loadpaths.exe.config
+========
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+/* @makedep: mf.rgs */
+1 WINE_REGISTRY mf.rgs
+
+#ifdef __REACTOS__
+2 WINE_REGISTRY mf_r_res.rgs
+#endif
+>>>>>>>> d34fa7f7992 ([XAUDIO2_7][MEDIAFOUNDATION][DSOUND][AMSTREAM][QCAP][QEDIT][EVR][STRMIIDS][MFUUID][STRMBASE] Sync to Wine-10.0):dll/win32/mf/mf.rc

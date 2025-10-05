@@ -33,13 +33,15 @@
 #include <fcntl.h>
 #ifndef __REACTOS__
 #include <dlfcn.h>
+#endif
 #include <sys/ioctl.h>
+#ifndef __REACTOS__
 #include <sys/mman.h>
+#endif
 #include <errno.h>
 #include <sys/time.h>
 #ifdef HAVE_ASM_TYPES_H
 #include <asm/types.h>
-#endif
 #endif
 #ifdef HAVE_LINUX_VIDEODEV2_H
 #include <linux/videodev2.h>

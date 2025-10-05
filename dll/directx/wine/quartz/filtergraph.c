@@ -635,17 +635,11 @@ static HRESULT WINAPI FilterGraph2_AddFilter(IFilterGraph2 *iface,
     {
         for (i = 0; i < 10000 ; ++i)
         {
-#ifdef __REACTOS__
-            if (name)
-                swprintf(entry->name, L"%s %04u", name, graph->name_index);
-            else
-                swprintf(entry->name, L"%04u", graph->name_index);
-#else
             if (name)
                 swprintf(entry->name, name ? wcslen(name) + 6 : 5, L"%s %04u", name, graph->name_index);
             else
                 swprintf(entry->name, name ? wcslen(name) + 6 : 5, L"%04u", graph->name_index);
-#endif
+
             graph->name_index = (graph->name_index + 1) % 10000;
 
             if (!find_filter_by_name(graph, entry->name))

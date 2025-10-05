@@ -1,7 +1,14 @@
 /*
+<<<<<<<< HEAD:sdk/lib/3rdparty/libwine/dll_canunload.c
  * DllCanUnloadNow default implementation
  *
  * Copyright 2021 Alexandre Julliard
+========
+ * GUID definitions
+ *
+ * Copyright 2000 Alexandre Julliard
+ * Copyright 2000 Francois Gouget
+>>>>>>>> d34fa7f7992 ([XAUDIO2_7][MEDIAFOUNDATION][DSOUND][AMSTREAM][QCAP][QEDIT][EVR][STRMIIDS][MFUUID][STRMBASE] Sync to Wine-10.0):sdk/lib/3rdparty/strmiids/strmiids.c
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,12 +26,24 @@
  */
 
 #include <stdarg.h>
-#define COBJMACROS
+
+
 #include "windef.h"
 #include "winbase.h"
-#include "objbase.h"
+#include "wingdi.h"
+#include "winuser.h"
 
-HRESULT WINAPI DllCanUnloadNow(void)
-{
-    return S_FALSE;
-}
+#include "objbase.h"
+#include "oleauto.h"
+#include "olectl.h"
+#include "d3d9.h"
+
+#include "initguid.h"
+
+#include "uuids.h"
+#include "strmif.h"
+#include "control.h"
+#include "amstream.h"
+#include "qedit.h"
+#include "vmr9.h"
+#include "videoacc.h"

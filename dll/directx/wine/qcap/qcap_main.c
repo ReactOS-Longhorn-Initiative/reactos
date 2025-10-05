@@ -207,27 +207,30 @@ static const REGFILTER2 reg_file_writer =
     .u.s2.rgPins2 = reg_file_writer_pins,
 };
 
+
 #ifdef __REACTOS__
-static HINSTANCE QCap_instance;
-BOOL WINAPI DllMain( HINSTANCE inst, DWORD reason, LPVOID reserved)
+static HINSTANCE moduleInstance;
+/***********************************************************************
+ *    DllCanUnloadNow (QCAP.@)
+ */
+HRESULT WINAPI DllCanUnloadNow(void)
 {
-    switch(reason)
+    return S_FALSE;
+}
+
+/***********************************************************************
+ *    Dll EntryPoint (QCAP.@)
+ */
+BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpv)
+{
+    if (fdwReason == DLL_PROCESS_ATTACH)
     {
-      case DLL_PROCESS_ATTACH:
-        DisableThreadLibraryCalls(inst);
-        CoInitialize(NULL);
-        QCap_instance = inst;
-        break;
-      case DLL_PROCESS_DETACH:
-#ifdef __REACTOS__
-        CoUninitialize();
-#endif
-        break;
+        moduleInstance = hInstDLL;
     }
     return TRUE;
 }
-
 #endif
+
 /***********************************************************************
  *    DllRegisterServer (QCAP.@)
  */
@@ -236,7 +239,11 @@ HRESULT WINAPI DllRegisterServer(void)
     IFilterMapper2 *mapper;
     HRESULT hr;
 
-    if (FAILED(hr = __wine_register_resources(QCap_instance)))
+#ifdef __REACTOS__
+    if (FAILED(hr = __wine_register_resources(moduleInstance)))
+#else
+    if (FAILED(hr = __wine_register_resources()))
+#endif
         return hr;
 
     if (FAILED(hr = CoCreateInstance(&CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
@@ -262,7 +269,11 @@ HRESULT WINAPI DllUnregisterServer(void)
     IFilterMapper2 *mapper;
     HRESULT hr;
 
-    if (FAILED(hr = __wine_unregister_resources(QCap_instance)))
+#ifdef __REACTOS__
+    if (FAILED(hr = __wine_unregister_resources(moduleInstance)))
+#else
+    if (FAILED(hr = __wine_unregister_resources()))
+#endif
         return hr;
 
     if (FAILED(hr = CoCreateInstance(&CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
@@ -276,3 +287,4 @@ HRESULT WINAPI DllUnregisterServer(void)
     IFilterMapper2_Release(mapper);
     return S_OK;
 }
+

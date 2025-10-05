@@ -1,8 +1,7 @@
 
+remove_definitions(-D_WIN32_WINNT=0x502)
+add_definitions(-D_WIN32_WINNT=0x600)
 add_definitions(-D__WINESRC__)
-
-remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
-add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 spec2def(amstream.dll amstream.spec)
@@ -12,7 +11,6 @@ list(APPEND SOURCE
     audiostream.c
     ddrawstream.c
     filter.c
-    guids.c
     main.c
     multimedia.c)
 
@@ -22,7 +20,6 @@ add_library(amstream MODULE
     ${CMAKE_CURRENT_BINARY_DIR}/amstream.def)
 
 set_module_type(amstream win32dll)
-target_link_libraries(amstream wine_dll_register strmbase strmiids uuid wine)
-add_importlibs(amstream ole32 ddraw user32 msvcrt kernelbase kernel32 ntdll)
-#add_pch(amstream precomp.h SOURCE)
+target_link_libraries(amstream strmbase strmiids dxguid uuid wine_dll_register)
+add_importlibs(amstream ole32 ddraw user32 msvcrt kernel32 ntdll)
 add_cd_file(TARGET amstream DESTINATION reactos/system32 FOR all)

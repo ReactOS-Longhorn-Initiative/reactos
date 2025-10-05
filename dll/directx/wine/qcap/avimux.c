@@ -46,19 +46,21 @@ typedef struct {
         BYTE data[1];
     } *strf;
     AVISUPERINDEX *indx;
-#if (defined(_MSC_VER))
-    BYTE indx_data[FIELD_OFFSET(AVISUPERINDEX, aIndex) + AVISUPERINDEX_ENTRIES * sizeof(AVISUPERINDEX)];
+#ifdef __REACTOS__
+    BYTE indx_data[FIELD_OFFSET(AVISUPERINDEX, aIndex) + AVISUPERINDEX_ENTRIES * sizeof(struct _avisuperindex_entry)];
 #else
     BYTE indx_data[FIELD_OFFSET(AVISUPERINDEX, aIndex[AVISUPERINDEX_ENTRIES])];
 #endif
+
     /* movi chunk */
     int ix_off;
     AVISTDINDEX *ix;
-#if (defined(_MSC_VER))
-    BYTE ix_data[FIELD_OFFSET(AVISTDINDEX, aIndex) + AVISTDINDEX_ENTRIES * sizeof(AVISTDINDEX)];
+#ifdef __REACTOS__
+    BYTE ix_data[FIELD_OFFSET(AVISTDINDEX, aIndex) + AVISTDINDEX_ENTRIES * sizeof(struct _avisuperindex_entry)];
 #else
     BYTE ix_data[FIELD_OFFSET(AVISTDINDEX, aIndex[AVISTDINDEX_ENTRIES])];
 #endif
+
     IMediaSample *samples_head;
     IMemAllocator *samples_allocator;
 } AviMuxIn;
@@ -1793,11 +1795,9 @@ static HRESULT create_input_pin(AviMux *avimux)
 
     if(avimux->input_pin_no >= MAX_PIN_NO-1)
         return E_FAIL;
-#ifdef __REACTOS__
-    swprintf(name, L"Input %02u", avimux->input_pin_no + 1);
-#else
+
     swprintf(name, ARRAY_SIZE(name), L"Input %02u", avimux->input_pin_no + 1);
-#endif
+
     if (!(object = calloc(1, sizeof(*object))))
         return E_OUTOFMEMORY;
 

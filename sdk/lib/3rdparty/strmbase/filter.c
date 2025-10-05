@@ -526,16 +526,20 @@ void strmbase_filter_init(struct strmbase_filter *filter, IUnknown *outer,
 
     if (!InitializeCriticalSectionEx(&filter->filter_cs, 0, RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO))
         InitializeCriticalSection(&filter->filter_cs);
-#ifndef __REACTOS__
+#ifdef __REACTOS__
+    if (filter->filter_cs.DebugInfo != (PCRITICAL_SECTION_DEBUG)-1)
+#else
     if (filter->filter_cs.DebugInfo != (RTL_CRITICAL_SECTION_DEBUG *)-1)
-        filter->filter_cs.DebugInfo->Spare[0] = (DWORD_PTR)(__FILE__ ": strmbase_filter.filter_cs");
 #endif
+        filter->filter_cs.DebugInfo->Spare[0] = (DWORD_PTR)(__FILE__ ": strmbase_filter.filter_cs");
     if (!InitializeCriticalSectionEx(&filter->stream_cs, 0, RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO))
         InitializeCriticalSection(&filter->stream_cs);
-#ifndef __REACTOS__
+#ifdef __REACTOS__
+    if (filter->stream_cs.DebugInfo != (PCRITICAL_SECTION_DEBUG)-1)
+#else
     if (filter->stream_cs.DebugInfo != (RTL_CRITICAL_SECTION_DEBUG *)-1)
-        filter->stream_cs.DebugInfo->Spare[0] = (DWORD_PTR)(__FILE__ ": strmbase_filter.stream_cs");
 #endif
+        filter->stream_cs.DebugInfo->Spare[0] = (DWORD_PTR)(__FILE__ ": strmbase_filter.stream_cs");
     filter->clsid = *clsid;
     filter->pin_version = 1;
     filter->ops = ops;
@@ -547,14 +551,18 @@ void strmbase_filter_cleanup(struct strmbase_filter *filter)
         IReferenceClock_Release(filter->clock);
 
     filter->IBaseFilter_iface.lpVtbl = NULL;
-#ifndef __REACTOS__
+#ifdef __REACTOS__
+    if (filter->filter_cs.DebugInfo != (PCRITICAL_SECTION_DEBUG)-1)
+#else
     if (filter->filter_cs.DebugInfo != (RTL_CRITICAL_SECTION_DEBUG *)-1)
+#endif
         filter->filter_cs.DebugInfo->Spare[0] = 0;
-#endif
     DeleteCriticalSection(&filter->filter_cs);
-#ifndef __REACTOS__
+#ifdef __REACTOS__
+    if (filter->stream_cs.DebugInfo != (PCRITICAL_SECTION_DEBUG)-1)
+#else
     if (filter->stream_cs.DebugInfo != (RTL_CRITICAL_SECTION_DEBUG *)-1)
-        filter->stream_cs.DebugInfo->Spare[0] = 0;
 #endif
+        filter->stream_cs.DebugInfo->Spare[0] = 0;
     DeleteCriticalSection(&filter->stream_cs);
 }

@@ -160,6 +160,7 @@ list(APPEND SOURCE
 #   rstbas.idl
 #   rstinf.idl
 #   rstloc.idl
+    rtworkq.idl
     sensevts.idl
     servprov.idl
 #   sesprp.idl
@@ -167,6 +168,7 @@ list(APPEND SOURCE
     shldisp.idl
     shobjidl.idl
     shtypes.idl
+    spatialaudioclient.idl
 #   stdole2.idl
     strmif.idl
     structuredquerycondition.idl
@@ -199,14 +201,22 @@ list(APPEND SOURCE
     windows.foundation.collections.idl
     ivectorchangedeventargs.idl
     winsxs.idl
+    evr9.idl
+    wmcodecdsp.idl
     wmdrmsdk.idl
     wmiutils.idl
     wmsbuffer.idl
+    mfmediaengine.idl
+    mfd3d12.idl
     wmsdkidl.idl
     wtypes.idl
     wuapi.idl
+    xapo.idl
     xmldom.idl
     xmldso.idl
+    evr.idl
+    mfplay.idl
+    mfreadwrite.idl
     ctfutb.idl
     xmllite.idl)
 

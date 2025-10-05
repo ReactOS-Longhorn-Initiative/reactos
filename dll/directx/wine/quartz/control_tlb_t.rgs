@@ -1,0 +1,56 @@
+HKCR
+{
+    NoRemove Typelib
+    {
+        NoRemove '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}'
+        {
+            '1.0' = s 'QuartzTypeLib'
+            {
+                '0' { win32 = s '%MODULE%' }
+                FLAGS = s '0'
+            }
+        }
+    }
+    NoRemove Interface
+    {
+        '{56A868B1-0AD4-11CE-B03A-0020AF0BA770}' = s 'IMediaControl'
+        {
+            ProxyStubClsid = s '{00020424-0000-0000-C000-000000000046}'
+            ProxyStubClsid32 = s '{00020424-0000-0000-C000-000000000046}'
+            TypeLib = s '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}' { val Version = s '1.0' }
+        }
+        '{56A868B3-0AD4-11CE-B03A-0020AF0BA770}' = s 'IBasicAudio'
+        {
+            ProxyStubClsid = s '{00020424-0000-0000-C000-000000000046}'
+            ProxyStubClsid32 = s '{00020424-0000-0000-C000-000000000046}'
+            TypeLib = s '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}' { val Version = s '1.0' }
+        }
+        '{56A868B4-0AD4-11CE-B03A-0020AF0BA770}' = s 'IVideoWindow'
+        {
+            ProxyStubClsid = s '{00020424-0000-0000-C000-000000000046}'
+            ProxyStubClsid32 = s '{00020424-0000-0000-C000-000000000046}'
+            TypeLib = s '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}' { val Version = s '1.0' }
+        }
+        '{56A868B5-0AD4-11CE-B03A-0020AF0BA770}' = s 'IBasicVideo'
+        {
+            ProxyStubClsid = s '{00020424-0000-0000-C000-000000000046}'
+            ProxyStubClsid32 = s '{00020424-0000-0000-C000-000000000046}'
+            TypeLib = s '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}' { val Version = s '1.0' }
+        }
+        '{56A868B6-0AD4-11CE-B03A-0020AF0BA770}' = s 'IMediaEvent'
+        {
+            ProxyStubClsid = s '{00020424-0000-0000-C000-000000000046}'
+            ProxyStubClsid32 = s '{00020424-0000-0000-C000-000000000046}'
+            TypeLib = s '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}' { val Version = s '1.0' }
+        }
+        '{56A868B2-0AD4-11CE-B03A-0020AF0BA770}' = s 'IMediaPosition'
+        {
+            ProxyStubClsid = s '{00020424-0000-0000-C000-000000000046}'
+            ProxyStubClsid32 = s '{00020424-0000-0000-C000-000000000046}'
+            TypeLib = s '{56A868B0-0AD4-11CE-B03A-0020AF0BA770}' { val Version = s '1.0' }
+        }
+    }
+    NoRemove CLSID
+    {
+    }
+}

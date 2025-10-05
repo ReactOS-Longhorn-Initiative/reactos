@@ -13,6 +13,10 @@ HKCR
         {
             InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }
         }
+        '{C1F400A4-3F08-11D3-9F0B-006008039E37}' = s 'Null Renderer'
+        {
+            InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }
+        }
         '{C1F400A0-3F08-11D3-9F0B-006008039E37}' = s 'Sample Grabber'
         {
             InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }

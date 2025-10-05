@@ -20,7 +20,6 @@
  */
 
 #pragma once
-
 #include "dshow.h"
 #include "wine/debug.h"
 
