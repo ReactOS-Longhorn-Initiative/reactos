@@ -847,6 +847,16 @@ typedef struct _SP_DEVICE_INTERFACE_DATA {
 /* For backward compatability */
 typedef SP_DEVICE_INTERFACE_DATA  SP_INTERFACE_DEVICE_DATA, *PSP_INTERFACE_DEVICE_DATA;
 
+#ifndef DEVPROPKEY_DEFINED
+#define DEVPROPKEY_DEFINED
+typedef struct _DEVPROPKEY {
+    GUID  fmtid;
+    DWORD pid;
+} DEVPROPKEY, *PDEVPROPKEY;
+#endif
+
+typedef DWORD DEVPROPTYPE, *PDEVPROPTYPE;
+
 typedef struct _SP_DEVICE_INTERFACE_DETAIL_DATA_A {
     DWORD  cbSize;
     CHAR   DevicePath[ANYSIZE_ARRAY];
@@ -1862,12 +1872,74 @@ SetupDiSetDeviceRegistryPropertyA(
 WINSETUPAPI
 BOOL
 WINAPI
+SetupDiGetDeviceInterfacePropertyKeys(
+  _In_ HDEVINFO DeviceInfoSet,
+  _In_ PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData,
+  _Out_writes_opt_(PropertyKeyCount) DEVPROPKEY *PropertyKeyArray,
+  _In_ DWORD PropertyKeyCount,
+  _Out_opt_ PDWORD RequiredPropertyKeyCount,
+  _In_ DWORD Flags);
+
+WINSETUPAPI
+BOOL
+WINAPI
+SetupDiGetDeviceInterfacePropertyA(
+  _In_ HDEVINFO DeviceInfoSet,
+  _In_ PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData,
+  _In_ const DEVPROPKEY *PropertyKey,
+  _Out_opt_ DEVPROPTYPE *PropertyType,
+  _Out_writes_bytes_to_opt_(PropertyBufferSize, *RequiredSize) PBYTE PropertyBuffer,
+  _In_ DWORD PropertyBufferSize,
+  _Out_opt_ PDWORD RequiredSize,
+  _In_ DWORD Flags);
+
+WINSETUPAPI
+BOOL
+WINAPI
+SetupDiSetDeviceInterfacePropertyA(
+  _In_ HDEVINFO DeviceInfoSet,
+  _Inout_ PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData,
+  _In_ const DEVPROPKEY *PropertyKey,
+  _In_ DEVPROPTYPE PropertyType,
+  _In_reads_bytes_opt_(PropertyBufferSize) const PBYTE PropertyBuffer,
+  _In_ DWORD PropertyBufferSize,
+  _In_ DWORD Flags);
+
+WINSETUPAPI
+BOOL
+WINAPI
 SetupDiSetDeviceRegistryPropertyW(
   _In_ HDEVINFO DeviceInfoSet,
   _Inout_ PSP_DEVINFO_DATA DeviceInfoData,
   _In_ DWORD Property,
   _In_reads_bytes_opt_(PropertyBufferSize) CONST BYTE *PropertyBuffer,
   _In_ DWORD PropertyBufferSize);
+
+WINSETUPAPI
+BOOL
+WINAPI
+SetupDiGetDeviceInterfacePropertyKeys(
+  _In_ HDEVINFO DeviceInfoSet,
+  _In_ PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData,
+  _Out_writes_opt_(PropertyKeyCount) DEVPROPKEY *PropertyKeyArray,
+  _In_ DWORD PropertyKeyCount,
+  _Out_opt_ PDWORD RequiredPropertyKeyCount,
+  _In_ DWORD Flags);
+
+WINSETUPAPI
+BOOL
+WINAPI
+SetupDiGetDeviceInterfacePropertyW(
+  _In_ HDEVINFO DeviceInfoSet,
+  _In_ PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData,
+  _In_ const DEVPROPKEY *PropertyKey,
+  _Out_opt_ DEVPROPTYPE *PropertyType,
+  _Out_writes_bytes_to_opt_(PropertyBufferSize, *RequiredSize) PBYTE PropertyBuffer,
+  _In_ DWORD PropertyBufferSize,
+  _Out_opt_ PDWORD RequiredSize,
+  _In_ DWORD Flags);
+
+
 
 WINSETUPAPI BOOL WINAPI SetupDiSetDriverInstallParamsA(_In_ HDEVINFO, _In_opt_ PSP_DEVINFO_DATA, _In_ PSP_DRVINFO_DATA_A, _In_ PSP_DRVINSTALL_PARAMS);
 WINSETUPAPI BOOL WINAPI SetupDiSetDriverInstallParamsW(_In_ HDEVINFO, _In_opt_ PSP_DEVINFO_DATA, _In_ PSP_DRVINFO_DATA_W, _In_ PSP_DRVINSTALL_PARAMS);
@@ -2478,6 +2550,8 @@ WINSETUPAPI PSTR WINAPI UnicodeToMultiByte(PCWSTR lpUnicodeStr, UINT uCodePage);
 #define SetupDiGetDeviceInterfaceDetail	SetupDiGetDeviceInterfaceDetailW
 #define SetupDiGetInterfaceDeviceDetail	SetupDiGetDeviceInterfaceDetailW
 #define SetupDiGetDeviceRegistryProperty	SetupDiGetDeviceRegistryPropertyW
+#define SetupDiGetDeviceInterfaceProperty	SetupDiGetDeviceInterfacePropertyW
+#define SetupDiSetDeviceInterfaceProperty	SetupDiSetDeviceInterfacePropertyW
 #define SetupDiGetDriverInfoDetail	SetupDiGetDriverInfoDetailW
 #define SetupDiGetDriverInstallParams	SetupDiGetDriverInstallParamsW
 #define SetupDiGetHwProfileFriendlyNameEx	SetupDiGetHwProfileFriendlyNameExW
@@ -2602,6 +2676,8 @@ WINSETUPAPI PSTR WINAPI UnicodeToMultiByte(PCWSTR lpUnicodeStr, UINT uCodePage);
 #define SetupDiGetDeviceInterfaceDetail	SetupDiGetDeviceInterfaceDetailA
 #define SetupDiGetInterfaceDeviceDetail	SetupDiGetDeviceInterfaceDetailA
 #define SetupDiGetDeviceRegistryProperty	SetupDiGetDeviceRegistryPropertyA
+#define SetupDiGetDeviceInterfaceProperty	SetupDiGetDeviceInterfacePropertyA
+#define SetupDiSetDeviceInterfaceProperty	SetupDiSetDeviceInterfacePropertyA
 #define SetupDiGetDriverInfoDetail	SetupDiGetDriverInfoDetailA
 #define SetupDiGetDriverInstallParams	SetupDiGetDriverInstallParamsA
 #define SetupDiGetHwProfileFriendlyName	SetupDiGetHwProfileFriendlyNameA
