@@ -1,8 +1,5 @@
 HKCR
 {
-    NoRemove Interface
-    {
-    }
     NoRemove CLSID
     {
         '{49C47CE0-9BA4-11D0-8212-00C04FC32C45}' = s 'SFilter Class'
@@ -10,6 +7,10 @@ HKCR
             InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }
         }
         '{49C47CE4-9BA4-11D0-8212-00C04FC32C45}' = s 'Stream Class'
+        {
+            InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }
+        }
+        '{8496E040-AF4C-11D0-8212-00C04FC32C45}' = s 'AuStream Class'
         {
             InprocServer32 = s '%MODULE%' { val ThreadingModel = s 'Both' }
         }

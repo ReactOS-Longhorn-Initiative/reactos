@@ -10,9 +10,6 @@
 #define WIN32_NO_STATUS
 #define _INC_WINDOWS
 
-#define NONAMELESSUNION
-#define NONAMELESSSTRUCT
-
 #include "quartz_private.h"
 
 #include <dvdmedia.h>
@@ -22,8 +19,5 @@
 
 #include <wine/unicode.h>
 #include <wine/debug.h>
-
-#include "pin.h"
-#include "parser.h"
 
 #endif /* !_QUARTZ_PRECOMP_H_ */

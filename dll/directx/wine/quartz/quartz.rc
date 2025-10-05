@@ -28,3 +28,8 @@
 
 /* @makedep: quartz.rgs */
 1 WINE_REGISTRY quartz.rgs
+
+#ifdef __REACTOS__
+2 WINE_REGISTRY "control_tlb_t.rgs"
+3 WINE_REGISTRY "control_tlb_r.rgs"
+#endif

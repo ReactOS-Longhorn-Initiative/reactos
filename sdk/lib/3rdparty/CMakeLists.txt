@@ -1,6 +1,7 @@
 
 add_subdirectory(adns)
 add_subdirectory(cardlib)
+add_subdirectory(dmoguids)
 add_subdirectory(freetype)
 add_subdirectory(libmpg123)
 add_subdirectory(libsamplerate)
@@ -11,4 +12,5 @@ if(MSVC)
     add_subdirectory(stlport)
 endif()
 add_subdirectory(strmbase)
+add_subdirectory(strmiids)
 add_subdirectory(zlib)

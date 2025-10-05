@@ -36,6 +36,29 @@ typedef struct MFVideoNormalizedRect
 } MFVideoNormalizedRect;
 cpp_quote("#endif")
 
+/* trick widl into thinking that it knows the DirectDraw types 
+ * as there is no IDL file for them (yet) */
+cpp_quote("#if 0")
+interface IDirectDraw;
+typedef void DDSURFACEDESC,DDCAPS;
+typedef DWORD RGBQUAD;
+typedef LONGLONG REFERENCE_TIME;
+typedef struct
+{
+    DWORD 	biSize;
+    LONG  	biWidth;
+    LONG  	biHeight;
+    WORD 	biPlanes;
+    WORD 	biBitCount;
+    DWORD 	biCompression;
+    DWORD 	biSizeImage;
+    LONG  	biXPelsPerMeter;
+    LONG  	biYPelsPerMeter;
+    DWORD 	biClrUsed;
+    DWORD 	biClrImportant;
+} BITMAPINFOHEADER, *PBITMAPINFOHEADER, *LPBITMAPINFOHEADER;
+cpp_quote("#endif")
+
 typedef enum _MFVP_MESSAGE_TYPE {
     MFVP_MESSAGE_FLUSH,
     MFVP_MESSAGE_INVALIDATEMEDIATYPE,
