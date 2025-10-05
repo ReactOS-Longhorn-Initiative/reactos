@@ -107,7 +107,7 @@ MiReserveAlignedSystemPtes(IN ULONG NumberOfPtes,
     // Find the last cluster in the list that doesn't contain enough PTEs
     //
     PreviousPte = &MmFirstFreeSystemPte[SystemPtePoolType];
-
+    //__debugbreak();
     while (PreviousPte->u.List.NextEntry != MM_EMPTY_PTE_LIST)
     {
         //
