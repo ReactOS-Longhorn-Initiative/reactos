@@ -41,7 +41,6 @@ void hdac_stream_reset(PHDAC_STREAM stream) {
 	dma_run_state = stream_read8(stream, SD_CTL) & SD_CTL_DMA_START;
 
 	stream_update8(stream, SD_CTL, 0, SD_CTL_STREAM_RESET);
-	udelay(3);
 	int timeout = 300;
 
 	UCHAR val;
@@ -53,7 +52,6 @@ void hdac_stream_reset(PHDAC_STREAM stream) {
 
 	val &= ~SD_CTL_STREAM_RESET;
 	stream_write8(stream, SD_CTL, val);
-	udelay(3);
 
 	timeout = 300;
 	/* waiting for hardware to report that the stream is out of reset */
