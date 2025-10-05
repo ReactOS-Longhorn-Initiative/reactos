@@ -189,7 +189,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-ms-win-core-namespace-ansi-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"api-ms-win-core-namespace-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-normalization-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
-    { RTL_CONSTANT_STRING(L"api-ms-win-core-path-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
+    { RTL_CONSTANT_STRING(L"api-ms-win-core-path-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN7 | APISET_WIN8 | APISET_WIN81 | APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-pcw-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-perfcounters-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-core-perfcounters-l1-2-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernelbase.dll

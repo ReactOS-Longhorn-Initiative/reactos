@@ -19,7 +19,7 @@
 import "unknwn.idl";
 
 #ifndef XAUDIO2_VER
-#define XAUDIO2_VER 7
+#define XAUDIO2_VER 9
 #endif
 
 #if XAUDIO2_VER < 8
