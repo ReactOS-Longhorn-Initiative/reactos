@@ -219,4 +219,3 @@ C_ASSERT(PD_COUNT == 1);
         (PMMPTE)((ULONG_PTR)MmNonPagedPoolEnd -                     \
                 (((x)->u.Subsect.SubsectionAddressHigh << 7) |      \
                   (x)->u.Subsect.SubsectionAddressLow << 3))
-

@@ -115,6 +115,33 @@ MiInitializeSessionSpaceLayout(VOID)
 
 VOID
 NTAPI
+MiMapPXEs(
+    PVOID StartAddress,
+    PVOID EndAddress)
+{
+    PMMPDE PointerPxe;
+    MMPDE TmplPxe = ValidKernelPde;
+
+    /* Loop the PPEs */
+    for (PointerPxe = MiAddressToPxe(StartAddress);
+         PointerPxe <= MiAddressToPxe(EndAddress);
+         PointerPxe++)
+    {
+        /* Check if its already mapped */
+        if (!PointerPxe->u.Hard.Valid)
+        {
+            /* No, map it! */
+            TmplPxe.u.Hard.PageFrameNumber = MxGetNextPage(1);
+            MI_WRITE_VALID_PTE(PointerPxe, TmplPxe);
+
+            /* Zero out the page table */
+            RtlZeroMemory(MiPteToAddress(PointerPxe), PAGE_SIZE);
+        }
+    }
+}
+
+VOID
+NTAPI
 MiMapPPEs(
     PVOID StartAddress,
     PVOID EndAddress)
@@ -285,22 +312,21 @@ MiInitializePageTable(VOID)
     /* Create PDPTs (72 KB) for shared system address space,
      * skip page tables TODO: use global pages. */
 
-    /* Loop the PXEs */
-    for (PointerPxe = MiAddressToPxe((PVOID)HYPER_SPACE);
-         PointerPxe <= MiAddressToPxe(MI_HIGHEST_SYSTEM_ADDRESS);
-         PointerPxe++)
+    /* Map the PXEs for all VA regions */
+    for (ULONG i = 0; i < ARRAYSIZE(MiSystemVaRegions); i++)
     {
-        /* Is the PXE already valid? */
-        if (!PointerPxe->u.Hard.Valid)
-        {
-            /* It's not Initialize it */
-            TmplPte.u.Flush.PageFrameNumber = MxGetNextPage(1);
-            *PointerPxe = TmplPte;
+        PMI_SYSTEM_VA_ASSIGNMENT Region = &MiSystemVaRegions[i];
 
-            /* Zero the page. The PXE is the PTE for the PDPT. */
-            RtlZeroMemory(MiPteToAddress(PointerPxe), PAGE_SIZE);
+        if (Region->BaseAddress == NULL)
+        {
+            continue;
         }
+
+        /* Map the PXE(s) */
+        MiMapPXEs(Region->BaseAddress,
+            Add2Ptr(Region->BaseAddress, Region->NumberOfBytes - 1));
     }
+
     PxePfn = PFN_FROM_PXE(MiAddressToPxe((PVOID)HYPER_SPACE));
     PsGetCurrentProcess()->Pcb.DirectoryTableBase[1] = PxePfn << PAGE_SHIFT;
 
@@ -320,11 +346,6 @@ MiInitializePageTable(VOID)
     MmFirstReservedMappingPte = MiAddressToPte((PVOID)MI_MAPPING_RANGE_START);
     MmLastReservedMappingPte = MiAddressToPte((PVOID)MI_MAPPING_RANGE_END);
     MmFirstReservedMappingPte->u.Hard.PageFrameNumber = MI_HYPERSPACE_PTES;
-
-    /* Setup debug mapping PTE */
-    MiMapPPEs((PVOID)MI_DEBUG_MAPPING, (PVOID)MI_DEBUG_MAPPING);
-    MiMapPDEs((PVOID)MI_DEBUG_MAPPING, (PVOID)MI_DEBUG_MAPPING);
-    MmDebugPte = MiAddressToPte((PVOID)MI_DEBUG_MAPPING);
 
     /* Setup PDE and PTEs for VAD bitmap and working set list */
     MiMapPDEs((PVOID)MI_VAD_BITMAP, (PVOID)(MI_WORKING_SET_LIST + PAGE_SIZE - 1));
@@ -392,17 +413,17 @@ MiBuildNonPagedPool(VOID)
     }
 
     /* Don't let the maximum go too high */
-    if (MmMaximumNonPagedPoolInBytes > MI_MAX_NONPAGED_POOL_SIZE)
+    if (MmMaximumNonPagedPoolInBytes > MiSystemVaRegions[AssignedRegionNonPagedPool].NumberOfBytes)
     {
         /* Set it to the upper limit */
-        MmMaximumNonPagedPoolInBytes = MI_MAX_NONPAGED_POOL_SIZE;
+        MmMaximumNonPagedPoolInBytes = MiSystemVaRegions[AssignedRegionNonPagedPool].NumberOfBytes;
     }
 
     /* Convert nonpaged pool size from bytes to pages */
     MmMaximumNonPagedPoolInPages = MmMaximumNonPagedPoolInBytes >> PAGE_SHIFT;
 
-    /* Non paged pool starts after the PFN database */
-    MmNonPagedPoolStart = MmPfnDatabase + MxPfnAllocation * PAGE_SIZE;
+    /* Get non paged pool start address */
+    MmNonPagedPoolStart = MiSystemVaRegions[AssignedRegionNonPagedPool].BaseAddress;
 
     /* Calculate the nonpaged pool expansion start region */
     MmNonPagedPoolExpansionStart = (PCHAR)MmNonPagedPoolStart +
@@ -439,13 +460,13 @@ MiBuildSystemPteSpace(VOID)
     NonPagedSystemSize = (MmNumberOfSystemPtes + 1) * PAGE_SIZE;
 
     /* Put system PTEs at the start of the system VA space */
-    MiSystemPteSpaceStart = MmNonPagedSystemStart;
+    MiSystemPteSpaceStart = MiSystemVaRegions[AssignedRegionSystemPtes].BaseAddress;
     MiSystemPteSpaceEnd = (PUCHAR)MiSystemPteSpaceStart + NonPagedSystemSize;
 
     /* Map the PPEs and PDEs for the system PTEs */
     MiMapPPEs(MiSystemPteSpaceStart, MiSystemPteSpaceEnd);
     MiMapPDEs(MiSystemPteSpaceStart, MiSystemPteSpaceEnd);
-
+    //__debugbreak();
     /* Initialize the system PTE space */
     PointerPte = MiAddressToPte(MiSystemPteSpaceStart);
     MiInitializeSystemPtes(PointerPte, MmNumberOfSystemPtes, SystemPteSpace);
@@ -457,6 +478,10 @@ MiBuildSystemPteSpace(VOID)
 
     /* Set the counter to maximum */
     MiFirstReservedZeroingPte->u.Hard.PageFrameNumber = MI_ZERO_PTES;
+
+    /* Allocate the debug PTE from system PTEs */
+    MmDebugPte = MiReserveSystemPtes(1, SystemPteSpace);
+    MiDebugMapping = MiPteToAddress(MmDebugPte);
 }
 
 static
@@ -756,8 +781,8 @@ MiInitMachineDependent(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 
     /* Set some hardcoded addresses */
     MmHyperSpaceEnd = (PVOID)HYPER_SPACE_END;
-    MmNonPagedSystemStart = (PVOID)MM_SYSTEM_SPACE_START;
-    MmPfnDatabase = (PVOID)MI_PFN_DATABASE;
+    //MmNonPagedSystemStart = (PVOID)MM_SYSTEM_SPACE_START;
+    MmPfnDatabase = MiSystemVaRegions[AssignedRegionPfnDatabase].BaseAddress;
     MmWorkingSetList = (PVOID)MI_WORKING_SET_LIST;
 
 #ifdef _GLOBAL_PAGES_ARE_AWESOME_
@@ -782,6 +807,8 @@ MiInitMachineDependent(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
     MiBuildNonPagedPool();
 
     MiBuildSystemPteSpace();
+
+    MiInitializeStackAllocator();
 
     /* Map the PFN database pages */
     MiBuildPfnDatabase(LoaderBlock);
@@ -824,7 +851,7 @@ MiInitMachineDependent(IN PLOADER_PARAMETER_BLOCK LoaderBlock)
 
     /* Make sure we have everything we need */
     ASSERT(MmPfnDatabase);
-    ASSERT(MmNonPagedSystemStart);
+    //ASSERT(MmNonPagedSystemStart);
     ASSERT(MmNonPagedPoolStart);
     ASSERT(MmSizeOfNonPagedPoolInBytes);
     ASSERT(MmMaximumNonPagedPoolInBytes);
