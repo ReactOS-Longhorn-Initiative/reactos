@@ -24,6 +24,7 @@ list(APPEND SOURCE
     interface.c
     misc.c
     parser.c
+    prop.c
     query.c
     queue.c
     setupcab.c
