@@ -11,7 +11,6 @@
 #define NDEBUG
 #include <debug.h>
 
-#define LEGACY_STREAMING
 
 class CPortPinWaveRT : public CUnknownImpl<IPortPinWaveRT>
 {
@@ -866,6 +865,7 @@ CloseStreamRoutine(
     }
 
     DPRINT("Freeing Pin %p\n", This);
+    // Release the extra reference we added in Close() function
     This->Release();
 }
 
@@ -903,6 +903,9 @@ CPortPinWaveRT::Close(
 
         Ctx->Irp = Irp;
         Ctx->Pin = this;
+
+        // Add reference to keep the pin object alive while work item is pending
+        this->AddRef();
 
         IoMarkIrpPending(Irp);
         Irp->IoStatus.Information = 0;

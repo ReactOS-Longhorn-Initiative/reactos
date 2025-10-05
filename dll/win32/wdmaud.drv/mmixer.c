@@ -20,7 +20,6 @@
 #include <debug.h>
 #include <mmebuddy_debug.h>
 
-#define LEGACY_STREAMING
 BOOL MMixerLibraryInitialized = FALSE;
 
 
