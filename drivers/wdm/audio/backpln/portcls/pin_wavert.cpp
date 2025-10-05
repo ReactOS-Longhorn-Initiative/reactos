@@ -749,7 +749,17 @@ CloseStreamRoutine(
 
     This = (CPortPinWaveRT*)Ctx->Pin;
 
+    // Safety check - ensure the pin object is still valid
+    if (!This || !((PVOID*)This)[0]) // Check if vtable is null
+    {
+        DPRINT("CloseStreamRoutine: Invalid pin object %p\n", This);
+        goto cleanup;
+    }
+
     DPRINT("CloseStreamRoutine entered Irql %u\n", KeGetCurrentIrql());
+
+    if (!This) goto cleanup;
+
 #ifdef LEGACY_STREAMING
     if (This->m_Worker)
     {
@@ -788,6 +798,8 @@ CloseStreamRoutine(
         }
     }
 
+    if (!This) goto cleanup;
+
     if (This->m_StreamNotification)
     {
 #ifdef LEGACY_STREAMING
@@ -823,6 +835,8 @@ CloseStreamRoutine(
         This->m_StreamNotification->Release();
     }
 
+    if (!This) goto cleanup;
+
     Status = This->m_Port->QueryInterface(IID_ISubdevice, (PVOID*)&ISubDevice);
     if (NT_SUCCESS(Status))
     {
@@ -834,17 +848,37 @@ CloseStreamRoutine(
         ISubDevice->Release();
     }
 
+    if (!This) goto cleanup;
+
     if (This->m_Format)
     {
         FreeItem(This->m_Format, TAG_PORTCLASS);
         This->m_Format = NULL;
     }
 
-    if (This->m_IrpQueue)
+    if (!This) goto cleanup;
+
+    if (This)
     {
-        This->m_IrpQueue->Release();
+        if (This->m_IrpQueue)
+        {
+            This->m_IrpQueue->Release();
+        }
+
+        if (This->m_Stream)
+        {
+            Stream = This->m_Stream;
+            This->m_Stream = NULL;
+            DPRINT("Closing stream at Irql %u\n", KeGetCurrentIrql());
+            Stream->Release();
+        }
+
+        DPRINT("Freeing Pin %p\n", This);
+        // Release the extra reference we added in Close() function
+        This->Release();
     }
 
+cleanup:
     // complete the irp
     Ctx->Irp->IoStatus.Information = 0;
     Ctx->Irp->IoStatus.Status = STATUS_SUCCESS;
@@ -856,17 +890,7 @@ CloseStreamRoutine(
     // free work item ctx
     FreeItem(Ctx, TAG_PORTCLASS);
 
-    if (This->m_Stream)
-    {
-        Stream = This->m_Stream;
-        This->m_Stream = NULL;
-        DPRINT("Closing stream at Irql %u\n", KeGetCurrentIrql());
-        Stream->Release();
-    }
-
-    DPRINT("Freeing Pin %p\n", This);
-    // Release the extra reference we added in Close() function
-    This->Release();
+    return;
 }
 
 NTSTATUS
