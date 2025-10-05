@@ -127,7 +127,6 @@ AddReg=Classes
 11,wbem,wbemprox.dll,1
 11,,shellbtrfs.dll,1
 11,,zipfldr.dll,1
-11,,qedit.dll,1
 11,,dsound.dll,1
 
 [TypeLibraries]
