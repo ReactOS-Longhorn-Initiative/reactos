@@ -1127,36 +1127,35 @@ typedef struct _PROC_THREAD_ATTRIBUTE_LIST *PPROC_THREAD_ATTRIBUTE_LIST, *LPPROC
 #define PROC_THREAD_ATTRIBUTE_INPUT 0x00020000
 #define PROC_THREAD_ATTRIBUTE_ADDITIVE 0x00040000
 
-typedef enum _PROC_THREAD_ATTRIBUTE_NUM
-{
-    ProcThreadAttributeParentProcess = 0,
-    ProcThreadAttributeExtendedFlags = 1,
-    ProcThreadAttributeHandleList = 2,
-    ProcThreadAttributeGroupAffinity = 3,
-    ProcThreadAttributePreferredNode = 4,
-    ProcThreadAttributeIdealProcessor = 5,
-    ProcThreadAttributeUmsThread = 6,
-    ProcThreadAttributeMitigationPolicy = 7,
-    ProcThreadAttributeSecurityCapabilities = 9,
-    ProcThreadAttributeProtectionLevel = 11,
-    ProcThreadAttributeJobList = 13,
-    ProcThreadAttributeChildProcessPolicy = 14,
-    ProcThreadAttributeAllApplicationPackagesPolicy = 15,
-    ProcThreadAttributeWin32kFilter = 16,
-    ProcThreadAttributeSafeOpenPromptOriginClaim = 17,
-    ProcThreadAttributeDesktopAppPolicy = 18,
-    ProcThreadAttributePseudoConsole = 22,
-    ProcThreadAttributeMitigationAuditPolicy = 24,
-    ProcThreadAttributeMachineType = 25,
-    ProcThreadAttributeComponentFilter = 26,
-    ProcThreadAttributeEnableOptionalXStateFeatures = 27,
-    ProcThreadAttributeTrustedApp = 29,
+typedef enum _PROC_THREAD_ATTRIBUTE_NUM {
+  ProcThreadAttributeParentProcess = 0,
+  ProcThreadAttributeExtendedFlags = 1,
+  ProcThreadAttributeHandleList = 2,
+  ProcThreadAttributeGroupAffinity = 3,
+  ProcThreadAttributePreferredNode = 4,
+  ProcThreadAttributeIdealProcessor = 5,
+  ProcThreadAttributeUmsThread = 6,
+  ProcThreadAttributeMitigationPolicy = 7,
+  ProcThreadAttributeSecurityCapabilities = 9,
+  ProcThreadAttributeProtectionLevel = 11,
+  ProcThreadAttributeJobList = 13,
+  ProcThreadAttributeChildProcessPolicy = 14,
+  ProcThreadAttributeAllApplicationPackagesPolicy = 15,
+  ProcThreadAttributeWin32kFilter = 16,
+  ProcThreadAttributeSafeOpenPromptOriginClaim = 17,
+  ProcThreadAttributeDesktopAppPolicy = 18,
+  ProcThreadAttributePseudoConsole = 22,
+  ProcThreadAttributeMitigationAuditPolicy = 24,
+  ProcThreadAttributeMachineType = 25,
+  ProcThreadAttributeComponentFilter = 26,
+  ProcThreadAttributeEnableOptionalXStateFeatures = 27,
+  ProcThreadAttributeTrustedApp = 29,
+  ProcThreadAttributeSveVectorLength = 30,
 } PROC_THREAD_ATTRIBUTE_NUM;
 
 
 #define PROC_THREAD_ATTRIBUTE_PARENT_PROCESS (ProcThreadAttributeParentProcess | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_EXTENDED_FLAGS (ProcThreadAttributeExtendedFlags | PROC_THREAD_ATTRIBUTE_INPUT | PROC_THREAD_ATTRIBUTE_ADDITIVE)
-#define PROC_THREAD_ATTRIBUTE_HANDLE_LIST (ProcThreadAttributeHandleList | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_GROUP_AFFINITY (ProcThreadAttributeGroupAffinity | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_PREFERRED_NODE (ProcThreadAttributePreferredNode | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_IDEAL_PROCESSOR (ProcThreadAttributeIdealProcessor | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
@@ -1171,6 +1170,7 @@ typedef enum _PROC_THREAD_ATTRIBUTE_NUM
 #define PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY (ProcThreadAttributeDesktopAppPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE (ProcThreadAttributePseudoConsole | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_MITIGATION_AUDIT_POLICY (ProcThreadAttributeMitigationAuditPolicy | PROC_THREAD_ATTRIBUTE_INPUT)
+#define PROC_THREAD_ATTRIBUTE_HANDLE_LIST (ProcThreadAttributeHandleList | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_MACHINE_TYPE (ProcThreadAttributeMachineType | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_COMPONENT_FILTER (ProcThreadAttributeComponentFilter | PROC_THREAD_ATTRIBUTE_INPUT)
 #define PROC_THREAD_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES (ProcThreadAttributeEnableOptionalXStateFeatures | PROC_THREAD_ATTRIBUTE_THREAD | PROC_THREAD_ATTRIBUTE_INPUT)
@@ -2231,9 +2231,9 @@ BOOL WINAPI GetThreadPriorityBoost(HANDLE,PBOOL);
 BOOL WINAPI GetThreadSelectorEntry(_In_ HANDLE, _In_ DWORD, _Out_ LPLDT_ENTRY);
 BOOL WINAPI GetThreadTimes(HANDLE,LPFILETIME,LPFILETIME,LPFILETIME,LPFILETIME);
 DWORD WINAPI GetTickCount(VOID);
-// Vista+
+#if 1//(_WIN32_WINNT >= 0x0600)
 ULONGLONG WINAPI GetTickCount64(VOID);
-
+#endif
 DWORD WINAPI GetThreadId(HANDLE);
 DWORD WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION);
 BOOL WINAPI GetTokenInformation(HANDLE,TOKEN_INFORMATION_CLASS,PVOID,DWORD,PDWORD);
@@ -3675,23 +3675,6 @@ typedef BOOL
   _Inout_ PINIT_ONCE InitOnce,
   _Inout_opt_ PVOID Parameter,
   _Outptr_opt_result_maybenull_ PVOID *Context);
-
-typedef struct _REASON_CONTEXT
-{
-    ULONG Version;
-    DWORD Flags;
-    union
-    {
-        struct
-        {
-            HMODULE LocalizedReasonModule;
-            ULONG LocalizedReasonId;
-            ULONG ReasonStringCount;
-            LPWSTR *ReasonStrings;
-        } Detailed;
-        LPWSTR SimpleReasonString;
-    } Reason;
-} REASON_CONTEXT, *PREASON_CONTEXT;
 
 #define RESOURCE_ENUM_LN          0x0001
 #define RESOURCE_ENUM_MUI         0x0002

@@ -2483,8 +2483,8 @@
 @ cdecl lrint(double)
 @ cdecl lrintf(float)
 @ cdecl lrintl(double) lrint
-@ cdecl -stub lround(double)
-@ cdecl -stub lroundf(float)
+@ cdecl lround(double)
+@ cdecl lroundf(float)
 @ cdecl lroundl(double) lround
 @ cdecl malloc(long)
 @ cdecl mblen(ptr long)
@@ -2623,8 +2623,8 @@
 @ cdecl towctrans(long long)
 @ cdecl towlower(long)
 @ cdecl towupper(long)
-@ cdecl -stub trunc(double)
-@ cdecl -stub truncf(float)
+@ cdecl trunc(double)
+@ cdecl truncf(float)
 @ cdecl truncl(double) trunc
 @ stub unexpected
 @ cdecl ungetc(long ptr)

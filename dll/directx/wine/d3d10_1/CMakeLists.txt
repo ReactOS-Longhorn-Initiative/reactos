@@ -2,7 +2,7 @@
 add_definitions(
     -D__WINESRC__)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/psdk)
 
 spec2def(d3d10_1.dll d3d10_1.spec ADD_IMPORTLIB)

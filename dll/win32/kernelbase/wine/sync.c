@@ -496,16 +496,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitForDebugEventEx( DEBUG_EVENT *event, DWORD tim
     }
 #endif
 }
-#ifdef __REACTOS__
-NTSTATUS 
-WINAPI 
-RtlWaitOnAddress( 
-	const void *addr, 
-	const void *cmp, 
-	SIZE_T size,
-    const LARGE_INTEGER *timeout 
-);
-#endif
+
 /***********************************************************************
  *           WaitOnAddress   (kernelbase.@)
  */

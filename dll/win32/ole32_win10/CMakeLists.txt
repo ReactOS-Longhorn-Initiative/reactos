@@ -1,6 +1,6 @@
 
 remove_definitions(-D_CRT_NON_CONFORMING_SWPRINTFS)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(ole32_win10.dll ole32_win10.spec ADD_IMPORTLIB)
 add_idl_headers(combase_idlheader dcom.idl)
 add_rpc_files(client irpcss.idl)

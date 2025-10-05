@@ -6,7 +6,7 @@ add_definitions(
     -Dstrdup=_strdup
     -DUSE_WIN32_OPENGL)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/psdk)
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/lib/vkd3d/include)
 

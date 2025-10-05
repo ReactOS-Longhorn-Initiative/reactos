@@ -8,7 +8,7 @@ add_definitions(
     -D_WINE
     )
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(bcryptprimitives.dll bcryptprimitives.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE

@@ -246,6 +246,10 @@ static NTSTATUS create_key( HKEY *retkey, ACCESS_MASK access, const OBJECT_ATTRI
 
 static HKEY classes_root_hkey;
 
+#ifndef RTL_CONSTANT_STRING
+#define RTL_CONSTANT_STRING(s)  { sizeof(s)-sizeof((s)[0]), sizeof(s), s }
+#endif
+
 /* create the special HKEY_CLASSES_ROOT key */
 static HKEY create_classes_root_hkey(DWORD access)
 {

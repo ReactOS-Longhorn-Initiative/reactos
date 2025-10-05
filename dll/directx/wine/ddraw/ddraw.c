@@ -23,7 +23,7 @@
 
 #include "ddraw_private.h"
 #include "ddrawi.h"
-#include "d3dhal.h"
+#include "../../../../sdk/include/psdk/d3dhal.h"
 
 #include "wine/exception.h"
 

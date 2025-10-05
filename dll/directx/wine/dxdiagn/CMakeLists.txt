@@ -3,7 +3,7 @@ add_definitions(
     -Dwcsicmp=_wcsicmp
     -Dwcsnicmp=_wcsnicmp
     -Dswprintf=_swprintf)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(dxdiagn.dll dxdiagn.spec)
 
 list(APPEND SOURCE

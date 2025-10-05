@@ -1,6 +1,6 @@
 
 add_definitions(-D__WINESRC__)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(mf.dll mf.spec ADD_IMPORTLIBS)
 
 list(APPEND SOURCE

@@ -2,7 +2,7 @@
 add_definitions(
     -D__WINESRC__)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/psdk)
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/lib/vkd3d/include)
 spec2def(dxva2.dll dxva2.spec ADD_IMPORTLIB)

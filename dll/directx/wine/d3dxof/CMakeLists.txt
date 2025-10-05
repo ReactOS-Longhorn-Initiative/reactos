@@ -1,7 +1,7 @@
 
 
 add_definitions(-D__WINESRC__ -D__ROS_LONG64__ -Dstricmp=_stricmp)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(d3dxof.dll d3dxof.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE

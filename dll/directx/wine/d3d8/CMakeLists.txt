@@ -4,7 +4,7 @@ add_definitions(
     -D__ROS_LONG64__
     -DUSE_WIN32_OPENGL)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(d3d8.dll d3d8.spec)
 
 list(APPEND SOURCE

@@ -7,6 +7,9 @@
 #define RtlReleasePath( path ) RtlFreeHeap( GetProcessHeap(), 0, path );
 #endif
 #define IMAGE_FILE_MACHINE_TARGET_HOST       0x0001 
+#ifndef RTL_CONSTANT_STRING
+#define RTL_CONSTANT_STRING(s)  { sizeof(s)-sizeof((s)[0]), sizeof(s), s }
+#endif
  
 //def ndk
 NTSYSAPI
@@ -28,12 +31,8 @@ NTSYSAPI NTSTATUS  WINAPI LdrRemoveDllDirectory(void*);
 #define SYMBOLIC_LINK_ALL_ACCESS        (STANDARD_RIGHTS_REQUIRED | 0x1)
 
 //kernel32
- BOOL WINAPI DECLSPEC_HOTPATCH GetThreadGroupAffinity( HANDLE thread, GROUP_AFFINITY *affinity );
+BOOL WINAPI DECLSPEC_HOTPATCH GetThreadGroupAffinity( HANDLE thread, GROUP_AFFINITY *affinity );
 
-typedef struct _THREAD_NAME_INFORMATION
-{
-    UNICODE_STRING ThreadName;
-} THREAD_NAME_INFORMATION, *PTHREAD_NAME_INFORMATION;
 
 HANDLE WINAPI DECLSPEC_HOTPATCH CreateRemoteThreadEx( HANDLE process, SECURITY_ATTRIBUTES *sa,
                                                       SIZE_T stack, LPTHREAD_START_ROUTINE start,
@@ -58,37 +57,6 @@ HRESULT WINAPI GetAcceptLanguagesW(WCHAR *langbuf, DWORD *buflen);
 BOOL WINAPI GetWindowsAccountDomainSid( PSID sid, PSID domain_sid, DWORD *size );
 //rtl types
 //rtl
-NTSTATUS
-NTAPI
-RtlNewSecurityObjectEx(IN PSECURITY_DESCRIPTOR ParentDescriptor,
-                       IN PSECURITY_DESCRIPTOR CreatorDescriptor,
-                       OUT PSECURITY_DESCRIPTOR *NewDescriptor,
-                       IN LPGUID ObjectType,
-                       IN BOOLEAN IsDirectoryObject,
-                       IN ULONG AutoInheritFlags,
-                       IN HANDLE Token,
-                       IN PGENERIC_MAPPING GenericMapping);
-
-NTSTATUS
-NTAPI
-RtlNewSecurityObjectWithMultipleInheritance(IN PSECURITY_DESCRIPTOR ParentDescriptor,
-                                            IN PSECURITY_DESCRIPTOR CreatorDescriptor,
-                                            OUT PSECURITY_DESCRIPTOR *NewDescriptor,
-                                            IN LPGUID *ObjectTypes,
-                                            IN ULONG GuidCount,
-                                            IN BOOLEAN IsDirectoryObject,
-                                            IN ULONG AutoInheritFlags,
-                                            IN HANDLE Token,
-                                            IN PGENERIC_MAPPING GenericMapping);
-NTSTATUS
-NTAPI
-RtlConvertToAutoInheritSecurityObject(IN PSECURITY_DESCRIPTOR ParentDescriptor,
-                                      IN PSECURITY_DESCRIPTOR CreatorDescriptor,
-                                      OUT PSECURITY_DESCRIPTOR *NewDescriptor,
-                                      IN LPGUID ObjectType,
-                                      IN BOOLEAN IsDirectoryObject,
-                                      IN PGENERIC_MAPPING GenericMapping);
-
 BOOL WINAPI DECLSPEC_HOTPATCH QueryFullProcessImageNameW( HANDLE process, DWORD flags,
                                                           WCHAR *name, DWORD *size );
 
@@ -158,19 +126,6 @@ typedef enum _PROCESS_MITIGATION_POLICY
 } PROCESS_MITIGATION_POLICY, *PPROCESS_MITIGATION_POLICY;
 
 
-#define ProcessMemoryPriority 0
-#define ProcessPowerThrottling 77
-#define ProcessLeapSecondInfo 97
 
-typedef struct _CONTEXT_CHUNK {
-  LONG Offset;
-  ULONG Length;
-} CONTEXT_CHUNK, *PCONTEXT_CHUNK;
-
-typedef struct _CONTEXT_EX {
-  CONTEXT_CHUNK All;
-  CONTEXT_CHUNK Legacy;
-  CONTEXT_CHUNK XState;
-} CONTEXT_EX, *PCONTEXT_EX;
 #define STATUS_NOT_SUPPORTED                    ((NTSTATUS)0xC00000BB)
-NTSTATUS NTAPI RtlCopyContext( CONTEXT *dst, DWORD context_flags, CONTEXT *src );
+

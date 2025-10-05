@@ -501,7 +501,7 @@
 861 stub -noname -version=0x601+ SHDisplayNameFromScopeAndSubQueries
 862 stub -noname -version=0x600+ SHCompareIDsFull
 863 stub -noname -version=0x600+ GetTryHarderIDList
-866 stub -noname -version=0x600+ SHExtCoCreateInstance
+866 stdcall -noname -version=0x600+ SHExtCoCreateInstance(wstr ptr ptr ptr ptr)
 867 stub -noname -version=0x600+ CreateVisibleInDescription
 868 stub -noname -version=0x600+ CreateVisibleInList
 870 stub -noname -version=0x600+ DUI_Shell32_StartDeferUninitialization

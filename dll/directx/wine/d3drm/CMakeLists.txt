@@ -1,6 +1,6 @@
 
 add_definitions(-D__WINESRC__ -D__ROS_LONG64__)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(d3drm.dll d3drm.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE

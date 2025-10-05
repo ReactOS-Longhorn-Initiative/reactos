@@ -6,7 +6,7 @@ add_definitions(-D__WINESRC__
 				-Dwcsnicmp=_wcsnicmp)
 remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
 add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
-include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/wine)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/psdk)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/lib/3rdparty/freetype/include)
 spec2def(dwrite.dll dwrite.spec ADD_IMPORTLIB)

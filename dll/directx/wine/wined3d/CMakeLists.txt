@@ -10,7 +10,7 @@ add_definitions(
     -Dputenv=_putenv
     -Dstricmp=_stricmp)
 
-include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/wine)
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/lib/vkd3d/include)
 
 # We name this d3dwine.dll, because the Virtualbox additions ship with a custom wined3d.dll

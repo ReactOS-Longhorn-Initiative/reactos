@@ -1,7 +1,7 @@
 
 add_definitions(-D__WINESRC__)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(qcap.dll qcap.spec)
 
 list(APPEND SOURCE

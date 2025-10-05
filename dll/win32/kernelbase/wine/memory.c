@@ -1593,9 +1593,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH QueryVirtualMemoryInformation( HANDLE process, con
  * CPU functions
  ***********************************************************************/
 
-NTSTATUS NTAPI RtlGetExtendedContextLength2( ULONG context_flags, ULONG *length, ULONG64 compaction_mask );
-NTSTATUS NTAPI RtlInitializeExtendedContext2( void *context, ULONG context_flags, CONTEXT_EX **context_ex,
-        ULONG64 compaction_mask );
+
 
 /***********************************************************************
  *             InitializeContext2         (kernelbase.@)
@@ -1656,21 +1654,7 @@ BOOL WINAPI CopyContext( CONTEXT *dst, DWORD context_flags, CONTEXT *src )
 
 
 #if defined(__x86_64__)
-#ifdef __REACTOS__
-ULONG64
-NTAPI
-RtlGetEnabledExtendedFeatures(
-  IN ULONG64 FeatureMask);
 
-void * NTAPI RtlLocateExtendedFeature2( CONTEXT_EX *context_ex, ULONG feature_id,
-        XSTATE_CONFIGURATION *xstate_config, ULONG *length );
-#define CONTEXT_XSTATE (CONTEXT_AMD64 | 0x40L)
-
-void * NTAPI RtlLocateExtendedFeature( CONTEXT_EX *context_ex, ULONG feature_id,
-        ULONG *length );
-void NTAPI RtlSetExtendedFeaturesMask( CONTEXT_EX *context_ex, ULONG64 feature_mask );
-ULONG64 WINAPI RtlGetExtendedFeaturesMask( CONTEXT_EX *context_ex );
-#endif
 
 /***********************************************************************
  *             GetEnabledXStateFeatures   (kernelbase.@)
@@ -1743,19 +1727,7 @@ BOOL WINAPI GetXStateFeaturesMask( CONTEXT *context, DWORD64 *feature_mask )
 }
 
 #elif defined(__i386__)
-ULONG64
-NTAPI
-RtlGetEnabledExtendedFeatures(
-  IN ULONG64 FeatureMask);
 
-  #define CONTEXT_XSTATE          (CONTEXT_i386 | 0x00000040L)
-void * NTAPI RtlLocateExtendedFeature2( CONTEXT_EX *context_ex, ULONG feature_id,
-        XSTATE_CONFIGURATION *xstate_config, ULONG *length );
- 
-void * NTAPI RtlLocateExtendedFeature( CONTEXT_EX *context_ex, ULONG feature_id,
-        ULONG *length );
-void NTAPI RtlSetExtendedFeaturesMask( CONTEXT_EX *context_ex, ULONG64 feature_mask );
-ULONG64 WINAPI RtlGetExtendedFeaturesMask( CONTEXT_EX *context_ex );
 /***********************************************************************
  *             GetEnabledXStateFeatures   (kernelbase.@)
  */

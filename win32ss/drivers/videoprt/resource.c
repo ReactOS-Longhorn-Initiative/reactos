@@ -429,12 +429,20 @@ IntVideoPortMapMemory(
             &DeviceExtension->AddressMappingListHead,
             &AddressMapping->List);
       }
+      
 
-      return MappedAddress;
-   }
 
    if (Status)
       *Status = NO_ERROR;
+
+      return MappedAddress;
+   }
+    else
+   {
+    __debugbreak();
+        if (Status) *Status = ERROR_INVALID_PARAMETER;
+        return NULL;
+   }
 
    return NULL;
 }

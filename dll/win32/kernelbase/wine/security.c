@@ -1439,6 +1439,13 @@ BOOL WINAPI IsValidAcl( PACL acl )
     return RtlValidAcl( acl );
 }
 
+extern NTSYSAPI
+VOID
+NTAPI
+RtlMapGenericMask(
+    PACCESS_MASK AccessMask,
+    PGENERIC_MAPPING GenericMapping
+);
 /******************************************************************************
  * MapGenericMask    (kernelbase.@)
  */

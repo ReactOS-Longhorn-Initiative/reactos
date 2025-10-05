@@ -31,6 +31,10 @@
 
 #include "wine/debug.h"
 
+#ifndef RTL_CONSTANT_STRING
+#define RTL_CONSTANT_STRING(s)  { sizeof(s)-sizeof((s)[0]), sizeof(s), s }
+#endif
+
 WINE_DEFAULT_DEBUG_CHANNEL(ole);
 
 HINSTANCE hProxyDll;

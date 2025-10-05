@@ -142,8 +142,8 @@ UserSetCursor(
                 CursorFrame = ((PACON)NewCursor)->aspcur[0];
             }
             GreSetPointerShape(hdcScreen,
-                               CursorFrame->hbmAlpha ? NULL : NewCursor->hbmMask,
-                               CursorFrame->hbmAlpha ? NewCursor->hbmAlpha : NewCursor->hbmColor,
+                               CursorFrame->hbmAlpha ? NULL : CursorFrame->hbmMask,
+                               CursorFrame->hbmAlpha ? CursorFrame->hbmAlpha : CursorFrame->hbmColor,
                                CursorFrame->xHotspot,
                                CursorFrame->yHotspot,
                                gpsi->ptCursor.x,

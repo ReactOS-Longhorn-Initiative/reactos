@@ -6,7 +6,7 @@ add_definitions(
     -Dstricmp=_stricmp
     -DDIRECT3D_VERSION=0x0900)
 
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
+include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(d3dcompiler_47.dll d3dcompiler_47.spec ADD_IMPORTLIB)
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/lib/vkd3d/include)
 include_directories(${REACTOS_SOURCE_DIR}/dll/directx/wine/d3dcompiler_43/)
