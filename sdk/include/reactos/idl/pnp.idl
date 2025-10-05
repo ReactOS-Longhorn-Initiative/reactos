@@ -247,10 +247,13 @@ typedef struct _PNP_CONFLICT_STRINGS {
     WCHAR DeviceInstanceStrings[1];
 } PNP_CONFLICT_STRINGS, *PPNP_CONFLICT_STRINGS;
 
+#ifndef DEVPROPKEY_DEFINED
+#define DEVPROPKEY_DEFINED
 typedef struct _DEVPROPKEY {
     GUID fmtid;
     DWORD pid;
 } DEVPROPKEY;
+#endif
 
 [
   uuid (8D9F4E40-A03D-11CE-8F69-08003E30051B),
