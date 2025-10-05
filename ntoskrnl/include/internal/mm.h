@@ -453,6 +453,12 @@ typedef struct _MMPFN
     MMWSLE Wsle;
     struct _MMPFN* NextLRU;
     struct _MMPFN* PreviousLRU;
+    struct
+    {
+        ULONG IsStackPfn : 1;
+        ULONG Level : 3;
+    } Dbg1;
+
 } MMPFN, *PMMPFN;
 
 extern PMMPFN MmPfnDatabase;
