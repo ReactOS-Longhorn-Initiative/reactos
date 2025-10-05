@@ -608,6 +608,7 @@
 @ stub GetNamedLocaleHashNode
 @ stub GetNamedPipeAttribute
 @ stub GetNamedPipeClientComputerNameW
+@ stdcall -version=0x600+ GetNamedPipeClientProcessId(ptr ptr)
 @ stdcall GetNamedPipeHandleStateW(long ptr ptr ptr ptr ptr long)
 @ stdcall GetNamedPipeInfo(long ptr ptr ptr ptr)
 @ stdcall GetNativeSystemInfo(ptr)

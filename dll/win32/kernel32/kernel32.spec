@@ -561,7 +561,7 @@
 @ stub -version=0x600+ GetNamedPipeAttribute
 @ stub -version=0x600+ GetNamedPipeClientComputerNameA
 @ stub -version=0x600+ GetNamedPipeClientComputerNameW
-@ stdcall -version=0x600+ -stub GetNamedPipeClientProcessId(long ptr)
+@ stdcall -version=0x600+ GetNamedPipeClientProcessId(ptr ptr) kernelbase.GetNamedPipeClientProcessId
 @ stdcall -version=0x600+ -stub GetNamedPipeClientSessionId(long ptr)
 @ stdcall GetNamedPipeHandleStateA(long ptr ptr ptr ptr str long) kernelbase.GetNamedPipeHandleStateA
 @ stdcall GetNamedPipeHandleStateW(long ptr ptr ptr ptr wstr long) kernelbase.GetNamedPipeHandleStateW
