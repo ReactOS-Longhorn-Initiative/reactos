@@ -2324,65 +2324,9 @@ EngReleaseSemaphore(
 
 #if defined(_M_AMD64) && (NTDDI_VERSION >= NTDDI_VISTA)
 
-_Check_return_
-_Success_(return)
-_Kernel_float_restored_
-_At_(*pBuffer, _Kernel_requires_resource_held_(EngFloatState)
-               _Kernel_releases_resource_(EngFloatState))
-ENGAPI
-BOOL
-APIENTRY
-EngRestoreFloatingPointState(
-    _In_reads_(_Inexpressible_(statesize))
-    PVOID pBuffer)
-{
-    UNREFERENCED_PARAMETER(pBuffer);
-    return TRUE;
-}
-
-_Check_return_
-_Success_(((pBuffer != NULL && cjBufferSize != 0) && return == 1) ||
-          ((pBuffer == NULL || cjBufferSize == 0) && return > 0))
-_When_(pBuffer != NULL && cjBufferSize != 0 && return == 1, _Kernel_float_saved_
-    _At_(*pBuffer, _Post_valid_ _Kernel_acquires_resource_(EngFloatState)))
-_On_failure_(_Post_satisfies_(return == 0))
-ENGAPI
-ULONG
-APIENTRY
-EngSaveFloatingPointState(
-    _At_(*pBuffer, _Kernel_requires_resource_not_held_(EngFloatState))
-    _Out_writes_bytes_opt_(cjBufferSize) PVOID pBuffer,
-    _Inout_ ULONG cjBufferSize)
-{
-    return ((((pBuffer) == NULL) || ((cjBufferSize) == 0)) ? 8 : TRUE);
-}
 
 #else /* !(defined(_M_AMD64) && (NTDDI_VERSION >= NTDDI_VISTA)) */
 
-_Check_return_
-_Success_(return)
-_Kernel_float_restored_
-_At_(*pBuffer, _Kernel_requires_resource_held_(EngFloatState)
-               _Kernel_releases_resource_(EngFloatState))
-ENGAPI
-BOOL
-APIENTRY
-EngRestoreFloatingPointState(
-    _In_reads_(_Inexpressible_(statesize)) PVOID pBuffer);
-
-_Check_return_
-_Success_(((pBuffer != NULL && cjBufferSize != 0) && return == 1) ||
-          ((pBuffer == NULL || cjBufferSize == 0) && return > 0))
-_When_(pBuffer != NULL && cjBufferSize != 0 && return == 1, _Kernel_float_saved_
-    _At_(*pBuffer, _Post_valid_ _Kernel_acquires_resource_(EngFloatState)))
-_On_failure_(_Post_satisfies_(return == 0))
-ENGAPI
-ULONG
-APIENTRY
-EngSaveFloatingPointState(
-    _At_(*pBuffer, _Kernel_requires_resource_not_held_(EngFloatState))
-    _Out_writes_bytes_opt_(cjBufferSize) PVOID pBuffer,
-    _Inout_ ULONG cjBufferSize);
 
 
 #endif /* defined(_M_AMD64) && (NTDDI_VERSION >= NTDDI_VISTA) */

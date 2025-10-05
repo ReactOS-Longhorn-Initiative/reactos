@@ -3,6 +3,23 @@ Signature = "$Windows NT$"
 
 [AddReg]
 
+HKLM,"SYSTEM\CurrentControlSet\Services\nv","ErrorControl",0x00010001,0x00000000
+HKLM,"SYSTEM\CurrentControlSet\Services\nv","Group",0x00000000,"Video"
+HKLM,"SYSTEM\CurrentControlSet\Services\nv","ImagePath",0x00020000,"system32\drivers\VBoxWddm.sys"
+HKLM,"SYSTEM\CurrentControlSet\Services\nv","Start",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\nv","Type",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\nv","Tag",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\nv\Video","Service",0x00000000,"nv"
+HKLM,"SYSTEM\CurrentControlSet\Services\nv\Device0","InstalledDisplayDrivers",0x00010000,"cdd"
+HKLM,"SYSTEM\CurrentControlSet\Services\nv\Device0","Attach.PrimaryDevice",0x00010001,1
+HKLM,"SYSTEM\CurrentControlSet\Services\nv\Device0","Attach.ToDesktop",0x00010001,1
+
+
+
+HKLM,"SYSTEM\CurrentControlSet\Services\nv\Device0","Device Description",0x00000000,"VirtualBox Graphics Adapter (WDDM)"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_80EE&DEV_BEEF","Service",0x00000000,"nv"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_80EE&DEV_BEEF","ClassGUID",0x00000000,"{4D36E968-E325-11CE-BFC1-08002BE10318}"
+
 HKLM,"SYSTEM\CurrentControlSet\Control","CurrentUser",2,"USERNAME"
 HKLM,"SYSTEM\CurrentControlSet\Control","WaitToKillServiceTimeout",2,"20000"
 ;HKLM,"SYSTEM\CurrentControlSet\Control\Biosinfo","InfName",2,"biosinfo.inf"

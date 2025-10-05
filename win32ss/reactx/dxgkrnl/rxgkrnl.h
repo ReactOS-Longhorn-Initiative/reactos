@@ -57,6 +57,9 @@ typedef struct _RXGK_PRIVATE_EXTENSION
     KSPIN_LOCK InterruptSpinLock;
      KINTERRUPT_MODE InterruptMode;
 
+    // Display: Active VidPn handle managed by dxgkrnl
+    D3DKMDT_HVIDPN ActiveVidPn;
+
 } RXGK_PRIVATE_EXTENSION, *PRXGK_PRIVATE_EXTENSION;
 
 #include "include/rxgkport.h"

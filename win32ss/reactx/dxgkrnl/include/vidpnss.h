@@ -9,3 +9,12 @@ CALLBACK
 RxgkCbQueryVidPnInterface(_In_ const D3DKMDT_HVIDPN                             hVidPn,
                           _In_ const DXGK_VIDPN_INTERFACE_VERSION               VidPnInterfaceVersion,
                           _Outptr_ const DXGK_VIDPN_INTERFACE**                  ppVidPnInterface);
+
+/* Internal helpers to create/destroy VidPn objects (used to emulate DMM) */
+NTSTATUS
+NTAPI
+RxgkCreateVidPn(_Out_ D3DKMDT_HVIDPN* phVidPn);
+
+VOID
+NTAPI
+RxgkDestroyVidPn(_In_ D3DKMDT_HVIDPN hVidPn);

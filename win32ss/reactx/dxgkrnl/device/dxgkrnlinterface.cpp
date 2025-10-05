@@ -278,7 +278,7 @@ RxgkCbMapMemory(_In_ HANDLE DeviceHandle,
     if (InIoSpace == TRUE)
     {
         DPRINT1("Mapping InIoSpace\n");
-        *VirtualAddress = (PVOID)CompleteAddress.LowPart;
+        *VirtualAddress = (PVOID)(ULONG_PTR)CompleteAddress.QuadPart;
     }
     else if(MapToUserMode)
     {
@@ -308,7 +308,7 @@ RxgkCbMapMemory(_In_ HANDLE DeviceHandle,
     {
         DPRINT1("VirtualAddress is still NULL - reverting to fallback\n");
         //* final fallback
-          *VirtualAddress = (PVOID)CompleteAddress.LowPart;
+          *VirtualAddress = (PVOID)(ULONG_PTR)CompleteAddress.QuadPart;
         return STATUS_SUCCESS;
     }
     DPRINT1("DxgkCbMapMemory Exit\n");

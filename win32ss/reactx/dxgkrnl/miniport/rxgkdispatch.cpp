@@ -5,6 +5,7 @@
 
 extern PRXGK_PRIVATE_EXTENSION RxgkDriverExtension;
 extern DXGKRNL_INTERFACE DxgkrnlInterface;
+NTSTATUS NTAPI RxgkCreateVidPn(_Out_ D3DKMDT_HVIDPN* phVidPn);
 
 
 BOOLEAN NTAPI
@@ -158,6 +159,22 @@ RxgkStartAdapter()
                                                      &AdapterNumberOfVideoPresentSources,
                                                      &AdapterNumberOfChildren);
     DPRINT1("RxgkDriverExtension->DxgkDdiStartDevice: returned with Status %X\n", Status);
+
+    if (NT_SUCCESS(Status))
+    {
+        // Create a minimal empty VidPn handle to bootstrap VidPn flows later
+        D3DKMDT_HVIDPN hVidPn = NULL;
+        NTSTATUS VidPnStatus = RxgkCreateVidPn(&hVidPn);
+        if (NT_SUCCESS(VidPnStatus))
+        {
+            RxgkDriverExtension->ActiveVidPn = hVidPn;
+            DPRINT1("RxgkStartAdapter: Created initial VidPn handle %p\n", hVidPn);
+        }
+        else
+        {
+            DPRINT1("RxgkStartAdapter: RxgkCreateVidPn failed: %08x\n", VidPnStatus);
+        }
+    }
 
     return Status;
 }
