@@ -1,7 +1,7 @@
 
 #ifndef _MMDEVAPI_PRECOMP_H_
 #define _MMDEVAPI_PRECOMP_H_
-
+/*
 #include <stdarg.h>
 
 #define WIN32_NO_STATUS
@@ -24,5 +24,5 @@
 #include <wine/debug.h>
 
 #include "mmdevapi.h"
-
+*/
 #endif /* !_MMDEVAPI_PRECOMP_H_ */

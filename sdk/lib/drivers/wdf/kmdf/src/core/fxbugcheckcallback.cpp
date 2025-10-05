@@ -1064,12 +1064,7 @@ FX_DRIVER_TRACKER_CACHE_AWARE::Register(
                 m_Number = (ULONG)(*((CCHAR *)&KeNumberProcessors));
             }
             else {
-                //
-                // This feature is not supported for Windows 2000.
-                //
-                ASSERT(FALSE);
-                status = STATUS_NOT_SUPPORTED;
-                goto Done;
+                m_Number = (ULONG)(*((CCHAR *)&KeNumberProcessors));
             }
         }
     }
