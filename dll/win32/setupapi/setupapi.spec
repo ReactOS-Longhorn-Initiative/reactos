@@ -363,10 +363,10 @@
 @ stdcall SetupDiGetDeviceInterfaceAlias(ptr ptr ptr ptr)
 @ stdcall SetupDiGetDeviceInterfaceDetailA(long ptr ptr long ptr ptr)
 @ stdcall SetupDiGetDeviceInterfaceDetailW(long ptr ptr long ptr ptr)
-@ stub -version=0x600+ SetupDiGetDeviceInterfacePropertyKeys
-@ stub -version=0x600+ SetupDiGetDeviceInterfacePropertyW
+@ stdcall -version=0x600+ SetupDiGetDeviceInterfacePropertyKeys(ptr ptr ptr ptr long long)
+@ stdcall -version=0x600+ SetupDiGetDeviceInterfacePropertyW(ptr ptr ptr ptr ptr long long long)
 @ stub -version=0x600+ SetupDiGetDevicePropertyKeys
-@ stdcall -stub -version=0x600+ SetupDiGetDevicePropertyW(ptr ptr ptr ptr ptr long ptr long)
+@ stdcall -version=0x600+ SetupDiGetDevicePropertyW(ptr ptr ptr ptr ptr long ptr long)
 @ stdcall SetupDiGetDeviceRegistryPropertyA(long ptr long ptr ptr long ptr)
 @ stdcall SetupDiGetDeviceRegistryPropertyW(long ptr long ptr ptr long ptr)
 @ stdcall SetupDiGetDriverInfoDetailA(ptr ptr ptr ptr long ptr)
@@ -427,8 +427,8 @@
 @ stdcall SetupDiSetDeviceInstallParamsA(ptr ptr ptr)
 @ stdcall SetupDiSetDeviceInstallParamsW(ptr ptr ptr)
 @ stub SetupDiSetDeviceInterfaceDefault
-@ stub -version=0x600+ SetupDiSetDeviceInterfacePropertyW
-@ stub -version=0x600+ SetupDiSetDevicePropertyW
+@ stdcall -version=0x600+ SetupDiSetDeviceInterfacePropertyW(ptr ptr ptr ptr ptr long long)
+@ stdcall -version=0x600+ SetupDiSetDevicePropertyW(ptr ptr ptr ptr ptr long long)
 @ stdcall SetupDiSetDeviceRegistryPropertyA(ptr ptr long ptr long)
 @ stdcall SetupDiSetDeviceRegistryPropertyW(ptr ptr long ptr long)
 @ stdcall SetupDiSetDriverInstallParamsA(ptr ptr ptr ptr)
@@ -461,7 +461,7 @@
 @ stdcall SetupGetFileQueueCount(long long ptr)
 @ stdcall SetupGetFileQueueFlags(long ptr)
 @ stub -version=0x600+ SetupGetInfDriverStoreLocationA
-@ stub -version=0x600+ SetupGetInfDriverStoreLocationW
+@ stub -stub -version=0x600+ SetupGetInfDriverStoreLocationW(ptr)
 @ stdcall SetupGetInfFileListA(str long str long ptr)
 @ stdcall SetupGetInfFileListW(wstr long wstr long ptr)
 @ stdcall SetupGetInfInformationA(ptr long ptr long ptr)
@@ -689,3 +689,4 @@
 @ stub pSetupWriteLogError
 @ stub -version=0x600 pSpAddInboxDriverPackage # Vista only
 @ stub -version=0x600 pSpDeleteInboxDriverPackage # Vista only
+@ stdcall CM_Get_DevNode_PropertyW( long ptr ptr ptr ptr long)
