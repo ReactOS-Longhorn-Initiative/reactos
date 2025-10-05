@@ -1,5 +1,7 @@
-#undef NTDDI_VERSION
-#define NTDDI_VERSION NTDDI_WIN7
+#define NTDDI_VERSION NTDDI_WIN10
+SVC_(AccessCheck, 8)
+SVC_(WorkerFactoryWorkerReady, 1)
+SVC_(AcceptConnectPort, 6)
 SVC_(MapUserPhysicalPagesScatter, 3)
 SVC_(WaitForSingleObject, 3)
 SVC_(CallbackReturn, 3)
@@ -96,31 +98,29 @@ SVC_(PowerInformation, 5)
 SVC_(SetValueKey, 6)
 SVC_(CancelTimer, 2)
 SVC_(SetTimer, 7)
-SVC_(AcceptConnectPort, 6)
-SVC_(AccessCheck, 8)
 SVC_(AccessCheckByType, 11)
 SVC_(AccessCheckByTypeResultList, 11)
 SVC_(AccessCheckByTypeResultListAndAuditAlarm, 16)
 SVC_(AccessCheckByTypeResultListAndAuditAlarmByHandle, 17)
 // NtAcquireProcessActivityReference in 1709+
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(AddAtomEx, 0) // FIXME
+SVC_(AddAtomEx, 0) // FIXME
 #endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 #if (NTDDI_VERSION < NTDDI_WIN7)
-//SVC_(AcquireCMFViewOwnership, 3)
+SVC_(AcquireCMFViewOwnership, 3)
 #endif
 SVC_(AddBootEntry, 2)
 SVC_(AddDriverEntry, 2)
 #endif
 SVC_(AdjustGroupsToken, 6)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(AdjustTokenClaimsAndDeviceGroups, 0) // FIXME
+SVC_(AdjustTokenClaimsAndDeviceGroups, 0) // FIXME
 #endif
 SVC_(AlertResumeThread, 2)
 SVC_(AlertThread, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(AlertThreadByThreadId, 0) // FIXME
+SVC_(AlertThreadByThreadId, 0) // FIXME
 #endif
 SVC_(AllocateLocallyUniqueId, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN7)
@@ -136,7 +136,7 @@ SVC_(AlpcAcceptConnectPort, 9)
 SVC_(AlpcCancelMessage, 3)
 SVC_(AlpcConnectPort, 11)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(AlpcConnectPortEx, 0) // FIXME
+SVC_(AlpcConnectPortEx, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(AlpcCreatePort, 3)
 SVC_(AlpcCreatePortSection, 6)
@@ -149,7 +149,7 @@ SVC_(AlpcDeleteSectionView, 3)
 SVC_(AlpcDeleteSecurityContext, 3)
 SVC_(AlpcDisconnectPort, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(AlpcImpersonateClientContainerOfPort, 0) // FIXME
+SVC_(AlpcImpersonateClientContainerOfPort, 0) // FIXME
 #endif
 SVC_(AlpcImpersonateClientOfPort, 3)
 SVC_(AlpcOpenSenderProcess, 6)
@@ -169,7 +169,7 @@ SVC_(RequestDeviceWakeup, 0) // FIXME
 SVC_(SavepointTransaction, 0) // FIXME
 #endif*/
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(AssociateWaitCompletionPacket, 0) // FIXME
+SVC_(AssociateWaitCompletionPacket, 0) // FIXME
 #endif
 /*#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
 SVC_(CallEnclave, 0) // FIXME
@@ -179,9 +179,9 @@ SVC_(CancelIoFileEx, 3)
 SVC_(CancelSynchronousIoFile, 3)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
 #if (NTDDI_VERSION >= NTDDI_WINBLUE)
-//SVC_(CancelTimer2, 0) // FIXME
+SVC_(CancelTimer2, 0) // FIXME
 #endif
-//SVC_(CancelWaitCompletionPacket, 0) // FIXME
+SVC_(CancelWaitCompletionPacket, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CommitComplete, 2)
 SVC_(CommitEnlistment, 2)
@@ -190,7 +190,7 @@ SVC_(CommitTransaction, 2)
 #endif // (NTDDI_VERSION == NTDDI_VISTA)
 SVC_(CompactKeys, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(CompareObjects, 0) // FIXME
+SVC_(CompareObjects, 0) // FIXME
 #endif
 // NtCompareSigningLevels: 1709+
 SVC_(CompareTokens, 3)
@@ -201,7 +201,7 @@ SVC_(ConnectPort, 8)
 SVC_(CreateDebugObject, 4)
 SVC_(CreateDirectoryObject, 3)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(CreateDirectoryObjectEx, 0) // FIXME
+SVC_(CreateDirectoryObjectEx, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
 /*#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
 SVC_(CreateEnclave, 0) // FIXME
@@ -211,7 +211,7 @@ SVC_(CreateEnlistment, 8)
 #endif // (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CreateEventPair, 3)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(CreateIRTimer, 0)
+SVC_(CreateIRTimer, 0)
 #endif
 SVC_(CreateIoCompletion, 4)
 SVC_(CreateJobObject, 3)
@@ -221,14 +221,14 @@ SVC_(CreateKeyTransacted, 8)
 #endif
 SVC_(CreateKeyedEvent, 4)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(CreateLowBoxToken, 0) // FIXME
+SVC_(CreateLowBoxToken, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CreateMailslotFile, 8)
 SVC_(CreateMutant, 4)
 SVC_(CreateNamedPipeFile, 14)
 SVC_(CreatePagingFile, 4)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(CreatePartition, 0)
+SVC_(CreatePartition, 0)
 #endif
 SVC_(CreatePort, 5)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
@@ -249,11 +249,11 @@ SVC_(CreateThreadEx, 11)
 #endif
 SVC_(CreateTimer, 4)
 #if (NTDDI_VERSION >= NTDDI_WINBLUE)
-//SVC_(CreateTimer2, 0)
+SVC_(CreateTimer2, 0)
 #endif
 SVC_(CreateToken, 13)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(CreateTokenEx, 0) // FIXME
+SVC_(CreateTokenEx, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CreateTransaction, 10)
@@ -261,11 +261,11 @@ SVC_(CreateTransactionManager, 6)
 SVC_(CreateUserProcess, 11)
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(CreateWaitCompletionPacket, 0) // FIXME
+SVC_(CreateWaitCompletionPacket, 0) // FIXME
 #endif
 SVC_(CreateWaitablePort, 5)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(CreateWnfStateName, 0) // FIXME
+SVC_(CreateWnfStateName, 0) // FIXME
 #endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CreateWorkerFactory, 10)
@@ -285,8 +285,8 @@ SVC_(DeletePrivateNamespace, 1)
 #endif
 SVC_(DeleteValueKey, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(DeleteWnfStateData, 0) // FIXME
-//SVC_(DeleteWnfStateName, 0) // FIXME
+SVC_(DeleteWnfStateData, 0) // FIXME
+SVC_(DeleteWnfStateName, 0) // FIXME
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(DisableLastKnownGood, 0)
@@ -304,12 +304,12 @@ SVC_(EnumerateTransactionObject, 5)
 #endif
 SVC_(ExtendSection, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(FilterBootOption, 0)
+SVC_(FilterBootOption, 0)
 #endif
 SVC_(FilterToken, 6)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(FilterTokenEx, 0)
-//SVC_(FlushBuffersFileEx, 3)
+SVC_(FilterTokenEx, 0)
+SVC_(FlushBuffersFileEx, 3)
 #endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(FlushInstallUILanguage, 2)
@@ -327,16 +327,16 @@ SVC_(FreezeRegistry, 1)
 SVC_(FreezeTransactions, 2)
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(GetCachedSigningLevel, 0)
+SVC_(GetCachedSigningLevel, 0)
 #endif
 #if (NTDDI_VERSION >= NTDDI_WINBLUE)
-//SVC_(GetCompleteWnfStateSubscription, 0)
+SVC_(GetCompleteWnfStateSubscription, 0)
 #endif
 //Nt
 SVC_(GetContextThread, 2)
 SVC_(GetCurrentProcessorNumber, 0)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(GetCurrentProcessorNumberEx, 0)
+SVC_(GetCurrentProcessorNumberEx, 0)
 #endif
 SVC_(GetDevicePowerState, 2)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
@@ -345,6 +345,8 @@ SVC_(GetNextProcess, 5)
 SVC_(GetNextThread, 6)
 SVC_(GetNlsSectionPtr, 5)
 SVC_(GetNotificationResourceManager, 7)
+#endif
+#if (NTDDI_VERSION < NTDDI_WIN8)
 SVC_(GetPlugPlayEvent, 4)
 #endif
 SVC_(GetWriteWatch, 7)
@@ -377,7 +379,7 @@ SVC_(LockVirtualMemory, 4)
 SVC_(MakePermanentObject, 1)
 SVC_(MakeTemporaryObject, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(ManagePartition, 0) // TODO arguments
+SVC_(ManagePartition, 0) // TODO arguments
 #endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(MapCMFModule, 6)
@@ -502,8 +504,8 @@ SVC_(QuerySystemInformationEx, 6)
 #endif
 SVC_(QueryTimerResolution, 3)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(QueryWnfStateData, 0) // FIXME
-//SVC_(QueryWnfStateNameInformation, 0) // FIXME
+SVC_(QueryWnfStateData, 0) // FIXME
+SVC_(QueryWnfStateNameInformation, 0) // FIXME
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(QueueApcThreadEx, 6)
@@ -544,7 +546,7 @@ SVC_(ResetWriteWatch, 3)
 SVC_(RestoreKey, 3)
 SVC_(ResumeProcess, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(RevertContainerImpersonation, 0) // TODO args
+SVC_(RevertContainerImpersonation, 0) // TODO args
 #endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(RollbackComplete, 2)
@@ -563,7 +565,7 @@ SVC_(SerializeBoot, 0)
 SVC_(SetBootEntryOrder, 2)
 SVC_(SetBootOptions, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(SetCachedSigningLevel, 0) // TODO args
+SVC_(SetCachedSigningLevel, 0) // TODO args
 #endif
 #endif
 SVC_(SetContextThread, 2)
@@ -578,7 +580,7 @@ SVC_(SetEaFile, 4)
 SVC_(SetHighEventPair, 1)
 SVC_(SetHighWaitLowEventPair, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(SetIRTimer, 0) // TODO args
+SVC_(SetIRTimer, 0) // TODO args
 #endif
 SVC_(SetInformationDebugObject, 5)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
@@ -589,7 +591,7 @@ SVC_(SetInformationKey, 4)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(SetInformationResourceManager, 4)
 #if (NTDDI_VERSION >= NTDDI_WIN10)
-//SVC_(SetInformationSymbolicLink, 0) //TODO args
+SVC_(SetInformationSymbolicLink, 0) //TODO args
 #endif
 #endif
 SVC_(SetInformationToken, 4)
@@ -597,7 +599,7 @@ SVC_(SetInformationToken, 4)
 SVC_(SetInformationTransaction, 4)
 SVC_(SetInformationTransactionManager, 4)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(SetInformationVirtualMemory, 0) // TODO args
+SVC_(SetInformationVirtualMemory, 0) // TODO args
 #endif
 SVC_(SetInformationWorkerFactory, 4)
 #endif
@@ -620,7 +622,7 @@ SVC_(SetSystemPowerState, 3)
 SVC_(SetSystemTime, 2)
 SVC_(SetThreadExecutionState, 2)
 #if (NTDDI_VERSION >= NTDDI_WINBLUE)
-//SVC_(SetTimer2, 0) // TODO args
+SVC_(SetTimer2, 0) // TODO args
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(SetTimerEx, 4)
@@ -629,7 +631,7 @@ SVC_(SetTimerResolution, 3)
 SVC_(SetUuidSeed, 1)
 SVC_(SetVolumeInformationFile, 5)
 #if (NTDDI_VERSION >= NTDDI_WINBLUE)
-//SVC_(SetWnfProcessNotificationEvent, 0) // TODO args
+SVC_(SetWnfProcessNotificationEvent, 0) // TODO args
 #endif
 SVC_(ShutdownSystem, 1)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
@@ -642,7 +644,7 @@ SVC_(SinglePhaseReject, 2)
 SVC_(StartProfile, 1)
 SVC_(StopProfile, 1)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(SubscribeWnfStateChange, 0) // FIXME
+SVC_(SubscribeWnfStateChange, 0) // FIXME
 #endif
 SVC_(SuspendProcess, 1)
 SVC_(SuspendThread, 2)
@@ -666,13 +668,13 @@ SVC_(UnloadKeyEx, 2)
 SVC_(UnlockFile, 5)
 SVC_(UnlockVirtualMemory, 4)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(UnmapViewOfSectionEx, 0) // FIXME
-//SVC_(UnsubscribeWnfStateChange, 0) // FIXME
-//SVC_(UpdateWnfStateData, 0) // FIXME
+SVC_(UnmapViewOfSectionEx, 0) // FIXME
+SVC_(UnsubscribeWnfStateChange, 0) // FIXME
+SVC_(UpdateWnfStateData, 0) // FIXME
 #endif
 SVC_(VdmControl, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(WaitForAlertByThreadId, 0) // FIXME
+SVC_(WaitForAlertByThreadId, 0) // FIXME
 #endif
 SVC_(WaitForDebugEvent, 4)
 SVC_(WaitForKeyedEvent, 4)
@@ -681,29 +683,27 @@ SVC_(WaitForWorkViaWorkerFactory, 2)
 #endif
 SVC_(WaitHighEventPair, 1)
 SVC_(WaitLowEventPair, 1)
-
-SVC_(WorkerFactoryWorkerReady, 1)
 #if (NTDDI_VERSION == NTDDI_WIN8)
-//SVC_(WaitForWnfNotifications, 0) // FIXME
+SVC_(WaitForWnfNotifications, 0) // FIXME
 #endif
 #if (NTDDI_VERSION < NTDDI_WIN7)
-//SVC_(CancelDeviceWakeupRequest, 1)
+SVC_(CancelDeviceWakeupRequest, 1)
 #endif
 
 #if (NTDDI_VERSION >= NTDDI_VISTA && NTDDI_VERSION <= NTDDI_VISTASP1)
-//SVC_(ReleaseCMFViewOwnership, 0)
+SVC_(ReleaseCMFViewOwnership, 0)
 #endif
 #if (NTDDI_VERSION < NTDDI_WIN7)
-//SVC_(RequestDeviceWakeup, 1)
-//SVC_(RequestWakeupLatency, 1)
+SVC_(RequestDeviceWakeup, 1)
+SVC_(RequestWakeupLatency, 1)
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(SetSystemCodeIntegrityRoots, 0) // FIXME
+SVC_(SetSystemCodeIntegrityRoots, 0) // FIXME
 #endif
 
 // Hack: was removed 
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-//SVC_(GetPlugPlayEvent, 4)
+SVC_(GetPlugPlayEvent, 4)
 #endif
 #if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(RequestDeviceWakeup, 1)
