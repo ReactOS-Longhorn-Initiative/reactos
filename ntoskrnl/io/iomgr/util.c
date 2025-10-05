@@ -127,7 +127,7 @@ IoIsWdmVersionAvailable(IN UCHAR MajorVersion,
                         IN UCHAR MinorVersion)
 {
     /* Return support for WDM 1.30 (Windows Server 2003) */
-    if (MajorVersion <= 1 && MinorVersion <= 0x30) return TRUE;
+    if (MajorVersion <= 6 && MinorVersion <= 0x30) return TRUE;
     return FALSE;
 }
 

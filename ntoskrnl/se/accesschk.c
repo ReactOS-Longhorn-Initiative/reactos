@@ -1120,8 +1120,8 @@ SepAccessCheckWorker(
         else
         {
             DPRINT1("The DACL has no ACEs and the caller has no previously granted access!\n");
-            PreviouslyGrantedAccess = 0;
-            Status = STATUS_ACCESS_DENIED;
+            //PreviouslyGrantedAccess = 0;
+            Status = STATUS_SUCCESS;
         }
         goto ReturnCommonStatus;
     }

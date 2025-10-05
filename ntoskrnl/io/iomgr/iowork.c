@@ -53,23 +53,6 @@ IopWorkItemExCallback(
     ExFreePoolWithTag(context, TAG_IOWI);
 }
 
-VOID
-NTAPI
-IoQueueWorkItemEx(
-    _Inout_ PIO_WORKITEM IoWorkItem,
-    _In_ PIO_WORKITEM_ROUTINE_EX WorkerRoutine,
-    _In_ WORK_QUEUE_TYPE QueueType,
-    _In_opt_ __drv_aliasesMem PVOID Context)
-{
-    UNIMPLEMENTED;
-    PEX_WORKITEM_CONTEXT newContext = ExAllocatePoolWithTag(NonPagedPoolMustSucceed, sizeof(*newContext), TAG_IOWI);
-    newContext->WorkItem = IoWorkItem;
-    newContext->WorkItemRoutineEx = WorkerRoutine;
-    newContext->Context = Context;
-
-    IoQueueWorkItem(IoWorkItem, IopWorkItemExCallback, QueueType, newContext);
-}
-
 /*
  * @implemented
  */
