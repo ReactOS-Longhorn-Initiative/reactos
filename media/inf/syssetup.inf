@@ -40,6 +40,7 @@ RegisterDlls = EarlyRegisterDlls
 11,,ole32.dll,1
 11,,netcfgx.dll,1
 11,,quartz.dll,1
+11,,qedit.dll,1
 11,,qcap.dll,1
 
 [RegistrationPhase2]
@@ -100,7 +101,6 @@ AddReg=Classes
 11,,olepro32.dll,1
 11,,propsys.dll,1
 11,,pstorec.dll,1
-11,,qedit.dll,1
 11,,qmgr.dll,1
 11,,qmgrprxy.dll,1
 11,,rpcrt4.dll,1
@@ -128,6 +128,7 @@ AddReg=Classes
 11,,shellbtrfs.dll,1
 11,,zipfldr.dll,1
 11,,dsound.dll,1
+11,,xaudio2_7.dll,1
 
 [TypeLibraries]
 riched20.dll

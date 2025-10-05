@@ -1360,6 +1360,12 @@ static HRESULT WINAPI XA2M_GetChannelMask(IXAudio2MasteringVoice *iface,
 
     TRACE("%p, %p\n", This, pChannelMask);
 
+    if (This->IXAudio2SourceVoice_iface.lpVtbl == NULL)
+    {
+        TRACE("%p, %p - not initialized\n", This, pChannelMask);
+        return E_FAIL;
+    }
+
     return FAudioMasteringVoice_GetChannelMask(This->faudio_voice, (uint32_t *)pChannelMask);
 }
 #endif
@@ -1722,9 +1728,11 @@ static HRESULT WINAPI IXAudio2Impl_CreateMasteringVoice(IXAudio2 *iface,
 #if XAUDIO2_VER >= 8
     TRACE("device id %s, category %#x\n", debugstr_w(deviceId), streamCategory);
 
-    FAudio_CreateMasteringVoice8(This->faudio, &This->mst.faudio_voice, inputChannels,
+    uint32_t ret = FAudio_CreateMasteringVoice8(This->faudio, &This->mst.faudio_voice, inputChannels,
             inputSampleRate, flags, NULL /* TODO: (uint16_t*)deviceId */,
             This->mst.effect_chain, (FAudioStreamCategory)streamCategory);
+
+    TRACE("FAudio_CreateMasteringVoice8 returned %d\n", ret);
 #else
     TRACE("device index %u\n", index);
 
