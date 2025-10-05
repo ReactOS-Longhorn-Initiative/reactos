@@ -806,3 +806,6 @@
 @ stdcall -stub GetThreadDpiAwarenessContext()
 @ stdcall -stub GetAwarenessFromDpiAwarenessContext(ptr)
 @ stdcall -stub GetSystemDpiForProcess(ptr)
+@ stdcall -stub GetSystemMetricsForDpi(long ptr)
+@ stdcall -stub SystemParametersInfoForDpi(long long ptr long long)
+@ stdcall -stub SetCoalescableTimer(ptr ptr long int64 long)
