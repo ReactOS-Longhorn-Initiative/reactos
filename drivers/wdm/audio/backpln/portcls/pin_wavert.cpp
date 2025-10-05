@@ -750,7 +750,7 @@ CloseStreamRoutine(
     This = (CPortPinWaveRT*)Ctx->Pin;
 
     // Safety check - ensure the pin object is still valid
-    if (!This || !((PVOID*)This->m_IrpQueue)) // Check if vtable is null
+    if (!This || !((PVOID*)This->m_IrpQueue)[0]) // Check if vtable is null
     {
         DPRINT("CloseStreamRoutine: Invalid pin object %p\n", This);
         goto cleanup;
@@ -772,6 +772,9 @@ CloseStreamRoutine(
 #endif
     if (This->m_Stream)
     {
+        // Store stream reference locally to avoid race conditions
+        PMINIPORTWAVERTSTREAM LocalStream = This->m_Stream;
+
         if (This->m_State != KSSTATE_STOP)
         {
             DPRINT("Set state to stop %u\n", This->m_State);
@@ -779,20 +782,23 @@ CloseStreamRoutine(
             if (This->m_State == KSSTATE_RUN)
             {
                 DPRINT("Setting to pause\n");
-                This->m_Stream->SetState(KSSTATE_PAUSE);
+                if (LocalStream)
+                    LocalStream->SetState(KSSTATE_PAUSE);
                 This->m_State = KSSTATE_PAUSE;
             }
 
             if (This->m_State == KSSTATE_PAUSE)
             {
                 DPRINT("Setting to acquire\n");
-                This->m_Stream->SetState(KSSTATE_ACQUIRE);
+                if (LocalStream)
+                    LocalStream->SetState(KSSTATE_ACQUIRE);
                 This->m_State = KSSTATE_ACQUIRE;
             }
             if (This->m_State == KSSTATE_ACQUIRE)
             {
                 DPRINT("Setting to stop\n");
-                This->m_Stream->SetState(KSSTATE_STOP);
+                if (LocalStream)
+                    LocalStream->SetState(KSSTATE_STOP);
                 This->m_State = KSSTATE_STOP;
             }
         }
@@ -802,11 +808,15 @@ CloseStreamRoutine(
 
     if (This->m_StreamNotification)
     {
+        // Store notification reference locally to avoid race conditions
+        PMINIPORTWAVERTSTREAMNOTIFICATION LocalNotification = This->m_StreamNotification;
+
 #ifdef LEGACY_STREAMING
         if (This->m_CommonBuffer)
         {
             DPRINT("Before FreeBufferWithNotification\n");
-            This->m_StreamNotification->FreeBufferWithNotification(This->m_Mdl, This->m_CommonBufferSize);
+            if (LocalNotification)
+                LocalNotification->FreeBufferWithNotification(This->m_Mdl, This->m_CommonBufferSize);
             This->m_Mdl = NULL;
             This->m_CommonBufferSize = 0;
             This->m_CommonBufferOffset = 0;
@@ -814,7 +824,8 @@ CloseStreamRoutine(
 #else
         if (This->m_CommonBufferSize)
         {
-            This->m_StreamNotification->FreeBufferWithNotification(This->m_Mdl, This->m_CommonBufferSize);
+            if (LocalNotification)
+                LocalNotification->FreeBufferWithNotification(This->m_Mdl, This->m_CommonBufferSize);
             This->m_Mdl = NULL;
             This->m_CommonBufferSize = 0;
         }
@@ -822,30 +833,37 @@ CloseStreamRoutine(
 
         DPRINT("Before UnregisterNotificationEvent\n");
 #ifdef LEGACY_STREAMING
-       
-        This->m_StreamNotification->UnregisterNotificationEvent(&This->m_NotificationEvent);
+
+        if (LocalNotification)
+            LocalNotification->UnregisterNotificationEvent(&This->m_NotificationEvent);
 #else
-        if (This->m_UserEvent)
+        if (This->m_UserEvent && LocalNotification)
         {
-            This->m_StreamNotification->UnregisterNotificationEvent(This->m_UserEvent);
+            LocalNotification->UnregisterNotificationEvent(This->m_UserEvent);
             This->m_UserEvent = NULL;
         }
 #endif
         DPRINT("Before StreamNotification->Release\n");
-        This->m_StreamNotification->Release();
+        if (LocalNotification)
+            LocalNotification->Release();
     }
 
     if (!This) goto cleanup;
 
-    Status = This->m_Port->QueryInterface(IID_ISubdevice, (PVOID*)&ISubDevice);
-    if (NT_SUCCESS(Status))
+    // Store port reference locally to avoid race conditions
+    IPortWaveRT* LocalPort = This->m_Port;
+    if (LocalPort)
     {
-        Status = ISubDevice->GetDescriptor(&Descriptor);
+        Status = LocalPort->QueryInterface(IID_ISubdevice, (PVOID*)&ISubDevice);
         if (NT_SUCCESS(Status))
         {
-            Descriptor->Factory.Instances[This->m_ConnectDetails->PinId].CurrentPinInstanceCount--;
+            Status = ISubDevice->GetDescriptor(&Descriptor);
+            if (NT_SUCCESS(Status) && This->m_ConnectDetails)
+            {
+                Descriptor->Factory.Instances[This->m_ConnectDetails->PinId].CurrentPinInstanceCount--;
+            }
+            ISubDevice->Release();
         }
-        ISubDevice->Release();
     }
 
     if (!This) goto cleanup;
@@ -860,17 +878,19 @@ CloseStreamRoutine(
 
     if (This)
     {
-        if (This->m_IrpQueue)
+        if (((PVOID*)This->m_IrpQueue)[0])
         {
             This->m_IrpQueue->Release();
         }
 
         if (This->m_Stream)
         {
+            // Store stream reference locally to avoid race conditions
             Stream = This->m_Stream;
             This->m_Stream = NULL;
             DPRINT("Closing stream at Irql %u\n", KeGetCurrentIrql());
-            Stream->Release();
+            if (Stream)
+                Stream->Release();
         }
 
         DPRINT("Freeing Pin %p\n", This);
