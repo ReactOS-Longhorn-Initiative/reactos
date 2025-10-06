@@ -707,7 +707,7 @@ ThemeHooksInstall()
         PREGISTER_UAH_WINXP lpfuncxp = (PREGISTER_UAH_WINXP)lpFunc;
         ret = lpfuncxp(hDllInst, ThemeInitApiHook);
     }
-    else if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2)
+    else
     {
         PREGISTER_UUAH_WIN2003 lpfunc2003 = (PREGISTER_UUAH_WIN2003)lpFunc;
         USERAPIHOOKINFO uah;
@@ -720,11 +720,7 @@ ThemeHooksInstall()
 
         ret = lpfunc2003(&uah);
     }
-    else
-    {
-        UNIMPLEMENTED;
-        ret = FALSE;
-    }
+
 
     UXTHEME_broadcast_theme_changed (NULL, TRUE);
 
