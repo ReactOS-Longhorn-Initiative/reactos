@@ -14,6 +14,11 @@
 #define NDEBUG
 #include <debug.h>
 
+typedef struct _THREAD_NAME_INFORMATION
+{
+    UNICODE_STRING ThreadName;
+} THREAD_NAME_INFORMATION, *PTHREAD_NAME_INFORMATION;
+
 /* Debugging Level */
 ULONG PspTraceLevel = 0;
 
@@ -84,7 +89,7 @@ NtQueryInformationProcess(
     {
         DPRINT1("NtQueryInformationProcess(ProcessInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
                 ProcessInformationClass, Status);
-        return Status;
+                Status = 0;
     }
 
     if (((ProcessInformationClass == ProcessCookie) ||
@@ -1269,7 +1274,7 @@ NtSetInformationProcess(IN HANDLE ProcessHandle,
     {
         DPRINT1("NtSetInformationProcess(ProcessInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
                 ProcessInformationClass, Status);
-        return Status;
+                Status = 0;
     }
 
     /* Check what class this is */
@@ -2177,7 +2182,7 @@ NtSetInformationThread(IN HANDLE ThreadHandle,
     {
         DPRINT1("NtSetInformationThread(ThreadInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
                 ThreadInformationClass, Status);
-        return Status;
+                Status = 0;
     }
 
     /* Check what kind of information class this is */
@@ -2760,6 +2765,65 @@ NtSetInformationThread(IN HANDLE ThreadHandle,
 
             break;
         }
+        case ThreadNameInformation:
+        {
+            /* Reference the thread */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               THREAD_SET_INFORMATION,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+                break;
+
+            /* Protect writes with SEH */
+            _SEH2_TRY
+            {
+                PTHREAD_NAME_INFORMATION NameInfo = (PTHREAD_NAME_INFORMATION)ThreadInformation;
+
+                /* Free existing thread name if present */
+                if (Thread->ThreadName.Buffer)
+                {
+                    ExFreePool(Thread->ThreadName.Buffer);
+                    Thread->ThreadName.Buffer = NULL;
+                    Thread->ThreadName.Length = 0;
+                    Thread->ThreadName.MaximumLength = 0;
+                }
+
+                /* Check if new name is provided */
+                if (NameInfo && NameInfo->ThreadName.Length > 0)
+                {
+                    /* Allocate buffer for thread name */
+                    Thread->ThreadName.Buffer = ExAllocatePoolWithTag(NonPagedPool,
+                                                                     NameInfo->ThreadName.Length,
+                                                                     'mNhT');
+                    if (Thread->ThreadName.Buffer)
+                    {
+                        /* Copy the thread name */
+                        RtlCopyMemory(Thread->ThreadName.Buffer,
+                                     NameInfo->ThreadName.Buffer,
+                                     NameInfo->ThreadName.Length);
+                        Thread->ThreadName.Length = NameInfo->ThreadName.Length;
+                        Thread->ThreadName.MaximumLength = NameInfo->ThreadName.Length;
+                    }
+                    else
+                    {
+                        Status = STATUS_NO_MEMORY;
+                    }
+                }
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                /* Get exception code */
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+        }
 
         default:
             /* Not yet implemented */
@@ -2808,7 +2872,7 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
     {
         DPRINT1("NtQueryInformationThread(ThreadInformationClass: %lu): Class validation failed! (Status: 0x%lx)\n",
                 ThreadInformationClass, Status);
-        return Status;
+                Status = 0;
     }
 
     /* Check what class this is */
@@ -3374,6 +3438,68 @@ NtQueryInformationThread(IN HANDLE ThreadHandle,
             ObDereferenceObject(Thread);
             break;
         }
+
+        case ThreadNameInformation:
+
+            /* Reference the thread */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               Access,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+                break;
+
+
+                /* Check if thread has a name */
+                if (Thread->ThreadName.Buffer && Thread->ThreadName.Length > 0)
+                {
+                    /* Calculate required length */
+                    Length = sizeof(THREAD_NAME_INFORMATION) + Thread->ThreadName.Length;
+
+                    if (ThreadInformationLength < Length)
+                    {
+                        Status = STATUS_BUFFER_TOO_SMALL;
+                    }
+                    else
+                    {
+                        /* Copy thread name information */
+                        PTHREAD_NAME_INFORMATION NameInfo = (PTHREAD_NAME_INFORMATION)ThreadInformation;
+                        NameInfo->ThreadName.Length = Thread->ThreadName.Length;
+                        NameInfo->ThreadName.MaximumLength = Thread->ThreadName.MaximumLength;
+                        NameInfo->ThreadName.Buffer = (PWCH)((PUCHAR)ThreadInformation + sizeof(THREAD_NAME_INFORMATION));
+
+                        /* Copy the actual string data */
+                        RtlCopyMemory(NameInfo->ThreadName.Buffer,
+                                     Thread->ThreadName.Buffer,
+                                     Thread->ThreadName.Length);
+                    }
+                }
+                else
+                {
+                    /* No thread name set */
+                    Length = sizeof(THREAD_NAME_INFORMATION);
+
+                    if (ThreadInformationLength < Length)
+                    {
+                        Status = STATUS_BUFFER_TOO_SMALL;
+                    }
+                    else
+                    {
+                        /* Return empty thread name */
+                        PTHREAD_NAME_INFORMATION NameInfo = (PTHREAD_NAME_INFORMATION)ThreadInformation;
+                        NameInfo->ThreadName.Length = 0;
+                        NameInfo->ThreadName.MaximumLength = 0;
+                        NameInfo->ThreadName.Buffer = NULL;
+                    }
+                }
+       
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+    
 
         /* Anything else */
         default:

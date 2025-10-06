@@ -1323,6 +1323,7 @@ typedef struct _ETHREAD
     KSEMAPHORE AlpcWaitSemaphore;
     ULONG CacheManagerCount;
 #endif
+UNICODE_STRING ThreadName;
 } ETHREAD;
 
 //
