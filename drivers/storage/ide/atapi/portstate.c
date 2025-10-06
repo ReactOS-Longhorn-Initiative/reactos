@@ -771,7 +771,7 @@ AtaFsmSendCommand(
 
     if (Request->Flags & REQUEST_FLAG_PACKET_COMMAND)
     {
-        INFO("PORT %lu: Send CDB %02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+        /*INFO("PORT %lu: Send CDB %02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
              PortData->PortNumber,
              Request->Cdb[0],
              Request->Cdb[1],
@@ -779,13 +779,13 @@ AtaFsmSendCommand(
              Request->Cdb[3],
              Request->Cdb[4],
              Request->Cdb[5],
-             Request->Cdb[6]);
+             Request->Cdb[6]);*/
     }
     else
     {
-        PATA_TASKFILE TaskFile = &Request->TaskFile;
+       // PATA_TASKFILE TaskFile = &Request->TaskFile;
 
-        INFO("PORT %lu: Send TF %02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+        /*INFO("PORT %lu: Send TF %02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
              PortData->PortNumber,
              TaskFile->Command,
              TaskFile->Feature,
@@ -793,7 +793,7 @@ AtaFsmSendCommand(
              TaskFile->LowLba,
              TaskFile->MidLba,
              TaskFile->HighLba,
-             TaskFile->DriveSelect);
+             TaskFile->DriveSelect);*/
     }
 
     PortData->Worker.Flags &= ~WORKER_FLAG_NEED_REQUEST;

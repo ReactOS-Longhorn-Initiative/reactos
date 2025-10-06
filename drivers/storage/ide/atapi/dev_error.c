@@ -254,11 +254,11 @@ AtaDeviceHandleRequestSense(
                                Srb->SenseInfoBufferLength,
                                AdditionalSenseCodeQualifier))
         {
-            INFO("0x%02X: SK 0x%02X, ASC 0x%02X, ASCQ 0x%02X\n",
+            /*INFO("0x%02X: SK 0x%02X, ASC 0x%02X, ASCQ 0x%02X\n",
                  Srb->Cdb[0],
                  SenseData->SenseKey,
                  SenseData->AdditionalSenseCode,
-                 SenseData->AdditionalSenseCodeQualifier);
+                 SenseData->AdditionalSenseCodeQualifier);*/
         }
     }
     else

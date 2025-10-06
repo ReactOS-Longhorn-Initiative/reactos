@@ -214,7 +214,7 @@ VOID
 AtaAhciEnableInterrupts(
     _In_ PATAPORT_PORT_DATA PortData)
 {
-    INFO("PORT %lu: Enable interrupts\n", PortData->PortNumber);
+    //INFO("PORT %lu: Enable interrupts\n", PortData->PortNumber);
 
     /* Clear errors */
     AHCI_PORT_WRITE(PortData->Ahci.IoBase, PxSataError, 0xFFFFFFFF);

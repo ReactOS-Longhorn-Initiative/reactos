@@ -30,7 +30,7 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-internal-l1-1-7"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-2"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN7|APISET_WIN81|APISET_WIN10 }, // kernel.appcore.dll
-    { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 | APISET_WIN10 }, // kernel.appcore.dll
+    { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN7|APISET_WIN81 | APISET_WIN10 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-runtime-l1-1-3"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN10 }, // kernel.appcore.dll
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-state-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN8 | APISET_WIN81 | APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"api-ms-win-appmodel-state-l1-1-1"), RTL_CONSTANT_STRING(L"kernelbase.dll"), APISET_WIN81 | APISET_WIN10 }, // kernel.appcore.dll
@@ -1260,6 +1260,9 @@ const ROS_APISET g_Apisets[] = {
     { RTL_CONSTANT_STRING(L"ext-ms-win-wwaext-module-l1-1-0"), RTL_CONSTANT_STRING(L"wwaext.dll"), APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"ext-ms-win-wwan-wwapi-l1-1-3"), RTL_CONSTANT_STRING(L"wwapi.dll"), APISET_WIN10 },
     { RTL_CONSTANT_STRING(L"ext-ms-win-xaml-controls-l1-1-0"), RTL_CONSTANT_STRING(L"windows.ui.xaml.phone.dll"), APISET_WIN10 },
+ { RTL_CONSTANT_STRING(L"ext-ms-win-kernel32-package-current-l1-1-0"), RTL_CONSTANT_STRING(L"kernelbase.dll"),APISET_WIN7| APISET_WIN10 },
+
+    // 
     // { RTL_CONSTANT_STRING(L"ext-ms-win-xaml-pal-l1-1-0"), RTL_CONSTANT_STRING(L""), APISET_WIN10 },
     // { RTL_CONSTANT_STRING(L"ext-ms-win-xaudio-platform-l1-1-0"), RTL_CONSTANT_STRING(L""), APISET_WIN10 },
     // { RTL_CONSTANT_STRING(L"ext-ms-win-xblauth-console-l1-1-0"), RTL_CONSTANT_STRING(L""), APISET_WIN10 },

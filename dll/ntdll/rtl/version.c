@@ -243,6 +243,6 @@ NTAPI
 
     /* This function is not implemented in ReactOS */
     DPRINT1("ApiSetQueryApiSetPresence is not implemented %ls\n", Namespace->Buffer);
-    *Present = FALSE;
-    return FALSE;
+    *Present = TRUE;
+    return TRUE;
 }
