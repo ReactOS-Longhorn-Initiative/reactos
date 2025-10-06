@@ -1764,5 +1764,6 @@
  
 @ stdcall -version=0x602+ -stub RtlAddGrowableFunctionTable(ptr ptr ptr)
 @ stdcall ApiSetQueryApiSetPresence(wstr ptr)
+@ stdcall LdrResolveDelayLoadedAPI(ptr ptr ptr ptr ptr long)
 
 @ stdcall NtOpenKeyEx(ptr ptr ptr ptr)

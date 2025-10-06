@@ -11,6 +11,7 @@
 /* INCLUDES *******************************************************************/
 
 #include <ntdll.h>
+#include <delayloadhandler.h>
 
 #define NDEBUG
 #include <debug.h>
@@ -229,8 +230,6 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
 }
 
 
-/* EOF */
-
 BOOLEAN
 NTAPI
  ApiSetQueryApiSetPresence(
@@ -246,3 +245,25 @@ NTAPI
     *Present = TRUE;
     return TRUE;
 }
+
+
+
+PVOID WINAPI
+LdrResolveDelayLoadedAPI(
+  _In_       PVOID                             ParentModuleBase,
+  _In_       PCIMAGE_DELAYLOAD_DESCRIPTOR      DelayloadDescriptor,
+  _In_opt_   PDELAYLOAD_FAILURE_DLL_CALLBACK   FailureDllHook,
+  _In_opt_   PDELAYLOAD_FAILURE_SYSTEM_ROUTINE FailureSystemHook,
+  _Out_      PIMAGE_THUNK_DATA                 ThunkAddress,
+  _Reserved_ ULONG                             Flags
+)
+{
+    DPRINT1("ApiSetQueryApiSetPresence not implemented! %d\n", DelayloadDescriptor->ImportNameTableRVA);
+    return NULL;
+}
+
+
+//LdrResolveDelayLoadedAPI
+
+
+/* EOF */

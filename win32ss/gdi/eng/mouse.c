@@ -632,7 +632,7 @@ IntEngSetPointerShape(
 
     pfnSetPointerShape = GDIDEVFUNCS(pso).SetPointerShape;
 
-    if (pfnSetPointerShape)
+    if (0)
     {
         /* Drivers expect to get an XLATEOBJ */
         if (pxlo == NULL)

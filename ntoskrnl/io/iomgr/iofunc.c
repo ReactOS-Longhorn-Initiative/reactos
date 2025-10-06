@@ -2370,7 +2370,7 @@ NtQueryInformationFile(IN HANDLE FileHandle,
                                        &HandleInformation);
     if (!NT_SUCCESS(Status))
     {
-        __debugbreak();
+        //__debugbreak();
         return Status;
     } 
 
