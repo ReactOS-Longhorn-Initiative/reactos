@@ -575,3 +575,7 @@
 
 @ stdcall -stub GetProcessDpiAwareness(ptr ptr)
 @ stdcall -stub SetProcessDpiAwareness(long)
+
+@ stdcall SubscribeFeatureStateChangeNotification(ptr ptr ptr)
+@ stdcall UnsubscribeFeatureStateChangeNotification(ptr)
+@ stdcall RecordFeatureUsage(long long long ptr)

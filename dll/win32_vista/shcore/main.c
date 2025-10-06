@@ -2522,3 +2522,15 @@ HRESULT WINAPI DllCanUnloadNow(void)
 {
     return S_FALSE;
 }
+
+
+void WINAPI SubscribeFeatureStateChangeNotification(void* a, void* b, void* c)
+{
+
+}
+
+
+void WINAPI UnsubscribeFeatureStateChangeNotification(void* handle)
+{
+    
+}

@@ -493,3 +493,27 @@ HRESULT WINAPI DllInstall(BOOL bInstall, LPCWSTR cmdline)
     FIXME("%s %s: stub\n", bInstall ? "TRUE":"FALSE", debugstr_w(cmdline));
     return S_OK;        /* indicate success */
 }
+
+
+void WINAPI SubscribeFeatureStateChangeNotification(void* a, void* b, void* c)
+{
+FIXME("SubscribeFeatureStateChangeNotification\n");
+}
+
+
+void WINAPI UnsubscribeFeatureStateChangeNotification(void* handle)
+{
+    FIXME("UnsubscribeFeatureStateChangeNotification\n");
+
+}
+
+void RecordFeatureUsage(
+       UINT32 featureId,
+       UINT32 kind,
+       UINT32 addend,
+  PCSTR  originName
+)
+{
+    FIXME("RecordFeatureUsage\n");
+
+}

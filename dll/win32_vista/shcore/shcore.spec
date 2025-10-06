@@ -92,9 +92,9 @@
 @ stdcall SetCurrentProcessExplicitAppUserModelID(wstr)
 @ stdcall SetProcessDpiAwareness(long)
 @ stdcall SetProcessReference(ptr)
-# @ stub SubscribeFeatureStateChangeNotification
+@ stdcall SubscribeFeatureStateChangeNotification(ptr ptr ptr)
+@ stdcall UnsubscribeFeatureStateChangeNotification(ptr)
 @ stub UnregisterScaleChangeEvent
-# @ stub UnsubscribeFeatureStateChangeNotification
 
 100 stub -noname SHManagedCreateStreamOnFile
 101 stub -noname SHManagedCreateFile
