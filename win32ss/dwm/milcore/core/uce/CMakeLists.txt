@@ -41,6 +41,7 @@ handletable.cpp
 htmaster.cpp
 htslave.cpp
 hwndtarget.cpp
+transport.cpp
 partition.cpp
 partitionmanager.cpp
 partitionthread.cpp

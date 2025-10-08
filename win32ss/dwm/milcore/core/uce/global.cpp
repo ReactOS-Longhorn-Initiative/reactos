@@ -31,6 +31,32 @@ DeclareTag(tagTSConnector, "TS", "Avalon Terminal Services Debugging:ts connecto
 DeclareTag(tagMILServerChannel, "MIL", "MIL Server Channel Debugging");
 DeclareTag(tagMILTierRequest, "MIL", "MIL Server Tier request");
 
+static BOOL ShouldEnableTagFromEnv(_In_ PCWSTR pszVariable)
+{
+    return TRUE;
+    WCHAR szValue[32];
+    DWORD cchValue = GetEnvironmentVariableW(pszVariable, szValue, ARRAYSIZE(szValue));
+    if (cchValue == 0 || cchValue >= ARRAYSIZE(szValue))
+    {
+        return FALSE;
+    }
+
+    // Treat "1", "on", "true" or "yes" (any casing) as affirmative.
+    if (szValue[0] == L'1' && szValue[1] == L'\0')
+    {
+        return TRUE;
+    }
+
+    if (_wcsicmp(szValue, L"on") == 0 ||
+        _wcsicmp(szValue, L"true") == 0 ||
+        _wcsicmp(szValue, L"yes") == 0)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 //---------------------------------------------------------------------------------
 //
 // Global composition engine critical section.
@@ -86,14 +112,14 @@ EnsurePartitionManager(
     //
 
     EnableTag(tagMILResources, FALSE);
-    EnableTag(tagMILRedirection, FALSE);
+    EnableTag(tagMILRedirection, TRUE);
     EnableTag(tagMILRedirectionSpriteMap, TRUE);
     EnableTag(tagMILConnectionHosting, FALSE);
     EnableTag(tagMILConnectionHostingUpdates, FALSE);
-    EnableTag(tagMILTransport, FALSE);
+    EnableTag(tagMILTransport, TRUE);
     EnableTag(tagTSDebug, FALSE);
     EnableTag(tagTSPerf, FALSE);
-    EnableTag(tagMILConnection, FALSE);
+    EnableTag(tagMILConnection, TRUE);
     EnableTag(tagMILConnectionCtx, FALSE);
     EnableTag(tagMILRPC, TRUE);
     EnableTag(tagMILTransportForwardTraffic, FALSE);
@@ -101,6 +127,21 @@ EnsurePartitionManager(
     EnableTag(tagTSConnector, FALSE);
     EnableTag(tagMILServerChannel, FALSE);
     EnableTag(tagMILTierRequest, FALSE);
+
+    if (ShouldEnableTagFromEnv(L"MILCORE_TRACE_TRANSPORT"))
+    {
+        EnableTag(tagMILTransport, TRUE);
+    }
+
+    if (ShouldEnableTagFromEnv(L"MILCORE_TRACE_TRANSPORT_FORWARD"))
+    {
+        EnableTag(tagMILTransportForwardTraffic, TRUE);
+    }
+
+    if (ShouldEnableTagFromEnv(L"MILCORE_TRACE_TRANSPORT_BACKWARD"))
+    {
+        EnableTag(tagMILTransportBackwardTraffic, TRUE);
+    }
 
     //
     // Initialize may be called multiple times in the case of multiple

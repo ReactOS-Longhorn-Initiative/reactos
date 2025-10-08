@@ -14,12 +14,171 @@
 
 #include "precomp.hpp"
 #include "osversionhelper.h"
+#include "transport.h"
+
+#include <vector>
 
 extern void DumpInstrumentationData();
 
 ExternTag(tagMILConnection);
+ExternTag(tagMILTransport);
 
 UINT g_uMilPerfInstrumentationFlags = 0;
+
+namespace
+{
+    using PFNDWMGETTRANSPORTATTRIBUTES = HRESULT (WINAPI *)(BOOL *, BOOL *, DWORD *);
+
+    HRESULT GetTransportAttributesInternal(_Out_ BOOL *pfIsRemoting, _Out_ BOOL *pfIsConnected, _Out_ DWORD *pdwGeneration)
+    {
+        if (!pfIsRemoting || !pfIsConnected || !pdwGeneration)
+        {
+            TraceTag((tagMILTransport, "GetTransportAttributesInternal: invalid argument"));
+            return E_INVALIDARG;
+        }
+
+        *pfIsRemoting = FALSE;
+        *pfIsConnected = TRUE;
+        *pdwGeneration = 0;
+
+        TraceTag((tagMILTransport, "GetTransportAttributesInternal: querying DWM transport attributes"));
+
+        if (!DWMAPI::CheckOS())
+        {
+            TraceTag((tagMILTransport, "GetTransportAttributesInternal: unsupported OS"));
+            return E_INVALIDARG;
+        }
+
+        HRESULT hr = DWMAPI::Load();
+        if (FAILED(hr))
+        {
+            TraceTag((tagMILTransport, "GetTransportAttributesInternal: failed to load dwmapi.dll hr=0x%08x", hr));
+            return hr;
+        }
+
+        PFNDWMGETTRANSPORTATTRIBUTES pfnGetTransportAttributes =
+            reinterpret_cast<PFNDWMGETTRANSPORTATTRIBUTES>(DWMAPI::GetProcAddress("DwmGetTransportAttributes"));
+
+        if (!pfnGetTransportAttributes)
+        {
+            DWORD dwError = GetLastError();
+            if (dwError != ERROR_SUCCESS)
+            {
+                TraceTag((tagMILTransport, "GetTransportAttributesInternal: DwmGetTransportAttributes unavailable error=%lu", dwError));
+                return HRESULT_FROM_WIN32(dwError);
+            }
+
+            TraceTag((tagMILTransport, "GetTransportAttributesInternal: DwmGetTransportAttributes returned null without error"));
+            return E_FAIL;
+        }
+
+        HRESULT hrAttributes = pfnGetTransportAttributes(pfIsRemoting, pfIsConnected, pdwGeneration);
+        if (SUCCEEDED(hrAttributes))
+        {
+            TraceTag((tagMILTransport,
+                      "GetTransportAttributesInternal: success remoting=%d connected=%d generation=%lu",
+                      *pfIsRemoting,
+                      *pfIsConnected,
+                      *pdwGeneration));
+        }
+        else
+        {
+            TraceTag((tagMILTransport,
+                      "GetTransportAttributesInternal: call failed hr=0x%08x",
+                      hrAttributes));
+        }
+
+        return hrAttributes;
+    }
+
+    HRESULT EnumerateGraphicsStreamClients(_Out_ std::vector<GUID> &clients)
+    {
+        clients.clear();
+
+        HRESULT hr = S_OK;
+        GUID clientId = {};
+
+        TraceTag((tagMILTransport, "EnumerateGraphicsStreamClients: begin"));
+
+        for (UINT index = 0;; ++index)
+        {
+            hr = GetGraphicsStreamClient(index, &clientId);
+
+            if (hr == E_INVALIDARG ||
+                hr == HRESULT_FROM_WIN32(ERROR_PROC_NOT_FOUND) ||
+                hr == HRESULT_FROM_WIN32(ERROR_CALL_NOT_IMPLEMENTED))
+            {
+                TraceTag((tagMILTransport,
+                          "EnumerateGraphicsStreamClients: terminating enumeration hr=0x%08x",
+                          hr));
+                hr = S_OK;
+                break;
+            }
+
+            if (FAILED(hr))
+            {
+                TraceTag((tagMILTransport,
+                          "EnumerateGraphicsStreamClients: GetGraphicsStreamClient failed index=%u hr=0x%08x",
+                          index,
+                          hr));
+                clients.clear();
+                break;
+            }
+
+            WCHAR wszClientGuid[64] = {0};
+            if (StringFromGUID2(clientId, wszClientGuid, _countof(wszClientGuid)) > 0)
+            {
+                TraceTag((tagMILTransport,
+                          "EnumerateGraphicsStreamClients: found client index=%u guid=%S",
+                          index,
+                          wszClientGuid));
+            }
+            else
+            {
+                TraceTag((tagMILTransport,
+                          "EnumerateGraphicsStreamClients: found client index=%u guid conversion failed",
+                          index));
+            }
+
+            clients.push_back(clientId);
+        }
+
+        TraceTag((tagMILTransport,
+                  "EnumerateGraphicsStreamClients: completed with %u clients hr=0x%08x",
+                  static_cast<UINT>(clients.size()),
+                  hr));
+
+        return hr;
+    }
+
+    void ApplyDefaultTransportSettings(_Inout_ MIL_TRANSPORT_PARAMETERS *pParameters)
+    {
+        if (!pParameters)
+        {
+            TraceTag((tagMILTransport, "ApplyDefaultTransportSettings: null parameters"));
+            return;
+        }
+
+        if (pParameters->TransportType == 0)
+        {
+            TraceTag((tagMILTransport, "ApplyDefaultTransportSettings: applying MIL_TRANSPORT_TYPE_DEFAULT"));
+            pParameters->TransportType = MIL_TRANSPORT_TYPE_DEFAULT;
+        }
+
+        if (pParameters->TransportGuidCount != 0)
+        {
+            pParameters->TransportFlags |= MIL_TRANSPORT_FLAG_HAS_REMOTED_CLIENT;
+            TraceTag((tagMILTransport,
+                      "ApplyDefaultTransportSettings: remote clients detected count=%u flags=0x%08x",
+                      pParameters->TransportGuidCount,
+                      pParameters->TransportFlags));
+        }
+        else
+        {
+            TraceTag((tagMILTransport, "ApplyDefaultTransportSettings: no remote clients"));
+        }
+    }
+}
 
 extern "C"
 {
@@ -146,13 +305,17 @@ Cleanup:
 EXTERN_C
 HRESULT
 WINAPI
-MilTransport_Create(PVOID CMilConnectionManager,
+MilTransport_Create(CMilConnectionManager *pConnectionManager,
                     PVOID TransportParams,
                     UINT32 Boolean,
                     HMIL_CONNECTION *phConnection)
 {
     HRESULT hr = S_OK;
     CMilConnection* pConnection = NULL;
+
+    UNREFERENCED_PARAMETER(pConnectionManager);
+    UNREFERENCED_PARAMETER(TransportParams);
+    UNREFERENCED_PARAMETER(Boolean);
 
     CHECKPTRARG(phConnection);
 
@@ -171,12 +334,15 @@ Cleanup:
 
 HRESULT
 WINAPI
-MilTransport_CreateFromPacketTransport(PVOID CMilConnectionManager,
+MilTransport_CreateFromPacketTransport(CMilConnectionManager *pConnectionManager,
                                        PVOID TransportParams,
                                        HMIL_CONNECTION *phConnection)
 {
     HRESULT hr = S_OK;
     CMilConnection* pConnection = NULL;
+
+    UNREFERENCED_PARAMETER(pConnectionManager);
+    UNREFERENCED_PARAMETER(TransportParams);
 
     CHECKPTRARG(phConnection);
 
@@ -195,20 +361,147 @@ Cleanup:
 
 HRESULT
 WINAPI
-MilTransport_CreateSurfaceManager(PVOID IMilRedirectedGDISurfaceManager)
+MilTransport_CreateSurfaceManager(_Outptr_ IMilRedirectedGDISurfaceManager **ppSurfaceManager)
 {
-    //DbgPrint("MilTransport_CreateSurfaceManager: Not implemented\n");
-    __debugbreak();
-    return S_OK;
-}	
+    TraceTag((tagMILTransport, "MilTransport_CreateSurfaceManager: create request"));
+
+    HRESULT hr = CMilSurfaceManager::Create(ppSurfaceManager);
+    if (SUCCEEDED(hr))
+    {
+        TraceTag((tagMILTransport, "MilTransport_CreateSurfaceManager: success manager=%p", *ppSurfaceManager));
+    }
+    else
+    {
+        TraceTag((tagMILTransport, "MilTransport_CreateSurfaceManager: failed hr=0x%08x", hr));
+    }
+
+    return hr;
+}   
 
 HRESULT
 WINAPI
-MilTransport_CreateTransportParameters(PVOID Todo)
+MilTransport_CreateTransportParameters(
+    BOOL fRequestSynchronousTransport,
+    _Out_ INT *pDefaultTransport,
+    _Out_ UINT *pTransportGeneration,
+    _Outptr_result_bytebuffer_(*pcbParameters) MIL_TRANSPORT_PARAMETERS **ppParameters,
+    _Out_ UINT *pcbParameters)
 {
-    //DbgPrint("MilTransport_CreateTransportParameters: Not implemented\n");
-    __debugbreak();
-    return S_OK;
+    HRESULT hr = S_OK;
+    BOOL fIsRemoting = FALSE;
+    BOOL fIsConnected = TRUE;
+    DWORD dwGeneration = 0;
+    std::vector<GUID> streamClients;
+    MIL_TRANSPORT_PARAMETERS *pAllocatedParameters = NULL;
+    size_t cbParameters = sizeof(MIL_TRANSPORT_PARAMETERS);
+
+    TraceTag((tagMILTransport,
+              "MilTransport_CreateTransportParameters: request synchronous=%d",
+              fRequestSynchronousTransport));
+
+    CHECKPTRARG(pDefaultTransport);
+    CHECKPTRARG(pTransportGeneration);
+    CHECKPTRARG(ppParameters);
+    CHECKPTRARG(pcbParameters);
+
+    *pDefaultTransport = 0;
+    *pTransportGeneration = 0;
+    *ppParameters = NULL;
+    *pcbParameters = 0;
+
+    hr = GetTransportAttributesInternal(&fIsRemoting, &fIsConnected, &dwGeneration);
+    if (hr == E_INVALIDARG ||
+        hr == HRESULT_FROM_WIN32(ERROR_PROC_NOT_FOUND) ||
+        hr == HRESULT_FROM_WIN32(ERROR_CALL_NOT_IMPLEMENTED))
+    {
+        TraceTag((tagMILTransport,
+                  "MilTransport_CreateTransportParameters: using default attributes hr=0x%08x",
+                  hr));
+        hr = S_OK;
+        fIsRemoting = FALSE;
+        fIsConnected = TRUE;
+        dwGeneration = 0;
+    }
+    IFC(hr);
+
+    if (!fRequestSynchronousTransport)
+    {
+        hr = EnumerateGraphicsStreamClients(streamClients);
+        if (hr == HRESULT_FROM_WIN32(ERROR_PROC_NOT_FOUND) ||
+            hr == HRESULT_FROM_WIN32(ERROR_CALL_NOT_IMPLEMENTED))
+        {
+            TraceTag((tagMILTransport,
+                      "MilTransport_CreateTransportParameters: stream clients unavailable hr=0x%08x",
+                      hr));
+            hr = S_OK;
+            streamClients.clear();
+        }
+        else if (hr == E_INVALIDARG)
+        {
+            TraceTag((tagMILTransport,
+                      "MilTransport_CreateTransportParameters: stream client enumeration returned invalid arg"));
+            hr = S_OK;
+        }
+        IFC(hr);
+    }
+
+    UINT guidCount = static_cast<UINT>(streamClients.size());
+    if (guidCount > 0)
+    {
+        cbParameters += static_cast<size_t>(guidCount - 1) * sizeof(GUID);
+    }
+
+    IFC(HrAlloc(0, cbParameters, reinterpret_cast<void **>(&pAllocatedParameters)));
+
+    RtlZeroMemory(pAllocatedParameters, cbParameters);
+
+    pAllocatedParameters->TransportGeneration = dwGeneration;
+    pAllocatedParameters->TransportIsConnected = fIsConnected ? 1u : 0u;
+    pAllocatedParameters->TransportGuidCount = guidCount;
+
+    if (!fRequestSynchronousTransport && fIsRemoting)
+    {
+        pAllocatedParameters->TransportType = MIL_TRANSPORT_TYPE_REMOTE;
+    }
+
+    ApplyDefaultTransportSettings(pAllocatedParameters);
+
+    if (guidCount > 0)
+    {
+        for (UINT i = 0; i < guidCount; ++i)
+        {
+            pAllocatedParameters->TransportGuidList[i] = streamClients[i];
+        }
+    }
+
+    *pDefaultTransport = static_cast<INT>(pAllocatedParameters->TransportIsConnected);
+    *pTransportGeneration = pAllocatedParameters->TransportGeneration;
+    *ppParameters = pAllocatedParameters;
+    *pcbParameters = static_cast<UINT>(cbParameters);
+    TraceTag((tagMILTransport,
+              "MilTransport_CreateTransportParameters: success default=%d generation=%u type=%u flags=0x%08x guidCount=%u size=%u",
+              *pDefaultTransport,
+              *pTransportGeneration,
+              (*ppParameters)->TransportType,
+              (*ppParameters)->TransportFlags,
+              (*ppParameters)->TransportGuidCount,
+              *pcbParameters));
+    pAllocatedParameters = NULL;
+
+Cleanup:
+    if (FAILED(hr))
+    {
+        if (pAllocatedParameters)
+        {
+            FreeHeap(pAllocatedParameters);
+        }
+
+        TraceTag((tagMILTransport,
+                  "MilTransport_CreateTransportParameters: failure hr=0x%08x",
+                  hr));
+    }
+
+    RRETURN(hr);
 }
 
 HRESULT
@@ -232,18 +525,45 @@ Cleanup:
 EXTERN_C
 HRESULT
 WINAPI
-MilTransport_InitializeConnectionManager(PVOID IMilRedirectedGDISurfaceManager, PULONG * ConnectionManager)
+MilTransport_InitializeConnectionManager(
+    _In_opt_ IMilRedirectedGDISurfaceManager *pSurfaceManager,
+    _Outptr_ CMilConnectionManager **ppConnectionManager)
 {
-    __debugbreak();
-    *ConnectionManager = (PULONG)1;
-    return S_OK;
+    TraceTag((tagMILTransport,
+              "MilTransport_InitializeConnectionManager: surfaceManager=%p",
+              pSurfaceManager));
+
+    HRESULT hr = CMilConnectionManager::Create(pSurfaceManager, ppConnectionManager);
+    if (SUCCEEDED(hr))
+    {
+        TraceTag((tagMILTransport,
+                  "MilTransport_InitializeConnectionManager: success connectionManager=%p",
+                  *ppConnectionManager));
+    }
+    else
+    {
+        TraceTag((tagMILTransport,
+                  "MilTransport_InitializeConnectionManager: failed hr=0x%08x",
+                  hr));
+    }
+
+    return hr;
 }
+
 HRESULT
 WINAPI
-MilTransport_ShutDownConnectionManager(CMilConnectionManager* ConnectionManager)
+MilTransport_ShutDownConnectionManager(CMilConnectionManager *pConnectionManager)
 {
-    __debugbreak();
-    ConnectionManager = NULL;
+    TraceTag((tagMILTransport,
+              "MilTransport_ShutDownConnectionManager: connectionManager=%p",
+              pConnectionManager));
+
+    if (pConnectionManager)
+    {
+        pConnectionManager->Release();
+        TraceTag((tagMILTransport, "MilTransport_ShutDownConnectionManager: released"));
+    }
+
     return S_OK;
 }
 
@@ -369,7 +689,7 @@ HRESULT WINAPI MilConnection_CreateChannel(
     HMIL_CHANNEL hPartSource = NULL;
 {
     CHECKPTRARG(phChannel);
-
+    __debugbreak();
     CMilConnection *pConnection = NULL;
     CHECKPTRARG(hConnection);
 
