@@ -717,7 +717,7 @@ CMP_RegisterNotification(
 
     if (ret == CR_SUCCESS)
     {
-        TRACE("hNotifyHandle: %p\n", pNotifyData->hNotifyHandle);
+        FIXME("hNotifyHandle: %p\n", pNotifyData->hNotifyHandle);
         *phDevNotify = (HDEVNOTIFY)pNotifyData;
     }
     else
@@ -725,6 +725,8 @@ CMP_RegisterNotification(
         HeapFree(GetProcessHeap(), 0, pNotifyData);
 
         *phDevNotify = (HDEVNOTIFY)NULL;
+
+        FIXME("Notification handle is null!!\n");
     }
 
     return ret;
@@ -791,7 +793,7 @@ CMP_UnregisterNotification(
     PNOTIFY_DATA pNotifyData;
     CONFIGRET ret = CR_SUCCESS;
 
-    TRACE("CMP_UnregisterNotification(%p)\n", hDevNotify);
+    FIXME("CMP_UnregisterNotification(%p)\n", hDevNotify);
 
     pNotifyData = (PNOTIFY_DATA)hDevNotify;
 
