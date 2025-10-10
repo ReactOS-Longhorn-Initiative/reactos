@@ -176,7 +176,7 @@ NtWaitForMultipleObjects(IN ULONG ObjectCount,
         {
             /* Fail, handle is invalid */
             Status = STATUS_INVALID_HANDLE;
-            DPRINT1("Invalid handle %p passed to NtWaitForMultipleObjects\n", Handles[i]);
+            //DPRINT1("Invalid handle %p passed to NtWaitForMultipleObjects\n", Handles[i]);
             goto Quickie;
         }
 
