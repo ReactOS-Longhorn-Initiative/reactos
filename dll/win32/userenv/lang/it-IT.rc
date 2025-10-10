@@ -26,7 +26,7 @@ END
 /* See also: dll/win32/shell32/lang */
 STRINGTABLE
 BEGIN
-    IDS_PROFILEPATH "%SystemDrive%\\Documents and Settings"
+    IDS_PROFILEPATH "%SystemDrive%\\Users"
     IDS_APPDATA "Dati applicazioni"
     IDS_DESKTOP "Desktop"
     IDS_FAVORITES "Preferiti"
