@@ -1169,9 +1169,9 @@ LONG WINAPI PathProcessCommandAW (
 /* !! MISSING Win2k3-compatible paths from the list below; absent from Wine !! */
 #ifndef __REACTOS__
 static const WCHAR Application_DataW[] = L"Application Data";
-static const WCHAR Local_Settings_Application_DataW[] = L"Local Settings\\Application Data";
-static const WCHAR Local_Settings_HistoryW[] = L"Local Settings\\History";
-static const WCHAR Local_Settings_Temporary_Internet_FilesW[] = L"Local Settings\\Temporary Internet Files";
+static const WCHAR Local_Settings_Application_DataW[] = L"AppData\\Local";
+static const WCHAR Local_Settings_HistoryW[] = L"Appdata\\Local\\History";
+static const WCHAR Local_Settings_Temporary_Internet_FilesW[] = L"Appdata\\Local\\Temporary Internet Files";
 static const WCHAR MusicW[] = L"Music";
 static const WCHAR PicturesW[] = L"Pictures";
 static const WCHAR Program_FilesW[] = L"Program Files";
@@ -1628,7 +1628,7 @@ static const CSIDL_DATA CSIDL_Data[] =
         &FOLDERID_CDBurning,
         CSIDL_Type_User,
         L"CD Burning",
-        L"Local Settings\\Application Data\\Microsoft\\CD Burning"
+        L"AppData\\Local\\Microsoft\\CD Burning"
     },
     { /* 0x3c unassigned */
         &GUID_NULL,
@@ -1648,8 +1648,6 @@ static const CSIDL_DATA CSIDL_Data[] =
         NULL,
         NULL
     },
-/* Cannot use #if _WIN32_WINNT >= 0x0600 because _WIN32_WINNT == 0x0600 here. */
-#ifndef __REACTOS__
     { /* 0x3f */
         &FOLDERID_AddNewPrograms,
         CSIDL_Type_Disallowed,
@@ -1966,7 +1964,6 @@ static const CSIDL_DATA CSIDL_Data[] =
         NULL,
         NULL
     }
-#endif
 };
 
 INT SHGetSpecialFolderID(_In_ LPCWSTR pszName)
