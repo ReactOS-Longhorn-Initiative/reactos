@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)&quot;;&quot;C:\Documents and Settings\All Users\Documenti\openssl-0.9.8b\inc32&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)&quot;;&quot;C:\Users\All Users\Documenti\openssl-0.9.8b\inc32&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,7 +64,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="kernel32.lib user32.lib gdi32.lib ws2_32.lib libeay32.lib advapi32.lib msimg32.lib ole32.lib oleaut32.lib comctl32.lib $(NoInherit)"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;C:\Documents and Settings\All Users\Documenti\openssl-0.9.8b\out32&quot;"
+				AdditionalLibraryDirectories="&quot;C:\Users\All Users\Documenti\openssl-0.9.8b\out32&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)&quot;;&quot;C:\Documents and Settings\All Users\Documenti\openssl-0.9.8b\inc32&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)&quot;;&quot;C:\Users\All Users\Documenti\openssl-0.9.8b\inc32&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -141,7 +141,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="kernel32.lib user32.lib gdi32.lib ws2_32.lib libeay32.lib advapi32.lib msimg32.lib ole32.lib oleaut32.lib comctl32.lib $(NoInherit)"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;C:\Documents and Settings\All Users\Documenti\openssl-0.9.8b\out32&quot;"
+				AdditionalLibraryDirectories="&quot;C:\Users\All Users\Documenti\openssl-0.9.8b\out32&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

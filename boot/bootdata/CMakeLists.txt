@@ -101,7 +101,7 @@ add_livecd_shortcut("Solitaire" sol.exe "Profiles/All Users/Start Menu/Programs/
 add_livecd_shortcut("Spider Solitaire" spider.exe "Profiles/All Users/Start Menu/Programs/Games")
 add_livecd_shortcut("WineMine" winmine.exe "Profiles/All Users/Start Menu/Programs/Games")
 add_livecd_shortcut("ReactOS Explorer" explorer.exe "Profiles/All Users/Start Menu/Programs")
-add_livecd_shortcut("Command Prompt" cmd.exe "Profiles/Default User/Application Data/Microsoft/Internet Explorer/Quick Launch")
-add_livecd_shortcut("ReactOS Explorer" explorer.exe "Profiles/Default User/Application Data/Microsoft/Internet Explorer/Quick Launch")
+add_livecd_shortcut("Command Prompt" cmd.exe "Profiles/Default User/AppData/Roaming/Microsoft/Internet Explorer/Quick Launch")
+add_livecd_shortcut("ReactOS Explorer" explorer.exe "Profiles/Default User/AppData/Roaming/Microsoft/Internet Explorer/Quick Launch")
 
 add_custom_target(livecd_links DEPENDS ${LIVECD_SHORTCUTS})
