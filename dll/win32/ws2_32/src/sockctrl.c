@@ -171,7 +171,7 @@ getpeername(IN SOCKET s,
     PWSSOCKET Socket;
     INT Status;
     INT ErrorCode;
-    DPRINT1("getpeername: %lx, %p, %lx\n", s, name, namelen);
+    DPRINT1("getpeername: %p, %p, %p\n", s, name, namelen);
 
     /* Check for WSAStartup */
     if ((ErrorCode = WsQuickProlog()) == ERROR_SUCCESS)

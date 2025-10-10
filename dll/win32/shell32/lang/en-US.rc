@@ -771,7 +771,7 @@ BEGIN
 
     /* special folders */
     IDS_DESKTOP "Desktop"
-    IDS_MYCOMPUTER "My Computer"
+    IDS_MYCOMPUTER "This PC"
     IDS_RECYCLEBIN_FOLDER_NAME "Recycle Bin"
     IDS_CONTROLPANEL "Control Panel"
     IDS_ADMINISTRATIVETOOLS "Administrative Tools"
@@ -1007,7 +1007,7 @@ BEGIN
     IDS_RECYCLE_CLEANER_DESCRIPTION "The Recycle Bin contains files you have deleted from your computer. These files are not permanently removed until you empty the Recycle Bin."
     IDS_RECYCLE_CLEANER_BUTTON_TEXT "&View Files"
 
-    IDS_TITLE_MYCOMP "My Computer"
+    IDS_TITLE_MYCOMP "This PC"
     IDS_TITLE_MYNET "My Network Places"
     IDS_TITLE_BIN_1 "Recycle Bin (full)"
     IDS_TITLE_BIN_0 "Recycle Bin (empty)"

@@ -385,7 +385,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         DWORD style;
         IAutoComplete *pAutoComplete;
 
-        /* Load "My Computer" string */
+        /* Load "This PC" string */
         LoadStringW(hInst, IDS_MY_COMPUTER, buffer, ARRAY_SIZE(buffer));
 
         g_pChildWnd = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(ChildWnd));

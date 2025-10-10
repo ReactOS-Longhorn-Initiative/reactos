@@ -395,7 +395,7 @@ void ShellDirectory::read_directory(int scan_flags)
 				bool removeable = false;
 
 				if (SUCCEEDED(hr) && attribs!=attribs_before) {
-					 // avoid accessing floppy drives when browsing "My Computer"
+					 // avoid accessing floppy drives when browsing "This PC"
 					if (attribs & SFGAO_REMOVABLE) {
 						attribs |= SFGAO_HASSUBFOLDER;
 						removeable = true;

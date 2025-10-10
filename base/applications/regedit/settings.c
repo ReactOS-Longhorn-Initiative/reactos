@@ -2,7 +2,7 @@
  * Regedit settings
  *
  * Copyright 2012 Edijs Kolesnikovics <terminedijs@yahoo.com>
- * Copyright 2012 Grégori Macário Harbs <mysoft64bits@gmail.com>
+ * Copyright 2012 Grï¿½gori Macï¿½rio Harbs <mysoft64bits@gmail.com>
  * LICENSE: LGPL-2.1-or-later (https://spdx.org/licenses/LGPL-2.1-or-later)
  */
 
@@ -117,7 +117,7 @@ extern void SaveSettings(void)
         keyPath = GetItemPath(g_pChildWnd->hTreeWnd, 0, &hRootKey);
         rootName = get_root_key_name(hRootKey);
 
-        /* Load "My Computer" string and complete it */
+        /* Load "This PC" string and complete it */
         if (LoadStringW(hInst, IDS_MY_COMPUTER, szBuffer, ARRAY_SIZE(szBuffer)) &&
             SUCCEEDED(StringCbCatW(szBuffer, sizeof(szBuffer), L"\\")) &&
             SUCCEEDED(StringCbCatW(szBuffer, sizeof(szBuffer), rootName)) &&

@@ -780,7 +780,7 @@ BOOL SelectNode(HWND hwndTV, LPCWSTR keyPath)
     LPCWSTR s;
     TVITEMW tvi;
 
-    /* Load "My Computer" string... */
+    /* Load "This PC" string... */
     LoadStringW(hInst, IDS_MY_COMPUTER, szBuffer, ARRAY_SIZE(szBuffer));
     StringCbCatW(szBuffer, sizeof(szBuffer), L"\\");
 

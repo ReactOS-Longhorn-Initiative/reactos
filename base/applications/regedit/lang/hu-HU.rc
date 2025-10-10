@@ -491,7 +491,7 @@ BEGIN
     IDS_DEFAULT_VALUE_NAME "(Default)"
     IDS_VALUE_NOT_SET "(value not set)"
     IDS_UNKNOWN_TYPE "Unknown type: (0x%lx)"
-    IDS_MY_COMPUTER "My Computer"
+    IDS_MY_COMPUTER "This PC"
     IDS_IMPORT_REG_FILE "Import Registry File"
     IDS_EXPORT_REG_FILE "Export Registry File"
     IDS_LOAD_HIVE "Load Hive"

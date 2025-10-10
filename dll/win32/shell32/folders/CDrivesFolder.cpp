@@ -34,7 +34,7 @@ implementation of IShellFolder::EnumObjects enumerates the virtual items, the
 CDrivesFolderEnum is only responsible for returning the physical items.
 
 2. At least on my XP system, the drive pidls returned are of type PT_DRIVE1, not PT_DRIVE
-3. The parsing name returned for my computer is incorrect. It should be "My Computer"
+3. The parsing name returned for my computer is incorrect. It should be "This PC"
 */
 
 static int iDriveIconIds[7] = { IDI_SHELL_NOT_CONNECTED_HDD, /* DRIVE_UNKNOWN */
