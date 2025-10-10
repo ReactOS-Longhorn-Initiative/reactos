@@ -54,12 +54,12 @@ VOID TestUninitialized()
     hr = psf->CreateViewObject(NULL, IID_PPV_ARG(IShellView, &psv));
     ok(hr == S_OK, "hr = %lx\n", hr);
 
-    /* And its display name is ... "C:\Documents and Settings\<username>\Desktop" */
+    /* And its display name is ... "C:\Users\<username>\Desktop" */
     STRRET strretName;
     hr = psf->GetDisplayNameOf(NULL,SHGDN_FORPARSING,&strretName);
     ok(hr == S_OK, "hr = %lx\n", hr);
     ok(strretName.uType == STRRET_WSTR, "strretName.uType == %x\n", strretName.uType);
-    ok((wcsncmp(strretName.pOleStr, L"C:\\Documents and Settings\\", 26) == 0) ||
+    ok((wcsncmp(strretName.pOleStr, L"C:\\Users\\", 26) == 0) ||
        (wcsncmp(strretName.pOleStr, L"C:\\Users\\", 9) == 0),
        "wrong name, got: %S\n", strretName.pOleStr);
     ok(wcscmp(strretName.pOleStr + wcslen(strretName.pOleStr) - 8, L"\\Desktop") == NULL,
