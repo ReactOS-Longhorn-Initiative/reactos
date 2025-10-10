@@ -28,10 +28,11 @@ typedef struct _FOLDERDATA
 static FOLDERDATA
 UserShellFolders[] =
 {
-    {L"AppData", L"Application Data", IDS_APPDATA, TRUE, TRUE, TRUE},
+    {L"AppData Folder", L"AppData", IDS_APPDATA, TRUE, FALSE, FALSE},
+    {L"AppData", L"AppData\\Roaming", IDS_ROAMINGAPPDATA, FALSE, TRUE, TRUE},
     {L"Desktop", L"Desktop", IDS_DESKTOP, FALSE, TRUE, TRUE},
     {L"Favorites", L"Favorites", IDS_FAVORITES, FALSE, TRUE, TRUE},
-    {L"Personal", L"My Documents", IDS_MYDOCUMENTS, FALSE, TRUE, TRUE},
+    {L"Personal", L"Documents", IDS_MYDOCUMENTS, FALSE, TRUE, TRUE},
     {L"NetHood", L"NetHood", IDS_NETHOOD, TRUE, TRUE, TRUE},
     {L"PrintHood", L"PrintHood", IDS_PRINTHOOD, TRUE, TRUE, TRUE},
     {L"Recent", L"Recent", IDS_RECENT, TRUE, TRUE, TRUE},
@@ -40,11 +41,11 @@ UserShellFolders[] =
     {L"Start Menu", L"Start Menu", IDS_STARTMENU, FALSE, TRUE, TRUE},
     {L"Programs", L"Start Menu\\Programs", IDS_PROGRAMS, FALSE, TRUE, TRUE},
     {L"Startup", L"Start Menu\\Programs\\Startup", IDS_STARTUP, FALSE, TRUE, TRUE},
-    {L"Local Settings", L"Local Settings", IDS_LOCALSETTINGS, TRUE, TRUE, TRUE},
-    {L"Local AppData", L"Local Settings\\Application Data", IDS_LOCALAPPDATA, TRUE, TRUE, TRUE},
-    {L"Temp", L"Local Settings\\Temp", IDS_TEMP, FALSE, FALSE, FALSE},
-    {L"Cache", L"Local Settings\\Temporary Internet Files", IDS_CACHE, FALSE, TRUE, TRUE},
-    {L"History", L"Local Settings\\History", IDS_HISTORY, FALSE, TRUE, TRUE},
+    {L"Local AppData", L"AppData\\Local", IDS_LOCALSETTINGS, FALSE, TRUE, TRUE},
+    {L"LocalLow AppData", L"AppData\\LocalLow", IDS_LOCALLOWAPPDATA, FALSE, FALSE, FALSE},
+    {L"Temp", L"Appdata\\Local\\Temp", IDS_TEMP, FALSE, FALSE, FALSE},
+    {L"Cache", L"Appdata\\Local\\Temporary Internet Files", IDS_CACHE, FALSE, TRUE, TRUE},
+    {L"History", L"AppData\\Local\\History", IDS_HISTORY, FALSE, TRUE, TRUE},
     {L"Cookies", L"Cookies", IDS_COOKIES, FALSE, TRUE, TRUE},
     {NULL, NULL, -1, FALSE, FALSE, FALSE}
 };
@@ -53,7 +54,6 @@ UserShellFolders[] =
 static FOLDERDATA
 CommonShellFolders[] =
 {
-    {L"Common AppData", L"Application Data", IDS_APPDATA, TRUE, TRUE, TRUE},
     {L"Common Desktop", L"Desktop", IDS_DESKTOP, FALSE, TRUE, TRUE},
     {L"Common Favorites", L"Favorites", IDS_FAVORITES, FALSE, TRUE, TRUE},
     {L"Common Documents", L"My Documents", IDS_MYDOCUMENTS, FALSE, TRUE, TRUE},
