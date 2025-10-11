@@ -41,8 +41,12 @@ extern HANDLE GlobalKeyedEventHandle;
 #endif
 
 /* Bit layout for internal SRW state and wait list flags. */
-#define SRWM_FLAG   0x0000000F
-#define SRWM_ITEM   0xFFFFFFF0
+#if defined(_WIN64)
+ #define SRWM_ITEM  0xFFFFFFFFFFFFFFF0ULL
+#else
+ #define SRWM_ITEM  0xFFFFFFF0U
+#endif
+#define SRWM_FLAG  (~SRWM_ITEM)
 
 #define SRWF_Free   0x0
 #define SRWF_Hold   0x1
