@@ -12,8 +12,7 @@ include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(ncrypt.dll ncrypt.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
-stubs.c)
-   # main.c)
+    main.c)
 
 add_library(ncrypt MODULE
     ${SOURCE}

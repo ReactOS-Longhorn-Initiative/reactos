@@ -2674,7 +2674,8 @@ NTSTATUS key_asymmetric_encrypt(void *args)
         BCRYPT_OAEP_PADDING_INFO *pad = params->padding;
         mbedtls_md_type_t dig;
 
-        if (!pad || !pad->pszAlgId || !pad->pbLabel)
+        /* Windows allows NULL label; only algorithm is required */
+        if (!pad || !pad->pszAlgId)
         {
             WARN("padding info not found\n");
             return STATUS_INVALID_PARAMETER;

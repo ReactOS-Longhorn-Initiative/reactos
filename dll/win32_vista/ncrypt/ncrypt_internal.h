@@ -36,7 +36,7 @@ struct key
 
 struct storage_provider
 {
-    ULONG test;
+    ULONG PLACEHOLDER;
 };
 
 enum object_type
