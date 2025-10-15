@@ -102,37 +102,37 @@
 @ stub NCryptUnprotectSecret
 @ stub NCryptVerifyClaim
 @ stdcall NCryptVerifySignature(ptr ptr ptr long ptr long long)
-@ stub SslChangeNotify
-@ stub SslComputeClientAuthHash
-@ stub SslComputeEapKeyBlock
-@ stub SslComputeFinishedHash
-@ stub SslComputeSessionHash
-@ stub SslCreateClientAuthHash
-@ stub SslCreateEphemeralKey
-@ stub SslCreateHandshakeHash
-@ stub SslDecrementProviderReferenceCount
-@ stub SslDecryptPacket
-@ stub SslEncryptPacket
-@ stub SslEnumCipherSuites
-@ stub SslEnumEccCurves
-@ stub SslEnumProtocolProviders
-@ stub SslExportKey
-@ stub SslExportKeyingMaterial
-@ stub SslFreeBuffer
-@ stub SslFreeObject
-@ stub SslGenerateMasterKey
-@ stub SslGeneratePreMasterKey
-@ stub SslGenerateSessionKeys
-@ stub SslGetCipherSuitePRFHashAlgorithm
-@ stub SslGetKeyProperty
-@ stub SslGetProviderProperty
-@ stub SslHashHandshake
-@ stub SslImportKey
-@ stub SslImportMasterKey
-@ stub SslIncrementProviderReferenceCount
-@ stub SslLookupCipherLengths
-@ stub SslLookupCipherSuiteInfo
-@ stub SslOpenPrivateKey
-@ stub SslOpenProvider
-@ stub SslSignHash
-@ stub SslVerifySignature
+@ stdcall SslChangeNotify(ptr long)
+@ stdcall SslComputeClientAuthHash(long long long wstr ptr long ptr long)
+@ stdcall SslComputeEapKeyBlock(long long ptr long ptr long ptr long)
+@ stdcall SslComputeFinishedHash(long long long ptr long long)
+@ stdcall SslComputeSessionHash(long long long ptr long ptr long)
+@ stdcall SslCreateClientAuthHash(long ptr long long wstr long)
+@ stdcall SslCreateEphemeralKey(long ptr long long long long ptr long long)
+@ stdcall SslCreateHandshakeHash(long ptr long long long)
+@ stdcall SslDecrementProviderReferenceCount(long)
+@ stdcall SslDecryptPacket(long long ptr long ptr long ptr int64 long)
+@ stdcall SslEncryptPacket(long long ptr long ptr long ptr int64 long long)
+@ stdcall SslEnumCipherSuites(long long ptr ptr long)
+@ stdcall SslEnumEccCurves(long ptr ptr long)
+@ stdcall SslEnumProtocolProviders(ptr ptr long)
+@ stdcall SslExportKey(long long wstr ptr long ptr long)
+@ stdcall SslExportKeyingMaterial(long long str ptr long ptr long ptr long long)
+@ stdcall SslFreeBuffer(ptr)
+@ stdcall SslFreeObject(long long)
+@ stdcall SslGenerateMasterKey(long long long ptr long long ptr ptr long ptr long)
+@ stdcall SslGeneratePreMasterKey(long long ptr long long ptr ptr long long)
+@ stdcall SslGenerateSessionKeys(long long ptr ptr ptr long)
+@ stdcall SslGetCipherSuitePRFHashAlgorithm(long long long long wstr long)
+@ stdcall SslGetKeyProperty(long wstr ptr ptr long)
+@ stdcall SslGetProviderProperty(long wstr ptr ptr ptr long)
+@ stdcall SslHashHandshake(long long ptr long long)
+@ stdcall SslImportKey(long ptr wstr ptr long long)
+@ stdcall SslImportMasterKey(long long ptr long long ptr long long)
+@ stdcall SslIncrementProviderReferenceCount(long)
+@ stdcall SslLookupCipherLengths(long long long long ptr long long)
+@ stdcall SslLookupCipherSuiteInfo(long long long long ptr long)
+@ stdcall SslOpenPrivateKey(long ptr ptr long)
+@ stdcall SslOpenProvider(ptr wstr long)
+@ stdcall SslSignHash(long long ptr long ptr long ptr long)
+@ stdcall SslVerifySignature(long long ptr long ptr long long)
