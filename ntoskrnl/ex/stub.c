@@ -7,12 +7,9 @@
 
 NTSTATUS NTAPI NtThawRegistry() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtThawTransactions() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtTraceControl(    _In_ ULONG FunctionCode, 
-    _In_ PVOID InBuffer, 
-    _In_ ULONG InBufferLen, 
-    _In_ PVOID OutBuffer, 
-    _In_ ULONG OutBufferLen, 
-    _Out_ ULONG *ReturnSize) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+
+NTSTATUS NTAPI NtTraceControl() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+
 NTSTATUS NTAPI NtAddAtomEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtAdjustTokenClaimsAndDeviceGroups() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtAlertThreadByThreadId(PKTHREAD Thread) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
@@ -45,11 +42,21 @@ NTSTATUS NTAPI NtCancelIoFileEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED
 NTSTATUS NTAPI NtCancelSynchronousIoFile() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtNtCancelTimer2() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCancelWaitCompletionPacket() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCommitComplete() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCommitEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCommitTransaction() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCommitComplete(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCommitEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCommitTransaction(  _In_ HANDLE TransactionHandle,
+  _In_ BOOLEAN Wait) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateDirectoryObjectEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCreateEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCreateEnlistment(  _Out_ PHANDLE EnlistmentHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_ HANDLE ResourceManagerHandle,
+  _In_ HANDLE TransactionHandle,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+  _In_opt_ ULONG CreateOptions,
+  _In_ NOTIFICATION_MASK NotificationMask,
+  _In_opt_ PVOID EnlistmentKey) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtNtCreateIRTimer() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateKeyTransacted() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateLowBoxToken() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
@@ -69,8 +76,22 @@ NTSTATUS NTAPI NtCreateResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPL
 NTSTATUS NTAPI NtCreateThreadEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateTimer2() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateTokenEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCreateTransaction() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCreateTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCreateTransaction(  _Out_ PHANDLE TransactionHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+  _In_opt_ LPGUID Uow,
+  _In_opt_ HANDLE TmHandle,
+  _In_opt_ ULONG CreateOptions,
+  _In_opt_ ULONG IsolationLevel,
+  _In_opt_ ULONG IsolationFlags,
+  _In_opt_ PLARGE_INTEGER Timeout,
+  _In_opt_ PUNICODE_STRING Description) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCreateTransactionManager(  _Out_ PHANDLE TmHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+  _In_opt_ PUNICODE_STRING LogFileName,
+  _In_opt_ ULONG CreateOptions,
+  _In_opt_ ULONG CommitStrength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateUserProcess() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateWaitCompletionPacket() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateWnfStateName() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
@@ -81,7 +102,11 @@ NTSTATUS NTAPI NtDeleteWnfStateName() { UNIMPLEMENTED; return STATUS_NOT_IMPLEME
 NTSTATUS NTAPI NtDisableLastKnownGood() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtDrawText() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtEnableLastKnownGood() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtEnumerateTransactionObject() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtEnumerateTransactionObject(  _In_opt_ HANDLE RootObjectHandle,
+  _In_ KTMOBJECT_TYPE QueryType,
+  _Inout_updates_bytes_(ObjectCursorLength) PKTMOBJECT_CURSOR ObjectCursor,
+  _In_ ULONG ObjectCursorLength,
+  _Out_ PULONG ReturnLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtFilterBootOption() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtFilterTokenEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtFlushBuffersFileEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
@@ -96,60 +121,132 @@ NTSTATUS NTAPI NtGetMUIRegistryInfo() { UNIMPLEMENTED; return STATUS_NOT_IMPLEME
 NTSTATUS NTAPI NtGetNextProcess() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtGetNextThread() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtGetNlsSectionPtr() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtGetNotificationResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtGetNotificationResourceManager(  _In_ HANDLE ResourceManagerHandle,
+  _Out_ PTRANSACTION_NOTIFICATION TransactionNotification,
+  _In_ ULONG NotificationLength,
+  _In_opt_ PLARGE_INTEGER Timeout,
+  _Out_opt_ PULONG ReturnLength,
+  _In_ ULONG Asynchronous,
+  _In_opt_ ULONG_PTR AsynchronousContext) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtInitializeNlsFiles() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtIsUILanguageComitted() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtMapCMFModule() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtNotifyChangeSession() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtOpenEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtOpenEnlistment(  _Out_ PHANDLE EnlistmentHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_ HANDLE ResourceManagerHandle,
+  _In_ LPGUID EnlistmentGuid,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtOpenKeyTransacted() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtOpenKeyTransactedEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtOpenPrivateNamespace() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtOpenResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtOpenResourceManager(  _Out_ PHANDLE ResourceManagerHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_ HANDLE TmHandle,
+  _In_opt_ LPGUID ResourceManagerGuid,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtOpenSession() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtOpenTransaction() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtOpenTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtPrePrepareComplete() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtPrePrepareEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtOpenTransaction(  _Out_ PHANDLE TransactionHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_ POBJECT_ATTRIBUTES ObjectAttributes,
+  _In_ LPGUID Uow,
+  _In_opt_ HANDLE TmHandle) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtOpenTransactionManager(  _Out_ PHANDLE TmHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+  _In_opt_ PUNICODE_STRING LogFileName,
+  _In_opt_ LPGUID TmIdentity,
+  _In_opt_ ULONG OpenOptions) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtPrePrepareComplete(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtPrePrepareEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtPrefetchVirtualMemory() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtPrepareComplete() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtPrepareEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtPropagationComplete() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtPropagationFailed() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtQueryInformationEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtQueryInformationResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtQueryInformationTransaction() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtQueryInformationTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtPrepareComplete(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtPrepareEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtPropagationComplete(  _In_ HANDLE ResourceManagerHandle,
+  _In_ ULONG RequestCookie,
+  _In_ ULONG BufferLength,
+  _In_ PVOID Buffer) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtPropagationFailed(  _In_ HANDLE ResourceManagerHandle,
+  _In_ ULONG RequestCookie,
+  _In_ NTSTATUS PropStatus) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtQueryInformationEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_ ENLISTMENT_INFORMATION_CLASS EnlistmentInformationClass,
+  _Out_writes_bytes_(EnlistmentInformationLength) PVOID EnlistmentInformation,
+  _In_ ULONG EnlistmentInformationLength,
+  _Out_ PULONG ReturnLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtQueryInformationResourceManager(  _In_ HANDLE ResourceManagerHandle,
+  _In_ RESOURCEMANAGER_INFORMATION_CLASS ResourceManagerInformationClass,
+  _Out_writes_bytes_(ResourceManagerInformationLength) PVOID ResourceManagerInformation,
+  _In_ ULONG ResourceManagerInformationLength,
+  _Out_opt_ PULONG ReturnLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtQueryInformationTransaction(  _In_ HANDLE TransactionHandle,
+  _In_ TRANSACTION_INFORMATION_CLASS TransactionInformationClass,
+  _Out_writes_bytes_(TransactionInformationLength) PVOID TransactionInformation,
+  _In_ ULONG TransactionInformationLength,
+  _Out_opt_ PULONG ReturnLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtQueryInformationTransactionManager(  _In_ HANDLE TransactionManagerHandle,
+  _In_ TRANSACTIONMANAGER_INFORMATION_CLASS TransactionManagerInformationClass,
+  _Out_writes_bytes_(TransactionManagerInformationLength) PVOID TransactionManagerInformation,
+  _In_ ULONG TransactionManagerInformationLength,
+  _Out_ PULONG ReturnLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtQueryInformationWorkerFactory() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtQueryLicenseValue() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtQuerySecurityAttributesToken() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtQuerySystemInformationEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtQueryWnfStateData() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtQueryWnfStateNameInformation() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtReadOnlyEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRecoverEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRecoverResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRecoverTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRegisterProtocolAddressInformation() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtReadOnlyEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRecoverEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PVOID EnlistmentKey) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRecoverResourceManager(_In_ HANDLE ResourceManagerHandle) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRecoverTransactionManager(HANDLE TransactionManagerHandle) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRegisterProtocolAddressInformation(  _In_ HANDLE ResourceManager,
+  _In_ PCRM_PROTOCOL_ID ProtocolId,
+  _In_ ULONG ProtocolInformationSize,
+  _In_ PVOID ProtocolInformation,
+  _In_opt_ ULONG CreateOptions) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtReleaseWorkerFactoryWorker() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtRemoveIoCompletionEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRenameTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRenameTransactionManager(  _In_ PUNICODE_STRING LogFileName,
+  _In_ LPGUID ExistingTransactionManagerGuid) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtReplacePartitionUnit() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRollbackComplete() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRollbackEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRollbackTransaction() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtRollforwardTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRollbackComplete(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRollbackEnlistment(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRollbackTransaction(  _In_ HANDLE TransactionHandle,
+  _In_ BOOLEAN Wait) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtRollforwardTransactionManager(  _In_ HANDLE TransactionManagerHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtSerializeBoot() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtSetInformationEnlistment() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtSetInformationResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtSetInformationTransaction() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtSetInformationTransactionManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtSetInformationEnlistment(  _In_opt_ HANDLE EnlistmentHandle,
+  _In_ ENLISTMENT_INFORMATION_CLASS EnlistmentInformationClass,
+  _In_reads_bytes_(EnlistmentInformationLength) PVOID EnlistmentInformation,
+  _In_ ULONG EnlistmentInformationLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtSetInformationResourceManager(  _In_ HANDLE ResourceManagerHandle,
+  _In_ RESOURCEMANAGER_INFORMATION_CLASS ResourceManagerInformationClass,
+  _In_reads_bytes_(ResourceManagerInformationLength) PVOID ResourceManagerInformation,
+  _In_ ULONG ResourceManagerInformationLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtSetInformationTransaction(  _In_ HANDLE TransactionHandle,
+  _In_ TRANSACTION_INFORMATION_CLASS TransactionInformationClass,
+  _In_reads_bytes_(TransactionInformationLength) PVOID TransactionInformation,
+  _In_ ULONG TransactionInformationLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtSetInformationTransactionManager(  _In_opt_ HANDLE TmHandle,
+  _In_ TRANSACTIONMANAGER_INFORMATION_CLASS TransactionManagerInformationClass,
+  _In_reads_bytes_(TransactionManagerInformationLength) PVOID TransactionManagerInformation,
+  _In_ ULONG TransactionManagerInformationLength) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtSetInformationWorkerFactory() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtSetIoCompletionEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtSetSystemCodeIntegrityRoots() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtSetTimerEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtShutdownWorkerFactory() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtSinglePhaseReject() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtSinglePhaseReject(  _In_ HANDLE EnlistmentHandle,
+  _In_opt_ PLARGE_INTEGER TmVirtualClock) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtSubscribeWnfStateChange() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtUmsThreadYield() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtUnmapViewOfSectionEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }

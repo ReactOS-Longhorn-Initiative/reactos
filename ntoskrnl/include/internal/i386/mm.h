@@ -220,19 +220,3 @@ C_ASSERT(PD_COUNT == 1);
                 (((x)->u.Subsect.SubsectionAddressHigh << 7) |      \
                   (x)->u.Subsect.SubsectionAddressLow << 3))
 
-FORCEINLINE
-PMMPTE
-MiReserveKernelStackPtes(
-    _In_ ULONG NumberOfPtes)
-{
-    return MiReserveSystemPtes(NumberOfPtes, SystemPteSpace);
-}
-
-FORCEINLINE
-VOID
-MiReleaseKernelStackPtes(
-    _In_ PMMPTE FirstPte,
-    _In_ ULONG NumberOfPtes)
-{
-    MiReleaseSystemPtes(FirstPte, NumberOfPtes, SystemPteSpace);
-}

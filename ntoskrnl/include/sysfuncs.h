@@ -1,3 +1,4 @@
+#undef NTDDI_VERSION
 #define NTDDI_VERSION NTDDI_WIN10
 SVC_(AccessCheck, 8)
 SVC_(WorkerFactoryWorkerReady, 1)
