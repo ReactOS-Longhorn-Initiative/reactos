@@ -72,7 +72,13 @@ NTSTATUS NTAPI NtCreateProfileEx(_Out_ PHANDLE ProfileHandle,
     _In_ KPROFILE_SOURCE Source,
     _In_ USHORT GroupCount,
     _In_reads_(GroupCount) PGROUP_AFFINITY Affinity) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
-NTSTATUS NTAPI NtCreateResourceManager() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
+NTSTATUS NTAPI NtCreateResourceManager(  _Out_ PHANDLE ResourceManagerHandle,
+  _In_ ACCESS_MASK DesiredAccess,
+  _In_ HANDLE TmHandle,
+  _In_ LPGUID RmGuid,
+  _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+  _In_opt_ ULONG CreateOptions,
+  _In_opt_ PUNICODE_STRING Description) { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateThreadEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateTimer2() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
 NTSTATUS NTAPI NtCreateTokenEx() { UNIMPLEMENTED; return STATUS_NOT_IMPLEMENTED; }
