@@ -29,3 +29,7 @@ target_link_libraries(dsound dxguid uuid dxguid wine wine_dll_register oldnames)
 add_importlibs(dsound winmm advapi32 msvcrt ole32 combase propsys kernelbase ntdll)
 add_cd_file(TARGET dsound DESTINATION reactos/system32 FOR all)
 set_wine_module_FIXME(dsound) # CORE-5743: No CONST_VTABLE
+
+if (MSVC)
+    target_compile_options(dsound PRIVATE /wd4305)
+endif()
