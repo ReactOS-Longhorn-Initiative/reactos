@@ -582,13 +582,17 @@ FindFirstFileExA(IN LPCSTR lpFileName,
     LPWIN32_FIND_DATAA lpFindFileDataA = (LPWIN32_FIND_DATAA)lpFindFileData;
 
     if ((fInfoLevelId != FindExInfoStandard && fInfoLevelId != FindExInfoBasic) ||
-        fSearchOp == FindExSearchLimitToDevices ||
-        dwAdditionalFlags & ~FIND_FIRST_EX_CASE_SENSITIVE /* only supported flag for now */)
+        fSearchOp == FindExSearchLimitToDevices)
     {
         SetLastError(fSearchOp == FindExSearchLimitToDevices
                                 ? ERROR_NOT_SUPPORTED
                                 : ERROR_INVALID_PARAMETER);
         return INVALID_HANDLE_VALUE;
+    }
+
+    if (dwAdditionalFlags & ~FIND_FIRST_EX_LARGE_FETCH)
+    {
+        FIXME("flags not implemented 0x%08lx\n", dwAdditionalFlags );
     }
 
     lpFileNameW = Basep8BitStringToStaticUnicodeString(lpFileName);
@@ -658,13 +662,17 @@ FindFirstFileExW(IN LPCWSTR lpFileName,
     TRACE("FindFirstFileExW(lpFileName %S)\n", lpFileName);
 
     if ((fInfoLevelId != FindExInfoStandard && fInfoLevelId != FindExInfoBasic) ||
-        fSearchOp == FindExSearchLimitToDevices ||
-        dwAdditionalFlags & ~FIND_FIRST_EX_CASE_SENSITIVE /* only supported flag for now */)
+        fSearchOp == FindExSearchLimitToDevices)
     {
         SetLastError(fSearchOp == FindExSearchLimitToDevices
                                 ? ERROR_NOT_SUPPORTED
                                 : ERROR_INVALID_PARAMETER);
         return INVALID_HANDLE_VALUE;
+    }
+
+    if (dwAdditionalFlags & ~FIND_FIRST_EX_LARGE_FETCH)
+    {
+        FIXME("flags not implemented 0x%08lx\n", dwAdditionalFlags );
     }
 
     if (fSearchOp == FindExSearchNameMatch ||

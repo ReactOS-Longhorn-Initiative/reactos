@@ -7,7 +7,7 @@
  */
 
 #include "iphlpapi_private.h"
-#include <debug.h>
+#include <wine/debug.h>
 WINE_DEFAULT_DEBUG_CHANNEL(iphlpapi);
 
 DWORD TCPSendIoctl(HANDLE hDevice, DWORD dwIoControlCode, LPVOID lpInBuffer, PULONG pInBufferSize, LPVOID lpOutBuffer, PULONG pOutBufferSize)
@@ -357,7 +357,7 @@ GetBestRoute2(
 
     if (destSockAddr->sin_family != AF_INET)
     {
-        DPRINT1("GetBestRoute2: Only IPv4 supported in this implementation\n");
+        FIXME("GetBestRoute2: Only IPv4 supported in this implementation\n");
         return ERROR_NOT_SUPPORTED;
     }
 
