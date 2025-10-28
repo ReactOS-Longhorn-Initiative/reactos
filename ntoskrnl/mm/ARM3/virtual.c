@@ -310,9 +310,6 @@ MiDeleteSystemPageableVm(IN PMMPTE PointerPte,
                 PageTableIndex = Pfn1->u4.PteFrame;
                 Pfn2 = MiGetPfnEntry(PageTableIndex);
 
-                /* Destroy the PTE */
-                MI_ERASE_PTE(PointerPte);
-
                 /* Lock the PFN database */
                 OldIrql = MiAcquirePfnLock();
 
@@ -326,6 +323,8 @@ MiDeleteSystemPageableVm(IN PMMPTE PointerPte,
                 /* Release the PFN database */
                 MiReleasePfnLock(OldIrql);
 
+                /* Destroy the PTE */
+                MI_ERASE_PTE(PointerPte);
             }
             else
             {

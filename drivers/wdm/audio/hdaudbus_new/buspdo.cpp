@@ -96,7 +96,7 @@ Return Value:
         (RtlCompareMemory(&lhs->CodecIds, &rhs->CodecIds, sizeof(lhs->CodecIds)) == sizeof(lhs->CodecIds));
 }
 
-VOID
+VOID NTAPI
 Bus_EvtChildListIdentificationDescriptionCleanup(
     _In_ WDFCHILDLIST DeviceList,
     _Inout_ PWDF_CHILD_IDENTIFICATION_DESCRIPTION_HEADER IdentificationDescription

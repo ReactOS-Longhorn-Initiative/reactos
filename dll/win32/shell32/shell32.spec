@@ -569,7 +569,7 @@
 @ stdcall -stub GetProcessDpiAwarenessInternal(ptr ptr);
 @ stdcall -stub SetProcessDpiAwarenessInternal(long);
 @ stdcall -stub GetDpiForMonitorInternal(ptr long ptr ptr)
-@ stdcall -stub GetDpiForMonitor(ptr)
+@ stdcall GetDpiForMonitor(long long ptr ptr)
 @ stdcall -stub IsProcessDPIAware()
 @ stdcall -stub SetProcessDPIAware()
 

@@ -23,6 +23,8 @@
 
 #include "shell32_version.h"
 
+#include <shellscalingapi.h>
+
 WINE_DEFAULT_DEBUG_CHANNEL(shell);
 
 /*
@@ -516,4 +518,17 @@ void RecordFeatureUsage(
 {
     FIXME("RecordFeatureUsage\n");
 
+}
+
+
+HRESULT GetDpiForMonitor(
+    HMONITOR         hmonitor,
+    MONITOR_DPI_TYPE dpiType,
+   UINT             *dpiX,
+   UINT             *dpiY
+)
+{
+    *dpiX = 96;
+    *dpiY = 96;
+    return S_OK;
 }

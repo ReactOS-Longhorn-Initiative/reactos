@@ -209,6 +209,26 @@ list(APPEND SOURCE
     windows.data.json.idl
     windows.foundation.collections.idl
     windows.foundation.idl
+    windows.ui.idl
+    windows.ui.viewmanagement.idl
+    windows.devices.enumeration.idl
+    windows.ui.core.idl
+    windows.system.idl
+    windows.storage.idl
+    windows.storage.fileproperties.idl
+    windows.devices.geolocation.idl
+    windows.graphics.directx.idl
+    windows.graphics.effects.idl
+    windows.storage.streams.idl
+    windows.storage.search.idl
+    windows.foundation.numerics.idl
+    windows.ui.input.idl
+    windows.devices.input.idl
+    windows.ui.windowmanagement.idl
+    windows.ui.composition.idl
+    weakreference.idl
+    inputpaneinterop.idl
+    uiviewsettingsinterop.idl
     windowscontracts.idl
     winsxs.idl
     wmcodecdsp.idl

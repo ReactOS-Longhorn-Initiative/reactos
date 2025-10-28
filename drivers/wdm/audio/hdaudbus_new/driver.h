@@ -56,7 +56,9 @@ NTSTATUS HDA_WaitForTransfer(
 );
 #define MAXUINT64 ((UINT64)~ ((UINT64)0))
 #define MAXULONG64 ((ULONG64)~ ((ULONG64)0))
+#ifndef MAXULONG32
 #define MAXULONG32 ((ULONG32) ~((ULONG32)0))
+#endif
 
 HDAUDIO_BUS_INTERFACE HDA_BusInterface(PVOID Context);
 HDAUDIO_BUS_INTERFACE_V2 HDA_BusInterfaceV2(PVOID Context);

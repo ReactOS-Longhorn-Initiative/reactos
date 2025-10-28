@@ -133,3 +133,13 @@ LogicalToPhysicalPoint(
     return TRUE;
 }
 
+BOOL SystemParametersInfoForDpi(
+    UINT  uiAction,
+    UINT  uiParam,
+    PVOID pvParam,
+    UINT  fWinIni,
+    UINT  dpi
+)
+{
+    return SystemParametersInfo(uiAction, uiParam, pvParam, fWinIni);
+}
