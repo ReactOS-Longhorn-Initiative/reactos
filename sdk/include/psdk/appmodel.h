@@ -11,6 +11,12 @@
 extern "C" {
 #endif
 
+typedef enum AppPolicyMediaFoundationCodecLoading
+{
+    AppPolicyMediaFoundationCodecLoading_All       = 0,
+    AppPolicyMediaFoundationCodecLoading_InboxOnly = 1,
+} AppPolicyMediaFoundationCodecLoading;
+
 typedef enum AppPolicyProcessTerminationMethod
 {
     AppPolicyProcessTerminationMethod_ExitProcess = 0,

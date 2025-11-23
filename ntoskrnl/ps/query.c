@@ -14,11 +14,6 @@
 #define NDEBUG
 #include <debug.h>
 
-typedef struct _THREAD_NAME_INFORMATION
-{
-    UNICODE_STRING ThreadName;
-} THREAD_NAME_INFORMATION, *PTHREAD_NAME_INFORMATION;
-
 /* Debugging Level */
 ULONG PspTraceLevel = 0;
 

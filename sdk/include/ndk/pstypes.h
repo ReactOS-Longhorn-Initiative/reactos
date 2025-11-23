@@ -1086,6 +1086,15 @@ typedef struct _THREAD_BASIC_INFORMATION
     KPRIORITY BasePriority;
 } THREAD_BASIC_INFORMATION, *PTHREAD_BASIC_INFORMATION;
 
+/**
+ * The THREAD_CYCLE_TIME_INFORMATION structure contains information about the cycle time of a thread.
+ */
+typedef struct _THREAD_CYCLE_TIME_INFORMATION
+{
+    ULONG64 AccumulatedCycles;        // The total number of cycles accumulated by the thread.
+    ULONG64 CurrentCycleCount;        // The current cycle count of the thread.
+} THREAD_CYCLE_TIME_INFORMATION, *PTHREAD_CYCLE_TIME_INFORMATION;
+
 typedef struct _THREAD_NAME_INFORMATION
 {
     UNICODE_STRING ThreadName;

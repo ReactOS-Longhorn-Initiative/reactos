@@ -163,7 +163,7 @@ static void loadIPHlpApi(void)
     ConvertInterfaceLuidToNameA = (void *)GetProcAddress(hLibrary, "ConvertInterfaceLuidToNameA");
     ConvertInterfaceLuidToNameW = (void *)GetProcAddress(hLibrary, "ConvertInterfaceLuidToNameW");
     ConvertInterfaceNameToLuidA = (void *)GetProcAddress(hLibrary, "ConvertInterfaceNameToLuidA");
-    ConvertInterfaceNameToLuidW = (void *)GetProcAddress(hLibrary, "ConvertInterfaceNameToLuidW");
+    ConvertInterfaceNameToLuidW = (void *)GetProcAddress(hLibrary, "");
     GetCurrentThreadCompartmentId = (void *)GetProcAddress(hLibrary, "GetCurrentThreadCompartmentId");
     if_indextoname = (void *)GetProcAddress(hLibrary, "if_indextoname");
     if_nametoindex = (void *)GetProcAddress(hLibrary, "if_nametoindex");

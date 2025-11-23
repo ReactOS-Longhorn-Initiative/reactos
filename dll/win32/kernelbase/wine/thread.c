@@ -407,8 +407,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadContext( HANDLE thread, const CONTEXT *co
     return set_ntstatus( NtSetContextThread( thread, context ));
 }
 
-#endif
-
 /***********************************************************************
  *           SetThreadDescription   (kernelbase.@)
  */
@@ -429,6 +427,9 @@ HRESULT WINAPI DECLSPEC_HOTPATCH SetThreadDescription( HANDLE thread, PCWSTR des
 
     return HRESULT_FROM_NT(NtSetInformationThread( thread, ThreadNameInformation, &info, sizeof(info) ));
 }
+
+#endif
+
 
 /***********************************************************************
  *           GetThreadDescription   (kernelbase.@)

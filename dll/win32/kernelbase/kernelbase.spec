@@ -672,7 +672,7 @@
 @ stdcall -version=0x602+ GetProcessInformation(long long ptr long)
 @ stdcall GetProcessMemoryInfo(long ptr long)
 @ stdcall -version=0x602+ GetProcessMitigationPolicy(long long ptr long)
-@ stdcall -stub GetProcessPreferredUILanguages(long ptr ptr ptr)
+@ stdcall GetProcessPreferredUILanguages(long ptr ptr ptr)
 @ stdcall GetProcessPriorityBoost(long ptr)
 @ stdcall GetProcessShutdownParameters(ptr ptr)
 @ stdcall GetProcessTimes(long ptr ptr ptr ptr)

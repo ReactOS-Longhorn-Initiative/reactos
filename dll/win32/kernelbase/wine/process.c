@@ -715,7 +715,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreateProcessW( const WCHAR *app_name, WCHAR *cmd_
 #endif
 
 
-typedef enum _PROCESS_INFORMATION_CLASS {
+/*typedef enum _PROCESS_INFORMATION_CLASS {
     ProcessMemoryPriority,                       // MEMORY_PRIORITY_INFORMATION
     ProcessMemoryExhaustionInfo,                 // PROCESS_MEMORY_EXHAUSTION_INFO
     ProcessAppMemoryInfo,                        // APP_MEMORY_INFORMATION
@@ -729,7 +729,7 @@ typedef enum _PROCESS_INFORMATION_CLASS {
     ProcessOverrideSubsequentPrefetchParameter,  // OVERRIDE_PREFETCH_PARAMETER
     ProcessMaxOverridePrefetchParameter,         // OVERRIDE_PREFETCH_PARAMETER
     ProcessInformationClassMax
-} PROCESS_INFORMATION_CLASS;
+} PROCESS_INFORMATION_CLASS;*/
 
 /**********************************************************************
  *           SetProcessInformation   (kernelbase.@)

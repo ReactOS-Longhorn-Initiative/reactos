@@ -28,7 +28,7 @@
 #include "initguid.h"
 #include "ocidl.h"
 #include "shellscalingapi.h"
-#include "shlwapi.h"
+#include "wine/shlwapi.h"
 
 #include "wine/debug.h"
 #include "wine/heap.h"

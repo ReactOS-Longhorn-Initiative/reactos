@@ -716,8 +716,6 @@ CLIENT_CALL_RETURN RPC_VAR_ENTRY
   Ndr64AsyncClientCall( MIDL_STUBLESS_PROXY_INFO *info, ULONG proc, void *retval, ... );
 CLIENT_CALL_RETURN RPC_VAR_ENTRY
   NdrDcomAsyncClientCall( PMIDL_STUB_DESC pStubDescriptor, PFORMAT_STRING pFormat, ... );
-CLIENT_CALL_RETURN RPC_VAR_ENTRY
-  Ndr64AsyncClientCall( PMIDL_STUB_DESC pStubDescriptor, PFORMAT_STRING pFormat, ... );
 
 RPCRTAPI void RPC_ENTRY
   NdrServerCall2( PRPC_MESSAGE pRpcMsg );

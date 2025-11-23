@@ -1767,8 +1767,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetFileAttributesExW( LPCWSTR name, GET_FILEEX_INF
     return TRUE;
 }
 
-
-#endif
 /***********************************************************************
  *	GetFinalPathNameByHandleA   (kernelbase.@)
  */
@@ -1808,8 +1806,6 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleA( HANDLE file, LPSTR pat
     return len - 1;
 }
 
-
-#ifndef __REACTOS__
 /***********************************************************************
  *	GetFullPathNameA   (kernelbase.@)
  */
