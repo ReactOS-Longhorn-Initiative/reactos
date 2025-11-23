@@ -18,6 +18,7 @@ list(APPEND SOURCE
     IsValidLocaleName.c
     LCIDToLocaleName.c
     LocaleNameToLCID.c
+    SetThreadDescription.c
     sync.c
     vista.c)
 

@@ -2,19 +2,19 @@
 @ stub ConvertStringToGuid
 @ stub DisplayMessageM
 @ stub DisplayMessageToConsole
-@ stub FreeQuotedString
-@ stub FreeString
+@ stdcall FreeQuotedString(wstr)
+@ stdcall FreeString(wstr)
 @ stub GenericMonitor
 @ stub GetEnumString
 @ stub GetHostMachineInfo
 @ stub InitializeConsole
-@ stub MakeQuotedString
-@ stub MakeString
+@ stdcall MakeQuotedString(wstr)
+@ varargs MakeString(ptr long)
 @ stub MatchCmdLine
 @ stdcall MatchEnumTag(ptr wstr long ptr ptr)
 @ stub MatchTagsInCmdLine
 @ stdcall MatchToken(wstr wstr)
-@ stub NsGetFriendlyNameFromIfName
+@ stdcall NsGetFriendlyNameFromIfName(long wstr ptr ptr)
 @ stub NsGetIfNameFromFriendlyName
 @ stdcall PreprocessCommand(ptr ptr long long ptr long long long ptr)
 @ varargs PrintError(ptr long)

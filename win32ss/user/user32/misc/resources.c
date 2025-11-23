@@ -175,7 +175,7 @@ UnregisterDeviceNotification(HDEVNOTIFY Handle)
         return FALSE;
     }
 
-    ConfigRet  = UnRegNotify(Handle );
+    ConfigRet  = UnRegNotify(Handle);
     if (ConfigRet != CR_SUCCESS)
     {
         switch (ConfigRet)

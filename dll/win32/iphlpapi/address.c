@@ -940,7 +940,7 @@ GetAdaptersAddresses(
                         UnicastAddress->Address.iSockaddrLength = sizeof(SOCKADDR);
                         UnicastAddress->Address.lpSockaddr->sa_family = AF_INET;
                         ((LPSOCKADDR_IN)UnicastAddress->Address.lpSockaddr)->sin_port = 0;
-                        memcpy(&((LPSOCKADDR_IN)UnicastAddress->Address.lpSockaddr)->sin_addr, &AddrEntries[j].iae_addr, sizeof(AddrEntries[j].iae_addr));
+                        ((LPSOCKADDR_IN)UnicastAddress->Address.lpSockaddr)->sin_addr.S_un.S_addr = AddrEntries[j].iae_addr;
 
                         CurrentAA->FirstUnicastAddress = UnicastAddress;
                         Ptr += Size;
@@ -968,7 +968,7 @@ GetAdaptersAddresses(
                         Prefix->Address.iSockaddrLength = sizeof(SOCKADDR);
                         Prefix->Address.lpSockaddr->sa_family = AF_INET;
                         ((LPSOCKADDR_IN)Prefix->Address.lpSockaddr)->sin_port = 0;
-                        memcpy(&((LPSOCKADDR_IN)Prefix->Address.lpSockaddr)->sin_addr, &AddrEntries[j].iae_addr, sizeof(AddrEntries[j].iae_addr));
+                        ((LPSOCKADDR_IN)Prefix->Address.lpSockaddr)->sin_addr.S_un.S_addr = AddrEntries[j].iae_addr & AddrEntries[j].iae_mask;
 
                         /* Compute the prefix size */
                         Prefix->PrefixLength = CountPrefixBits(AddrEntries[j].iae_mask);
@@ -1001,4 +1001,139 @@ Error:
     NtClose(TcpFile);
     return RtlNtStatusToDosError(Status);
 }
+
+
+DWORD
+WINAPI
+NhpAllocateAndGetInterfaceInfoFromStack(
+    _Inout_ IP_INTERFACE_NAME_INFO **ppTable,
+    _Inout_ PDWORD pdwCount,
+    _In_ BOOL bOrder,
+    _In_ HANDLE hHeap,
+    _In_ DWORD dwFlags)
+{
+    NTSTATUS Status;
+    HANDLE TcpFile;
+    TDIEntityID* InterfacesList;
+    ULONG InterfacesCount;
+    ULONG AdaptersCount = 0;
+    ULONG i, j;
+    IP_INTERFACE_NAME_INFO *pTable = NULL;
+    UNICODE_STRING UnicodeGuidString;
+    ANSI_STRING AnsiGuidString;
+
+    TRACE("ppTable %p, pdwCount %p, bOrder %u, hHeap %p, dwFlags %lu\n",
+          ppTable, pdwCount, bOrder, hHeap, dwFlags);
+
+    /* open the tcpip driver */
+    Status = openTcpFile(&TcpFile, FILE_READ_DATA);
+    if (!NT_SUCCESS(Status))
+    {
+        ERR("Could not open handle to tcpip.sys. Status %08x\n", Status);
+        return RtlNtStatusToDosError(Status);
+    }
+
+    /* Get the interfaces list */
+    Status = GetInterfacesList(TcpFile, &InterfacesList, &InterfacesCount);
+    if (!NT_SUCCESS(Status))
+    {
+        ERR("Could not get adapters list. Status %08x\n", Status);
+        NtClose(TcpFile);
+        return RtlNtStatusToDosError(Status);
+    }
+
+    for (i = 0; i < InterfacesCount; i++)
+    {
+        if (InterfacesList[i].tei_entity == IF_ENTITY)
+        {
+            BYTE EntryBuffer[FIELD_OFFSET(IFEntry, if_descr) +
+                             RTL_FIELD_SIZE(IFEntry, if_descr[0]) * (MAX_ADAPTER_DESCRIPTION_LENGTH + 1)];
+            IFEntry* Entry = (IFEntry*)EntryBuffer;
+
+            /* Get the entry */
+            Status = GetInterfaceEntry(TcpFile, InterfacesList[i], Entry);
+            if (!NT_SUCCESS(Status))
+                goto Error;
+
+            if (Entry->if_type != IF_TYPE_SOFTWARE_LOOPBACK)
+                AdaptersCount++;
+        }
+    }
+
+    TRACE("InterfacesCount %lu  AdaptersCount %lu\n", InterfacesCount, AdaptersCount);
+
+    pTable = HeapAlloc(hHeap, dwFlags, AdaptersCount * sizeof(IP_INTERFACE_NAME_INFO));
+    if (pTable == NULL)
+    {
+        Status = STATUS_NO_MEMORY;
+        goto Error;
+    }
+
+    for (i = 0, j = 0; i < InterfacesCount; i++)
+    {
+        if (InterfacesList[i].tei_entity == IF_ENTITY)
+        {
+            BYTE EntryBuffer[FIELD_OFFSET(IFEntry, if_descr) +
+                             RTL_FIELD_SIZE(IFEntry, if_descr[0]) * (MAX_ADAPTER_DESCRIPTION_LENGTH + 1)];
+            IFEntry* Entry = (IFEntry*)EntryBuffer;
+
+            /* Get the entry */
+            Status = GetInterfaceEntry(TcpFile, InterfacesList[i], Entry);
+            if (!NT_SUCCESS(Status))
+                goto Error;
+
+            TRACE("Got entity %*s, index %u.\n",
+                  Entry->if_descrlen, &Entry->if_descr[0], Entry->if_index);
+
+            if (Entry->if_type != IF_TYPE_SOFTWARE_LOOPBACK)
+            {
+                pTable[j].Index = Entry->if_index;
+                pTable[j].MediaType = Entry->if_type;
+                pTable[j].ConnectionType = 1; //IF_CONNECTION_DEDICATED;
+                pTable[j].AccessType = 2; //IF_ACCESS_BROADCAST;
+
+                AnsiGuidString.Length = Entry->if_descrlen;
+                AnsiGuidString.MaximumLength = Entry->if_descrlen;
+                AnsiGuidString.Buffer = (PCHAR)Entry->if_descr;
+                Status = RtlAnsiStringToUnicodeString(&UnicodeGuidString,
+                                                      &AnsiGuidString, TRUE);
+                if (!NT_SUCCESS(Status))
+                {
+                    ERR("Status %lx\n", Status);
+                    goto Error;
+                }
+
+                Status = RtlGUIDFromString(&UnicodeGuidString, &pTable[j].DeviceGuid);
+                RtlFreeUnicodeString(&UnicodeGuidString);
+                if (!NT_SUCCESS(Status))
+                {
+                    ERR("Status %lx\n", Status);
+                    goto Error;
+                }
+
+                memset(&pTable[j].InterfaceGuid, 0, sizeof(GUID));
+
+                j++;
+            }
+        }
+    }
+
+    /* We're done */
+    HeapFree(GetProcessHeap(), 0, InterfacesList);
+    NtClose(TcpFile);
+    *ppTable = pTable;
+    *pdwCount = AdaptersCount;
+    return ERROR_SUCCESS;
+
+Error:
+    ERR("Failed! Status 0x%08x\n", Status);
+    if (pTable)
+        HeapFree(hHeap, 0, pTable);
+    *ppTable = NULL;
+    *pdwCount = 0;
+    HeapFree(GetProcessHeap(), 0, InterfacesList);
+    NtClose(TcpFile);
+    return RtlNtStatusToDosError(Status);
+}
+
 #endif

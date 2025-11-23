@@ -33,8 +33,6 @@ ENDM
 
 THUNK_ENTRY MACRO num:REQ
     ALIGN 4
-    PUBLIC NdrProxyForwardingFunction&num
-    NdrProxyForwardingFunction&num:
     PUBLIC ObjectStublessClient&num
     ObjectStublessClient&num:
     mov r10d, num
@@ -43,6 +41,8 @@ ENDM
 
 THUNK_ENTRY_VTBL MACRO num:REQ
     ALIGN 4
+    PUBLIC NdrProxyForwardingFunction&num
+    NdrProxyForwardingFunction&num:
     mov rcx, [rcx + 020h]
     mov rax, [rcx]
     DB 0ffh, 0a0h /* jmp *offset(%rax) */

@@ -649,7 +649,9 @@ static void option_callback( int optc, char *optarg )
 
 int open_typelib( const char *name )
 {
+#ifndef __REACTOS__
     static const char *default_dirs[] = { LIBDIR "/wine", "/usr/lib/wine", "/usr/local/lib/wine" };
+#endif
     struct target win_target = { target.cpu, PLATFORM_WINDOWS };
     const char *pe_dir = get_arch_dir( win_target );
     int fd;
@@ -676,6 +678,7 @@ int open_typelib( const char *name )
         }
     }
 
+#ifndef __REACTOS__
     if (stdinc)
     {
         if (libdir)
@@ -689,6 +692,8 @@ int open_typelib( const char *name )
             TRYOPEN( strmake( "%s%s/%s", default_dirs[i], pe_dir, name ));
         }
     }
+#endif
+
     error( "cannot find %s\n", name );
 #undef TRYOPEN
 
@@ -713,6 +718,7 @@ int main(int argc,char *argv[])
 
   files = parse_options( argc, argv, short_options, long_options, 1, option_callback );
 
+#ifndef __REACTOS__
   if (stdinc)
   {
       static const char *incl_dirs[] = { INCLUDEDIR, "/usr/include", "/usr/local/include" };
@@ -729,6 +735,7 @@ int main(int argc,char *argv[])
           wpp_add_include_path( strmake( "%s%s/wine/windows", sysroot, incl_dirs[i] ));
       }
   }
+#endif
 
   if (pointer_size)
       set_target_ptr_size( &target, pointer_size );

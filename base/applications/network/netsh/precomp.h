@@ -14,22 +14,28 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#include <ndk/rtlfuncs.h>
+
 #define WIN32_NO_STATUS
 #include <windef.h>
 #include <winbase.h>
 #include <winreg.h>
 #include <wincon.h>
 #include <winuser.h>
+#include <iphlpapi_undoc.h>
 
 #include <errno.h>
 
 #include <conutils.h>
 #include <netsh.h>
+#include <netsh_undoc.h>
 
 #include "resource.h"
 
 
 /* DEFINES *******************************************************************/
+
+#define HUGE_BUFFER_SIZE  2048
 
 #define MAX_STRING_SIZE 1024
 #define MAX_ARGS_COUNT 256
@@ -106,6 +112,10 @@ typedef struct _CONTEXT_ENTRY
     PWSTR pszContextName;
     GUID Guid;
     HMODULE hModule;
+    ULONG ulPriority;
+    PNS_CONTEXT_COMMIT_FN pfnCommitFn;
+    PNS_CONTEXT_DUMP_FN pfnDumpFn;
+    PNS_CONTEXT_CONNECT_FN pfnConnectFn;
 
     PCOMMAND_ENTRY pCommandListHead;
     PCOMMAND_ENTRY pCommandListTail;
@@ -125,7 +135,51 @@ extern PCONTEXT_ENTRY pCurrentContext;
 
 extern PHELPER_ENTRY pHelperListHead;
 
+extern HMODULE hModule;
+extern PWSTR pszMachine;
+
 /* PROTOTYPES *****************************************************************/
+
+/* alias.c */
+
+VOID
+InitAliases(VOID);
+
+VOID
+DestroyAliases(VOID);
+
+DWORD
+WINAPI
+AliasCommand(
+    LPCWSTR pwszMachine,
+    LPWSTR *argv,
+    DWORD dwCurrentIndex,
+    DWORD dwArgCount,
+    DWORD dwFlags,
+    LPCVOID pvData,
+    BOOL *pbDone);
+
+DWORD
+WINAPI
+ShowAliasCommand(
+    LPCWSTR pwszMachine,
+    LPWSTR *argv,
+    DWORD dwCurrentIndex,
+    DWORD dwArgCount,
+    DWORD dwFlags,
+    LPCVOID pvData,
+    BOOL *pbDone);
+
+DWORD
+WINAPI
+UnaliasCommand(
+    LPCWSTR pwszMachine,
+    LPWSTR *argv,
+    DWORD dwCurrentIndex,
+    DWORD dwArgCount,
+    DWORD dwFlags,
+    LPCVOID pvData,
+    BOOL *pbDone);
 
 /* context.c */
 
@@ -141,41 +195,21 @@ FindContextByGuid(
 
 /* help.c */
 
-BOOL
-ProcessHelp(
+VOID
+PrintCommandHelp(
     _In_ PCONTEXT_ENTRY pContext,
-    _In_ DWORD dwCurrentIndex,
-    _In_ LPWSTR *argv,
-    _In_ DWORD dwArgCount,
-    _In_ DWORD dwHelpLevel);
-
-
-DWORD
-WINAPI
-HelpCommand(
-    LPCWSTR pwszMachine,
-    LPWSTR *ppwcArguments,
-    DWORD dwCurrentIndex,
-    DWORD dwArgCount,
-    DWORD dwFlags,
-    LPCVOID pvData,
-    BOOL *pbDone);
-
-#if 0
-VOID
-HelpGroup(
-    PCONTEXT_ENTRY pContext,
-    LPWSTR pszGroupName,
-    BOOL bRecurse);
+    _In_ PCOMMAND_GROUP pGroup,
+    _In_ PCOMMAND_ENTRY pCommand);
 
 VOID
-HelpContext(
-    PCONTEXT_ENTRY pContext);
+PrintGroupHelp(
+    _In_ PCONTEXT_ENTRY pContext,
+    _In_ LPWSTR pszGroupName,
+    _In_ BOOL bRecurse);
 
 VOID
-HelpSubcontexts(
-    PCONTEXT_ENTRY pContext);
-#endif
+PrintContextHelp(
+    _In_ PCONTEXT_ENTRY pContext);
 
 /* helper.c */
 
@@ -228,17 +262,23 @@ ShowHelperCommand(
 
 
 /* interpreter.c */
-BOOL
-InterpretScript(
-    _In_ LPWSTR pszFileName);
 
-BOOL
-InterpretCommand(
-    _In_ LPWSTR *argv,
-    _In_ DWORD dwArgCount,
-    _Inout_ PBOOL bDone);
+DWORD
+InterpretLine(
+    _In_ LPWSTR pszFileName);
 
 VOID
 InterpretInteractive(VOID);
+
+/* netsh.c */
+
+DWORD
+RunScript(
+    _In_ LPCWSTR filename);
+
+LPWSTR
+MergeStrings(
+    _In_ LPWSTR pszStringArray[],
+    _In_ INT nCount);
 
 #endif /* PRECOMP_H */

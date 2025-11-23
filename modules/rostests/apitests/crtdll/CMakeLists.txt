@@ -1,5 +1,7 @@
 
 list(APPEND SOURCE_CRTDLL
+    ../crt/_mbsnbcat.c
+    ../crt/_mbsncat.c
     ../crt/_mbsncmp.c
     ../crt/_mbsstr.c
     ../crt/setjmp.c
@@ -30,7 +32,7 @@ elseif(ARCH STREQUAL "amd64")
 endif()
 
 add_executable(crtdll_apitest testlist.c ${SOURCE_CRTDLL} ${crtdll_apitest_asm})
-target_compile_definitions(crtdll_apitest PRIVATE TEST_CRTDLL)
+target_compile_definitions(crtdll_apitest PRIVATE TEST_CRTDLL TEST_DLL_NAME="crtdll.dll")
 target_link_libraries(crtdll_apitest wine ${PSEH_LIB})
 set_module_type(crtdll_apitest win32cui)
 add_importlibs(crtdll_apitest crtdll msvcrt kernel32 ntdll)

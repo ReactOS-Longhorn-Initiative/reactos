@@ -185,7 +185,7 @@ static struct perf_provider *perf_provider_from_handle(HANDLE prov)
  *           PerfCreateInstance   (KERNELBASE.@)
  */
 #ifdef __REACTOS__
-PERF_COUNTERSET_INSTANCE* WINAPI PerfCreateInstance( HANDLE handle, const GUID *guid,
+PERF_COUNTERSET_INSTANCE * WINAPI PerfCreateInstance( HANDLE handle, const GUID *guid,
                                                      const WCHAR *name, ULONG id )
 #else
 PERF_COUNTERSET_INSTANCE WINAPI *PerfCreateInstance( HANDLE handle, const GUID *guid,

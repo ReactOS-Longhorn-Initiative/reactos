@@ -61,7 +61,6 @@ WdfLdrDiagnosticsValueByNameAsULONG(
     if (ValueName == NULL || Value == NULL)
     {
         __DBGPRINT(("ERROR: Invalid Input Parameter\n"));
-
         return STATUS_INVALID_PARAMETER;
     }
 
@@ -70,7 +69,6 @@ WdfLdrDiagnosticsValueByNameAsULONG(
     if (KeGetCurrentIrql() > PASSIVE_LEVEL)
     {
         __DBGPRINT(("Not at PASSIVE_LEVEL\n"));
-
         return STATUS_INVALID_PARAMETER;
     }
 
@@ -85,11 +83,11 @@ WdfLdrDiagnosticsValueByNameAsULONG(
                                NULL);
 
     status = ZwOpenKey(&keyHandle, KEY_QUERY_VALUE, &attributes);
-        
+
     if (NT_SUCCESS(status))
     {
         status = FxLdrQueryUlong(keyHandle, ValueName, Value);
-            
+
         __DBGPRINT(("Status %x, value 0x%x\n", status, *Value));
 
         ZwClose(keyHandle);
@@ -114,15 +112,15 @@ DllInitialize(
     ULONG diagValue = 0;
 
     UNREFERENCED_PARAMETER(RegistryPath);
-        
+
     if (gAlreadyInitialized)
     {
         return STATUS_SUCCESS;
     }
 
     gAlreadyInitialized = TRUE;
-    RtlZeroMemory(&WdfLdrGlobals, sizeof(WDF_LDR_GLOBALS));
-    RtlZeroMemory(&WdfLdrDiags, sizeof(WDFLDR_DIAGS));
+    RtlZeroMemory(&WdfLdrGlobals, sizeof(WdfLdrGlobals));
+    RtlZeroMemory(&WdfLdrDiags, sizeof(WdfLdrDiags));
 
     InitializeListHead(&WdfLdrGlobals.LoadedModulesList);
     status = ExInitializeResourceLite(&WdfLdrGlobals.LoadedModulesListLock);
@@ -134,7 +132,7 @@ DllInitialize(
 
 #if 0
     /* Force debugging everything */
-    WdfLdrDiags.DiagFlags = DIAGFLAG_ENABLED | DIAGFLAG_VERBOSE_LOGGING | 
+    WdfLdrDiags.DiagFlags = DIAGFLAG_ENABLED | DIAGFLAG_VERBOSE_LOGGING |
                             DIAGFLAG_TRACE_FUNCTION_ENTRY | DIAGFLAG_TRACE_FUNCTION_EXIT |
                             DIAGFLAG_LOG_ERRORS | DIAGFLAG_LOG_WARNINGS;
 #endif
@@ -143,25 +141,25 @@ DllInitialize(
     {
         WdfLdrDiags.DiagFlags |= DIAGFLAG_ENABLED;
     }
-    
+
     status = WdfLdrDiagnosticsValueByNameAsULONG(&verboseLogging, &diagValue);
     if (NT_SUCCESS(status) && diagValue != 0)
     {
         WdfLdrDiags.DiagFlags |= DIAGFLAG_VERBOSE_LOGGING;
     }
-    
+
     status = WdfLdrDiagnosticsValueByNameAsULONG(&traceEntry, &diagValue);
     if (NT_SUCCESS(status) && diagValue != 0)
     {
         WdfLdrDiags.DiagFlags |= (DIAGFLAG_TRACE_FUNCTION_ENTRY | DIAGFLAG_TRACE_FUNCTION_EXIT);
     }
 
-    status = AuxKlibInitialize();    
+    status = AuxKlibInitialize();
     if (NT_SUCCESS(status))
     {
         RtlGetVersion((POSVERSIONINFOW)&WdfLdrGlobals.OsVersion);
-        DPRINT(("Initialized WdfLdr - OS Version %d.%d.%d\n", 
-                WdfLdrGlobals.OsVersion.dwMajorVersion, 
+        DPRINT(("Initialized WdfLdr - OS Version %d.%d.%d\n",
+                WdfLdrGlobals.OsVersion.dwMajorVersion,
                 WdfLdrGlobals.OsVersion.dwMinorVersion,
                 WdfLdrGlobals.OsVersion.dwBuildNumber));
     }
@@ -181,7 +179,7 @@ DllInitialize(
 
 VOID
 NTAPI
-DllUnload()
+DllUnload(VOID)
 {
     if (gAlreadyUnloaded)
     {
@@ -242,7 +240,7 @@ WdfLdrQueryInterface(
     {
         if (LoaderInterface->InterfaceSize < sizeof(WDF_LOADER_INTERFACE))
         {
-            DPRINT_ERROR(("Interface size too small: %u, expected: %u\n", 
+            DPRINT_ERROR(("Interface size too small: %u, expected: %u\n",
                          LoaderInterface->InterfaceSize, sizeof(WDF_LOADER_INTERFACE)));
             return STATUS_INVALID_PARAMETER;
         }
@@ -261,12 +259,12 @@ WdfLdrQueryInterface(
     {
         if (LoaderInterface->InterfaceSize < sizeof(WDF_LOADER_INTERFACE_DIAGNOSTIC))
         {
-            DPRINT_ERROR(("Diagnostic interface size too small: %u, expected: %u\n", 
+            DPRINT_ERROR(("Diagnostic interface size too small: %u, expected: %u\n",
                          LoaderInterface->InterfaceSize, sizeof(WDF_LOADER_INTERFACE_DIAGNOSTIC)));
             return STATUS_INVALID_PARAMETER;
         }
 
-        PWDF_LOADER_INTERFACE_DIAGNOSTIC lInterface = 
+        PWDF_LOADER_INTERFACE_DIAGNOSTIC lInterface =
             (PWDF_LOADER_INTERFACE_DIAGNOSTIC)LoaderInterface;
 
         lInterface->DiagnosticsValueByNameAsULONG = WdfLdrDiagnosticsValueByNameAsULONG;
@@ -275,12 +273,12 @@ WdfLdrQueryInterface(
         return STATUS_SUCCESS;
     }
     else if (IsEqualGUID(LoaderInterface->InterfaceType, &GUID_WDF_LOADER_INTERFACE_CLASS_BIND))
-    {    
+    {
         if (LoaderInterface->InterfaceSize < sizeof(WDF_LOADER_INTERFACE_CLASS_BIND))
         {
-            DPRINT_ERROR(("Class bind interface size too small: %u, expected: %u\n", 
+            DPRINT_ERROR(("Class bind interface size too small: %u, expected: %u\n",
                          LoaderInterface->InterfaceSize, sizeof(WDF_LOADER_INTERFACE_CLASS_BIND)));
-                         
+
             return STATUS_INVALID_PARAMETER;
         }
 
@@ -299,19 +297,14 @@ WdfLdrQueryInterface(
     return STATUS_NOINTERFACE;
 }
 
-/********************************************
- * 
- * Register wdf01000 library
- * 
- * Params:
- *    LibraryInfo - information by register lib
- *    ServicePath - service path in registry
- *    LibraryDeviceName - kmdf device name
- * 
- * Result:
- *    Finded module pointer
- * 
-*********************************************/
+/**
+ * @brief Register wdf01000 library
+ *
+ * @param LibraryInfo Information about the library being registered
+ * @param ServicePath Service path in registry
+ * @param LibraryDeviceName KMDF device name
+ * @return STATUS_SUCCESS on success, error code otherwise
+ */
 CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
@@ -343,7 +336,7 @@ WdfRegisterLibrary(
                               &pLibModule->ImageAddress,
                               &pLibModule->ImageSize);
         if (!NT_SUCCESS(status))
-        {            
+        {
             __DBGPRINT(("ERROR: GetImageInfo(%wZ) failed with status 0x%x\n",
                         pLibModule->ImageName, status));
         }
@@ -403,20 +396,15 @@ Failure:
     return status;
 }
 
-/********************************************
- * 
- * Bind client driver with framework
- * 
- * Params:
- *    DriverObject - driver object 
- *    RegistryPath - registry path
- *    BindInfo - client driver bind information
- *    ComponentGlobals - client driver global settings
- * 
- * Result:
- *    Operation status
- * 
-*********************************************/
+/**
+ * @brief Bind client driver with framework
+ *
+ * @param DriverObject Driver object
+ * @param ServicePath Registry service path
+ * @param BindInfo Client driver bind information
+ * @param ComponentGlobals Client driver global settings
+ * @return STATUS_SUCCESS on success, error code otherwise
+ */
 CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
@@ -440,7 +428,7 @@ WdfVersionBind(
 
     if (ComponentGlobals == NULL || BindInfo == NULL || BindInfo->FuncTable == NULL)
     {
-        DPRINT_ERROR(("Invalid parameters: ComponentGlobals=%p, BindInfo=%p\n", 
+        DPRINT_ERROR(("Invalid parameters: ComponentGlobals=%p, BindInfo=%p\n",
                      ComponentGlobals, BindInfo));
         status = STATUS_INVALID_PARAMETER;
         goto Exit;
@@ -460,7 +448,7 @@ WdfVersionBind(
 
     clientInfo.Size = sizeof(CLIENT_INFO);
     clientInfo.RegistryPath = ServicePath;
-    
+
     status = LibraryLinkInClient(pLibModule, ServicePath, BindInfo, &clientInfo, &clientModule);
     if (!NT_SUCCESS(status))
     {
@@ -488,7 +476,7 @@ WdfVersionBind(
         goto Cleanup;
     }
 
-    DPRINT_VERBOSE(("Calling LibraryRegisterClient at %p for library %wZ\n", 
+    DPRINT_VERBOSE(("Calling LibraryRegisterClient at %p for library %wZ\n",
                    pLibModule->LibraryInfo->LibraryRegisterClient, &pLibModule->ServicePath));
 
     status = pLibModule->LibraryInfo->LibraryRegisterClient(BindInfo, ComponentGlobals, &context);
@@ -496,8 +484,8 @@ WdfVersionBind(
     {
         clientModule->Globals = *ComponentGlobals;
         clientModule->Context = context; // Pointer to FX_DRIVER_GLOBALS
-        
-        DPRINT(("Successfully bound client %wZ to library %wZ\n", 
+
+        DPRINT(("Successfully bound client %wZ to library %wZ\n",
                ServicePath, &libraryServicePath));
         goto Exit;
     }
@@ -517,19 +505,14 @@ Exit:
     return status;
 }
 
-/********************************************
- * 
- * Unbind client driver from framework
- * 
- * Params:
- *    RegistryPath - registry path
- *    BindInfo - client driver bind information
- *    ComponentGlobals - client driver global settings
- * 
- * Result:
- *    Operation status
- * 
-*********************************************/
+/**
+ * @brief Unbind client driver from framework
+ *
+ * @param RegistryPath Registry path
+ * @param BindInfo Client driver bind information
+ * @param ComponentGlobals Client driver global settings
+ * @return STATUS_SUCCESS on success, error code otherwise
+ */
 CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
@@ -553,13 +536,13 @@ WdfVersionUnbind(
     }
 
     pLibModule = BindInfo->Module;
-    
+
     /* Reference the module while working on it and unregister if globals are valid. */
     LibraryReference(pLibModule);
-    if (ComponentGlobals != NULL && pLibModule->LibraryInfo && 
+    if (ComponentGlobals != NULL && pLibModule->LibraryInfo &&
         pLibModule->LibraryInfo->LibraryUnregisterClient)
     {
-        unregisterStatus = pLibModule->LibraryInfo->LibraryUnregisterClient(BindInfo, ComponentGlobals);        
+        unregisterStatus = pLibModule->LibraryInfo->LibraryUnregisterClient(BindInfo, ComponentGlobals);
         if (!NT_SUCCESS(unregisterStatus))
         {
             DPRINT_ERROR(("LibraryUnregisterClient failed with status 0x%x\n", unregisterStatus));
@@ -583,7 +566,7 @@ Exit:
 
 /**
  * @brief Reference a WDF library version
- * 
+ *
  * @param Info Binding information containing version details
  * @param Module Pointer to receive the library module
  * @return NTSTATUS Success or failure status
@@ -596,15 +579,15 @@ ReferenceVersion(
 {
     NTSTATUS status;
     UNICODE_STRING libraryServicePath = { 0 };
-    
+
     DPRINT_TRACE_ENTRY();
-    
+
     if (!Info || !Module)
     {
         DPRINT_ERROR(("Invalid parameters: Info=%p, Module=%p\n", Info, Module));
         return STATUS_INVALID_PARAMETER;
     }
-    
+
     *Module = NULL;
     /* Multiple ways to find the correct library - once again UCX stresses this extensively */
     status = GetVersionServicePath(Info, &libraryServicePath);
@@ -613,7 +596,7 @@ ReferenceVersion(
         DPRINT_ERROR(("GetVersionServicePath failed with status 0x%x\n", status));
         goto Exit;
     }
-    
+
     status = LibraryFindOrLoad(&libraryServicePath, Module);
     if (NT_SUCCESS(status))
     {
@@ -624,20 +607,20 @@ ReferenceVersion(
     {
         DPRINT_ERROR(("LibraryFindOrLoad failed with status 0x%x\n", status));
     }
-    
+
 Exit:
     if (libraryServicePath.Buffer)
     {
         RtlFreeUnicodeString(&libraryServicePath);
     }
-    
+
     DPRINT_TRACE_EXIT();
     return status;
 }
 
 /**
  * @brief Dereference a WDF library version
- * 
+ *
  * @param Info Binding information
  * @param Globals Component globals to clean up
  * @return NTSTATUS Success or failure status
@@ -651,19 +634,19 @@ DereferenceVersion(
     NTSTATUS status = STATUS_SUCCESS;
     NTSTATUS unregisterStatus = STATUS_SUCCESS;
     PLIBRARY_MODULE pLibModule;
-    
+
     DPRINT_TRACE_ENTRY();
-    
+
     if (!Info || !Info->Module)
     {
         DPRINT_ERROR(("Invalid Info or Module is NULL\n"));
         return STATUS_INVALID_PARAMETER;
     }
-    
+
     pLibModule = Info->Module;
-    
+
     // Unregister the client if we have globals
-    if (Globals && pLibModule->LibraryInfo && 
+    if (Globals && pLibModule->LibraryInfo &&
         pLibModule->LibraryInfo->LibraryUnregisterClient)
     {
         unregisterStatus = pLibModule->LibraryInfo->LibraryUnregisterClient(Info, Globals);
@@ -676,7 +659,7 @@ DereferenceVersion(
             }
         }
     }
-    
+
     // Unlink the client
     if (!LibraryUnlinkClient(pLibModule, Info))
     {
@@ -686,32 +669,27 @@ DereferenceVersion(
             DPRINT_VERBOSE(("LibraryUnlinkClient failed\n"));
         }
     }
-    
+
     // Release the reference
     LibraryReleaseReference(pLibModule);
-    
+
     // Clear the module reference
     Info->Module = NULL;
-    
+
     DPRINT_TRACE_EXIT();
     return NT_SUCCESS(unregisterStatus) ? status : unregisterStatus;
 }
 
-/********************************************
- * 
- * http://redplait.blogspot.com/2013/03/ucxfunctionsidc.html
- * 
- * Register extension driver
- * 
- * Params:
- *    ClassBindInfo - client driver bind information
- *    SourceString - 
- *    ObjectName - 
- * 
- * Result:
- *    Operation status
- * 
-*********************************************/
+/**
+ * @brief Register class extension library (e.g., UCX)
+ *
+ * @see http://redplait.blogspot.com/2013/03/ucxfunctionsidc.html
+ *
+ * @param ClassLibInfo Class library information
+ * @param SourceString Service name of the class library
+ * @param ObjectName Device object name
+ * @return STATUS_SUCCESS on success, error code otherwise
+ */
 CODE_SEG("PAGE")
 NTSTATUS
 NTAPI
@@ -745,7 +723,7 @@ WdfRegisterClassLibrary(
         {
             if (WdfLdrDiags.DiagFlags & DIAGFLAG_ENABLED)
             {
-                DPRINT_VERBOSE(("No library found for class module %wZ, status 0x%x\n", 
+                DPRINT_VERBOSE(("No library found for class module %wZ, status 0x%x\n",
                                SourceString, status));
             }
 
@@ -757,7 +735,7 @@ WdfRegisterClassLibrary(
             {
                 PLIST_ENTRY entry = WdfLdrGlobals.LoadedModulesList.Flink;
                 libModule = CONTAINING_RECORD(entry, LIBRARY_MODULE, LibraryListEntry);
-                DPRINT(("Using default WDF library %wZ for class module %wZ\n", 
+                DPRINT(("Using default WDF library %wZ for class module %wZ\n",
                        &libModule->ServicePath, SourceString));
             }
             else
@@ -766,7 +744,7 @@ WdfRegisterClassLibrary(
             }
         }
 
-        pClassModule = ClassCreate(ClassLibInfo, libModule, SourceString);        
+        pClassModule = ClassCreate(ClassLibInfo, libModule, SourceString);
         if (pClassModule)
         {
             if (libModule)
@@ -775,7 +753,7 @@ WdfRegisterClassLibrary(
         }
     }
     FxLdrReleaseLoadedModuleLock();
-    
+
     if (!pClassModule)
     {
         return STATUS_INSUFFICIENT_RESOURCES;
@@ -818,10 +796,10 @@ WdfVersionBindClass(
     _Inout_ PWDF_COMPONENT_GLOBALS* ClientGlobals,
     _In_ PWDF_CLASS_BIND_INFO ClassBindInfo)
 {
-    PCLASS_CLIENT_MODULE pClassClientModule = NULL;    
+    PCLASS_CLIENT_MODULE pClassClientModule = NULL;
     NTSTATUS status;
     PCLASS_MODULE pClassModule = NULL;
-    
+
     DPRINT_TRACE_ENTRY();
 
     pClassClientModule = ClassClientCreate();
@@ -837,7 +815,7 @@ WdfVersionBindClass(
         ExFreePoolWithTag(pClassClientModule, WDFLDR_TAG);
         return status;
     }
-    
+
     status = ClassLinkInClient(pClassModule, ClassBindInfo, BindInfo, pClassClientModule);
     if (!NT_SUCCESS(status))
     {
@@ -853,7 +831,7 @@ WdfVersionBindClass(
             DPRINT_TRACE_EXIT();
             return status;
         }
-        
+
         DPRINT_ERROR(("ClassLibraryBindClient failed, status 0x%x\n", status));
     }
 

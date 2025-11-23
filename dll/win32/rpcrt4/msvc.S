@@ -212,7 +212,6 @@ PUBLIC Ndr64AsyncClientCall
 FUNC Ndr64AsyncClientCall
     mov [rsp + 20h], r9
     lea r9, [rsp + 20h]
-    int 3
     push 0
     sub rsp, 20h
     .ALLOCSTACK 28h

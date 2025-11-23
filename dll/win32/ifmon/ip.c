@@ -18,41 +18,10 @@
 #define DISPLAY_ADRESSES   0x1
 #define DISPLAY_DNS        0x2
 
-static
-DWORD
-WINAPI
-IpShowAddresses(
-    LPCWSTR pwszMachine,
-    LPWSTR *argv,
-    DWORD dwCurrentIndex,
-    DWORD dwArgCount,
-    DWORD dwFlags,
-    LPCVOID pvData,
-    BOOL *pbDone);
 
-static
-DWORD
-WINAPI
-IpShowConfig(
-    LPCWSTR pwszMachine,
-    LPWSTR *argv,
-    DWORD dwCurrentIndex,
-    DWORD dwArgCount,
-    DWORD dwFlags,
-    LPCVOID pvData,
-    BOOL *pbDone);
-
-static
-DWORD
-WINAPI
-IpShowDns(
-    LPCWSTR pwszMachine,
-    LPWSTR *argv,
-    DWORD dwCurrentIndex,
-    DWORD dwArgCount,
-    DWORD dwFlags,
-    LPCVOID pvData,
-    BOOL *pbDone);
+static FN_HANDLE_CMD IpShowAddresses;
+static FN_HANDLE_CMD IpShowConfig;
+static FN_HANDLE_CMD IpShowDns;
 
 
 static
@@ -91,6 +60,24 @@ FormatIPv4Address(
 
 
 static
+BOOL
+FormatIPv4NetMask(
+    _Out_ PWCHAR pBuffer,
+    _In_ ULONG PrefixLength)
+{
+    ULONG i;
+    IN_ADDR NetMask;
+
+    NetMask.S_un.S_addr = 0;
+    for (i = 0; i < PrefixLength; i++)
+        NetMask.S_un.S_addr = NetMask.S_un.S_addr | (1 << (31 - i));
+
+    RtlIpv4AddressToStringW(&NetMask, pBuffer);
+    return TRUE;
+}
+
+
+static
 DWORD
 IpShowAdapters(
     _In_ DWORD DisplayFlags,
@@ -100,7 +87,7 @@ IpShowAdapters(
     PIP_ADAPTER_UNICAST_ADDRESS pUnicastAddress;
     PIP_ADAPTER_PREFIX pPrefix;
     PIP_ADAPTER_DNS_SERVER_ADDRESS pDnsServer;
-    WCHAR IpBuffer[17];
+    WCHAR IpBuffer[17], MaskBuffer[17];
     BOOL First;
     ULONG adaptOutBufLen = 15000;
     DWORD Error = ERROR_SUCCESS;
@@ -117,13 +104,13 @@ IpShowAdapters(
     Error = GetAdaptersAddresses(AF_INET, Flags, NULL, pAdapterAddresses, &adaptOutBufLen);
     if (Error == ERROR_BUFFER_OVERFLOW)
     {
-       free(pAdapterAddresses);
-       pAdapterAddresses = (PIP_ADAPTER_ADDRESSES)malloc(adaptOutBufLen);
-       if (pAdapterAddresses == NULL)
-       {
-           Error = ERROR_NOT_ENOUGH_MEMORY;
-           goto done;
-       }
+        free(pAdapterAddresses);
+        pAdapterAddresses = (PIP_ADAPTER_ADDRESSES)malloc(adaptOutBufLen);
+        if (pAdapterAddresses == NULL)
+        {
+            Error = ERROR_NOT_ENOUGH_MEMORY;
+            goto done;
+        }
     }
 
     Error = GetAdaptersAddresses(AF_INET, Flags, NULL, pAdapterAddresses, &adaptOutBufLen);
@@ -153,6 +140,8 @@ IpShowAdapters(
                     {
                         if (FormatIPv4Address(IpBuffer, &pUnicastAddress->Address))
                         {
+                            PrintMessageFromModule(hDllInstance, IDS_IPADDRESS, IpBuffer);
+#if 0
                             if (First)
                             {
                                 PrintMessageFromModule(hDllInstance, (pUnicastAddress->Next)? IDS_IPADDRESSES : IDS_IPADDRESS, IpBuffer);
@@ -162,6 +151,7 @@ IpShowAdapters(
                                 PrintMessageFromModule(hDllInstance, IDS_EMPTYLINE, IpBuffer);
                             }
                             First = FALSE;
+#endif
                         }
 
                         pUnicastAddress = pUnicastAddress->Next;
@@ -178,22 +168,27 @@ IpShowAdapters(
                     pPrefix = Ptr->FirstPrefix;
                     while (pPrefix)
                     {
+                        FormatIPv4NetMask(MaskBuffer, pPrefix->PrefixLength);
+                        PrintMessage(L"    SubnetMask:                           %s\n", MaskBuffer);
+#if 0
                         if (FormatIPv4Address(IpBuffer, &pPrefix->Address))
                         {
+                            FormatIPv4NetMask(MaskBuffer, pPrefix->PrefixLength);
+
                             if (First)
                             {
                                 if (pPrefix->Next)
-                                    PrintMessage(L"    SubnetMasks:                          %s/%lu\n", IpBuffer, pPrefix->PrefixLength);
+                                    PrintMessage(L"    SubnetMasks:                          %s/%lu (Mask: %s)\n", IpBuffer, pPrefix->PrefixLength, MaskBuffer);
                                 else
-                                    PrintMessage(L"    IP Address:                           %s/%lu\n", IpBuffer, pPrefix->PrefixLength);
+                                    PrintMessage(L"    SubnetMask:                           %s/%lu (Mask: %s)\n", IpBuffer, pPrefix->PrefixLength, MaskBuffer);
                             }
                             else
                             {
-                                PrintMessage(L"                                          %s/%lu\n", IpBuffer, pPrefix->PrefixLength);
+                                PrintMessage(L"                                          %s/%lu (Mask: %s)\n", IpBuffer, pPrefix->PrefixLength, MaskBuffer);
                             }
                             First = FALSE;
                         }
-
+#endif
                         pPrefix = pPrefix->Next;
                     }
                 }
@@ -331,6 +326,124 @@ IpShowDns(
 static
 DWORD
 WINAPI
+IpDumpFn(
+    _In_ LPCWSTR pwszRouter,
+    _In_ LPWSTR *ppwcArguments,
+    _In_ DWORD dwArgCount,
+    _In_ LPCVOID pvData)
+{
+    PIP_ADAPTER_ADDRESSES pAdapterAddresses = NULL, Ptr;
+    PIP_ADAPTER_UNICAST_ADDRESS pUnicastAddress;
+//    PIP_ADAPTER_PREFIX pPrefix;
+    PIP_ADAPTER_DNS_SERVER_ADDRESS pDnsServer;
+    WCHAR AddressBuffer[17], MaskBuffer[17];
+    ULONG adaptOutBufLen = 15000;
+    ULONG Flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_INCLUDE_PREFIX;
+    DWORD Error = ERROR_SUCCESS;
+
+    DPRINT("IpDumpFn(%S %p %lu %p)\n", pwszRouter, ppwcArguments, dwArgCount, pvData);
+
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_HEADERLINE);
+    PrintMessage(L"# Interface IP Configuration\n");
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_HEADERLINE);
+    PrintMessage(L"pushd interface ip\n");
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+
+    /* set required buffer size */
+    pAdapterAddresses = (PIP_ADAPTER_ADDRESSES)malloc(adaptOutBufLen);
+    if (pAdapterAddresses == NULL)
+    {
+        Error = ERROR_NOT_ENOUGH_MEMORY;
+        goto done;
+    }
+
+    Error = GetAdaptersAddresses(AF_INET, Flags, NULL, pAdapterAddresses, &adaptOutBufLen);
+    if (Error == ERROR_BUFFER_OVERFLOW)
+    {
+       free(pAdapterAddresses);
+       pAdapterAddresses = (PIP_ADAPTER_ADDRESSES)malloc(adaptOutBufLen);
+       if (pAdapterAddresses == NULL)
+       {
+           Error = ERROR_NOT_ENOUGH_MEMORY;
+           goto done;
+       }
+    }
+
+    Error = GetAdaptersAddresses(AF_INET, Flags, NULL, pAdapterAddresses, &adaptOutBufLen);
+    if (Error != ERROR_SUCCESS)
+        goto done;
+
+    Ptr = pAdapterAddresses;
+    while (Ptr)
+    {
+        if (Ptr->IfType != IF_TYPE_SOFTWARE_LOOPBACK)
+        {
+            PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+            PrintMessageFromModule(hDllInstance, IDS_DUMP_IP_HEADER, Ptr->FriendlyName);
+            PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+
+            if (Ptr->Flags & IP_ADAPTER_DHCP_ENABLED)
+            {
+                PrintMessage(L"set address name=\"%s\" source=dhcp\n",
+                             Ptr->FriendlyName);
+            }
+            else
+            {
+                pUnicastAddress = Ptr->FirstUnicastAddress;
+                while (pUnicastAddress)
+                {
+                    FormatIPv4Address(AddressBuffer, &pUnicastAddress->Address);
+                    wcscpy(MaskBuffer, L"?");
+
+                    PrintMessage(L"set address name=\"%s\" source=static address=%s mask=%s\n",
+                                 Ptr->FriendlyName, AddressBuffer, MaskBuffer);
+
+                    pUnicastAddress = pUnicastAddress->Next;
+                }
+            }
+
+            if (Ptr->Flags & IP_ADAPTER_DHCP_ENABLED)
+            {
+                PrintMessage(L"set dns name=\"%s\" source=dhcp\n",
+                             Ptr->FriendlyName);
+            }
+            else
+            {
+                pDnsServer = Ptr->FirstDnsServerAddress;
+                while (pDnsServer)
+                {
+                    FormatIPv4Address(AddressBuffer, &pDnsServer->Address);
+
+                    PrintMessage(L"set dns name=\"%s\" source=%s address=%s\n",
+                                 Ptr->FriendlyName);
+
+                    pDnsServer = pDnsServer->Next;
+                }
+
+            }
+
+            PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+        }
+
+        Ptr = Ptr->Next;
+    }
+
+done:
+    if (pAdapterAddresses)
+        free(pAdapterAddresses);
+
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+    PrintMessage(L"popd\n");
+    PrintMessage(L"# End of Interface IP Configuration\n");
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+
+    return ERROR_SUCCESS;
+}
+
+
+static
+DWORD
+WINAPI
 IpStart(
     _In_ const GUID *pguidParent,
     _In_ DWORD dwVersion)
@@ -349,6 +462,8 @@ IpStart(
 
     ContextAttributes.ulNumGroups = sizeof(IpGroups) / sizeof(CMD_GROUP_ENTRY);
     ContextAttributes.pCmdGroups = IpGroups;
+
+    ContextAttributes.pfnDumpFn = IpDumpFn;
 
     RegisterContext(&ContextAttributes);
 

@@ -11,6 +11,12 @@
 #define IDS_HLP_DNS          215
 #define IDS_HLP_DNS_EX       216
 
+#define IDS_HLP_WINSOCK_RESET               230
+#define IDS_HLP_WINSOCK_RESET_EX            231
+#define IDS_HLP_WINSOCK_SHOW                232
+#define IDS_HLP_WINSOCK_SHOW_CATALOG        233
+#define IDS_HLP_WINSOCK_SHOW_CATALOG_EX     234
+
 #define IDS_IP_HEADER        300
 #define IDS_DHCP_ON          301
 #define IDS_DHCP_OFF         302
@@ -22,3 +28,9 @@
 #define IDS_SUBNETMASKS      308
 
 #define IDS_EMPTYLINE        400
+
+#define IDS_DUMP_NEWLINE     800
+#define IDS_DUMP_HEADERLINE  801
+#define IDS_DUMP_IP_HEADER   802
+
+

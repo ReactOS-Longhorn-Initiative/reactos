@@ -24,9 +24,6 @@
 /*
  * @implemented
  */
-/*
- * @implemented
- */
 BOOL
 WINAPI
 QueryFullProcessImageNameW(
@@ -35,11 +32,10 @@ QueryFullProcessImageNameW(
     _Out_writes_to_(*lpdwSize, *lpdwSize) LPWSTR lpExeName,
     _Inout_ PDWORD lpdwSize)
 {
-    BOOL bRet;
+    BOOL bRet = FALSE;
     DWORD dwBufferSize;
     PUNICODE_STRING pBuffer;
     NTSTATUS Status;
-    DWORD dwCch;
 
     if (dwFlags & ~PROCESS_NAME_NATIVE)
     {
@@ -55,7 +51,6 @@ QueryFullProcessImageNameW(
         return FALSE;
     }
 
-    bRet = FALSE;
     Status = NtQueryInformationProcess(hProcess,
                                        (dwFlags & PROCESS_NAME_NATIVE) ? ProcessImageFileName : ProcessImageFileNameWin32,
                                        pBuffer,
@@ -63,7 +58,7 @@ QueryFullProcessImageNameW(
                                        NULL);
     if (NT_SUCCESS(Status))
     {
-        dwCch = pBuffer->Length / sizeof(WCHAR);
+        DWORD dwCch = pBuffer->Length / sizeof(WCHAR);
         if (dwCch >= *lpdwSize)
         {
             BaseSetLastNTError(STATUS_BUFFER_TOO_SMALL);
@@ -78,7 +73,9 @@ QueryFullProcessImageNameW(
     }
     else
     {
-        BaseSetLastNTError(Status == STATUS_INFO_LENGTH_MISMATCH ? STATUS_BUFFER_TOO_SMALL : Status);
+        if (Status == STATUS_INFO_LENGTH_MISMATCH)
+            Status = STATUS_BUFFER_TOO_SMALL;
+        BaseSetLastNTError(Status);
     }
 
     RtlFreeHeap(RtlGetProcessHeap(), 0, pBuffer);
@@ -97,10 +94,9 @@ QueryFullProcessImageNameA(
     _Out_writes_to_(*lpdwSize, *lpdwSize) LPSTR lpExeName,
     _Inout_ PDWORD lpdwSize)
 {
-    BOOL bRet;
+    BOOL bRet = FALSE;
     DWORD dwSize;
     PWSTR pszFullName;
-    INT iCch;
 
     dwSize = *lpdwSize;
     pszFullName = (PWSTR)RtlAllocateHeap(RtlGetProcessHeap(), 0, dwSize * sizeof(WCHAR));
@@ -110,9 +106,9 @@ QueryFullProcessImageNameA(
         return FALSE;
     }
 
-    bRet = FALSE;
     if (QueryFullProcessImageNameW(hProcess, dwFlags, pszFullName, &dwSize))
     {
+        INT iCch;
         iCch = WideCharToMultiByte(CP_ACP,
                                    WC_NO_BEST_FIT_CHARS,
                                    pszFullName,
@@ -164,6 +160,55 @@ GetApplicationRestart(IN HANDLE hProcess,
 }
 
 
+/*
+ * @unimplemented
+ */
+VOID
+WINAPI
+ApplicationRecoveryFinished(IN BOOL bSuccess)
+{
+    UNIMPLEMENTED;
+}
+
+
+/*
+ * @unimplemented
+ */
+HRESULT
+WINAPI
+ApplicationRecoveryInProgress(OUT PBOOL pbCancelled)
+{
+    UNIMPLEMENTED;
+    return E_FAIL;
+}
+
+
+/*
+ * @unimplemented
+ */
+HRESULT
+WINAPI
+RegisterApplicationRecoveryCallback(IN APPLICATION_RECOVERY_CALLBACK pRecoveryCallback,
+                                    IN PVOID pvParameter  OPTIONAL,
+                                    DWORD dwPingInterval,
+                                    DWORD dwFlags)
+{
+    UNIMPLEMENTED;
+    return E_FAIL;
+}
+
+
+/*
+ * @unimplemented
+ */
+HRESULT
+WINAPI
+RegisterApplicationRestart(IN PCWSTR pwzCommandline  OPTIONAL,
+                           IN DWORD dwFlags)
+{
+    UNIMPLEMENTED;
+    return E_FAIL;
+}
 
 
 /*
@@ -403,12 +448,13 @@ CreateSymbolicLinkA(IN LPCSTR lpSymlinkFileName,
     return Ret;
 }
 
+
 /*
  * @implemented
  */
 DWORD
 WINAPI
-GetFinalPathNameByHandleATest(IN HANDLE hFile,
+GetFinalPathNameByHandleA(IN HANDLE hFile,
                           OUT LPSTR lpszFilePath,
                           IN DWORD cchFilePath,
                           IN DWORD dwFlags)
@@ -600,9 +646,8 @@ GetSystemPreferredUILanguages(
     DPRINT1("%x %p %p %p\n", dwFlags, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer);
     SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
     return FALSE;
-} 
+}
 
-NTSTATUS WINAPI RtlGetThreadPreferredUILanguages( DWORD flags, ULONG *count, WCHAR *buffer, ULONG *size );
 /*
  * @unimplemented
  */
@@ -614,8 +659,21 @@ GetThreadPreferredUILanguages(
     PZZWSTR pwszLanguagesBuffer,
     PULONG pcchLanguagesBuffer)
 {
-    RtlGetThreadPreferredUILanguages( dwFlags, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer );
-    return 1;
+    DPRINT1("%x %p %p %p\n", dwFlags, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer);
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE;
+}
+
+/*
+ * @unimplemented
+ */
+LANGID
+WINAPI
+GetThreadUILanguage(VOID)
+{
+    UNIMPLEMENTED;
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return 0;
 }
 
 /*
@@ -635,8 +693,27 @@ GetUILanguageInfo(
     return FALSE;
 }
 
- 
 
+/*
+ * @unimplemented
+ */
+BOOL
+WINAPI
+GetUserPreferredUILanguages(
+    DWORD dwFlags,
+    PULONG pulNumLanguages,
+    PZZWSTR pwszLanguagesBuffer,
+    PULONG pcchLanguagesBuffer)
+{
+    DPRINT1("%x %p %p %p\n", dwFlags, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer);
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE;
+}
+
+/*
+ * @unimplemented
+ */
+#if 0 // Tis is Windows 7+
 BOOL
 WINAPI
 SetProcessPreferredUILanguages(
@@ -645,9 +722,10 @@ SetProcessPreferredUILanguages(
     PULONG pulNumLanguages)
 {
     DPRINT1("%x %p %p\n", dwFlags, pwszLanguagesBuffer, pulNumLanguages);
-    SetLastError(ERROR_SUCCESS);
-    return TRUE;
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE;
 }
+#endif
 
 /*
  * @unimplemented
@@ -660,198 +738,7 @@ SetThreadPreferredUILanguages(
     PULONG pulNumLanguages
     )
 {
-    return STATUS_SUCCESS;
-}
-
-
-
-typedef enum _PROCESS_INFORMATION_CLASS {
-    ProcessMemoryPriority,                       // MEMORY_PRIORITY_INFORMATION
-    ProcessMemoryExhaustionInfo,                 // PROCESS_MEMORY_EXHAUSTION_INFO
-    ProcessAppMemoryInfo,                        // APP_MEMORY_INFORMATION
-    ProcessInPrivateInfo,                        // BOOLEAN
-    ProcessPowerThrottling,                      // PROCESS_POWER_THROTTLING_STATE
-    ProcessReservedValue1,                       // Used to be for ProcessActivityThrottlePolicyInfo
-    ProcessTelemetryCoverageInfo,                // TELEMETRY_COVERAGE_POINT
-    ProcessProtectionLevelInfo,                  // PROCESS_PROTECTION_LEVEL_INFORMATION
-    ProcessLeapSecondInfo,                       // PROCESS_LEAP_SECOND_INFO
-    ProcessMachineTypeInfo,                      // PROCESS_MACHINE_INFORMATION
-    ProcessOverrideSubsequentPrefetchParameter,  // OVERRIDE_PREFETCH_PARAMETER
-    ProcessMaxOverridePrefetchParameter,         // OVERRIDE_PREFETCH_PARAMETER
-    ProcessInformationClassMax
-} PROCESS_INFORMATION_CLASS;
-BOOL 
-WINAPI 
-GetProcessInformation(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS ProcessInformationClass,
-    LPVOID ProcessInformation, DWORD ProcessInformationSize) {
-    NTSTATUS st;
-    PROCESSINFOCLASS NtProcessInfoClass;
-
-    if (ProcessInformationClass >= ProcessInformationClassMax) {
-        SetLastError(ERROR_INVALID_PARAMETER);
-        return FALSE;
-    }
-
-    switch (ProcessInformationClass) {
-    case ProcessMemoryPriority:
-        NtProcessInfoClass = 0x27;
-        break;
-    default: // Unsupported in kernelmode, maybe add a DbgPrint
-        SetLastError(ERROR_INVALID_PARAMETER);
-        return FALSE;
-    }
-
-    st = NtQueryInformationProcess(
-        ProcessHandle,
-        NtProcessInfoClass,
-        ProcessInformation,
-        ProcessInformationSize,
-        NULL);
-    
-    if (NT_SUCCESS(st)) {
-        return TRUE;
-    } else {
-        BaseSetLastNTError(st);
-        return FALSE;
-    }
-}
-
- 
-BOOL 
-WINAPI 
-QueryThreadCycleTime(
-  _In_  HANDLE   ThreadHandle,
-  _Out_ PULONG64 CycleTime
-)
-{
-	LARGE_INTEGER ltime;
-	UINT32 cycles; 
-	QueryPerformanceCounter(&ltime);
-
-	cycles = (UINT32) ((ltime.QuadPart >> 8) & 0xFFFFFFF);	
-	
-	*CycleTime = cycles;
-	return TRUE;
-}
-static const KUSER_SHARED_DATA *user_shared_data = (KUSER_SHARED_DATA *)0x7ffe0000;
-
-
-/******************************************************************************
- *           QueryInterruptTime  (kernelbase.@)
- */
-void WINAPI DECLSPEC_HOTPATCH QueryInterruptTime( ULONGLONG *time )
-{
-    ULONG high, low;
-
-    do
-    {
-        high = user_shared_data->InterruptTime.High1Time;
-        low = user_shared_data->InterruptTime.LowPart;
-    }
-    while (high != user_shared_data->InterruptTime.High2Time);
-    *time = (ULONGLONG)high << 32 | low;
-}
-
-
-/******************************************************************************
- *           QueryInterruptTimePrecise  (kernelbase.@)
- */
-void WINAPI DECLSPEC_HOTPATCH QueryInterruptTimePrecise( ULONGLONG *time )
-{
-   // static int once;
-   // if (!once++) FIXME( "(%p) semi-stub\n", time );
-
-    QueryInterruptTime( time );
-}
-
-BOOL
-WINAPI
-EnumPreferredUserUILanguages(
-  _In_      DWORD   flags,
-  _In_		LANGID langid,
-  _Out_     PULONG  count,
-  _Out_opt_ PZZWSTR buffer,
-  _Inout_   PULONG  buffersize 
-)
-{
-    static const WCHAR formathexW[] = { '%','0','4','x',0 };
-
-    static const WCHAR formatstringW[] = { '%','.','2','s',0 };
-	
-
-//    FIXME( "semi-stub %u, %p, %p %p\n", flags, count, buffer, buffersize );
-	
-    /* FIXME should we check for too small buffersize too? */
-    if (!buffer || *buffersize < 11)
-    {
-           SetLastError(ERROR_INSUFFICIENT_BUFFER);
-           *buffersize = 11;
-           *count=2;
-           return TRUE;
-    }	
-
-    if (!flags)
-        flags = MUI_LANGUAGE_NAME;
-
-	if ((flags & (MUI_LANGUAGE_ID | MUI_LANGUAGE_NAME )) == (MUI_LANGUAGE_ID | MUI_LANGUAGE_NAME ))
-    {
-            SetLastError(ERROR_INVALID_PARAMETER);
-            return FALSE;
-
-    }
-    /* FIXME should we check for too small buffersize too? */
-    if (!buffer)
-    {
-           SetLastError(ERROR_INSUFFICIENT_BUFFER);
-           *buffersize = 10;
-           *count=2;
-           return TRUE;
-    }
-	
-    memset((WCHAR *)buffer,0,*buffersize);
-    if ((flags & MUI_LANGUAGE_ID) == MUI_LANGUAGE_ID)  
-    { 
-           *buffersize = 11; 
-           *count=2;
-           sprintfW((WCHAR *)buffer, formathexW, langid);
-           sprintfW((WCHAR *)buffer+5, formathexW, PRIMARYLANGID(langid)); 
-           SetLastError(ERROR_SUCCESS);
-    }
-    else  
-    {
-           *buffersize = 10; 
-           *count=2;
-           //GetLocaleInfoW( MAKELCID(langid, SORT_DEFAULT), LOCALE_SNAME | LOCALE_NOUSEROVERRIDE, (WCHAR *)buffer, *buffersize);
-		   LCIDToLocaleName(MAKELCID(langid, SORT_DEFAULT), (WCHAR *)buffer, *buffersize, 0);
-           /* FIXME is there no better way to to this? I can't get GetLocaleInfo to return the neutral languagename :( */      
-           sprintfW((WCHAR *)buffer+6, formatstringW, buffer);
-           SetLastError(ERROR_SUCCESS);
-
-    }
-    return TRUE; 	
-}
-
-NTSTATUS
-NTAPI
-NtQueryDefaultUILanguage(
-    LANGID* LanguageId
-);
-BOOL 
-WINAPI 
-GetUserPreferredUILanguages( 
-  _In_      DWORD   dwFlags,
-  _Out_     PULONG  pulNumLanguages,
-  _Out_opt_ PZZWSTR pwszLanguagesBuffer,
-  _Inout_   PULONG  pcchLanguagesBuffer
-)
-{
-	LANGID ui_language;
-	
-	NtQueryDefaultUILanguage( &ui_language );
-	// return set_ntstatus( RtlGetUserPreferredUILanguages( dwFlags, 0, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer ));
-	return EnumPreferredUserUILanguages(dwFlags,
-										ui_language,
-									    pulNumLanguages,
-									    pwszLanguagesBuffer,
-									    pcchLanguagesBuffer);
+    DPRINT1("%x %p %p\n", dwFlags, pwszLanguagesBuffer, pulNumLanguages);
+    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+    return FALSE;
 }

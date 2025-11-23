@@ -35,7 +35,7 @@ function(add_idl_headers TARGET)
         set(HEADER ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.h)
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.h
-            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os -h -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.h ${FILE}
+            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf -h -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.h ${FILE}
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${FILE} native-widl
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         list(APPEND HEADERS ${HEADER})
@@ -48,7 +48,7 @@ function(add_rpcproxy_files)
     get_defines(DEFINES)
 
     foreach(FILE ${ARGN})
-        get_filename_component(NAME ${FILE} NAME_WE)
+        get_filename_component(NAME ${FILE} NAME_WLE)
         # Most proxy idl's have names like <proxyname>_<original>.idl
         # We use this to create a dependency from the proxy to the original idl
         string(REPLACE "_" ";" SPLIT_FILE ${FILE})
@@ -65,8 +65,8 @@ function(add_rpcproxy_files)
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_p.c ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_p.h
             # We generate the two files in two passes because WIDL accepts only one custom file name as output
-            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os -p -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_p.c -H ${NAME}_p.h ${FILE}
-            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os -h -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_p.h ${FILE}
+            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf -p -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_p.c -H ${NAME}_p.h ${FILE}
+            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf -h -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_p.h ${FILE}
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${FILE} ${EXTRA_DEP} native-widl
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endforeach()
@@ -74,7 +74,7 @@ function(add_rpcproxy_files)
     # Extra pass to generate dlldata
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/proxy.dlldata.c
-        COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os --dlldata-only -o ${CMAKE_CURRENT_BINARY_DIR}/proxy.dlldata.c ${IDLS}
+        COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf --dlldata-only -o ${CMAKE_CURRENT_BINARY_DIR}/proxy.dlldata.c ${IDLS}
         DEPENDS ${IDL_DEPS} native-widl
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endfunction()
@@ -94,13 +94,13 @@ function(add_rpc_files __type)
         message(FATAL_ERROR "Please pass either server or client as argument to add_rpc_files")
     endif()
     foreach(FILE ${ARGN})
-        get_filename_component(__name ${FILE} NAME_WE)
+        get_filename_component(__name ${FILE} NAME_WLE)
         set(__name ${__name}${__suffix})
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${__name}.c ${CMAKE_CURRENT_BINARY_DIR}/${__name}.h
             # We generate the two files in two passes because WIDL accepts only one custom file name as output
-            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os ${__additional_flags} ${__server_client} -o ${CMAKE_CURRENT_BINARY_DIR}/${__name}.c -H ${__name}.h ${FILE}
-            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os ${__additional_flags} -h -o ${CMAKE_CURRENT_BINARY_DIR}/${__name}.h ${FILE}
+            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf ${__additional_flags} ${__server_client} -o ${CMAKE_CURRENT_BINARY_DIR}/${__name}.c -H ${__name}.h ${FILE}
+            COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf ${__additional_flags} -h -o ${CMAKE_CURRENT_BINARY_DIR}/${__name}.h ${FILE}
             DEPENDS ${FILE} native-widl
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endforeach()
@@ -175,7 +175,7 @@ function(add_idl_reg_script IDL_FILE)
     get_filename_component(NAME ${IDL_FILE} NAME_WE)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_r.res
-        COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Os -r -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_r.res ${IDL_FILE}
+        COMMAND native-widl ${INCLUDES} ${DEFINES} ${IDL_FLAGS} -Oicf -r -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_r.res ${IDL_FILE}
         DEPENDS ${IDL_FILE} native-widl
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${NAME}_r.res PROPERTIES

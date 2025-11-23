@@ -15,17 +15,7 @@
 #include "guid.h"
 #include "resource.h"
 
-static
-DWORD
-WINAPI
-InterfaceShowInterface(
-    LPCWSTR pwszMachine,
-    LPWSTR *argv,
-    DWORD dwCurrentIndex,
-    DWORD dwArgCount,
-    DWORD dwFlags,
-    LPCVOID pvData,
-    BOOL *pbDone);
+static FN_HANDLE_CMD InterfaceShowInterface;
 
 static
 CMD_ENTRY
@@ -60,6 +50,32 @@ InterfaceShowInterface(
 }
 
 
+static
+DWORD
+WINAPI
+InterfaceDumpFn(
+    _In_ LPCWSTR pwszRouter,
+    _In_ LPWSTR *ppwcArguments,
+    _In_ DWORD dwArgCount,
+    _In_ LPCVOID pvData)
+{
+    DPRINT("InterfaceDumpFn(%S %p %lu %p)\n", pwszRouter, ppwcArguments, dwArgCount, pvData);
+
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_HEADERLINE);
+    PrintMessage(L"# Interface Configuration\n");
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_HEADERLINE);
+    PrintMessage(L"pushd interface\n");
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+    PrintMessage(L"popd\n");
+    PrintMessage(L"# End of Interface Configuration\n");
+    PrintMessageFromModule(hDllInstance, IDS_DUMP_NEWLINE);
+
+    return ERROR_SUCCESS;
+}
+
+
 DWORD
 WINAPI
 InterfaceStart(
@@ -68,7 +84,7 @@ InterfaceStart(
 {
     NS_CONTEXT_ATTRIBUTES ContextAttributes;
 
-    DPRINT1("InterfaceStart()\n");
+    DPRINT("InterfaceStart()\n");
 
     ZeroMemory(&ContextAttributes, sizeof(ContextAttributes));
     ContextAttributes.dwVersion = 1;
@@ -80,6 +96,8 @@ InterfaceStart(
 
     ContextAttributes.ulNumGroups = sizeof(InterfaceGroups) / sizeof(CMD_GROUP_ENTRY);
     ContextAttributes.pCmdGroups = InterfaceGroups;
+
+    ContextAttributes.pfnDumpFn = InterfaceDumpFn;
 
     RegisterContext(&ContextAttributes);
 
@@ -93,7 +111,7 @@ RegisterInterfaceHelper(VOID)
 {
     NS_HELPER_ATTRIBUTES HelperAttributes;
 
-    DPRINT1("RegisterInterfaceHelper()\n");
+    DPRINT("RegisterInterfaceHelper()\n");
 
     ZeroMemory(&HelperAttributes, sizeof(HelperAttributes));
     HelperAttributes.dwVersion = 1;
