@@ -410,7 +410,7 @@ NTSTATUS
 NTAPI
 NtOpenKeyEx(OUT PHANDLE KeyHandle,
             IN ACCESS_MASK DesiredAccess,
-            const OBJECT_ATTRIBUTES* ObjectAttributes,
+            IN POBJECT_ATTRIBUTES ObjectAttributes,
             IN ULONG OpenOptions)
 {
     CM_PARSE_CONTEXT ParseContext = {0};
@@ -420,20 +420,6 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
     PAGED_CODE();
     DPRINT("NtOpenKeyEx(Path: %wZ, Root %x, Access: %x, Options: %x)\n",
             ObjectAttributes->ObjectName, ObjectAttributes->RootDirectory, DesiredAccess, OpenOptions);
-    OBJECT_ATTRIBUTES* CapturedObjectAttributes;
-    CapturedObjectAttributes = ExAllocatePoolWithTag(PagedPool,
-                                                        sizeof(OBJECT_ATTRIBUTES),
-                                                        ' xaR');
-    if (CapturedObjectAttributes == NULL)
-    {
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    Status = ProbeAndCaptureObjectAttributes(CapturedObjectAttributes,
-                                             CapturedObjectAttributes->ObjectName,
-                                             PreviousMode,
-                                             (POBJECT_ATTRIBUTES)ObjectAttributes,
-                                             FALSE);
 
     /* Validate the open options */
     if (OpenOptions & ~REG_OPTION_OPEN_LINK)
@@ -455,7 +441,7 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
             *KeyHandle = NULL;
 
             /* Probe object attributes */
-            ProbeForRead(CapturedObjectAttributes,
+            ProbeForRead(ObjectAttributes,
                          sizeof(OBJECT_ATTRIBUTES),
                          sizeof(ULONG));
         }
@@ -479,7 +465,7 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
     }
 
     /* Just let the object manager handle this */
-    Status = ObOpenObjectByName(CapturedObjectAttributes,
+    Status = ObOpenObjectByName(ObjectAttributes,
                                 CmpKeyObjectType,
                                 PreviousMode,
                                 NULL,
@@ -509,6 +495,7 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
     /* Return status */
     return Status;
 }
+
 
 NTSTATUS
 NTAPI

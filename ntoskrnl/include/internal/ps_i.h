@@ -555,4 +555,77 @@ static const INFORMATION_CLASS_INFO PsThreadInfoClass[] =
 
     /* ThreadCSwitchMon */
     IQS_NONE,
+
+    // Windows 7
+    /* ThreadCSwitchPmu */
+    IQS_NONE,
+    /* ThreadWow64Context */
+    IQS_NONE,
+    /* ThreadGroupInformation */
+    IQS_NONE,
+    /* ThreadUmsInformation */
+    IQS_NONE,
+    /* ThreadCounterProfiling */
+    IQS_NONE,
+    /* ThreadIdealProcessorEx */
+    IQS_NONE,
+
+    // Windows 8
+    /* ThreadCpuAccountingInformation */
+    IQS_NONE,
+
+    // Windows 8.1
+    /* ThreadSuspendCount */
+    IQS_NONE,
+
+    // Windows 10
+    /* ThreadHeterogeneousCpuPolicy */
+    IQS_NONE,
+    /* ThreadContainerId */
+    IQS_NONE,
+
+    /* ThreadNameInformation */
+    IQS_SAME
+    (
+        UNICODE_STRING,
+        ULONG_PTR,
+        ICIF_QUERY | ICIF_SET | ICIF_SIZE_VARIABLE
+    ),
+
+    /* ThreadSelectedCpuSets */
+    IQS_NONE,
+    /* ThreadSystemThreadInformation */
+    IQS_NONE,
+    /* ThreadActualGroupAffinity */
+    IQS_NONE,
+
+    /* ThreadDynamicCodePolicyInfo */
+    IQS_NONE,
+    /* ThreadExplicitCaseSensitivity */
+    IQS_NONE,
+    /* ThreadWorkOnBehalfTicket */
+    IQS_NONE,
+    /* ThreadSubsystemInformation */
+    IQS_NONE,
+    /* ThreadDbgkWerReportActive */
+    IQS_NONE,
+    /* ThreadAttachContainer */
+    IQS_NONE,
+    /* ThreadManageWritesToExecutableMemory */
+    IQS_NONE,
+    /* ThreadPowerThrottlingState */
+    IQS_NONE,
+    /* ThreadWorkloadClass */
+    IQS_NONE,
+    /* ThreadCreateStateChange */
+    IQS_NONE,
+    /* ThreadApplyStateChange */
+    IQS_NONE,
+    /* ThreadStrongerBadHandleChecks */
+    IQS_NONE,
+    /* ThreadEffectiveIoPriority */
+    IQS_NONE,
+    /* ThreadEffectivePagePriority */
+    IQS_NONE,
+
 };

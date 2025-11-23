@@ -770,7 +770,7 @@ NTSYSCALLAPI NTSTATUS NTAPI NtRevertContainerImpersonation(void);
 NTSYSCALLAPI NTSTATUS NTAPI NtSetCachedSigningLevel(void);
 NTSYSCALLAPI NTSTATUS NTAPI NtCompareObjects(void);
 NTSYSCALLAPI NTSTATUS NTAPI NtWorkerFactoryWorkerReady(ULONG);
-NTSYSCALLAPI NTSTATUS NTAPI NtOpenKeyEx(PHANDLE,ACCESS_MASK,const OBJECT_ATTRIBUTES*,ULONG);
+NTSYSCALLAPI NTSTATUS NTAPI NtOpenKeyEx(PHANDLE,ACCESS_MASK, OBJECT_ATTRIBUTES*,ULONG);
 NTSYSCALLAPI NTSTATUS NTAPI NtAllocateVirtualMemoryEx(HANDLE ProcessHandle,
                                                       IN OUT PVOID* UBaseAddress,
                                                       PSIZE_T RegionSize,
