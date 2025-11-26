@@ -4,6 +4,7 @@
 4 stdcall -noname ApplyTheme(ptr ptr ptr)
 5 stdcall BeginBufferedAnimation(ptr ptr ptr long ptr ptr ptr ptr)
 6 stdcall BeginBufferedPaint(ptr ptr long ptr ptr)
+@ stdcall BeginPanningFeedback(ptr)
 7 stdcall -noname GetThemeDefaults(wstr wstr long wstr long)
 8 stdcall -noname EnumThemes(wstr ptr ptr)
 9 stdcall -noname EnumThemeColors(wstr wstr long ptr)
@@ -69,6 +70,7 @@
 69 stdcall -stub EnumThemeProperties(ptr ptr long long long ptr)
 70 stdcall EndBufferedAnimation(ptr long)
 71 stdcall EndBufferedPaint(ptr long)
+@ stdcall EndPanningFeedback(ptr long)
 72 stdcall -stub DrawThemeIconEx(ptr long long long ptr)
 73 stub IsThemeActiveByPolicy
 74 stdcall -stub GetThemeClass(ptr long long long ptr)
@@ -125,4 +127,5 @@
 125 stdcall SetWindowThemeAttribute(ptr long ptr long)
 126 stdcall ThemeInitApiHook(long ptr)
 
+@ stdcall UpdatePanningFeedback(ptr long long long)
 @ stdcall OpenThemeDataForDpi(ptr wstr long) ;win7
