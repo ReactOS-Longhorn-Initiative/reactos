@@ -183,6 +183,7 @@
 @ stdcall -stub -version=0x600+ LdrResFindResourceDirectory(ptr long long long long long long)
 @ stdcall -stub -version=0x600+ LdrResRelease(ptr ptr long long)
 @ stdcall -stub -version=0x600+ LdrResSearchResource(wstr wstr long long long ptr long long)
+@ stdcall -version=0x600+ LdrResolveDelayLoadedAPI(ptr ptr ptr ptr ptr long)
 @ stdcall LdrSetAppCompatDllRedirectionCallback(long ptr ptr)
 @ stdcall -version=0x601+ LdrSetDefaultDllDirectories(long)
 @ stdcall -version=0x601+ LdrSetDllDirectory(ptr)
@@ -913,7 +914,7 @@
 @ stdcall RtlGetOwnerSecurityDescriptor(ptr ptr ptr)
 @ stdcall -stub -version=0x600+ RtlGetParentLocaleName(wstr long long long)
 @ stdcall RtlGetProcessHeaps(long ptr)
-@ stub -version=0x600+ RtlGetProductInfo
+@ stdcall -version=0x600+ RtlGetProductInfo(long long long long ptr)
 @ stdcall RtlGetSaclSecurityDescriptor(ptr ptr ptr ptr)
 @ stdcall RtlGetSecurityDescriptorRMControl(ptr ptr)
 @ stdcall RtlGetSetBootStatusData(ptr long long ptr long long)
@@ -1089,7 +1090,7 @@
 @ stdcall RtlQueryAtomInAtomTable(ptr long ptr ptr ptr ptr)
 @ stdcall -stub -version=0x600+ RtlQueryCriticalSectionOwner(ptr)
 @ stdcall RtlQueryDepthSList(ptr)
-@ stdcall -stub -version=0x600+ RtlQueryDynamicTimeZoneInformation(ptr)
+@ stdcall -version=0x600+ RtlQueryDynamicTimeZoneInformation(ptr) RtlQueryTimeZoneInformation
 @ stdcall -stub -version=0x600+ RtlQueryElevationFlags(ptr)
 @ stdcall -stub -version=0x600+ RtlQueryEnvironmentVariable(ptr ptr long ptr long ptr)
 @ stdcall RtlQueryEnvironmentVariable_U(ptr ptr ptr)
@@ -1107,6 +1108,7 @@
 @ stdcall RtlQuerySecurityObject(ptr long ptr long ptr)
 @ stdcall RtlQueryTagHeap(ptr long long long ptr)
 @ stdcall RtlQueryTimeZoneInformation(ptr)
+@ stdcall -version=0x601+ RtlQueryUnbiasedInterruptTime(ptr)
 @ stdcall -arch=i386,x86_64 RtlQueueApcWow64Thread(ptr ptr ptr ptr ptr)
 @ stdcall RtlQueueWorkItem(ptr ptr long)
 @ stdcall -register RtlRaiseException(ptr)
