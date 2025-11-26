@@ -18,6 +18,6 @@ set_module_type(crtdll win32dll ENTRYPOINT DllMain 12)
 target_link_libraries(crtdll msvcrt_static crtmath vcruntime chkstk wine ${PSEH_LIB})
 add_dependencies(crtdll psdk)
 
-add_importlibs(crtdll kernel32 kernel32_vista ntdll)
+add_importlibs(crtdll kernelbase ntdll)
 add_delay_importlibs(crtdll user32)
 add_cd_file(TARGET crtdll DESTINATION reactos/system32 FOR all)
