@@ -456,6 +456,13 @@ EnumProcesses(DWORD *lpidProcess,
     return TRUE;
 }
 
+BOOL
+WINAPI
+EnumProcessModulesEx( HANDLE process, HMODULE *module, DWORD count,
+                                     DWORD *needed, DWORD filter )
+{
+    return EnumProcessModules( process, module, count, needed );
+}
 
 /*
  * @implemented

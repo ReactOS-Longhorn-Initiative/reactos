@@ -1101,6 +1101,14 @@ static BOOL VersionInfo32_QueryValue( const VS_VERSION_INFO_STRUCT32 *info, LPCW
 
     /* Return value */
     *lplpBuffer = VersionInfo32_Value( info );
+
+#ifdef __REACTOS__
+    /* If the wValueLength is zero, then set a UNICODE_NULL only return string.
+     * Use the NULL terminator from the key string for that. This is what Windows does, too. */
+    if (!info->wValueLength)
+      *lplpBuffer = (PVOID)(info->szKey + wcslen(info->szKey));
+#endif
+
     if (puLen)
         *puLen = info->wValueLength;
     if (pbText)
@@ -1451,7 +1459,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetProductInfo( DWORD os_major, DWORD os_minor,
     return RtlGetProductInfo( os_major, os_minor, sp_major, sp_minor, type );
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *         GetVersion   (kernelbase.@)
  */
@@ -1541,8 +1549,7 @@ BOOL WINAPI GetVersionExW( OSVERSIONINFOW *info )
     }
     return TRUE;
 }
-
-
+#endif
 /***********************************************************************
  *         GetCurrentPackageFamilyName   (kernelbase.@)
  */
@@ -1752,3 +1759,11 @@ LONG WINAPI PackageIdFromFullName(const WCHAR *full_name, UINT32 flags, UINT32 *
 
     return ERROR_SUCCESS;
 }
+
+LONG WINAPI GetCurrentApplicationUserModelId(UINT32 *applicationUserModelIdLength, PWSTR  applicationUserModelId)
+{
+	FIXME( "(%p %p): stub\n", applicationUserModelIdLength, applicationUserModelId );
+    return APPMODEL_ERROR_NO_PACKAGE;	
+}
+
+ 

@@ -27,6 +27,16 @@
 
 #include "windef.h"
 #include "winbase.h"
+
+#ifdef __REACTOS__
+/* This module re-implements most path and URL helpers; don't import them or
+ * warn about legacy Path* APIs being deprecated, and don't deprecate
+ * classic Path* in favour of PathCch for this Wine-synced implementation. */
+#define WINSHLWAPI
+#define PATHCCH_NO_DEPRECATE
+#pragma warning(disable:4995)
+#endif
+
 #include "pathcch.h"
 #include "strsafe.h"
 #include "shlwapi.h"
@@ -525,15 +535,15 @@ HRESULT WINAPI PathAllocCombine(const WCHAR *path1, const WCHAR *path2, DWORD fl
     return hr;
 }
 
-HRESULT WINAPI PathCchAddBackslash(WCHAR *path, SIZE_T size)
+HRESULT WINAPI PathCchAddBackslash(WCHAR *path, size_t size)
 {
     return PathCchAddBackslashEx(path, size, NULL, NULL);
 }
 
-HRESULT WINAPI PathCchAddBackslashEx(WCHAR *path, SIZE_T size, WCHAR **endptr, SIZE_T *remaining)
+HRESULT WINAPI PathCchAddBackslashEx(WCHAR *path, size_t size, WCHAR **endptr, size_t *remaining)
 {
     BOOL needs_termination;
-    SIZE_T length;
+    size_t length;
 
     TRACE("%s, %Iu, %p, %p\n", debugstr_w(path), size, endptr, remaining);
 
@@ -563,10 +573,10 @@ HRESULT WINAPI PathCchAddBackslashEx(WCHAR *path, SIZE_T size, WCHAR **endptr, S
     return S_OK;
 }
 
-HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extension)
+HRESULT WINAPI PathCchAddExtension(WCHAR *path, size_t size, const WCHAR *extension)
 {
     const WCHAR *existing_extension, *next;
-    SIZE_T path_length, extension_length, dot_length;
+    size_t path_length, extension_length, dot_length;
     BOOL has_dot;
     HRESULT hr;
 
@@ -587,7 +597,11 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
     if (FAILED(hr)) return hr;
     if (*existing_extension) return S_FALSE;
 
+#ifdef __REACTOS__
+    path_length = lstrlenW(path);
+#else
     path_length = wcsnlen(path, size);
+#endif
     dot_length = has_dot ? 0 : 1;
     extension_length = lstrlenW(extension);
 
@@ -606,14 +620,14 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
     return S_OK;
 }
 
-HRESULT WINAPI PathCchAppend(WCHAR *path1, SIZE_T size, const WCHAR *path2)
+HRESULT WINAPI PathCchAppend(WCHAR *path1, size_t size, const WCHAR *path2)
 {
     TRACE("%s %Iu %s\n", wine_dbgstr_w(path1), size, wine_dbgstr_w(path2));
 
     return PathCchAppendEx(path1, size, path2, PATHCCH_NONE);
 }
 
-HRESULT WINAPI PathCchAppendEx(WCHAR *path1, SIZE_T size, const WCHAR *path2, DWORD flags)
+HRESULT WINAPI PathCchAppendEx(WCHAR *path1, size_t size, const WCHAR *path2, DWORD flags)
 {
     HRESULT hr;
     WCHAR *result;
@@ -638,7 +652,7 @@ HRESULT WINAPI PathCchAppendEx(WCHAR *path1, SIZE_T size, const WCHAR *path2, DW
     return hr;
 }
 
-HRESULT WINAPI PathCchCanonicalize(WCHAR *out, SIZE_T size, const WCHAR *in)
+HRESULT WINAPI PathCchCanonicalize(WCHAR *out, size_t size, const WCHAR *in)
 {
     TRACE("%p %Iu %s\n", out, size, wine_dbgstr_w(in));
 
@@ -649,10 +663,10 @@ HRESULT WINAPI PathCchCanonicalize(WCHAR *out, SIZE_T size, const WCHAR *in)
     return PathCchCanonicalizeEx(out, size, in, PATHCCH_NONE);
 }
 
-HRESULT WINAPI PathCchCanonicalizeEx(WCHAR *out, SIZE_T size, const WCHAR *in, DWORD flags)
+HRESULT WINAPI PathCchCanonicalizeEx(WCHAR *out, size_t size, const WCHAR *in, DWORD flags)
 {
     WCHAR *buffer;
-    SIZE_T length;
+    size_t length;
     HRESULT hr;
 
     TRACE("%p %Iu %s %#lx\n", out, size, wine_dbgstr_w(in), flags);
@@ -688,18 +702,18 @@ HRESULT WINAPI PathCchCanonicalizeEx(WCHAR *out, SIZE_T size, const WCHAR *in, D
     return hr;
 }
 
-HRESULT WINAPI PathCchCombine(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2)
+HRESULT WINAPI PathCchCombine(WCHAR *out, size_t size, const WCHAR *path1, const WCHAR *path2)
 {
     TRACE("%p %s %s\n", out, wine_dbgstr_w(path1), wine_dbgstr_w(path2));
 
     return PathCchCombineEx(out, size, path1, path2, PATHCCH_NONE);
 }
 
-HRESULT WINAPI PathCchCombineEx(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2, DWORD flags)
+HRESULT WINAPI PathCchCombineEx(WCHAR *out, size_t size, const WCHAR *path1, const WCHAR *path2, DWORD flags)
 {
     HRESULT hr;
     WCHAR *buffer;
-    SIZE_T length;
+    size_t length;
 
     TRACE("%p %s %s %#lx\n", out, wine_dbgstr_w(path1), wine_dbgstr_w(path2), flags);
 
@@ -727,10 +741,10 @@ HRESULT WINAPI PathCchCombineEx(WCHAR *out, SIZE_T size, const WCHAR *path1, con
     }
 }
 
-HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR **extension)
+HRESULT WINAPI PathCchFindExtension(const WCHAR *path, size_t size, const WCHAR **extension)
 {
     const WCHAR *lastpoint = NULL;
-    SIZE_T counter = 0;
+    size_t counter = 0;
 
     TRACE("%s %Iu %p\n", wine_dbgstr_w(path), size, extension);
 
@@ -797,20 +811,20 @@ BOOL WINAPI PathCchIsRoot(const WCHAR *path)
         return FALSE;
 }
 
-HRESULT WINAPI PathCchRemoveBackslash(WCHAR *path, SIZE_T path_size)
+HRESULT WINAPI PathCchRemoveBackslash(WCHAR *path, size_t path_size)
 {
     WCHAR *path_end;
-    SIZE_T free_size;
+    size_t free_size;
 
     TRACE("%s %Iu\n", debugstr_w(path), path_size);
 
     return PathCchRemoveBackslashEx(path, path_size, &path_end, &free_size);
 }
 
-HRESULT WINAPI PathCchRemoveBackslashEx(WCHAR *path, SIZE_T path_size, WCHAR **path_end, SIZE_T *free_size)
+HRESULT WINAPI PathCchRemoveBackslashEx(WCHAR *path, size_t path_size, WCHAR **path_end, size_t *free_size)
 {
     const WCHAR *root_end;
-    SIZE_T path_length;
+    size_t path_length;
 
     TRACE("%s %Iu %p %p\n", debugstr_w(path), path_size, path_end, free_size);
 
@@ -820,8 +834,11 @@ HRESULT WINAPI PathCchRemoveBackslashEx(WCHAR *path, SIZE_T path_size, WCHAR **p
         if (free_size) *free_size = 0;
         return E_INVALIDARG;
     }
-
+#ifdef __REACTOS__
+    path_length = lstrlenW(path);
+#else
     path_length = wcsnlen(path, path_size);
+#endif
     if (path_length == path_size && !path[path_length]) return E_INVALIDARG;
 
     root_end = get_root_end(path);
@@ -846,7 +863,7 @@ HRESULT WINAPI PathCchRemoveBackslashEx(WCHAR *path, SIZE_T path_size, WCHAR **p
     }
 }
 
-HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
+HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, size_t size)
 {
     const WCHAR *extension;
     WCHAR *next;
@@ -865,7 +882,7 @@ HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
     return next == extension ? S_FALSE : S_OK;
 }
 
-HRESULT WINAPI PathCchRemoveFileSpec(WCHAR *path, SIZE_T size)
+HRESULT WINAPI PathCchRemoveFileSpec(WCHAR *path, size_t size)
 {
     WCHAR *last, *root_end;
 
@@ -889,7 +906,7 @@ HRESULT WINAPI PathCchRemoveFileSpec(WCHAR *path, SIZE_T size)
     return S_OK;
 }
 
-HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *extension)
+HRESULT WINAPI PathCchRenameExtension(WCHAR *path, size_t size, const WCHAR *extension)
 {
     HRESULT hr;
 
@@ -932,7 +949,7 @@ HRESULT WINAPI PathCchSkipRoot(const WCHAR *path, const WCHAR **root_end)
     return *root_end ? S_OK : E_INVALIDARG;
 }
 
-HRESULT WINAPI PathCchStripPrefix(WCHAR *path, SIZE_T size)
+HRESULT WINAPI PathCchStripPrefix(WCHAR *path, size_t size)
 {
     TRACE("%s %Iu\n", wine_dbgstr_w(path), size);
 
@@ -956,7 +973,7 @@ HRESULT WINAPI PathCchStripPrefix(WCHAR *path, SIZE_T size)
         return S_FALSE;
 }
 
-HRESULT WINAPI PathCchStripToRoot(WCHAR *path, SIZE_T size)
+HRESULT WINAPI PathCchStripToRoot(WCHAR *path, size_t size)
 {
     const WCHAR *root_end;
     WCHAR *segment_end;
