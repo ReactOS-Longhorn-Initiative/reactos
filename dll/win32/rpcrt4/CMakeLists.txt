@@ -65,7 +65,7 @@ if(MSVC)
 endif()
 
 set_module_type(rpcrt4 win32dll)
-target_link_libraries(rpcrt4 wine wine_dll_register uuid ${PSEH_LIB} oldnames)
+target_link_libraries(rpcrt4 wine uuid ${PSEH_LIB} oldnames)
 add_delay_importlibs(rpcrt4 iphlpapi wininet secur32 user32 ole32 oleaut32)
 add_importlibs(rpcrt4 advapi32 advapi32_vista kernelbase ws2_32 msvcrt kernel32 ntdll)
 add_dependencies(rpcrt4 ndr_types_header)
