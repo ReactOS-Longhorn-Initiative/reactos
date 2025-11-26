@@ -49,3 +49,14 @@ DllMain(HINSTANCE hinstDLL,
 
     return TRUE;
 }
+
+HRESULT
+WINAPI
+CreateAppContainerProfile(PCWSTR container_name, PCWSTR display_name, PCWSTR description,
+                          SID_AND_ATTRIBUTES *capabilities, DWORD capability_count,
+                          SID **container_sid)
+{
+    UNIMPLEMENTED;
+    return E_NOTIMPL;
+}
+
