@@ -297,6 +297,11 @@ IntVideoPortMapMemory(
    INFO_(VIDEOPRT, "- InIoSpace: %x\n", InIoSpace);
 
    InIoSpace &= ~VIDEO_MEMORY_SPACE_DENSE;
+   if ((InIoSpace & VIDEO_MEMORY_SPACE_P6CACHE) != 0)
+   {
+      INFO_(VIDEOPRT, "VIDEO_MEMORY_SPACE_P6CACHE not supported, turning off\n");
+      InIoSpace &= ~VIDEO_MEMORY_SPACE_P6CACHE;
+   }
 
    if (ProcessHandle != NULL && (InIoSpace & VIDEO_MEMORY_SPACE_USER_MODE) == 0)
    {
@@ -340,7 +345,7 @@ IntVideoPortMapMemory(
    }
 
    AddressSpace = (ULONG)InIoSpace;
-   AddressSpace &= ~(VIDEO_MEMORY_SPACE_USER_MODE | VIDEO_MEMORY_SPACE_P6CACHE);
+   AddressSpace &= ~VIDEO_MEMORY_SPACE_USER_MODE;
    if (HalTranslateBusAddress(
           DeviceExtension->AdapterInterfaceType,
           DeviceExtension->SystemIoBusNumber,
@@ -368,16 +373,11 @@ IntVideoPortMapMemory(
    if ((InIoSpace & VIDEO_MEMORY_SPACE_USER_MODE) != 0)
    {
       NTSTATUS NtStatus;
-      ULONG Protect;
-      if (InIoSpace & VIDEO_MEMORY_SPACE_P6CACHE)
-          Protect = PAGE_READWRITE | PAGE_WRITECOMBINE;
-      else
-          Protect = PAGE_READWRITE | PAGE_NOCACHE;
       MappedAddress = NULL;
       NtStatus = IntVideoPortMapPhysicalMemory(ProcessHandle,
                                                TranslatedAddress,
                                                NumberOfUchars,
-                                               Protect,
+                                               PAGE_READWRITE/* | PAGE_WRITECOMBINE*/,
                                                &MappedAddress);
       if (!NT_SUCCESS(NtStatus))
       {
