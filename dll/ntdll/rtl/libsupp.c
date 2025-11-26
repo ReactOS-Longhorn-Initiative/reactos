@@ -1244,4 +1244,31 @@ RtlGetTickCount(VOID)
                                   SharedUserData->TickCountMultiplier));
 }
 
+
+BOOL
+WINAPI
+RtlQueryUnbiasedInterruptTime(ULONGLONG *Time)
+{
+    if (Time == NULL)
+    {
+        RtlSetLastWin32ErrorAndNtStatusFromNtStatus(STATUS_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    const volatile KSYSTEM_TIME *InterruptTime = &SharedUserData->InterruptTime;
+    ULONG High, Low;
+
+    // Read High1Time and LowPart until High2Time matches High1Time for atomicity
+    do
+    {
+        High = InterruptTime->High1Time;
+        Low  = InterruptTime->LowPart;
+    }
+    while (High != InterruptTime->High2Time);
+
+    *Time = ((ULONGLONG)High << 32) | Low;
+    return TRUE;
+}
+
+
 /* EOF */

@@ -36,6 +36,12 @@
 #include "winternl.h"
 #include "winperf.h"
 #include "winuser.h"
+
+#ifdef __REACTOS__
+/* This module implements many SHReg* helpers; avoid importing them. */
+#define WINSHLWAPI
+#pragma warning(disable:4995)
+#endif
 #include "shlwapi.h"
 #include "sddl.h"
 
@@ -527,7 +533,7 @@ static BOOL is_perf_key( HKEY key )
             || HandleToUlong(key) == HandleToUlong(HKEY_PERFORMANCE_TEXT)
             || HandleToUlong(key) == HandleToUlong(HKEY_PERFORMANCE_NLSTEXT);
 }
-
+#ifndef __REACTOS__
 
 /******************************************************************************
  * RemapPredefinedHandleInternal   (kernelbase.@)
@@ -3238,6 +3244,7 @@ cleanup:
     return ret;
 }
 
+#endif
 
 /******************************************************************************
  * RegLoadAppKeyA (kernelbase.@)
@@ -3268,7 +3275,6 @@ LSTATUS WINAPI RegLoadAppKeyW(const WCHAR *file, HKEY *result, REGSAM sam, DWORD
     *result = (HKEY)0xdeadbeef;
     return ERROR_SUCCESS;
 }
-
 
 /***********************************************************************
  * DnsHostnameToComputerNameExW   (kernelbase.@)
@@ -3301,7 +3307,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH DnsHostnameToComputerNameExW( const WCHAR *hostnam
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  * GetComputerNameExA   (kernelbase.@)
  */
@@ -3515,7 +3521,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetComputerNameExW( COMPUTER_NAME_FORMAT type, con
     if (ret) SetLastError( ret );
     return !ret;
 }
-
+#endif
 struct USKEY
 {
     HKEY  HKCUstart; /* Start key in CU hive */

@@ -617,7 +617,7 @@ GetFileMUIPath(
 /*
  * @unimplemented
  */
-#if 0 // This is Windows 7+
+#if 1 // This is Windows 7+
 BOOL
 WINAPI
 GetProcessPreferredUILanguages(
@@ -667,18 +667,6 @@ GetThreadPreferredUILanguages(
 /*
  * @unimplemented
  */
-LANGID
-WINAPI
-GetThreadUILanguage(VOID)
-{
-    UNIMPLEMENTED;
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return 0;
-}
-
-/*
- * @unimplemented
- */
 BOOL
 WINAPI
 GetUILanguageInfo(
@@ -693,27 +681,20 @@ GetUILanguageInfo(
     return FALSE;
 }
 
-
-/*
- * @unimplemented
+/**********************************************************************
+ *	EnumResourceLanguagesW	(KERNEL32.@)
  */
-BOOL
-WINAPI
-GetUserPreferredUILanguages(
-    DWORD dwFlags,
-    PULONG pulNumLanguages,
-    PZZWSTR pwszLanguagesBuffer,
-    PULONG pcchLanguagesBuffer)
+BOOL WINAPI EnumResourceLanguagesW( HMODULE hmod, LPCWSTR type, LPCWSTR name,
+                                    ENUMRESLANGPROCW lpfun, LONG_PTR lparam )
 {
-    DPRINT1("%x %p %p %p\n", dwFlags, pulNumLanguages, pwszLanguagesBuffer, pcchLanguagesBuffer);
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+    return EnumResourceLanguagesExW( hmod, type, name, lpfun, lparam, 0, 0 );
 }
 
+
 /*
  * @unimplemented
  */
-#if 0 // Tis is Windows 7+
+#if 1 // Tis is Windows 7+
 BOOL
 WINAPI
 SetProcessPreferredUILanguages(
@@ -743,3 +724,120 @@ SetThreadPreferredUILanguages(
     return FALSE;
 }
 
+
+BOOL 
+WINAPI 
+GetProcessInformation(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS ProcessInformationClass,
+    LPVOID ProcessInformation, DWORD ProcessInformationSize) {
+    NTSTATUS st;
+    PROCESSINFOCLASS NtProcessInfoClass;
+
+    if (ProcessInformationClass >= ProcessInformationClassMax) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    switch (ProcessInformationClass) {
+    case ProcessMemoryPriority:
+        NtProcessInfoClass = 0x27;
+        break;
+    default: // Unsupported in kernelmode, maybe add a DbgPrint
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    st = NtQueryInformationProcess(
+        ProcessHandle,
+        NtProcessInfoClass,
+        ProcessInformation,
+        ProcessInformationSize,
+        NULL);
+    
+    if (NT_SUCCESS(st)) {
+        return TRUE;
+    } else {
+        BaseSetLastNTError(st);
+        return FALSE;
+    }
+}
+
+ 
+BOOL 
+WINAPI 
+QueryThreadCycleTime(
+  _In_  HANDLE   ThreadHandle,
+  _Out_ PULONG64 CycleTime
+)
+{
+	LARGE_INTEGER ltime;
+	UINT32 cycles; 
+	QueryPerformanceCounter(&ltime);
+
+	cycles = (UINT32) ((ltime.QuadPart >> 8) & 0xFFFFFFF);	
+	
+	*CycleTime = cycles;
+	return TRUE;
+}
+static const KUSER_SHARED_DATA *user_shared_data = (KUSER_SHARED_DATA *)0x7ffe0000;
+
+
+/******************************************************************************
+ *           QueryInterruptTime  (kernelbase.@)
+ */
+void WINAPI DECLSPEC_HOTPATCH QueryInterruptTime( ULONGLONG *time )
+{
+    ULONG high, low;
+
+    do
+    {
+        high = user_shared_data->InterruptTime.High1Time;
+        low = user_shared_data->InterruptTime.LowPart;
+    }
+    while (high != user_shared_data->InterruptTime.High2Time);
+    *time = (ULONGLONG)high << 32 | low;
+}
+
+void
+WINAPI
+DECLSPEC_HOTPATCH QueryInterruptTimePrecise(ULONGLONG *time)
+{
+    QueryInterruptTime(time);
+}
+
+BOOL
+WINAPI
+EnumPreferredUserUILanguages(
+  _In_      DWORD   flags,
+  _In_		LANGID langid,
+  _Out_     PULONG  count,
+  _Out_opt_ PZZWSTR buffer,
+  _Inout_   PULONG  buffersize
+)
+{
+    UNIMPLEMENTED;
+    return FALSE;
+}
+
+NTSTATUS
+NTAPI
+NtQueryDefaultUILanguage(
+    LANGID* LanguageId
+);
+
+BOOL
+WINAPI
+GetUserPreferredUILanguages(
+  _In_      DWORD   dwFlags,
+  _Out_     PULONG  pulNumLanguages,
+  _Out_opt_ PZZWSTR pwszLanguagesBuffer,
+  _Inout_   PULONG  pcchLanguagesBuffer
+)
+{
+	LANGID UI;
+	NtQueryDefaultUILanguage( &UI );
+	return EnumPreferredUserUILanguages(dwFlags,
+										UI,
+									    pulNumLanguages,
+									    pwszLanguagesBuffer,
+									    pcchLanguagesBuffer);
+}
