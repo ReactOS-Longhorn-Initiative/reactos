@@ -507,7 +507,7 @@ static const INFORMATION_CLASS_INFO PsThreadInfoClass[] =
     (
         CHAR,
         ULONG,
-        ICIF_SET | ICIF_SET_SIZE_VARIABLE
+        ICIF_QUERY | ICIF_SET | ICIF_SET_SIZE_VARIABLE
     ),
 
     /* ThreadBreakOnTermination */
