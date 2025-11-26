@@ -29,6 +29,7 @@
 @ stdcall AddAuditAccessAceEx(ptr long long long ptr long long)
 @ stdcall AddAuditAccessObjectAce(ptr long long long ptr ptr ptr long long)
 @ stdcall AddUsersToEncryptedFile(wstr ptr)
+@ stdcall AddMandatoryAce(ptr long long long ptr) ntdll.RtlAddMandatoryAce
 @ stdcall AdjustTokenGroups(long long ptr long ptr ptr)
 @ stdcall AdjustTokenPrivileges(long long ptr long ptr ptr)
 @ stdcall AllocateAndInitializeSid(ptr long long long long long long long long long ptr)
