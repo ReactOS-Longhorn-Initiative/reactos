@@ -37,6 +37,14 @@ typedef enum AppPolicyWindowingModel
     AppPolicyWindowingModel_ClassicPhone = 3
 } AppPolicyWindowingModel;
 
+/* Media Foundation codec loading policy (Windows 10+) */
+typedef enum AppPolicyMediaFoundationCodecLoading
+{
+    /* Allow loading of all codecs (default on desktop). */
+    AppPolicyMediaFoundationCodecLoading_All    = 0,
+    /* Future values may further restrict codec loading. */
+} AppPolicyMediaFoundationCodecLoading;
+
 typedef struct PACKAGE_VERSION
 {
     union
@@ -98,6 +106,15 @@ WINAPI
 AppPolicyGetWindowingModel(
     _In_ HANDLE processToken,
     _Out_ AppPolicyWindowingModel* policy);
+
+WINBASEAPI
+_Check_return_
+_Success_(return == ERROR_SUCCESS)
+LONG
+WINAPI
+AppPolicyGetMediaFoundationCodecLoading(
+    _In_ HANDLE processToken,
+    _Out_ AppPolicyMediaFoundationCodecLoading* policy);
 
 #ifdef __cplusplus
 } // extern "C"
