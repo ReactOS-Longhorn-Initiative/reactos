@@ -228,4 +228,78 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
     return STATUS_SUCCESS;
 }
 
+
+/***********************************************************************
+ *           RtlGetProductInfo    (NTDLL.@)
+ *
+ * Gives info about the current Windows product type, in a format compatible
+ * with the given Windows version
+ *
+ * Returns TRUE if the input is valid, FALSE otherwise
+ */
+BOOLEAN
+WINAPI
+RtlGetProductInfo(
+	DWORD dwOSMajorVersion,
+	DWORD dwOSMinorVersion,
+	DWORD dwSpMajorVersion,
+    DWORD dwSpMinorVersion,
+	PDWORD pdwReturnedProductType
+)
+{
+    RTL_OSVERSIONINFOEXW VersionInformation;
+
+	VersionInformation.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOEXW);
+
+	RtlGetVersion((PRTL_OSVERSIONINFOW)&VersionInformation);
+
+    if (!pdwReturnedProductType)
+        return FALSE;
+
+    if (VersionInformation.wProductType == VER_NT_WORKSTATION)
+	{
+		if(VersionInformation.wSuiteMask == VER_SUITE_PERSONAL)
+			*pdwReturnedProductType = PRODUCT_HOME_PREMIUM;
+		else
+			*pdwReturnedProductType = PRODUCT_ULTIMATE;
+	}else{
+		if(VersionInformation.wSuiteMask == VER_SUITE_BLADE)
+			*pdwReturnedProductType = PRODUCT_WEB_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_COMPUTE_SERVER)
+			*pdwReturnedProductType = PRODUCT_CLUSTER_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_DATACENTER)
+			*pdwReturnedProductType = PRODUCT_DATACENTER_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_ENTERPRISE)
+			*pdwReturnedProductType = PRODUCT_ENTERPRISE_SERVER;
+		if(VersionInformation.wSuiteMask == VER_SUITE_SMALLBUSINESS)
+			*pdwReturnedProductType = PRODUCT_SMALLBUSINESS_SERVER;		
+		if(VersionInformation.wSuiteMask == VER_SUITE_SMALLBUSINESS_RESTRICTED)
+			*pdwReturnedProductType = PRODUCT_SB_SOLUTION_SERVER;	
+		if(VersionInformation.wSuiteMask == VER_SUITE_STORAGE_SERVER)
+			*pdwReturnedProductType = PRODUCT_STORAGE_ENTERPRISE_SERVER;		
+		if(VersionInformation.wSuiteMask == VER_SUITE_WH_SERVER)
+			*pdwReturnedProductType = PRODUCT_HOME_PREMIUM_SERVER;			
+	}        
+
+    return TRUE;
+}
+
+#include <delayloadhandler.h>
+
+PVOID
+WINAPI
+LdrResolveDelayLoadedAPI(
+  _In_       PVOID                             ParentModuleBase,
+  _In_       PCIMAGE_DELAYLOAD_DESCRIPTOR      DelayloadDescriptor,
+  _In_opt_   PDELAYLOAD_FAILURE_DLL_CALLBACK   FailureDllHook,
+  _In_opt_   PDELAYLOAD_FAILURE_SYSTEM_ROUTINE FailureSystemHook,
+  _Out_      PIMAGE_THUNK_DATA                 ThunkAddress,
+  _Reserved_ ULONG                             Flags
+)
+{
+    DPRINT1("ApiSetQueryApiSetPresence not implemented! %d\n", DelayloadDescriptor->ImportNameTableRVA);
+    return NULL;
+}
+
+
 /* EOF */

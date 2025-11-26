@@ -42,7 +42,8 @@ list(APPEND SOURCE
     wine/crypt.c
     wine/crypt_des.c
     wine/crypt_lmhash.c
-    wine/security.c)
+    wine/security.c
+    wine/lookup.c)
 
 list(APPEND PCH_SKIP_SOURCE
     ${CMAKE_CURRENT_BINARY_DIR}/advapi32_stubs.c

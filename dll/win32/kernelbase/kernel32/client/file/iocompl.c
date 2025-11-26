@@ -295,4 +295,72 @@ BindIoCompletionCallback(IN HANDLE FileHandle,
     return TRUE;
 }
 
+
+static
+BOOL getQueuedCompletionStatus(
+	HANDLE CompletionPort,
+	LPOVERLAPPED_ENTRY lpEnt,
+	DWORD dwMilliseconds
+) {
+	return GetQueuedCompletionStatus(CompletionPort,
+		&lpEnt->dwNumberOfBytesTransferred,
+		&lpEnt->lpCompletionKey,
+		&lpEnt->lpOverlapped, dwMilliseconds);
+}
+BOOL
+WINAPI
+GetQueuedCompletionStatusEx(
+  HANDLE             CompletionPort,
+  LPOVERLAPPED_ENTRY lpCompletionPortEntries,
+  ULONG              ulCount,
+  PULONG             ulNumEntriesRemoved,
+  DWORD              dwMilliseconds,
+  BOOL               fAlertable
+)
+{
+	int i = 0;
+	LPOVERLAPPED_ENTRY currentEntry;
+    NTSTATUS status;
+    DWORD ret;
+    LARGE_INTEGER TimeOut;
+    UNREFERENCED_PARAMETER(TimeOut);
+	// validate arguments
+	if(!lpCompletionPortEntries
+	|| !ulCount || !ulNumEntriesRemoved) {
+		RtlSetLastWin32Error(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+	// retrieve multiple entries
+	for(i = 0;i < ulCount; i++)
+	{
+		currentEntry = lpCompletionPortEntries+i;
+		status = currentEntry->Internal;
+		if (status == STATUS_PENDING)
+		{
+			if (!dwMilliseconds)
+			{
+				SetLastError( ERROR_IO_INCOMPLETE );
+				return FALSE;
+			}
+			ret = WaitForSingleObjectEx( currentEntry->lpOverlapped->hEvent ? currentEntry->lpOverlapped->hEvent : CompletionPort, dwMilliseconds, fAlertable );
+			if (ret == WAIT_FAILED)
+				return FALSE;
+			else if (ret)
+			{
+				SetLastError( ret );
+				return FALSE;
+			}
+			status = currentEntry->Internal;
+			//if (status == STATUS_PENDING) status = STATUS_SUCCESS;
+			if (status != WAIT_OBJECT_0) break;
+		}
+		if(!getQueuedCompletionStatus(CompletionPort,
+		currentEntry, dwMilliseconds)) break;
+		dwMilliseconds = 0;
+	}
+	*ulNumEntriesRemoved = i;
+	return TRUE;
+}
+
+
 /* EOF */
