@@ -31,13 +31,15 @@
 
 #include "kernelbase.h"
 #include "wine/debug.h"
+#ifndef __REACTOS__
 #include "wine/condrv.h"
+#endif
 
 WINE_DEFAULT_DEBUG_CHANNEL(process);
 
 static DWORD shutdown_flags = 0;
 static DWORD shutdown_priority = 0x280;
-
+#ifndef __REACTOS__
 /***********************************************************************
  * Processes
  ***********************************************************************/
@@ -233,6 +235,8 @@ static RTL_USER_PROCESS_PARAMETERS *create_process_params( const WCHAR *filename
     if (envW != env) RtlFreeHeap( GetProcessHeap(), 0, envW );
     return params;
 }
+#endif
+
 
 struct proc_thread_attr
 {
@@ -251,6 +255,7 @@ struct _PROC_THREAD_ATTRIBUTE_LIST
     struct proc_thread_attr attrs[1];
 };
 
+#ifndef __REACTOS__
 /***********************************************************************
  *           create_nt_process
  */
@@ -707,6 +712,24 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreateProcessW( const WCHAR *app_name, WCHAR *cmd_
                                    inherit, flags, env, cur_dir, startup_info, info, NULL );
 }
 
+#endif
+
+
+/*typedef enum _PROCESS_INFORMATION_CLASS {
+    ProcessMemoryPriority,                       // MEMORY_PRIORITY_INFORMATION
+    ProcessMemoryExhaustionInfo,                 // PROCESS_MEMORY_EXHAUSTION_INFO
+    ProcessAppMemoryInfo,                        // APP_MEMORY_INFORMATION
+    ProcessInPrivateInfo,                        // BOOLEAN
+    ProcessPowerThrottling,                      // PROCESS_POWER_THROTTLING_STATE
+    ProcessReservedValue1,                       // Used to be for ProcessActivityThrottlePolicyInfo
+    ProcessTelemetryCoverageInfo,                // TELEMETRY_COVERAGE_POINT
+    ProcessProtectionLevelInfo,                  // PROCESS_PROTECTION_LEVEL_INFORMATION
+    ProcessLeapSecondInfo,                       // PROCESS_LEAP_SECOND_INFO
+    ProcessMachineTypeInfo,                      // PROCESS_MACHINE_INFORMATION
+    ProcessOverrideSubsequentPrefetchParameter,  // OVERRIDE_PREFETCH_PARAMETER
+    ProcessMaxOverridePrefetchParameter,         // OVERRIDE_PREFETCH_PARAMETER
+    ProcessInformationClassMax
+} PROCESS_INFORMATION_CLASS;*/
 
 /**********************************************************************
  *           SetProcessInformation   (kernelbase.@)
@@ -727,7 +750,7 @@ BOOL WINAPI SetProcessInformation( HANDLE process, PROCESS_INFORMATION_CLASS inf
     }
 }
 
-
+#ifndef __REACTOS__
 /*********************************************************************
  *           DuplicateHandle   (kernelbase.@)
  */
@@ -739,6 +762,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH DuplicateHandle( HANDLE source_process, HANDLE sou
                                             access, inherit ? OBJ_INHERIT : 0, options ));
 }
 
+#endif
 
 /***********************************************************************
  *           GetApplicationRestartSettings   (kernelbase.@)
@@ -747,10 +771,12 @@ HRESULT WINAPI /* DECLSPEC_HOTPATCH */ GetApplicationRestartSettings( HANDLE pro
                                                                       DWORD *size, DWORD *flags )
 {
     FIXME( "%p, %p, %p, %p)\n", process, cmdline, size, flags );
-    return E_NOTIMPL;
+    cmdline = NULL;
+	size = 0;
+    return S_OK;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetCurrentProcess   (kernelbase.@)
  */
@@ -838,18 +864,32 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetPriorityClass( HANDLE process )
     default: return 0;
     }
 }
-
+#endif
 
 /***********************************************************************
  *           GetProcessGroupAffinity   (kernelbase.@)
  */
 BOOL WINAPI DECLSPEC_HOTPATCH GetProcessGroupAffinity( HANDLE process, USHORT *count, USHORT *array )
 {
-    FIXME( "(%p,%p,%p): stub\n", process, count, array );
-    SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
-    return FALSE;
+	USHORT LastGroupCount;
+    if (!count) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+    LastGroupCount = *count;
+    *count = 1;
+    if(LastGroupCount == 0)
+    {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
+    if(!GetProcessId(process))
+        return FALSE;
+    array[0] = 1;
+    return TRUE;
 }
 
+#ifndef __REACTOS__
 
 /******************************************************************
  *           GetProcessHandleCount   (kernelbase.@)
@@ -882,7 +922,7 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetProcessId( HANDLE process )
         return 0;
     return pbi.UniqueProcessId;
 }
-
+#endif
 
 /**********************************************************************
  *           GetProcessMitigationPolicy   (kernelbase.@)
@@ -894,7 +934,7 @@ BOOL WINAPI /* DECLSPEC_HOTPATCH */ GetProcessMitigationPolicy( HANDLE process, 
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           GetProcessPriorityBoost   (kernelbase.@)
  */
@@ -1006,6 +1046,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH IsProcessorFeaturePresent ( DWORD feature )
 {
     return RtlIsProcessorFeaturePresent( feature );
 }
+#endif
 
 
 /**********************************************************************
@@ -1013,10 +1054,10 @@ BOOL WINAPI DECLSPEC_HOTPATCH IsProcessorFeaturePresent ( DWORD feature )
  */
 BOOL WINAPI DECLSPEC_HOTPATCH IsWow64Process2( HANDLE process, USHORT *machine, USHORT *native_machine )
 {
-    return set_ntstatus( RtlWow64GetProcessMachines( process, machine, native_machine ));
+    return FALSE;
 }
 
-
+#ifndef __REACTOS__
 /**********************************************************************
  *           IsWow64Process   (kernelbase.@)
  */
@@ -1126,7 +1167,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH ProcessIdToSessionId( DWORD pid, DWORD *id )
     CloseHandle( process );
     return set_ntstatus( status );
 }
-
+ 
 
 /***********************************************************************
  *           QueryProcessCycleTime   (kernelbase.@)
@@ -1142,7 +1183,28 @@ BOOL WINAPI DECLSPEC_HOTPATCH QueryProcessCycleTime( HANDLE process, ULONG64 *cy
     return TRUE;
 }
 
+#endif
+BOOL 
+WINAPI 
+QueryProcessCycleTime(
+  _In_  HANDLE   ThreadHandle,
+  _Out_ PULONG64 CycleTime
+)
+{
+	LARGE_INTEGER ltime;
+	UINT32 cycles; 
+	BOOL resp;
+	
+	resp = QueryPerformanceCounter(&ltime);
 
+	cycles = (UINT32) ((ltime.QuadPart >> 8) & 0xFFFFFFF);	
+	
+	*CycleTime = cycles;
+	return resp;
+}
+
+
+#ifndef __REACTOS__
 /***********************************************************************
  *           SetErrorMode   (kernelbase.@)
  */
@@ -1211,6 +1273,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetPriorityClass( HANDLE process, DWORD class )
     return set_ntstatus( NtSetInformationProcess( process, ProcessPriorityClass, &ppc, sizeof(ppc) ));
 }
 
+#endif
 
 /***********************************************************************
  *           SetProcessAffinityUpdateMode   (kernelbase.@)
@@ -1245,7 +1308,7 @@ BOOL WINAPI /* DECLSPEC_HOTPATCH */ SetProcessMitigationPolicy( PROCESS_MITIGATI
     return TRUE;
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           SetProcessPriorityBoost   (kernelbase.@)
  */
@@ -1266,7 +1329,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetProcessShutdownParameters( DWORD level, DWORD f
     shutdown_priority = level;
     return TRUE;
 }
-
 
 /***********************************************************************
  *           SetProcessWorkingSetSizeEx   (kernelbase.@)
@@ -1742,6 +1804,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetEnvironmentVariableW( LPCWSTR name, LPCWSTR val
     return set_ntstatus( status );
 }
 
+#endif
 
 /***********************************************************************
  * Process/thread attribute lists
@@ -1868,5 +1931,9 @@ void WINAPI DECLSPEC_HOTPATCH DeleteProcThreadAttributeList( struct _PROC_THREAD
  */
 BOOL WINAPI DECLSPEC_HOTPATCH CompareObjectHandles( HANDLE first, HANDLE second )
 {
+#ifndef __REACTOS__
     return set_ntstatus( NtCompareObjects( first, second ));
+#else
+    return FALSE; //NtCompareObjects is not implemented in ReactOS
+#endif
 }

@@ -21,6 +21,15 @@
 
 #include "ntstatus.h"
 #define WIN32_NO_STATUS
+
+#ifdef __REACTOS__
+/* For this Wine-synced module we provide our own implementations of many
+ * shlwapi helpers; avoid importing them from shlwapi.dll to silence
+ * inconsistent dll linkage warnings. */
+#define WINSHLWAPI
+#pragma warning(disable:4995)
+#endif
+
 #include "windows.h"
 #include "appmodel.h"
 #include "shlwapi.h"
@@ -34,9 +43,13 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(kernelbase);
 
+#ifdef __REACTOS__
+const GUID IID_IUnknown           = {0x00000000, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
+#endif
 
 BOOL is_wow64 = FALSE;
 
+#ifndef __REACTOS__
 /***********************************************************************
  *           DllMain
  */
@@ -53,8 +66,9 @@ BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved )
     }
     return TRUE;
 }
+#endif
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *           MulDiv   (kernelbase.@)
  */
@@ -80,6 +94,7 @@ INT WINAPI MulDiv( INT a, INT b, INT c )
     if (ret > 2147483647 || ret < -2147483647) return -1;
     return ret;
 }
+#endif
 
 /***********************************************************************
  *          AppPolicyGetMediaFoundationCodecLoading (KERNELBASE.@)

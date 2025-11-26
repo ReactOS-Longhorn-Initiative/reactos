@@ -16,30 +16,14 @@ add_rpc_files(client
     ${REACTOS_SOURCE_DIR}/sdk/include/reactos/idl/winreg.idl)
 
 list(APPEND SOURCE
-    misc/dllmain.c
-    misc/efs.c
-    misc/evntrace.c
-    misc/hwprofiles.c
-    misc/logon.c
-    misc/msi.c
-    misc/shutdown.c
-    misc/sysfunc.c
-    misc/unicode.c
-    reg/hkcr.c
-    reg/reg.c
-    sec/ac.c
-    sec/audit.c
-    sec/lsa.c
-    sec/misc.c
-    sec/safer.c
-    sec/sec.c
-    sec/trustee.c
     service/eventlog.c
     service/rpc.c
     service/scm.c
     service/sctrl.c
     service/winreg.c
-    token/token.c
+    sec/lsa.c
+    sec/misc.c
+    wine/lookup.c
     wine/cred.c
     wine/crypt.c
     wine/crypt_des.c
@@ -54,6 +38,39 @@ list(APPEND PCH_SKIP_SOURCE
     ${CMAKE_CURRENT_BINARY_DIR}/svcctl_c.c
     ${CMAKE_CURRENT_BINARY_DIR}/winreg_c.c)
 
+# This static library is for kernelbase and vista APIs in kernel32
+add_library(win32_registry
+    ${PCH_SKIP_SOURCE}
+    reg/hkcr.c
+    reg/reg.c
+)
+target_link_libraries(win32_registry ${PSEH_LIB})
+target_compile_definitions(win32_registry PRIVATE _KERNEL32_ UNICODE _UNICODE)
+
+
+# This static library is for kernelbase and vista APIs in kernel32
+add_library(win32_logon
+    ${PCH_SKIP_SOURCE}
+    misc/dllmain.c
+    misc/efs.c
+    misc/evntrace.c
+    misc/hwprofiles.c
+    misc/logon.c
+    misc/msi.c
+    misc/shutdown.c
+    misc/sysfunc.c
+    misc/unicode.c
+    sec/ac.c
+    sec/audit.c
+    sec/safer.c
+    sec/sec.c
+    sec/trustee.c
+    token/token.c
+    wine/security.c
+)
+target_link_libraries(win32_logon ${PSEH_LIB})
+target_compile_definitions(win32_logon PRIVATE _KERNEL32_ UNICODE _UNICODE)
+
 add_library(advapi32 MODULE
     ${SOURCE}
     ${PCH_SKIP_SOURCE}
@@ -61,7 +78,7 @@ add_library(advapi32 MODULE
     ${CMAKE_CURRENT_BINARY_DIR}/advapi32.def)
 
 set_module_type(advapi32 win32dll UNICODE ENTRYPOINT DllMain 12)
-target_link_libraries(advapi32 cryptlib wine ${PSEH_LIB})
+target_link_libraries(advapi32 win32_logon win32_registry cryptlib wine ${PSEH_LIB})
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
     target_link_libraries(advapi32 etwtrace)
 endif()
