@@ -711,5 +711,5 @@ SVC_(RequestDeviceWakeup, 1)
 SVC_(RequestWakeupLatency, 1)
 SVC_(CancelDeviceWakeupRequest, 1)
 #endif
-//SVC_(AllocateVirtualMemoryEx, 7) // Added in 1803
+SVC_(AllocateVirtualMemoryEx, 7) // Added in 1803
 // End hack
