@@ -403,6 +403,113 @@ NtOpenKey(OUT PHANDLE KeyHandle,
 }
 
 
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
+NtOpenKeyEx(OUT PHANDLE KeyHandle,
+            IN ACCESS_MASK DesiredAccess,
+            const OBJECT_ATTRIBUTES* ObjectAttributes,
+            IN ULONG OpenOptions)
+{
+    CM_PARSE_CONTEXT ParseContext = {0};
+    HANDLE Handle;
+    NTSTATUS Status;
+    KPROCESSOR_MODE PreviousMode = ExGetPreviousMode();
+    PAGED_CODE();
+    DPRINT("NtOpenKeyEx(Path: %wZ, Root %x, Access: %x, Options: %x)\n",
+            ObjectAttributes->ObjectName, ObjectAttributes->RootDirectory, DesiredAccess, OpenOptions);
+    OBJECT_ATTRIBUTES* CapturedObjectAttributes;
+    CapturedObjectAttributes = ExAllocatePoolWithTag(PagedPool,
+                                                        sizeof(OBJECT_ATTRIBUTES),
+                                                        ' xaR');
+    if (CapturedObjectAttributes == NULL)
+    {
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    Status = ProbeAndCaptureObjectAttributes(CapturedObjectAttributes,
+                                             CapturedObjectAttributes->ObjectName,
+                                             PreviousMode,
+                                             (POBJECT_ATTRIBUTES)ObjectAttributes,
+                                             FALSE);
+
+    /* Validate the open options */
+    if (OpenOptions & ~REG_OPTION_OPEN_LINK)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Ignore the WOW64 flag, it's not valid in the kernel */
+    DesiredAccess &= ~KEY_WOW64_RES;
+
+    /* Check for user-mode caller */
+    if (PreviousMode != KernelMode)
+    {
+        /* Prepare to probe parameters */
+        _SEH2_TRY
+        {
+            /* Probe the key handle */
+            ProbeForWriteHandle(KeyHandle);
+            *KeyHandle = NULL;
+
+            /* Probe object attributes */
+            ProbeForRead(CapturedObjectAttributes,
+                         sizeof(OBJECT_ATTRIBUTES),
+                         sizeof(ULONG));
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            /* Return the exception code */
+            _SEH2_YIELD(return _SEH2_GetExceptionCode());
+        }
+        _SEH2_END;
+    }
+
+    /* Set up the parse context based on open options */
+    ParseContext.CreateOptions = OpenOptions;
+    
+    /* Handle REG_OPTION_OPEN_LINK by setting the appropriate flag */
+    if (OpenOptions & REG_OPTION_OPEN_LINK)
+    {
+        /* This tells the registry parser to open symbolic links directly
+         * instead of following them */
+        ParseContext.CreateLink = TRUE;
+    }
+
+    /* Just let the object manager handle this */
+    Status = ObOpenObjectByName(CapturedObjectAttributes,
+                                CmpKeyObjectType,
+                                PreviousMode,
+                                NULL,
+                                DesiredAccess,
+                                &ParseContext,
+                                &Handle);
+
+    /* Only do this if we succeeded */
+    if (NT_SUCCESS(Status))
+    {
+        _SEH2_TRY
+        {
+            /* Return the handle to caller */
+            *KeyHandle = Handle;
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            /* Close the handle and return the exception code */
+            ObCloseHandle(Handle, PreviousMode);
+            Status = _SEH2_GetExceptionCode();
+        }
+        _SEH2_END;
+    }
+
+    DPRINT("Returning handle %x, Status %x.\n", Handle, Status);
+
+    /* Return status */
+    return Status;
+}
+
 NTSTATUS
 NTAPI
 NtDeleteKey(IN HANDLE KeyHandle)
