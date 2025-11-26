@@ -1210,7 +1210,7 @@
 @ stdcall SetProcessAffinityMask(long long) kernelbase.SetProcessAffinityMask
 @ stub -version=0x600+ SetProcessAffinityUpdateMode
 @ stdcall -stub -version=0xA00+ SetProcessDefaultCpuSets(ptr ptr long)
-@ stdcall -version=0x600+ SetProcessDEPPolicy(ptr) kernelbase.SetProcessDEPPolicy
+@ stdcall -version=0x600+ SetProcessDEPPolicy(ptr)
 @ stdcall -version=0x602+ SetProcessInformation(long long ptr long) kernelbase.SetProcessInformation
 @ stdcall -stub -version=0x602+ SetProcessMitigationPolicy(long ptr long)
 @ stdcall -version=0x601+ SetProcessPreferredUILanguages(long ptr ptr) kernelbase.SetProcessPreferredUILanguages
