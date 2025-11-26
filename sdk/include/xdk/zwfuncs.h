@@ -718,7 +718,7 @@ ZwOpenEvent(
 $endif (_WDMDDK_)
 
 $if (_WDMDDK_ || _NTIFS_)
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1 //(NTDDI_VERSION >= NTDDI_VISTA)
 $endif (_WDMDDK_ || _NTIFS_)
 $if (_WDMDDK_)
 
@@ -1142,7 +1142,7 @@ $endif (_NTIFS_)
 $if (_WDMDDK_ || _NTIFS_)
 #endif /* (NTDDI_VERSION >= NTDDI_VISTA) */
 $endif (_WDMDDK_ || _NTIFS_)
-#if (NTDDI_VERSION >= NTDDI_WIN7)
+#if 1 //(NTDDI_VERSION >= NTDDI_WIN7)
 $if (_WDMDDK_)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
