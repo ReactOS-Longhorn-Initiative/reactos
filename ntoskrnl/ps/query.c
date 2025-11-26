@@ -3315,6 +3315,33 @@ NtQueryInformationThread(
             ObDereferenceObject(Thread);
             break;
 
+        case ThreadHideFromDebugger:
+            /* Set the return length */
+            Length = sizeof(BOOLEAN);
+
+            if (ThreadInformationLength != Length)
+            {
+                Status = STATUS_INFO_LENGTH_MISMATCH;
+                break;
+            }
+
+            /* Reference the thread */
+            Status = ObReferenceObjectByHandle(ThreadHandle,
+                                               Access,
+                                               PsThreadType,
+                                               PreviousMode,
+                                               (PVOID*)&Thread,
+                                               NULL);
+            if (!NT_SUCCESS(Status))
+                break;
+
+            /* Get the flag */
+            *((BOOLEAN*)ThreadInformation) = !!(Thread->CrossThreadFlags & CT_HIDE_FROM_DEBUGGER_BIT);
+
+            /* Dereference the thread */
+            ObDereferenceObject(Thread);
+            break;
+
         /* Anything else */
         default:
             /* Not yet implemented */
