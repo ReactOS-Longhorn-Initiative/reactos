@@ -22,6 +22,45 @@ PVOID MmHighestUserAddress = (PVOID)MI_HIGHEST_USER_ADDRESS;
 
 /* FUNCTIONS ***************************************************************/
 
+BOOL
+WINAPI
+DECLSPEC_HOTPATCH
+RtlQueryPerformanceCounter( LARGE_INTEGER *counter )
+{
+    NtQueryPerformanceCounter( counter, NULL );
+    return TRUE;
+}
+#define TICKSPERSEC 10000000
+BOOL
+WINAPI
+DECLSPEC_HOTPATCH
+RtlQueryPerformanceFrequency( LARGE_INTEGER *frequency )
+{
+    frequency->QuadPart = TICKSPERSEC;
+    return TRUE;
+}
+
+int CDECL strcpy_s( char* dst, size_t elem, const char* src )
+{
+    size_t i;
+    if(!elem) return EINVAL;
+    if(!dst) return EINVAL;
+    if(!src)
+    {
+        dst[0] = '\0';
+        return EINVAL;
+    }
+
+    for(i = 0; i < elem; i++)
+    {
+        if((dst[i] = src[i]) == '\0') return 0;
+    }
+    dst[0] = '\0';
+    return ERANGE;
+}
+
+
+
 BOOLEAN
 NTAPI
 RtlpCheckForActiveDebugger(VOID)
