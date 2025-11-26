@@ -65,7 +65,7 @@ add_library(d3dwine MODULE
 
 set_module_type(d3dwine win32dll)
 target_link_libraries(d3dwine d3dwine_common vkd3d vkd3d-shader vkd3d-common wine wpp uuid )
-add_importlibs(d3dwine user32 opengl32 gdi32_vista gdi32 advapi32 msvcrt kernel32 kernel32_vista ntdll)
+add_importlibs(d3dwine user32 opengl32 gdi32_vista gdi32 advapi32 msvcrt kernel32 kernelbase ntdll)
 add_pch(d3dwine precomp.h SOURCE)
 set_wine_module(d3dwine)
 add_cd_file(TARGET d3dwine DESTINATION reactos/system32 FOR all)
@@ -81,7 +81,7 @@ target_compile_definitions(ddraw_d3dwine PRIVATE
     -DWINE_DDRAW_SW)
 set_module_type(ddraw_d3dwine win32dll)
 target_link_libraries(ddraw_d3dwine d3dwine_common vkd3d vkd3d-shader vkd3d-common wine wpp uuid )
-add_importlibs(ddraw_d3dwine user32 opengl32 gdi32_vista gdi32 advapi32 msvcrt kernel32 kernel32_vista ntdll)
+add_importlibs(ddraw_d3dwine user32 opengl32 gdi32_vista gdi32 advapi32 msvcrt kernel32 kernelbase ntdll)
 add_pch(ddraw_d3dwine precomp.h SOURCE)
 set_wine_module(ddraw_d3dwine)
 add_cd_file(TARGET ddraw_d3dwine DESTINATION reactos/system32 FOR all)
