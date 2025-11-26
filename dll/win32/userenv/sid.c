@@ -162,3 +162,74 @@ GetUserSidStringFromToken(HANDLE hToken,
 
     return TRUE;
 }
+
+
+/******************************************************************
+ *    DeriveAppContainerSidFromAppContainerName (USERENV.@)
+ *
+ * Creates a SID for an app container based on the app container name.
+ *
+ * PARAMS
+ *  pszAppContainerName [In]  App container name
+ *  ppsidAppContainerSid [Out] Pointer to receive the app container SID
+ *
+ * RETURNS
+ *  HRESULT indicating success or failure
+ */
+HRESULT WINAPI
+DeriveAppContainerSidFromAppContainerName(
+    IN PCWSTR pszAppContainerName,
+    OUT PSID *ppsidAppContainerSid)
+{
+
+    /* This code is also just insanely borked. */
+    UNICODE_STRING AppContainerName;
+    PSID AppContainerSid = NULL;
+
+    if (!pszAppContainerName || !ppsidAppContainerSid)
+    {
+        return E_INVALIDARG;
+    }
+
+    *ppsidAppContainerSid = NULL;
+
+    /* Initialize the unicode string for the app container name */
+    RtlInitUnicodeString(&AppContainerName, pszAppContainerName);
+
+    /* Create a simple app container SID manually */
+    /* App container SIDs have the format: S-1-15-2-<hash> where:
+     * S-1-15 is the APPLICATION_PACKAGE_AUTHORITY  
+     * 2 is the SECURITY_APP_PACKAGE_BASE_RID
+     * <hash> is derived from the app container name
+     */
+    SID_IDENTIFIER_AUTHORITY AppPackageAuthority = { SECURITY_APP_PACKAGE_AUTHORITY };
+    DWORD Hash = 0;
+    PCWSTR p = pszAppContainerName;
+
+    /* Simple hash calculation from the app container name */
+    while (*p)
+    {
+        WCHAR c = *p;
+        /* Convert to lowercase manually to avoid dependency on CRT */
+        if (c >= L'A' && c <= L'Z')
+            c = c - L'A' + L'a';
+        Hash = Hash * 37 + (DWORD)c;
+        p++;
+    }
+
+    /* Allocate and initialize the SID */
+    if (!AllocateAndInitializeSid(&AppPackageAuthority,
+                                  2,  /* SubAuthorityCount */
+                                  SECURITY_APP_PACKAGE_BASE_RID,
+                                  Hash,
+                                  0, 0, 0, 0, 0, 0,
+                                  &AppContainerSid))
+    {
+        DWORD dwError = GetLastError();
+        DPRINT1("AllocateAndInitializeSid failed with error %lu\n", dwError);
+        return HRESULT_FROM_WIN32(dwError);
+    }
+
+    *ppsidAppContainerSid = AppContainerSid;
+    return S_OK;
+}
