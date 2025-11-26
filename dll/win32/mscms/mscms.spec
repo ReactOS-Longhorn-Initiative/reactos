@@ -103,3 +103,5 @@
 @ stub WcsSetDefaultRenderingIntent
 @ stub WcsSetUsePerUserProfiles
 @ stub WcsTranslateColors
+235 stub WcsOrdinal
+234 stub WcsOrdinalTwo
