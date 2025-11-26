@@ -33,9 +33,17 @@
 #include "winioctl.h"
 #include "wincon.h"
 #include "fileapi.h"
+
+#ifdef __REACTOS__
+/* Use local implementations of shlwapi helpers instead of importing them. */
+#define WINSHLWAPI
+#pragma warning(disable:4995)
+#endif
 #include "shlwapi.h"
+#ifndef __REACTOS__
 #include "ddk/ntddk.h"
 #include "ddk/ntddser.h"
+#endif
 #include "ioringapi.h"
 
 #include "kernelbase.h"
@@ -43,6 +51,11 @@
 #include "wine/debug.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(file);
+
+#ifndef COPY_FILE_COPY_SYMLINK
+/* Flag used by CopyFile2/COPYFILE2_EXTENDED_PARAMETERS on newer Windows. */
+#define COPY_FILE_COPY_SYMLINK 0x00000800
+#endif
 
 /* info structure for FindFirstFile handle */
 typedef struct
@@ -476,7 +489,7 @@ static BOOL is_same_file( HANDLE h1, HANDLE h2 )
             !memcmp( &id1.ObjectId, &id2.ObjectId, sizeof(id1.ObjectId) ));
 }
 
-
+#ifndef __REACTOS__
 /******************************************************************************
  *	AreFileApisANSI   (kernelbase.@)
  */
@@ -484,6 +497,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH AreFileApisANSI(void)
 {
     return !oem_file_apis;
 }
+#endif
 
 /******************************************************************************
  *  copy_file
@@ -602,7 +616,7 @@ HRESULT WINAPI CopyFile2( const WCHAR *source, const WCHAR *dest, COPYFILE2_EXTE
     return copy_file(source, dest, params) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	CopyFileExW   (kernelbase.@)
  */
@@ -690,7 +704,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreateDirectoryExW( LPCWSTR template, LPCWSTR path
 {
     return CreateDirectoryW( path, sa );
 }
-
+#endif
 
 /*************************************************************************
  *	CreateFile2   (kernelbase.@)
@@ -734,6 +748,7 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateFile2( LPCWSTR name, DWORD access, DWORD s
     return CreateFileW( name, access, sharing, sa, creation, flags | attributes, template );
 }
 
+#ifndef __REACTOS__
 
 /*************************************************************************
  *	CreateFileA   (kernelbase.@)
@@ -1763,7 +1778,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetFileAttributesExW( LPCWSTR name, GET_FILEEX_INF
     return TRUE;
 }
 
-
 /***********************************************************************
  *	GetFinalPathNameByHandleA   (kernelbase.@)
  */
@@ -1802,146 +1816,6 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleA( HANDLE file, LPSTR pat
     HeapFree(GetProcessHeap(), 0, str);
     return len - 1;
 }
-
-
-/***********************************************************************
- *	GetFinalPathNameByHandleW   (kernelbase.@)
- */
-DWORD WINAPI DECLSPEC_HOTPATCH GetFinalPathNameByHandleW( HANDLE file, LPWSTR path,
-                                                          DWORD count, DWORD flags )
-{
-    WCHAR buffer[sizeof(OBJECT_NAME_INFORMATION) + MAX_PATH + 1];
-    OBJECT_NAME_INFORMATION *info = (OBJECT_NAME_INFORMATION*)&buffer;
-    WCHAR drive_part[MAX_PATH];
-    DWORD drive_part_len = 0;
-    NTSTATUS status;
-    DWORD result = 0;
-    ULONG dummy;
-    WCHAR *ptr;
-
-    TRACE( "(%p,%p,%ld,%lx)\n", file, path, count, flags );
-
-    if (flags & ~(FILE_NAME_OPENED | VOLUME_NAME_GUID | VOLUME_NAME_NONE | VOLUME_NAME_NT))
-    {
-        WARN("Unknown flags: %lx\n", flags);
-        SetLastError( ERROR_INVALID_PARAMETER );
-        return 0;
-    }
-
-    /* get object name */
-    status = NtQueryObject( file, ObjectNameInformation, &buffer, sizeof(buffer) - sizeof(WCHAR), &dummy );
-    if (!set_ntstatus( status )) return 0;
-
-    if (!info->Name.Buffer)
-    {
-        SetLastError( ERROR_INVALID_HANDLE );
-        return 0;
-    }
-    if (info->Name.Length < 4 * sizeof(WCHAR) || info->Name.Buffer[0] != '\\' ||
-        info->Name.Buffer[1] != '?' || info->Name.Buffer[2] != '?' || info->Name.Buffer[3] != '\\' )
-    {
-        FIXME("Unexpected object name: %s\n", debugstr_wn(info->Name.Buffer, info->Name.Length / sizeof(WCHAR)));
-        SetLastError( ERROR_GEN_FAILURE );
-        return 0;
-    }
-
-    /* add terminating null character, remove "\\??\\" */
-    info->Name.Buffer[info->Name.Length / sizeof(WCHAR)] = 0;
-    info->Name.Length -= 4 * sizeof(WCHAR);
-    info->Name.Buffer += 4;
-
-    /* FILE_NAME_OPENED is not supported yet, and would require Wineserver changes */
-    if (flags & FILE_NAME_OPENED)
-    {
-        FIXME("FILE_NAME_OPENED not supported\n");
-        flags &= ~FILE_NAME_OPENED;
-    }
-
-    /* Get information required for VOLUME_NAME_NONE, VOLUME_NAME_GUID and VOLUME_NAME_NT */
-    if (flags == VOLUME_NAME_NONE || flags == VOLUME_NAME_GUID || flags == VOLUME_NAME_NT)
-    {
-        if (!GetVolumePathNameW( info->Name.Buffer, drive_part, MAX_PATH )) return 0;
-        drive_part_len = lstrlenW(drive_part);
-        if (!drive_part_len || drive_part_len > lstrlenW(info->Name.Buffer) ||
-            drive_part[drive_part_len-1] != '\\' ||
-            CompareStringOrdinal( info->Name.Buffer, drive_part_len, drive_part, drive_part_len, TRUE ) != CSTR_EQUAL)
-        {
-            FIXME( "Path %s returned by GetVolumePathNameW does not match file path %s\n",
-                   debugstr_w(drive_part), debugstr_w(info->Name.Buffer) );
-            SetLastError( ERROR_GEN_FAILURE );
-            return 0;
-        }
-    }
-
-    if (flags == VOLUME_NAME_NONE)
-    {
-        ptr = info->Name.Buffer + drive_part_len - 1;
-        result = lstrlenW(ptr);
-        if (result < count) memcpy(path, ptr, (result + 1) * sizeof(WCHAR));
-        else result++;
-    }
-    else if (flags == VOLUME_NAME_GUID)
-    {
-        WCHAR volume_prefix[51];
-
-        /* GetVolumeNameForVolumeMountPointW sets error code on failure */
-        if (!GetVolumeNameForVolumeMountPointW( drive_part, volume_prefix, 50 )) return 0;
-        ptr = info->Name.Buffer + drive_part_len;
-        result = lstrlenW(volume_prefix) + lstrlenW(ptr);
-        if (result < count)
-        {
-            lstrcpyW(path, volume_prefix);
-            lstrcatW(path, ptr);
-        }
-        else
-        {
-            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-            result++;
-        }
-    }
-    else if (flags == VOLUME_NAME_NT)
-    {
-        WCHAR nt_prefix[MAX_PATH];
-
-        /* QueryDosDeviceW sets error code on failure */
-        drive_part[drive_part_len - 1] = 0;
-        if (!QueryDosDeviceW( drive_part, nt_prefix, MAX_PATH )) return 0;
-        ptr = info->Name.Buffer + drive_part_len - 1;
-        result = lstrlenW(nt_prefix) + lstrlenW(ptr);
-        if (result < count)
-        {
-            lstrcpyW(path, nt_prefix);
-            lstrcatW(path, ptr);
-        }
-        else
-        {
-            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-            result++;
-        }
-    }
-    else if (flags == VOLUME_NAME_DOS)
-    {
-        result = 4 + lstrlenW(info->Name.Buffer);
-        if (result < count)
-        {
-            lstrcpyW(path, L"\\\\?\\");
-            lstrcatW(path, info->Name.Buffer);
-        }
-        else
-        {
-            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-            result++;
-        }
-    }
-    else
-    {
-        /* Windows crashes here, but we prefer returning ERROR_INVALID_PARAMETER */
-        WARN("Invalid combination of flags: %lx\n", flags);
-        SetLastError( ERROR_INVALID_PARAMETER );
-    }
-    return result;
-}
-
 
 /***********************************************************************
  *	GetFullPathNameA   (kernelbase.@)
@@ -2997,7 +2871,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH CancelIo( HANDLE handle )
 
     return set_ntstatus( NtCancelIoFile( handle, &io ) );
 }
-
+#endif
 
 /***********************************************************************
  *	CancelIoEx   (kernelbase.@)
@@ -3005,11 +2879,14 @@ BOOL WINAPI DECLSPEC_HOTPATCH CancelIo( HANDLE handle )
 BOOL WINAPI DECLSPEC_HOTPATCH CancelIoEx( HANDLE handle, LPOVERLAPPED overlapped )
 {
     IO_STATUS_BLOCK io;
-
+#ifdef __REACTOS__
+    return set_ntstatus( NtCancelIoFile( handle, &io ) );
+#else
     return set_ntstatus( NtCancelIoFileEx( handle, (PIO_STATUS_BLOCK)overlapped, &io ) );
+#endif
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	CancelSynchronousIo   (kernelbase.@)
  */
@@ -3662,7 +3539,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetEndOfFile( HANDLE file )
     }
     return set_ntstatus( status );
 }
-
+#endif
 
 /***********************************************************************
  *	SetFileInformationByHandle   (kernelbase.@)
@@ -3741,7 +3618,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetFileInformationByHandle( HANDLE file, FILE_INFO
     return set_ntstatus( status );
 }
 
-
+#ifndef __REACTOS__
 /***********************************************************************
  *	SetFilePointer   (kernelbase.@)
  */
@@ -4592,7 +4469,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH WaitCommEvent( HANDLE handle, DWORD *events, OVERL
     return DeviceIoControl( handle, IOCTL_SERIAL_WAIT_ON_MASK, NULL, 0, events, sizeof(*events),
                             NULL, overlapped );
 }
-
+#endif
 
 /***********************************************************************
  *	QueryIoRingCapabilities   (kernelbase.@)

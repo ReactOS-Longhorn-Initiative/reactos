@@ -369,6 +369,30 @@ SetTimeZoneInformation(CONST TIME_ZONE_INFORMATION *lpTimeZoneInformation)
     return TRUE;
 }
 
+
+BOOL
+WINAPI
+SetDynamicTimeZoneInformation(
+	_In_ const DYNAMIC_TIME_ZONE_INFORMATION* lpTimeZoneDynamicInformation
+)
+{
+    UNIMPLEMENTED;
+    return FALSE;
+}
+
+
+BOOL
+WINAPI
+GetTimeZoneInformationForYear(
+	_In_     USHORT wYear,
+    _In_opt_ PDYNAMIC_TIME_ZONE_INFORMATION pdtzi,
+	_Out_    LPTIME_ZONE_INFORMATION ptzi
+)
+{
+    /* TODO: Should do more? */
+    return GetTimeZoneInformation(ptzi) != TIME_ZONE_ID_INVALID;
+}
+
 /*
  * @implemented
  */
@@ -446,6 +470,15 @@ TzSpecificLocalTimeToSystemTime(LPTIME_ZONE_INFORMATION lpTimeZoneInformation,
     t += (LONGLONG)lBias * TICKSPERMIN;
     LL2FILETIME( t, &ft)
     return FileTimeToSystemTime(&ft, lpUniversalTime);
+}
+
+DWORD
+WINAPI
+GetDynamicTimeZoneInformation(
+    _In_ DYNAMIC_TIME_ZONE_INFORMATION *tzinfo)
+{
+    UNIMPLEMENTED;
+    return 0;
 }
 
 /* EOF */

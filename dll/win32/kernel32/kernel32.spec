@@ -1,796 +1,855 @@
 @ stdcall -version=0x600+ AcquireSRWLockExclusive(ptr) NTDLL.RtlAcquireSRWLockExclusive
 @ stdcall -version=0x600+ AcquireSRWLockShared(ptr) NTDLL.RtlAcquireSRWLockShared
-@ stdcall ActivateActCtx(ptr ptr) kernel32_win7.ActivateActCtx
-@ stdcall AddAtomA(str) kernel32_win7.AddAtomA
-@ stdcall AddAtomW(wstr) kernel32_win7.AddAtomW
-@ stdcall AddConsoleAliasA(str str str) kernel32_win7.AddConsoleAliasA ;check
-@ stdcall AddConsoleAliasW(wstr wstr wstr) kernel32_win7.AddConsoleAliasW ;check
-@ stdcall AddLocalAlternateComputerNameA(str ptr) kernel32_win7.AddLocalAlternateComputerNameA
-@ stdcall AddLocalAlternateComputerNameW(wstr ptr) kernel32_win7.AddLocalAlternateComputerNameW
-@ stdcall AddRefActCtx(ptr) kernel32_win7.AddRefActCtx
+@ stdcall ActivateActCtx(ptr ptr) kernelbase.ActivateActCtx
+@ stdcall AddAtomA(str) 
+@ stdcall AddAtomW(wstr)
+@ stdcall AddConsoleAliasA(str str str) kernelbase.AddConsoleAliasA ;check
+@ stdcall AddConsoleAliasW(wstr wstr wstr) kernelbase.AddConsoleAliasW ;check
+@ stdcall -version=0x600+ AddDllDirectory(wstr) kernelbase.AddDllDirectory
+@ stdcall -stub -version=0x601+ AddIntegrityLabelToBoundaryDescriptor(ptr ptr)
+@ stdcall AddLocalAlternateComputerNameA(str ptr) kernelbase.AddLocalAlternateComputerNameA
+@ stdcall AddLocalAlternateComputerNameW(wstr ptr) kernelbase.AddLocalAlternateComputerNameW
+@ stdcall AddRefActCtx(ptr) kernelbase.AddRefActCtx
 @ stdcall -stub -version=0x600+ AddSIDToBoundaryDescriptor(ptr ptr)
 @ stdcall -stub -version=0x600+ AddSecureMemoryCacheCallback(ptr)
 @ stdcall AddVectoredContinueHandler(long ptr) ntdll.RtlAddVectoredContinueHandler
 @ stdcall AddVectoredExceptionHandler(long ptr) ntdll.RtlAddVectoredExceptionHandler
 @ stdcall -stub -version=0x600+ AdjustCalendarDate(ptr long long)
-@ stdcall AllocConsole() kernel32_win7.AllocConsole
-@ stdcall AllocateUserPhysicalPages(long ptr ptr) kernel32_win7.AllocateUserPhysicalPages
+@ stdcall AllocConsole() kernelbase.AllocConsole
+@ stdcall -stub PrefetchVirtualMemory(ptr ptr ptr long)
+@ stdcall AllocateUserPhysicalPages(long ptr ptr) kernelbase.AllocateUserPhysicalPages
 @ stdcall -stub -version=0x600+ AllocateUserPhysicalPagesNuma(ptr ptr ptr long)
 @ stdcall -version=0x600+ ApplicationRecoveryFinished(long)
 @ stdcall -version=0x600+ ApplicationRecoveryInProgress(ptr)
-@ stdcall AreFileApisANSI() kernel32_win7.AreFileApisANSI
+@ stdcall -version=0xA00+ AppPolicyGetMediaFoundationCodecLoading(ptr ptr) kernelbase.AppPolicyGetMediaFoundationCodecLoading
+@ stdcall -version=0xA00+ AppPolicyGetWindowingModel(ptr ptr) kernelbase.AppPolicyGetWindowingModel
+@ stdcall AreFileApisANSI() kernelbase.AreFileApisANSI
 @ stdcall AssignProcessToJobObject(ptr ptr)
-@ stdcall AttachConsole(long) kernel32_win7.AttachConsole
-@ stdcall BackupRead(ptr ptr long ptr long long ptr) kernel32_win7.BackupRead
-@ stdcall BackupSeek(ptr long long ptr ptr ptr) kernel32_win7.BackupSeek
-@ stdcall BackupWrite(ptr ptr long ptr long long ptr) kernel32_win7.BackupWrite
-@ stdcall BaseCheckAppcompatCache(wstr ptr wstr ptr) kernel32_win7.BaseCheckAppcompatCache
-@ stdcall BaseCheckRunApp(long ptr long long long long long long long long) kernel32_win7.BaseCheckRunApp
-@ stdcall BaseCleanupAppcompatCacheSupport(ptr) kernel32_win7.BaseCleanupAppcompatCacheSupport
-@ stdcall BaseDumpAppcompatCache() kernel32_win7.BaseDumpAppcompatCache
-@ stdcall BaseFlushAppcompatCache() kernel32_win7.BaseFlushAppcompatCache
+@ stdcall AttachConsole(long) kernelbase.AttachConsole
+@ stdcall BackupRead(ptr ptr long ptr long long ptr) kernelbase.BackupRead
+@ stdcall BackupSeek(ptr long long ptr ptr ptr) kernelbase.BackupSeek
+@ stdcall BackupWrite(ptr ptr long ptr long long ptr) kernelbase.BackupWrite
+@ stdcall BaseCheckAppcompatCache(wstr ptr wstr ptr) kernelbase.BaseCheckAppcompatCache
+# @ stub BaseCheckAppcompatCacheEx
+@ stdcall BaseCheckRunApp(long ptr long long long long long long long long) kernelbase.BaseCheckRunApp
+@ stdcall BaseCleanupAppcompatCacheSupport(ptr) kernelbase.BaseCleanupAppcompatCacheSupport
+# @ stub -version=0x601+ BaseDllReadWriteIniFile
+@ stdcall BaseDumpAppcompatCache() kernelbase.BaseDumpAppcompatCache
+@ stdcall BaseFlushAppcompatCache() kernelbase.BaseFlushAppcompatCache
 @ stub -version=0x600+ BaseGenerateAppCompatData
-@ stdcall BaseInitAppcompatCacheSupport() kernel32_win7.BaseInitAppcompatCacheSupport
-@ stdcall BaseIsAppcompatInfrastructureDisabled() kernel32_win7.BaseIsAppcompatInfrastructureDisabled
-@ stdcall -version=0x501-0x502 BaseProcessInitPostImport() kernel32_win7.BaseProcessInitPostImport
-@ stdcall -version=0x600+ BaseProcessInitPostImport() # HACK: This export is dynamicaly imported by ntdll kernel32_win7.BaseProcessInitPostImport
+@ stdcall BaseInitAppcompatCacheSupport() kernelbase.BaseInitAppcompatCacheSupport
+@ stdcall BaseIsAppcompatInfrastructureDisabled() kernelbase.BaseIsAppcompatInfrastructureDisabled
+@ stdcall -version=0x501-0x502 BaseProcessInitPostImport() kernelbase.BaseProcessInitPostImport
+@ stdcall -version=0x600+ BaseProcessInitPostImport() # HACK: This export is dynamicaly imported by ntdll kernelbase.BaseProcessInitPostImport
 ;@ stdcall -version=0x502 -arch=x86_64 BaseProcessStart()
-@ stdcall BaseQueryModuleData(str str ptr ptr ptr) ;check kernel32_win7.BaseQueryModuleData
+@ stdcall BaseQueryModuleData(str str ptr ptr ptr) ;check kernelbase.BaseQueryModuleData
 @ stub -version=0x600+ BaseThreadInitThunk
 ;@ stdcall -version=0x502 -arch=x86_64 BaseThreadStart()
-@ stdcall BaseUpdateAppcompatCache(long long long) kernel32_win7.BaseUpdateAppcompatCache
-@ stdcall BasepCheckBadapp(long ptr long long long long long long long) kernel32_win7.BasepCheckBadapp
-@ stdcall BasepCheckWinSaferRestrictions(long long long long long long) kernel32_win7.BasepCheckWinSaferRestrictions
-@ stdcall BasepFreeAppCompatData(ptr ptr) kernel32_win7.BasepFreeAppCompatData
-@ stdcall Beep(long long) kernel32_win7.Beep
+@ stdcall BaseUpdateAppcompatCache(long long long) kernelbase.BaseUpdateAppcompatCache
+@ stdcall BasepCheckBadapp(long ptr long long long long long long long) kernelbase.BasepCheckBadapp
+@ stdcall BasepCheckWinSaferRestrictions(long long long long long long) kernelbase.BasepCheckWinSaferRestrictions
+@ stdcall BasepFreeAppCompatData(ptr ptr) kernelbase.BasepFreeAppCompatData
+@ stdcall Beep(long long) kernelbase.Beep
 @ stdcall BeginUpdateResourceA(str long)
 @ stdcall BeginUpdateResourceW(wstr long)
-@ stdcall BindIoCompletionCallback(long ptr long) kernel32_win7.BindIoCompletionCallback
-@ stdcall BuildCommDCBA(str ptr) kernel32_win7.BuildCommDCBA
-@ stdcall BuildCommDCBAndTimeoutsA(str ptr ptr) kernel32_win7.BuildCommDCBAndTimeoutsA
-@ stdcall BuildCommDCBAndTimeoutsW(wstr ptr ptr) kernel32_win7.BuildCommDCBAndTimeoutsW
-@ stdcall BuildCommDCBW(wstr ptr) kernel32_win7.BuildCommDCBW
-@ stdcall CallNamedPipeA(str ptr long ptr long ptr long) kernel32_win7.CallNamedPipeA
-@ stdcall CallNamedPipeW(wstr ptr long ptr long ptr long) kernel32_win7.CallNamedPipeW
-@ stdcall -stub -version=0x600+ CallbackMayRunLong(ptr)
-@ stdcall CancelDeviceWakeupRequest(long) kernel32_win7.CancelDeviceWakeupRequest
-@ stdcall CancelIo(long) kernel32_win7.CancelIo
-@ stdcall -stub -version=0x600+ CancelIoEx(ptr ptr)
+@ stdcall BindIoCompletionCallback(long ptr long) kernelbase.BindIoCompletionCallback
+@ stdcall BuildCommDCBA(str ptr) kernelbase.BuildCommDCBA
+@ stdcall BuildCommDCBAndTimeoutsA(str ptr ptr) kernelbase.BuildCommDCBAndTimeoutsA
+@ stdcall BuildCommDCBAndTimeoutsW(wstr ptr ptr) kernelbase.BuildCommDCBAndTimeoutsW
+@ stdcall BuildCommDCBW(wstr ptr) kernelbase.BuildCommDCBW
+@ stdcall CallNamedPipeA(str ptr long ptr long ptr long) kernelbase.CallNamedPipeA
+@ stdcall CallNamedPipeW(wstr ptr long ptr long ptr long) kernelbase.CallNamedPipeW
+@ stdcall -version=0x600+ CallbackMayRunLong(ptr) kernelbase.CallbackMayRunLong
+@ stdcall CancelDeviceWakeupRequest(long) kernelbase.CancelDeviceWakeupRequest
+@ stdcall CancelIo(long) kernelbase.CancelIo
+@ stdcall -version=0x600+ CancelIoEx(ptr ptr) kernelbase.CancelIoEx
 @ stdcall -stub -version=0x600+ CancelSynchronousIo(ptr)
-@ stdcall -stub -version=0x600+ CancelThreadpoolIo(ptr)
-@ stdcall CancelTimerQueueTimer(long long) kernel32_win7.CancelTimerQueueTimer
-@ stdcall CancelWaitableTimer(long) kernel32_win7.CancelWaitableTimer
-@ stdcall ChangeTimerQueueTimer(ptr ptr long long) kernel32_win7.ChangeTimerQueueTimer
+@ stdcall -version=0x600+ CancelThreadpoolIo(ptr) ntdll.TpCancelAsyncIoOperation
+@ stdcall CancelTimerQueueTimer(long long) kernelbase.CancelTimerQueueTimer
+@ stdcall CancelWaitableTimer(long) kernelbase.CancelWaitableTimer
+@ stdcall ChangeTimerQueueTimer(ptr ptr long long) kernelbase.ChangeTimerQueueTimer
 @ stdcall -stub -version=0x600+ CheckElevation(ptr ptr ptr ptr ptr)
 @ stdcall -stub -version=0x600+ CheckElevationEnabled(ptr)
 @ stub -version=0x600+ CheckForReadOnlyResource
-@ stdcall CheckNameLegalDOS8Dot3A(str str long long long) kernel32_win7.CheckNameLegalDOS8Dot3A
-@ stdcall CheckNameLegalDOS8Dot3W(wstr str long long long) kernel32_win7.CheckNameLegalDOS8Dot3W
-@ stdcall CheckRemoteDebuggerPresent(long ptr) kernel32_win7.CheckRemoteDebuggerPresent
-@ stdcall ClearCommBreak(long) kernel32_win7.ClearCommBreak
-@ stdcall ClearCommError(long ptr ptr) kernel32_win7.ClearCommError
-@ stdcall CloseConsoleHandle(long) kernel32_win7.CloseConsoleHandle
-@ stdcall CloseHandle(long) kernel32_win7.CloseHandle
+@ stdcall CheckNameLegalDOS8Dot3A(str str long long long) kernelbase.CheckNameLegalDOS8Dot3A
+@ stdcall CheckNameLegalDOS8Dot3W(wstr str long long long) kernelbase.CheckNameLegalDOS8Dot3W
+@ stdcall CheckRemoteDebuggerPresent(long ptr) kernelbase.CheckRemoteDebuggerPresent
+@ stdcall ClearCommBreak(long) kernelbase.ClearCommBreak
+@ stdcall ClearCommError(long ptr ptr) kernelbase.ClearCommError
+@ stdcall CloseConsoleHandle(long) kernelbase.CloseConsoleHandle
+@ stdcall CloseHandle(long) kernelbase.CloseHandle
 @ stdcall -stub -version=0x600+ ClosePrivateNamespace(ptr long)
-@ stdcall CloseProfileUserMapping() kernel32_win7.CloseProfileUserMapping
-@ stdcall -stub -version=0x600+ CloseThreadpool(ptr)
-@ stdcall -stub -version=0x600+ CloseThreadpoolCleanupGroup(ptr)
-@ stdcall -stub -version=0x600+ CloseThreadpoolCleanupGroupMembers(ptr long ptr)
-@ stdcall -stub -version=0x600+ CloseThreadpoolIo(ptr)
-@ stdcall -stub -version=0x600+ CloseThreadpoolTimer(ptr)
-@ stdcall -stub -version=0x600+ CloseThreadpoolWait(ptr)
-@ stdcall -stub -version=0x600+ CloseThreadpoolWork(ptr)
-@ stdcall CmdBatNotification(long) kernel32_win7.CmdBatNotification
-@ stdcall CommConfigDialogA(str long ptr) kernel32_win7.CommConfigDialogA
-@ stdcall CommConfigDialogW(wstr long ptr) kernel32_win7.CommConfigDialogW
+@ stdcall CloseProfileUserMapping() kernelbase.CloseProfileUserMapping
+@ stdcall -stub -version=0xA00+ ClosePseudoConsole(ptr)
+@ stdcall -version=0x600+ CloseThreadpool(ptr) ntdll.TpReleasePool
+@ stdcall -version=0x600+ CloseThreadpoolCleanupGroup(ptr) ntdll.TpReleaseCleanupGroup
+@ stdcall -version=0x600+ CloseThreadpoolCleanupGroupMembers(ptr long ptr) ntdll.TpReleaseCleanupGroupMembers
+@ stdcall -version=0x600+ CloseThreadpoolIo(ptr) ntdll.TpReleaseIoCompletion
+@ stdcall -version=0x600+ CloseThreadpoolTimer(ptr) ntdll.TpReleaseTimer
+@ stdcall -version=0x600+ CloseThreadpoolWait(ptr) ntdll.TpReleaseWait
+@ stdcall -version=0x600+ CloseThreadpoolWork(ptr) ntdll.TpReleaseWork
+@ stdcall CmdBatNotification(long) kernelbase.CmdBatNotification
+@ stdcall CommConfigDialogA(str long ptr) kernelbase.CommConfigDialogA
+@ stdcall CommConfigDialogW(wstr long ptr) kernelbase.CommConfigDialogW
 @ stdcall -stub -version=0x600+ CompareCalendarDates(ptr ptr ptr)
-@ stdcall CompareFileTime(ptr ptr) kernel32_win7.CompareFileTime
-@ stdcall CompareStringA(long long str long str long) kernel32_win7.CompareStringA
+@ stdcall CompareFileTime(ptr ptr) kernelbase.CompareFileTime
+@ stdcall CompareStringA(long long str long str long) kernelbase.CompareStringA
 @ stdcall -version=0x600+ CompareStringEx(wstr long wstr long wstr long ptr ptr ptr)
 @ stdcall -version=0x600+ CompareStringOrdinal(wstr long wstr long long)
-@ stdcall CompareStringW(long long wstr long wstr long) kernel32_win7.CompareStringW
-@ stdcall ConnectNamedPipe(long ptr) kernel32_win7.ConnectNamedPipe
+@ stdcall CompareStringW(long long wstr long wstr long) kernelbase.CompareStringW
+@ stdcall ConnectNamedPipe(long ptr) kernelbase.ConnectNamedPipe
 ;@ stdcall -arch=x86_64 ConsoleIMERoutine()
-@ stdcall ConsoleMenuControl(long long long) kernel32_win7.ConsoleMenuControl
-@ stdcall ContinueDebugEvent(long long long) kernel32_win7.ContinueDebugEvent
+@ stdcall ConsoleMenuControl(long long long) kernelbase.ConsoleMenuControl
+@ stdcall ContinueDebugEvent(long long long) kernelbase.ContinueDebugEvent
 @ stdcall -stub -version=0x600+ ConvertCalDateTimeToSystemTime(ptr ptr)
-@ stdcall ConvertDefaultLocale(long) kernel32_win7.ConvertDefaultLocale
-@ stdcall ConvertFiberToThread() kernel32_win7.ConvertFiberToThread
+@ stdcall ConvertDefaultLocale(long) kernelbase.ConvertDefaultLocale
+@ stdcall ConvertFiberToThread() kernelbase.ConvertFiberToThread
 @ stdcall -stub -version=0x600+ ConvertNLSDayOfWeekToWin32DayOfWeek(long)
 @ stdcall -stub -version=0x600+ ConvertSystemTimeToCalDateTime(ptr long ptr)
-@ stdcall ConvertThreadToFiber(ptr) kernel32_win7.ConvertThreadToFiber
-@ stdcall ConvertThreadToFiberEx(ptr long) kernel32_win7.ConvertThreadToFiberEx
-@ stdcall CopyFileA(str str long) kernel32_win7.CopyFileA
-@ stdcall CopyFileExA(str str ptr ptr ptr long) kernel32_win7.CopyFileExA
-@ stdcall CopyFileExW(wstr wstr ptr ptr ptr long) kernel32_win7.CopyFileExW
+@ stdcall ConvertThreadToFiber(ptr) kernelbase.ConvertThreadToFiber
+@ stdcall ConvertThreadToFiberEx(ptr long) kernelbase.ConvertThreadToFiberEx
+@ stdcall -version=0x601+ CopyContext(ptr long ptr) kernelbase.CopyContext
+@ stdcall -version=0x602+ CopyFile2(wstr wstr ptr) kernelbase.CopyFile2
+@ stdcall CopyFileA(str str long) kernelbase.CopyFileA
+@ stdcall CopyFileExA(str str ptr ptr ptr long) kernelbase.CopyFileExA
+@ stdcall CopyFileExW(wstr wstr ptr ptr ptr long) kernelbase.CopyFileExW
 @ stdcall -stub -version=0x600+ CopyFileTransactedA(str str ptr ptr ptr long ptr)
 @ stdcall -stub -version=0x600+ CopyFileTransactedW(wstr wstr ptr ptr ptr long ptr)
-@ stdcall CopyFileW(wstr wstr long) kernel32_win7.CopyFileW
+@ stdcall CopyFileW(wstr wstr long) kernelbase.CopyFileW
 @ stdcall CopyLZFile(long long) LZCopy
-@ stdcall CreateActCtxA(ptr) kernel32_win7.CreateActCtxA
-@ stdcall CreateActCtxW(ptr) kernel32_win7.CreateActCtxW
+@ stdcall CreateActCtxA(ptr) kernelbase.CreateActCtxA
+@ stdcall CreateActCtxW(ptr) kernelbase.CreateActCtxW
 @ stdcall -stub -version=0x600+ CreateBoundaryDescriptorA(str long)
-@ stdcall -stub -version=0x600+ CreateBoundaryDescriptorW(wstr long)
-@ stdcall CreateConsoleScreenBuffer(long long ptr long ptr) kernel32_win7.CreateConsoleScreenBuffer
-@ stdcall CreateDirectoryA(str ptr) kernel32_win7.CreateDirectoryA
-@ stdcall CreateDirectoryExA(str str ptr) kernel32_win7.CreateDirectoryExA
-@ stdcall CreateDirectoryExW(wstr wstr ptr) kernel32_win7.CreateDirectoryExW
-@ stdcall -stub -version=0x600+ CreateDirectoryTransactedA(str str ptr ptr)
-@ stdcall -stub -version=0x600+ CreateDirectoryTransactedW(wstr wstr ptr ptr)
-@ stdcall CreateDirectoryW(wstr ptr) kernel32_win7.CreateDirectoryW
-@ stdcall CreateEventA(ptr long long str) kernel32_win7.CreateEventA
-@ stdcall -stub -version=0x600+ CreateEventExA(ptr str long long)
-@ stdcall -stub -version=0x600+ CreateEventExW(ptr wstr long long)
-@ stdcall CreateEventW(ptr long long wstr) kernel32_win7.CreateEventW
-@ stdcall CreateFiber(long ptr ptr) kernel32_win7.CreateFiber
-@ stdcall CreateFiberEx(long long long ptr ptr) kernel32_win7.CreateFiberEx
-@ stdcall CreateFileA(str long long ptr long long long) kernel32_win7.CreateFileA
-@ stdcall CreateFileMappingA(long ptr long long long str) kernel32_win7.CreateFileMappingA
+@ stdcall -version=0x600+ CreateBoundaryDescriptorW(wstr long) kernelbase.CreateBoundaryDescriptorW
+@ stdcall CreateConsoleScreenBuffer(long long ptr long ptr) kernelbase.CreateConsoleScreenBuffer
+@ stdcall CreateDirectoryA(str ptr) kernelbase.CreateDirectoryA
+@ stdcall CreateDirectoryExA(str str ptr) kernelbase.CreateDirectoryExA
+@ stdcall CreateDirectoryExW(wstr wstr ptr) kernelbase.CreateDirectoryExW
+@ stdcall -version=0x600+ CreateDirectoryTransactedA(str str ptr ptr)
+@ stdcall -version=0x600+ CreateDirectoryTransactedW(wstr wstr ptr ptr)
+@ stdcall CreateDirectoryW(wstr ptr) kernelbase.CreateDirectoryW
+@ stdcall CreateEventA(ptr long long str) kernelbase.CreateEventA
+@ stdcall -version=0x600+ CreateEventExA(ptr str long long) kernelbase.CreateEventExA
+@ stdcall -version=0x600+ CreateEventExW(ptr wstr long long) kernelbase.CreateEventExW
+@ stdcall CreateEventW(ptr long long wstr) kernelbase.CreateEventW
+@ stdcall CreateFiber(long ptr ptr) kernelbase.CreateFiber
+@ stdcall CreateFiberEx(long long long ptr ptr) kernelbase.CreateFiberEx
+@ stdcall -version=0x602+ CreateFile2(wstr long long long ptr) kernelbase.CreateFile2
+@ stdcall CreateFileA(str long long ptr long long long) kernelbase.CreateFileA
+@ stdcall CreateFileMappingA(long ptr long long long str) kernelbase.CreateFileMappingA
+@ stdcall -version=0x600+ CreateFileMappingFromApp(long ptr long int64 wstr) kernelbase.CreateFileMappingFromApp
 @ stdcall -stub -version=0x600+ CreateFileMappingNumaA(ptr ptr long long long str long)
 @ stdcall -stub -version=0x600+ CreateFileMappingNumaW(ptr ptr long long long wstr long)
-@ stdcall CreateFileMappingW(long ptr long long long wstr) kernel32_win7.CreateFileMappingW
-@ stdcall -stub -version=0x600+ CreateFileTransactedA(str long long ptr long long ptr ptr ptr ptr)
-@ stdcall -stub -version=0x600+ CreateFileTransactedW(wstr long long ptr long long ptr ptr ptr ptr)
-@ stdcall CreateFileW(wstr long long ptr long long long) kernel32_win7.CreateFileW
-@ stdcall CreateHardLinkA(str str ptr) kernel32_win7.CreateHardLinkA
-@ stdcall -stub -version=0x600+ CreateHardLinkTransactedA(str str ptr ptr)
-@ stdcall -stub -version=0x600+ CreateHardLinkTransactedW(wstr wstr ptr ptr)
-@ stdcall CreateHardLinkW(wstr wstr ptr) kernel32_win7.CreateHardLinkW
-@ stdcall CreateIoCompletionPort(long long long long) kernel32_win7.CreateIoCompletionPort
+@ stdcall CreateFileMappingW(long ptr long long long wstr) kernelbase.CreateFileMappingW
+@ stdcall -version=0x600+ CreateFileTransactedA(str long long ptr long long ptr ptr ptr ptr)
+@ stdcall -version=0x600+ CreateFileTransactedW(wstr long long ptr long long ptr ptr ptr ptr)
+@ stdcall CreateFileW(wstr long long ptr long long long) kernelbase.CreateFileW
+@ stdcall CreateHardLinkA(str str ptr) kernelbase.CreateHardLinkA
+@ stdcall -version=0x600+ CreateHardLinkTransactedA(str str ptr ptr)
+@ stdcall -version=0x600+ CreateHardLinkTransactedW(wstr wstr ptr ptr)
+@ stdcall CreateHardLinkW(wstr wstr ptr) kernelbase.CreateHardLinkW
+@ stdcall CreateIoCompletionPort(long long long long) kernelbase.CreateIoCompletionPort
 @ stdcall CreateJobObjectA(ptr str)
 @ stdcall CreateJobObjectW(ptr wstr)
 @ stdcall CreateJobSet(long ptr long)
 @ stdcall CreateMailslotA(ptr long long ptr)
 @ stdcall CreateMailslotW(ptr long long ptr)
-@ stdcall CreateMemoryResourceNotification(long) kernel32_win7.CreateMemoryResourceNotification
-@ stdcall CreateMutexA(ptr long str) kernel32_win7.CreateMutexA
-@ stdcall -stub -version=0x600+ CreateMutexExA(ptr str long long)
-@ stdcall -stub -version=0x600+ CreateMutexExW(ptr wstr long long)
-@ stdcall CreateMutexW(ptr long wstr) kernel32_win7.CreateMutexW
-@ stdcall CreateNamedPipeA(str long long long long long long ptr) kernel32_win7.CreateNamedPipeA
-@ stdcall CreateNamedPipeW(wstr long long long long long long ptr) kernel32_win7.CreateNamedPipeW
-@ stdcall -version=0x501-0x502 CreateNlsSecurityDescriptor(ptr long long) kernel32_win7.CreateNlsSecurityDescriptor
-@ stdcall CreatePipe(ptr ptr ptr long) kernel32_win7.CreatePipe
+@ stdcall CreateMemoryResourceNotification(long) kernelbase.CreateMemoryResourceNotification
+@ stdcall CreateMutexA(ptr long str) kernelbase.CreateMutexA
+@ stdcall -version=0x600+ CreateMutexExA(ptr str long long) kernelbase.CreateMutexExA
+@ stdcall -version=0x600+ CreateMutexExW(ptr wstr long long) kernelbase.CreateMutexExW
+@ stdcall CreateMutexW(ptr long wstr) kernelbase.CreateMutexW
+@ stdcall CreateNamedPipeA(str long long long long long long ptr) kernelbase.CreateNamedPipeA
+@ stdcall CreateNamedPipeW(wstr long long long long long long ptr) kernelbase.CreateNamedPipeW
+@ stdcall -version=0x501-0x502 CreateNlsSecurityDescriptor(ptr long long) kernelbase.CreateNlsSecurityDescriptor
+@ stdcall CreatePipe(ptr ptr ptr long) kernelbase.CreatePipe
 @ stdcall -stub -version=0x600+ CreatePrivateNamespaceA(ptr ptr str)
 @ stdcall -stub -version=0x600+ CreatePrivateNamespaceW(ptr ptr wstr)
-@ stdcall CreateProcessA(str str ptr ptr long long ptr str ptr ptr) kernel32_win7.CreateProcessA
-@ stdcall CreateProcessInternalA(ptr str str ptr ptr long long ptr str ptr ptr long) kernel32_win7.CreateProcessInternalA
-@ stdcall CreateProcessInternalW(ptr wstr wstr ptr ptr long long ptr wstr ptr ptr long) kernel32_win7.CreateProcessInternalW
-@ stdcall CreateProcessW(wstr wstr ptr ptr long long ptr wstr ptr ptr) kernel32_win7.CreateProcessW
-@ stdcall CreateRemoteThread(long ptr long ptr long long ptr) kernel32_win7.CreateRemoteThread
-@ stdcall CreateSemaphoreA(ptr long long str) kernel32_win7.CreateSemaphoreA
-@ stdcall -version=0x600+ CreateSemaphoreExA(ptr long long str long long)
-@ stdcall -version=0x600+ CreateSemaphoreExW(ptr long long wstr long long)
-@ stdcall CreateSemaphoreW(ptr long long wstr) kernel32_win7.CreateSemaphoreW
-@ stdcall -i386 CreateSocketHandle() kernel32_win7.CreateSocketHandle
-@ stdcall -version=0x600+ CreateSymbolicLinkA(str str long)
+@ stdcall CreateProcessA(str str ptr ptr long long ptr str ptr ptr) kernelbase.CreateProcessA
+@ stdcall CreateProcessInternalA(ptr str str ptr ptr long long ptr str ptr ptr long) kernelbase.CreateProcessInternalA
+@ stdcall CreateProcessInternalW(ptr wstr wstr ptr ptr long long ptr wstr ptr ptr long) kernelbase.CreateProcessInternalW
+@ stdcall CreateProcessW(wstr wstr ptr ptr long long ptr wstr ptr ptr) kernelbase.CreateProcessW
+@ stdcall -stub -version=0xA00+ CreatePseudoConsole(long long long long ptr)
+@ stdcall CreateRemoteThread(long ptr long ptr long long ptr) kernelbase.CreateRemoteThread
+@ stdcall -version=0x601+ -stub CreateRemoteThreadEx(long ptr long ptr ptr long ptr ptr) kernelbase.CreateRemoteThreadEx
+@ stdcall CreateSemaphoreA(ptr long long str) kernelbase.CreateSemaphoreA
+@ stdcall -version=0x600+ CreateSemaphoreExA(ptr long long str long long) kernelbase.CreateSemaphoreExA
+@ stdcall -version=0x600+ CreateSemaphoreExW(ptr long long wstr long long) kernelbase.CreateSemaphoreExW
+@ stdcall CreateSemaphoreW(ptr long long wstr) kernelbase.CreateSemaphoreW
+@ stdcall -i386 CreateSocketHandle() kernelbase.CreateSocketHandle
+@ stdcall -version=0x600+ CreateSymbolicLinkA(str str long) kernelbase.CreateSymbolicLinkA
 @ stdcall -stub -version=0x600+ CreateSymbolicLinkTransactedA(str str long ptr)
 @ stdcall -stub -version=0x600+ CreateSymbolicLinkTransactedW(wstr wstr long ptr)
 @ stdcall -version=0x600+ CreateSymbolicLinkW(wstr wstr long)
 @ stdcall CreateTapePartition(long long long long)
-@ stdcall CreateThread(ptr long ptr long long ptr) kernel32_win7.CreateThread
-@ stdcall -stub -version=0x600+ CreateThreadpool(ptr)
-@ stdcall -stub -version=0x600+ CreateThreadpoolCleanupGroup()
-@ stdcall -stub -version=0x600+ CreateThreadpoolIo(ptr ptr ptr ptr)
-@ stdcall -stub -version=0x600+ CreateThreadpoolTimer(ptr ptr ptr)
-@ stdcall -stub -version=0x600+ CreateThreadpoolWait(ptr ptr ptr)
-@ stdcall -stub -version=0x600+ CreateThreadpoolWork(ptr ptr ptr)
-@ stdcall CreateTimerQueue() kernel32_win7.CreateTimerQueue
-@ stdcall CreateTimerQueueTimer(ptr long ptr ptr long long long) kernel32_win7.CreateTimerQueueTimer
-@ stdcall CreateToolhelp32Snapshot(long long) kernel32_win7.CreateToolhelp32Snapshot
-@ stdcall CreateWaitableTimerA(ptr long str) kernel32_win7.CreateWaitableTimerA
-@ stub -version=0x600+ CreateWaitableTimerExA
-@ stub -version=0x600+ CreateWaitableTimerExW
-@ stdcall CreateWaitableTimerW(ptr long wstr) kernel32_win7.CreateWaitableTimerW
+@ stdcall CreateThread(ptr long ptr long long ptr) kernelbase.CreateThread
+@ stdcall -version=0x600+ CreateThreadpool(ptr) kernelbase.CreateThreadpool
+@ stdcall -version=0x600+ CreateThreadpoolCleanupGroup() kernelbase.CreateThreadpoolCleanupGroup
+@ stdcall -version=0x600+ CreateThreadpoolIo(ptr ptr ptr ptr) kernelbase.CreateThreadpoolIo
+@ stdcall -version=0x600+ CreateThreadpoolTimer(ptr ptr ptr) kernelbase.CreateThreadpoolTimer
+@ stdcall -version=0x600+ CreateThreadpoolWait(ptr ptr ptr) kernelbase.CreateThreadpoolWait
+@ stdcall -version=0x600+ CreateThreadpoolWork(ptr ptr ptr) kernelbase.CreateThreadpoolWork
+@ stdcall CreateTimerQueue() kernelbase.CreateTimerQueue
+@ stdcall CreateTimerQueueTimer(ptr long ptr ptr long long long) kernelbase.CreateTimerQueueTimer
+@ stdcall CreateToolhelp32Snapshot(long long) kernelbase.CreateToolhelp32Snapshot
+@ stdcall -version=0x601+ -arch=win64 CreateUmsCompletionList(ptr)
+@ stdcall -version=0x601+ -arch=win64 CreateUmsThreadContext(ptr)
+@ stdcall CreateWaitableTimerA(ptr long str) kernelbase.CreateWaitableTimerA
+@ stdcall -version=0x600+ CreateWaitableTimerExA(ptr str long long)
+@ stdcall -version=0x600+ CreateWaitableTimerExW(ptr wstr long long) kernelbase.CreateWaitableTimerExW
+@ stdcall CreateWaitableTimerW(ptr long wstr) kernelbase.CreateWaitableTimerW
 ;@ stdcall -arch=x86_64 CtrlRoutine()
-@ stdcall DeactivateActCtx(long ptr) kernel32_win7.DeactivateActCtx
-@ stdcall DebugActiveProcess(long) kernel32_win7.DebugActiveProcess
-@ stdcall DebugActiveProcessStop(long) kernel32_win7.DebugActiveProcessStop
+@ stdcall DeactivateActCtx(long ptr) kernelbase.DeactivateActCtx
+@ stdcall DebugActiveProcess(long) kernelbase.DebugActiveProcess
+@ stdcall DebugActiveProcessStop(long) kernelbase.DebugActiveProcessStop
 @ stdcall DebugBreak() ntdll.DbgBreakPoint
-@ stdcall DebugBreakProcess(long) kernel32_win7.DebugBreakProcess
-@ stdcall DebugSetProcessKillOnExit(long) kernel32_win7.DebugSetProcessKillOnExit
+@ stdcall DebugBreakProcess(long) kernelbase.DebugBreakProcess
+@ stdcall DebugSetProcessKillOnExit(long) kernelbase.DebugSetProcessKillOnExit
 @ stdcall DecodePointer(ptr) ntdll.RtlDecodePointer
 @ stdcall DecodeSystemPointer(ptr) ntdll.RtlDecodeSystemPointer
-@ stdcall DefineDosDeviceA(long str str) kernel32_win7.DefineDosDeviceA
-@ stdcall DefineDosDeviceW(long wstr wstr) kernel32_win7.DefineDosDeviceW
-@ stdcall DelayLoadFailureHook(str str) kernel32_win7.DelayLoadFailureHook
-@ stdcall DeleteAtom(long) kernel32_win7.DeleteAtom
+@ stdcall DefineDosDeviceA(long str str) kernelbase.DefineDosDeviceA
+@ stdcall DefineDosDeviceW(long wstr wstr) kernelbase.DefineDosDeviceW
+@ stdcall DelayLoadFailureHook(str str) kernelbase.DelayLoadFailureHook
+@ stdcall DeleteAtom(long) 
 @ stub -version=0x600+ DeleteBoundaryDescriptor
 @ stdcall DeleteCriticalSection(ptr) ntdll.RtlDeleteCriticalSection
-@ stdcall DeleteFiber(ptr) kernel32_win7.DeleteFiber
-@ stdcall DeleteFileA(str) kernel32_win7.DeleteFileA
-@ stub -version=0x600+ DeleteFileTransactedA
-@ stub -version=0x600+ DeleteFileTransactedW
-@ stdcall DeleteFileW(wstr) kernel32_win7.DeleteFileW
-@ stdcall -stub -version=0x600+ DeleteProcThreadAttributeList(ptr)
-@ stdcall DeleteTimerQueue(long) kernel32_win7.DeleteTimerQueue
-@ stdcall DeleteTimerQueueEx(long long) kernel32_win7.DeleteTimerQueueEx
-@ stdcall DeleteTimerQueueTimer(long long long) kernel32_win7.DeleteTimerQueueTimer
-@ stdcall DeleteVolumeMountPointA(str) kernel32_win7.DeleteVolumeMountPointA ;check
-@ stdcall DeleteVolumeMountPointW(wstr) kernel32_win7.DeleteVolumeMountPointW ;check
-@ stdcall DeviceIoControl(long long ptr long ptr long ptr ptr) kernel32_win7.DeviceIoControl
-@ stdcall DisableThreadLibraryCalls(ptr) kernel32_win7.DisableThreadLibraryCalls
-@ stub -version=0x600+ DisassociateCurrentThreadFromCallback
-@ stdcall DisconnectNamedPipe(long) kernel32_win7.DisconnectNamedPipe
-@ stdcall DnsHostnameToComputerNameA(str ptr ptr) kernel32_win7.DnsHostnameToComputerNameA
-@ stdcall DnsHostnameToComputerNameW(wstr ptr ptr) kernel32_win7.DnsHostnameToComputerNameW
-@ stdcall DosDateTimeToFileTime(long long ptr) kernel32_win7.DosDateTimeToFileTime
-@ stdcall DosPathToSessionPathA(long str str) kernel32_win7.DosPathToSessionPathA
-@ stdcall DosPathToSessionPathW(long wstr wstr) kernel32_win7.DosPathToSessionPathW
-@ stdcall DuplicateConsoleHandle(long long long long) kernel32_win7.DuplicateConsoleHandle
-@ stdcall DuplicateHandle(long long long ptr long long long) kernel32_win7.DuplicateHandle
+@ stdcall DeleteFiber(ptr) kernelbase.DeleteFiber
+@ stdcall DeleteFileA(str) kernelbase.DeleteFileA
+@ stdcall -version=0x600+ DeleteFileTransactedA(str ptr)
+@ stdcall -version=0x600+ DeleteFileTransactedW(wstr ptr)
+@ stdcall DeleteFileW(wstr) kernelbase.DeleteFileW
+@ stdcall -version=0x600+ DeleteProcThreadAttributeList(ptr) kernelbase.DeleteProcThreadAttributeList
+# @ stub -version=0x601+ DisableThreadProfiling
+@ stdcall -version=0xA00+ DiscardVirtualMemory(ptr long) kernelbase.DiscardVirtualMemory
+@ stdcall DeleteTimerQueue(long) kernelbase.DeleteTimerQueue
+@ stdcall DeleteTimerQueueEx(long long) kernelbase.DeleteTimerQueueEx
+@ stdcall DeleteTimerQueueTimer(long long long) kernelbase.DeleteTimerQueueTimer
+@ stdcall -version=0x601+ -arch=win64 DeleteUmsCompletionList(ptr)
+@ stdcall -version=0x601+ -arch=win64 DeleteUmsThreadContext(ptr)
+@ stdcall DeleteVolumeMountPointA(str) kernelbase.DeleteVolumeMountPointA ;check
+@ stdcall DeleteVolumeMountPointW(wstr) kernelbase.DeleteVolumeMountPointW ;check
+@ stdcall -version=0x601+ -arch=win64 DequeueUmsCompletionListItems(ptr long ptr)
+@ stdcall DeviceIoControl(long long ptr long ptr long ptr ptr) kernelbase.DeviceIoControl
+@ stdcall DisableThreadLibraryCalls(ptr) kernelbase.DisableThreadLibraryCalls
+@ stdcall -version=0x600+ DisassociateCurrentThreadFromCallback(ptr) ntdll.TpDisassociateCallback
+@ stdcall DisconnectNamedPipe(long) kernelbase.DisconnectNamedPipe
+@ stdcall DnsHostnameToComputerNameA(str ptr ptr) kernelbase.DnsHostnameToComputerNameA
+@ stdcall DnsHostnameToComputerNameW(wstr ptr ptr) kernelbase.DnsHostnameToComputerNameW
+@ stdcall DosDateTimeToFileTime(long long ptr) kernelbase.DosDateTimeToFileTime
+@ stdcall DosPathToSessionPathA(long str str) kernelbase.DosPathToSessionPathA
+@ stdcall DosPathToSessionPathW(long wstr wstr) kernelbase.DosPathToSessionPathW
+@ stdcall DuplicateConsoleHandle(long long long long) kernelbase.DuplicateConsoleHandle
+@ stdcall DuplicateHandle(long long long ptr long long long) kernelbase.DuplicateHandle
+# @ stub -version=0x601 EnableThreadProfiling
 @ stdcall EncodePointer(ptr) ntdll.RtlEncodePointer
 @ stdcall EncodeSystemPointer(ptr) ntdll.RtlEncodeSystemPointer
 @ stdcall EndUpdateResourceA(long long)
 @ stdcall EndUpdateResourceW(long long)
 @ stdcall EnterCriticalSection(ptr) ntdll.RtlEnterCriticalSection
-@ stdcall EnumCalendarInfoA(ptr long long long) kernel32_win7.EnumCalendarInfoA
-@ stdcall EnumCalendarInfoExA(ptr long long long) kernel32_win7.EnumCalendarInfoExA
+@ stdcall EnumCalendarInfoA(ptr long long long) kernelbase.EnumCalendarInfoA
+@ stdcall EnumCalendarInfoExA(ptr long long long) kernelbase.EnumCalendarInfoExA
 @ stdcall -version=0x600+ EnumCalendarInfoExEx(ptr wstr long wstr long long)
-@ stdcall EnumCalendarInfoExW(ptr long long long) kernel32_win7.EnumCalendarInfoExW
-@ stdcall EnumCalendarInfoW(ptr long long long) kernel32_win7.EnumCalendarInfoW
-@ stdcall EnumDateFormatsA(ptr long long) kernel32_win7.EnumDateFormatsA
-@ stdcall EnumDateFormatsExA(ptr long long) kernel32_win7.EnumDateFormatsExA
+@ stdcall EnumCalendarInfoExW(ptr long long long) kernelbase.EnumCalendarInfoExW
+@ stdcall EnumCalendarInfoW(ptr long long long) kernelbase.EnumCalendarInfoW
+@ stdcall EnumDateFormatsA(ptr long long) kernelbase.EnumDateFormatsA
+@ stdcall EnumDateFormatsExA(ptr long long) kernelbase.EnumDateFormatsExA
 @ stdcall -version=0x600+ EnumDateFormatsExEx(ptr wstr long long)
-@ stdcall EnumDateFormatsExW(ptr long long) kernel32_win7.EnumDateFormatsExW
-@ stdcall EnumDateFormatsW(ptr long long) kernel32_win7.EnumDateFormatsW
-@ stdcall EnumLanguageGroupLocalesA(ptr long long ptr) kernel32_win7.EnumLanguageGroupLocalesA
-@ stdcall EnumLanguageGroupLocalesW(ptr long long ptr) kernel32_win7.EnumLanguageGroupLocalesW
+@ stdcall EnumDateFormatsExW(ptr long long) kernelbase.EnumDateFormatsExW
+@ stdcall EnumDateFormatsW(ptr long long) kernelbase.EnumDateFormatsW
+@ stdcall EnumLanguageGroupLocalesA(ptr long long ptr) kernelbase.EnumLanguageGroupLocalesA
+@ stdcall EnumLanguageGroupLocalesW(ptr long long ptr) kernelbase.EnumLanguageGroupLocalesW
 @ stdcall EnumResourceLanguagesA(long str str ptr long)
-@ stdcall -version=0x600+ EnumResourceLanguagesExA(long str str ptr long long long) kernel32_win7.EnumResourceLanguagesExA
-@ stdcall -version=0x600+ EnumResourceLanguagesExW(long wstr wstr ptr long long long) kernel32_win7.EnumResourceLanguagesExW
+@ stdcall -version=0x600+ EnumResourceLanguagesExA(long str str ptr long long long) kernelbase.EnumResourceLanguagesExA
+@ stdcall -version=0x600+ EnumResourceLanguagesExW(long wstr wstr ptr long long long) kernelbase.EnumResourceLanguagesExW
 @ stdcall EnumResourceLanguagesW(long wstr wstr ptr long)
 @ stdcall EnumResourceNamesA(long str ptr long)
-@ stdcall -version=0x600+ EnumResourceNamesExA(long str ptr long long long) kernel32_win7.EnumResourceNamesExA
-@ stdcall -version=0x600+ EnumResourceNamesExW(long wstr ptr long long long) kernel32_win7.EnumResourceNamesExW
-@ stdcall EnumResourceNamesW(long wstr ptr long) kernel32_win7.EnumResourceNamesW
+@ stdcall -version=0x600+ EnumResourceNamesExA(long str ptr long long long) kernelbase.EnumResourceNamesExA
+@ stdcall -version=0x600+ EnumResourceNamesExW(long wstr ptr long long long) kernelbase.EnumResourceNamesExW
+@ stdcall EnumResourceNamesW(long wstr ptr long) kernelbase.EnumResourceNamesW
 @ stdcall EnumResourceTypesA(long ptr long)
-@ stdcall -version=0x600+ EnumResourceTypesExA(long ptr long long long) kernel32_win7.EnumResourceTypesExA
-@ stdcall -version=0x600+ EnumResourceTypesExW(long ptr long long long) kernel32_win7.EnumResourceTypesExW
+@ stdcall -version=0x600+ EnumResourceTypesExA(long ptr long long long) kernelbase.EnumResourceTypesExA
+@ stdcall -version=0x600+ EnumResourceTypesExW(long ptr long long long) kernelbase.EnumResourceTypesExW
 @ stdcall EnumResourceTypesW(long ptr long)
-@ stdcall EnumSystemCodePagesA(ptr long) kernel32_win7.EnumSystemCodePagesA
-@ stdcall EnumSystemCodePagesW(ptr long) kernel32_win7.EnumSystemCodePagesW
-@ stdcall EnumSystemFirmwareTables(long ptr long) kernel32_win7.EnumSystemFirmwareTables
-@ stdcall EnumSystemGeoID(long long ptr) kernel32_win7.EnumSystemGeoID
-@ stdcall EnumSystemLanguageGroupsA(ptr long ptr) kernel32_win7.EnumSystemLanguageGroupsA
-@ stdcall EnumSystemLanguageGroupsW(ptr long ptr) kernel32_win7.EnumSystemLanguageGroupsW
-@ stdcall EnumSystemLocalesA(ptr long) kernel32_win7.EnumSystemLocalesA
+@ stdcall EnumSystemCodePagesA(ptr long) kernelbase.EnumSystemCodePagesA
+@ stdcall EnumSystemCodePagesW(ptr long) kernelbase.EnumSystemCodePagesW
+@ stdcall EnumSystemFirmwareTables(long ptr long) kernelbase.EnumSystemFirmwareTables
+@ stdcall EnumSystemGeoID(long long ptr) kernelbase.EnumSystemGeoID
+@ stdcall EnumSystemLanguageGroupsA(ptr long ptr) kernelbase.EnumSystemLanguageGroupsA
+@ stdcall EnumSystemLanguageGroupsW(ptr long ptr) kernelbase.EnumSystemLanguageGroupsW
+@ stdcall EnumSystemLocalesA(ptr long) kernelbase.EnumSystemLocalesA
 @ stdcall -version=0x600+ EnumSystemLocalesEx(ptr long long ptr)
-@ stdcall EnumSystemLocalesW(ptr long) kernel32_win7.EnumSystemLocalesW
-@ stdcall EnumTimeFormatsA(ptr long long) kernel32_win7.EnumTimeFormatsA
+@ stdcall EnumSystemLocalesW(ptr long) kernelbase.EnumSystemLocalesW
+@ stdcall EnumTimeFormatsA(ptr long long) kernelbase.EnumTimeFormatsA
 @ stdcall -version=0x600+ EnumTimeFormatsEx(ptr wstr long long)
-@ stdcall EnumTimeFormatsW(ptr long long) kernel32_win7.EnumTimeFormatsW
-@ stdcall EnumUILanguagesA(ptr long long) kernel32_win7.EnumUILanguagesA
-@ stdcall EnumUILanguagesW(ptr long long) kernel32_win7.EnumUILanguagesW
-@ stdcall EnumerateLocalComputerNamesA(ptr long str ptr) kernel32_win7.EnumerateLocalComputerNamesA
-@ stdcall EnumerateLocalComputerNamesW(ptr long wstr ptr) kernel32_win7.EnumerateLocalComputerNamesW
+@ stdcall EnumTimeFormatsW(ptr long long) kernelbase.EnumTimeFormatsW
+@ stdcall EnumUILanguagesA(ptr long long) kernelbase.EnumUILanguagesA
+@ stdcall EnumUILanguagesW(ptr long long) kernelbase.EnumUILanguagesW
+@ stdcall EnumerateLocalComputerNamesA(ptr long str ptr) kernelbase.EnumerateLocalComputerNamesA
+@ stdcall EnumerateLocalComputerNamesW(ptr long wstr ptr) kernelbase.EnumerateLocalComputerNamesW
+@ stdcall -version=0x601 -arch=win64 EnterUmsSchedulingMode(ptr)
 @ stdcall EraseTape(ptr long long)
-@ stdcall EscapeCommFunction(long long) kernel32_win7.EscapeCommFunction
-@ stdcall ExitProcess(long) kernel32_win7.ExitProcess
-@ stdcall ExitThread(long) kernel32_win7.ExitThread
-@ stdcall ExitVDM(long long) kernel32_win7.ExitVDM
-@ stdcall ExpandEnvironmentStringsA(str ptr long) kernel32_win7.ExpandEnvironmentStringsA
-@ stdcall ExpandEnvironmentStringsW(wstr ptr long) kernel32_win7.ExpandEnvironmentStringsW
-@ stdcall ExpungeConsoleCommandHistoryA(long) kernel32_win7.ExpungeConsoleCommandHistoryA
-@ stdcall ExpungeConsoleCommandHistoryW(long) kernel32_win7.ExpungeConsoleCommandHistoryW
-@ stdcall FatalAppExitA(long str) kernel32_win7.FatalAppExitA
-@ stdcall FatalAppExitW(long wstr) kernel32_win7.FatalAppExitW
-@ stdcall FatalExit(long) kernel32_win7.FatalExit
-@ stdcall FileTimeToDosDateTime(ptr ptr ptr) kernel32_win7.FileTimeToDosDateTime
-@ stdcall FileTimeToLocalFileTime(ptr ptr) kernel32_win7.FileTimeToLocalFileTime
-@ stdcall FileTimeToSystemTime(ptr ptr) kernel32_win7.FileTimeToSystemTime
-@ stdcall FillConsoleOutputAttribute(long long long long ptr) kernel32_win7.FillConsoleOutputAttribute
-@ stdcall FillConsoleOutputCharacterA(long long long long ptr) kernel32_win7.FillConsoleOutputCharacterA
-@ stdcall FillConsoleOutputCharacterW(long long long long ptr) kernel32_win7.FillConsoleOutputCharacterW
-@ stdcall FindActCtxSectionGuid(long ptr long ptr ptr) kernel32_win7.FindActCtxSectionGuid
-@ stdcall FindActCtxSectionStringA(long ptr long str ptr) kernel32_win7.FindActCtxSectionStringA
-@ stdcall FindActCtxSectionStringW(long ptr long wstr ptr) kernel32_win7.FindActCtxSectionStringW
-@ stdcall FindAtomA(str) kernel32_win7.FindAtomA
-@ stdcall FindAtomW(wstr) kernel32_win7.FindAtomW
-@ stdcall FindClose(long) kernel32_win7.FindClose
-@ stdcall FindCloseChangeNotification(long) kernel32_win7.FindCloseChangeNotification
-@ stdcall FindFirstChangeNotificationA(str long long) kernel32_win7.FindFirstChangeNotificationA
-@ stdcall FindFirstChangeNotificationW(wstr long long) kernel32_win7.FindFirstChangeNotificationW
-@ stdcall FindFirstFileA(str ptr) kernel32_win7.FindFirstFileA
-@ stdcall FindFirstFileExA(str long ptr long ptr long) kernel32_win7.FindFirstFileExA
-@ stdcall FindFirstFileExW(wstr long ptr long ptr long) kernel32_win7.FindFirstFileExW
+@ stdcall EscapeCommFunction(long long) kernelbase.EscapeCommFunction
+@ stdcall -version=0x601 -arch=win64 ExecuteUmsThread(ptr)
+@ stdcall ExitProcess(long) kernelbase.ExitProcess
+@ stdcall ExitThread(long) kernelbase.ExitThread
+@ stdcall ExitVDM(long long) kernelbase.ExitVDM
+@ stdcall ExpandEnvironmentStringsA(str ptr long) kernelbase.ExpandEnvironmentStringsA
+@ stdcall ExpandEnvironmentStringsW(wstr ptr long) kernelbase.ExpandEnvironmentStringsW
+@ stdcall ExpungeConsoleCommandHistoryA(long) kernelbase.ExpungeConsoleCommandHistoryA
+@ stdcall ExpungeConsoleCommandHistoryW(long) kernelbase.ExpungeConsoleCommandHistoryW
+@ stdcall FatalAppExitA(long str) kernelbase.FatalAppExitA
+@ stdcall FatalAppExitW(long wstr) kernelbase.FatalAppExitW
+@ stdcall FatalExit(long) kernelbase.FatalExit
+@ stdcall FileTimeToDosDateTime(ptr ptr ptr) kernelbase.FileTimeToDosDateTime
+@ stdcall FileTimeToLocalFileTime(ptr ptr) kernelbase.FileTimeToLocalFileTime
+@ stdcall FileTimeToSystemTime(ptr ptr) kernelbase.FileTimeToSystemTime
+@ stdcall FillConsoleOutputAttribute(long long long long ptr) kernelbase.FillConsoleOutputAttribute
+@ stdcall FillConsoleOutputCharacterA(long long long long ptr) kernelbase.FillConsoleOutputCharacterA
+@ stdcall FillConsoleOutputCharacterW(long long long long ptr) kernelbase.FillConsoleOutputCharacterW
+@ stdcall FindActCtxSectionGuid(long ptr long ptr ptr) kernelbase.FindActCtxSectionGuid
+@ stdcall FindActCtxSectionStringA(long ptr long str ptr) kernelbase.FindActCtxSectionStringA
+@ stdcall FindActCtxSectionStringW(long ptr long wstr ptr) kernelbase.FindActCtxSectionStringW
+@ stdcall FindAtomA(str) 
+@ stdcall FindAtomW(wstr)
+@ stdcall FindClose(long) kernelbase.FindClose
+@ stdcall FindCloseChangeNotification(long) kernelbase.FindCloseChangeNotification
+@ stdcall FindFirstChangeNotificationA(str long long) kernelbase.FindFirstChangeNotificationA
+@ stdcall FindFirstChangeNotificationW(wstr long long) kernelbase.FindFirstChangeNotificationW
+@ stdcall FindFirstFileA(str ptr) kernelbase.FindFirstFileA
+@ stdcall FindFirstFileExA(str long ptr long ptr long) kernelbase.FindFirstFileExA
+@ stdcall FindFirstFileExW(wstr long ptr long ptr long) kernelbase.FindFirstFileExW
 @ stub -version=0x600+ FindFirstFileNameTransactedW
-@ stub -version=0x600+ FindFirstFileNameW
-@ stub -version=0x600+ FindFirstFileTransactedA
-@ stub -version=0x600+ FindFirstFileTransactedW
-@ stdcall FindFirstFileW(wstr ptr) kernel32_win7.FindFirstFileW
+@ stdcall -version=0x600+ FindFirstFileNameW(wstr long ptr ptr) kernelbase.FindFirstFileNameW
+@ stdcall -version=0x600+ FindFirstFileTransactedA(str long ptr long ptr long ptr)
+@ stdcall -version=0x600+ FindFirstFileTransactedW(wstr long ptr long ptr long ptr)
+@ stdcall FindFirstFileW(wstr ptr) kernelbase.FindFirstFileW
 @ stub -version=0x600+ FindFirstStreamTransactedW
-@ stdcall FindFirstStreamW(wstr ptr ptr long) kernel32_win7.FindFirstStreamW
-@ stdcall FindFirstVolumeA(ptr long) kernel32_win7.FindFirstVolumeA
-@ stdcall FindFirstVolumeMountPointA(str ptr long) kernel32_win7.FindFirstVolumeMountPointA
-@ stdcall FindFirstVolumeMountPointW(wstr ptr long) kernel32_win7.FindFirstVolumeMountPointW
-@ stdcall FindFirstVolumeW(ptr long) kernel32_win7.FindFirstVolumeW
-@ stub -version=0x600+ FindNLSString
-@ stub -version=0x600+ FindNLSStringEx
-@ stdcall FindNextChangeNotification(long) kernel32_win7.FindNextChangeNotification
-@ stdcall FindNextFileA(long ptr) kernel32_win7.FindNextFileA
+@ stdcall FindFirstStreamW(wstr ptr ptr long) kernelbase.FindFirstStreamW
+@ stdcall FindFirstVolumeA(ptr long) kernelbase.FindFirstVolumeA
+@ stdcall FindFirstVolumeMountPointA(str ptr long) kernelbase.FindFirstVolumeMountPointA
+@ stdcall FindFirstVolumeMountPointW(wstr ptr long) kernelbase.FindFirstVolumeMountPointW
+@ stdcall FindFirstVolumeW(ptr long) kernelbase.FindFirstVolumeW
+@ stdcall -stub -version=0x600+ FindNLSString(long long wstr long wstr long ptr)
+@ stdcall -stub -version=0x600+ FindNLSStringEx(wstr long wstr long wstr long ptr ptr ptr long)
+@ stdcall FindNextChangeNotification(long) kernelbase.FindNextChangeNotification
+@ stdcall FindNextFileA(long ptr) kernelbase.FindNextFileA
 @ stub -version=0x600+ FindNextFileNameW
-@ stdcall FindNextFileW(long ptr) kernel32_win7.FindNextFileW
-@ stdcall FindNextStreamW(ptr ptr) kernel32_win7.FindNextStreamW
-@ stdcall FindNextVolumeA(long ptr long) kernel32_win7.FindNextVolumeA
-@ stdcall FindNextVolumeMountPointA(long str long) kernel32_win7.FindNextVolumeMountPointA
-@ stdcall FindNextVolumeMountPointW(long wstr long) kernel32_win7.FindNextVolumeMountPointW
-@ stdcall FindNextVolumeW(long ptr long) kernel32_win7.FindNextVolumeW
+@ stdcall FindNextFileW(long ptr) kernelbase.FindNextFileW
+@ stdcall FindNextStreamW(ptr ptr) kernelbase.FindNextStreamW
+@ stdcall FindNextVolumeA(long ptr long) kernelbase.FindNextVolumeA
+@ stdcall FindNextVolumeMountPointA(long str long) kernelbase.FindNextVolumeMountPointA
+@ stdcall FindNextVolumeMountPointW(long wstr long) kernelbase.FindNextVolumeMountPointW
+@ stdcall FindNextVolumeW(long ptr long) kernelbase.FindNextVolumeW
 @ stdcall FindResourceA(long str str)
 @ stdcall FindResourceExA(long str str long)
-@ stdcall FindResourceExW(long wstr wstr long) kernel32_win7.FindResourceExW
-@ stdcall FindResourceW(long wstr wstr) kernel32_win7.FindResourceW
-@ stdcall FindVolumeClose(ptr) kernel32_win7.FindVolumeClose
-@ stdcall FindVolumeMountPointClose(ptr) kernel32_win7.FindVolumeMountPointClose
-@ stdcall FlsAlloc(ptr) kernel32_win7.FlsAlloc
-@ stdcall FlsFree(long) kernel32_win7.FlsFree
-@ stdcall FlsGetValue(long) kernel32_win7.FlsGetValue
-@ stdcall FlsSetValue(long ptr) kernel32_win7.FlsSetValue
-@ stdcall FlushConsoleInputBuffer(long) kernel32_win7.FlushConsoleInputBuffer
-@ stdcall FlushFileBuffers(long) kernel32_win7.FlushFileBuffers
-@ stdcall FlushInstructionCache(long long long) kernel32_win7.FlushInstructionCache
-@ stub -version=0x600+ FlushProcessWriteBuffers
-@ stdcall FlushViewOfFile(ptr long) kernel32_win7.FlushViewOfFile
-@ stdcall FoldStringA(long str long ptr long) kernel32_win7.FoldStringA
-@ stdcall FoldStringW(long wstr long ptr long) kernel32_win7.FoldStringW
-@ stdcall FormatMessageA(long ptr long long ptr long ptr) kernel32_win7.FormatMessageA
-@ stdcall FormatMessageW(long ptr long long ptr long ptr) kernel32_win7.FormatMessageW
-@ stdcall FreeConsole() kernel32_win7.FreeConsole
-@ stdcall FreeEnvironmentStringsA(ptr) kernel32_win7.FreeEnvironmentStringsA
-@ stdcall FreeEnvironmentStringsW(ptr) kernel32_win7.FreeEnvironmentStringsW
-@ stdcall FreeLibrary(long) kernel32_win7.FreeLibrary
-@ stdcall FreeLibraryAndExitThread(long long) kernel32_win7.FreeLibraryAndExitThread
-@ stub -version=0x600+ FreeLibraryWhenCallbackReturns
-@ stdcall FreeResource(long) kernel32_win7.FreeResource
-@ stdcall FreeUserPhysicalPages(long long long) kernel32_win7.FreeUserPhysicalPages
-@ stdcall GenerateConsoleCtrlEvent(long long) kernel32_win7.GenerateConsoleCtrlEvent
-@ stdcall GetACP() kernel32_win7.GetACP
-@ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr)
-@ stub -version=0x600+ GetApplicationRestartSettings
-@ stdcall GetAtomNameA(long ptr long) kernel32_win7.GetAtomNameA
-@ stdcall GetAtomNameW(long ptr long) kernel32_win7.GetAtomNameW
-@ stdcall GetBinaryType(str ptr) kernel32_win7.GetBinaryTypeA
-@ stdcall GetBinaryTypeA(str ptr) kernel32_win7.GetBinaryTypeA
-@ stdcall GetBinaryTypeW(wstr ptr) kernel32_win7.GetBinaryTypeW
-@ stdcall -version=0x501-0x600 GetCPFileNameFromRegistry(long wstr long) kernel32_win7.GetCPFileNameFromRegistry
-@ stdcall GetCPInfo(long ptr) kernel32_win7.GetCPInfo
-@ stdcall GetCPInfoExA(long long ptr) kernel32_win7.GetCPInfoExA
-@ stdcall GetCPInfoExW(long long ptr) kernel32_win7.GetCPInfoExW
+@ stdcall FindResourceExW(long wstr wstr long) kernelbase.FindResourceExW
+@ stdcall FindResourceW(long wstr wstr) kernelbase.FindResourceW
+@ stdcall -version=0x601+ -stub FindStringOrdinal(long wstr long wstr long long)
+@ stdcall FindVolumeClose(ptr) kernelbase.FindVolumeClose
+@ stdcall FindVolumeMountPointClose(ptr) kernelbase.FindVolumeMountPointClose
+@ stdcall FlsAlloc(ptr) kernelbase.FlsAlloc
+@ stdcall FlsFree(long) kernelbase.FlsFree
+@ stdcall FlsGetValue(long) kernelbase.FlsGetValue
+@ stdcall FlsSetValue(long ptr) kernelbase.FlsSetValue
+@ stdcall FlushConsoleInputBuffer(long) kernelbase.FlushConsoleInputBuffer
+@ stdcall FlushFileBuffers(long) kernelbase.FlushFileBuffers
+@ stdcall FlushInstructionCache(long long long) kernelbase.FlushInstructionCache
+@ stub -version=0x600+ FlushProcessWriteBuffers ;ntdll.FlushProcessWriteBuffers
+@ stdcall FlushViewOfFile(ptr long) kernelbase.FlushViewOfFile
+@ stdcall FoldStringA(long str long ptr long) kernelbase.FoldStringA
+@ stdcall FoldStringW(long wstr long ptr long) kernelbase.FoldStringW
+@ stdcall FormatMessageA(long ptr long long ptr long ptr) kernelbase.FormatMessageA
+@ stdcall FormatMessageW(long ptr long long ptr long ptr) kernelbase.FormatMessageW
+@ stdcall FreeConsole() kernelbase.FreeConsole
+@ stdcall FreeEnvironmentStringsA(ptr) kernelbase.FreeEnvironmentStringsA
+@ stdcall FreeEnvironmentStringsW(ptr) kernelbase.FreeEnvironmentStringsW
+@ stdcall FreeLibrary(long) kernelbase.FreeLibrary
+@ stdcall FreeLibraryAndExitThread(long long) kernelbase.FreeLibraryAndExitThread
+@ stdcall -version=0x600+ FreeLibraryWhenCallbackReturns(ptr ptr) ntdll.TpCallbackUnloadDllOnCompletion
+@ stdcall FreeResource(long) kernelbase.FreeResource
+@ stdcall FreeUserPhysicalPages(long long long) kernelbase.FreeUserPhysicalPages
+@ stdcall GenerateConsoleCtrlEvent(long long) kernelbase.GenerateConsoleCtrlEvent
+@ stdcall GetACP() kernelbase.GetACP
+@ stdcall -stub -version=0x601+ GetActiveProcessorCount(long)
+@ stdcall -stub -version=0x601+ GetActiveProcessorGroupCount()
+@ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr) kernelbase.GetApplicationRecoveryCallback
+@ stdcall GetApplicationRestartSettings(long ptr ptr ptr) kernelbase.GetApplicationRestartSettings
+@ stdcall GetAtomNameA(long ptr long)
+@ stdcall GetAtomNameW(long ptr long)
+@ stdcall GetBinaryType(str ptr) kernelbase.GetBinaryTypeA
+@ stdcall GetBinaryTypeA(str ptr) kernelbase.GetBinaryTypeA
+@ stdcall GetBinaryTypeW(wstr ptr) kernelbase.GetBinaryTypeW
+@ stdcall -version=0x501-0x600 GetCPFileNameFromRegistry(long wstr long) kernelbase.GetCPFileNameFromRegistry
+@ stdcall GetCPInfo(long ptr) kernelbase.GetCPInfo
+@ stdcall GetCPInfoExA(long long ptr) kernelbase.GetCPInfoExA
+@ stdcall GetCPInfoExW(long long ptr) kernelbase.GetCPInfoExW
 @ stub -version=0x600+ GetCalendarDateFormat
 @ stub -version=0x600+ GetCalendarDateFormatEx
 @ stub -version=0x600+ GetCalendarDaysInMonth
 @ stub -version=0x600+ GetCalendarDifferenceInDays
-@ stdcall GetCalendarInfoA(long long long ptr long ptr) kernel32_win7.GetCalendarInfoA
+@ stdcall GetCalendarInfoA(long long long ptr long ptr) kernelbase.GetCalendarInfoA
 @ stdcall -version=0x600+ GetCalendarInfoEx(wstr long wstr long wstr long ptr)
-@ stdcall GetCalendarInfoW(long long long ptr long ptr) kernel32_win7.GetCalendarInfoW
+@ stdcall GetCalendarInfoW(long long long ptr long ptr) kernelbase.GetCalendarInfoW
 @ stub -version=0x600+ GetCalendarMonthsInYear
 @ stub -version=0x600+ GetCalendarSupportedDateRange
 @ stub -version=0x600+ GetCalendarWeekNumber
-@ stdcall GetComPlusPackageInstallStatus() kernel32_win7.GetComPlusPackageInstallStatus
-@ stdcall GetCommConfig(long ptr long) kernel32_win7.GetCommConfig
-@ stdcall GetCommMask(long ptr) kernel32_win7.GetCommMask
-@ stdcall GetCommModemStatus(long ptr) kernel32_win7.GetCommModemStatus
-@ stdcall GetCommProperties(long ptr) kernel32_win7.GetCommProperties
-@ stdcall GetCommState(long ptr) kernel32_win7.GetCommState
-@ stdcall GetCommTimeouts(long ptr) kernel32_win7.GetCommTimeouts
-@ stdcall GetCommandLineA() kernel32_win7.GetCommandLineA
-@ stdcall GetCommandLineW() kernel32_win7.GetCommandLineW
-@ stdcall GetCompressedFileSizeA(long ptr) kernel32_win7.GetCompressedFileSizeA
+@ stdcall GetComPlusPackageInstallStatus() kernelbase.GetComPlusPackageInstallStatus
+@ stdcall GetCommConfig(long ptr long) kernelbase.GetCommConfig
+@ stdcall GetCommMask(long ptr) kernelbase.GetCommMask
+@ stdcall GetCommModemStatus(long ptr) kernelbase.GetCommModemStatus
+@ stdcall GetCommProperties(long ptr) kernelbase.GetCommProperties
+@ stdcall GetCommState(long ptr) kernelbase.GetCommState
+@ stdcall GetCommTimeouts(long ptr) kernelbase.GetCommTimeouts
+@ stdcall GetCommandLineA() kernelbase.GetCommandLineA
+@ stdcall GetCommandLineW() kernelbase.GetCommandLineW
+@ stdcall GetCompressedFileSizeA(long ptr) kernelbase.GetCompressedFileSizeA
 @ stub -version=0x600+ GetCompressedFileSizeTransactedA
 @ stub -version=0x600+ GetCompressedFileSizeTransactedW
-@ stdcall GetCompressedFileSizeW(long ptr) kernel32_win7.GetCompressedFileSizeW
-@ stdcall GetComputerNameA(ptr ptr) kernel32_win7.GetComputerNameA
-@ stdcall GetComputerNameExA(long ptr ptr) kernel32_win7.GetComputerNameExA
-@ stdcall GetComputerNameExW(long ptr ptr) kernel32_win7.GetComputerNameExW
-@ stdcall GetComputerNameW(ptr ptr) kernel32_win7.GetComputerNameW
-@ stdcall GetConsoleAliasA(str str long str) kernel32_win7.GetConsoleAliasA
-@ stdcall GetConsoleAliasExesA(str long) kernel32_win7.GetConsoleAliasExesA
-@ stdcall GetConsoleAliasExesLengthA() kernel32_win7.GetConsoleAliasExesLengthA
-@ stdcall GetConsoleAliasExesLengthW() kernel32_win7.GetConsoleAliasExesLengthW
-@ stdcall GetConsoleAliasExesW(wstr long) kernel32_win7.GetConsoleAliasExesW
-@ stdcall GetConsoleAliasW(wstr ptr long wstr) kernel32_win7.GetConsoleAliasW
-@ stdcall GetConsoleAliasesA(str long str) kernel32_win7.GetConsoleAliasesA
-@ stdcall GetConsoleAliasesLengthA(str) kernel32_win7.GetConsoleAliasesLengthA
-@ stdcall GetConsoleAliasesLengthW(wstr) kernel32_win7.GetConsoleAliasesLengthW
-@ stdcall GetConsoleAliasesW(wstr long wstr) kernel32_win7.GetConsoleAliasesW
-@ stdcall GetConsoleCP() kernel32_win7.GetConsoleCP
-@ stdcall GetConsoleCharType(long long ptr) kernel32_win7.GetConsoleCharType
-@ stdcall GetConsoleCommandHistoryA(long long long) kernel32_win7.GetConsoleCommandHistoryA
-@ stdcall GetConsoleCommandHistoryLengthA(long) kernel32_win7.GetConsoleCommandHistoryLengthA
-@ stdcall GetConsoleCommandHistoryLengthW(long) kernel32_win7.GetConsoleCommandHistoryLengthW
-@ stdcall GetConsoleCommandHistoryW(long long long) kernel32_win7.GetConsoleCommandHistoryW
-@ stdcall GetConsoleCursorInfo(long ptr) kernel32_win7.GetConsoleCursorInfo
-@ stdcall GetConsoleCursorMode(long ptr ptr) kernel32_win7.GetConsoleCursorMode
-@ stdcall GetConsoleDisplayMode(ptr) kernel32_win7.GetConsoleDisplayMode
-@ stdcall GetConsoleFontInfo(long long long ptr) kernel32_win7.GetConsoleFontInfo
-@ stdcall GetConsoleFontSize(long long) kernel32_win7.GetConsoleFontSize
-@ stdcall GetConsoleHardwareState(long long ptr) kernel32_win7.GetConsoleHardwareState
-@ stdcall -version=0x600+ GetConsoleHistoryInfo(ptr)
-@ stdcall GetConsoleInputExeNameA(long ptr) kernel32_win7.GetConsoleInputExeNameA
-@ stdcall GetConsoleInputExeNameW(long ptr) kernel32_win7.GetConsoleInputExeNameW
-@ stdcall GetConsoleInputWaitHandle() kernel32_win7.GetConsoleInputWaitHandle
-@ stdcall GetConsoleKeyboardLayoutNameA(ptr) kernel32_win7.GetConsoleKeyboardLayoutNameA
-@ stdcall GetConsoleKeyboardLayoutNameW(ptr) kernel32_win7.GetConsoleKeyboardLayoutNameW
-@ stdcall GetConsoleMode(long ptr) kernel32_win7.GetConsoleMode
-@ stdcall GetConsoleNlsMode(long ptr) kernel32_win7.GetConsoleNlsMode
+@ stdcall GetCompressedFileSizeW(long ptr) kernelbase.GetCompressedFileSizeW
+@ stdcall GetComputerNameA(ptr ptr) kernelbase.GetComputerNameA
+@ stdcall GetComputerNameExA(long ptr ptr) kernelbase.GetComputerNameExA
+@ stdcall GetComputerNameExW(long ptr ptr) kernelbase.GetComputerNameExW
+@ stdcall GetComputerNameW(ptr ptr) kernelbase.GetComputerNameW
+@ stdcall GetConsoleAliasA(str str long str) kernelbase.GetConsoleAliasA
+@ stdcall GetConsoleAliasExesA(str long) kernelbase.GetConsoleAliasExesA
+@ stdcall GetConsoleAliasExesLengthA() kernelbase.GetConsoleAliasExesLengthA
+@ stdcall GetConsoleAliasExesLengthW() kernelbase.GetConsoleAliasExesLengthW
+@ stdcall GetConsoleAliasExesW(wstr long) kernelbase.GetConsoleAliasExesW
+@ stdcall GetConsoleAliasW(wstr ptr long wstr) kernelbase.GetConsoleAliasW
+@ stdcall GetConsoleAliasesA(str long str) kernelbase.GetConsoleAliasesA
+@ stdcall GetConsoleAliasesLengthA(str) kernelbase.GetConsoleAliasesLengthA
+@ stdcall GetConsoleAliasesLengthW(wstr) kernelbase.GetConsoleAliasesLengthW
+@ stdcall GetConsoleAliasesW(wstr long wstr) kernelbase.GetConsoleAliasesW
+@ stdcall GetConsoleCP() kernelbase.GetConsoleCP
+@ stdcall GetConsoleCharType(long long ptr) kernelbase.GetConsoleCharType
+@ stdcall GetConsoleCommandHistoryA(long long long) kernelbase.GetConsoleCommandHistoryA
+@ stdcall GetConsoleCommandHistoryLengthA(long) kernelbase.GetConsoleCommandHistoryLengthA
+@ stdcall GetConsoleCommandHistoryLengthW(long) kernelbase.GetConsoleCommandHistoryLengthW
+@ stdcall GetConsoleCommandHistoryW(long long long) kernelbase.GetConsoleCommandHistoryW
+@ stdcall GetConsoleCursorInfo(long ptr) kernelbase.GetConsoleCursorInfo
+@ stdcall GetConsoleCursorMode(long ptr ptr) kernelbase.GetConsoleCursorMode
+@ stdcall GetConsoleDisplayMode(ptr) kernelbase.GetConsoleDisplayMode
+@ stdcall GetConsoleFontInfo(long long long ptr) kernelbase.GetConsoleFontInfo
+@ stdcall GetConsoleFontSize(long long) kernelbase.GetConsoleFontSize
+@ stdcall GetConsoleHardwareState(long long ptr) kernelbase.GetConsoleHardwareState
+@ stdcall -version=0x600+ GetConsoleHistoryInfo(ptr) kernelbase.GetConsoleHistoryInfo
+@ stdcall GetConsoleInputExeNameA(long ptr) kernelbase.GetConsoleInputExeNameA
+@ stdcall GetConsoleInputExeNameW(long ptr) kernelbase.GetConsoleInputExeNameW
+@ stdcall GetConsoleInputWaitHandle() kernelbase.GetConsoleInputWaitHandle
+@ stdcall GetConsoleKeyboardLayoutNameA(ptr) kernelbase.GetConsoleKeyboardLayoutNameA
+@ stdcall GetConsoleKeyboardLayoutNameW(ptr) kernelbase.GetConsoleKeyboardLayoutNameW
+@ stdcall GetConsoleMode(long ptr) kernelbase.GetConsoleMode
+@ stdcall GetConsoleNlsMode(long ptr) kernelbase.GetConsoleNlsMode
 @ stdcall -version=0x600+ GetConsoleOriginalTitleA(ptr long)
 @ stdcall -version=0x600+ GetConsoleOriginalTitleW(ptr long)
-@ stdcall GetConsoleOutputCP() kernel32_win7.GetConsoleOutputCP
-@ stdcall GetConsoleProcessList(ptr long) kernel32_win7.GetConsoleProcessList
-@ stdcall GetConsoleScreenBufferInfo(long ptr) kernel32_win7.GetConsoleScreenBufferInfo
+@ stdcall GetConsoleOutputCP() kernelbase.GetConsoleOutputCP
+@ stdcall GetConsoleProcessList(ptr long) kernelbase.GetConsoleProcessList
+@ stdcall GetConsoleScreenBufferInfo(long ptr) kernelbase.GetConsoleScreenBufferInfo
 @ stdcall -version=0x600+ GetConsoleScreenBufferInfoEx(ptr ptr)
-@ stdcall GetConsoleSelectionInfo(ptr) kernel32_win7.GetConsoleSelectionInfo
-@ stdcall GetConsoleTitleA(ptr long) kernel32_win7.GetConsoleTitleA
-@ stdcall GetConsoleTitleW(ptr long) kernel32_win7.GetConsoleTitleW
-@ stdcall GetConsoleWindow() kernel32_win7.GetConsoleWindow
-@ stdcall GetCurrencyFormatA(long long str ptr str long) kernel32_win7.GetCurrencyFormatA
+@ stdcall GetConsoleSelectionInfo(ptr) kernelbase.GetConsoleSelectionInfo
+@ stdcall GetConsoleTitleA(ptr long) kernelbase.GetConsoleTitleA
+@ stdcall GetConsoleTitleW(ptr long) kernelbase.GetConsoleTitleW
+@ stdcall GetConsoleWindow() kernelbase.GetConsoleWindow
+@ stdcall GetCurrencyFormatA(long long str ptr str long) kernelbase.GetCurrencyFormatA
 @ stdcall -version=0x600+ GetCurrencyFormatEx(wstr long wstr ptr wstr long)
-@ stdcall GetCurrencyFormatW(long long wstr ptr wstr long) kernel32_win7.GetCurrencyFormatW
-@ stdcall GetCurrentActCtx(ptr) kernel32_win7.GetCurrentActCtx
-@ stdcall GetCurrentConsoleFont(long long ptr) kernel32_win7.GetCurrentConsoleFont
+@ stdcall GetCurrencyFormatW(long long wstr ptr wstr long) kernelbase.GetCurrencyFormatW
+@ stdcall GetCurrentActCtx(ptr) kernelbase.GetCurrentActCtx
+@ stdcall GetCurrentConsoleFont(long long ptr) kernelbase.GetCurrentConsoleFont
 @ stdcall -version=0x600+ GetCurrentConsoleFontEx(ptr long ptr)
-@ stdcall GetCurrentDirectoryA(long ptr) kernel32_win7.GetCurrentDirectoryA
-@ stdcall GetCurrentDirectoryW(long ptr) kernel32_win7.GetCurrentDirectoryW
-@ stdcall -version=0x602+ GetCurrentPackageId(ptr ptr)
-@ stdcall -norelay GetCurrentProcess() kernel32_win7.GetCurrentProcess
-@ stdcall -norelay GetCurrentProcessId() kernel32_win7.GetCurrentProcessId
-@ stdcall GetCurrentProcessorNumber() kernel32_win7.GetCurrentProcessorNumber
-@ stdcall -norelay GetCurrentThread() kernel32_win7.GetCurrentThread
-@ stdcall -norelay GetCurrentThreadId() kernel32_win7.GetCurrentThreadId
-@ stdcall GetDateFormatA(long long ptr str ptr long) kernel32_win7.GetDateFormatA
+@ stdcall GetCurrentDirectoryA(long ptr) kernelbase.GetCurrentDirectoryA
+@ stdcall GetCurrentDirectoryW(long ptr) kernelbase.GetCurrentDirectoryW
+@ stdcall -version=0x602+ GetCurrentPackageFamilyName(ptr ptr) kernelbase.GetCurrentPackageFamilyName
+@ stdcall -version=0x602+ GetCurrentPackageFullName(ptr ptr) kernelbase.GetCurrentPackageFullName
+@ stdcall -version=0x602+ GetCurrentPackageId(ptr ptr) kernelbase.GetCurrentPackageId
+@ stdcall -version=0x602+ GetCurrentPackagePath(ptr ptr) kernelbase.GetCurrentPackagePath
+@ stdcall -norelay GetCurrentProcess() kernelbase.GetCurrentProcess
+@ stdcall -norelay GetCurrentProcessId() kernelbase.GetCurrentProcessId
+@ stdcall GetCurrentProcessorNumber() kernelbase.GetCurrentProcessorNumber
+@ stub GetCurrentProcessorNumberEx(ptr) ;NTDLL.RtlGetCurrentProcessorNumberEx
+@ stdcall -norelay GetCurrentThread() kernelbase.GetCurrentThread
+@ stdcall -norelay GetCurrentThreadId() kernelbase.GetCurrentThreadId
+@ stdcall -version=0x602+  GetCurrentThreadStackLimits(ptr ptr) kernelbase.GetCurrentThreadStackLimits
+@ stdcall -version=0x601+ -arch=win64 GetCurrentUmsThread()
+@ stdcall GetDateFormatA(long long ptr str ptr long) kernelbase.GetDateFormatA
 @ stdcall -version=0x600+ GetDateFormatEx(wstr long ptr wstr wstr long wstr)
-@ stdcall GetDateFormatW(long long ptr wstr ptr long) kernel32_win7.GetDateFormatW
-@ stdcall GetDefaultCommConfigA(str ptr long) kernel32_win7.GetDefaultCommConfigA
-@ stdcall GetDefaultCommConfigW(wstr ptr long) kernel32_win7.GetDefaultCommConfigW
-@ stdcall -version=0x501-0x502 GetDefaultSortkeySize(ptr) kernel32_win7.GetDefaultSortkeySize
-@ stdcall GetDevicePowerState(long ptr) kernel32_win7.GetDevicePowerState
-@ stdcall GetDiskFreeSpaceA(str ptr ptr ptr ptr) kernel32_win7.GetDiskFreeSpaceA
-@ stdcall GetDiskFreeSpaceExA(str ptr ptr ptr) kernel32_win7.GetDiskFreeSpaceExA
-@ stdcall GetDiskFreeSpaceExW(wstr ptr ptr ptr) kernel32_win7.GetDiskFreeSpaceExW
-@ stdcall GetDiskFreeSpaceW(wstr ptr ptr ptr ptr) kernel32_win7.GetDiskFreeSpaceW
-@ stdcall GetDllDirectoryA(long ptr) kernel32_win7.GetDllDirectoryA
-@ stdcall GetDllDirectoryW(long ptr) kernel32_win7.GetDllDirectoryW
-@ stdcall GetDriveTypeA(str) kernel32_win7.GetDriveTypeA
-@ stdcall GetDriveTypeW(wstr) kernel32_win7.GetDriveTypeW
+@ stdcall GetDateFormatW(long long ptr wstr ptr long) kernelbase.GetDateFormatW
+@ stdcall GetDefaultCommConfigA(str ptr long) kernelbase.GetDefaultCommConfigA
+@ stdcall GetDefaultCommConfigW(wstr ptr long) kernelbase.GetDefaultCommConfigW
+@ stdcall -version=0x501-0x502 GetDefaultSortkeySize(ptr) kernelbase.GetDefaultSortkeySize
+@ stdcall GetDevicePowerState(long ptr) kernelbase.GetDevicePowerState
+@ stdcall GetDiskFreeSpaceA(str ptr ptr ptr ptr) kernelbase.GetDiskFreeSpaceA
+@ stdcall GetDiskFreeSpaceExA(str ptr ptr ptr) kernelbase.GetDiskFreeSpaceExA
+@ stdcall GetDiskFreeSpaceExW(wstr ptr ptr ptr) kernelbase.GetDiskFreeSpaceExW
+@ stdcall GetDiskFreeSpaceW(wstr ptr ptr ptr ptr) kernelbase.GetDiskFreeSpaceW
+@ stdcall GetDllDirectoryA(long ptr) kernelbase.GetDllDirectoryA
+@ stdcall GetDllDirectoryW(long ptr) kernelbase.GetDllDirectoryW
+@ stdcall GetDriveTypeA(str) kernelbase.GetDriveTypeA
+@ stdcall GetDriveTypeW(wstr) kernelbase.GetDriveTypeW
 @ stub -version=0x600+ GetDurationFormat
 @ stub -version=0x600+ GetDurationFormatEx
-@ stub -version=0x600+ GetDynamicTimeZoneInformation
-@ stdcall GetEnvironmentStrings() kernel32_win7.GetEnvironmentStrings
-@ stdcall GetEnvironmentStringsA() kernel32_win7.GetEnvironmentStringsA
-@ stdcall GetEnvironmentStringsW() kernel32_win7.GetEnvironmentStringsW
-@ stdcall GetEnvironmentVariableA(str ptr long) kernel32_win7.GetEnvironmentVariableA
-@ stdcall GetEnvironmentVariableW(wstr ptr long) kernel32_win7.GetEnvironmentVariableW
-@ stdcall -version=0x600+ GetErrorMode() kernel32_win7.GetErrorMode
-@ stdcall GetExitCodeProcess(long ptr) kernel32_win7.GetExitCodeProcess
-@ stdcall GetExitCodeThread(long ptr) kernel32_win7.GetExitCodeThread
-@ stdcall GetExpandedNameA(str ptr) kernel32_win7.GetExpandedNameA
-@ stdcall GetExpandedNameW(wstr ptr) kernel32_win7.GetExpandedNameW
-@ stdcall GetFileAttributesA(str) kernel32_win7.GetFileAttributesA
-@ stdcall GetFileAttributesExA(str long ptr) kernel32_win7.GetFileAttributesExA
-@ stdcall GetFileAttributesExW(wstr long ptr) kernel32_win7.GetFileAttributesExW
-@ stub -version=0x600+ GetFileAttributesTransactedA
-@ stub -version=0x600+ GetFileAttributesTransactedW
-@ stdcall GetFileAttributesW(wstr) kernel32_win7.GetFileAttributesW
-@ stdcall -version=0x600+ GetFileBandwidthReservation(ptr ptr ptr ptr ptr ptr) kernel32_win7.GetFileBandwidthReservation
-@ stdcall GetFileInformationByHandle(long ptr) kernel32_win7.GetFileInformationByHandle
-@ stdcall -version=0x600+ GetFileInformationByHandleEx(ptr long ptr long) kernel32_win7.GetFileInformationByHandleEx
-@ stdcall -version=0x600+ GetFileMUIInfo(long wstr ptr ptr) kernel32_win7.GetFileMUIInfo
-@ stdcall -version=0x600+ GetFileMUIPath(long wstr wstr ptr wstr ptr ptr) kernel32_win7.GetFileMUIPath
-@ stdcall GetFileSize(long ptr) kernel32_win7.GetFileSize
-@ stdcall GetFileSizeEx(long ptr) kernel32_win7.GetFileSizeEx
-@ stdcall GetFileTime(long ptr ptr ptr) kernel32_win7.GetFileTime
-@ stdcall GetFileType(long) kernel32_win7.GetFileType
-@ stdcall -version=0x600+ GetFinalPathNameByHandleA(ptr str long long) kernel32_win7.GetFinalPathNameByHandleA
-@ stdcall -version=0x600+ GetFinalPathNameByHandleW(ptr wstr long long) kernel32_win7.GetFinalPathNameByHandleW
-@ stdcall GetFirmwareEnvironmentVariableA(str str ptr long) kernel32_win7.GetFirmwareEnvironmentVariableA
-@ stdcall -version=0x602+ GetFirmwareEnvironmentVariableExA(str str ptr long long) kernel32_win7.GetFirmwareEnvironmentVariableExA
-@ stdcall -version=0x602+ GetFirmwareEnvironmentVariableExW(wstr wstr ptr long long) kernel32_win7.GetFirmwareEnvironmentVariableExW
-@ stdcall GetFirmwareEnvironmentVariableW(wstr wstr ptr long) kernel32_win7.GetFirmwareEnvironmentVariableW
-@ stdcall -version=0x602+ GetFirmwareType(ptr) kernel32_win7.GetFirmwareType
-@ stdcall GetFullPathNameA(str long ptr ptr) kernel32_win7.GetFullPathNameA
+@ stdcall -version=0x600+ GetDynamicTimeZoneInformation(ptr) kernelbase.GetDynamicTimeZoneInformation
+@ stdcall -stub -version=0x602+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
+@ stdcall GetEnvironmentStrings() kernelbase.GetEnvironmentStrings
+@ stdcall GetEnvironmentStringsA() kernelbase.GetEnvironmentStringsA
+@ stdcall GetEnvironmentStringsW() kernelbase.GetEnvironmentStringsW
+@ stdcall GetEnvironmentVariableA(str ptr long) kernelbase.GetEnvironmentVariableA
+@ stdcall GetEnvironmentVariableW(wstr ptr long) kernelbase.GetEnvironmentVariableW
+@ stdcall -version=0x600+ GetErrorMode() kernelbase.GetErrorMode
+@ stdcall GetExitCodeProcess(long ptr) kernelbase.GetExitCodeProcess
+@ stdcall GetExitCodeThread(long ptr) kernelbase.GetExitCodeThread
+@ stdcall GetExpandedNameA(str ptr) kernelbase.GetExpandedNameA
+@ stdcall GetExpandedNameW(wstr ptr) kernelbase.GetExpandedNameW
+@ stdcall GetFileAttributesA(str) kernelbase.GetFileAttributesA
+@ stdcall GetFileAttributesExA(str long ptr) kernelbase.GetFileAttributesExA
+@ stdcall GetFileAttributesExW(wstr long ptr) kernelbase.GetFileAttributesExW
+@ stdcall -version=0x600+ GetFileAttributesTransactedA(str long ptr ptr)
+@ stdcall -version=0x600+ GetFileAttributesTransactedW(wstr long ptr ptr)
+@ stdcall GetFileAttributesW(wstr) kernelbase.GetFileAttributesW
+@ stdcall -version=0x600+ GetFileBandwidthReservation(ptr ptr ptr ptr ptr ptr) kernelbase.GetFileBandwidthReservation
+@ stdcall GetFileInformationByHandle(long ptr) kernelbase.GetFileInformationByHandle
+@ stdcall -version=0x600+ GetFileInformationByHandleEx(ptr long ptr long) kernelbase.GetFileInformationByHandleEx
+@ stdcall -version=0x600+ GetFileMUIInfo(long wstr ptr ptr) kernelbase.GetFileMUIInfo
+@ stdcall -version=0x600+ GetFileMUIPath(long wstr wstr ptr wstr ptr ptr) kernelbase.GetFileMUIPath
+@ stdcall GetFileSize(long ptr) kernelbase.GetFileSize
+@ stdcall GetFileSizeEx(long ptr) kernelbase.GetFileSizeEx
+@ stdcall GetFileTime(long ptr ptr ptr) kernelbase.GetFileTime
+@ stdcall GetFileType(long) kernelbase.GetFileType
+@ stdcall -version=0x600+ GetFinalPathNameByHandleA(ptr str long long) kernelbase.GetFinalPathNameByHandleA
+@ stdcall -version=0x600+ GetFinalPathNameByHandleW(ptr wstr long long) kernelbase.GetFinalPathNameByHandleW
+@ stdcall GetFirmwareEnvironmentVariableA(str str ptr long) kernelbase.GetFirmwareEnvironmentVariableA
+@ stdcall -version=0x602+ GetFirmwareEnvironmentVariableExA(str str ptr long long) kernelbase.GetFirmwareEnvironmentVariableExA
+@ stdcall -version=0x602+ GetFirmwareEnvironmentVariableExW(wstr wstr ptr long long) kernelbase.GetFirmwareEnvironmentVariableExW
+@ stdcall GetFirmwareEnvironmentVariableW(wstr wstr ptr long) kernelbase.GetFirmwareEnvironmentVariableW
+@ stdcall -version=0x602+ GetFirmwareType(ptr) kernelbase.GetFirmwareType
+@ stdcall GetFullPathNameA(str long ptr ptr) kernelbase.GetFullPathNameA
 @ stub -version=0x600+ GetFullPathNameTransactedA
 @ stub -version=0x600+ GetFullPathNameTransactedW
-@ stdcall GetFullPathNameW(wstr long ptr ptr) kernel32_win7.GetFullPathNameW
-@ stdcall GetGeoInfoA(long long ptr long long) kernel32_win7.GetGeoInfoA
-@ stdcall GetGeoInfoW(long long ptr long long) kernel32_win7.GetGeoInfoW
-@ stdcall -i386 GetHandleContext(long) kernel32_win7.GetHandleContext
-@ stdcall GetHandleInformation(long ptr) kernel32_win7.GetHandleInformation
-@ stdcall GetLargePageMinimum() kernel32_win7.GetLargePageMinimum
-@ stdcall GetLargestConsoleWindowSize(long) kernel32_win7.GetLargestConsoleWindowSize
-@ stdcall GetLastError() kernel32_win7.GetLastError
-@ stdcall -version=0x500-0x502 GetLinguistLangSize(ptr) kernel32_win7.GetLinguistLangSize
-@ stdcall GetLocalTime(ptr) kernel32_win7.GetLocalTime
-@ stdcall GetLocaleInfoA(long long ptr long) kernel32_win7.GetLocaleInfoA
-@ stdcall -version=0x600+ GetLocaleInfoEx(wstr long ptr long) kernel32_win7.GetLocaleInfoEx
-@ stdcall GetLocaleInfoW(long long ptr long) kernel32_win7.GetLocaleInfoW
-@ stdcall -version=0x600+ IsValidLocaleName(wstr) kernel32_win7.IsValidLocaleName
-@ stdcall GetLogicalDriveStringsA(long ptr) kernel32_win7.GetLogicalDriveStringsA
-@ stdcall GetLogicalDriveStringsW(long ptr) kernel32_win7.GetLogicalDriveStringsW
-@ stdcall GetLogicalDrives() kernel32_win7.GetLogicalDrives
-@ stdcall GetLogicalProcessorInformation(ptr ptr) kernel32_win7.GetLogicalProcessorInformation
-@ stdcall GetLongPathNameA(str long long) kernel32_win7.GetLongPathNameA
+@ stdcall GetFullPathNameW(wstr long ptr ptr) kernelbase.GetFullPathNameW
+@ stdcall GetGeoInfoA(long long ptr long long) kernelbase.GetGeoInfoA
+@ stdcall GetGeoInfoW(long long ptr long long) kernelbase.GetGeoInfoW
+@ stdcall -i386 GetHandleContext(long) kernelbase.GetHandleContext
+@ stdcall GetHandleInformation(long ptr) kernelbase.GetHandleInformation
+@ stdcall GetLargePageMinimum() kernelbase.GetLargePageMinimum
+@ stdcall GetLargestConsoleWindowSize(long) kernelbase.GetLargestConsoleWindowSize
+@ stdcall GetLastError() kernelbase.GetLastError
+@ stdcall -version=0x500-0x502 GetLinguistLangSize(ptr) kernelbase.GetLinguistLangSize
+@ stdcall GetLocalTime(ptr) kernelbase.GetLocalTime
+@ stdcall GetLocaleInfoA(long long ptr long) kernelbase.GetLocaleInfoA
+@ stdcall -version=0x600+ GetLocaleInfoEx(wstr long ptr long) kernelbase.GetLocaleInfoEx
+@ stdcall GetLocaleInfoW(long long ptr long) kernelbase.GetLocaleInfoW
+@ stdcall -version=0x600+ IsValidLocaleName(wstr) kernelbase.IsValidLocaleName
+@ stdcall GetLogicalDriveStringsA(long ptr) kernelbase.GetLogicalDriveStringsA
+@ stdcall GetLogicalDriveStringsW(long ptr) kernelbase.GetLogicalDriveStringsW
+@ stdcall GetLogicalDrives() kernelbase.GetLogicalDrives
+@ stdcall GetLogicalProcessorInformation(ptr ptr) kernelbase.GetLogicalProcessorInformation
+@ stdcall -version=0x601+ GetLogicalProcessorInformationEx(long ptr ptr) kernelbase.GetLogicalProcessorInformationEx
+@ stdcall GetLongPathNameA(str long long) kernelbase.GetLongPathNameA
 @ stub -version=0x600+ GetLongPathNameTransactedA
 @ stub -version=0x600+ GetLongPathNameTransactedW
-@ stdcall GetLongPathNameW(wstr long long) kernel32_win7.GetLongPathNameW
-@ stdcall GetMailslotInfo(long ptr ptr ptr ptr) kernel32_win7.GetMailslotInfo
-@ stdcall GetModuleFileNameA(long ptr long) kernel32_win7.GetModuleFileNameA
-@ stdcall GetModuleFileNameW(long ptr long) kernel32_win7.GetModuleFileNameW
-@ stdcall GetModuleHandleA(str) kernel32_win7.GetModuleHandleA
-@ stdcall GetModuleHandleExA(long ptr ptr) kernel32_win7.GetModuleHandleExA
-@ stdcall GetModuleHandleExW(long ptr ptr) kernel32_win7.GetModuleHandleExW
-@ stdcall GetModuleHandleW(wstr) kernel32_win7.GetModuleHandleW
-@ stdcall GetNLSVersion(long long ptr) kernel32_win7.GetNLSVersion
-@ stdcall GetNLSVersionEx(long wstr ptr) kernel32_win7.GetNLSVersionEx
+@ stdcall GetLongPathNameW(wstr long long) kernelbase.GetLongPathNameW
+@ stdcall GetMailslotInfo(long ptr ptr ptr ptr)
+@ stdcall -version=0x601+ GetMaximumProcessorCount(long)
+@ stdcall -version=0x601+ GetMaximumProcessorGroupCount()
+@ stdcall GetModuleFileNameA(long ptr long) kernelbase.GetModuleFileNameA
+@ stdcall GetModuleFileNameW(long ptr long) kernelbase.GetModuleFileNameW
+@ stdcall GetModuleHandleA(str) kernelbase.GetModuleHandleA
+@ stdcall GetModuleHandleExA(long ptr ptr) kernelbase.GetModuleHandleExA
+@ stdcall GetModuleHandleExW(long ptr ptr) kernelbase.GetModuleHandleExW
+@ stdcall GetModuleHandleW(wstr) kernelbase.GetModuleHandleW
+@ stdcall GetNLSVersion(long long ptr) kernelbase.GetNLSVersion
+@ stdcall GetNLSVersionEx(long wstr ptr) kernelbase.GetNLSVersionEx
 @ stub -version=0x600+ GetNamedPipeAttribute
 @ stub -version=0x600+ GetNamedPipeClientComputerNameA
 @ stub -version=0x600+ GetNamedPipeClientComputerNameW
-@ stdcall -version=0x600+ GetNamedPipeClientProcessId(ptr ptr)
-@ stub -version=0x600+ GetNamedPipeClientSessionId
-@ stdcall GetNamedPipeHandleStateA(long ptr ptr ptr ptr str long) kernel32_win7.GetNamedPipeHandleStateA
-@ stdcall GetNamedPipeHandleStateW(long ptr ptr ptr ptr wstr long) kernel32_win7.GetNamedPipeHandleStateW
-@ stdcall GetNamedPipeInfo(long ptr ptr ptr ptr) kernel32_win7.GetNamedPipeInfo
-@ stub -version=0x600+ GetNamedPipeServerProcessId
-@ stub -version=0x600+ GetNamedPipeServerSessionId
-@ stdcall GetNativeSystemInfo(ptr) kernel32_win7.GetNativeSystemInfo
-@ stdcall GetNextVDMCommand(long) kernel32_win7.GetNextVDMCommand
-@ stdcall -version=0x500-0x502 GetNlsSectionName(long long long str str long) kernel32_win7.GetNlsSectionName
-@ stdcall GetNumaAvailableMemoryNode(long ptr) kernel32_win7.GetNumaAvailableMemoryNode
-@ stdcall GetNumaHighestNodeNumber(ptr) kernel32_win7.GetNumaHighestNodeNumber
-@ stdcall GetNumaNodeProcessorMask(long ptr) kernel32_win7.GetNumaNodeProcessorMask
-@ stdcall GetNumaProcessorNode(long ptr) kernel32_win7.GetNumaProcessorNode
-@ stub -version=0x600+ GetNumaProximityNode
-@ stdcall GetNumberFormatA(long long str ptr ptr long) kernel32_win7.GetNumberFormatA
-@ stdcall -version=0x600+ GetNumberFormatEx(wstr long wstr ptr wstr long) kernel32_win7.GetNumberFormatEx
-@ stdcall GetNumberFormatW(long long wstr ptr ptr long) kernel32_win7.GetNumberFormatW
-@ stdcall GetNumberOfConsoleFonts() kernel32_win7.GetNumberOfConsoleFonts
-@ stdcall GetNumberOfConsoleInputEvents(long ptr) kernel32_win7.GetNumberOfConsoleInputEvents
-@ stdcall GetNumberOfConsoleMouseButtons(ptr) kernel32_win7.GetNumberOfConsoleMouseButtons
-@ stdcall GetOEMCP() kernel32_win7.GetOEMCP
-@ stdcall GetOverlappedResult(long ptr ptr long) kernel32_win7.GetOverlappedResult
-@ stdcall -stub -version=0x600+ GetPhysicallyInstalledSystemMemory(ptr) kernel32_win7.GetPhysicallyInstalledSystemMemory
-@ stdcall GetPriorityClass(long) kernel32_win7.GetPriorityClass
-@ stdcall GetPrivateProfileIntA(str str long str) kernel32_win7.GetPrivateProfileIntA
-@ stdcall GetPrivateProfileIntW(wstr wstr long wstr) kernel32_win7.GetPrivateProfileIntW
-@ stdcall GetPrivateProfileSectionA(str ptr long str) kernel32_win7.GetPrivateProfileSectionA
-@ stdcall GetPrivateProfileSectionNamesA(ptr long str) kernel32_win7.GetPrivateProfileSectionNamesA
-@ stdcall GetPrivateProfileSectionNamesW(ptr long wstr) kernel32_win7.GetPrivateProfileSectionNamesW
-@ stdcall GetPrivateProfileSectionW(wstr ptr long wstr) kernel32_win7.GetPrivateProfileSectionW
-@ stdcall GetPrivateProfileStringA(str str str ptr long str) kernel32_win7.GetPrivateProfileStringA
-@ stdcall GetPrivateProfileStringW(wstr wstr wstr ptr long wstr) kernel32_win7.GetPrivateProfileStringW
-@ stdcall GetPrivateProfileStructA(str str ptr long str) kernel32_win7.GetPrivateProfileStructA
-@ stdcall GetPrivateProfileStructW(wstr wstr ptr long wstr) kernel32_win7.GetPrivateProfileStructW
-@ stdcall GetProcAddress(long str) kernel32_win7.GetProcAddress
-@ stdcall GetProcessAffinityMask(long ptr ptr) kernel32_win7.GetProcessAffinityMask
-@ stub -version=0x600+ GetProcessDEPPolicy
-@ stdcall GetProcessHandleCount(long ptr) kernel32_win7.GetProcessHandleCount
-@ stdcall -norelay GetProcessHeap() kernel32_win7.GetProcessHeap
-@ stdcall GetProcessHeaps(long ptr) kernel32_win7.GetProcessHeaps
-@ stdcall GetProcessId(long) kernel32_win7.GetProcessId
-@ stdcall GetProcessIdOfThread(ptr) kernel32_win7.GetProcessIdOfThread
-@ stdcall GetProcessIoCounters(long ptr) kernel32_win7.GetProcessIoCounters
-@ stdcall GetProcessPriorityBoost(long ptr) kernel32_win7.GetProcessPriorityBoost
-@ stdcall GetProcessShutdownParameters(ptr ptr) kernel32_win7.GetProcessShutdownParameters
-@ stdcall GetProcessTimes(long ptr ptr ptr ptr) kernel32_win7.GetProcessTimes
-@ stdcall GetProcessVersion(long) kernel32_win7.GetProcessVersion
-@ stdcall GetProcessWorkingSetSize(long ptr ptr) kernel32_win7.GetProcessWorkingSetSize
-@ stdcall GetProcessWorkingSetSizeEx(long ptr ptr long) kernel32_win7.GetProcessWorkingSetSizeEx
-@ stub -version=0x600+ GetProductInfo
-@ stdcall GetProfileIntA(str str long) kernel32_win7.GetProfileIntA
-@ stdcall GetProfileIntW(wstr wstr long) kernel32_win7.GetProfileIntW
-@ stdcall GetProfileSectionA(str ptr long) kernel32_win7.GetProfileSectionA
-@ stdcall GetProfileSectionW(wstr ptr long) kernel32_win7.GetProfileSectionW
-@ stdcall GetProfileStringA(str str str ptr long) kernel32_win7.GetProfileStringA
-@ stdcall GetProfileStringW(wstr wstr wstr ptr long) kernel32_win7.GetProfileStringW
-@ stdcall GetQueuedCompletionStatus(long ptr ptr ptr long) kernel32_win7.GetQueuedCompletionStatus
-@ stub -version=0x600+ GetQueuedCompletionStatusEx
+@ stdcall -version=0x600+ GetNamedPipeClientProcessId(ptr ptr) kernelbase.GetNamedPipeClientProcessId
+@ stdcall -version=0x600+ -stub GetNamedPipeClientSessionId(long ptr)
+@ stdcall GetNamedPipeHandleStateA(long ptr ptr ptr ptr str long) kernelbase.GetNamedPipeHandleStateA
+@ stdcall GetNamedPipeHandleStateW(long ptr ptr ptr ptr wstr long) kernelbase.GetNamedPipeHandleStateW
+@ stdcall GetNamedPipeInfo(long ptr ptr ptr ptr) kernelbase.GetNamedPipeInfo
+@ stdcall -stub -version=0x600+ GetNamedPipeServerProcessId(long ptr)
+@ stdcall -stub -version=0x600+ GetNamedPipeServerSessionId(long ptr)
+@ stdcall GetNativeSystemInfo(ptr) kernelbase.GetNativeSystemInfo
+@ stdcall -version=0x601+ -arch=win64 GetNextUmsListItem(ptr)
+@ stdcall GetNextVDMCommand(long) kernelbase.GetNextVDMCommand
+@ stdcall -version=0x500-0x502 GetNlsSectionName(long long long str str long) kernelbase.GetNlsSectionName
+@ stdcall GetNumaAvailableMemoryNode(long ptr) kernelbase.GetNumaAvailableMemoryNode
+@ stdcall -version=0x601+ GetNumaAvailableMemoryNodeEx(long ptr)
+@ stdcall GetNumaHighestNodeNumber(ptr) kernelbase.GetNumaHighestNodeNumber
+@ stdcall GetNumaNodeProcessorMask(long ptr) kernelbase.GetNumaNodeProcessorMask
+@ stdcall -version=0x601+ -stub GetNumaNodeProcessorMaskEx(long ptr)
+@ stdcall GetNumaProcessorNode(long ptr) kernelbase.GetNumaProcessorNode
+@ stdcall -version=0x601+ GetNumaProcessorNodeEx(ptr ptr)
+@ stdcall -version=0x600+ GetNumaProximityNode(long ptr)
+@ stdcall -stub -version=0x601+ GetNumaProximityNodeEx(long ptr)
+@ stdcall GetNumberFormatA(long long str ptr ptr long) kernelbase.GetNumberFormatA
+@ stdcall -version=0x600+ GetNumberFormatEx(wstr long wstr ptr wstr long) kernelbase.GetNumberFormatEx
+@ stdcall GetNumberFormatW(long long wstr ptr ptr long) kernelbase.GetNumberFormatW
+@ stdcall GetNumberOfConsoleFonts() kernelbase.GetNumberOfConsoleFonts
+@ stdcall GetNumberOfConsoleInputEvents(long ptr) kernelbase.GetNumberOfConsoleInputEvents
+@ stdcall GetNumberOfConsoleMouseButtons(ptr) kernelbase.GetNumberOfConsoleMouseButtons
+@ stdcall GetOEMCP() kernelbase.GetOEMCP
+@ stdcall GetOverlappedResult(long ptr ptr long) kernelbase.GetOverlappedResult
+@ stdcall -stub -version=0x602+ GetOverlappedResultEx(long ptr ptr long long)
+@ stdcall -stub -version=0xA00+ GetUserDefaultGeoName(ptr long)
+@ stdcall -version=0x602+ GetPackageFamilyName(long ptr ptr) kernelbase.GetPackageFamilyName
+@ stdcall -version=0x602+ GetPackageFullName(long ptr ptr) kernelbase.GetPackageFullName
+@ stdcall -version=0x602+ GetPackagesByPackageFamily(wstr ptr ptr ptr ptr) kernelbase.GetPackagesByPackageFamily
+@ stdcall -version=0x603+ GetPackagePathByFullName(wstr ptr wstr) kernelbase.GetPackagePathByFullName
+@ stdcall -stub -version=0x600+ GetPhysicallyInstalledSystemMemory(ptr) kernelbase.GetPhysicallyInstalledSystemMemory
+@ stdcall GetPriorityClass(long) kernelbase.GetPriorityClass
+@ stdcall GetPrivateProfileIntA(str str long str) kernelbase.GetPrivateProfileIntA
+@ stdcall GetPrivateProfileIntW(wstr wstr long wstr) kernelbase.GetPrivateProfileIntW
+@ stdcall GetPrivateProfileSectionA(str ptr long str) kernelbase.GetPrivateProfileSectionA
+@ stdcall GetPrivateProfileSectionNamesA(ptr long str) kernelbase.GetPrivateProfileSectionNamesA
+@ stdcall GetPrivateProfileSectionNamesW(ptr long wstr) kernelbase.GetPrivateProfileSectionNamesW
+@ stdcall GetPrivateProfileSectionW(wstr ptr long wstr) kernelbase.GetPrivateProfileSectionW
+@ stdcall GetPrivateProfileStringA(str str str ptr long str) kernelbase.GetPrivateProfileStringA
+@ stdcall GetPrivateProfileStringW(wstr wstr wstr ptr long wstr) kernelbase.GetPrivateProfileStringW
+@ stdcall GetPrivateProfileStructA(str str ptr long str) kernelbase.GetPrivateProfileStructA
+@ stdcall GetPrivateProfileStructW(wstr wstr ptr long wstr) kernelbase.GetPrivateProfileStructW
+@ stdcall GetProcAddress(long str) kernelbase.GetProcAddress
+@ stdcall GetProcessAffinityMask(long ptr ptr) kernelbase.GetProcessAffinityMask
+@ stdcall -version=0x600+ GetProcessDEPPolicy(ptr ptr ptr)
+@ stdcall -version=0x601+ GetProcessGroupAffinity(long ptr ptr) kernelbase.GetProcessGroupAffinity
+@ stdcall GetProcessHandleCount(long ptr) kernelbase.GetProcessHandleCount
+@ stdcall -norelay GetProcessHeap() kernelbase.GetProcessHeap
+@ stdcall GetProcessHeaps(long ptr) kernelbase.GetProcessHeaps
+@ stdcall GetProcessId(long) kernelbase.GetProcessId
+@ stdcall GetProcessIdOfThread(ptr) kernelbase.GetProcessIdOfThread
+@ stdcall  -version=0x602+ GetProcessInformation(long long ptr long) kernelbase.GetProcessInformation
+@ stdcall GetProcessIoCounters(long ptr) kernelbase.GetProcessIoCounters
+@ stdcall -version=0x602+ GetProcessMitigationPolicy(long long ptr long) kernelbase.GetProcessMitigationPolicy
+@ stdcall -version=0x601+ GetProcessPreferredUILanguages(long ptr ptr ptr) kernelbase.GetProcessPreferredUILanguages
+@ stdcall GetProcessPriorityBoost(long ptr) kernelbase.GetProcessPriorityBoost
+@ stdcall GetProcessShutdownParameters(ptr ptr) kernelbase.GetProcessShutdownParameters
+@ stdcall GetProcessTimes(long ptr ptr ptr ptr) kernelbase.GetProcessTimes
+@ stdcall GetProcessVersion(long) kernelbase.GetProcessVersion
+@ stdcall GetProcessWorkingSetSize(long ptr ptr) kernelbase.GetProcessWorkingSetSize
+@ stdcall GetProcessWorkingSetSizeEx(long ptr ptr long) kernelbase.GetProcessWorkingSetSizeEx
+@ stdcall -version=0x600+ GetProductInfo(long long long long ptr) kernelbase.GetProductInfo
+@ stdcall GetProfileIntA(str str long) kernelbase.GetProfileIntA
+@ stdcall GetProfileIntW(wstr wstr long) kernelbase.GetProfileIntW
+@ stdcall GetProfileSectionA(str ptr long) kernelbase.GetProfileSectionA
+@ stdcall GetProfileSectionW(wstr ptr long) kernelbase.GetProfileSectionW
+@ stdcall GetProfileStringA(str str str ptr long) kernelbase.GetProfileStringA
+@ stdcall GetProfileStringW(wstr wstr wstr ptr long) kernelbase.GetProfileStringW
+@ stdcall GetQueuedCompletionStatus(long ptr ptr ptr long) kernelbase.GetQueuedCompletionStatus
+@ stdcall -version=0x600+ GetQueuedCompletionStatusEx(ptr ptr long ptr long long) kernelbase.GetQueuedCompletionStatusEx
 @ stdcall GetShortPathNameA(str ptr long)
-@ stdcall GetShortPathNameW(wstr ptr long) kernel32_win7.GetShortPathNameW
+@ stdcall GetShortPathNameW(wstr ptr long) kernelbase.GetShortPathNameW
 @ stdcall GetStartupInfoA(ptr)
-@ stdcall GetStartupInfoW(ptr) kernel32_win7.GetStartupInfoW
-@ stdcall GetStdHandle(long) kernel32_win7.GetStdHandle
+@ stdcall GetStartupInfoW(ptr) kernelbase.GetStartupInfoW
+@ stdcall GetStdHandle(long) kernelbase.GetStdHandle
 @ stub -version=0x600+ GetStringScripts
-@ stdcall GetStringTypeA(long long str long ptr) kernel32_win7.GetStringTypeA
-@ stdcall GetStringTypeExA(long long str long ptr) kernel32_win7.GetStringTypeExA
-@ stdcall GetStringTypeExW(long long wstr long ptr) kernel32_win7.GetStringTypeExW
-@ stdcall GetStringTypeW(long wstr long ptr) kernel32_win7.GetStringTypeW
-@ stub -version=0x600+ GetSystemDEPPolicy
-@ stdcall GetSystemDefaultLCID() kernel32_win7.GetSystemDefaultLCID
-@ stdcall GetSystemDefaultLangID() kernel32_win7.GetSystemDefaultLangID
-@ stdcall -stub -version=0x600+ GetSystemDefaultLocaleName(ptr long) kernel32_win7.GetSystemDefaultLocaleName
-@ stdcall GetSystemDefaultUILanguage() kernel32_win7.GetSystemDefaultUILanguage
-@ stdcall GetSystemDirectoryA(ptr long) kernel32_win7.GetSystemDirectoryA
-@ stdcall GetSystemDirectoryW(ptr long) kernel32_win7.GetSystemDirectoryW
-@ stdcall GetSystemFileCacheSize(ptr ptr ptr) kernel32_win7.GetSystemFileCacheSize
-@ stdcall GetSystemFirmwareTable(long long ptr long) kernel32_win7.GetSystemFirmwareTable
-@ stdcall GetSystemInfo(ptr) kernel32_win7.GetSystemInfo
-@ stdcall GetSystemPowerStatus(ptr) kernel32_win7.GetSystemPowerStatus
-@ stdcall -version=0x600+ GetSystemPreferredUILanguages(long ptr wstr ptr) kernel32_win7.GetSystemPreferredUILanguages
-@ stdcall GetSystemRegistryQuota(ptr ptr) kernel32_win7.GetSystemRegistryQuota
-@ stdcall GetSystemTime(ptr) kernel32_win7.GetSystemTime
-@ stdcall GetSystemTimeAdjustment(ptr ptr ptr) kernel32_win7.GetSystemTimeAdjustment
-@ stdcall GetSystemTimeAsFileTime(ptr) kernel32_win7.GetSystemTimeAsFileTime
-@ stdcall -version=0x602+ GetSystemTimePreciseAsFileTime(ptr) kernel32_win7.GetSystemTimePreciseAsFileTime
-@ stdcall GetSystemTimes(ptr ptr ptr) kernel32_win7.GetSystemTimes
-@ stdcall GetSystemWindowsDirectoryA(ptr long) kernel32_win7.GetSystemWindowsDirectoryA
-@ stdcall GetSystemWindowsDirectoryW(ptr long) kernel32_win7.GetSystemWindowsDirectoryW
-@ stdcall GetSystemWow64DirectoryA(ptr long) kernel32_win7.GetSystemWow64DirectoryA
-@ stdcall GetSystemWow64DirectoryW(ptr long) kernel32_win7.GetSystemWow64DirectoryW
-@ stdcall GetTapeParameters(ptr long ptr ptr) kernel32_win7.GetTapeParameters
-@ stdcall GetTapePosition(ptr long ptr ptr ptr) kernel32_win7.GetTapePosition
-@ stdcall GetTapeStatus(ptr) kernel32_win7.GetTapeStatus
-@ stdcall GetTempFileNameA(str str long ptr) kernel32_win7.GetTempFileNameA
-@ stdcall GetTempFileNameW(wstr wstr long ptr) kernel32_win7.GetTempFileNameW
-@ stdcall GetTempPathA(long ptr) kernel32_win7.GetTempPathA
-@ stdcall GetTempPathW(long ptr) kernel32_win7.GetTempPathW
-@ stdcall GetThreadContext(long ptr) kernel32_win7.GetThreadContext
-@ stdcall -stub -version=0x600+ GetThreadErrorMode() kernel32_win7.GetThreadErrorMode
-@ stdcall GetThreadIOPendingFlag(long ptr) kernel32_win7.GetThreadIOPendingFlag
-@ stdcall GetThreadId(ptr) kernel32_win7.GetThreadId
-@ stdcall GetThreadLocale() kernel32_win7.GetThreadLocale
-@ stdcall -version=0x600+ GetThreadPreferredUILanguages(long ptr wstr ptr) kernel32_win7.GetThreadPreferredUILanguages
-@ stdcall GetThreadPriority(long) kernel32_win7.GetThreadPriority
-@ stdcall GetThreadPriorityBoost(long ptr) kernel32_win7.GetThreadPriorityBoost
-@ stdcall GetThreadSelectorEntry(long long ptr) kernel32_win7.GetThreadSelectorEntry
-@ stdcall GetThreadTimes(long ptr ptr ptr ptr) kernel32_win7.GetThreadTimes
-@ stdcall -version=0x600+ GetThreadUILanguage() kernel32_win7.GetThreadUILanguage
-@ stdcall GetTickCount() kernel32_win7.GetTickCount
-@ stdcall -version=0x600+ -ret64 GetTickCount64() kernel32_win7.GetTickCount64
-@ stdcall GetTimeFormatA(long long ptr str ptr long) kernel32_win7.GetTimeFormatA
-@ stdcall -version=0x600+ GetTimeFormatEx(wstr long ptr wstr wstr long) kernel32_win7.GetTimeFormatEx
-@ stdcall GetTimeFormatW(long long ptr wstr ptr long) kernel32_win7.GetTimeFormatW
-@ stdcall GetTimeZoneInformation(ptr) kernel32_win7.GetTimeZoneInformation
-@ stdcall -stub -version=0x600+ GetTimeZoneInformationForYear(long ptr ptr) kernel32_win7.GetTimeZoneInformationForYear
-@ stdcall -version=0x600+ GetUILanguageInfo(long wstr wstr ptr ptr) kernel32_win7.GetUILanguageInfo
-@ stdcall GetUserDefaultLCID() kernel32_win7.GetUserDefaultLCID
-@ stdcall GetUserDefaultLangID() kernel32_win7.GetUserDefaultLangID
-@ stdcall -version=0x600+ GetUserDefaultLocaleName(wstr long) kernel32_win7.GetUserDefaultLocaleName
-@ stdcall GetUserDefaultUILanguage() kernel32_win7.GetUserDefaultUILanguage
-@ stdcall GetUserGeoID(long) kernel32_win7.GetUserGeoID
-@ stdcall -version=0x600+ GetUserPreferredUILanguages(long ptr wstr ptr) kernel32_win7.GetUserPreferredUILanguages
-@ stdcall GetVDMCurrentDirectories(long long) kernel32_win7.GetVDMCurrentDirectories
-@ stdcall GetVersion() kernel32_win7.GetVersion
-@ stdcall GetVersionExA(ptr) kernel32_win7.GetVersionExA
-@ stdcall GetVersionExW(ptr) kernel32_win7.GetVersionExW
-@ stdcall GetVolumeInformationA(str ptr long ptr ptr ptr ptr long) kernel32_win7.GetVolumeInformationA
-@ stub -version=0x600+ GetVolumeInformationByHandleW
-@ stdcall GetVolumeInformationW(wstr ptr long ptr ptr ptr ptr long) kernel32_win7.GetVolumeInformationW
-@ stdcall GetVolumeNameForVolumeMountPointA(str ptr long) kernel32_win7.GetVolumeNameForVolumeMountPointA
-@ stdcall GetVolumeNameForVolumeMountPointW(wstr ptr long) kernel32_win7.GetVolumeNameForVolumeMountPointW
-@ stdcall GetVolumePathNameA(str ptr long) kernel32_win7.GetVolumePathNameA
-@ stdcall GetVolumePathNameW(wstr ptr long) kernel32_win7.GetVolumePathNameW
-@ stdcall GetVolumePathNamesForVolumeNameA(str str long ptr) kernel32_win7.GetVolumePathNamesForVolumeNameA
-@ stdcall GetVolumePathNamesForVolumeNameW(wstr wstr long ptr) kernel32_win7.GetVolumePathNamesForVolumeNameW
-@ stdcall GetWindowsDirectoryA(ptr long) kernel32_win7.GetWindowsDirectoryA
-@ stdcall GetWindowsDirectoryW(ptr long) kernel32_win7.GetWindowsDirectoryW
-@ stdcall GetWriteWatch(long ptr long ptr ptr ptr) kernel32_win7.GetWriteWatch
-@ stdcall GlobalAddAtomA(str) kernel32_win7.GlobalAddAtomA
-@ stdcall GlobalAddAtomW(wstr) kernel32_win7.GlobalAddAtomW
-@ stdcall GlobalAlloc(long long) kernel32_win7.GlobalAlloc
-@ stdcall GlobalCompact(long) kernel32_win7.GlobalCompact
-@ stdcall GlobalDeleteAtom(long) kernel32_win7.GlobalDeleteAtom
-@ stdcall GlobalFindAtomA(str) kernel32_win7.GlobalFindAtomA
-@ stdcall GlobalFindAtomW(wstr) kernel32_win7.GlobalFindAtomW
-@ stdcall GlobalFix(long) kernel32_win7.GlobalFix
-@ stdcall GlobalFlags(long) kernel32_win7.GlobalFlags
-@ stdcall GlobalFree(long) kernel32_win7.GlobalFree
-@ stdcall GlobalGetAtomNameA(long ptr long) kernel32_win7.GlobalGetAtomNameA
-@ stdcall GlobalGetAtomNameW(long ptr long) kernel32_win7.GlobalGetAtomNameW
-@ stdcall GlobalHandle(ptr) kernel32_win7.GlobalHandle
-@ stdcall GlobalLock(long) kernel32_win7.GlobalLock
-@ stdcall GlobalMemoryStatus(ptr) kernel32_win7.GlobalMemoryStatus
-@ stdcall GlobalMemoryStatusEx(ptr) kernel32_win7.GlobalMemoryStatusEx
-@ stdcall GlobalReAlloc(long long long) kernel32_win7.GlobalReAlloc
-@ stdcall GlobalSize(long) kernel32_win7.GlobalSize
-@ stdcall GlobalUnWire(long) kernel32_win7.GlobalUnWire
-@ stdcall GlobalUnfix(long) kernel32_win7.GlobalUnfix
-@ stdcall GlobalUnlock(long) kernel32_win7.GlobalUnlock
-@ stdcall GlobalWire(long) kernel32_win7.GlobalWire
-@ stdcall Heap32First(ptr long long) kernel32_win7.Heap32First
-@ stdcall Heap32ListFirst(long ptr) kernel32_win7.Heap32ListFirst
-@ stdcall Heap32ListNext(long ptr) kernel32_win7.Heap32ListNext
-@ stdcall Heap32Next(ptr) kernel32_win7.Heap32Next
-@ stdcall HeapAlloc(long long long) kernel32_win7.HeapAlloc
-@ stdcall HeapCompact(long long) kernel32_win7.HeapCompact
-@ stdcall HeapCreate(long long long) kernel32_win7.HeapCreate
-@ stdcall -version=0x351-0x502 HeapCreateTagsW(ptr long wstr wstr) kernel32_win7.HeapCreateTagsW
-@ stdcall HeapDestroy(long) kernel32_win7.HeapDestroy
-@ stdcall -version=0x351-0x502 HeapExtend(long long ptr long) kernel32_win7.HeapExtend
-@ stdcall HeapFree(long long long) kernel32_win7.HeapFree
-@ stdcall HeapLock(long) kernel32_win7.HeapLock
-@ stdcall HeapQueryInformation(long long ptr long ptr) kernel32_win7.HeapQueryInformation
-@ stdcall -version=0x351-0x502 HeapQueryTagW(long long long long ptr) kernel32_win7.HeapQueryTagW
-@ stdcall HeapReAlloc(long long ptr long) kernel32_win7.HeapReAlloc
-@ stdcall HeapSetInformation(ptr long ptr long) kernel32_win7.HeapSetInformation
-@ stdcall HeapSize(long long ptr) kernel32_win7.HeapSize
-@ stdcall HeapSummary(long long ptr) kernel32_win7.HeapSummary
-@ stdcall HeapUnlock(long) kernel32_win7.HeapUnlock
-@ stdcall -version=0x351-0x502 HeapUsage(long long long long ptr) kernel32_win7.HeapUsage
-@ stdcall HeapValidate(long long ptr) kernel32_win7.HeapValidate
-@ stdcall HeapWalk(long ptr) kernel32_win7.HeapWalk
-@ stdcall -stub -version=0x600+ IdnToAscii(long wstr long ptr long) kernel32_win7.IdnToAscii
-@ stdcall -stub -version=0x600+ IdnToNameprepUnicode(long wstr long ptr long) kernel32_win7.IdnToNameprepUnicode
-@ stdcall -stub -version=0x600+ IdnToUnicode(long wstr long ptr long) kernel32_win7.IdnToUnicode
-@ stdcall InitAtomTable(long) kernel32_win7.InitAtomTable
-@ stdcall -version=0x600+ InitOnceBeginInitialize(ptr long ptr ptr) kernel32_win7.InitOnceBeginInitialize
-@ stdcall -version=0x600+ InitOnceComplete(ptr long ptr) kernel32_win7.InitOnceComplete
-@ stdcall -version=0x600+ InitOnceExecuteOnce(ptr ptr ptr ptr) kernel32_win7.InitOnceExecuteOnce
-@ stdcall -version=0x600+ InitOnceInitialize(ptr) kernel32_win7.InitOnceInitialize
-@ stdcall -version=0x600+ InitializeConditionVariable(ptr) kernel32_win7.InitializeConditionVariable
-@ stdcall InitializeCriticalSection(ptr) kernel32_win7.InitializeCriticalSection
-@ stdcall InitializeCriticalSectionAndSpinCount(ptr long) kernel32_win7.InitializeCriticalSectionAndSpinCount
-@ stdcall -version=0x600+ InitializeCriticalSectionEx(ptr long long) kernel32_win7.InitializeCriticalSectionEx
-@ stdcall -stub -version=0x600+ InitializeProcThreadAttributeList(ptr long long ptr) kernel32_win7.InitializeProcThreadAttributeList
-@ stdcall InitializeSListHead(ptr) kernel32_win7.InitializeSListHead
-@ stdcall -version=0x600+ InitializeSRWLock(ptr) kernel32_win7.InitializeSRWLock
-@ stdcall -arch=i386 -ret64 InterlockedCompareExchange64(ptr double double) kernel32_win7.InterlockedCompareExchange64
-@ stdcall -arch=i386 InterlockedCompareExchange(ptr long long) kernel32_win7.InterlockedCompareExchange
-@ stdcall -arch=i386 InterlockedDecrement(ptr) kernel32_win7.InterlockedDecrement
-@ stdcall -arch=i386 InterlockedExchange(ptr long) kernel32_win7.InterlockedExchange
-@ stdcall -arch=i386 InterlockedExchangeAdd(ptr long) kernel32_win7.InterlockedExchangeAdd
-@ stdcall InterlockedFlushSList(ptr) kernel32_win7.InterlockedFlushSList
-@ stdcall -arch=i386 InterlockedIncrement(ptr) kernel32_win7.InterlockedIncrement
-@ stdcall InterlockedPopEntrySList(ptr) kernel32_win7.InterlockedPopEntrySList
-@ stdcall InterlockedPushEntrySList(ptr ptr) kernel32_win7.InterlockedPushEntrySList
-@ fastcall -version=0x600+ InterlockedPushListSList(ptr ptr ptr long) kernel32_win7.InterlockedPushListSList
-@ stdcall InvalidateConsoleDIBits(long long) kernel32_win7.InvalidateConsoleDIBits
-@ stdcall IsBadCodePtr(ptr) kernel32_win7.IsBadCodePtr
-@ stdcall IsBadHugeReadPtr(ptr long) kernel32_win7.IsBadHugeReadPtr
-@ stdcall IsBadHugeWritePtr(ptr long) kernel32_win7.IsBadHugeWritePtr
-@ stdcall IsBadReadPtr(ptr long) kernel32_win7.IsBadReadPtr
-@ stdcall IsBadStringPtrA(ptr long) kernel32_win7.IsBadStringPtrA
-@ stdcall IsBadStringPtrW(ptr long) kernel32_win7.IsBadStringPtrW
-@ stdcall IsBadWritePtr(ptr long) kernel32_win7.IsBadWritePtr
+@ stdcall GetStringTypeA(long long str long ptr) kernelbase.GetStringTypeA
+@ stdcall GetStringTypeExA(long long str long ptr) kernelbase.GetStringTypeExA
+@ stdcall GetStringTypeExW(long long wstr long ptr) kernelbase.GetStringTypeExW
+@ stdcall GetStringTypeW(long wstr long ptr) kernelbase.GetStringTypeW
+@ stdcall -version=0x600+ GetSystemDEPPolicy() kernelbase.GetSystemDEPPolicy
+@ stdcall -stub -version=0xA00+ GetSystemCpuSetInformation(ptr long ptr ptr long)
+@ stdcall GetSystemDefaultLCID() kernelbase.GetSystemDefaultLCID
+@ stdcall GetSystemDefaultLangID() kernelbase.GetSystemDefaultLangID
+@ stdcall -stub -version=0x600+ GetSystemDefaultLocaleName(ptr long) kernelbase.GetSystemDefaultLocaleName
+@ stdcall GetSystemDefaultUILanguage() kernelbase.GetSystemDefaultUILanguage
+@ stdcall GetSystemDirectoryA(ptr long) kernelbase.GetSystemDirectoryA
+@ stdcall GetSystemDirectoryW(ptr long) kernelbase.GetSystemDirectoryW
+@ stdcall GetSystemFileCacheSize(ptr ptr ptr) kernelbase.GetSystemFileCacheSize
+@ stdcall GetSystemFirmwareTable(long long ptr long) kernelbase.GetSystemFirmwareTable
+@ stdcall GetSystemInfo(ptr) kernelbase.GetSystemInfo
+@ stdcall GetSystemPowerStatus(ptr) kernelbase.GetSystemPowerStatus
+@ stdcall -version=0x600+ GetSystemPreferredUILanguages(long ptr wstr ptr) kernelbase.GetSystemPreferredUILanguages
+@ stdcall GetSystemRegistryQuota(ptr ptr) kernelbase.GetSystemRegistryQuota
+@ stdcall GetSystemTime(ptr) kernelbase.GetSystemTime
+@ stdcall GetSystemTimeAdjustment(ptr ptr ptr) kernelbase.GetSystemTimeAdjustment
+@ stdcall GetSystemTimeAsFileTime(ptr) kernelbase.GetSystemTimeAsFileTime
+@ stdcall -version=0x602+ GetSystemTimePreciseAsFileTime(ptr) kernelbase.GetSystemTimePreciseAsFileTime
+@ stdcall GetSystemTimes(ptr ptr ptr) kernelbase.GetSystemTimes
+@ stdcall GetSystemWindowsDirectoryA(ptr long) kernelbase.GetSystemWindowsDirectoryA
+@ stdcall GetSystemWindowsDirectoryW(ptr long) kernelbase.GetSystemWindowsDirectoryW
+@ stdcall GetSystemWow64DirectoryA(ptr long) kernelbase.GetSystemWow64DirectoryA
+@ stdcall GetSystemWow64DirectoryW(ptr long) kernelbase.GetSystemWow64DirectoryW
+@ stdcall GetTapeParameters(ptr long ptr ptr) kernelbase.GetTapeParameters
+@ stdcall GetTapePosition(ptr long ptr ptr ptr) kernelbase.GetTapePosition
+@ stdcall GetTapeStatus(ptr) kernelbase.GetTapeStatus
+@ stdcall GetTempFileNameA(str str long ptr) kernelbase.GetTempFileNameA
+@ stdcall GetTempFileNameW(wstr wstr long ptr) kernelbase.GetTempFileNameW
+@ stdcall -stub -version=0xA00+ GetTempPath2A(long ptr)
+@ stdcall -stub -version=0xA00+ GetTempPath2W(long ptr)
+@ stdcall GetTempPathA(long ptr) kernelbase.GetTempPathA
+@ stdcall GetTempPathW(long ptr) kernelbase.GetTempPathW
+@ stdcall GetThreadContext(long ptr) kernelbase.GetThreadContext
+@ stdcall -version=0xA00+ GetThreadDescription(long ptr) kernelbase.GetThreadDescription
+@ stdcall -stub -version=0x600+ GetThreadErrorMode() kernelbase.GetThreadErrorMode
+@ stdcall -version=0x601+ GetThreadGroupAffinity(long ptr) kernelbase.GetThreadGroupAffinity
+@ stdcall GetThreadIOPendingFlag(long ptr) kernelbase.GetThreadIOPendingFlag
+@ stdcall GetThreadId(ptr) kernelbase.GetThreadId
+@ stdcall GetThreadLocale() kernelbase.GetThreadLocale
+@ stdcall -version=0x600+ GetThreadPreferredUILanguages(long ptr wstr ptr) kernelbase.GetThreadPreferredUILanguages
+@ stdcall GetThreadPriority(long) kernelbase.GetThreadPriority
+@ stdcall GetThreadPriorityBoost(long ptr) kernelbase.GetThreadPriorityBoost
+@ stdcall GetThreadSelectorEntry(long long ptr) kernelbase.GetThreadSelectorEntry
+@ stdcall GetThreadTimes(long ptr ptr ptr ptr) kernelbase.GetThreadTimes
+@ stdcall -version=0x600+ GetThreadUILanguage() kernelbase.GetThreadUILanguage
+@ stdcall GetTickCount() kernelbase.GetTickCount
+@ stdcall -version=0x600+ -ret64 GetTickCount64() kernelbase.GetTickCount64
+@ stdcall GetTimeFormatA(long long ptr str ptr long) kernelbase.GetTimeFormatA
+@ stdcall -version=0x600+ GetTimeFormatEx(wstr long ptr wstr wstr long) kernelbase.GetTimeFormatEx
+@ stdcall GetTimeFormatW(long long ptr wstr ptr long) kernelbase.GetTimeFormatW
+@ stdcall GetTimeZoneInformation(ptr) kernelbase.GetTimeZoneInformation
+@ stdcall -version=0x600+ GetTimeZoneInformationForYear(long ptr ptr) kernelbase.GetTimeZoneInformationForYear
+@ stdcall -version=0x600+ GetUILanguageInfo(long wstr wstr ptr ptr) kernelbase.GetUILanguageInfo
+@ stdcall GetUserDefaultLCID() kernelbase.GetUserDefaultLCID
+@ stdcall GetUserDefaultLangID() kernelbase.GetUserDefaultLangID
+@ stdcall -version=0x600+ GetUserDefaultLocaleName(wstr long) kernelbase.GetUserDefaultLocaleName
+@ stdcall GetUserDefaultUILanguage() kernelbase.GetUserDefaultUILanguage
+@ stdcall GetUserGeoID(long) kernelbase.GetUserGeoID
+@ stdcall -version=0x600+ GetUserPreferredUILanguages(long ptr wstr ptr) kernelbase.GetUserPreferredUILanguages
+@ stdcall GetVDMCurrentDirectories(long long) kernelbase.GetVDMCurrentDirectories
+@ stdcall GetVersion() kernelbase.GetVersion
+@ stdcall GetVersionExA(ptr) kernelbase.GetVersionExA
+@ stdcall GetVersionExW(ptr) kernelbase.GetVersionExW
+@ stdcall GetVolumeInformationA(str ptr long ptr ptr ptr ptr long) kernelbase.GetVolumeInformationA
+@ stdcall GetVolumeInformationByHandleW(ptr ptr long ptr ptr ptr ptr long) kernelbase.GetVolumeInformationByHandleW
+@ stdcall GetVolumeInformationW(wstr ptr long ptr ptr ptr ptr long) kernelbase.GetVolumeInformationW
+@ stdcall GetVolumeNameForVolumeMountPointA(str ptr long) kernelbase.GetVolumeNameForVolumeMountPointA
+@ stdcall GetVolumeNameForVolumeMountPointW(wstr ptr long) kernelbase.GetVolumeNameForVolumeMountPointW
+@ stdcall GetVolumePathNameA(str ptr long) kernelbase.GetVolumePathNameA
+@ stdcall GetVolumePathNameW(wstr ptr long) kernelbase.GetVolumePathNameW
+@ stdcall GetVolumePathNamesForVolumeNameA(str str long ptr) kernelbase.GetVolumePathNamesForVolumeNameA
+@ stdcall GetVolumePathNamesForVolumeNameW(wstr wstr long ptr) kernelbase.GetVolumePathNamesForVolumeNameW
+@ stdcall GetWindowsDirectoryA(ptr long) kernelbase.GetWindowsDirectoryA
+@ stdcall GetWindowsDirectoryW(ptr long) kernelbase.GetWindowsDirectoryW
+@ stdcall GetWriteWatch(long ptr long ptr ptr ptr) kernelbase.GetWriteWatch
+@ stdcall GlobalAddAtomA(str) 
+@ stdcall GlobalAddAtomW(wstr)
+@ stdcall GlobalAlloc(long long) kernelbase.GlobalAlloc
+@ stdcall GlobalCompact(long) kernelbase.GlobalCompact
+@ stdcall GlobalDeleteAtom(long)
+@ stdcall GlobalFindAtomA(str) 
+@ stdcall GlobalFindAtomW(wstr)
+@ stdcall GlobalFix(long) kernelbase.GlobalFix
+@ stdcall GlobalFlags(long) kernelbase.GlobalFlags
+@ stdcall GlobalFree(long) kernelbase.GlobalFree
+@ stdcall GlobalGetAtomNameA(long ptr long)
+@ stdcall GlobalGetAtomNameW(long ptr long)
+@ stdcall GlobalHandle(ptr) kernelbase.GlobalHandle
+@ stdcall GlobalLock(long) kernelbase.GlobalLock
+@ stdcall GlobalMemoryStatus(ptr) kernelbase.GlobalMemoryStatus
+@ stdcall GlobalMemoryStatusEx(ptr) kernelbase.GlobalMemoryStatusEx
+@ stdcall GlobalReAlloc(long long long) kernelbase.GlobalReAlloc
+@ stdcall GlobalSize(long) kernelbase.GlobalSize
+@ stdcall GlobalUnWire(long) kernelbase.GlobalUnWire
+@ stdcall GlobalUnfix(long) kernelbase.GlobalUnfix
+@ stdcall GlobalUnlock(long) kernelbase.GlobalUnlock
+@ stdcall GlobalWire(long) kernelbase.GlobalWire
+@ stdcall Heap32First(ptr long long) kernelbase.Heap32First
+@ stdcall Heap32ListFirst(long ptr) kernelbase.Heap32ListFirst
+@ stdcall Heap32ListNext(long ptr) kernelbase.Heap32ListNext
+@ stdcall Heap32Next(ptr) kernelbase.Heap32Next
+@ stdcall HeapAlloc(long long long) kernelbase.HeapAlloc
+@ stdcall HeapCompact(long long) kernelbase.HeapCompact
+@ stdcall HeapCreate(long long long) kernelbase.HeapCreate
+@ stdcall -version=0x351-0x502 HeapCreateTagsW(ptr long wstr wstr) kernelbase.HeapCreateTagsW
+@ stdcall HeapDestroy(long) kernelbase.HeapDestroy
+@ stdcall -version=0x351-0x502 HeapExtend(long long ptr long) kernelbase.HeapExtend
+@ stdcall HeapFree(long long long) kernelbase.HeapFree
+@ stdcall HeapLock(long) kernelbase.HeapLock
+@ stdcall HeapQueryInformation(long long ptr long ptr) kernelbase.HeapQueryInformation
+@ stdcall -version=0x351-0x502 HeapQueryTagW(long long long long ptr) kernelbase.HeapQueryTagW
+@ stdcall HeapReAlloc(long long ptr long) kernelbase.HeapReAlloc
+@ stdcall HeapSetInformation(ptr long ptr long) kernelbase.HeapSetInformation
+@ stdcall HeapSize(long long ptr) kernelbase.HeapSize
+@ stdcall HeapSummary(long long ptr) kernelbase.HeapSummary
+@ stdcall HeapUnlock(long) kernelbase.HeapUnlock
+@ stdcall -version=0x351-0x502 HeapUsage(long long long long ptr) kernelbase.HeapUsage
+@ stdcall HeapValidate(long long ptr) kernelbase.HeapValidate
+@ stdcall HeapWalk(long ptr) kernelbase.HeapWalk
+@ stdcall -stub -version=0x600+ IdnToAscii(long wstr long ptr long) kernelbase.IdnToAscii
+@ stdcall -stub -version=0x600+ IdnToNameprepUnicode(long wstr long ptr long) kernelbase.IdnToNameprepUnicode
+@ stdcall -stub -version=0x600+ IdnToUnicode(long wstr long ptr long) kernelbase.IdnToUnicode
+@ stdcall InitAtomTable(long)
+@ stdcall -version=0x600+ InitOnceBeginInitialize(ptr long ptr ptr) kernelbase.InitOnceBeginInitialize
+@ stdcall -version=0x600+ InitOnceComplete(ptr long ptr) kernelbase.InitOnceComplete
+@ stdcall -version=0x600+ InitOnceExecuteOnce(ptr ptr ptr ptr) kernelbase.InitOnceExecuteOnce
+@ stdcall -version=0x600+ InitOnceInitialize(ptr) kernelbase.InitOnceInitialize
+@ stdcall -version=0x600+ InitializeConditionVariable(ptr) kernelbase.InitializeConditionVariable
+@ stdcall InitializeCriticalSection(ptr) kernelbase.InitializeCriticalSection
+@ stdcall InitializeCriticalSectionAndSpinCount(ptr long) kernelbase.InitializeCriticalSectionAndSpinCount
+@ stdcall -version=0x600+ InitializeCriticalSectionEx(ptr long long) kernelbase.InitializeCriticalSectionEx
+@ stdcall -version=0x600+ InitializeProcThreadAttributeList(ptr long long ptr) kernelbase.InitializeProcThreadAttributeList
+@ stdcall InitializeSListHead(ptr) kernelbase.InitializeSListHead
+@ stdcall -version=0x600+ InitializeSRWLock(ptr) kernelbase.InitializeSRWLock
+@ stdcall -arch=i386 -ret64 InterlockedCompareExchange64(ptr double double) kernelbase.InterlockedCompareExchange64
+@ stdcall -arch=i386 InterlockedCompareExchange(ptr long long) kernelbase.InterlockedCompareExchange
+@ stdcall -arch=i386 InterlockedDecrement(ptr) kernelbase.InterlockedDecrement
+@ stdcall -arch=i386 InterlockedExchange(ptr long) kernelbase.InterlockedExchange
+@ stdcall -arch=i386 InterlockedExchangeAdd(ptr long) kernelbase.InterlockedExchangeAdd
+@ stdcall InterlockedFlushSList(ptr) kernelbase.InterlockedFlushSList
+@ stdcall -arch=i386 InterlockedIncrement(ptr) kernelbase.InterlockedIncrement
+@ stdcall InterlockedPopEntrySList(ptr) kernelbase.InterlockedPopEntrySList
+@ stdcall InterlockedPushEntrySList(ptr ptr) kernelbase.InterlockedPushEntrySList
+@ fastcall -version=0x600+ InterlockedPushListSList(ptr ptr ptr long) kernelbase.InterlockedPushListSList
+@ stdcall InvalidateConsoleDIBits(long long) kernelbase.InvalidateConsoleDIBits
+@ stdcall IsBadCodePtr(ptr) kernelbase.IsBadCodePtr
+@ stdcall IsBadHugeReadPtr(ptr long) kernelbase.IsBadHugeReadPtr
+@ stdcall IsBadHugeWritePtr(ptr long) kernelbase.IsBadHugeWritePtr
+@ stdcall IsBadReadPtr(ptr long) kernelbase.IsBadReadPtr
+@ stdcall IsBadStringPtrA(ptr long) kernelbase.IsBadStringPtrA
+@ stdcall IsBadStringPtrW(ptr long) kernelbase.IsBadStringPtrW
+@ stdcall IsBadWritePtr(ptr long) kernelbase.IsBadWritePtr
 @ stub -version=0x600+ IsCalendarLeapDay
 @ stub -version=0x600+ IsCalendarLeapMonth
 @ stub -version=0x600+ IsCalendarLeapYear
-@ stdcall IsDBCSLeadByte(long) kernel32_win7.IsDBCSLeadByte
-@ stdcall IsDBCSLeadByteEx(long long) kernel32_win7.IsDBCSLeadByteEx
-@ stdcall IsDebuggerPresent() kernel32_win7.IsDebuggerPresent
-@ stdcall IsNLSDefinedString(long long ptr long long) kernel32_win7.IsNLSDefinedString
-@ stdcall -stub -version=0x600+ IsNormalizedString(long wstr long) kernel32_win7.IsNormalizedString
-@ stdcall IsProcessInJob(long long ptr) kernel32_win7.IsProcessInJob
-@ stdcall IsProcessorFeaturePresent(long) kernel32_win7.IsProcessorFeaturePresent
-@ stdcall IsSystemResumeAutomatic() kernel32_win7.IsSystemResumeAutomatic
-@ stdcall -version=0x600+ IsThreadAFiber() kernel32_win7.IsThreadAFiber
-@ stub -version=0x600+ IsThreadpoolTimerSet
-@ stdcall IsTimeZoneRedirectionEnabled() kernel32_win7.IsTimeZoneRedirectionEnabled
+@ stdcall IsDBCSLeadByte(long) kernelbase.IsDBCSLeadByte
+@ stdcall IsDBCSLeadByteEx(long long) kernelbase.IsDBCSLeadByteEx
+@ stdcall IsDebuggerPresent() kernelbase.IsDebuggerPresent
+@ stdcall IsNLSDefinedString(long long ptr long long) kernelbase.IsNLSDefinedString
+@ stdcall -stub -version=0x600+ IsNormalizedString(long wstr long) kernelbase.IsNormalizedString
+@ stdcall IsProcessInJob(long long ptr) kernelbase.IsProcessInJob
+@ stdcall IsProcessorFeaturePresent(long) kernelbase.IsProcessorFeaturePresent
+@ stdcall IsSystemResumeAutomatic() kernelbase.IsSystemResumeAutomatic
+@ stdcall -version=0x600+ IsThreadAFiber() kernelbase.IsThreadAFiber
+@ stdcall -version=0x600+ IsThreadpoolTimerSet() ntdll.TpIsTimerSet
+@ stdcall IsTimeZoneRedirectionEnabled() kernelbase.IsTimeZoneRedirectionEnabled
 @ stub -version=0x600+ IsValidCalDateTime
-@ stdcall IsValidCodePage(long) kernel32_win7.IsValidCodePage
-@ stdcall IsValidLanguageGroup(long long) kernel32_win7.IsValidLanguageGroup
-@ stdcall IsValidLocale(long long) kernel32_win7.IsValidLocale
-@ stdcall -version=0x501-0x502 IsValidUILanguage(long) kernel32_win7.IsValidUILanguage
-@ stdcall IsWow64Process(ptr ptr) kernel32_win7.IsWow64Process
-@ stdcall -version=0x601+ K32EmptyWorkingSet(long) kernel32_win7.K32EmptyWorkingSet
-@ stdcall -version=0x601+ K32EnumDeviceDrivers(ptr long ptr) kernel32_win7.K32EnumDeviceDrivers
-@ stdcall -version=0x601+ K32EnumPageFilesA(ptr ptr) kernel32_win7.K32EnumPageFilesA
-@ stdcall -version=0x601+ K32EnumPageFilesW(ptr ptr) kernel32_win7.K32EnumPageFilesW
-@ stdcall -version=0x601+ K32EnumProcessModules(long ptr long ptr) kernel32_win7.K32EnumProcessModules
-@ stdcall -stub -version=0x601+ K32EnumProcessModulesEx(long ptr long ptr long) kernel32_win7.K32EnumProcessModulesEx
-@ stdcall -version=0x601+ K32EnumProcesses(ptr long ptr) kernel32_win7.K32EnumProcesses
-@ stdcall -version=0x601+ K32GetDeviceDriverBaseNameA(ptr ptr long) kernel32_win7.K32GetDeviceDriverBaseNameA
-@ stdcall -version=0x601+ K32GetDeviceDriverBaseNameW(ptr ptr long) kernel32_win7.K32GetDeviceDriverBaseNameW
-@ stdcall -version=0x601+ K32GetDeviceDriverFileNameA(ptr ptr long) kernel32_win7.K32GetDeviceDriverFileNameA
-@ stdcall -version=0x601+ K32GetDeviceDriverFileNameW(ptr ptr long) kernel32_win7.K32GetDeviceDriverFileNameW
-@ stdcall -version=0x601+ K32GetMappedFileNameA(long ptr ptr long) kernel32_win7.K32GetMappedFileNameA
-@ stdcall -version=0x601+ K32GetMappedFileNameW(long ptr ptr long) kernel32_win7.K32GetMappedFileNameW
-@ stdcall -version=0x601+ K32GetModuleBaseNameA(long long ptr long) kernel32_win7.K32GetModuleBaseNameA
-@ stdcall -version=0x601+ K32GetModuleBaseNameW(long long ptr long) kernel32_win7.K32GetModuleBaseNameW
-@ stdcall -version=0x601+ K32GetModuleFileNameExA(long long ptr long) kernel32_win7.K32GetModuleFileNameExA
-@ stdcall -version=0x601+ K32GetModuleFileNameExW(long long ptr long) kernel32_win7.K32GetModuleFileNameExW
-@ stdcall -version=0x601+ K32GetModuleInformation(long long ptr long) kernel32_win7.K32GetModuleInformation
-@ stdcall -version=0x601+ K32GetPerformanceInfo(ptr long) kernel32_win7.K32GetPerformanceInfo
-@ stdcall -version=0x601+ K32GetProcessImageFileNameA(long ptr long) kernel32_win7.K32GetProcessImageFileNameA
-@ stdcall -version=0x601+ K32GetProcessImageFileNameW(long ptr long) kernel32_win7.K32GetProcessImageFileNameW
-@ stdcall -version=0x601+ K32GetProcessMemoryInfo(long ptr long) kernel32_win7.K32GetProcessMemoryInfo
-@ stdcall -version=0x601+ K32GetWsChanges(long ptr long) kernel32_win7.K32GetWsChanges
-@ stdcall -stub -version=0x601+ K32GetWsChangesEx(long ptr ptr) kernel32_win7.K32GetWsChangesEx
-@ stdcall -version=0x601+ K32InitializeProcessForWsWatch(long) kernel32_win7.K32InitializeProcessForWsWatch
-@ stdcall -version=0x601+ K32QueryWorkingSet(long ptr long) kernel32_win7.K32QueryWorkingSet
-@ stdcall -version=0x601+ K32QueryWorkingSetEx(long ptr long) kernel32_win7.K32QueryWorkingSetEx
-@ stdcall -version=0x600+ LCIDToLocaleName(long wstr long long) kernel32_win7.LCIDToLocaleName
-@ stdcall LCMapStringA(long long str long ptr long) kernel32_win7.LCMapStringA
-@ stdcall -version=0x600+ LCMapStringEx(long long wstr long ptr long ptr ptr long) kernel32_win7.LCMapStringEx
-@ stdcall LCMapStringW(long long wstr long ptr long) kernel32_win7.LCMapStringW
+@ stdcall IsValidCodePage(long) kernelbase.IsValidCodePage
+@ stdcall IsValidLanguageGroup(long long) kernelbase.IsValidLanguageGroup
+@ stdcall IsValidLocale(long long) kernelbase.IsValidLocale
+@ stdcall -version=0x501-0x502 IsValidUILanguage(long) kernelbase.IsValidUILanguage
+@ stdcall -stub -version=0x602+ IsValidNLSVersion(long wstr ptr)
+@ stdcall IsWow64Process(ptr ptr) kernelbase.IsWow64Process
+@ stdcall -version=0xA00+ IsWow64Process2(ptr ptr ptr) kernelbase.IsWow64Process2
+@ stdcall -version=0x601+ K32EmptyWorkingSet(long) kernelbase.K32EmptyWorkingSet
+@ stdcall -version=0x601+ K32EnumDeviceDrivers(ptr long ptr) kernelbase.K32EnumDeviceDrivers
+@ stdcall -version=0x601+ K32EnumPageFilesA(ptr ptr) kernelbase.K32EnumPageFilesA
+@ stdcall -version=0x601+ K32EnumPageFilesW(ptr ptr) kernelbase.K32EnumPageFilesW
+@ stdcall -version=0x601+ K32EnumProcessModules(long ptr long ptr) kernelbase.K32EnumProcessModules
+@ stdcall -version=0x601+ K32EnumProcessModulesEx(long ptr long ptr long) kernelbase.K32EnumProcessModulesEx
+@ stdcall -version=0x601+ K32EnumProcesses(ptr long ptr) kernelbase.K32EnumProcesses
+@ stdcall -version=0x601+ K32GetDeviceDriverBaseNameA(ptr ptr long) kernelbase.K32GetDeviceDriverBaseNameA
+@ stdcall -version=0x601+ K32GetDeviceDriverBaseNameW(ptr ptr long) kernelbase.K32GetDeviceDriverBaseNameW
+@ stdcall -version=0x601+ K32GetDeviceDriverFileNameA(ptr ptr long) kernelbase.K32GetDeviceDriverFileNameA
+@ stdcall -version=0x601+ K32GetDeviceDriverFileNameW(ptr ptr long) kernelbase.K32GetDeviceDriverFileNameW
+@ stdcall -version=0x601+ K32GetMappedFileNameA(long ptr ptr long) kernelbase.K32GetMappedFileNameA
+@ stdcall -version=0x601+ K32GetMappedFileNameW(long ptr ptr long) kernelbase.K32GetMappedFileNameW
+@ stdcall -version=0x601+ K32GetModuleBaseNameA(long long ptr long) kernelbase.K32GetModuleBaseNameA
+@ stdcall -version=0x601+ K32GetModuleBaseNameW(long long ptr long) kernelbase.K32GetModuleBaseNameW
+@ stdcall -version=0x601+ K32GetModuleFileNameExA(long long ptr long) kernelbase.K32GetModuleFileNameExA
+@ stdcall -version=0x601+ K32GetModuleFileNameExW(long long ptr long) kernelbase.K32GetModuleFileNameExW
+@ stdcall -version=0x601+ K32GetModuleInformation(long long ptr long) kernelbase.K32GetModuleInformation
+@ stdcall -version=0x601+ K32GetPerformanceInfo(ptr long) kernelbase.K32GetPerformanceInfo
+@ stdcall -version=0x601+ K32GetProcessImageFileNameA(long ptr long) kernelbase.K32GetProcessImageFileNameA
+@ stdcall -version=0x601+ K32GetProcessImageFileNameW(long ptr long) kernelbase.K32GetProcessImageFileNameW
+@ stdcall -version=0x601+ K32GetProcessMemoryInfo(long ptr long) kernelbase.K32GetProcessMemoryInfo
+@ stdcall -version=0x601+ K32GetWsChanges(long ptr long) kernelbase.K32GetWsChanges
+@ stdcall -stub -version=0x601+ K32GetWsChangesEx(long ptr ptr) kernelbase.K32GetWsChangesEx
+@ stdcall -version=0x601+ K32InitializeProcessForWsWatch(long) kernelbase.K32InitializeProcessForWsWatch
+@ stdcall -version=0x601+ K32QueryWorkingSet(long ptr long) kernelbase.K32QueryWorkingSet
+@ stdcall -version=0x601+ K32QueryWorkingSetEx(long ptr long) kernelbase.K32QueryWorkingSetEx
+@ stdcall -version=0x600+ LCIDToLocaleName(long wstr long long) kernelbase.LCIDToLocaleName
+@ stdcall LCMapStringA(long long str long ptr long) kernelbase.LCMapStringA
+@ stdcall -version=0x600+ LCMapStringEx(long long wstr long ptr long ptr ptr long) kernelbase.LCMapStringEx
+@ stdcall LCMapStringW(long long wstr long ptr long) kernelbase.LCMapStringW
 @ stdcall LZClose(long)
 @ stdcall LZCloseFile(long)
 @ stdcall LZCopy(long long)
@@ -803,169 +862,228 @@
 @ stdcall LZSeek(long long long)
 @ stdcall LZStart() 
 @ stdcall LeaveCriticalSection(ptr) ntdll.RtlLeaveCriticalSection
-@ stub -version=0x600+ LeaveCriticalSectionWhenCallbackReturns
-@ stdcall LoadLibraryA(str) kernel32_win7.LoadLibraryA
-@ stdcall LoadLibraryExA(str long long) kernel32_win7.LoadLibraryExA
-@ stdcall LoadLibraryExW(wstr long long) kernel32_win7.LoadLibraryExW
-@ stdcall LoadLibraryW(wstr) kernel32_win7.LoadLibraryW
-@ stdcall LoadModule(str ptr) kernel32_win7.LoadModule
-@ stdcall LoadResource(long long) kernel32_win7.LoadResource
+@ stdcall -version=0x600+ LeaveCriticalSectionWhenCallbackReturns(ptr ptr) ntdll.TpCallbackLeaveCriticalSectionOnCompletion
+@ stdcall -version=0x601+ LoadAppInitDlls() kernelbase.LoadAppInitDlls
+@ stdcall LoadLibraryA(str) kernelbase.LoadLibraryA
+@ stdcall LoadLibraryExA(str long long) kernelbase.LoadLibraryExA
+@ stdcall LoadLibraryExW(wstr long long) kernelbase.LoadLibraryExW
+@ stdcall LoadLibraryW(wstr) kernelbase.LoadLibraryW
+@ stdcall LoadModule(str ptr) kernelbase.LoadModule
+@ stdcall -version=0x602+ LoadPackagedLibrary(wstr long) kernelbase.LoadPackagedLibrary
+@ stdcall LoadResource(long long) kernelbase.LoadResource
 @ stub -version=0x600+ LoadStringBaseExW
 @ stub -version=0x600+ LoadStringBaseW
-@ stdcall LocalAlloc(long long) kernel32_win7.LocalAlloc
-@ stdcall LocalCompact(long) kernel32_win7.LocalCompact
-@ stdcall LocalFileTimeToFileTime(ptr ptr) kernel32_win7.LocalFileTimeToFileTime
-@ stdcall LocalFlags(long) kernel32_win7.LocalFlags
-@ stdcall LocalFree(long) kernel32_win7.LocalFree
-@ stdcall LocalHandle(ptr) kernel32_win7.LocalHandle
-@ stdcall LocalLock(long) kernel32_win7.LocalLock
-@ stdcall LocalReAlloc(long long long) kernel32_win7.LocalReAlloc
-@ stdcall LocalShrink(long long) kernel32_win7.LocalShrink
-@ stdcall LocalSize(long) kernel32_win7.LocalSize
-@ stdcall LocalUnlock(long) kernel32_win7.LocalUnlock
-@ stdcall -version=0x600+ LocaleNameToLCID(wstr long) kernel32_win7.LocaleNameToLCID
-@ stdcall LockFile(long long long long long) kernel32_win7.LockFile
-@ stdcall LockFileEx(long long long long long ptr) kernel32_win7.LockFileEx
-@ stdcall LockResource(long) kernel32_win7.LockResource
-@ stdcall MapUserPhysicalPages(ptr long ptr) kernel32_win7.MapUserPhysicalPages
-@ stdcall MapUserPhysicalPagesScatter(ptr long ptr) kernel32_win7.MapUserPhysicalPagesScatter
-@ stdcall MapViewOfFile(long long long long long) kernel32_win7.MapViewOfFile
-@ stdcall MapViewOfFileEx(long long long long long ptr) kernel32_win7.MapViewOfFileEx
+@ stdcall LocalAlloc(long long) kernelbase.LocalAlloc
+@ stdcall LocalCompact(long) kernelbase.LocalCompact
+@ stdcall LocalFileTimeToFileTime(ptr ptr) kernelbase.LocalFileTimeToFileTime
+@ stdcall LocalFlags(long) kernelbase.LocalFlags
+@ stdcall LocalFree(long) kernelbase.LocalFree
+@ stdcall LocalHandle(ptr) kernelbase.LocalHandle
+@ stdcall LocalLock(long) kernelbase.LocalLock
+@ stdcall LocalReAlloc(long long long) kernelbase.LocalReAlloc
+@ stdcall LocalShrink(long long) kernelbase.LocalShrink
+@ stdcall LocalSize(long) kernelbase.LocalSize
+@ stdcall LocalUnlock(long) kernelbase.LocalUnlock
+@ stdcall -version=0x600+ LocaleNameToLCID(wstr long) kernelbase.LocaleNameToLCID
+@ stdcall LockFile(long long long long long) kernelbase.LockFile
+@ stdcall LockFileEx(long long long long long ptr) kernelbase.LockFileEx
+@ stdcall LockResource(long) kernelbase.LockResource
+@ stdcall MapUserPhysicalPages(ptr long ptr) kernelbase.MapUserPhysicalPages
+@ stdcall MapUserPhysicalPagesScatter(ptr long ptr) kernelbase.MapUserPhysicalPagesScatter
+@ stdcall MapViewOfFile(long long long long long) kernelbase.MapViewOfFile
+@ stdcall MapViewOfFileEx(long long long long long ptr) kernelbase.MapViewOfFileEx
 @ stub -version=0x600+ MapViewOfFileExNuma
-@ stdcall Module32First(long ptr) kernel32_win7.Module32First
-@ stdcall Module32FirstW(long ptr) kernel32_win7.Module32FirstW
-@ stdcall Module32Next(long ptr) kernel32_win7.Module32Next
-@ stdcall Module32NextW(long ptr) kernel32_win7.Module32NextW
-@ stdcall MoveFileA(str str) kernel32_win7.MoveFileA
-@ stdcall MoveFileExA(str str long) kernel32_win7.MoveFileExA
-@ stdcall MoveFileExW(wstr wstr long) kernel32_win7.MoveFileExW
-@ stub -version=0x600+ MoveFileTransactedA
-@ stub -version=0x600+ MoveFileTransactedW
-@ stdcall MoveFileW(wstr wstr) kernel32_win7.MoveFileW
-@ stdcall MoveFileWithProgressA(str str ptr ptr long) kernel32_win7.MoveFileWithProgressA
-@ stdcall MoveFileWithProgressW(wstr wstr ptr ptr long) kernel32_win7.MoveFileWithProgressW
-@ stdcall MulDiv(long long long) kernel32_win7.MulDiv
-@ stdcall MultiByteToWideChar(long long str long ptr long) kernel32_win7.MultiByteToWideChar
-@ stdcall NeedCurrentDirectoryForExePathA(str) kernel32_win7.NeedCurrentDirectoryForExePathA
-@ stdcall NeedCurrentDirectoryForExePathW(wstr) kernel32_win7.NeedCurrentDirectoryForExePathW
+@ stdcall -stub -version=0x602+ MapViewOfFileFromApp(long long int64 long)
+@ stdcall Module32First(long ptr) kernelbase.Module32First
+@ stdcall Module32FirstW(long ptr) kernelbase.Module32FirstW
+@ stdcall Module32Next(long ptr) kernelbase.Module32Next
+@ stdcall Module32NextW(long ptr) kernelbase.Module32NextW
+@ stdcall MoveFileA(str str) kernelbase.MoveFileA
+@ stdcall MoveFileExA(str str long) kernelbase.MoveFileExA
+@ stdcall MoveFileExW(wstr wstr long) kernelbase.MoveFileExW
+@ stdcall -version=0x600+ MoveFileTransactedA(str str ptr ptr long ptr)
+@ stdcall -version=0x600+ MoveFileTransactedW(wstr wstr ptr ptr long ptr)
+@ stdcall MoveFileW(wstr wstr) kernelbase.MoveFileW
+@ stdcall MoveFileWithProgressA(str str ptr ptr long) kernelbase.MoveFileWithProgressA
+@ stdcall MoveFileWithProgressW(wstr wstr ptr ptr long) kernelbase.MoveFileWithProgressW
+@ stdcall MulDiv(long long long) kernelbase.MulDiv
+@ stdcall MultiByteToWideChar(long long str long ptr long) kernelbase.MultiByteToWideChar
+@ stdcall NeedCurrentDirectoryForExePathA(str) kernelbase.NeedCurrentDirectoryForExePathA
+@ stdcall NeedCurrentDirectoryForExePathW(wstr) kernelbase.NeedCurrentDirectoryForExePathW
 @ stub -version=0x600+ NlsCheckPolicy
-@ stdcall -version=0x500-0x600 NlsConvertIntegerToString(long long long wstr long) kernel32_win7.NlsConvertIntegerToString
+@ stdcall -version=0x500-0x600 NlsConvertIntegerToString(long long long wstr long) kernelbase.NlsConvertIntegerToString
 @ stub -version=0x600+ NlsEventDataDescCreate
-@ stdcall NlsGetCacheUpdateCount() kernel32_win7.NlsGetCacheUpdateCount
-@ stdcall -version=0x500-0x502 NlsResetProcessLocale() kernel32_win7.NlsResetProcessLocale
+@ stdcall NlsGetCacheUpdateCount() kernelbase.NlsGetCacheUpdateCount
+@ stdcall -version=0x500-0x502 NlsResetProcessLocale() kernelbase.NlsResetProcessLocale
 @ stub -version=0x600+ NlsUpdateLocale
 @ stub -version=0x600+ NlsUpdateSystemLocale
 @ stub -version=0x600+ NlsWriteEtwEvent
-@ stdcall -stub -version=0x600+ NormalizeString(long wstr long ptr long) kernel32_win7.NormalizeString
-@ stdcall -stub -version=0x600+ NotifyUILanguageChange(long wstr wstr long ptr) kernel32_win7.NotifyUILanguageChange
-@ stdcall OpenConsoleW(wstr long long long) kernel32_win7.OpenConsoleW
-@ stdcall -version=0x500-0x502 OpenDataFile(long long) kernel32_win7.OpenDataFile
-@ stdcall OpenEventA(long long str) kernel32_win7.OpenEventA
-@ stdcall OpenEventW(long long wstr) kernel32_win7.OpenEventW
-@ stdcall OpenFile(str ptr long) kernel32_win7.OpenFile
-@ stdcall -version=0x600+ OpenFileById(ptr ptr long long ptr long) kernel32_win7.OpenFileById
-@ stdcall OpenFileMappingA(long long str) kernel32_win7.OpenFileMappingA
-@ stdcall OpenFileMappingW(long long wstr) kernel32_win7.OpenFileMappingW
-@ stdcall OpenJobObjectA(long long str) kernel32_win7.OpenJobObjectA
-@ stdcall OpenJobObjectW(long long wstr) kernel32_win7.OpenJobObjectW
-@ stdcall OpenMutexA(long long str) kernel32_win7.OpenMutexA
-@ stdcall OpenMutexW(long long wstr) kernel32_win7.OpenMutexW
+@ stdcall -stub -version=0x600+ NormalizeString(long wstr long ptr long) kernelbase.NormalizeString
+@ stdcall -stub -version=0x600+ NotifyUILanguageChange(long wstr wstr long ptr) kernelbase.NotifyUILanguageChange
+@ stdcall OpenConsoleW(wstr long long long) kernelbase.OpenConsoleW
+@ stdcall -version=0x500-0x502 OpenDataFile(long long) kernelbase.OpenDataFile
+@ stdcall OpenEventA(long long str) kernelbase.OpenEventA
+@ stdcall OpenEventW(long long wstr) kernelbase.OpenEventW
+@ stdcall OpenFile(str ptr long) kernelbase.OpenFile
+@ stdcall -version=0x600+ OpenFileById(ptr ptr long long ptr long) kernelbase.OpenFileById
+@ stdcall OpenFileMappingA(long long str) kernelbase.OpenFileMappingA
+@ stdcall OpenFileMappingW(long long wstr) kernelbase.OpenFileMappingW
+@ stdcall OpenJobObjectA(long long str) 
+@ stdcall OpenJobObjectW(long long wstr)
+@ stdcall OpenMutexA(long long str) kernelbase.OpenMutexA
+@ stdcall OpenMutexW(long long wstr) kernelbase.OpenMutexW
 @ stub -version=0x600+ OpenPrivateNamespaceA
 @ stub -version=0x600+ OpenPrivateNamespaceW
-@ stdcall OpenProcess(long long long) kernel32_win7.OpenProcess
-@ stdcall OpenProfileUserMapping() kernel32_win7.OpenProfileUserMapping
-@ stdcall OpenSemaphoreA(long long str) kernel32_win7.OpenSemaphoreA
-@ stdcall OpenSemaphoreW(long long wstr) kernel32_win7.OpenSemaphoreW
-@ stdcall OpenThread(long long long) kernel32_win7.OpenThread
-@ stdcall OpenWaitableTimerA(long long str) kernel32_win7.OpenWaitableTimerA
-@ stdcall OpenWaitableTimerW(long long wstr) kernel32_win7.OpenWaitableTimerW
-@ stdcall OutputDebugStringA(str) kernel32_win7.OutputDebugStringA
-@ stdcall OutputDebugStringW(wstr) kernel32_win7.OutputDebugStringW
-@ stdcall PeekConsoleInputA(ptr ptr long ptr) kernel32_win7.PeekConsoleInputA
-@ stdcall PeekConsoleInputW(ptr ptr long ptr) kernel32_win7.PeekConsoleInputW
-@ stdcall PeekNamedPipe(long ptr long ptr ptr ptr) kernel32_win7.PeekNamedPipe
-@ stdcall PostQueuedCompletionStatus(long long ptr ptr) kernel32_win7.PostQueuedCompletionStatus
-@ stdcall PrepareTape(ptr long long) kernel32_win7.PrepareTape
-@ stdcall PrivCopyFileExW(wstr wstr ptr ptr long long) kernel32_win7.PrivCopyFileExW
-@ stdcall PrivMoveFileIdentityW(long long long) kernel32_win7.PrivMoveFileIdentityW
-@ stdcall Process32First(ptr ptr) kernel32_win7.Process32First
-@ stdcall Process32FirstW(ptr ptr) kernel32_win7.Process32FirstW
-@ stdcall Process32Next(ptr ptr) kernel32_win7.Process32Next
-@ stdcall Process32NextW(ptr ptr) kernel32_win7.Process32NextW
-@ stdcall ProcessIdToSessionId(long ptr) kernel32_win7.ProcessIdToSessionId
-@ stdcall PulseEvent(long) kernel32_win7.PulseEvent
-@ stdcall PurgeComm(long long) kernel32_win7.PurgeComm
-@ stub -version=0x600+ QueryActCtxSettingsW
-@ stdcall QueryActCtxW(long ptr ptr long ptr long ptr) kernel32_win7.QueryActCtxW
+@ stdcall OpenProcess(long long long) kernelbase.OpenProcess
+@ stdcall -version=0x601+ OpenProcessToken(long long ptr) kernelbase.OpenProcessToken
+@ stdcall OpenProfileUserMapping() kernelbase.OpenProfileUserMapping
+@ stdcall OpenSemaphoreA(long long str) kernelbase.OpenSemaphoreA
+@ stdcall OpenSemaphoreW(long long wstr) kernelbase.OpenSemaphoreW
+@ stdcall OpenThread(long long long) kernelbase.OpenThread
+@ stdcall -version=0x601+ OpenThreadToken(long long long ptr) kernelbase.OpenThreadToken
+@ stdcall OpenWaitableTimerA(long long str) kernelbase.OpenWaitableTimerA
+@ stdcall OpenWaitableTimerW(long long wstr) kernelbase.OpenWaitableTimerW
+@ stdcall OutputDebugStringA(str) kernelbase.OutputDebugStringA
+@ stdcall OutputDebugStringW(wstr) kernelbase.OutputDebugStringW
+@ stdcall PeekConsoleInputA(ptr ptr long ptr) kernelbase.PeekConsoleInputA
+@ stdcall PeekConsoleInputW(ptr ptr long ptr) kernelbase.PeekConsoleInputW
+@ stdcall PeekNamedPipe(long ptr long ptr ptr ptr) kernelbase.PeekNamedPipe
+@ stdcall PostQueuedCompletionStatus(long long ptr ptr) kernelbase.PostQueuedCompletionStatus
+@ stdcall -version=0x602+ PackageIdFromFullName(wstr long ptr ptr) kernelbase.PackageIdFromFullName
+@ stdcall -version=0x601+ PowerClearRequest(long long)
+@ stdcall -version=0x601+ PowerCreateRequest(ptr)
+@ stdcall -version=0x601+ PowerSetRequest(long long)
+@ stdcall PrepareTape(ptr long long) kernelbase.PrepareTape
+@ stdcall PrivCopyFileExW(wstr wstr ptr ptr long long) kernelbase.PrivCopyFileExW
+@ stdcall PrivMoveFileIdentityW(long long long) kernelbase.PrivMoveFileIdentityW
+@ stdcall Process32First(ptr ptr) kernelbase.Process32First
+@ stdcall Process32FirstW(ptr ptr) kernelbase.Process32FirstW
+@ stdcall Process32Next(ptr ptr) kernelbase.Process32Next
+@ stdcall Process32NextW(ptr ptr) kernelbase.Process32NextW
+@ stdcall ProcessIdToSessionId(long ptr) kernelbase.ProcessIdToSessionId
+@ stdcall PulseEvent(long) kernelbase.PulseEvent
+@ stdcall PurgeComm(long long) kernelbase.PurgeComm
+@ stdcall -stub -version=0x600+ QueryActCtxSettingsW(long ptr wstr wstr ptr long ptr)
+@ stdcall QueryActCtxW(long ptr ptr long ptr long ptr) kernelbase.QueryActCtxW
 @ stdcall QueryDepthSList(ptr) ntdll.RtlQueryDepthSList
-@ stdcall QueryDosDeviceA(str ptr long) kernel32_win7.QueryDosDeviceA
-@ stdcall QueryDosDeviceW(wstr ptr long) kernel32_win7.QueryDosDeviceW
-@ stdcall -version=0x600+ QueryFullProcessImageNameA(ptr long str ptr) kernel32_win7.QueryFullProcessImageNameA
-@ stdcall -version=0x600+ QueryFullProcessImageNameW(ptr long wstr ptr) kernel32_win7.QueryFullProcessImageNameW
-@ stub -version=0x600+ QueryIdleProcessorCycleTime
-@ stdcall QueryInformationJobObject(long long ptr long ptr) kernel32_win7.QueryInformationJobObject
-@ stdcall QueryMemoryResourceNotification(ptr ptr) kernel32_win7.QueryMemoryResourceNotification
-@ stdcall QueryPerformanceCounter(ptr) kernel32_win7.QueryPerformanceCounter
-@ stdcall QueryPerformanceFrequency(ptr) kernel32_win7.QueryPerformanceFrequency
+@ stdcall QueryDosDeviceA(str ptr long) kernelbase.QueryDosDeviceA
+@ stdcall QueryDosDeviceW(wstr ptr long) kernelbase.QueryDosDeviceW
+@ stdcall -version=0x600+ QueryFullProcessImageNameA(ptr long str ptr) kernelbase.QueryFullProcessImageNameA
+@ stdcall -version=0x600+ QueryFullProcessImageNameW(ptr long wstr ptr) kernelbase.QueryFullProcessImageNameW
+@ stdcall -version=0x600+ QueryIdleProcessorCycleTime(ptr ptr) kernelbase.QueryIdleProcessorCycleTime
+@ stdcall -version=0x601+ QueryIdleProcessorCycleTimeEx(long ptr ptr) kernelbase.QueryIdleProcessorCycleTimeEx
+@ stdcall QueryInformationJobObject(long long ptr long ptr)
+@ stdcall QueryMemoryResourceNotification(ptr ptr) kernelbase.QueryMemoryResourceNotification
+@ stdcall QueryPerformanceCounter(ptr) kernelbase.QueryPerformanceCounter
+@ stdcall QueryPerformanceFrequency(ptr) kernelbase.QueryPerformanceFrequency
 @ stub -version=0x600+ QueryProcessAffinityUpdateMode
-@ stub -version=0x600+ QueryProcessCycleTime
-@ stub -version=0x600+ QueryThreadCycleTime
-@ stdcall QueueUserAPC(ptr long long) kernel32_win7.QueueUserAPC
-@ stdcall QueueUserWorkItem(ptr ptr long) kernel32_win7.QueueUserWorkItem
-@ stdcall -norelay RaiseException(long long long ptr) kernel32_win7.RaiseException
-@ stdcall ReOpenFile(ptr long long long) kernel32_win7.ReOpenFile
-@ stdcall ReadConsoleA(long ptr long ptr ptr) kernel32_win7.ReadConsoleA
-@ stdcall ReadConsoleInputA(long ptr long ptr) kernel32_win7.ReadConsoleInputA
-@ stdcall ReadConsoleInputExA(long ptr long ptr long) kernel32_win7.ReadConsoleInputExA
-@ stdcall ReadConsoleInputExW(long ptr long ptr long) kernel32_win7.ReadConsoleInputExW
-@ stdcall ReadConsoleInputW(long ptr long ptr) kernel32_win7.ReadConsoleInputW
-@ stdcall ReadConsoleOutputA(long ptr long long ptr) kernel32_win7.ReadConsoleOutputA
-@ stdcall ReadConsoleOutputAttribute(long ptr long long ptr) kernel32_win7.ReadConsoleOutputAttribute
-@ stdcall ReadConsoleOutputCharacterA(long ptr long long ptr) kernel32_win7.ReadConsoleOutputCharacterA
-@ stdcall ReadConsoleOutputCharacterW(long ptr long long ptr) kernel32_win7.ReadConsoleOutputCharacterW
-@ stdcall ReadConsoleOutputW(long ptr long long ptr) kernel32_win7.ReadConsoleOutputW
-@ stdcall ReadConsoleW(long ptr long ptr ptr) kernel32_win7.ReadConsoleW
-@ stdcall ReadDirectoryChangesW(long ptr long long long ptr ptr ptr) kernel32_win7.ReadDirectoryChangesW
-@ stdcall ReadFile(long ptr long ptr ptr) kernel32_win7.ReadFile
-@ stdcall ReadFileEx(long ptr long ptr ptr) kernel32_win7.ReadFileEx
-@ stdcall ReadFileScatter(long ptr long ptr ptr) kernel32_win7.ReadFileScatter
-@ stdcall ReadProcessMemory(long ptr ptr long ptr) kernel32_win7.ReadProcessMemory
+@ stdcall -version=0x600+ QueryProcessCycleTime(long ptr) kernelbase.QueryProcessCycleTime
+@ stdcall -version=0x600+ QueryThreadCycleTime(long ptr) kernelbase.QueryThreadCycleTime
+@ stdcall -stub -version=0x601+ QueryThreadProfiling(ptr ptr)
+@ stdcall -version=0x601+ QueryThreadpoolStackInformation(ptr ptr) kernelbase.QueryThreadpoolStackInformation
+@ stdcall -version=0x601+ -arch=win64 QueryUmsThreadInformation(ptr long ptr long ptr)
+@ stdcall QueryUnbiasedInterruptTime(ptr); kernelbase.QueryUnbiasedInterruptTimePrecise
+@ stdcall QueueUserAPC(ptr long long) kernelbase.QueueUserAPC
+@ stdcall QueueUserWorkItem(ptr ptr long) kernelbase.QueueUserWorkItem
+@ stdcall -norelay RaiseException(long long long ptr) kernelbase.RaiseException
+@ stdcall ReOpenFile(ptr long long long) kernelbase.ReOpenFile
+@ stdcall ReadConsoleA(long ptr long ptr ptr) kernelbase.ReadConsoleA
+@ stdcall ReadConsoleInputA(long ptr long ptr) kernelbase.ReadConsoleInputA
+@ stdcall ReadConsoleInputExA(long ptr long ptr long) kernelbase.ReadConsoleInputExA
+@ stdcall ReadConsoleInputExW(long ptr long ptr long) kernelbase.ReadConsoleInputExW
+@ stdcall ReadConsoleInputW(long ptr long ptr) kernelbase.ReadConsoleInputW
+@ stdcall ReadConsoleOutputA(long ptr long long ptr) kernelbase.ReadConsoleOutputA
+@ stdcall ReadConsoleOutputAttribute(long ptr long long ptr) kernelbase.ReadConsoleOutputAttribute
+@ stdcall ReadConsoleOutputCharacterA(long ptr long long ptr) kernelbase.ReadConsoleOutputCharacterA
+@ stdcall ReadConsoleOutputCharacterW(long ptr long long ptr) kernelbase.ReadConsoleOutputCharacterW
+@ stdcall ReadConsoleOutputW(long ptr long long ptr) kernelbase.ReadConsoleOutputW
+@ stdcall ReadConsoleW(long ptr long ptr ptr) kernelbase.ReadConsoleW
+@ stdcall ReadDirectoryChangesW(long ptr long long long ptr ptr ptr) kernelbase.ReadDirectoryChangesW
+@ stdcall ReadFile(long ptr long ptr ptr) kernelbase.ReadFile
+@ stdcall ReadFileEx(long ptr long ptr ptr) kernelbase.ReadFileEx
+@ stdcall ReadFileScatter(long ptr long ptr ptr) kernelbase.ReadFileScatter
+@ stdcall ReadProcessMemory(long ptr ptr long ptr) kernelbase.ReadProcessMemory
+# @ stub -version=0x601+ ReadThreadProfilingData
+@ stdcall -version=0x601+ RegCloseKey(long) kernelbase.RegCloseKey
+@ stdcall -version=0x601+ RegEnumKeyExA(long long ptr ptr ptr ptr ptr ptr) kernelbase.RegEnumKeyExA
+@ stdcall -version=0x601+ RegEnumKeyExW(long long ptr ptr ptr ptr ptr ptr) kernelbase.RegEnumKeyExW
+@ stdcall -version=0x601+ RegEnumValueA(long long ptr ptr ptr ptr ptr ptr) kernelbase.RegEnumValueA
+@ stdcall -version=0x601+ RegEnumValueW(long long ptr ptr ptr ptr ptr ptr) kernelbase.RegEnumValueW
+@ stdcall -version=0x601+ RegFlushKey(long) kernelbase.RegFlushKey
+@ stdcall -version=0x601+ RegCreateKeyExA(long str long ptr long long ptr ptr ptr) kernelbase.RegCreateKeyExA
+@ stdcall -version=0x601+ RegCreateKeyExW(long wstr long ptr long long ptr ptr ptr) kernelbase.RegCreateKeyExW
+@ stdcall -version=0x601+ RegDeleteKeyExA(long str long long) kernelbase.RegDeleteKeyExA
+@ stdcall -version=0x601+ RegDeleteKeyExW(long wstr long long) kernelbase.RegDeleteKeyExW
+@ stdcall -version=0x601+ RegDeleteTreeA(long str) kernelbase.RegDeleteTreeA
+@ stdcall -version=0x601+ RegDeleteTreeW(long wstr) kernelbase.RegDeleteTreeW
+@ stdcall -version=0x601+ RegDeleteValueA(long str) kernelbase.RegDeleteValueA
+@ stdcall -version=0x601+ RegDeleteValueW(long wstr) kernelbase.RegDeleteValueW
+# stub -version=0x601+ RegDisablePredefinedCacheEx
+@ stdcall -version=0x601+ RegGetKeySecurity(long long ptr ptr) kernelbase.RegGetKeySecurity
+@ stdcall -version=0x601+ RegGetValueA(long str str long ptr ptr ptr) kernelbase.RegGetValueA
+@ stdcall -version=0x601+ RegGetValueW(long wstr wstr long ptr ptr ptr) kernelbase.RegGetValueW
+# stub -version=0x601+ RegKrnGetGlobalState
+# stub -version=0x601+ RegKrnInitialize
+@ stdcall -version=0x601+ RegLoadKeyA(long str str) kernelbase.RegLoadKeyA
+@ stdcall -version=0x601+ RegLoadKeyW(long wstr wstr) kernelbase.RegLoadKeyW
+@ stdcall -version=0x601+ RegLoadMUIStringA(long str str long ptr long str) kernelbase.RegLoadMUIStringA
+@ stdcall -version=0x601+ RegLoadMUIStringW(long wstr wstr long ptr long wstr) kernelbase.RegLoadMUIStringW
+@ stdcall -version=0x601+ RegNotifyChangeKeyValue(long long long long long) kernelbase.RegNotifyChangeKeyValue
+@ stdcall -version=0x601+ RegOpenCurrentUser(long ptr) kernelbase.RegOpenCurrentUser
+@ stdcall -version=0x601+ RegOpenKeyExA(long str long long ptr) kernelbase.RegOpenKeyExA
+@ stdcall -version=0x601+ RegOpenKeyExW(long wstr long long ptr) kernelbase.RegOpenKeyExW
+@ stdcall -version=0x601+ RegOpenUserClassesRoot(ptr long long ptr) kernelbase.RegOpenUserClassesRoot
+@ stdcall -version=0x601+ RegQueryInfoKeyA(long ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr) kernelbase.RegQueryInfoKeyA
+@ stdcall -version=0x601+ RegQueryInfoKeyW(long ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr) kernelbase.RegQueryInfoKeyW
+@ stdcall -version=0x601+ RegQueryValueExA(long str ptr ptr ptr ptr) kernelbase.RegQueryValueExA
+@ stdcall -version=0x601+ RegQueryValueExW(long wstr ptr ptr ptr ptr) kernelbase.RegQueryValueExW
+@ stdcall -version=0x601+ RegRestoreKeyA(long str long) kernelbase.RegRestoreKeyA
+@ stdcall -version=0x601+ RegRestoreKeyW(long wstr long) kernelbase.RegRestoreKeyW
+@ stdcall -version=0x601+ RegSaveKeyExA(long str ptr long) kernelbase.RegSaveKeyExA
+@ stdcall -version=0x601+ RegSaveKeyExW(long wstr ptr long) kernelbase.RegSaveKeyExW
+@ stdcall -version=0x601+ RegSetKeySecurity(long long ptr) kernelbase.RegSetKeySecurity
+@ stdcall -version=0x601+ RegSetValueExA(long str long long ptr long) kernelbase.RegSetValueExA
+@ stdcall -version=0x601+ RegSetValueExW(long wstr long long ptr long) kernelbase.RegSetValueExW
+@ stdcall -version=0x601+ RegUnLoadKeyA(long str) kernelbase.RegUnLoadKeyA
+@ stdcall -version=0x601+ RegUnLoadKeyW(long wstr) kernelbase.RegUnLoadKeyW
 @ stdcall -version=0x600+ RegisterApplicationRecoveryCallback(ptr ptr long long)
 @ stdcall -version=0x600+ RegisterApplicationRestart(wstr long)
-@ stdcall RegisterConsoleIME(ptr ptr) kernel32_win7.RegisterConsoleIME
-@ stdcall RegisterConsoleOS2(long) kernel32_win7.RegisterConsoleOS2
-@ stdcall RegisterConsoleVDM(long long long long long long long long long long long) kernel32_win7.RegisterConsoleVDM
-@ stdcall RegisterWaitForInputIdle(ptr) kernel32_win7.RegisterWaitForInputIdle
-@ stdcall RegisterWaitForSingleObject(ptr long ptr ptr long long) kernel32_win7.RegisterWaitForSingleObject
-@ stdcall RegisterWaitForSingleObjectEx(long ptr ptr long long) kernel32_win7.RegisterWaitForSingleObjectEx
-@ stdcall RegisterWowBaseHandlers(long) kernel32_win7.RegisterWowBaseHandlers
-@ stdcall RegisterWowExec(long) kernel32_win7.RegisterWowExec
-@ stdcall ReleaseActCtx(ptr) kernel32_win7.ReleaseActCtx
-@ stdcall ReleaseMutex(long) kernel32_win7.ReleaseMutex
-@ stub -version=0x600+ ReleaseMutexWhenCallbackReturns
+@ stdcall RegisterConsoleIME(ptr ptr) kernelbase.RegisterConsoleIME
+@ stdcall RegisterConsoleOS2(long) kernelbase.RegisterConsoleOS2
+@ stdcall RegisterConsoleVDM(long long long long long long long long long long long) kernelbase.RegisterConsoleVDM
+@ stdcall RegisterWaitForInputIdle(ptr) kernelbase.RegisterWaitForInputIdle
+@ stdcall RegisterWaitForSingleObject(ptr long ptr ptr long long) kernelbase.RegisterWaitForSingleObject
+@ stdcall RegisterWaitForSingleObjectEx(long ptr ptr long long) kernelbase.RegisterWaitForSingleObjectEx
+@ stdcall RegisterWowBaseHandlers(long) kernelbase.RegisterWowBaseHandlers
+@ stdcall RegisterWowExec(long) kernelbase.RegisterWowExec
+@ stdcall ReleaseActCtx(ptr) kernelbase.ReleaseActCtx
+@ stdcall ReleaseMutex(long) kernelbase.ReleaseMutex
+@ stdcall -version=0x600+ ReleaseMutexWhenCallbackReturns(ptr long) TpCallbackReleaseMutexOnCompletion
 @ stdcall -version=0x600+ ReleaseSRWLockExclusive(ptr) ntdll.RtlReleaseSRWLockExclusive
 @ stdcall -version=0x600+ ReleaseSRWLockShared(ptr) ntdll.RtlReleaseSRWLockShared
-@ stdcall ReleaseSemaphore(long long ptr) kernel32_win7.ReleaseSemaphore
+@ stdcall ReleaseSemaphore(long long ptr) kernelbase.ReleaseSemaphore
 @ stub -version=0x600+ ReleaseSemaphoreWhenCallbackReturns
-@ stdcall RemoveDirectoryA(str) kernel32_win7.RemoveDirectoryA
-@ stub -version=0x600+ RemoveDirectoryTransactedA
-@ stub -version=0x600+ RemoveDirectoryTransactedW
-@ stdcall RemoveDirectoryW(wstr) kernel32_win7.RemoveDirectoryW
-@ stdcall RemoveLocalAlternateComputerNameA(str long) kernel32_win7.RemoveLocalAlternateComputerNameA
-@ stdcall RemoveLocalAlternateComputerNameW(wstr long) kernel32_win7.RemoveLocalAlternateComputerNameW
+@ stdcall RemoveDirectoryA(str) kernelbase.RemoveDirectoryA
+@ stdcall -version=0x600+ RemoveDirectoryTransactedA(str ptr)
+@ stdcall -version=0x600+ RemoveDirectoryTransactedW(wstr ptr)
+@ stdcall RemoveDirectoryW(wstr) kernelbase.RemoveDirectoryW
+@ stdcall RemoveLocalAlternateComputerNameA(str long) kernelbase.RemoveLocalAlternateComputerNameA
+@ stdcall RemoveLocalAlternateComputerNameW(wstr long) kernelbase.RemoveLocalAlternateComputerNameW
 @ stub -version=0x600+ RemoveSecureMemoryCacheCallback
 @ stdcall RemoveVectoredContinueHandler(ptr) ntdll.RtlRemoveVectoredContinueHandler
 @ stdcall RemoveVectoredExceptionHandler(ptr) ntdll.RtlRemoveVectoredExceptionHandler
-@ stdcall ReplaceFile(wstr wstr wstr long ptr ptr) kernel32_win7.ReplaceFileW
-@ stdcall ReplaceFileA(str str str long ptr ptr) kernel32_win7.ReplaceFileA
-@ stdcall ReplaceFileW(wstr wstr wstr long ptr ptr) kernel32_win7.ReplaceFileW
+@ stdcall ReplaceFile(wstr wstr wstr long ptr ptr) kernelbase.ReplaceFileW
+@ stdcall ReplaceFileA(str str str long ptr ptr) kernelbase.ReplaceFileA
+@ stdcall ReplaceFileW(wstr wstr wstr long ptr ptr) kernelbase.ReplaceFileW
+@ stdcall -version=0x600+ RemoveDllDirectory(ptr) kernelbase.RemoveDllDirectory
+# @ stub -version=0x600+  RemoveSecureMemoryCacheCallback
 @ stub -version=0x600+ ReplacePartitionUnit
-@ stdcall RequestDeviceWakeup(long) kernel32_win7.RequestDeviceWakeup
-@ stdcall RequestWakeupLatency(long) kernel32_win7.RequestWakeupLatency
-@ stdcall ResetEvent(long) kernel32_win7.ResetEvent
-@ stdcall ResetWriteWatch(ptr long) kernel32_win7.ResetWriteWatch
+@ stdcall RequestDeviceWakeup(long) kernelbase.RequestDeviceWakeup
+@ stdcall RequestWakeupLatency(long) kernelbase.RequestWakeupLatency
+@ stdcall ResetEvent(long) kernelbase.ResetEvent
+@ stdcall ResetWriteWatch(ptr long) kernelbase.ResetWriteWatch
 @ stdcall RestoreLastError(long) ntdll.RtlRestoreLastWin32Error
-@ stdcall ResumeThread(long) kernel32_win7.ResumeThread
+@ stdcall ResumeThread(long) kernelbase.ResumeThread
 @ stdcall -arch=x86_64 RtlAddFunctionTable(ptr long long) ntdll.RtlAddFunctionTable
 @ stdcall -register RtlCaptureContext(ptr) ntdll.RtlCaptureContext
 @ stdcall RtlCaptureStackBackTrace(long long ptr ptr) ntdll.RtlCaptureStackBackTrace
@@ -982,313 +1100,330 @@
 @ stdcall RtlUnwind(ptr ptr ptr ptr) ntdll.RtlUnwind
 @ stdcall -arch=x86_64 RtlUnwindEx(ptr ptr ptr ptr ptr ptr) ntdll.RtlUnwindEx
 @ stdcall -arch=x86_64 RtlVirtualUnwind(long int64 int64 ptr ptr ptr ptr ptr) ntdll.RtlVirtualUnwind
+@ stub -version=0xA00+ -arch=x86_64 -norelay RtlIsEcCode(ptr)
 @ stdcall RtlZeroMemory(ptr long) ntdll.RtlZeroMemory
-@ stdcall ScrollConsoleScreenBufferA(long ptr ptr ptr ptr) kernel32_win7.ScrollConsoleScreenBufferA
-@ stdcall ScrollConsoleScreenBufferW(long ptr ptr ptr ptr) kernel32_win7.ScrollConsoleScreenBufferW
-@ stdcall SearchPathA(str str str long ptr ptr) kernel32_win7.SearchPathA
-@ stdcall SearchPathW(wstr wstr wstr long ptr ptr) kernel32_win7.SearchPathW
-@ stdcall -version=0x500-0x502 SetCPGlobal(long) kernel32_win7.SetCPGlobal
-@ stdcall SetCalendarInfoA(long long long str) kernel32_win7.SetCalendarInfoA
-@ stdcall SetCalendarInfoW(long long long wstr) kernel32_win7.SetCalendarInfoW
-@ stdcall SetClientTimeZoneInformation(ptr) kernel32_win7.SetClientTimeZoneInformation
-@ stdcall SetComPlusPackageInstallStatus(ptr) kernel32_win7.SetComPlusPackageInstallStatus
-@ stdcall SetCommBreak(long) kernel32_win7.SetCommBreak
-@ stdcall SetCommConfig(long ptr long) kernel32_win7.SetCommConfig
-@ stdcall SetCommMask(long ptr) kernel32_win7.SetCommMask
-@ stdcall SetCommState(long ptr) kernel32_win7.SetCommState
-@ stdcall SetCommTimeouts(long ptr) kernel32_win7.SetCommTimeouts
-@ stdcall SetComputerNameA(str) kernel32_win7.SetComputerNameA
-@ stdcall SetComputerNameExA(long str) kernel32_win7.SetComputerNameExA
-@ stdcall SetComputerNameExW(long wstr) kernel32_win7.SetComputerNameExW
-@ stdcall SetComputerNameW(wstr) kernel32_win7.SetComputerNameW
-@ stdcall SetConsoleActiveScreenBuffer(long) kernel32_win7.SetConsoleActiveScreenBuffer
-@ stdcall SetConsoleCP(long) kernel32_win7.SetConsoleCP
-@ stdcall -version=0x351-0x502 SetConsoleCommandHistoryMode(long) kernel32_win7.SetConsoleCommandHistoryMode
-@ stdcall SetConsoleCtrlHandler(ptr long) kernel32_win7.SetConsoleCtrlHandler
-@ stdcall SetConsoleCursor(long long) kernel32_win7.SetConsoleCursor
-@ stdcall SetConsoleCursorInfo(long ptr) kernel32_win7.SetConsoleCursorInfo
-@ stdcall SetConsoleCursorMode(long long long) kernel32_win7.SetConsoleCursorMode
-@ stdcall SetConsoleCursorPosition(long long) kernel32_win7.SetConsoleCursorPosition
-@ stdcall SetConsoleDisplayMode(long long ptr) kernel32_win7.SetConsoleDisplayMode
-@ stdcall SetConsoleFont(long long) kernel32_win7.SetConsoleFont
-@ stdcall SetConsoleHardwareState(long long long) kernel32_win7.SetConsoleHardwareState
-@ stdcall -version=0x600+ SetConsoleHistoryInfo(ptr) kernel32_win7.SetConsoleHistoryInfo
-@ stdcall SetConsoleIcon(ptr) kernel32_win7.SetConsoleIcon
-@ stdcall SetConsoleInputExeNameA(ptr) kernel32_win7.SetConsoleInputExeNameA
-@ stdcall SetConsoleInputExeNameW(ptr) kernel32_win7.SetConsoleInputExeNameW
-@ stdcall SetConsoleKeyShortcuts(long long long long) kernel32_win7.SetConsoleKeyShortcuts
-@ stdcall SetConsoleLocalEUDC(long long long long) kernel32_win7.SetConsoleLocalEUDC
-@ stdcall SetConsoleMaximumWindowSize(long long) kernel32_win7.SetConsoleMaximumWindowSize
-@ stdcall SetConsoleMenuClose(long) kernel32_win7.SetConsoleMenuClose
-@ stdcall SetConsoleMode(long long) kernel32_win7.SetConsoleMode
-@ stdcall SetConsoleNlsMode(long long) kernel32_win7.SetConsoleNlsMode
-@ stdcall SetConsoleNumberOfCommandsA(long long) kernel32_win7.SetConsoleNumberOfCommandsA
-@ stdcall SetConsoleNumberOfCommandsW(long long) kernel32_win7.SetConsoleNumberOfCommandsW
-@ stdcall SetConsoleOS2OemFormat(long) kernel32_win7.SetConsoleOS2OemFormat
-@ stdcall SetConsoleOutputCP(long) kernel32_win7.SetConsoleOutputCP
-@ stdcall SetConsolePalette(long long long) kernel32_win7.SetConsolePalette
-@ stdcall -version=0x600+ SetConsoleScreenBufferInfoEx(ptr ptr) kernel32_win7.SetConsoleScreenBufferInfoEx
-@ stdcall SetConsoleScreenBufferSize(long long) kernel32_win7.SetConsoleScreenBufferSize
-@ stdcall SetConsoleTextAttribute(long long) kernel32_win7.SetConsoleTextAttribute
-@ stdcall SetConsoleTitleA(str) kernel32_win7.SetConsoleTitleA
-@ stdcall SetConsoleTitleW(wstr) kernel32_win7.SetConsoleTitleW
-@ stdcall SetConsoleWindowInfo(long long ptr) kernel32_win7.SetConsoleWindowInfo
+@ stdcall ScrollConsoleScreenBufferA(long ptr ptr ptr ptr) kernelbase.ScrollConsoleScreenBufferA
+@ stdcall ScrollConsoleScreenBufferW(long ptr ptr ptr ptr) kernelbase.ScrollConsoleScreenBufferW
+@ stdcall SearchPathA(str str str long ptr ptr) kernelbase.SearchPathA
+@ stdcall SearchPathW(wstr wstr wstr long ptr ptr) kernelbase.SearchPathW
+@ stdcall -version=0x500-0x502 SetCPGlobal(long) kernelbase.SetCPGlobal
+@ stdcall -version=0x602+ SetCachedSigningLevel(ptr long long long) kernelbase.SetCachedSigningLevel
+@ stdcall SetCalendarInfoA(long long long str) kernelbase.SetCalendarInfoA
+@ stdcall SetCalendarInfoW(long long long wstr) kernelbase.SetCalendarInfoW
+@ stdcall SetClientTimeZoneInformation(ptr) kernelbase.SetClientTimeZoneInformation
+@ stdcall SetComPlusPackageInstallStatus(ptr) kernelbase.SetComPlusPackageInstallStatus
+@ stdcall SetCommBreak(long) kernelbase.SetCommBreak
+@ stdcall SetCommConfig(long ptr long) kernelbase.SetCommConfig
+@ stdcall SetCommMask(long ptr) kernelbase.SetCommMask
+@ stdcall SetCommState(long ptr) kernelbase.SetCommState
+@ stdcall SetCommTimeouts(long ptr) kernelbase.SetCommTimeouts
+@ stdcall SetComputerNameA(str) kernelbase.SetComputerNameA
+@ stdcall SetComputerNameExA(long str) kernelbase.SetComputerNameExA
+@ stdcall SetComputerNameExW(long wstr) kernelbase.SetComputerNameExW
+@ stdcall SetComputerNameW(wstr) kernelbase.SetComputerNameW
+@ stdcall SetConsoleActiveScreenBuffer(long) kernelbase.SetConsoleActiveScreenBuffer
+@ stdcall SetConsoleCP(long) kernelbase.SetConsoleCP
+@ stdcall -version=0x351-0x502 SetConsoleCommandHistoryMode(long) kernelbase.SetConsoleCommandHistoryMode
+@ stdcall SetConsoleCtrlHandler(ptr long) kernelbase.SetConsoleCtrlHandler
+@ stdcall SetConsoleCursor(long long) kernelbase.SetConsoleCursor
+@ stdcall SetConsoleCursorInfo(long ptr) kernelbase.SetConsoleCursorInfo
+@ stdcall SetConsoleCursorMode(long long long) kernelbase.SetConsoleCursorMode
+@ stdcall SetConsoleCursorPosition(long long) kernelbase.SetConsoleCursorPosition
+@ stdcall SetConsoleDisplayMode(long long ptr) kernelbase.SetConsoleDisplayMode
+@ stdcall SetConsoleFont(long long) kernelbase.SetConsoleFont
+@ stdcall SetConsoleHardwareState(long long long) kernelbase.SetConsoleHardwareState
+@ stdcall -version=0x600+ SetConsoleHistoryInfo(ptr) kernelbase.SetConsoleHistoryInfo
+@ stdcall SetConsoleIcon(ptr) kernelbase.SetConsoleIcon
+@ stdcall SetConsoleInputExeNameA(ptr) kernelbase.SetConsoleInputExeNameA
+@ stdcall SetConsoleInputExeNameW(ptr) kernelbase.SetConsoleInputExeNameW
+@ stdcall SetConsoleKeyShortcuts(long long long long) kernelbase.SetConsoleKeyShortcuts
+@ stdcall SetConsoleLocalEUDC(long long long long) kernelbase.SetConsoleLocalEUDC
+@ stdcall SetConsoleMaximumWindowSize(long long) kernelbase.SetConsoleMaximumWindowSize
+@ stdcall SetConsoleMenuClose(long) kernelbase.SetConsoleMenuClose
+@ stdcall SetConsoleMode(long long) kernelbase.SetConsoleMode
+@ stdcall SetConsoleNlsMode(long long) kernelbase.SetConsoleNlsMode
+@ stdcall SetConsoleNumberOfCommandsA(long long) kernelbase.SetConsoleNumberOfCommandsA
+@ stdcall SetConsoleNumberOfCommandsW(long long) kernelbase.SetConsoleNumberOfCommandsW
+@ stdcall SetConsoleOS2OemFormat(long) kernelbase.SetConsoleOS2OemFormat
+@ stdcall SetConsoleOutputCP(long) kernelbase.SetConsoleOutputCP
+@ stdcall SetConsolePalette(long long long) kernelbase.SetConsolePalette
+@ stdcall -version=0x600+ SetConsoleScreenBufferInfoEx(ptr ptr) kernelbase.SetConsoleScreenBufferInfoEx
+@ stdcall SetConsoleScreenBufferSize(long long) kernelbase.SetConsoleScreenBufferSize
+@ stdcall SetConsoleTextAttribute(long long) kernelbase.SetConsoleTextAttribute
+@ stdcall SetConsoleTitleA(str) kernelbase.SetConsoleTitleA
+@ stdcall SetConsoleTitleW(wstr) kernelbase.SetConsoleTitleW
+@ stdcall SetConsoleWindowInfo(long long ptr) kernelbase.SetConsoleWindowInfo
 @ stdcall SetCriticalSectionSpinCount(ptr long) ntdll.RtlSetCriticalSectionSpinCount
 @ stub -version=0x600+ SetCurrentConsoleFontEx
-@ stdcall SetCurrentDirectoryA(str) kernel32_win7.SetCurrentDirectoryA
-@ stdcall SetCurrentDirectoryW(wstr) kernel32_win7.SetCurrentDirectoryW
-@ stdcall SetDefaultCommConfigA(str ptr long) kernel32_win7.SetDefaultCommConfigA
-@ stdcall SetDefaultCommConfigW(wstr ptr long) kernel32_win7.SetDefaultCommConfigW
-@ stdcall SetDllDirectoryA(str) kernel32_win7.SetDllDirectoryA
-@ stdcall SetDllDirectoryW(wstr) kernel32_win7.SetDllDirectoryW
-@ stub -version=0x600+ SetDynamicTimeZoneInformation
-@ stdcall SetEndOfFile(long) kernel32_win7.SetEndOfFile
-@ stdcall SetEnvironmentStringsA(ptr) kernel32_win7.SetEnvironmentStringsA
-@ stdcall SetEnvironmentStringsW(ptr) kernel32_win7.SetEnvironmentStringsW
-@ stdcall SetEnvironmentVariableA(str str) kernel32_win7.SetEnvironmentVariableA
-@ stdcall SetEnvironmentVariableW(wstr wstr) kernel32_win7.SetEnvironmentVariableW
-@ stdcall SetErrorMode(long) kernel32_win7.SetErrorMode
-@ stdcall SetEvent(long) kernel32_win7.SetEvent
-@ stub -version=0x600+ SetEventWhenCallbackReturns
-@ stdcall SetFileApisToANSI() kernel32_win7.SetFileApisToANSI
-@ stdcall SetFileApisToOEM() kernel32_win7.SetFileApisToOEM
-@ stdcall SetFileAttributesA(str long) kernel32_win7.SetFileAttributesA
+@ stdcall SetCurrentDirectoryA(str) kernelbase.SetCurrentDirectoryA
+@ stdcall SetCurrentDirectoryW(wstr) kernelbase.SetCurrentDirectoryW
+@ stdcall SetDefaultCommConfigA(str ptr long) kernelbase.SetDefaultCommConfigA
+@ stdcall SetDefaultCommConfigW(wstr ptr long) kernelbase.SetDefaultCommConfigW
+@ stdcall -version=0x600+ SetDefaultDllDirectories(long) kernelbase.SetDefaultDllDirectories
+@ stdcall SetDllDirectoryA(str) kernelbase.SetDllDirectoryA
+@ stdcall SetDllDirectoryW(wstr) kernelbase.SetDllDirectoryW
+@ stdcall -version=0x600+ SetDynamicTimeZoneInformation(ptr) kernelbase.SetDynamicTimeZoneInformation
+@ stdcall SetEndOfFile(long) kernelbase.SetEndOfFile
+@ stdcall SetEnvironmentStringsA(ptr) kernelbase.SetEnvironmentStringsA
+@ stdcall SetEnvironmentStringsW(ptr) kernelbase.SetEnvironmentStringsW
+@ stdcall SetEnvironmentVariableA(str str) kernelbase.SetEnvironmentVariableA
+@ stdcall SetEnvironmentVariableW(wstr wstr) kernelbase.SetEnvironmentVariableW
+@ stdcall SetErrorMode(long) kernelbase.SetErrorMode
+@ stdcall SetEvent(long) kernelbase.SetEvent
+@ stdcall -version=0x600+ SetEventWhenCallbackReturns(ptr long) NTDLL.TpCallbackSetEventOnCompletion
+@ stdcall SetFileApisToANSI() kernelbase.SetFileApisToANSI
+@ stdcall SetFileApisToOEM() kernelbase.SetFileApisToOEM
+@ stdcall SetFileAttributesA(str long) kernelbase.SetFileAttributesA
 @ stub -version=0x600+ SetFileAttributesTransactedA
 @ stub -version=0x600+ SetFileAttributesTransactedW
-@ stdcall SetFileAttributesW(wstr long) kernel32_win7.SetFileAttributesW
-@ stdcall -version=0x600+ SetFileBandwidthReservation(ptr long long long ptr ptr) kernel32_win7.SetFileBandwidthReservation
-@ stdcall SetFileCompletionNotificationModes(ptr long) kernel32_win7.SetFileCompletionNotificationModes
-@ stub -version=0x600+ SetFileInformationByHandle
+@ stdcall SetFileAttributesW(wstr long) kernelbase.SetFileAttributesW
+@ stdcall -version=0x600+ SetFileBandwidthReservation(ptr long long long ptr ptr) kernelbase.SetFileBandwidthReservation
+@ stdcall SetFileCompletionNotificationModes(ptr long) kernelbase.SetFileCompletionNotificationModes
+@ stdcall -version=0x600+ SetFileInformationByHandle(long long ptr long) kernelbase.SetFileInformationByHandle
 @ stub -version=0x600+ SetFileIoOverlappedRange
-@ stdcall SetFilePointer(long long ptr long) kernel32_win7.SetFilePointer
-@ stdcall SetFilePointerEx(long double ptr long) kernel32_win7.SetFilePointerEx
-@ stdcall SetFileShortNameA(long str) kernel32_win7.SetFileShortNameA
-@ stdcall SetFileShortNameW(long wstr) kernel32_win7.SetFileShortNameW
-@ stdcall SetFileTime(long ptr ptr ptr) kernel32_win7.SetFileTime
-@ stdcall SetFileValidData(long double) kernel32_win7.SetFileValidData
-@ stdcall SetFirmwareEnvironmentVariableA(str str ptr long) kernel32_win7.SetFirmwareEnvironmentVariableA
-@ stdcall -version=0x602+ SetFirmwareEnvironmentVariableExA(str str ptr long long) kernel32_win7.SetFirmwareEnvironmentVariableExA
-@ stdcall -version=0x602+ SetFirmwareEnvironmentVariableExW(str str ptr long long) kernel32_win7.SetFirmwareEnvironmentVariableExW
-@ stdcall SetFirmwareEnvironmentVariableW(wstr wstr ptr long) kernel32_win7.SetFirmwareEnvironmentVariableW
-@ stdcall -i386 SetHandleContext(long long) kernel32_win7.SetHandleContext
-@ stdcall SetHandleCount(long) kernel32_win7.SetHandleCount
-@ stdcall SetHandleInformation(long long long) kernel32_win7.SetHandleInformation
-@ stdcall SetInformationJobObject(long long ptr long) kernel32_win7.SetInformationJobObject
-@ stdcall SetLastConsoleEventActive() kernel32_win7.SetLastConsoleEventActive ; missing in XP SP3
+@ stdcall SetFilePointer(long long ptr long) kernelbase.SetFilePointer
+@ stdcall SetFilePointerEx(long double ptr long) kernelbase.SetFilePointerEx
+@ stdcall SetFileShortNameA(long str) kernelbase.SetFileShortNameA
+@ stdcall SetFileShortNameW(long wstr) kernelbase.SetFileShortNameW
+@ stdcall SetFileTime(long ptr ptr ptr) kernelbase.SetFileTime
+@ stdcall SetFileValidData(long double) kernelbase.SetFileValidData
+@ stdcall SetFirmwareEnvironmentVariableA(str str ptr long) kernelbase.SetFirmwareEnvironmentVariableA
+@ stdcall -version=0x602+ SetFirmwareEnvironmentVariableExA(str str ptr long long) kernelbase.SetFirmwareEnvironmentVariableExA
+@ stdcall -version=0x602+ SetFirmwareEnvironmentVariableExW(str str ptr long long) kernelbase.SetFirmwareEnvironmentVariableExW
+@ stdcall SetFirmwareEnvironmentVariableW(wstr wstr ptr long) kernelbase.SetFirmwareEnvironmentVariableW
+@ stdcall -i386 SetHandleContext(long long) kernelbase.SetHandleContext
+@ stdcall SetHandleCount(long) kernelbase.SetHandleCount
+@ stdcall SetHandleInformation(long long long) kernelbase.SetHandleInformation
+@ stdcall SetInformationJobObject(long long ptr long)
+@ stdcall SetLastConsoleEventActive() kernelbase.SetLastConsoleEventActive ; missing in XP SP3
 @ stdcall SetLastError(long) ntdll.RtlSetLastWin32Error
-@ stdcall SetLocalPrimaryComputerNameA(long long) kernel32_win7.SetLocalPrimaryComputerNameA ; missing in XP SP3
-@ stdcall SetLocalPrimaryComputerNameW(long long) kernel32_win7.SetLocalPrimaryComputerNameW ; missing in XP SP3
-@ stdcall SetLocalTime(ptr) kernel32_win7.SetLocalTime
-@ stdcall SetLocaleInfoA(long long str) kernel32_win7.SetLocaleInfoA
-@ stdcall SetLocaleInfoW(long long wstr) kernel32_win7.SetLocaleInfoW
-@ stdcall SetMailslotInfo(long long) kernel32_win7.SetMailslotInfo
-@ stdcall SetMessageWaitingIndicator(ptr long) kernel32_win7.SetMessageWaitingIndicator
+@ stdcall SetLocalPrimaryComputerNameA(long long) kernelbase.SetLocalPrimaryComputerNameA ; missing in XP SP3
+@ stdcall SetLocalPrimaryComputerNameW(long long) kernelbase.SetLocalPrimaryComputerNameW ; missing in XP SP3
+@ stdcall SetLocalTime(ptr) kernelbase.SetLocalTime
+@ stdcall SetLocaleInfoA(long long str) kernelbase.SetLocaleInfoA
+@ stdcall SetLocaleInfoW(long long wstr) kernelbase.SetLocaleInfoW
+@ stdcall SetMailslotInfo(long long) kernelbase.SetMailslotInfo
+@ stdcall SetMessageWaitingIndicator(ptr long) kernelbase.SetMessageWaitingIndicator
 @ stub -version=0x600+ SetNamedPipeAttribute
-@ stdcall SetNamedPipeHandleState(long long long long) kernel32_win7.SetNamedPipeHandleState
-@ stdcall SetPriorityClass(long long) kernel32_win7.SetPriorityClass
-@ stdcall SetProcessAffinityMask(long long) kernel32_win7.SetProcessAffinityMask
+@ stdcall SetNamedPipeHandleState(long long long long) kernelbase.SetNamedPipeHandleState
+@ stdcall SetPriorityClass(long long) kernelbase.SetPriorityClass
+@ stdcall SetProcessAffinityMask(long long) kernelbase.SetProcessAffinityMask
 @ stub -version=0x600+ SetProcessAffinityUpdateMode
-@ stub -version=0x600+ SetProcessDEPPolicy
-@ stdcall SetProcessPriorityBoost(long long) kernel32_win7.SetProcessPriorityBoost
-@ stdcall SetProcessShutdownParameters(long long) kernel32_win7.SetProcessShutdownParameters
-@ stdcall SetProcessWorkingSetSize(long long long) kernel32_win7.SetProcessWorkingSetSize
-@ stdcall SetProcessWorkingSetSizeEx(long long long long) kernel32_win7.SetProcessWorkingSetSizeEx
-@ stdcall SetStdHandle(long long) kernel32_win7.SetStdHandle
+@ stdcall -stub -version=0xA00+ SetProcessDefaultCpuSets(ptr ptr long)
+@ stdcall -version=0x600+ SetProcessDEPPolicy(ptr) kernelbase.SetProcessDEPPolicy
+@ stdcall -version=0x602+ SetProcessInformation(long long ptr long) kernelbase.SetProcessInformation
+@ stdcall -stub -version=0x602+ SetProcessMitigationPolicy(long ptr long)
+@ stdcall -version=0x601+ SetProcessPreferredUILanguages(long ptr ptr) kernelbase.SetProcessPreferredUILanguages
+@ stdcall SetProcessPriorityBoost(long long) kernelbase.SetProcessPriorityBoost
+@ stdcall SetProcessShutdownParameters(long long) kernelbase.SetProcessShutdownParameters
+@ stdcall SetProcessWorkingSetSize(long long long) kernelbase.SetProcessWorkingSetSize
+@ stdcall SetProcessWorkingSetSizeEx(long long long long) kernelbase.SetProcessWorkingSetSizeEx
+@ stdcall -stub -version=0x600+ SetSearchPathMode(long)
+@ stdcall SetStdHandle(long long) kernelbase.SetStdHandle
 @ stub -version=0x600+ SetStdHandleEx
-@ stdcall SetSystemFileCacheSize(long long long) kernel32_win7.SetSystemFileCacheSize
-@ stdcall SetSystemPowerState(long long) kernel32_win7.SetSystemPowerState
-@ stdcall SetSystemTime(ptr) kernel32_win7.SetSystemTime
-@ stdcall SetSystemTimeAdjustment(long long) kernel32_win7.SetSystemTimeAdjustment
-@ stdcall SetTapeParameters(ptr long ptr) kernel32_win7.SetTapeParameters
-@ stdcall SetTapePosition(ptr long long long long long) kernel32_win7.SetTapePosition
-@ stdcall SetTermsrvAppInstallMode(long) kernel32_win7.SetTermsrvAppInstallMode
-@ stdcall SetThreadAffinityMask(long long) kernel32_win7.SetThreadAffinityMask
-@ stdcall SetThreadContext(long ptr) kernel32_win7.SetThreadContext
-@ stdcall -stub -version=0x600+ SetThreadErrorMode(long ptr)
-@ stdcall SetThreadExecutionState(long) kernel32_win7.SetThreadExecutionState
-@ stdcall SetThreadIdealProcessor(long long) kernel32_win7.SetThreadIdealProcessor
-@ stdcall SetThreadLocale(long) kernel32_win7.SetThreadLocale
-@ stdcall -version=0x600+ SetThreadPreferredUILanguages(long wstr ptr) kernel32_win7.SetThreadPreferredUILanguages
-@ stdcall SetThreadPriority(long long) kernel32_win7.SetThreadPriority
-@ stdcall SetThreadPriorityBoost(long long) kernel32_win7.SetThreadPriorityBoost
-@ stdcall SetThreadStackGuarantee(ptr) kernel32_win7.SetThreadStackGuarantee
-@ stdcall SetThreadUILanguage(long) kernel32_win7.SetThreadUILanguage
-@ stub -version=0x600+ SetThreadpoolThreadMaximum
-@ stub -version=0x600+ SetThreadpoolThreadMinimum
-@ stub -version=0x600+ SetThreadpoolTimer
-@ stub -version=0x600+ SetThreadpoolWait
-@ stdcall SetTimeZoneInformation(ptr) kernel32_win7.SetTimeZoneInformation
-@ stdcall SetTimerQueueTimer(long ptr ptr long long long) kernel32_win7.SetTimerQueueTimer
-@ stdcall SetUnhandledExceptionFilter(ptr) kernel32_win7.SetUnhandledExceptionFilter
-@ stdcall SetUserGeoID(long) kernel32_win7.SetUserGeoID
-@ stdcall SetVDMCurrentDirectories(long long) kernel32_win7.SetVDMCurrentDirectories
-@ stdcall SetVolumeLabelA(str str) kernel32_win7.SetVolumeLabelA
-@ stdcall SetVolumeLabelW(wstr wstr) kernel32_win7.SetVolumeLabelW
-@ stdcall SetVolumeMountPointA(str str) kernel32_win7.SetVolumeMountPointA
-@ stdcall SetVolumeMountPointW(wstr wstr) kernel32_win7.SetVolumeMountPointW
-@ stdcall SetWaitableTimer(long ptr long ptr ptr long) kernel32_win7.SetWaitableTimer
-@ stdcall SetupComm(long long long) kernel32_win7.SetupComm
-@ stdcall ShowConsoleCursor(long long) kernel32_win7.ShowConsoleCursor
-@ stdcall SignalObjectAndWait(long long long long) kernel32_win7.SignalObjectAndWait
-@ stdcall SizeofResource(long long) kernel32_win7.SizeofResource
-@ stdcall Sleep(long) kernel32_win7.Sleep
-@ stdcall -version=0x600+ SleepConditionVariableCS(ptr ptr long) kernel32_win7.SleepConditionVariableCS
-@ stdcall -version=0x600+ SleepConditionVariableSRW(ptr ptr long long) kernel32_win7.SleepConditionVariableSRW
-@ stdcall SleepEx(long long) kernel32_win7.SleepEx
-@ stub -version=0x600+ StartThreadpoolIo
-@ stdcall -stub -version=0x600+ SubmitThreadpoolWork(ptr) kernel32_win7.SubmitThreadpoolWork
-@ stdcall SuspendThread(long) kernel32_win7.SuspendThread
-@ stdcall SwitchToFiber(ptr) kernel32_win7.SwitchToFiber
-@ stdcall SwitchToThread() kernel32_win7.SwitchToThread
-@ stdcall SystemTimeToFileTime(ptr ptr) kernel32_win7.SystemTimeToFileTime
-@ stdcall SystemTimeToTzSpecificLocalTime(ptr ptr ptr) kernel32_win7.SystemTimeToTzSpecificLocalTime
-@ stdcall TerminateJobObject(ptr long) kernel32_win7.TerminateJobObject
-@ stdcall TerminateProcess(ptr long) kernel32_win7.TerminateProcess
-@ stdcall TerminateThread(ptr long) kernel32_win7.TerminateThread
-@ stdcall TermsrvAppInstallMode() kernel32_win7.TermsrvAppInstallMode
-@ stdcall Thread32First(long ptr) kernel32_win7.Thread32First
-@ stdcall Thread32Next(long ptr) kernel32_win7.Thread32Next
-@ stdcall TlsAlloc() kernel32_win7.TlsAlloc
-@ stdcall TlsFree(long) kernel32_win7.TlsFree
-@ stdcall -norelay TlsGetValue(long) kernel32_win7.TlsGetValue
-@ stdcall -norelay TlsSetValue(long ptr) kernel32_win7.TlsSetValue
-@ stdcall Toolhelp32ReadProcessMemory(long ptr ptr long ptr) kernel32_win7.Toolhelp32ReadProcessMemory
-@ stdcall TransactNamedPipe(long ptr long ptr long ptr ptr) kernel32_win7.TransactNamedPipe
-@ stdcall TransmitCommChar(long long) kernel32_win7.TransmitCommChar
-@ stdcall -version=0x601+ TryAcquireSRWLockExclusive(ptr) ntdll.RtlTryAcquireSRWLockExclusive
-@ stdcall -version=0x601+ TryAcquireSRWLockShared(ptr) ntdll.RtlTryAcquireSRWLockShared
+@ stdcall SetSystemFileCacheSize(long long long) kernelbase.SetSystemFileCacheSize
+@ stdcall SetSystemPowerState(long long) kernelbase.SetSystemPowerState
+@ stdcall SetSystemTime(ptr) kernelbase.SetSystemTime
+@ stdcall SetSystemTimeAdjustment(long long) kernelbase.SetSystemTimeAdjustment
+@ stdcall SetTapeParameters(ptr long ptr) kernelbase.SetTapeParameters
+@ stdcall SetTapePosition(ptr long long long long long) kernelbase.SetTapePosition
+@ stdcall SetTermsrvAppInstallMode(long) kernelbase.SetTermsrvAppInstallMode
+@ stdcall SetThreadAffinityMask(long long) kernelbase.SetThreadAffinityMask
+@ stdcall SetThreadContext(long ptr) kernelbase.SetThreadContext
+@ stdcall -version=0xA00+ SetThreadDescription(ptr wstr) kernelbase.SetThreadDescription
+@ stdcall -version=0x600+ SetThreadErrorMode(long ptr) kernelbase.SetThreadErrorMode
+@ stdcall SetThreadExecutionState(long) kernelbase.SetThreadExecutionState
+@ stdcall -version=0x601+ SetThreadGroupAffinity(long ptr ptr) kernelbase.SetThreadGroupAffinity
+@ stdcall SetThreadIdealProcessor(long long) kernelbase.SetThreadIdealProcessor
+@ stdcall -version=0x601+ SetThreadIdealProcessorEx(long ptr ptr) kernelbase.SetThreadIdealProcessorEx
+@ stdcall -version=0x602+ SetThreadInformation(long long ptr long) kernelbase.SetThreadInformation
+@ stdcall SetThreadLocale(long) kernelbase.SetThreadLocale
+@ stdcall -version=0x600+ SetThreadPreferredUILanguages(long wstr ptr) kernelbase.SetThreadPreferredUILanguages
+@ stdcall SetThreadPriority(long long) kernelbase.SetThreadPriority
+@ stdcall SetThreadPriorityBoost(long long) kernelbase.SetThreadPriorityBoost
+@ stub -version=0xA00+ SetThreadSelectedCpuSets
+@ stdcall SetThreadStackGuarantee(ptr) kernelbase.SetThreadStackGuarantee
+@ stdcall -version=0x601+ SetThreadToken(ptr ptr) kernelbase.SetThreadToken
+@ stdcall SetThreadUILanguage(long) kernelbase.SetThreadUILanguage
+@ stdcall -version=0x601+ SetThreadpoolStackInformation(ptr ptr) kernelbase.SetThreadpoolStackInformation
+@ stdcall -version=0x600+ SetThreadpoolThreadMaximum(ptr long) NTDLL.TpSetPoolMaxThreads
+@ stdcall -version=0x600+ SetThreadpoolThreadMinimum(ptr long) NTDLL.TpSetPoolMinThreads
+@ stdcall -version=0x600+ SetThreadpoolTimer(ptr ptr long long) NTDLL.TpSetTimer
+@ stdcall -version=0x600+ SetThreadpoolWait(ptr long ptr) NTDLL.TpSetWait
+@ stdcall SetTimeZoneInformation(ptr) kernelbase.SetTimeZoneInformation
+@ stdcall SetTimerQueueTimer(long ptr ptr long long long) kernelbase.SetTimerQueueTimer
+@ stdcall -version=0x601+ -arch=win64 SetUmsThreadInformation(ptr long ptr long)
+@ stdcall SetUnhandledExceptionFilter(ptr) kernelbase.SetUnhandledExceptionFilter
+@ stdcall SetUserGeoID(long) kernelbase.SetUserGeoID
+@ stdcall -stub -version=0xA00+ SetUserGeoName(wstr)
+@ stdcall SetVDMCurrentDirectories(long long) kernelbase.SetVDMCurrentDirectories
+@ stdcall SetVolumeLabelA(str str) kernelbase.SetVolumeLabelA
+@ stdcall SetVolumeLabelW(wstr wstr) kernelbase.SetVolumeLabelW
+@ stdcall SetVolumeMountPointA(str str) kernelbase.SetVolumeMountPointA
+@ stdcall SetVolumeMountPointW(wstr wstr) kernelbase.SetVolumeMountPointW
+@ stdcall SetWaitableTimer(long ptr long ptr ptr long) kernelbase.SetWaitableTimer
+@ stdcall -version=0x601+ SetWaitableTimerEx(long ptr long ptr ptr ptr long) kernelbase.SetWaitableTimerEx
+@ stdcall SetupComm(long long long) kernelbase.SetupComm
+@ stdcall ShowConsoleCursor(long long) kernelbase.ShowConsoleCursor
+@ stdcall SignalObjectAndWait(long long long long) kernelbase.SignalObjectAndWait
+@ stdcall SizeofResource(long long) kernelbase.SizeofResource
+@ stdcall Sleep(long) kernelbase.Sleep
+@ stdcall -version=0x600+ SleepConditionVariableCS(ptr ptr long) kernelbase.SleepConditionVariableCS
+@ stdcall -version=0x600+ SleepConditionVariableSRW(ptr ptr long long) kernelbase.SleepConditionVariableSRW
+@ stdcall SleepEx(long long) kernelbase.SleepEx
+@ stdcall -version=0x600+ StartThreadpoolIo(ptr) NTDLL.TpStartAsyncIoOperation
+@ stdcall -version=0x600+ SubmitThreadpoolWork(ptr)  NTDLL.TpPostWork
+@ stdcall SuspendThread(long) kernelbase.SuspendThread
+@ stdcall SwitchToFiber(ptr) kernelbase.SwitchToFiber
+@ stdcall SwitchToThread() kernelbase.SwitchToThread
+@ stdcall SystemTimeToFileTime(ptr ptr) kernelbase.SystemTimeToFileTime
+@ stdcall SystemTimeToTzSpecificLocalTime(ptr ptr ptr) kernelbase.SystemTimeToTzSpecificLocalTime
+@ stdcall TerminateJobObject(ptr long)
+@ stdcall TerminateProcess(ptr long) kernelbase.TerminateProcess
+@ stdcall TerminateThread(ptr long) kernelbase.TerminateThread
+@ stdcall TermsrvAppInstallMode() kernelbase.TermsrvAppInstallMode
+@ stdcall Thread32First(long ptr) kernelbase.Thread32First
+@ stdcall Thread32Next(long ptr) kernelbase.Thread32Next
+@ stdcall RaiseFailFastException(ptr ptr long) kernelbase.RaiseFailFastException
+@ stdcall TlsAlloc() kernelbase.TlsAlloc
+@ stdcall TlsFree(long) kernelbase.TlsFree
+@ stdcall -norelay TlsGetValue(long) kernelbase.TlsGetValue
+@ stdcall -norelay TlsSetValue(long ptr) kernelbase.TlsSetValue
+@ stdcall Toolhelp32ReadProcessMemory(long ptr ptr long ptr) kernelbase.Toolhelp32ReadProcessMemory
+@ stdcall TransactNamedPipe(long ptr long ptr long ptr ptr) kernelbase.TransactNamedPipe
+@ stdcall TransmitCommChar(long long) kernelbase.TransmitCommChar
+@ stdcall -version=0x601+ TryAcquireSRWLockExclusive(ptr) NTDLL.RtlTryAcquireSRWLockExclusive
+@ stdcall -version=0x601+ TryAcquireSRWLockShared(ptr) NTDLL.RtlTryAcquireSRWLockShared
 @ stdcall TryEnterCriticalSection(ptr) ntdll.RtlTryEnterCriticalSection
-@ stub -version=0x600+ TrySubmitThreadpoolCallback
-@ stdcall TzSpecificLocalTimeToSystemTime(ptr ptr ptr) kernel32_win7.TzSpecificLocalTimeToSystemTime
-@ stdcall UTRegister(long str str str ptr ptr ptr) kernel32_win7.UTRegister
-@ stdcall UTUnRegister(long) kernel32_win7.UTUnRegister
-@ stdcall UnhandledExceptionFilter(ptr) kernel32_win7.UnhandledExceptionFilter
-@ stdcall UnlockFile(long long long long long) kernel32_win7.UnlockFile
-@ stdcall UnlockFileEx(long long long long ptr) kernel32_win7.UnlockFileEx
-@ stdcall UnmapViewOfFile(ptr) kernel32_win7.UnmapViewOfFile
+@ stdcall TrySubmitThreadpoolCallback(ptr ptr ptr) kernelbase.TrySubmitThreadpoolCallback
+@ stdcall TzSpecificLocalTimeToSystemTime(ptr ptr ptr) kernelbase.TzSpecificLocalTimeToSystemTime
+@ stdcall UTRegister(long str str str ptr ptr ptr) kernelbase.UTRegister
+@ stdcall UTUnRegister(long) kernelbase.UTUnRegister
+@ stdcall UnhandledExceptionFilter(ptr) kernelbase.UnhandledExceptionFilter
+@ stdcall UnlockFile(long long long long long) kernelbase.UnlockFile
+@ stdcall UnlockFileEx(long long long long ptr) kernelbase.UnlockFileEx
+@ stdcall UnmapViewOfFile(ptr) kernelbase.UnmapViewOfFile
 @ stub -version=0x600+ UnregisterApplicationRecoveryCallback 
-@ stub -version=0x600+ UnregisterApplicationRestart
-@ stdcall UnregisterConsoleIME() kernel32_win7.UnregisterConsoleIME
-@ stdcall UnregisterWait(long) kernel32_win7.UnregisterWait
-@ stdcall UnregisterWaitEx(long long) kernel32_win7.UnregisterWaitEx
+@ stdcall -version=0x600+ UnregisterApplicationRestart()
+@ stdcall UnregisterConsoleIME() kernelbase.UnregisterConsoleIME
+@ stdcall UnregisterWait(long) kernelbase.UnregisterWait
+@ stdcall UnregisterWaitEx(long long) kernelbase.UnregisterWaitEx
 @ stub -version=0x600+ UpdateCalendarDayOfWeek
-@ stdcall -stub -version=0x600+ UpdateProcThreadAttribute(ptr long ptr ptr ptr ptr ptr) kernel32_win7.UpdateProcThreadAttribute
-@ stdcall UpdateResourceA(long str str long ptr long) kernel32_win7.UpdateResourceA
-@ stdcall UpdateResourceW(long wstr wstr long ptr long) kernel32_win7.UpdateResourceW
-@ stdcall VDMConsoleOperation(long long) kernel32_win7.VDMConsoleOperation
-@ stdcall VDMOperationStarted(long) kernel32_win7.VDMOperationStarted
-@ stdcall -version=0x500-0x502 ValidateLCType(long long ptr ptr) kernel32_win7.ValidateLCType
-@ stdcall -version=0x500-0x502 ValidateLocale(long) kernel32_win7.ValidateLocale
-@ stdcall VerLanguageNameA(long str long) kernel32_win7.VerLanguageNameA
-@ stdcall VerLanguageNameW(long wstr long) kernel32_win7.VerLanguageNameW
+@ stdcall -version=0x600+ UpdateProcThreadAttribute(ptr long ptr ptr ptr ptr ptr) kernelbase.UpdateProcThreadAttribute
+@ stdcall UpdateResourceA(long str str long ptr long)
+@ stdcall UpdateResourceW(long wstr wstr long ptr long)
+@ stdcall VDMConsoleOperation(long long) kernelbase.VDMConsoleOperation
+@ stdcall VDMOperationStarted(long) kernelbase.VDMOperationStarted
+@ stdcall -version=0x500-0x502 ValidateLCType(long long ptr ptr) kernelbase.ValidateLCType
+@ stdcall -version=0x500-0x502 ValidateLocale(long) kernelbase.ValidateLocale
+@ stdcall VerLanguageNameA(long str long) kernelbase.VerLanguageNameA
+@ stdcall VerLanguageNameW(long wstr long) kernelbase.VerLanguageNameW
 @ stdcall -ret64 VerSetConditionMask(long long long long) ntdll.VerSetConditionMask
-@ stdcall VerifyConsoleIoHandle(long) kernel32_win7.VerifyConsoleIoHandle
+@ stdcall VerifyConsoleIoHandle(long) kernelbase.VerifyConsoleIoHandle
 @ stub -version=0x600+ VerifyScripts
 @ stdcall VerifyVersionInfoA(long long double)
-@ stdcall VerifyVersionInfoW(long long double) kernel32_win7.VerifyVersionInfoW
-@ stdcall VirtualAlloc(ptr long long long) kernel32_win7.VirtualAlloc
-@ stdcall VirtualAllocEx(long ptr long long long) kernel32_win7.VirtualAllocEx
+@ stdcall VerifyVersionInfoW(long long double) kernelbase.VerifyVersionInfoW
+@ stdcall VirtualAlloc(ptr long long long) kernelbase.VirtualAlloc
+@ stdcall VirtualAllocEx(long ptr long long long) kernelbase.VirtualAllocEx
+@ stdcall -version=0xA00+ VirtualAlloc2(long ptr long long long ptr long) kernelbase.VirtualAlloc2
 @ stub -version=0x600+ VirtualAllocExNuma
-@ stdcall VirtualFree(ptr long long) kernel32_win7.VirtualFree
-@ stdcall VirtualFreeEx(long ptr long long) kernel32_win7.VirtualFreeEx
-@ stdcall VirtualLock(ptr long) kernel32_win7.VirtualLock
-@ stdcall VirtualProtect(ptr long long ptr) kernel32_win7.VirtualProtect
-@ stdcall VirtualProtectEx(long ptr long long ptr) kernel32_win7.VirtualProtectEx
-@ stdcall VirtualQuery(ptr ptr long) kernel32_win7.VirtualQuery
-@ stdcall VirtualQueryEx(long ptr ptr long) kernel32_win7.VirtualQueryEx
-@ stdcall VirtualUnlock(ptr long) kernel32_win7.VirtualUnlock
-@ stdcall WTSGetActiveConsoleSessionId() kernel32_win7.WTSGetActiveConsoleSessionId
-@ stdcall WaitCommEvent(long ptr ptr) kernel32_win7.WaitCommEvent
-@ stdcall WaitForDebugEvent(ptr long) kernel32_win7.WaitForDebugEvent
-@ stdcall WaitForMultipleObjects(long ptr long long) kernel32_win7.WaitForMultipleObjects
-@ stdcall WaitForMultipleObjectsEx(long ptr long long long) kernel32_win7.WaitForMultipleObjectsEx
-@ stdcall WaitForSingleObject(long long) kernel32_win7.WaitForSingleObject
-@ stdcall WaitForSingleObjectEx(long long long) kernel32_win7.WaitForSingleObjectEx
-@ stub -version=0x600+ WaitForThreadpoolIoCallbacks
-@ stub -version=0x600+ WaitForThreadpoolTimerCallbacks
-@ stub -version=0x600+ WaitForThreadpoolWaitCallback
-@ stdcall -stub -version=0x600+ WaitForThreadpoolWorkCallbacks(ptr long) kernel32_win7.WaitForThreadpoolWorkCallbacks
-@ stdcall WaitNamedPipeA(str long) kernel32_win7.WaitNamedPipeA
-@ stdcall WaitNamedPipeW(wstr long) kernel32_win7.WaitNamedPipeW
+@ stdcall VirtualFree(ptr long long) kernelbase.VirtualFree
+@ stdcall VirtualFreeEx(long ptr long long) kernelbase.VirtualFreeEx
+@ stdcall VirtualLock(ptr long) kernelbase.VirtualLock
+@ stdcall VirtualProtect(ptr long long ptr) kernelbase.VirtualProtect
+@ stdcall VirtualProtectEx(long ptr long long ptr) kernelbase.VirtualProtectEx
+@ stdcall VirtualQuery(ptr ptr long) kernelbase.VirtualQuery
+@ stdcall VirtualQueryEx(long ptr ptr long) kernelbase.VirtualQueryEx
+@ stdcall VirtualUnlock(ptr long) kernelbase.VirtualUnlock
+@ stdcall WTSGetActiveConsoleSessionId() kernelbase.WTSGetActiveConsoleSessionId
+@ stdcall WaitCommEvent(long ptr ptr) kernelbase.WaitCommEvent
+@ stdcall WaitForDebugEvent(ptr long) kernelbase.WaitForDebugEvent
+@ stdcall -version=0xA00+ WaitForDebugEventEx(ptr long) kernelbase.WaitForDebugEventEx
+@ stdcall WaitForMultipleObjects(long ptr long long) kernelbase.WaitForMultipleObjects
+@ stdcall WaitForMultipleObjectsEx(long ptr long long long) kernelbase.WaitForMultipleObjectsEx
+@ stdcall WaitForSingleObject(long long) kernelbase.WaitForSingleObject
+@ stdcall WaitForSingleObjectEx(long long long) kernelbase.WaitForSingleObjectEx
+@ stdcall -version=0x600+ WaitForThreadpoolIoCallbacks(ptr long) NTDLL.TpWaitForIoCompletion
+@ stdcall -version=0x600+ WaitForThreadpoolTimerCallbacks(ptr long) NTDLL.TpWaitForTimer
+@ stdcall -version=0x600+ WaitForThreadpoolWaitCallbacks(ptr long) NTDLL.TpWaitForWait
+@ stdcall -version=0x600+ WaitForThreadpoolWorkCallbacks(ptr long) NTDLL.TpWaitForWork
+@ stdcall WaitNamedPipeA(str long) kernelbase.WaitNamedPipeA
+@ stdcall WaitNamedPipeW(wstr long) kernelbase.WaitNamedPipeW
 @ stdcall -version=0x600+ WakeAllConditionVariable(ptr) ntdll.RtlWakeAllConditionVariable
 @ stdcall -version=0x600+ WakeConditionVariable(ptr) ntdll.RtlWakeConditionVariable
-@ stub -version=0x600+ WerGetFlags
-@ stub -version=0x600+ WerRegisterFile
-@ stub -version=0x600+ WerRegisterMemoryBlock
-@ stub -version=0x600+ WerSetFlags
-@ stub -version=0x600+ WerUnregisterFile
-@ stub -version=0x600+ WerUnregisterMemoryBlock 
-@ stub -version=0x600+ WerpCleanupMessageMapping 
-@ stub -version=0x600+ WerpInitiateRemoteRecovery
-@ stub -version=0x600+ WerpNotifyLoadStringResource
-@ stub -version=0x600+ WerpNotifyLoadStringResourceEx
-@ stub -version=0x600+ WerpNotifyUseStringResource
-@ stub -version=0x600+ WerpStringLookup 
-@ stdcall WideCharToMultiByte(long long wstr long ptr long ptr ptr) kernel32_win7.WideCharToMultiByte
-@ stdcall WinExec(str long) kernel32_win7.WinExec
-@ stdcall Wow64DisableWow64FsRedirection(ptr) kernel32_win7.Wow64DisableWow64FsRedirection
-@ stdcall Wow64EnableWow64FsRedirection(long) kernel32_win7.Wow64EnableWow64FsRedirection
-@ stub -version=0x600+ Wow64GetThreadContext
-@ stdcall Wow64RevertWow64FsRedirection(ptr) kernel32_win7.Wow64RevertWow64FsRedirection
-@ stub -version=0x600+ Wow64SetThreadContext
+@ stdcall -version=0x600+ WerGetFlags(ptr ptr) kernelbase.WerGetFlags
+@ stdcall -version=0x600+ WerRegisterFile(wstr long long) kernelbase.WerRegisterFile
+@ stdcall -version=0x600+ WerRegisterMemoryBlock(ptr long) kernelbase.WerRegisterMemoryBlock
+@ stdcall -version=0x601+ WerRegisterRuntimeExceptionModule(wstr ptr) kernelbase.WerRegisterRuntimeExceptionModule
+@ stdcall -version=0x600+ WerSetFlags(long) kernelbase.WerSetFlags
+@ stdcall -version=0x600+ WerUnregisterFile(wstr) kernelbase.WerUnregisterFile
+@ stdcall -version=0x600+ WerUnregisterMemoryBlock(ptr) kernelbase.WerUnregisterMemoryBlock
+@ stdcall -version=0x601+ WerUnregisterRuntimeExceptionModule(wstr ptr) kernelbase.WerUnregisterRuntimeExceptionModule
+@ stdcall WideCharToMultiByte(long long wstr long ptr long ptr ptr) kernelbase.WideCharToMultiByte
+@ stdcall WinExec(str long) kernelbase.WinExec
+@ stdcall Wow64DisableWow64FsRedirection(ptr) kernelbase.Wow64DisableWow64FsRedirection
+@ stdcall Wow64EnableWow64FsRedirection(long) kernelbase.Wow64EnableWow64FsRedirection
+@ stdcall -version=0x600+ Wow64GetThreadContext(long ptr) kernelbase.Wow64GetThreadContext
+@ stdcall Wow64RevertWow64FsRedirection(ptr) kernelbase.Wow64RevertWow64FsRedirection
+@ stdcall -version=0x600+ Wow64SetThreadContext(long ptr) kernelbase.Wow64SetThreadContext
 @ stub -version=0x600+ Wow64SuspendThread
-@ stdcall WriteConsoleA(long ptr long ptr ptr) kernel32_win7.WriteConsoleA
-@ stdcall WriteConsoleInputA(long ptr long ptr) kernel32_win7.WriteConsoleInputA
-@ stdcall WriteConsoleInputVDMA(long long long long) kernel32_win7.WriteConsoleInputVDMA
-@ stdcall WriteConsoleInputVDMW(long long long long) kernel32_win7.WriteConsoleInputVDMW
-@ stdcall WriteConsoleInputW(long ptr long ptr) kernel32_win7.WriteConsoleInputW
-@ stdcall WriteConsoleOutputA(long ptr long long ptr) kernel32_win7.WriteConsoleOutputA
-@ stdcall WriteConsoleOutputAttribute(long ptr long long ptr) kernel32_win7.WriteConsoleOutputAttribute
-@ stdcall WriteConsoleOutputCharacterA(long ptr long long ptr) kernel32_win7.WriteConsoleOutputCharacterA
-@ stdcall WriteConsoleOutputCharacterW(long ptr long long ptr) kernel32_win7.WriteConsoleOutputCharacterW
-@ stdcall WriteConsoleOutputW(long ptr long long ptr) kernel32_win7.WriteConsoleOutputW
-@ stdcall WriteConsoleW(long ptr long ptr ptr) kernel32_win7.WriteConsoleW
-@ stdcall WriteFile(long ptr long ptr ptr) kernel32_win7.WriteFile
-@ stdcall WriteFileEx(long ptr long ptr ptr) kernel32_win7.WriteFileEx
-@ stdcall WriteFileGather(long ptr long ptr ptr) kernel32_win7.WriteFileGather
-@ stdcall WritePrivateProfileSectionA(str str str) kernel32_win7.WritePrivateProfileSectionA
-@ stdcall WritePrivateProfileSectionW(wstr wstr wstr) kernel32_win7.WritePrivateProfileSectionW
-@ stdcall WritePrivateProfileStringA(str str str str) kernel32_win7.WritePrivateProfileStringA
-@ stdcall WritePrivateProfileStringW(wstr wstr wstr wstr) kernel32_win7.WritePrivateProfileStringW
-@ stdcall WritePrivateProfileStructA(str str ptr long str) kernel32_win7.WritePrivateProfileStructA
-@ stdcall WritePrivateProfileStructW(wstr wstr ptr long wstr) kernel32_win7.WritePrivateProfileStructW
-@ stdcall WriteProcessMemory(long ptr ptr long ptr) kernel32_win7.WriteProcessMemory
-@ stdcall WriteProfileSectionA(str str) kernel32_win7.WriteProfileSectionA
-@ stdcall WriteProfileSectionW(str str) kernel32_win7.WriteProfileSectionW
-@ stdcall WriteProfileStringA(str str str) kernel32_win7.WriteProfileStringA
-@ stdcall WriteProfileStringW(wstr wstr wstr) kernel32_win7.WriteProfileStringW
-@ stdcall WriteTapemark(ptr long long long) kernel32_win7.WriteTapemark
-@ stdcall ZombifyActCtx(ptr) kernel32_win7.ZombifyActCtx
+@ stdcall WriteConsoleA(long ptr long ptr ptr) kernelbase.WriteConsoleA
+@ stdcall WriteConsoleInputA(long ptr long ptr) kernelbase.WriteConsoleInputA
+@ stdcall WriteConsoleInputVDMA(long long long long) kernelbase.WriteConsoleInputVDMA
+@ stdcall WriteConsoleInputVDMW(long long long long) kernelbase.WriteConsoleInputVDMW
+@ stdcall WriteConsoleInputW(long ptr long ptr) kernelbase.WriteConsoleInputW
+@ stdcall WriteConsoleOutputA(long ptr long long ptr) kernelbase.WriteConsoleOutputA
+@ stdcall WriteConsoleOutputAttribute(long ptr long long ptr) kernelbase.WriteConsoleOutputAttribute
+@ stdcall WriteConsoleOutputCharacterA(long ptr long long ptr) kernelbase.WriteConsoleOutputCharacterA
+@ stdcall WriteConsoleOutputCharacterW(long ptr long long ptr) kernelbase.WriteConsoleOutputCharacterW
+@ stdcall WriteConsoleOutputW(long ptr long long ptr) kernelbase.WriteConsoleOutputW
+@ stdcall WriteConsoleW(long ptr long ptr ptr) kernelbase.WriteConsoleW
+@ stdcall WriteFile(long ptr long ptr ptr) kernelbase.WriteFile
+@ stdcall WriteFileEx(long ptr long ptr ptr) kernelbase.WriteFileEx
+@ stdcall WriteFileGather(long ptr long ptr ptr) kernelbase.WriteFileGather
+@ stdcall WritePrivateProfileSectionA(str str str) kernelbase.WritePrivateProfileSectionA
+@ stdcall WritePrivateProfileSectionW(wstr wstr wstr) kernelbase.WritePrivateProfileSectionW
+@ stdcall WritePrivateProfileStringA(str str str str) kernelbase.WritePrivateProfileStringA
+@ stdcall WritePrivateProfileStringW(wstr wstr wstr wstr) kernelbase.WritePrivateProfileStringW
+@ stdcall WritePrivateProfileStructA(str str ptr long str) kernelbase.WritePrivateProfileStructA
+@ stdcall WritePrivateProfileStructW(wstr wstr ptr long wstr) kernelbase.WritePrivateProfileStructW
+@ stdcall WriteProcessMemory(long ptr ptr long ptr) kernelbase.WriteProcessMemory
+@ stdcall WriteProfileSectionA(str str) kernelbase.WriteProfileSectionA
+@ stdcall WriteProfileSectionW(str str) kernelbase.WriteProfileSectionW
+@ stdcall WriteProfileStringA(str str str) kernelbase.WriteProfileStringA
+@ stdcall WriteProfileStringW(wstr wstr wstr) kernelbase.WriteProfileStringW
+@ stdcall WriteTapemark(ptr long long long) kernelbase.WriteTapemark
+@ stdcall ZombifyActCtx(ptr) kernelbase.ZombifyActCtx
 @ stdcall -arch=x86_64,arm64 __C_specific_handler() ntdll.__C_specific_handler
 @ stdcall -arch=x86_64,arm64 __chkstk() ntdll.__chkstk
 ;@ stdcall -arch=x86_64 __misaligned_access() ntdll.__misaligned_access
-@ stdcall _hread(long ptr long) kernel32_win7._hread
-@ stdcall _hwrite(long ptr long) kernel32_win7._hwrite
-@ stdcall _lclose(long) kernel32_win7._lclose
-@ stdcall _lcreat(str long) kernel32_win7._lcreat
-@ stdcall _llseek(long long long) kernel32_win7._llseek
+@ stdcall _hread(long ptr long) kernelbase._hread
+@ stdcall _hwrite(long ptr long) kernelbase._hwrite
+@ stdcall _lclose(long) kernelbase._lclose
+@ stdcall _lcreat(str long) kernelbase._lcreat
+@ stdcall _llseek(long long long) kernelbase._llseek
 @ stdcall -arch=x86_64,arm64 _local_unwind() ntdll._local_unwind
-@ stdcall _lopen(str long) kernel32_win7._lopen
-@ stdcall _lread(long ptr long) kernel32_win7._hread
-@ stdcall _lwrite(long ptr long) kernel32_win7._hwrite
-@ stdcall lstrcat(str str) kernel32_win7.lstrcatA
-@ stdcall lstrcatA(str str) kernel32_win7.lstrcatA
-@ stdcall lstrcatW(wstr wstr) kernel32_win7.lstrcatW
-@ stdcall lstrcmp(str str) kernel32_win7.lstrcmpA
-@ stdcall lstrcmpA(str str) kernel32_win7.lstrcmpA
-@ stdcall lstrcmpW(wstr wstr) kernel32_win7.lstrcmpW
-@ stdcall lstrcmpi(str str) kernel32_win7.lstrcmpiA
-@ stdcall lstrcmpiA(str str) kernel32_win7.lstrcmpiA
-@ stdcall lstrcmpiW(wstr wstr) kernel32_win7.lstrcmpiW
-@ stdcall lstrcpy(ptr str) kernel32_win7.lstrcpyA
-@ stdcall lstrcpyA(ptr str) kernel32_win7.lstrcpyA
-@ stdcall lstrcpyW(ptr wstr) kernel32_win7.lstrcpyW
+@ stdcall _lopen(str long) kernelbase._lopen
+@ stdcall _lread(long ptr long) kernelbase._hread
+@ stdcall _lwrite(long ptr long) kernelbase._hwrite
+@ stdcall lstrcat(str str) kernelbase.lstrcatA
+@ stdcall lstrcatA(str str) kernelbase.lstrcatA
+@ stdcall lstrcatW(wstr wstr) kernelbase.lstrcatW
+@ stdcall lstrcmp(str str) kernelbase.lstrcmpA
+@ stdcall lstrcmpA(str str) kernelbase.lstrcmpA
+@ stdcall lstrcmpW(wstr wstr) kernelbase.lstrcmpW
+@ stdcall lstrcmpi(str str) kernelbase.lstrcmpiA 
+@ stdcall lstrcmpiA(str str) kernelbase.lstrcmpiA
+@ stdcall lstrcmpiW(wstr wstr) kernelbase.lstrcmpiW
+@ stdcall lstrcpy(ptr str) kernelbase.lstrcpyA
+@ stdcall lstrcpyA(ptr str) kernelbase.lstrcpyA
+@ stdcall lstrcpyW(ptr wstr) kernelbase.lstrcpyW
 @ stdcall lstrcpyn(ptr str long) lstrcpynA
-@ stdcall lstrcpynA(ptr str long) kernel32_win7.lstrcpynA
-@ stdcall lstrcpynW(ptr wstr long) kernel32_win7.lstrcpynW
-@ stdcall lstrlen(str) kernel32_win7.lstrlen
-@ stdcall lstrlenA(str) kernel32_win7.lstrlenA
-@ stdcall lstrlenW(wstr) kernel32_win7.lstrlenW
+@ stdcall lstrcpynA(ptr str long) kernelbase.lstrcpynA
+@ stdcall lstrcpynW(ptr wstr long) kernelbase.lstrcpynW
+@ stdcall lstrlen(str) kernelbase.lstrlen
+@ stdcall lstrlenA(str) kernelbase.lstrlenA
+@ stdcall lstrlenW(wstr) kernelbase.lstrlenW
 ;@ stdcall -arch=x86_64 uaw_lstrcmpW(wstr wstr)
 ;@ stdcall -arch=x86_64 uaw_lstrcmpiW(wstr wstr)
 ;@ stdcall -arch=x86_64 uaw_lstrlenW(wstr)
@@ -1298,3 +1433,21 @@
 ;@ stdcall -arch=x86_64 uaw_wcslen(wstr)
 ;@ stdcall -arch=x86_64 uaw_wcsrchr(wstr long)
 
+
+@ stdcall -stub ResolveLocaleName(wstr ptr long)
+
+@ stdcall -version=0x601+ -arch=i386,x86_64 LocateXStateFeature(ptr long ptr) kernelbase.LocateXStateFeature
+@ stdcall -arch=i386,x86_64 GetXStateFeaturesMask(ptr ptr) kernelbase.GetXStateFeaturesMask
+@ stdcall -ret64 -arch=i386,x86_64 GetEnabledXStateFeatures() kernelbase.GetEnabledXStateFeatures
+@ stdcall -arch=i386,x86_64 SetXStateFeaturesMask(ptr int64) kernelbase.SetXStateFeaturesMask
+@ stdcall -version=0x601+ InitializeContext(ptr long ptr ptr) kernelbase.InitializeContext
+@ stdcall -stub GetThreadIdealProcessorEx(long ptr)
+@ stdcall GetCurrentApplicationUserModelId(ptr wstr) kernelbase.GetCurrentApplicationUserModelId
+
+@ stdcall -version=0xA00+ InitializeContext2(ptr long ptr ptr int64) kernelbase.InitializeContext2
+@ stdcall SetUserDefaultGeoName(wstr) kernelbase.SetUserDefaultGeoName
+
+
+@ stdcall -version=0x603+ WaitOnAddress(ptr ptr long long) kernelbase.WaitOnAddress
+@ stdcall -version=0x603+ WakeByAddressAll(ptr) kernelbase.WakeByAddressAll
+@ stdcall -version=0x603+ WakeByAddressSingle(ptr) kernelbase.WakeByAddressSingle
