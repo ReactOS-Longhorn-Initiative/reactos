@@ -25,7 +25,7 @@ add_library(mscoree MODULE
 
 set_module_type(mscoree win32dll)
 target_link_libraries(mscoree uuid wine oldnames)
-add_importlibs(mscoree dbghelp advapi32 shell32 kernel32_vista ole32 shlwapi msvcrt kernel32 ntdll)
+add_importlibs(mscoree dbghelp advapi32 shell32 kernelbase ole32 shlwapi msvcrt kernel32 ntdll)
 #add_pch(mscoree mscoree_private.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET mscoree DESTINATION reactos/system32 FOR all)
 set_wine_module_FIXME(mscoree) # CORE-5743: No CONST_VTABLE
