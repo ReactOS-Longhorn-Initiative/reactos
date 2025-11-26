@@ -29,7 +29,10 @@
 #include "winerror.h"
 #include "winternl.h"
 #include "winioctl.h"
+#ifdef __REACTOS__
+#else
 #include "ddk/ntddk.h"
+#endif
 
 #include "kernelbase.h"
 #include "wine/debug.h"
@@ -721,9 +724,6 @@ BOOL WINAPI GetTokenInformation( HANDLE token, TOKEN_INFORMATION_CLASS class,
           (class == TokenGroupsAndPrivileges) ? "TokenGroupsAndPrivileges" :
           (class == TokenSessionReference) ? "TokenSessionReference" :
           (class == TokenSandBoxInert) ? "TokenSandBoxInert" :
-          (class == TokenElevation) ? "TokenElevation" :
-          (class == TokenElevationType) ? "TokenElevationType" :
-          (class == TokenLinkedToken) ? "TokenLinkedToken" :
           "Unknown",
           info, len, retlen);
 
@@ -1183,7 +1183,7 @@ BOOL WINAPI SetPrivateObjectSecurity( SECURITY_INFORMATION info, PSECURITY_DESCR
     FIXME( "0x%08lx %p %p %p %p - stub\n", info, descr, obj_descr, mapping, token );
     return TRUE;
 }
-
+#ifndef __REACTOS__
 /*************************************************************************
  * SetPrivateObjectSecurityEx    (kernelbase.@)
  */
@@ -1194,7 +1194,7 @@ BOOL WINAPI SetPrivateObjectSecurityEx( SECURITY_INFORMATION info, PSECURITY_DES
     FIXME( "0x%08lx %p %p %lu %p %p - stub\n", info, descr, obj_descr, flags, mapping, token );
     return TRUE;
 }
-
+#endif
 /******************************************************************************
  * SetSecurityDescriptorControl    (kernelbase.@)
  */
@@ -1439,6 +1439,13 @@ BOOL WINAPI IsValidAcl( PACL acl )
     return RtlValidAcl( acl );
 }
 
+extern NTSYSAPI
+VOID
+NTAPI
+RtlMapGenericMask(
+    PACCESS_MASK AccessMask,
+    PGENERIC_MAPPING GenericMapping
+);
 /******************************************************************************
  * MapGenericMask    (kernelbase.@)
  */

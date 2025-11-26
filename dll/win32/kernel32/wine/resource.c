@@ -176,16 +176,6 @@ BOOL WINAPI EnumResourceLanguagesA( HMODULE hmod, LPCSTR type, LPCSTR name,
 }
 
 
-/**********************************************************************
- *	EnumResourceLanguagesW	(KERNEL32.@)
- */
-BOOL WINAPI EnumResourceLanguagesW( HMODULE hmod, LPCWSTR type, LPCWSTR name,
-                                    ENUMRESLANGPROCW lpfun, LONG_PTR lparam )
-{
-    return EnumResourceLanguagesExW( hmod, type, name, lpfun, lparam, 0, 0 );
-}
-
-
 /*
  *  Data structure for updating resources.
  *  Type/Name/Language is a keyset for accessing resource data.

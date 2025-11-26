@@ -5,15 +5,20 @@ include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/subsys)
 spec2def(kernel32.dll kernel32.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
+    client/atom.c
     client/dllmain.c
     client/job.c
     client/pathansi.c
+    client/power.c
     client/startupansi.c
     client/version.c
     client/file/mailslot.c
     client/file/tape.c
     wine/lzexpand.c
+    wine/process.c
     wine/resource.c
+    wine/sync.c
+    wine/transact.c
     k32.h)
 
 
@@ -33,9 +38,8 @@ set_module_type(kernel32 win32dll ENTRYPOINT DllMain 12)
 ## HACK FOR MSVC COMPILATION WITH win32dll ##
 set_subsystem(kernel32 console)
 ################# END  HACK #################
-
 target_link_libraries(kernel32 chkstk ${PSEH_LIB})
-add_importlibs(kernel32 kernel32_win7 ntdll)
+add_importlibs(kernel32 kernelbase ntdll)
 add_pch(kernel32 k32.h SOURCE)
 add_dependencies(kernel32 psdk errcodes asm)
 add_cd_file(TARGET kernel32 DESTINATION reactos/system32 FOR all)

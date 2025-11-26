@@ -1861,4 +1861,26 @@ LocalUnlock(HLOCAL hMem)
     return RetVal;
 }
 
+#undef HeapAlloc
+LPVOID
+WINAPI
+HeapAlloc(
+    _In_ HANDLE hHeap,
+    _In_ DWORD  dwFlags,
+    _In_ SIZE_T dwBytes)
+{
+    return RtlAllocateHeap(hHeap, dwFlags, dwBytes);
+}
+
+#undef HeapFree
+BOOL
+WINAPI
+HeapFree(
+    _In_ HANDLE hHeap,
+    _In_ DWORD dwFlags,
+    _In_ _Frees_ptr_opt_ LPVOID lpMem)
+{
+    return RtlFreeHeap(hHeap, dwFlags, lpMem);
+}
+
 /* EOF */

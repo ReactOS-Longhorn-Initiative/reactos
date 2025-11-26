@@ -485,6 +485,26 @@ DeregisterEventSource(IN HANDLE hEventLog)
 
     return TRUE;
 }
+typedef ULONG64 TRACEHANDLE, *PTRACEHANDLE;
+typedef struct _EVENT_FILTER_DESCRIPTOR
+{
+    ULONGLONG   Ptr;
+    ULONG       Size;
+    ULONG       Type;
+
+} EVENT_FILTER_DESCRIPTOR, *PEVENT_FILTER_DESCRIPTOR;
+
+ULONG WINAPI EnableTraceEx( LPCGUID provider, LPCGUID source, TRACEHANDLE hSession, ULONG enable,
+                            UCHAR level, ULONGLONG anykeyword, ULONGLONG allkeyword, ULONG enableprop,
+                            PEVENT_FILTER_DESCRIPTOR filterdesc )
+{
+    FIXME("(%s, %s, %s, %lu, %u, %s, %s, %lu, %p): stub\n", debugstr_guid(provider),
+            debugstr_guid(source), wine_dbgstr_longlong(hSession), enable, level,
+            wine_dbgstr_longlong(anykeyword), wine_dbgstr_longlong(allkeyword),
+            enableprop, filterdesc);
+
+    return ERROR_SUCCESS;
+}
 
 
 /******************************************************************************
