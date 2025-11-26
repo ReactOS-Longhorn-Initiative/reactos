@@ -33,7 +33,7 @@ add_definitions(-Dwcsdup=_wcsdup -Dwcsicmp=_wcsicmp -D_ROAPI_)
 add_library(${COMBASE_NAME} MODULE ${SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/${COMBASE_NAME}.def)
 set_module_type(${COMBASE_NAME} win32dll)
 target_link_libraries(${COMBASE_NAME} wine uuid pseh)
-add_importlibs(${COMBASE_NAME} advapi32 ole32 oleaut32 user32 gdi32 rpcrt4 msvcrt kernel32_vista kernel32 ntdll)
+add_importlibs(${COMBASE_NAME} advapi32 ole32 oleaut32 user32 gdi32 rpcrt4 msvcrt kernelbase kernel32 ntdll)
 add_dependencies(${COMBASE_NAME} combase_idlheader wineheaders rpcss)
 add_cd_file(TARGET ${COMBASE_NAME} DESTINATION reactos/system32 FOR all)
 set_wine_module_FIXME(${COMBASE_NAME}) # CORE-5743: ???
