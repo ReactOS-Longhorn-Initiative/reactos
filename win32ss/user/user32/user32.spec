@@ -590,6 +590,7 @@
 @ stdcall RegisterMessagePumpHook(ptr)
 @ stdcall -version=0x602+ RegisterPointerDeviceNotifications(long long)
 @ stdcall -version=0x600+ RegisterPowerSettingNotification(long ptr long)
+@ stdcall -version=0x602+ RegisterSuspendResumeNotification(ptr long)
 @ stdcall RegisterRawInputDevices(ptr long long) NtUserRegisterRawInputDevices
 @ stdcall RegisterServicesProcess(long)
 @ stdcall RegisterShellHookWindow(long)
@@ -800,3 +801,20 @@
 @ varargs wsprintfW(ptr wstr)
 @ stdcall wvsprintfA(ptr str ptr)
 @ stdcall wvsprintfW(ptr wstr ptr)
+
+
+; TODO, Handle Theses
+@ stdcall -stub GetAutoRotationState(ptr)
+@ stdcall -stub GetPointerFrameTouchInfo(long ptr ptr)
+@ stdcall -stub InjectSyntheticPointerInput(ptr ptr long)
+@ stdcall -stub EvaluateProximityToPolygon(long ptr ptr ptr)
+@ stdcall -stub GetPointerDevice(ptr ptr)
+@ stdcall -stub GetPointerPenInfo(long ptr)
+@ stdcall -stub GetSystemMetricsForDpi(long long)
+@ stdcall -stub GetWindowDpiAwarenessContext(ptr)
+@ stdcall -stub GetDpiAwarenessContextForProcess(ptr)
+@ stdcall -stub GetWindowDpiHostingBehavior(ptr)
+@ stdcall -stub SetThreadDpiAwarenessContext(ptr)
+@ stdcall -stub SetThreadDpiHostingBehavior(ptr)
+@ stdcall -stub GetThreadDpiHostingBehavior()
+2557 stub OrdinalUnknown
