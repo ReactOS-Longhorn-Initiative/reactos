@@ -54,7 +54,7 @@ list(APPEND quartz_rc_deps
 set_source_files_properties(quartz.rc PROPERTIES OBJECT_DEPENDS "${quartz_rc_deps}")
 set_module_type(quartz win32dll)
 target_link_libraries(quartz strmbase strmiids uuid dxguid wine ${PSEH_LIB})
-add_importlibs(quartz winmm ddraw dsound msacm32 msvfw32 ole32 oleaut32 rpcrt4 user32 gdi32 advapi32 advapi32_vista shlwapi msvcrt kernel32_vista kernel32 ntdll_vista ntdll)
+add_importlibs(quartz winmm ddraw dsound msacm32 msvfw32 ole32 oleaut32 rpcrt4 user32 gdi32 advapi32 advapi32_vista shlwapi msvcrt kernelbase kernel32 ntdll_vista ntdll)
 add_dependencies(quartz dxsdk stdole2)
 #add_pch(quartz precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET quartz DESTINATION reactos/system32 FOR all)
