@@ -309,7 +309,7 @@ typedef NTSTATUS
   _In_ HANDLE TransactionHandle,
   _In_ BOOLEAN Wait);
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if 1 //(NTDDI_VERSION >= NTDDI_VISTA)
 
 _Must_inspect_result_
 _IRQL_requires_max_ (APC_LEVEL)

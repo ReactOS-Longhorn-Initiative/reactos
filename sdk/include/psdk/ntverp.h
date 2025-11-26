@@ -13,6 +13,32 @@
  * PROGRAMMERS:     Alex Ionescu (alex.ionescu@reactos.org)
  */
 
+#define  TARGET_VERSION _WIN32_WINNT_WIN10
+
+#if (TARGET_VERSION >= _WIN32_WINNT_WIN10)
+
+//
+// Windows NT 10.0.10240.16384
+//
+#define VER_PRODUCTBUILD                    10240
+#define VER_PRODUCTBUILD_QFE                16384
+#define VER_PRODUCTMAJORVERSION             10
+#define VER_PRODUCTMINORVERSION             0
+#define VER_PRODUCTVERSION_W                (0x0601)
+#define VER_PRODUCTVERSION_DW               (0x0A000000 | VER_PRODUCTBUILD)
+
+#elif (TARGET_VERSION >= _WIN32_WINNT_VISTA)
+
+//
+// Windows NT 6.0.6002.18005
+//
+#define VER_PRODUCTBUILD                    6002
+#define VER_PRODUCTBUILD_QFE                18005
+#define VER_PRODUCTMAJORVERSION             6
+#define VER_PRODUCTMINORVERSION             0
+#define VER_PRODUCTVERSION_W                (0x0600)
+#define VER_PRODUCTVERSION_DW               (0x06000000 | VER_PRODUCTBUILD)
+#else
 //
 // Windows NT Build 3790.3959
 //
@@ -26,6 +52,7 @@
 #define VER_PRODUCTMINORVERSION             2
 #define VER_PRODUCTVERSION_W                (0x0502)
 #define VER_PRODUCTVERSION_DW               (0x05020000 | VER_PRODUCTBUILD)
+#endif
 
 //
 // Not a beta
