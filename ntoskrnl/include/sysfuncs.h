@@ -186,7 +186,9 @@ SVC_(CancelWaitCompletionPacket, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CommitComplete, 2)
 SVC_(CommitEnlistment, 2)
-//NtCommitRegistryTransaction: 1709+
+
+// Note: added in 1607
+SVC_(CommitRegistryTransaction, 0) // FIXME
 SVC_(CommitTransaction, 2)
 #endif // (NTDDI_VERSION == NTDDI_VISTA)
 SVC_(CompactKeys, 2)
@@ -204,9 +206,7 @@ SVC_(CreateDirectoryObject, 3)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CreateDirectoryObjectEx, 0) // FIXME
 #endif // (NTDDI_VERSION >= NTDDI_WIN8)
-/*#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
 SVC_(CreateEnclave, 0) // FIXME
-#endif*/
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CreateEnlistment, 8)
 #endif // (NTDDI_VERSION >= NTDDI_VISTA)
@@ -240,6 +240,7 @@ SVC_(CreateProfile, 9)
 #if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(CreateProfileEx, 10)
 #endif
+SVC_(CreateRegistryTransaction, 0) // FIXME
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CreateResourceManager, 7)
 #endif
@@ -353,9 +354,9 @@ SVC_(GetPlugPlayEvent, 4)
 SVC_(GetWriteWatch, 7)
 SVC_(ImpersonateAnonymousToken, 1)
 SVC_(ImpersonateThread, 3)
-/*#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
+//if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
 SVC_(InitializeEnclave, 0) // FIXME
-#endif*/
+//#endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(InitializeNlsFiles, 2)
 #endif
@@ -367,9 +368,9 @@ SVC_(IsUILanguageComitted, 0)
 #endif
 SVC_(ListenPort, 2)
 SVC_(LoadDriver, 1)
-/*#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
+//#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
 SVC_(LoadEnclaveData, 0) // FIXME
-#endif*/
+//#endif
 SVC_(LoadKey, 2)
 SVC_(LoadKey2, 3)
 SVC_(LoadKeyEx, 4)
@@ -421,6 +422,7 @@ SVC_(OpenPartition, 0) // TODO args
 SVC_(OpenPrivateNamespace, 4)
 #endif
 SVC_(OpenProcessToken, 3)
+SVC_(OpenRegistryTransaction, 0) // FIXME
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(OpenResourceManager, 5)
 #endif
@@ -494,6 +496,7 @@ SVC_(QueryQuotaInformationFile, 9)
 SVC_(QuerySecurityAttributesToken, 6)
 #endif
 SVC_(QuerySecurityObject, 5)
+SVC_(QuerySecurityPolicy, 0) // FIXME
 SVC_(QuerySemaphore, 5)
 SVC_(QuerySymbolicLinkObject, 3)
 SVC_(QuerySystemEnvironmentValue, 4)
@@ -552,6 +555,7 @@ SVC_(RevertContainerImpersonation, 0) // TODO args
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(RollbackComplete, 2)
 SVC_(RollbackEnlistment, 2)
+SVC_(RollbackRegistryTransaction, 2) // 1607
 SVC_(RollbackTransaction, 2)
 SVC_(RollforwardTransactionManager, 2)
 #endif
@@ -567,6 +571,7 @@ SVC_(SetBootEntryOrder, 2)
 SVC_(SetBootOptions, 2)
 #if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(SetCachedSigningLevel, 0) // TODO args
+SVC_(SetCachedSigningLevel2, 0) // TODO args (1607+)
 #endif
 #endif
 SVC_(SetContextThread, 2)
@@ -711,5 +716,4 @@ SVC_(RequestDeviceWakeup, 1)
 SVC_(RequestWakeupLatency, 1)
 SVC_(CancelDeviceWakeupRequest, 1)
 #endif
-SVC_(AllocateVirtualMemoryEx, 7) // Added in 1803
 // End hack
