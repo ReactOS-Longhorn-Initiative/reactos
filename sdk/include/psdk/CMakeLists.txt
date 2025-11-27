@@ -218,6 +218,8 @@ list(APPEND SOURCE
     mfplay.idl
     mfreadwrite.idl
     ctfutb.idl
+    uiautomationcore.idl
+    uiautomationclient.idl
     xmllite.idl)
 
 add_idl_headers(psdk ${SOURCE})
