@@ -275,4 +275,8 @@ if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
     add_subdirectory(ktmw32)
     add_subdirectory(qwave)
     add_subdirectory(bcp47langs)
+
+    add_subdirectory(wevtapi)
+    add_subdirectory(rstrtmgr)
+    add_subdirectory(profapi)
 endif()
