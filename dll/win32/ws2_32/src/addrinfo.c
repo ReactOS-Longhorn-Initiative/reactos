@@ -1083,3 +1083,11 @@ Quickie:
     SetLastError(ErrorCode);
     return ErrorCode;
 }
+
+INT
+WINAPI
+GetAddrInfoExCancel(
+	IN	LPHANDLE	lpHandle)
+{
+	return WSA_INVALID_HANDLE;
+}

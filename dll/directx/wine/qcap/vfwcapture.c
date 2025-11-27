@@ -200,7 +200,6 @@ static DWORD WINAPI stream_thread(void *arg)
             break;
         }
     }
-
     return 0;
 }
 
@@ -984,12 +983,10 @@ static INIT_ONCE init_once = INIT_ONCE_STATIC_INIT;
 HRESULT vfw_capture_create(IUnknown *outer, IUnknown **out)
 {
     struct vfw_capture *object;
-
 #ifndef __REACTOS__
     if (!InitOnceExecuteOnce(&init_once, load_capture_funcs, NULL, NULL) || !__wine_unixlib_handle)
         return E_FAIL;
 #endif
-
     if (!(object = calloc(1, sizeof(*object))))
         return E_OUTOFMEMORY;
 
