@@ -17,7 +17,7 @@
 @ stub CoreUIUninitializeTestService
 @ stdcall CreateDispatcherQueueController(long long long ptr)
 @ stub CreateDispatcherQueueForCurrentThread
-@ stdcall -private DllCanUnloadNow()
+@ stdcall -stub -private DllCanUnloadNow()
 @ stub DllGetActivationFactory
 @ stub DllGetClassObject
 @ stub GetDispatcherQueueForCurrentThread
