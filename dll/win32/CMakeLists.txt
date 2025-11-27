@@ -286,4 +286,8 @@ if(DLL_EXPORT_VERSION GREATER_EQUAL 0x603)
     add_subdirectory(rtworkq)
     add_subdirectory(ktmw32)
     add_subdirectory(bcp47langs)
+
+    add_subdirectory(wevtapi)
+    add_subdirectory(rstrtmgr)
+    add_subdirectory(profapi)
 endif()
