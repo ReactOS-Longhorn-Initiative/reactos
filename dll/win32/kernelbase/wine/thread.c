@@ -428,8 +428,6 @@ HRESULT WINAPI DECLSPEC_HOTPATCH SetThreadDescription( HANDLE thread, PCWSTR des
     return HRESULT_FROM_NT(NtSetInformationThread( thread, ThreadNameInformation, &info, sizeof(info) ));
 }
 
-#endif
-
 
 /***********************************************************************
  *           GetThreadDescription   (kernelbase.@)
@@ -469,6 +467,7 @@ HRESULT WINAPI DECLSPEC_HOTPATCH GetThreadDescription( HANDLE thread, WCHAR **de
 
     return HRESULT_FROM_NT(status);
 }
+#endif
 
 /***********************************************************************
  *           SetThreadErrorMode   (kernelbase.@)
