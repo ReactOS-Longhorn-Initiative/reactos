@@ -14,7 +14,7 @@
 15 stdcall DrawInsert(long long long)
 16 stdcall CreateUpDownControl(long long long long long long long long long long long long)
 17 stdcall InitCommonControls()
-18 stdcall CreatePropertySheetPageA(ptr)
+18 stdcall CreatePropertySheetPageA(ptr) ; According to geoff this is CreateCheckBoxImagelist
 19 stdcall CreatePropertySheetPageW(ptr)
 20 stdcall CreateStatusWindow(long str long long) CreateStatusWindowA
 21 stdcall CreateStatusWindowW(long wstr long long)
@@ -97,8 +97,21 @@
 157 stdcall -noname CreateMRUListLazyA(ptr long long long)
 163 stdcall -noname CreatePage(long ptr)
 164 stdcall -noname CreateProxyPage(long long)
+165 stdcall -noname DestroyPropsheetPageArray(ptr)
 167 stdcall -noname AddMRUData(long ptr long)
 169 stdcall -noname FindMRUData(long ptr long ptr)
+174 stdcall -noname CreateDUIPropertySheetPage(ptr ptr)
+200 stdcall -ordinal DrawSizeBox(ptr ptr long long)
+201 stdcall -ordinal DrawScrollBar(ptr ptr ptr long)
+202 stdcall -ordinal SizeBoxHwnd(ptr)
+203 stdcall -ordinal ScrollBar_MouseMove(ptr ptr long)
+204 stdcall -ordinal ScrollBar_Menu(ptr ptr long long)
+205 stdcall -ordinal HandleScrollCmd(ptr long long)
+206 stdcall -ordinal DetachScrollBars(ptr)
+207 stdcall -ordinal AttachScrollBars(ptr)
+208 stdcall -ordinal CCSetScrollInfo(ptr long ptr long)
+209 stdcall -ordinal CCGetScrollInfo(ptr long ptr)
+210 stdcall -ordinal CCEnableScrollBar(ptr long long)
 233 stdcall -noname Str_GetPtrA(str str long)
 234 stdcall -noname Str_SetPtrA(str str)
 235 stdcall -noname Str_GetPtrW(wstr wstr long)
@@ -126,6 +139,11 @@
 340 stdcall -noname DPA_CreateEx(long long)
 341 stdcall -noname SendNotify(long long long ptr)
 342 stdcall -noname SendNotifyEx(long long long ptr long)
+343 stdcall DSA_Clone(ptr)
+344 stdcall -ordinal TaskDialog(ptr ptr wstr wstr wstr long wstr ptr)
+345 stdcall -ordinal TaskDialogIndirect(ptr ptr ptr ptr)
+346 stdcall -ordinal DSA_Sort(ptr ptr long)
+347 stdcall -ordinal DPA_GetSize(ptr)
 350 stdcall -noname -private StrChrA(str long)
 351 stdcall -noname -private StrRChrA(str str long)
 352 stdcall -noname -private StrCmpNA(str str long)
@@ -152,6 +170,8 @@
 375 stdcall -noname -private StrCSpnIW(wstr wstr)
 376 stdcall -noname -private IntlStrEqWorkerA(long str str long)
 377 stdcall -noname -private IntlStrEqWorkerW(long wstr wstr long)
+380 stdcall -ordinal -version=0x600+ LoadIconMetric(long wstr long long)
+381 stdcall -ordinal -version=0x600+ LoadIconWithScaleDown(long wstr long long long)
 382 stdcall -noname SmoothScrollWindow(ptr)
 383 stdcall -noname DoReaderMode(ptr)
 384 stdcall -noname SetPathWordBreakProc(ptr long)
@@ -159,8 +179,13 @@
 386 stdcall -ordinal DPA_DestroyCallback(ptr ptr ptr)
 387 stdcall -noname DSA_EnumCallback(ptr ptr ptr)
 388 stdcall -ordinal DSA_DestroyCallback(ptr ptr ptr)
-#389 CControl::v_OnNotify
+
 390 stdcall -noname ImageList_SetColorTable(ptr long long ptr)
+391 stdcall -ordinal GetTitleFromPropSheetHeader(ptr long ptr long)
+392 stdcall -ordinal PremultiplyAlphaChannel(ptr long)
+393 stdcall -ordinal CreateSmallerIcon(ptr long long long)
+394 stdcall -ordinal QuerySystemGestureStatus(long long long long)
+395 stdcall -ordinal Markup_Create(ptr long ptr ptr ptr ptr)
 400 stdcall -ordinal CreateMRUListW(ptr)
 401 stdcall -ordinal AddMRUStringW(long wstr)
 402 stdcall -noname FindMRUStringW(long wstr ptr)
@@ -178,8 +203,7 @@
 419 stdcall -noname GetTextExtentPointWrap(long wstr long ptr) gdi32.GetTextExtentPointW
 420 stdcall -noname GetTextExtentPoint32Wrap(long wstr long ptr) gdi32.GetTextExtentPoint32W
 421 stdcall -noname TextOutWrap(long long long wstr long) gdi32.TextOutW
-
+422 stdcall -noname ThisFunctionDoesNothing(ptr)
 ; Exported in v6 but not v5
 @ stdcall DrawShadowText(long wstr long ptr long long long long long)
-@ stdcall -version=0x600+ LoadIconWithScaleDown(long wstr long long long)
-@ stdcall -version=0x600+ LoadIconMetric(long wstr long long)
+ 
