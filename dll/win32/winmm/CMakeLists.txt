@@ -1,5 +1,7 @@
 
 add_definitions(-D_WINE)
+remove_definitions(-D_WIN32_WINNT=0x502)
+add_definitions(-D_WIN32_WINNT=0x601)
 include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/wine)
 spec2def(winmm.dll winmm.spec ADD_IMPORTLIB)
 
