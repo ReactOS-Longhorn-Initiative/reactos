@@ -771,13 +771,12 @@ NTSYSCALLAPI NTSTATUS NTAPI NtSetCachedSigningLevel(void);
 NTSYSCALLAPI NTSTATUS NTAPI NtCompareObjects(void);
 NTSYSCALLAPI NTSTATUS NTAPI NtWorkerFactoryWorkerReady(ULONG);
 NTSYSCALLAPI NTSTATUS NTAPI NtOpenKeyEx(PHANDLE,ACCESS_MASK,const OBJECT_ATTRIBUTES*,ULONG);
-NTSYSCALLAPI NTSTATUS NTAPI NtAllocateVirtualMemoryEx(HANDLE ProcessHandle,
-                                                      IN OUT PVOID* UBaseAddress,
-                                                      PSIZE_T RegionSize,
-                                                      ULONG AllocationType,
-                                                      ULONG PageProtection,
-                                                      IN OUT PVOID ExtendedParameters OPTIONAL,
-                                                      ULONG ExtendedParameterCount);
+NTSYSCALLAPI NTSTATUS NTAPI NtCommitRegistryTransaction(void);
+NTSYSCALLAPI NTSTATUS NTAPI NtCreateRegistryTransaction(void);
+NTSYSCALLAPI NTSTATUS NTAPI NtOpenRegistryTransaction(void);
+NTSYSCALLAPI NTSTATUS NTAPI NtQuerySecurityPolicy(void);
+NTSYSCALLAPI NTSTATUS NTAPI NtRollbackRegistryTransaction(void);
+NTSYSCALLAPI NTSTATUS NTAPI NtSetCachedSigningLevel2(void);
 
 #define COMPRESSION_FORMAT_NONE         (0x0000)
 #define COMPRESSION_FORMAT_DEFAULT      (0x0001)

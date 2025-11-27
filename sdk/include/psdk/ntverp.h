@@ -18,10 +18,10 @@
 #if (TARGET_VERSION >= _WIN32_WINNT_WIN10)
 
 //
-// Windows NT 10.0.10240.16384
+// Windows NT 10.0.14393.0
 //
-#define VER_PRODUCTBUILD                    10240
-#define VER_PRODUCTBUILD_QFE                16384
+#define VER_PRODUCTBUILD                    14393
+#define VER_PRODUCTBUILD_QFE                0
 #define VER_PRODUCTMAJORVERSION             10
 #define VER_PRODUCTMINORVERSION             0
 #define VER_PRODUCTVERSION_W                (0x0601)
