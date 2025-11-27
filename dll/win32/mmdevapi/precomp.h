@@ -1,28 +1,21 @@
+#pragma once
 
-#ifndef _MMDEVAPI_PRECOMP_H_
-#define _MMDEVAPI_PRECOMP_H_
-
-#include <stdarg.h>
-
-#define WIN32_NO_STATUS
-#define _INC_WINDOWS
-#define COM_NO_WINDOWS_H
-
-#define COBJMACROS
-#define NONAMELESSUNION
-
+#include <initguid.h>
 #include <windef.h>
 #include <winbase.h>
-#include <wingdi.h>
-#include <winreg.h>
-#include <winnls.h>
-#include <objbase.h>
-#include <audiopolicy.h>
-#include <endpointvolume.h>
+#include <oleauto.h>
+#include <olectl.h>
+#include <cguid.h>
+#include <tchar.h>
+#include <strsafe.h>
 #include <mmdeviceapi.h>
 
+#include <wine/list.h>
 #include <wine/debug.h>
 
-#include "mmdevapi.h"
+// Imports
+EXTERN_C HRESULT __wine_register_resources(HMODULE module);
+EXTERN_C HRESULT __wine_unregister_resources(HMODULE module);
 
-#endif /* !_MMDEVAPI_PRECOMP_H_ */
+// DeviceEnumerator.cpp
+EXTERN_C HRESULT MMDeviceEnumerator_Constructor(IUnknown *pUnkOuter, IUnknown **ppOut);
