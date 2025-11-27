@@ -29,6 +29,7 @@ list(APPEND SOURCE
     header.c
     hotkey.c
     imagelist.c
+    Vista_IListView.c
     ipaddress.c
     listbox.c
     listview.c
@@ -51,7 +52,9 @@ list(APPEND SOURCE
     tooltips.c
     trackbar.c
     treeview.c
-    updown.c)
+    undoc_scroll.c
+    updown.c
+    winterminal.cpp)
 
 list(APPEND PCH_SKIP_SOURCE
     stubs.c)
