@@ -283,4 +283,5 @@ endif()
 
 if(DLL_EXPORT_VERSION GREATER_EQUAL 0x603)
    add_subdirectory(rtworkq)
+   add_subdirectory(ktmw32)
 endif()
