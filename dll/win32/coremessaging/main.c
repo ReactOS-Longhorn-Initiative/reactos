@@ -22,6 +22,30 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(messaging);
 
+#ifdef __REACTOS__
+BOOL
+WINAPI
+DllMain(
+    _In_ HINSTANCE hinstDLL,
+    _In_ DWORD fdwReason,
+    _In_ PVOID pvReserved)
+{
+    UNREFERENCED_PARAMETER(pvReserved);
+
+    switch (fdwReason)
+    {
+        case DLL_PROCESS_ATTACH:
+            DisableThreadLibraryCalls(hinstDLL);
+            break;
+
+        case DLL_PROCESS_DETACH:
+            break;
+    }
+
+    return TRUE;
+}
+#endif
+
 HRESULT WINAPI CreateDispatcherQueueController( DispatcherQueueOptions options, PDISPATCHERQUEUECONTROLLER *queue_controller )
 {
     FIXME( "options.dwSize = %lu, options.threadType = %d, options.apartmentType = %d, queue_controller %p stub!\n",
