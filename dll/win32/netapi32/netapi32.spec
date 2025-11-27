@@ -338,3 +338,6 @@
 @ stub RxNetServerEnum
 @ stub RxNetUserPasswordSet
 @ stub RxRemoteApi
+
+@ stdcall NetFreeAadJoinInformation(ptr)
+@ stdcall NetGetAadJoinInformation(wstr ptr)

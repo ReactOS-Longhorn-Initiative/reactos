@@ -70,6 +70,20 @@ ATSVC_HANDLE_unbind(ATSVC_HANDLE pszSystemName,
     }
 }
 
+/************************************************************
+ *  NetGetAadJoinInformation (NETAPI32.@)
+ */
+HRESULT WINAPI NetGetAadJoinInformation(LPCWSTR tenant_id, PVOID join_info)
+{
+    FIXME("(%s, %p): stub\n", debugstr_w(tenant_id), join_info);
+    return ERROR_CALL_NOT_IMPLEMENTED;
+}
+
+void NET_API_FUNCTION NetFreeAadJoinInformation(PVOID join_info)
+{
+    FIXME("%p): stub\n", join_info);
+}
+
 
 NET_API_STATUS
 WINAPI
