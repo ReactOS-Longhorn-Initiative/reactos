@@ -2,6 +2,7 @@
 #define _SETUPAPI_H_
 
 #include <commctrl.h>
+#include <devpropdef.h>
 #if defined(_WIN64)
 #include <pshpack8.h>
 #else
@@ -846,14 +847,6 @@ typedef struct _SP_DEVICE_INTERFACE_DATA {
 } SP_DEVICE_INTERFACE_DATA, *PSP_DEVICE_INTERFACE_DATA;
 /* For backward compatability */
 typedef SP_DEVICE_INTERFACE_DATA  SP_INTERFACE_DEVICE_DATA, *PSP_INTERFACE_DEVICE_DATA;
-
-#ifndef DEVPROPKEY_DEFINED
-#define DEVPROPKEY_DEFINED
-typedef struct _DEVPROPKEY {
-    GUID  fmtid;
-    DWORD pid;
-} DEVPROPKEY, *PDEVPROPKEY;
-#endif
 
 typedef DWORD DEVPROPTYPE, *PDEVPROPTYPE;
 
