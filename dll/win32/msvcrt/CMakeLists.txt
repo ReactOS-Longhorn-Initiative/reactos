@@ -183,7 +183,7 @@ target_link_libraries(msvcrt msvcrt_static crtmath dbgrpt vcruntime wine chkstk 
 if(ARCH STREQUAL "i386")
     target_link_libraries(msvcrt chkesp)
 endif()
-add_importlibs(msvcrt kernel32 kernel32_vista ntdll)
+add_importlibs(msvcrt kernel32 kernelbase ntdll)
 add_delay_importlibs(msvcrt user32 advapi32)
 
 if(MSVC)
