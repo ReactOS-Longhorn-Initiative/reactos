@@ -234,6 +234,7 @@ HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
     return CLASS_E_CLASSNOTAVAILABLE;
 }
 
+#ifndef __REACTOS__
 /***********************************************************************
  *          DllCanUnloadNow (jscript.@)
  */
@@ -243,3 +244,4 @@ HRESULT WINAPI DllCanUnloadNow(void)
 
     return module_ref ? S_FALSE : S_OK;
 }
+#endif
