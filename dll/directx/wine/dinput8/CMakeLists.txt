@@ -20,6 +20,15 @@ add_library(dinput8 MODULE
     ${DINPUT_SOURCE_FOLDER}/dinput.rc
     version.rc)
 
+if(MSVC)
+    # Disable C5286: implicit conversion from enum type 'x' to enum type 'y';
+    target_compile_options(dinput8 PRIVATE /wd4047 /wd4024)
+endif()
+
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(dinput8 PRIVATE -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-sign-compare -Wno-switch -Wno-write-strings -Wno-format)
+endif()
+
 set_module_type(dinput8 win32dll)
 target_link_libraries(dinput8 dxguid uuid wine)
 add_importlibs(dinput8 comctl32 ole32 setupapi hid user32 advapi32 msvcrt kernel32 ntdll)

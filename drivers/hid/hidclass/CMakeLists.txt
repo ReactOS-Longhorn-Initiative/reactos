@@ -16,6 +16,10 @@ add_library(hidclass MODULE
     hidclass.rc
     ${CMAKE_CURRENT_BINARY_DIR}/hidclass.def)
 
+if(MSVC)
+    target_compile_options(hidclass PRIVATE /wd4047 /wd4024)
+endif()
+
 set_module_type(hidclass kernelmodedriver ENTRYPOINT 0)
 add_importlibs(hidclass ntoskrnl hidparse hal)
 add_pch(hidclass precomp.h "${PCH_SKIP_SOURCE}")
