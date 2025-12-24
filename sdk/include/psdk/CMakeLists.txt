@@ -200,6 +200,22 @@ list(APPEND SOURCE
     windowscontracts.idl
     windows.foundation.idl
     windows.foundation.collections.idl
+    windows.ui.idl
+    windows.ui.core.idl
+    windows.ui.input.idl
+    windows.ui.viewmanagement.idl
+    windows.ui.windowmanagement.idl
+    windows.devices.enumeration.idl
+    windows.devices.input.idl
+    windows.storage.streams.idl
+    weakreference.idl
+    uiviewsettingsinterop.idl
+    windows.ui.composition.idl
+    windows.ui.composition.interop.idl
+    windows.foundation.numerics.idl
+    windows.graphics.directx.idl
+    windows.graphics.effects.idl
+    inputpaneinterop.idl
     ivectorchangedeventargs.idl
     winsxs.idl
     wmdrmsdk.idl
