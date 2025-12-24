@@ -1,0 +1,27 @@
+HKLM
+{
+    NoRemove Software
+    {
+        NoRemove Microsoft
+        {
+            NoRemove WindowsRuntime
+            {
+                NoRemove ActivatableClassId
+                {
+                    ForceRemove Windows.Data.Json.JsonArray
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Data.Json.JsonObject
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Data.Json.JsonValue
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                }
+            }
+        }
+    }
+}
