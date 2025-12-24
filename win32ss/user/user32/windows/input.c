@@ -947,6 +947,13 @@ SwapMouseButton(
     return NtUserxSwapMouseButton(fSwap);
 }
 
+BOOL
+WINAPI
+IsMouseInPointerEnabled()
+{
+    return FALSE;
+}
+
 
 /*
  * @implemented
