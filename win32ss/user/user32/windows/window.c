@@ -2025,3 +2025,14 @@ DisableProcessWindowsGhosting(VOID)
 
 /* EOF */
 
+BOOL WINAPI 
+AdjustWindowRectExForDpi(
+    _Inout_ LPRECT lpRect,
+    _In_ DWORD  dwStyle,
+    _In_ BOOL   bMenu,
+    _In_ DWORD  dwExStyle,
+    _In_ UINT   dpi
+)
+{
+    return FALSE;
+}
