@@ -86,7 +86,7 @@ HRESULT WINAPI SetProcessDpiAwareness(PROCESS_DPI_AWARENESS value)
 HRESULT WINAPI GetDpiForMonitor(HMONITOR monitor, MONITOR_DPI_TYPE type, UINT *x, UINT *y)
 {
 #ifdef __REACTOS__
-    FIXME("GetDpiForMonitor partial stub\n");
+    //FIXME("GetDpiForMonitor partial stub\n");
     HDC hDC = GetDC(NULL);
     *x = GetDeviceCaps(hDC, LOGPIXELSX);
     *y = GetDeviceCaps(hDC, LOGPIXELSY);
