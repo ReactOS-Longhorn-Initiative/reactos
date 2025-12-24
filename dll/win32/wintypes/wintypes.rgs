@@ -8,19 +8,23 @@ HKLM
             {
                 NoRemove ActivatableClassId
                 {
-                    ForceRemove Windows.UI.ViewManagement.AccessibilitySettings
+                    ForceRemove Windows.Foundation.PropertyValue
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
-                    ForceRemove Windows.UI.ViewManagement.UISettings
+                    ForceRemove Windows.Foundation.Collections.PropertySet
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
-                    ForceRemove Windows.UI.ViewManagement.UIViewSettings
+                    ForceRemove Windows.Foundation.Metadata.ApiInformation
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
-                    ForceRemove Windows.UI.ViewManagement.InputPane
+                    ForceRemove Windows.Storage.Streams.Buffer
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Storage.Streams.DataWriter
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
