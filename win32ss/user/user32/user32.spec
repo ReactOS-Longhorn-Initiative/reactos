@@ -823,4 +823,7 @@
 @ stdcall -stub SkipPointerFrameMessages(long)
 @ stdcall -stub SystemParametersInfoForDpi(long long ptr long long)
 @ stdcall -stub GetPointerPenInfoHistory(long ptr ptr)
+@ stdcall IsMouseInPointerEnabled()
+@ stdcall -stub EnableMouseInPointer(long)
+@ stdcall -stub GetPointerCursorId(long ptr)
 2557 stub OrdinalUnknown
