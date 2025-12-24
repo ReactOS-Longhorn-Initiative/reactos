@@ -129,6 +129,9 @@ AddReg=Classes
 11,,zipfldr.dll,1
 
 11,,qedit.dll,1
+11,,windows.ui.dll,1
+11,,wintypes.dll,1
+
 [TypeLibraries]
 riched20.dll
 stdole2.tlb
