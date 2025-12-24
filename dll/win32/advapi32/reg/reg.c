@@ -2574,6 +2574,7 @@ RegEnumKeyExW(
         BufferSize = sizeof(KEY_BASIC_INFORMATION) + NameLength;
     }
 
+    RegInitialize(); /* HACK until delay-loading is implemented */
     KeyInfo = RtlAllocateHeap(ProcessHeap,
                               0,
                               BufferSize);
