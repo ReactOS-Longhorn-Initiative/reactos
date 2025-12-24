@@ -206,8 +206,15 @@ list(APPEND SOURCE
     windows.ui.viewmanagement.idl
     windows.ui.windowmanagement.idl
     windows.devices.enumeration.idl
+    windows.foundation.metadata.idl
+    windows.media.idl
+    windows.storage.idl
+    windows.storage.fileproperties.idl
+    windows.devices.geolocation.idl
     windows.devices.input.idl
     windows.storage.streams.idl
+    windows.storage.search.idl
+    robuffer.idl
     weakreference.idl
     uiviewsettingsinterop.idl
     windows.ui.composition.idl
