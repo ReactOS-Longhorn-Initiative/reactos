@@ -818,7 +818,7 @@
 @ stdcall -stub SetThreadDpiHostingBehavior(ptr)
 @ stdcall -stub GetThreadDpiHostingBehavior()
 @ stdcall -stub SetCoalescableTimer(ptr ptr long int64 long)
-@ stdcall -stub AdjustWindowRectExForDpi(ptr long long long long)
+@ stdcall AdjustWindowRectExForDpi(ptr long long long long)
 @ stdcall -stub GetPointerFrameTouchInfoHistory(long ptr ptr ptr)
 @ stdcall -stub SkipPointerFrameMessages(long)
 @ stdcall -stub SystemParametersInfoForDpi(long long ptr long long)
