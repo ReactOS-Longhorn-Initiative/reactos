@@ -1,0 +1,35 @@
+HKLM
+{
+    NoRemove Software
+    {
+        NoRemove Microsoft
+        {
+            NoRemove WindowsRuntime
+            {
+                NoRemove ActivatableClassId
+                {
+                    ForceRemove Windows.Foundation.PropertyValue
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Foundation.Collections.PropertySet
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Foundation.Metadata.ApiInformation
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Storage.Streams.Buffer
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.Storage.Streams.DataWriter
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                }
+            }
+        }
+    }
+}

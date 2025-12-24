@@ -8,15 +8,19 @@ HKLM
             {
                 NoRemove ActivatableClassId
                 {
-                    ForceRemove Windows.Data.Json.JsonArray
+                    ForceRemove Windows.UI.ViewManagement.AccessibilitySettings
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
-                    ForceRemove Windows.Data.Json.JsonObject
+                    ForceRemove Windows.UI.ViewManagement.UISettings
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
-                    ForceRemove Windows.Data.Json.JsonValue
+                    ForceRemove Windows.UI.ViewManagement.UIViewSettings
+                    {
+                        val 'DllPath' = s '%MODULE%'
+                    }
+                    ForceRemove Windows.UI.ViewManagement.InputPane
                     {
                         val 'DllPath' = s '%MODULE%'
                     }
