@@ -11,6 +11,7 @@
 /* INCLUDES *******************************************************************/
 
 #include <ntdll.h>
+#include <stringapiset.h>
 
 #define NDEBUG
 #include <debug.h>
@@ -185,7 +186,9 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
     PPEB Peb = NtCurrentPeb();
 
     if (lpVersionInformation->dwOSVersionInfoSize != sizeof(RTL_OSVERSIONINFOW) &&
-        lpVersionInformation->dwOSVersionInfoSize != sizeof(RTL_OSVERSIONINFOEXW))
+        lpVersionInformation->dwOSVersionInfoSize != sizeof(RTL_OSVERSIONINFOEXW) &&
+        lpVersionInformation->dwOSVersionInfoSize != sizeof(RTL_OSVERSIONINFOA) &&
+        lpVersionInformation->dwOSVersionInfoSize != sizeof(RTL_OSVERSIONINFOEXA))
     {
         return STATUS_INVALID_PARAMETER;
     }
@@ -194,25 +197,42 @@ RtlGetVersion(IN OUT PRTL_OSVERSIONINFOW lpVersionInformation)
     lpVersionInformation->dwMinorVersion = Peb->OSMinorVersion;
     lpVersionInformation->dwBuildNumber = Peb->OSBuildNumber;
     lpVersionInformation->dwPlatformId = Peb->OSPlatformId;
-    RtlZeroMemory(lpVersionInformation->szCSDVersion, sizeof(lpVersionInformation->szCSDVersion));
 
-    /* If we have a CSD version string, initialized by Application Compatibility... */
-    if (Peb->CSDVersion.Length && Peb->CSDVersion.Buffer && Peb->CSDVersion.Buffer[0] != UNICODE_NULL)
+    if (lpVersionInformation->dwOSVersionInfoSize == sizeof(RTL_OSVERSIONINFOA) ||
+        lpVersionInformation->dwOSVersionInfoSize == sizeof(RTL_OSVERSIONINFOEXA))
     {
-        /* ... copy it... */
-        Length = min(wcslen(Peb->CSDVersion.Buffer), ARRAYSIZE(lpVersionInformation->szCSDVersion) - 1);
-        wcsncpy(lpVersionInformation->szCSDVersion, Peb->CSDVersion.Buffer, Length);
+        RTL_OSVERSIONINFOA* lpVersionInformationA = (RTL_OSVERSIONINFOA*)lpVersionInformation;
+        RtlZeroMemory(lpVersionInformationA->szCSDVersion, sizeof(lpVersionInformationA->szCSDVersion));
+
+        // TODO
+        Length = 0;
+        
+        /* Always null-terminate the user CSD version string */
+        lpVersionInformationA->szCSDVersion[Length] = ANSI_NULL;
     }
     else
     {
-        /* ... otherwise we just null-terminate it */
-        Length = 0;
+        RtlZeroMemory(lpVersionInformation->szCSDVersion, sizeof(lpVersionInformation->szCSDVersion));
+
+        /* If we have a CSD version string, initialized by Application Compatibility... */
+        if (Peb->CSDVersion.Length && Peb->CSDVersion.Buffer && Peb->CSDVersion.Buffer[0] != UNICODE_NULL)
+        {
+            /* ... copy it... */
+            Length = min(wcslen(Peb->CSDVersion.Buffer), ARRAYSIZE(lpVersionInformation->szCSDVersion) - 1);
+            wcsncpy(lpVersionInformation->szCSDVersion, Peb->CSDVersion.Buffer, Length);
+        }
+        else
+        {
+            /* ... otherwise we just null-terminate it */
+            Length = 0;
+        }
+
+        /* Always null-terminate the user CSD version string */
+        lpVersionInformation->szCSDVersion[Length] = UNICODE_NULL;
     }
 
-    /* Always null-terminate the user CSD version string */
-    lpVersionInformation->szCSDVersion[Length] = UNICODE_NULL;
-
-    if (lpVersionInformation->dwOSVersionInfoSize == sizeof(RTL_OSVERSIONINFOEXW))
+    if (lpVersionInformation->dwOSVersionInfoSize == sizeof(RTL_OSVERSIONINFOEXW) ||
+        lpVersionInformation->dwOSVersionInfoSize == sizeof(RTL_OSVERSIONINFOEXA))
     {
         PRTL_OSVERSIONINFOEXW InfoEx = (PRTL_OSVERSIONINFOEXW)lpVersionInformation;
         InfoEx->wServicePackMajor = (Peb->OSCSDVersion >> 8) & 0xFF;
