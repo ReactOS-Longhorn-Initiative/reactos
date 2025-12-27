@@ -166,6 +166,7 @@ list(APPEND SOURCE
 #   sesprp.idl
     shdeprecated.idl
     shldisp.idl
+    shobjidl_core.idl
     shobjidl.idl
     shtypes.idl
 #   stdole2.idl
