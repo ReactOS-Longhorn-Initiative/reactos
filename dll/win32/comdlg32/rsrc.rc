@@ -150,3 +150,5 @@
 #ifdef LANGUAGE_ZH_CN
     #include "lang/cdlg_Zh.rc"
 #endif
+
+1 WINE_REGISTRY comdlg32_classes_r_res.rgs

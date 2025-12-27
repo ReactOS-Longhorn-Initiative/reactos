@@ -25,6 +25,8 @@ extern "C" {
 #define NEWFILEOPENV2ORD 1552
 #endif /* (WINVER >= 0x0400) */
 
+#define NEWFILEOPENV3ORD        1553
+
 #define ctlFirst 0x400
 #define ctlLast 0x4ff
 
