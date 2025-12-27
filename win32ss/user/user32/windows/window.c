@@ -2034,5 +2034,22 @@ AdjustWindowRectExForDpi(
     _In_ UINT   dpi
 )
 {
-    return FALSE;
+    AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
+
+    // DPI parameter is ignored as it breaks avalonia window resizing
+    // TODO proper implementation
+    lpRect->top = lpRect->top;
+    lpRect->bottom = lpRect->bottom;
+    lpRect->left = lpRect->left;
+    lpRect->right = lpRect->right;
+    return TRUE;
+}
+
+int GetSystemMetricsForDpi(
+  int  nIndex,
+  UINT dpi
+)
+{
+    // TODO properly implement
+    return GetSystemMetrics(nIndex);
 }
