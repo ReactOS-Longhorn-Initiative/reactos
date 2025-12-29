@@ -15,9 +15,9 @@
 
 #define DEBUGCONTROL_VERSION 3
 
-__if_not_exists(ARGB) {
-struct ARGB;
-}
+//__if_not_exists(ARGB) {
+//struct ARGB;
+//}
 
 //---------------------------------------------------------------------------------
 // CPerformanceCounter
@@ -33,7 +33,7 @@ struct ARGB;
 class CPerformanceCounter
 {
 public:
-    static void CPerformanceCounter::Initialize(); 
+    static void Initialize(); 
     
     CPerformanceCounter(UINT minIntervalMilliseconds);
 
@@ -125,15 +125,15 @@ private:
 private:
     CMediaControl();
     HRESULT Initialize(
-        __in PCWSTR lpName);
+        _In_ PCWSTR lpName);
     HRESULT InitializeAttach(
-        __in PCWSTR lpName);
-    void CMediaControl::UpdateMaxValuePair(
+        _In_ PCWSTR lpName);
+    void UpdateMaxValuePair(
         __inout_ecount(1) DWORD* pdwMaxValue,
         __inout_ecount(1) DWORD* pdwCurrentValue);
 public:
     static __checkReturn HRESULT Create(
-        __in PCWSTR lpName,
+        _In_ PCWSTR lpName,
         __deref_out_ecount(1) CMediaControl** ppMediaControl);
     
     virtual ~CMediaControl();
@@ -154,10 +154,10 @@ public:
     //  they are currently not robust. See the comment to GetFileSizeEx in InitializeAttach.
 
     static __checkReturn HRESULT Attach(
-        __in PCWSTR lpName,
+        _In_ PCWSTR lpName,
         __deref_out_ecount(1) CMediaControl** ppMediaControl);
 
-    static BOOL CanAttach(__in PCWSTR lpName);
+    static BOOL CanAttach(_In_ PCWSTR lpName);
 
 
 private:

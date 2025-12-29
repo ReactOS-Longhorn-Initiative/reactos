@@ -27,10 +27,10 @@ Routine Description:
 
 HRESULT
 CMilServerChannel::Create(
-    __in CConnectionContext *pTransport,
-    __in IMilBatchDevice *pdevTarget,
+    _In_ CConnectionContext *pTransport,
+    _In_ IMilBatchDevice *pdevTarget,
     HMIL_CHANNEL hChannel,
-    __out CMilServerChannel **ppChannel
+    _Out_ CMilServerChannel **ppChannel
     )
 {
     HRESULT hr = S_OK;
@@ -67,8 +67,8 @@ Cleanup:
 //================================================================================================================
 
 CMilServerChannel::CMilServerChannel(
-    __in CConnectionContext *pTransport,
-    __in IMilBatchDevice *pdevTarget,
+    _In_ CConnectionContext *pTransport,
+    _In_ IMilBatchDevice *pdevTarget,
     HMIL_CHANNEL hChannel
     )
 {
@@ -96,7 +96,7 @@ CMilServerChannel::~CMilServerChannel()
 //================================================================================================================
 
 HRESULT
-CMilServerChannel::SubmitBatch(__in CMilCommandBatch* pBatch)
+CMilServerChannel::SubmitBatch(_In_ CMilCommandBatch* pBatch)
 {
     pBatch->SetChannelPtr(this);
     RRETURN(m_pDevice->SubmitBatch(pBatch));

@@ -28,7 +28,7 @@ Environment:
 MtDefine(CMilSlaveBitmap, MILRender, "CMilSlaveBitmap");
 
 
-/*override*/ HRESULT
+/* override */ HRESULT
 CMilSlaveBitmap::Draw(
     __in_ecount(1) CDrawingContext *pDC,
     MilBitmapWrapMode::Enum wrapMode

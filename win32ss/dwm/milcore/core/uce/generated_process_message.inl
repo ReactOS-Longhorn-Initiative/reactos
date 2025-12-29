@@ -2016,7 +2016,7 @@ switch(nCmdType)
     }
     break;
 
-    case MilCmdOrthographicCamera:
+    /*case MilCmdOrthographicCamera:
     {
         #ifdef DEBUG
         if (cbSize != sizeof(MILCMD_ORTHOGRAPHICCAMERA))
@@ -2028,7 +2028,7 @@ switch(nCmdType)
         const MILCMD_ORTHOGRAPHICCAMERA* pCmd = 
             reinterpret_cast<const MILCMD_ORTHOGRAPHICCAMERA*>(pcvData);
 
-        /* Resource handles are validated in the ProcessUpdate method. */
+        // Resource handles are validated in the ProcessUpdate method.
 
         CMilOrthographicCameraDuce* pResource =
             static_cast<CMilOrthographicCameraDuce*>(pHandleTable->GetResource(
@@ -2045,7 +2045,7 @@ switch(nCmdType)
 
         IFC(pResource->ProcessUpdate(pHandleTable, pCmd));
     }
-    break;
+    break;*/
 
     case MilCmdMatrixCamera:
     {

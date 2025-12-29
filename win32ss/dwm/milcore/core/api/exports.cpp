@@ -11,8 +11,10 @@
 
 #include "precomp.hpp"
 
+extern "C"
+{
 
-ULONG
+ULONG WINAPI
 MILAddRef(
     __inout_ecount(1) IUnknown* pIUnknown
     )
@@ -20,7 +22,7 @@ MILAddRef(
     return pIUnknown->AddRef();
 }
 
-ULONG
+ULONG WINAPI
 MILRelease(
     __inout_ecount(1) IUnknown* pIUnknown
     )
@@ -28,7 +30,7 @@ MILRelease(
     return pIUnknown->Release();
 }
 
-HRESULT
+HRESULT WINAPI
 MILQueryInterface(
     __inout_ecount(1) IUnknown* pIUnknown,
     __in_ecount(1) REFIID riid,
@@ -50,7 +52,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT
+HRESULT WINAPI
 MILFactoryCreateBitmapRenderTarget(
     __in_ecount(1) IMILCoreFactory* THIS_PTR,
     UINT width,
@@ -73,7 +75,7 @@ MILFactoryCreateBitmapRenderTarget(
         ppIRenderTargetBitmap));
 }
 
-HRESULT
+HRESULT WINAPI
 MILFactoryCreateMediaPlayer(
     __in_ecount(1) IMILCoreFactory* THIS_PTR,
     __inout_ecount(1) IUnknown *pEventProxy,
@@ -90,7 +92,7 @@ MILFactoryCreateMediaPlayer(
 
 
 
-HRESULT
+HRESULT WINAPI
 MILFactoryCreateSWRenderTargetForBitmap(
     __in_ecount(1) IMILCoreFactory* THIS_PTR,
     __inout_ecount(1) IWICBitmap *pIBitmap,
@@ -108,9 +110,9 @@ MILFactoryCreateSWRenderTargetForBitmap(
     the resourceID should contain the correct file extension.
     Support for loading using any resource type and using ordinals will be added later
 ***************************************************************************************/
-HRESULT
+HRESULT WINAPI
 MILLoadResource(
-    __in LPCWSTR src,
+    _In_ LPCWSTR src,
     __deref_out_bcount(*size) LPBYTE *memPtr,
     __out_ecount(1) long *size
     )
@@ -136,7 +138,7 @@ MILLoadResource(
 //  IMILRenderTargetBitmap
 //------------------------------------------------------------------------------
 
-HRESULT
+HRESULT WINAPI
 MILRenderTargetBitmapGetBitmap(
     __in_ecount(1) IMILRenderTargetBitmap* THIS_PTR,
     __deref_out_ecount(1) IWICBitmap ** const ppIBitmap)
@@ -162,7 +164,7 @@ Cleanup:
 //  IMILRenderTargetBitmap
 //------------------------------------------------------------------------------
 
-HRESULT
+HRESULT WINAPI
 MILRenderTargetBitmapClear(
     __inout_ecount(1) IMILRenderTargetBitmap* THIS_PTR)
 {
@@ -197,10 +199,10 @@ MILRenderTargetBitmapClear(
 //------------------------------------------------------------------------------
 //  IMILMedia
 //------------------------------------------------------------------------------
-HRESULT
+HRESULT WINAPI
 MILMediaOpen(
     __inout_ecount(1) IMILMedia* THIS_PTR,
-    __in LPOLESTR src
+    _In_ LPOLESTR src
     )
 {
     if (THIS_PTR == NULL) RRETURN(E_INVALIDARG);
@@ -208,7 +210,7 @@ MILMediaOpen(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaStop(
     __inout_ecount(1) IMILMedia* THIS_PTR
     )
@@ -217,7 +219,7 @@ MILMediaStop(
     RRETURN(THIS_PTR->Stop());
 }
 
-HRESULT
+HRESULT WINAPI
 MILMediaClose(
     __inout_ecount(1) IMILMedia   *THIS_PTR
     )
@@ -226,7 +228,7 @@ MILMediaClose(
     RRETURN(THIS_PTR->Close());
 }
 
-HRESULT
+HRESULT WINAPI
 MILMediaGetPosition(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) LONGLONG *pllTime
@@ -237,7 +239,7 @@ MILMediaGetPosition(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaSetPosition(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     LONGLONG llTime
@@ -248,7 +250,7 @@ MILMediaSetPosition(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaSetRate(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     double dblRate
@@ -259,7 +261,7 @@ MILMediaSetRate(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaSetVolume(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     double dblVolume
@@ -270,7 +272,7 @@ MILMediaSetVolume(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaSetBalance(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     double dblBalance
@@ -280,7 +282,7 @@ MILMediaSetBalance(
     RRETURN(THIS_PTR->SetBalance(dblBalance));
 }
 
-HRESULT
+HRESULT WINAPI
 MILMediaSetIsScrubbingEnabled(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     bool isScrubbingEnabled
@@ -291,7 +293,7 @@ MILMediaSetIsScrubbingEnabled(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaIsBuffering(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) bool *pIsBuffering
@@ -302,7 +304,7 @@ MILMediaIsBuffering(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaCanPause(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) bool *pCanPause
@@ -313,7 +315,7 @@ MILMediaCanPause(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaGetDownloadProgress(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) double *pProgress
@@ -324,7 +326,7 @@ MILMediaGetDownloadProgress(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaGetBufferingProgress(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) double *pProgress
@@ -335,7 +337,7 @@ MILMediaGetBufferingProgress(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaHasVideo(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) bool *pfHasVideo
@@ -346,7 +348,7 @@ MILMediaHasVideo(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaHasAudio(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) bool *pfHasAudio
@@ -357,7 +359,7 @@ MILMediaHasAudio(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaGetNaturalHeight(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) UINT *puiHeight
@@ -368,7 +370,7 @@ MILMediaGetNaturalHeight(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaGetNaturalWidth(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) UINT *puiWidth
@@ -379,7 +381,7 @@ MILMediaGetNaturalWidth(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaGetMediaLength(
     __inout_ecount(1) IMILMedia* THIS_PTR,
     __out_ecount(1) LONGLONG *pllLength
@@ -389,7 +391,7 @@ MILMediaGetMediaLength(
     RRETURN(THIS_PTR->GetMediaLength(pllLength));
 }
 
-HRESULT
+HRESULT WINAPI
 MILMediaNeedUIFrameUpdate(
                         IMILMedia* THIS_PTR
                         )
@@ -399,7 +401,7 @@ MILMediaNeedUIFrameUpdate(
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILMediaShutdown(
     __inout_ecount(1) IMILMedia* THIS_PTR
     )
@@ -408,7 +410,7 @@ MILMediaShutdown(
     RRETURN(THIS_PTR->Shutdown());
 }
 
-HRESULT
+HRESULT WINAPI
 MILMediaProcessExitHandler(
     IMILMedia* THIS_PTR
     )
@@ -421,13 +423,13 @@ MILMediaProcessExitHandler(
 //  IMILSwDoubleBufferedBitmap
 //------------------------------------------------------------------------------
 
-HRESULT
+HRESULT WINAPI
 MILSwDoubleBufferedBitmapCreate(
     UINT width,
     UINT height,
     double dpiX,
     double dpiY,
-    __in REFWICPixelFormatGUID pixelFormat,
+    _In_ REFWICPixelFormatGUID pixelFormat,
     __in_opt IWICPalette *pPalette,
     __deref_out CSwDoubleBufferedBitmap ** const ppSwDoubleBufferedBitmap
     )
@@ -454,11 +456,11 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT
+HRESULT WINAPI
 MILSwDoubleBufferedBitmapGetBackBuffer(
-    __in CSwDoubleBufferedBitmap const * THIS_PTR,
+    _In_ CSwDoubleBufferedBitmap const * THIS_PTR,
     __deref_out IWICBitmap **ppBackBuffer,
-    __out UINT * pBackBufferSize
+    _Out_ UINT * pBackBufferSize
     )
 {
     HRESULT hr = S_OK;
@@ -473,10 +475,10 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT
+HRESULT WINAPI
 MILSwDoubleBufferedBitmapAddDirtyRect(
-    __in CSwDoubleBufferedBitmap * THIS_PTR,
-    __in const MILRect *pRect
+    _In_ CSwDoubleBufferedBitmap * THIS_PTR,
+    _In_ const MILRect *pRect
     )
 {
     HRESULT hr = S_OK;
@@ -506,9 +508,9 @@ Cleanup:
 }
 
 
-HRESULT
+HRESULT WINAPI
 MILSwDoubleBufferedBitmapProtectBackBuffer(
-    __in CSwDoubleBufferedBitmap * THIS_PTR
+    _In_ CSwDoubleBufferedBitmap * THIS_PTR
     )
 {
     HRESULT hr = S_OK;
@@ -861,7 +863,7 @@ CManagedStreamWrapper::CanSeek(
 // MILCreateStreamFromStreamDescriptor -----------------------------------------------------------
 
 
-HRESULT
+HRESULT WINAPI
 MILCreateStreamFromStreamDescriptor(
     __inout_ecount(1) CStreamDescriptor* pSD,
     __deref_out_ecount(1) IStream** const ppStream
@@ -871,33 +873,27 @@ MILCreateStreamFromStreamDescriptor(
 
     CHECKPTRARG(ppStream);
     CHECKPTRARG(pSD);
-
+{
     IStream* pStream = new CManagedStreamWrapper(*pSD);
     IFCOOM(pStream);
 
     pStream->AddRef();
     *ppStream = pStream;
+}
 Cleanup:
     RRETURN(hr);
 }
 
 // MILCreateEventProxy -----------------------------------------------------------
 
-HRESULT
+HRESULT WINAPI
 MILCreateEventProxy(
     __inout_ecount(1) CEventProxyDescriptor* pEPD,
     __deref_out_ecount(1) CEventProxy** const ppEventProxy
     )
 {
-    HRESULT hr = S_OK;
-
-    CHECKPTRARG(ppEventProxy);
-    CHECKPTRARG(pEPD);
-
-    IFC(CEventProxy::Create(*pEPD, ppEventProxy));
-
-Cleanup:
-    RRETURN(hr);
+    __debugbreak();
+    return E_NOTIMPL;
 }
 
 //------------------------------------------------------------------------------
@@ -905,7 +901,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 
-HRESULT
+HRESULT WINAPI
 MILIStreamWrite(
     __inout_ecount(1) IStream* pStream,
     __in_bcount(cb) const VOID* buf,
@@ -920,7 +916,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT
+HRESULT WINAPI
 MILUpdateSystemParametersInfo()
 {
     g_DisplayManager.ScheduleUpdate();
@@ -936,7 +932,7 @@ MILUpdateSystemParametersInfo()
 //      Calls GetProfileBytes on the incoming IWICColorContext*
 //
 //----------------------------------------------------------------------------
-HRESULT
+HRESULT WINAPI
 IWICColorContext_GetProfileBytes_Proxy(
     __in_ecount(1) IWICColorContext *pICC,
     UINT cbBuffer,
@@ -964,7 +960,7 @@ Cleanup:
 //      Calls GetType on the incoming IWICColorContext*
 //
 //----------------------------------------------------------------------------
-HRESULT
+HRESULT WINAPI
 IWICColorContext_GetType_Proxy(
     __in_ecount(1) IWICColorContext *pICC,
     __out_ecount(1) WICColorContextType *pType
@@ -990,7 +986,7 @@ Cleanup:
 //      Calls GetExifColorSpace on the incoming IWICColorContext*
 //
 //----------------------------------------------------------------------------
-HRESULT
+HRESULT WINAPI
 IWICColorContext_GetExifColorSpace_Proxy(
     __in_ecount(1) IWICColorContext *pICC,
     __out_ecount(1) UINT *pValue
@@ -1007,6 +1003,6 @@ Cleanup:
     RRETURN(hr);
 }
 
-
+}
 
 

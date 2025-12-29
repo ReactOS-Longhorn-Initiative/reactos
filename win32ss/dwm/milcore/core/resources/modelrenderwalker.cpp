@@ -81,7 +81,7 @@ Cleanup:
 //
 //  Member:    CModelRenderWalker::PreSubgraph
 //
-//  Synopsis:  Overrides IModelIteratorSink::PreSubgraph
+//  Synopsis:  /* override */s IModelIteratorSink::PreSubgraph
 //             PreSubgraph is called before the sub-graph of a node is
 //             visited. With the output argument fVisitChildren the
 //             implementor can control if the sub-graph of this node
@@ -446,7 +446,7 @@ Cleanup:
 //
 //  Member:    CModelRenderWalker::PostSubgraph
 //
-//  Synopsis:  Overrides IGraphIteratorSink::PostSubgraph
+//  Synopsis:  /* override */s IGraphIteratorSink::PostSubgraph
 //             PostSubgraph is called after the sub-graph of a node
 //             was visited.
 //

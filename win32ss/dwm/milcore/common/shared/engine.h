@@ -30,7 +30,7 @@ ExternTag(tagMILVerbose);
 #define WIN32_VISTA_MINORVERSION   WIN32_OSMINORVER(_WIN32_WINNT_LONGHORN)
 
 namespace OSVersion {
-    C_ASSERT( WIN32_VISTA_MINORVERSION == 0 );
+    static_assert( WIN32_VISTA_MINORVERSION == 0 , " WIN32_VISTA_MINORVERSION == 0 ");
 }
 
 // the path code is very keen on the following macro

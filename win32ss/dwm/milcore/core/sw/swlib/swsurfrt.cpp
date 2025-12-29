@@ -11,7 +11,7 @@
 
 #include "precomp.hpp"
 
-#include "effects\effectlist.h"
+#include "effects/effectlist.h"
 
 
 MtDefine(CSwRenderTargetSurface, MILRender, "CSwRenderTargetSurface");
@@ -470,7 +470,7 @@ CSwRenderTargetSurface::Begin3D(
     // Remember these debug params independent of success
     m_Dbg3DBounds = m_rcBounds;
     m_Dbg3DAAMode = AntiAliasMode;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 Cleanup:
 
@@ -809,7 +809,7 @@ HRESULT CSwRenderTargetSurface::DrawPathInternal(
     HRESULT hr = S_OK;
 
     CRectClipper Clipper;
-
+{
     if (!UpdateCurrentClip(pContextState->AliasedClip, &Clipper))
     {
         // Clipping yields no area; so be done
@@ -882,6 +882,7 @@ HRESULT CSwRenderTargetSurface::DrawPathInternal(
             DBG_STEP_RENDERING_COMMA_PARAM(m_pDisplayRTParent)
             ));
     }
+}
 
 Cleanup:
     // Some failure HRESULTs should only cause the primitive
@@ -1052,7 +1053,7 @@ STDMETHODIMP CSwRenderTargetSurface::DrawGlyphs(
     CRectClipper Clipper;
     CMILBrush *pBrushNoRef;
     float flAlphaScale;
-
+{
     if (!UpdateCurrentClip( pars.pContextState->AliasedClip, &Clipper ))
     {
         // Clipping yields no area; so be done
@@ -1102,7 +1103,7 @@ STDMETHODIMP CSwRenderTargetSurface::DrawGlyphs(
         &m_glyphPainterMemory,
         fTargetSupportsClearType
         ));
-
+    }
 Cleanup:
 
     // Some failure HRESULTs should only cause the primitive
@@ -1919,7 +1920,7 @@ HRESULT CSwRenderTargetBitmap::Create(
 #if DBG_STEP_RENDERING
     pRT->m_pDisplayRTParent = pDisplayRTParent;
     if (pRT->m_pDisplayRTParent) { pRT->m_pDisplayRTParent->AddRef(); }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
     if (pRT != NULL)

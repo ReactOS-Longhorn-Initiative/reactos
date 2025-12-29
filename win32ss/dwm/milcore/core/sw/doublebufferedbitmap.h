@@ -45,7 +45,7 @@ public:
         UINT height,
         double dpiX,
         double dpiY,
-        __in MilPixelFormat::Enum pixelFormat,
+        _In_ MilPixelFormat::Enum pixelFormat,
         __in_opt IWICPalette *pPalette,
         __deref_out CSwDoubleBufferedBitmap **ppSwDoubleBufferedBitmap
         );
@@ -64,7 +64,7 @@ public:
         ) const;
 
     HRESULT AddDirtyRect(
-        __in const CMilRectU *pRect
+        _In_ const CMilRectU *pRect
         );
 
     HRESULT CopyForwardDirtyRects();
@@ -74,7 +74,7 @@ public:
 protected:
 
     virtual ~CSwDoubleBufferedBitmap();
-    STDMETHOD(HrFindInterface)(__in REFIID riid, __deref_out void **ppv) override;
+    STDMETHOD(HrFindInterface)(_In_ REFIID riid, __deref_out void **ppv) /* override */;
 
 private:
 

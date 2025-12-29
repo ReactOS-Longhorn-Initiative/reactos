@@ -167,10 +167,10 @@ public:
     // CSwTexturedColorSource methods (if such a class existed)
     //
 
-    /*override*/ bool IsOpaque(
+    /* override */ bool IsOpaque(
         ) const;
 
-    /*override*/ HRESULT Realize(
+    /* override */ HRESULT Realize(
         );
 
 

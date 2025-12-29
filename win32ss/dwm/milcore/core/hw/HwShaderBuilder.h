@@ -54,29 +54,29 @@ public:
         __deref_out_ecount(1) CHwPipelineShader **ppHwShader
         );
 
-    override HRESULT Set_Constant(
+    HRESULT Set_Constant(
         __in_ecount(1) CHwConstantColorSource *pConstant
-        );
+        ) /* override */;
 
-    override HRESULT Set_Texture(
+    HRESULT Set_Texture(
         __in_ecount(1) CHwTexturedColorSource *pTexture
-        );
+        ) /* override */;
 
-    override HRESULT Set_RadialGradient(
+    HRESULT Set_RadialGradient(
         __in_ecount(1) CHwRadialGradientColorSource *pRadialGradient
-        );
+        ) /* override */;
 
-    override HRESULT Mul_ConstAlpha(
+    HRESULT Mul_ConstAlpha(
         CHwConstantAlphaColorSource *pAlphaColorSource
-        );
+        ) /* override */;
 
-    override HRESULT Mul_AlphaMask(
+    HRESULT Mul_AlphaMask(
         __in_ecount(1) CHwTexturedColorSource *pAlphaMaskColorSource
-        );
+        ) /* override */;
 
-    override HRESULT Add_Lighting(
+    HRESULT Add_Lighting(
         __inout_ecount(1) CHwLightingColorSource *pLightingSource
-        );
+        ) /* override */;
 
     HRESULT SetupHwLighting(
         float flNormalScale,
@@ -122,9 +122,9 @@ private:
         ShaderFunctions::Enum const eFunction
         );
 
-    override HRESULT Mul_BlendColorsInternal(
+    HRESULT Mul_BlendColorsInternal(
         __in_ecount(1) CHwColorComponentSource *pBlendColorSource
-        );
+        ) /* override */;
 
 
 private:

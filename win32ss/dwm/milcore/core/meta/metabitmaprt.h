@@ -67,7 +67,7 @@ protected:
         UINT uHeight,
         IntermediateRTUsage usageInfo,
         MilRTInitialization::Flags dwFlags,
-        __in_xcount(m_cRTs) MetaData const *pMetaData
+        _In_reads_(m_cRTs) MetaData const *pMetaData
         );
 
 
@@ -99,20 +99,20 @@ public:
         __out_ecount(1) MilRectF * const pBounds
         );
 
-    override STDMETHODIMP Clear(
+    STDMETHODIMP Clear(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        );
+        ) /* override */;
 
-    override STDMETHODIMP Begin3D(
+    STDMETHODIMP Begin3D(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        );
+        ) /* override */;
 
-    override STDMETHODIMP End3D(
-        );
+    STDMETHODIMP End3D(
+        ) /* override */;
 
     // IMILRenderTargetBitmap.
 
@@ -128,9 +128,9 @@ public:
         __deref_out_ecount(1) IWGXBitmap ** const ppIBitmap
         );
 
-    override STDMETHOD(GetNumQueuedPresents)(
+    STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        );
+        ) /* override */;
 
     // IWGXBitmapSource.
 

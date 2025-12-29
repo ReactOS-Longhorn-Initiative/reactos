@@ -1009,7 +1009,7 @@ CViewportAlignedIntermediateRealizer::AdjustSurfaceSizeAndMapping1D(
 {
     Assert(*puSize > 0);
 
-    C_ASSERT(IS_POWER_OF_2(MAX_TILEBRUSH_INTERMEDIATE_SIZE));
+    static_assert(IS_POWER_OF_2(MAX_TILEBRUSH_INTERMEDIATE_SIZE), "IS_POWER_OF_2(MAX_TILEBRUSH_INTERMEDIATE_SIZE)");
 
     UINT uSizeCap = 0;
 

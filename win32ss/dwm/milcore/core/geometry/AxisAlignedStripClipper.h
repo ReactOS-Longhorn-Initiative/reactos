@@ -65,8 +65,7 @@ public:
             // The recepient of the result of the operation
         double rTolerance=0)
             // Curve retrieval error tolerance
-        : m_fVerticalBounds(fVerticalBounds), 
-          CStripClipper(c, d, pSink, rTolerance)
+        : CStripClipper(c, d, pSink, rTolerance), m_fVerticalBounds(fVerticalBounds)
     {
         if (fVerticalBounds)
         {

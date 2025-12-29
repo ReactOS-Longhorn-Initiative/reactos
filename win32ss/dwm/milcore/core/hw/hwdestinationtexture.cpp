@@ -701,7 +701,8 @@ CHwDestinationTexture::DbgSetContentsInvalid(
 {
     HRESULT hr = S_OK;
 
-    IDirect3DSurface9 *pDestSurface = NULL;
+    {
+        IDirect3DSurface9 *pDestSurface = NULL;
 
 
     // get the destination surface
@@ -712,7 +713,7 @@ CHwDestinationTexture::DbgSetContentsInvalid(
             0,
             &pDestSurface
             ));
-    }
+    
 
     // fill to some kind of purple
     D3DCOLOR fillColor = D3DCOLOR_ARGB(255, 255, 0, 128);
@@ -722,11 +723,12 @@ CHwDestinationTexture::DbgSetContentsInvalid(
         NULL,
         fillColor
         ));
- 
+    }
 Cleanup:
     ReleaseInterfaceNoNULL(pDestSurface);
 
     RRETURN(hr);
+    }
 }
 #endif
 

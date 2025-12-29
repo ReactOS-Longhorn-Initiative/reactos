@@ -38,7 +38,7 @@ class CCrossThreadComposition : public CComposition
 protected:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CCrossThreadComposition));
 
-    CCrossThreadComposition(__in MilMarshalType::Enum marshalType);
+    CCrossThreadComposition(_In_ MilMarshalType::Enum marshalType);
 
     virtual ~CCrossThreadComposition();
 
@@ -47,7 +47,7 @@ public:
 
     // Creates a new instance of the CCrossThreadComposition class.
     static HRESULT Create(
-        __in MilMarshalType::Enum marshalType,
+        _In_ MilMarshalType::Enum marshalType,
         __out_ecount(1) CCrossThreadComposition **ppCrossThreadComposition
         );
 
@@ -59,30 +59,30 @@ public:
     // releasing the batch and putting it on the appropriate lookaside when
     // it's done processing it.
     //
-    override HRESULT SubmitBatch(
-        __in CMilCommandBatch *pBatch
+    /* override */ HRESULT SubmitBatch(
+        _In_ CMilCommandBatch *pBatch
         );
 
     // Enqueue the batch for processing by worker thread.
-    override void EnqueueBatch(
+    /* override */ void EnqueueBatch(
         __inout_ecount(1) CMilCommandBatch *pBatch
         );
 
     // Ensures that an extra composition pass will be scheduled.
-    override void ScheduleCompositionPass();
+    /* override */ void ScheduleCompositionPass();
 
 protected:
     // Called by ProcessComposition after ensuring the display set.
-    override HRESULT OnBeginComposition();
+    /* override */ HRESULT OnBeginComposition();
 
     // Called by ProcessComposition after the composition pass is over.
-    override HRESULT OnEndComposition();
+    /* override */ HRESULT OnEndComposition();
 
     // Called by the composition device on shutdown.
-    override void OnShutdownComposition();
+    /* override */ void OnShutdownComposition();
 
     // Called by Compose after the partition has been zombied.
-    override HRESULT OnZombieComposition();
+    /* override */ HRESULT OnZombieComposition();
 
     // Run on the rendering thread to retrieve the queued batches and
     // ensure they're ordered correctly.

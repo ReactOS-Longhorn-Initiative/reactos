@@ -16,7 +16,7 @@
 #pragma once
 
 #if DBG
-void _cdecl MILDebugOutput(__in PCWSTR pFormat, ...);
+void _cdecl MILDebugOutput(_In_ PCWSTR pFormat, ...);
 #endif
 
 

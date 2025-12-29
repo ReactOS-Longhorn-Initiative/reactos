@@ -92,10 +92,10 @@ public:
 
     // CSpanSink interface
 
-    override void OutputSpan(INT y, INT xMin, INT xMax);
-    override void AddDirtyRect(__in_ecount(1) const MilPointAndSizeL *prcDirty);
+    void OutputSpan(INT y, INT xMin, INT xMax) /* override */;
+    void AddDirtyRect(__in_ecount(1) const MilPointAndSizeL *prcDirty);
 
-    override HRESULT SetupPipeline(
+    HRESULT SetupPipeline(
         MilPixelFormat::Enum fmtColorData,
         __in_ecount(1) CColorSource *pColorSource,
         BOOL fPPAA,
@@ -105,20 +105,20 @@ public:
         __in_ecount_opt(1) IMILEffectList *pIEffectList,
         __in_ecount_opt(1) const CMatrix<CoordinateSpace::Effect,CoordinateSpace::Device> *pmatEffectToDevice,
         __in_ecount(1) const CContextState *pContextState
-        );
+        ) /* override */;
 
-    override HRESULT SetupPipelineForText(
+    HRESULT SetupPipelineForText(
         __in_ecount(1) CColorSource *pColorSource,
         MilCompositingMode::Enum eCompositingMode,
         __in_ecount(1) CSWGlyphRunPainter &painter,
         bool fNeedsAA
-        );
+        ) /* override */;
 
-    override VOID ReleaseExpensiveResources();
+    VOID ReleaseExpensiveResources() /* override */;
 
-    override VOID SetAntialiasedFiller(
+    VOID SetAntialiasedFiller(
         __in_ecount(1) CAntialiasedFiller *pFiller
-        );
+        ) /* override */;
 
 private:
     HRESULT InitAlphaTextures();

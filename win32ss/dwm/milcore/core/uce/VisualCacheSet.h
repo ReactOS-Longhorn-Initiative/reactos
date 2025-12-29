@@ -45,12 +45,12 @@ public:
     // CMilSlaveResource methods
     //
     
-    override BOOL OnChanged(
+    /* override */ BOOL OnChanged(
         CMilSlaveResource *pSender, 
         NotificationEventArgs::Flags e
         );
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
 
     UINT GetCount() const;
 
@@ -65,15 +65,15 @@ public:
 
     HRESULT GetNodeCacheRenderTargetBitmap (
         __deref_out_opt IMILRenderTargetBitmap ** ppIRTB,
-        __in IRenderTargetInternal *pDestRT
+        _In_ IRenderTargetInternal *pDestRT
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
     
     bool IsNodeCacheValid() const;
     
     HRESULT RenderNodeCache(
-        __in CDrawingContext *pDC,
-        __in IRenderTargetInternal *pDestRT,
+        _In_ CDrawingContext *pDC,
+        _In_ IRenderTargetInternal *pDestRT,
         float opacity
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
@@ -88,22 +88,22 @@ public:
     bool IsValid() const;
     
     HRESULT FullInvalidate(
-        __in MilRectF const *prcLocalBounds
+        _In_ MilRectF const *prcLocalBounds
         );
 
     void BeginPartialInvalidate(
-        __in float allowedDirtyRegionOverhead,
+        _In_ float allowedDirtyRegionOverhead,
         __deref_out CDirtyRegion2 **ppDirtyRegionsNoRef
         );
 
     HRESULT EndPartialInvalidate(
-        __in MilRectF const *prcLocalBounds
+        _In_ MilRectF const *prcLocalBounds
         );
 
     void NotifyDeviceLost();
 
     HRESULT Update(
-        __in IRenderTargetInternal* pIRTInternal
+        _In_ IRenderTargetInternal* pIRTInternal
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
 
@@ -121,14 +121,14 @@ public:
     
     HRESULT GetBitmapSource (
         __in_opt CMilBitmapCacheDuce const *pCacheMode,
-        __in IRenderTargetInternal *pIRT,
+        _In_ IRenderTargetInternal *pIRT,
         __deref_out_opt IWGXBitmapSource ** const ppIBitmapSource
         );
 
     HRESULT GetRenderTargetBitmap (
         __in_opt CMilBitmapCacheDuce const *pCacheMode,
         __deref_out_opt IMILRenderTargetBitmap ** ppIRTB,
-        __in IRenderTargetInternal *pDestRT
+        _In_ IRenderTargetInternal *pDestRT
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
        
@@ -141,16 +141,16 @@ private:
 
     HRESULT AddCacheInternal(
         __in_opt CMilBitmapCacheDuce *pBitmapCacheMode,
-        __in UINT refCount
+        _In_ UINT refCount
         );
 
     bool RemoveCacheInternal(
         __in_opt CMilBitmapCacheDuce const *pBitmapCacheMode,
-        __in UINT refCount
+        _In_ UINT refCount
         );
 
     __out_opt BrushCacheToken* LookupCache (
-        __in CMilBitmapCacheDuce const *pCacheMode
+        _In_ CMilBitmapCacheDuce const *pCacheMode
         );
     
     

@@ -10,11 +10,11 @@
 
 #include <memory>
 
-#include <Windows.h>
+#include <windows.h>
 
 #if !defined(TESTUSE_NOSTACKCAPTURE)
 #include "AvalonDebugP.h"
-#include "instrumentation.h"
+#include "Instrumentation.h"
 #endif
 
 
@@ -89,8 +89,8 @@ namespace dxlayer
 
         inline vector3pair_t<apiset>& operator=(const vector3pair_t<apiset>& source)
         {
-            first = source.first;
-            second = source.second;
+            this->first = source.first;
+            this->second = source.second;
 
             return *this;
         }
@@ -155,21 +155,26 @@ namespace dxlayer
     {
     private:
         winerror error;
+        const char* message;
     public:
         inline dxlayer_exception(const winerror& error) 
-            : error(error), std::exception() {}
+            : std::exception(), error(error), message(NULL) {}
 
         inline dxlayer_exception()
-            : error(dxerror()), std::exception() {}
+            : std::exception(), error(dxerror()), message(NULL) {}
 
         inline dxlayer_exception(const char* message)
-            : error(dxerror()), std::exception(message) {}
+            : std::exception(), error(dxerror()), message(message) {}
 
         inline const winerror& get_error() const
         {
             return error;
         }
 
+        inline const char* what() const noexcept override
+        {
+            return message;
+        }
     };
 
     // Represents an assertion failure in a dxlayer type
@@ -185,7 +190,8 @@ namespace dxlayer
         {
             if (!expr)
             {
-                std::terminate();
+                DebugBreak();
+                //std::terminate();
             }
         }
     };
@@ -196,6 +202,7 @@ namespace dxlayer
         inline static void __declspec(noreturn) terminate()
         {
             check(false);
+            while(1){}
         }
     };
 

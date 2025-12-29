@@ -34,12 +34,12 @@ protected:
 
 public:
 
-    override bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_DRAWINGBRUSH || CMilTileBrushDuce::IsOfType(type);
     }
 
-    override bool NeedsBounds(
+    /* override */ bool NeedsBounds(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -55,9 +55,9 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
     
-    override bool RealizationMayNeedNonPow2Tiling(
+    /* override */ bool RealizationMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -66,12 +66,12 @@ public:
         return CMilTileBrushDuce::IsTiling(m_data.m_TileMode);
     }
 
-    override bool RealizationWillHaveSourceClip() const
+    /* override */ bool RealizationWillHaveSourceClip() const
     {
         return m_data.m_TileMode == MilTileMode::None;
     }
 
-    override bool RealizationSourceClipMayBeEntireSource(
+    /* override */ bool RealizationSourceClipMayBeEntireSource(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -82,11 +82,11 @@ public:
 
 protected:
 
-    override HRESULT DoesContainContent(
+    /* override */ HRESULT DoesContainContent(
         __out_ecount(1) BOOL *pfHasContent
         ) const;       
 
-    override HRESULT GetTilePropertyResources(
+    /* override */ HRESULT GetTilePropertyResources(
         __out_ecount(1) double *pOpacity,
         __out_ecount(1) CMilSlaveDouble **ppOpacityAnimation,
         __out_ecount(1) CMilTransformDuce **ppTransformResource,
@@ -105,18 +105,18 @@ protected:
         __out_ecount(1) double *pCacheInvalidationThresholdMaximum        
         ) const; 
 
-    override HRESULT GetContentBounds(
+    /* override */ HRESULT GetContentBounds(
         __in_ecount(1) const BrushContext *pBrushContext,        
         __out_ecount(1) CMilRectF *pContentBounds
         ) ;
 
-    override HRESULT DrawIntoBaseTile(
+    /* override */ HRESULT DrawIntoBaseTile(
         __in_ecount(1) const BrushContext *pBrushContext,     
         __in_ecount(1) CMilRectF * prcSurfaceBounds,
         __inout_ecount(1) CDrawingContext *pDrawingContext
         );       
 
-    override bool IsCachingEnabled()
+    /* override */ bool IsCachingEnabled()
     {
         return m_data.m_CachingHint == MilCachingHint::Cache;
     }

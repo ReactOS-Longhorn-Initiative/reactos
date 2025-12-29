@@ -35,7 +35,7 @@ ExternTag(tagMILTransportBackwardTraffic);
 
 CConnectionContext::CConnectionContext(
     MilMarshalType::Enum mType,
-    __in CMilConnection *pNotifTransport
+    _In_ CMilConnection *pNotifTransport
     ) : m_channelTable(sizeof(SERVER_CHANNEL_HANDLE_ENTRY))
 {
     m_mType = mType;
@@ -647,7 +647,7 @@ Cleanup:
 // the cross thread transport to send batches directly to the server channels.
 // 
 HRESULT
-CConnectionContext::GetServerChannel(HMIL_CHANNEL hChannel, __out CMilServerChannel **ppServerChannel)
+CConnectionContext::GetServerChannel(HMIL_CHANNEL hChannel, _Out_ CMilServerChannel **ppServerChannel)
 {
     RRETURN(m_channelTable.GetServerChannel(hChannel, ppServerChannel));
 }
@@ -665,7 +665,7 @@ CConnectionContext::GetServerChannel(HMIL_CHANNEL hChannel, __out CMilServerChan
 
 HRESULT
 CConnectionContext::PostMessageToClient(
-    __in const MIL_MESSAGE *pMsg,
+    _In_ const MIL_MESSAGE *pMsg,
     HMIL_CHANNEL hChannel
     )
 {

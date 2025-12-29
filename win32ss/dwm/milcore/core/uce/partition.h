@@ -123,7 +123,7 @@ enum PartitionState
 // from the partition manager. 
 //
 
-class __declspec(novtable) Partition : 
+class Partition : 
     public IMILRefCount,
     public LIST_ENTRY
 {

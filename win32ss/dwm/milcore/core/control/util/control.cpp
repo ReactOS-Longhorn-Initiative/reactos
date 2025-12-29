@@ -99,7 +99,7 @@ CMediaControl::CMediaControl()
 //---------------------------------------------------------------------------------
 
 HRESULT
-CMediaControl::Initialize(__in PCWSTR lpName)
+CMediaControl::Initialize(_In_ PCWSTR lpName)
 {
     HRESULT hr = S_OK;
 
@@ -172,7 +172,7 @@ Cleanup:
 
 HRESULT
 CMediaControl::InitializeAttach(
-    __in PCWSTR lpName)
+    _In_ PCWSTR lpName)
 {
     HRESULT hr = S_OK;
 
@@ -224,7 +224,7 @@ Cleanup:
 /* static */
 __checkReturn HRESULT 
 CMediaControl::Create(
-    __in PCWSTR lpName,
+    _In_ PCWSTR lpName,
     __deref_out_ecount(1) CMediaControl** ppMediaControl)
 {
     HRESULT hr = S_OK;
@@ -259,7 +259,7 @@ Cleanup:
 /* static */
 __checkReturn HRESULT 
 CMediaControl::Attach(
-    __in PCWSTR lpName,
+    _In_ PCWSTR lpName,
     __deref_out_ecount(1) CMediaControl** ppMediaControl)
 {
     HRESULT hr = S_OK;
@@ -423,7 +423,7 @@ CMediaControl::TintARGBBitmap(
 
 /* static */
 BOOL 
-CMediaControl::CanAttach(__in PCWSTR lpName)
+CMediaControl::CanAttach(_In_ PCWSTR lpName)
 {
     HRESULT hr = S_OK;
     HANDLE hFileMapping = NULL;

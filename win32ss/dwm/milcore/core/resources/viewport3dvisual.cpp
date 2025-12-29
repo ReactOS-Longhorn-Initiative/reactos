@@ -46,7 +46,7 @@ CMilViewport3DVisual::~CMilViewport3DVisual()
 //
 // ----------------------------------------------------------------------------
 
-override HRESULT
+/* override */ HRESULT
 CMilViewport3DVisual::ProcessRemoveAllChildren(
     __in_ecount(1) const CMilSlaveHandleTable* pHandleTable,
     __in_ecount(1) const MILCMD_VISUAL_REMOVEALLCHILDREN* pCmd
@@ -56,7 +56,7 @@ CMilViewport3DVisual::ProcessRemoveAllChildren(
     RRETURN(E_UNEXPECTED);
 }
 
-override HRESULT 
+/* override */ HRESULT 
 CMilViewport3DVisual::ProcessRemoveChild(
     __in_ecount(1) const CMilSlaveHandleTable* pHandleTable,
     __in_ecount(1) const MILCMD_VISUAL_REMOVECHILD* pCmd
@@ -66,7 +66,7 @@ CMilViewport3DVisual::ProcessRemoveChild(
     RRETURN(E_UNEXPECTED);
 }
 
-override HRESULT 
+/* override */ HRESULT 
 CMilViewport3DVisual::ProcessInsertChildAt(
     __in_ecount(1) const CMilSlaveHandleTable* pHandleTable,
     __in_ecount(1) const MILCMD_VISUAL_INSERTCHILDAT* pCmd
@@ -179,7 +179,7 @@ Cleanup:
 //
 //---------------------------------------------------------------------------------
 
-override HRESULT 
+/* override */ HRESULT 
 CMilViewport3DVisual::GetContentBounds(
     __in_ecount(1) CContentBounder *pContentBounder, 
     __out_ecount(1) CMilRectF *prcBounds
@@ -210,7 +210,7 @@ Cleanup:
 //
 //---------------------------------------------------------------------------------
 
-override HRESULT 
+/* override */ HRESULT 
 CMilViewport3DVisual::RenderContent(
     __in_ecount(1) CDrawingContext *pDrawingContext
     )

@@ -342,7 +342,7 @@ CMilImageBrushDuce::NeedsIntermediateSurfaceRealization(
         // Viewport->World portion of the Content->World transform;
     __in_ecount(1) const MilPointAndSizeD *pViewport,
         // User-specified base tile in absolute units
-    __in MilTileMode::Enum tileMode,
+    _In_ MilTileMode::Enum tileMode,
         // User-specified tiling mode for this brush
     __out_ecount(1) BOOL *pfNeedsIntermediateSurfaceRealization,
         // Whether or not this brush should be realized using an intermediate surface
@@ -483,7 +483,7 @@ HRESULT CMilImageBrushDuce::SourceClipApproximatesContentBounds(
     ) const
 {
     HRESULT hr = S_OK;
-
+{
     //
     // Compute matrix to transform viewport, and the imageBounds mapped to the viewport,
     // into sample  space.  This allows us to determine the actual pixel
@@ -538,7 +538,7 @@ HRESULT CMilImageBrushDuce::SourceClipApproximatesContentBounds(
         &matViewportToSampleSpace,
         renderingTolerance
         );
-
+    }
 Cleanup:
     RRETURN(hr);
 }
@@ -564,7 +564,7 @@ CMilImageBrushDuce::GetBaseTile(
         // to determine the size of the Viewport in device coordinates.
     __in_ecount(1) const MilPointAndSizeD *pViewport,
         // User-specified base tile coordinates
-    __in MilTileMode::Enum tileMode,
+    _In_ MilTileMode::Enum tileMode,
         // Wrapping mode used to create the intermediate render target
     __out_ecount(1) IWGXBitmapSource **ppBaseTile,
         // Rasterized base image to be tiled

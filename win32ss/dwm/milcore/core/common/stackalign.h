@@ -64,9 +64,9 @@ public:
     
     // Index operator
 
-    T &operator[](INT n) const
+    T &operator[](INT i) const
     {
-        return m_pArray[n];
+        return m_pArray[i];
     }
 
 private:

@@ -49,33 +49,33 @@ public:
 
     // CHwColorSource methods
 
-    override TypeFlags GetSourceType(
+    TypeFlags GetSourceType(
         ) const;
 
-    override bool IsOpaque(
+    bool IsOpaque(
         ) const;
 
-    override HRESULT SendVertexMapping(
+    HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder,
         MilVertexFormatAttribute mvfaLocation
-        );
+        ) /* override */;
 
     HRESULT Realize(
         ); 
 
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        );
+        ) /* override */;
 
-    override void ResetForPipelineReuse()
+    void ResetForPipelineReuse()
     {
         m_hShaderColorHandle = MILSP_INVALID_HANDLE;
-    }
+    };
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        );
+        ) /* override */;
 
     void SetColorShaderHandle(
         MILSPHandle hShaderColorHandle
@@ -196,14 +196,14 @@ public:
         m_hShaderFloat = hFloatHandle;
     }
 
-    override void ResetForPipelineReuse()
+    void ResetForPipelineReuse()
     {
         m_hShaderFloat = MILSP_INVALID_HANDLE;
     }
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        );
+        ) /* override */;
 
 protected:
 
@@ -268,7 +268,7 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    override bool IsAlphaScalable() const { return true; }
+    bool IsAlphaScalable() const { return true; }
 
     //+-------------------------------------------------------------------------
     //
@@ -280,13 +280,13 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    override void AlphaScale(
+    void AlphaScale(
         FLOAT alphaScale
-        );
+        ) /* override */;
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        );
+        ) /* override */;
 
 private:
 

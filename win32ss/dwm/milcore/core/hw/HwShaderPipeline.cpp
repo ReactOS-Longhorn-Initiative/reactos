@@ -187,7 +187,7 @@ CHwPipelineShader::SetMatrix3x2(
     //
     Assert(hMatrixParameter < PIXEL_SHADER_TABLE_OFFSET);
 
-    C_ASSERT(ShaderConstantTraits<ShaderFunctionConstantData::Matrix3x2>::RegisterSize == 2);
+    static_assert(ShaderConstantTraits<ShaderFunctionConstantData::Matrix3x2>::RegisterSize == 2, "ShaderConstantTraits<ShaderFunctionConstantData::Matrix3x2>::RegisterSize == 2");
 
     float flInternalMatrix[2][4];
 

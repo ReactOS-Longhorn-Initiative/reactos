@@ -25,7 +25,7 @@ MtDefine(CMilDrawingImageDuce, DrawingImageResource, "CMilDrawingImageDuce");
 //      content units.
 //
 //-------------------------------------------------------------------------  
-__override
+/* override */
 HRESULT 
 CMilDrawingImageDuce::GetBounds(
     __in_ecount_opt(1) CContentBounder* pBounder,
@@ -53,7 +53,7 @@ Cleanup:
 //      Draws the drawing with pDC
 //
 //-------------------------------------------------------------------------  
-__override
+/* override */
 HRESULT 
 CMilDrawingImageDuce::Draw(
     __in_ecount(1) CDrawingContext *pDC,

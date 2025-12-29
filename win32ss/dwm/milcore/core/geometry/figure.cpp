@@ -678,8 +678,8 @@ CFigureData::AddAndSetTypes(
 //------------------------------------------------------------------------------
 HRESULT
 CFigureData::AddSegments(
-    __in int                             cPoints,   // Number of points to add
-    __in int                             cSegs,     // Number of segment to add
+    _In_ int                             cPoints,   // Number of points to add
+    _In_ int                             cSegs,     // Number of segment to add
     __in_ecount(cPoints) const MilPoint2F *pPt,      // Array of points to add
     IN MilCoreSeg::Flags                   eSegType,  // The type of segments
     IN bool                              fSmooth)   // Enforce smoothness at joins if true
@@ -860,7 +860,7 @@ CFigureData::BeziersTo(
         // Number of points
 {
     HRESULT hr = S_OK;
-
+{
     if (!rgPoints  ||  count < 3)
     {
         IFC(E_INVALIDARG);
@@ -886,7 +886,7 @@ CFigureData::BeziersTo(
     
     SetCurved();
 
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -1344,9 +1344,9 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CFigureData::InitFromRawData(
-    __in UINT cPoints,
+    _In_ UINT cPoints,
         // Point count
-    __in UINT cSegments,
+    _In_ UINT cSegments,
         // Segment count
     __in_ecount(cPoints) MilPoint2D *pPoints,
         // Points

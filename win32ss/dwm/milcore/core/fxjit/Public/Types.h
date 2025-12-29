@@ -14,30 +14,21 @@
 #pragma once
 
 #if !defined(_BASETSD_H_)
+#include <basetsd.h>
+typedef int BOOL;
 
-typedef __int32 BOOL;
-
-
-typedef __int8  INT8 ;
-typedef __int16 INT16;
-typedef __int32 INT32;
-typedef __int64 INT64;
-
-typedef unsigned short WCHAR;
-
-typedef unsigned __int8  UINT8 ;
-typedef unsigned __int16 UINT16;
-typedef unsigned __int32 UINT32;
-typedef unsigned __int64 UINT64;
-
-#if defined(_WIN64)
-    typedef __int64 INT_PTR;
-    typedef unsigned __int64 UINT_PTR;
-    typedef unsigned __int64 size_t;
+#ifndef _SIZE_T_DEFINED
+#define _SIZE_T_DEFINED
+#undef size_t
+#ifdef _WIN64
+#if defined(__GNUC__) && defined(__STRICT_ANSI__)
+  typedef unsigned int size_t __attribute__ ((mode (DI)));
 #else
-    typedef __w64 __int32 INT_PTR;
-    typedef __w64 unsigned __int32 UINT_PTR;
-    typedef __w64 unsigned __int32 size_t;
+  typedef unsigned __int64 size_t;
+#endif
+#else
+  typedef unsigned int size_t;
+#endif
 #endif
 
 #define NULL    0

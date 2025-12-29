@@ -51,7 +51,7 @@ public:
 
     // IHwPrimaryColorSource methods
 
-    override HRESULT SendOperations(
+    /* override */ HRESULT SendOperations(
         __inout_ecount(1) CHwPipelineBuilder *pBuilder
         );
 

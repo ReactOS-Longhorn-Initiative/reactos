@@ -143,7 +143,7 @@ public:
 
     void Reset();
 
-    void CMatrix22::Set(
+    void Set(
         GpReal rM11,
             // In: The value to set for M11
         GpReal rM12,
@@ -275,7 +275,7 @@ public:
         )=0;  
 
     //
-    // CFlatteningSink override
+    // CFlatteningSink /* override */
     //
     // Here is the reason for using different names for the same thing.
     // CPenInterface distinguishes between points on a line segment and points
@@ -701,7 +701,7 @@ public:
         m_pSink = pSink;
     }
 
-    // CPenInterface override
+    // CPenInterface /* override */
     HRESULT StartFigure(
         __in_ecount(1) const GpPointR &pt,
             // In: Figure's firts point
@@ -770,7 +770,7 @@ public:
     virtual bool Aborted();
 
 protected:
-    // CPen overrides
+    // CPen /* override */s
     HRESULT ProcessCurvePoint(
         __in_ecount(1) const GpPointR &point,
             // In: Point to draw to
@@ -974,7 +974,7 @@ public:
             // OK)
         );
 
-    // CPenInterface override
+    // CPenInterface /* override */
     virtual HRESULT StartFigure(
         __in_ecount(1) const GpPointR &pt,
             // In: Figure's firts point
@@ -1379,7 +1379,7 @@ protected:
                                              // of the last PrepareForNewEdge()
         GpReal          m_rLength;           // Sequence's total length
         UINT            m_uStartDash;        // The dash/space where the dash sequence starts
-        DynArrayIA<GpReal, 16> m_rgDashes;   // Dash/space ends array
+        DynArrayIA<double, 16> m_rgDashes;   // Dash/space ends array
     };
 
     // Data
@@ -1804,7 +1804,7 @@ public:
 
     virtual ~CShapeWideningSink();
 
-    // CwideningSink overrides
+    // CwideningSink /* override */s
     virtual HRESULT StartWith(
         __in_ecount(2) const GpPointR *ptOffset
             // Left and right offset points
@@ -1939,7 +1939,7 @@ public:
     ~CStrokeBoundsSink() {}
 
     //
-    // The following methods override CWideningSink methods.  They get 
+    // The following methods /* override */ CWideningSink methods.  They get 
     // called back when the path is widened with points on the boundary of 
     // the widened path.
     //
@@ -2199,7 +2199,7 @@ public:
     {
     }
 
-    // CWideningSink overrides
+    // CWideningSink /* override */s
     virtual HRESULT StartWith(
         __in_ecount(2) const GpPointR *ptOffset
             // Left and right offset points

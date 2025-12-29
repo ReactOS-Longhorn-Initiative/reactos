@@ -325,7 +325,7 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    override void GetPerVertexDataType(
+    void GetPerVertexDataType(
         __out_ecount(1) MilVertexFormat &mvfFullyGenerated
         ) const;
 
@@ -340,17 +340,17 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    override HRESULT SendGeometry(
+    HRESULT SendGeometry(
         IN IGeometrySink *pGeomSink
-        );
+        ) /* override */;
 
-    override HRESULT SendGeometryModifiers(
+    HRESULT SendGeometryModifiers(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        );
+        ) /* override */;
 
-    override HRESULT SendLighting(
+    HRESULT SendLighting(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        );
+        ) /* override */;
 
 private:
     void CopyVerticesIntoBuffer(

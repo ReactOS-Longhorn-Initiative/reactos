@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-#pragma once;
+#pragma once
 
 #include "dxlcommon.hpp"
 #include <d3dx9math.h>

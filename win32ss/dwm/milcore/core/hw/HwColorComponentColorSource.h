@@ -64,7 +64,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override TypeFlags GetSourceType() const
+    TypeFlags GetSourceType() const
     {
         return PrecomputedComponent;
     }
@@ -79,7 +79,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override bool IsOpaque() const
+    bool IsOpaque() const
     {
         return false;
     }
@@ -95,7 +95,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override HRESULT SendVertexMapping(
+    HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder, 
         MilVertexFormatAttribute mvfaLocation
         )
@@ -117,7 +117,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override HRESULT Realize()
+    HRESULT Realize()
     {
         return S_OK;
     }
@@ -133,7 +133,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         DWORD dwStage, 
         DWORD dwSampler
         )
@@ -141,11 +141,11 @@ public:
         return S_OK;
     }
 
-    override void ResetForPipelineReuse()
+    void ResetForPipelineReuse()
     {
     }
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
         )
     {

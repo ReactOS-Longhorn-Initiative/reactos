@@ -244,7 +244,7 @@ Cleanup:
 //        should not be used:
 //
 //        * On WDDM drivers
-//        * If our RegKey override is set
+//        * If our RegKey /* override */ is set
 //
 //------------------------------------------------------------------------------
 
@@ -594,7 +594,7 @@ CRenderTargetManager::Present(
     HRESULT hr = S_OK;
 
     bool fGPUThrottlingEnabled = false;
-
+{
     //
     // We need to call this every time we present because we could
     // transition from a WDDM to non-WDDM driver through a TS session.
@@ -647,6 +647,7 @@ CRenderTargetManager::Present(
             IFC(HandlePresentErrors(hr));
         }
     }
+}
 
 Cleanup:
     AdvanceFrame();
@@ -940,7 +941,7 @@ Returns:
 --*/
 
 HRESULT CRenderTargetManager::EnableVBlankSync(
-    __in CMilServerChannel* pChannel
+    _In_ CMilServerChannel* pChannel
     )
 {
     HRESULT hr = S_OK;
@@ -1004,7 +1005,7 @@ Returns:
 --*/
 
 void CRenderTargetManager::DisableVBlankSync(
-    __in CMilServerChannel* pChannel
+    _In_ CMilServerChannel* pChannel
     )
 {
     //
@@ -1155,7 +1156,7 @@ CRenderTargetManager::WaitForDwm(
     __inout_ecount(1) UINT *puiRefreshRate,
     __inout_ecount(1) MilPresentationResults::Enum *pePresentationResults,
     __inout_ecount(1) QPC_TIME *pqpcPresentationTime,
-    __in              QPC_TIME qpcCurrentTime
+    _In_              QPC_TIME qpcCurrentTime
     )
 {
     HRESULT hr = S_OK;
@@ -1233,7 +1234,7 @@ CRenderTargetManager::WaitForTarget(
     __inout_ecount(1) UINT *puiRefreshRate,
     __inout_ecount(1) MilPresentationResults::Enum *pePresentationResults,
     __inout_ecount(1) QPC_TIME *pqpcPresentationTime,
-    __in              QPC_TIME qpcCurrentTime
+    _In_              QPC_TIME qpcCurrentTime
     )
 {
     HRESULT hr = S_OK;

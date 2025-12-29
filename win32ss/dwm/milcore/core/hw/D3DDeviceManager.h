@@ -67,8 +67,8 @@ public:
         __out_ecount_opt(1) UINT *pAdapterOrdinalInGroup
         );
                       
-    HRESULT AddAdapterStatusListener(__in IAdapterStatusListener *pListener);
-    void RemoveAdapterStatusListener(__in IAdapterStatusListener *pListener);
+    HRESULT AddAdapterStatusListener(_In_ IAdapterStatusListener *pListener);
+    void RemoveAdapterStatusListener(_In_ IAdapterStatusListener *pListener);
 
     HRESULT GetSWDevice(__deref_out_ecount(1) CD3DDeviceLevel1 **ppDevice);
 
@@ -157,7 +157,7 @@ private:
         __inout_ecount(1)
         D3DPRESENT_PARAMETERS *pBasePresentParams,      // Base D3D Presentation
                                                         // parameters
-        __in_xcount(pD3DCreateParams->NumberOfAdaptersInGroup)
+        _In_reads_(pD3DCreateParams->NumberOfAdaptersInGroup)
         D3DDISPLAYMODEEX *rgDisplayModes,               // Array of display modes
 
         __deref_out_ecount(1) CD3DDeviceLevel1 **ppDeviceLevel1

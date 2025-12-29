@@ -117,7 +117,7 @@ CMilDataStreamReader::GetNextItemSafe(
     Assert(m_pCurItemPos >= m_pData);
     Assert(SUCCEEDED(PtrdiffTToSizeT(m_pCurItemPos - m_pData, &cbCurrentItemOffset)));
     Assert(cbCurrentItemOffset <= m_nDataSize);
-#endif DBG
+#endif /* DBG */
 
     //
     // Check if there's any data left in the buffer.

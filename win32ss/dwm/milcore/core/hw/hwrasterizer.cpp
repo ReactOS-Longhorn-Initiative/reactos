@@ -477,7 +477,7 @@ CHwRasterizer::RasterizePath(
     CEdge *pEdgeActiveList;
     CEdgeStore edgeStore;
     CInitializeEdgesContext edgeContext;
-
+{
     edgeContext.ClipRect = NULL;
 
     edgeTail.X = INT_MAX;       // Terminator to active list
@@ -603,7 +603,7 @@ CHwRasterizer::RasterizePath(
         nSubpixelYCurrent,
         nSubpixelYBottom
         ));
-
+}
 Cleanup:
     // Free any objects and get outta here:
     GpFree(pInactiveArrayAllocation);

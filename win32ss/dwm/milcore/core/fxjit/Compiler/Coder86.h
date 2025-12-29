@@ -301,10 +301,10 @@ enum OpCode : UINT32
     movzx_rm16  = OPCODE(Prefix_None, 0x0FB7),  // move memory to general purpose register, zero extend, 16 bits
 
     add       = OPCODE(Prefix_None, 0x03),
-    or        = OPCODE(Prefix_None, 0x0B),
-    and       = OPCODE(Prefix_None, 0x23),
+    _or        = OPCODE(Prefix_None, 0x0B),
+    _and       = OPCODE(Prefix_None, 0x23),
     sub       = OPCODE(Prefix_None, 0x2B),
-    xor       = OPCODE(Prefix_None, 0x33),
+    _xor       = OPCODE(Prefix_None, 0x33),
     cmp       = OPCODE(Prefix_None, 0x3B),
     imul      = OPCODE(Prefix_None, 0x0FAF),
 
@@ -644,7 +644,7 @@ private:
 
         // if any of base & index are not in use,
         // following logic should not be broken
-        C_ASSERT((gpr_none & 8) == 0);
+        static_assert((gpr_none & 8) == 0, "(gpr_none & 8) == 0");
 
         if (base  & 8) { base  &= 7; opcode |= REX_B; }
         if (index & 8) { index &= 7; opcode |= REX_X; }

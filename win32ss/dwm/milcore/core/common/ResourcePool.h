@@ -27,8 +27,8 @@ public:
     CMILPoolResource(__in_ecount_opt(1) IMILPoolManager *pManager);
     virtual ~CMILPoolResource();
 
-    // CMILRefCountBase overrides
-    STDMETHOD_(ULONG, Release)(void) override;
+    // CMILRefCountBase /* override */s
+    STDMETHOD_(ULONG, Release)(void) /* override */;
 
     ULONG GetRefCount() const;
 
@@ -49,8 +49,8 @@ protected:
 \*=========================================================================*/
 
 #define DEFINE_POOLRESOURCE_REF_COUNT_BASE                                               \
-    override ULONG STDMETHODCALLTYPE AddRef(void) {return CMILPoolResource::AddRef();}   \
-    override ULONG STDMETHODCALLTYPE Release(void) {return CMILPoolResource::Release();}
+    ULONG STDMETHODCALLTYPE AddRef(void) {return CMILPoolResource::AddRef();}   \
+    ULONG STDMETHODCALLTYPE Release(void) {return CMILPoolResource::Release();}
 
 /*=========================================================================*\
     IMILPoolManager - MIL interface pooled resource lifetime manager

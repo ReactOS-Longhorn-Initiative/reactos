@@ -30,9 +30,9 @@ public:
     ~CDWriteFactory();
 
     HRESULT DWriteCreateFactory(
-        __in DWRITE_FACTORY_TYPE factoryType,
-        __in REFIID iid,
-        __out IUnknown **factory
+        _In_ DWRITE_FACTORY_TYPE factoryType,
+        _In_ REFIID iid,
+        _Out_ IUnknown **factory
         );
 
 private:

@@ -48,7 +48,7 @@ public:
         __in_ecount(1) CMatrix<ResultCoordSpace,GivenCoordSpace> const *pmatResultToGiven
         )
     {
-        C_ASSERT(GivenCoordSpace::Id != CoordinateSpaceId::Invalid);
+        static_assert(GivenCoordSpace::Id != CoordinateSpaceId::Invalid, "GivenCoordSpace::Id != CoordinateSpaceId::Invalid");
         m_rcGivenBounds = rcBounds.ReinterpretAsVariant();
         m_pmatResultToGiven = &(pmatResultToGiven->ReinterpretAsVariantOut());
         m_fResultComputed = false;

@@ -16,7 +16,7 @@
 
 BOOL
 MILCoreDllMain(
-    __in HINSTANCE   dllHandle,
+    _In_ HINSTANCE   dllHandle,
     ULONG       reason
     );
 
@@ -27,8 +27,8 @@ MILCoreDllCanUnloadNow(
 
 STDAPI
 MILCoreDllGetClassObject(
-    __in        REFCLSID        clsid,
-    __in        REFIID          riid,
+    _In_        REFCLSID        clsid,
+    _In_        REFIID          riid,
     __deref_out void            **ppv
     );
 

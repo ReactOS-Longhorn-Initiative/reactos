@@ -52,7 +52,7 @@ CMilDashStyleDuce::SetDashes(
     // Initialize dash offset to inline value
     double offset = m_data.m_Offset;
 
-    // Override inline value with dash offset resource, if one exists
+    // /* override */ inline value with dash offset resource, if one exists
     if (m_data.m_pOffsetAnimation)
     {
         offset = *m_data.m_pOffsetAnimation->GetValue();

@@ -501,7 +501,7 @@ class CVertex;
         void InitializeAtPoint(
             __in_ecount(1) const GpPointR &pt,
                 // Vertex coordinates
-            __in bool fIsEndpoint
+            _In_ bool fIsEndpoint
                 // true ==> endpoint, false ==> exact intersection
             );
 
@@ -808,7 +808,7 @@ class CVertex;
         HRESULT AllocateVertexAtPoint(
             __in_ecount(1) const GpPointR &pt,
                 // Vertex coordinates
-            __in bool fEndpoint,
+            _In_ bool fEndpoint,
                 // true ==> endpoint, false ==> intersection
             __deref_out_ecount(1) CVertex *&pNew);
                 // The allocated vertex
@@ -1474,6 +1474,16 @@ class CVertex;
             m_pChain->Dump();
 #endif
         }
+
+        UINT GetIndex() const
+        {
+            return 0;
+        }
+
+        void SetIndex(UINT index)
+        {
+            
+        }
     };
 
     class CMasterHeap : public CHeap<CMasterChain, 6>
@@ -1571,11 +1581,11 @@ class CVertex;
                 // Info about the associated curve (or NULL)
             );
 
-        // CFlatteningSink override
+        // CFlatteningSink /* override */
         HRESULT AcceptPoint(
             __in_ecount(1) const GpPointR &ptNew,
                 // The new vertex to add
-            __in GpReal t,
+            _In_ GpReal t,
                 // Parameter value on the curve)
             __out_ecount(1) bool &fAbort);
                 // Ignored here
@@ -1589,7 +1599,7 @@ class CVertex;
         HRESULT EndFigure(
             __in_ecount(1) const GpPointR &ptCurrent,
                 // The most recently added vertex
-            __in bool fClosed);
+            _In_ bool fClosed);
                 // =true if the figure is closed
 
         HRESULT Insert(
@@ -2117,7 +2127,7 @@ protected:
     // Debug
 #if DBG
     void Trace(
-    __in PCWSTR pStr,
+    _In_ PCWSTR pStr,
         // String to dump
     int id) const;
         // Chain ID

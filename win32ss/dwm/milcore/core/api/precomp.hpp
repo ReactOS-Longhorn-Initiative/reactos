@@ -18,28 +18,28 @@
 *
 **************************************************************************/
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 #include "d2d1.h"
 #include <strsafe.h>
 
 // debug output, allocator, etc.
 
-#include "common\common.h"
+#include "common/common.h"
 
-#include "..\..\common\effects\effectlist.h"
+#include "../../common/effects/effectlist.h"
 
 // Format converter, palette etc.
 
-#include "scanop\scanop.h"
+#include "scanop/scanop.h"
 
 // common glyph rendering classes
 
-#include "glyph\glyph.h"
+#include "glyph/glyph.h"
 
 // Path classes
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // API stubs/proxy classes.
 
@@ -47,37 +47,37 @@
 
 // common render target classes and methods
 
-#include "targets\targets.h"
+#include "targets/Targets.h"
 
 // Rendering classes
 
-#include "sw\sw.h"
+#include "sw/sw.h"
 
 
 // HW acceleration classes
 
-#include "hw\hw.h"
+#include "hw/hw.h"
 
 // multmon render target
 
-#include "meta\meta.h"
+#include "meta/meta.h"
 
 // Resources
 
 #include "wgx_core_types.h"
 
-#include "resources\brushcontext.h"
-#include "resources\BrushRealizer.h"
+#include "resources/BrushContext.h"
+#include "resources/BrushRealizer.h"
 
 // Audio/Video
 
-#include "av\av.h"
+#include "av/av.h"
 
-#include "av\avloader.h"
+#include "av/avloader.h"
 
 
-#include "resources\resources.h"
+#include "resources/resources.h"
 
-#include "uce\DpiProvider.h"
+#include "uce/DpiProvider.h"
 
 

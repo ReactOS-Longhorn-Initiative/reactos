@@ -59,7 +59,7 @@ HRESULT CMilTranslateTransform3DDuce::Append(
     HRESULT hr = S_OK;
 
     IFC(SynchronizeAnimatedFields());
-
+{
     float tx = static_cast<float>(m_data.m_offsetX);
     float ty = static_cast<float>(m_data.m_offsetY);
     float tz = static_cast<float>(m_data.m_offsetZ);
@@ -68,7 +68,7 @@ HRESULT CMilTranslateTransform3DDuce::Append(
     pMat->_21 += pMat->_24 * tx; pMat->_22 += pMat->_24 * ty; pMat->_23 += pMat->_24 * tz;
     pMat->_31 += pMat->_34 * tx; pMat->_32 += pMat->_34 * ty; pMat->_33 += pMat->_34 * tz;
     pMat->_41 += pMat->_44 * tx; pMat->_42 += pMat->_44 * ty; pMat->_43 += pMat->_44 * tz;
-
+}
 Cleanup:
     RRETURN(hr);
 }

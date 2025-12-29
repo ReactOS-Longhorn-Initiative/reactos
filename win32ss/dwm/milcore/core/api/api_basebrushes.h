@@ -128,7 +128,7 @@ protected:
 
 public:
 
-#if DBG
+#if 0
     //+------------------------------------------------------------------------
     //
     //  Member:    
@@ -144,7 +144,7 @@ public:
     //      comment why it doesn't need to exist.
     //
     //-------------------------------------------------------------------------
-    override bool MayNeedNonPow2Tiling() const
+    /* override */ bool MayNeedNonPow2Tiling() const
     {
         //
         // Gradients are always realized to Pow2 textures in hardware, so they
@@ -171,7 +171,7 @@ public:
 
     STDMETHOD_(void, GetUniquenessToken)(
         __out_ecount(1) UINT *puToken
-        ) const override;
+        ) const /* override */;
 
     void SetEndPoints(
         __in_ecount(1) MilPoint2F const *pptStartPointOrCenter,

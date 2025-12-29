@@ -90,9 +90,9 @@ public:
     //
 
     // the compiler isn't smart enough to see CD3DResource's
-    // IsValid() implementation as an override for 
+    // IsValid() implementation as an /* override */ for 
     // IMILCacheableResource's pure virtual
-    override bool IsValid() const
+    /* override */ bool IsValid() const
     {
         return CD3DResource::IsValid();
     }

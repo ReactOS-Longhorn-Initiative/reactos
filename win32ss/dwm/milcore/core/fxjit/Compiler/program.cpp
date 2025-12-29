@@ -30,7 +30,7 @@
 //------------------------------------------------------------------------
 __checkReturn HRESULT
 CProgram::Create(
-    __in UINT16 usCallParametersSize,
+    _In_ UINT16 usCallParametersSize,
     __deref_out CProgram **ppProgram
     )
 {
@@ -204,11 +204,11 @@ CProgram::AllocFlushMemory(UINT32 cbSize)
 
 SOperator *
 CProgram::AddOperator(
-    __in OpType ot,
-    __in UINT32 vResult,
-    __in UINT32 vOperand1,
-    __in UINT32 vOperand2,
-    __in UINT32 vOperand3
+    _In_ OpType ot,
+    _In_ UINT32 vResult,
+    _In_ UINT32 vOperand1,
+    _In_ UINT32 vOperand2,
+    _In_ UINT32 vOperand3
     )
 {
     HRESULT hr = S_OK;
@@ -296,7 +296,7 @@ __checkReturn HRESULT
 CProgram::GrowOperators(UINT32 uDelta)
 {
     HRESULT hr = S_OK;
-
+{
     UINT32 uOperatorsDesired = m_uOperatorsAllocated + uDelta;
 
     WarpAssert(m_uOperatorsCount < uOperatorsDesired);
@@ -317,7 +317,7 @@ CProgram::GrowOperators(UINT32 uDelta)
 
     m_prgOperators = pp;
     m_uOperatorsAllocated = uOperatorsDesired;
-
+}
 Cleanup:
     return hr;
 }
@@ -327,7 +327,7 @@ CProgram::AllocVar(VariableType vt)
 {
     HRESULT hr = S_OK;
     UINT32 uVarIndex = 0;
-
+{
     if (m_uVarsCount == m_uVarsAllocated)
     {
         IFC(GrowVars());
@@ -340,7 +340,7 @@ CProgram::AllocVar(VariableType vt)
     m_prgVarSources[m_uVarsCount] = NULL;
 
     uVarIndex = m_uVarsCount++;
-
+}
 Cleanup:
     return uVarIndex;
 }
@@ -349,7 +349,7 @@ __checkReturn HRESULT
 CProgram::GrowVars()
 {
     HRESULT hr = S_OK;
-
+{
     WarpAssert(m_uVarsCount == m_uVarsAllocated);
 
     UINT32 uVarsDesired = m_uVarsAllocated + 100;
@@ -381,7 +381,7 @@ CProgram::GrowVars()
     m_prgVarDesc = p;
     m_prgVarSources = q;
     m_uVarsAllocated = uVarsDesired;
-
+}
 Cleanup:
     return hr;
 }
@@ -619,6 +619,7 @@ __checkReturn HRESULT
 CProgram::RemoveAssignUp(COperator * pAssigner)
 {
     HRESULT hr = S_OK;
+{
     if (pAssigner->m_refType != RefType_Direct)
         goto Cleanup;
 
@@ -649,7 +650,7 @@ CProgram::RemoveAssignUp(COperator * pAssigner)
     }
 
     NopifyOperator(pAssigner);
-
+}
 Cleanup:
     return hr;
 }
@@ -680,7 +681,7 @@ __checkReturn HRESULT
 CProgram::RemoveAssignDown(COperator * pAssigner)
 {
     HRESULT hr = S_OK;
-
+{
     if (pAssigner->m_refType != RefType_Direct)
         goto Cleanup;
 
@@ -738,7 +739,7 @@ CProgram::RemoveAssignDown(COperator * pAssigner)
     }
 
     NopifyOperator(pAssigner);
-
+}
 Cleanup:
     return hr;
 }
@@ -778,7 +779,7 @@ __checkReturn HRESULT
 CProgram::OptimizeLoadDWord(COperator * pAssigner)
 {
     HRESULT hr = S_OK;
-
+{
 #if WPFGFX_FXJIT_X86
     WarpAssert( pAssigner->m_ot == otMmLoadDWord || pAssigner->m_ot == otXmmLoadDWord );
 #else
@@ -817,7 +818,7 @@ CProgram::OptimizeLoadDWord(COperator * pAssigner)
     }
 
     NopifyOperator(pAssigner);
-
+}
 Cleanup:
     return hr;
 }
@@ -921,7 +922,7 @@ __checkReturn HRESULT
 CProgram::OptimizePtrCompute(COperator * pOperator)
 {
     HRESULT hr = S_OK;
-
+{
     WarpAssert(pOperator->m_ot == otPtrCompute);
 
     // UINT32 uBase = pOperator->m_vOperand1;
@@ -1029,7 +1030,7 @@ CProgram::OptimizePtrCompute(COperator * pOperator)
 
         NopifyOperator(pOperator);
     }
-
+}
 Cleanup:
     return hr;
 }
@@ -1052,7 +1053,7 @@ __checkReturn HRESULT
 CProgram::OptimizeIndicesUsage(COperator * pOperator)
 {
     HRESULT hr = S_OK;
-
+{
     if (pOperator->m_refType != RefType_Base)
         goto Cleanup;
 
@@ -1129,7 +1130,7 @@ CProgram::OptimizeIndicesUsage(COperator * pOperator)
 
     WarpAssert(pProvider->m_pConsumers == NULL);
     NopifyOperator(pProvider);
-
+}
 Cleanup:
     return hr;
 }
@@ -1435,7 +1436,7 @@ CProgram::Assemble(
     )
 {
     HRESULT hr = S_OK;
-
+{
     UINT8 *pCode;
 
     CMapper mapper(this);
@@ -1500,7 +1501,7 @@ CProgram::Assemble(
     }
 
     *ppBinaryCode = pCode;
-
+}
 Cleanup:
     return hr;
 }

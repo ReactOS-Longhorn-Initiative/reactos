@@ -27,7 +27,7 @@ class CMilVisual;
 // IDrawingContext
 //---------------------------------------------------------------------------------
 
-interface __declspec(novtable) IDrawingContext
+interface IDrawingContext
 {
     //
     // Drawing interface.

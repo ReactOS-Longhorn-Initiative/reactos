@@ -15,7 +15,7 @@
 *
 **************************************************************************/
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 // system includes
 
 #include "std.h"
@@ -25,25 +25,25 @@
 
 // debug output, allocator, etc.
 
-#include "common\common.h"
-#include "scanop\scanop.h"
+#include "common/common.h"
+#include "scanop/scanop.h"
 
-#include "glyph\glyph.h"
+#include "glyph/glyph.h"
 
 // geometry classes
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // COMBase
 
-#include "api\api_include.h"
+#include "api/api_include.h"
 
 // hardware and software render targets.
-#include "..\targets\targets.h"
-#include "..\sw\sw.h"
-#include "..\hw\hw.h"
+#include "../targets/Targets.h"
+#include "../sw/sw.h"
+#include "../hw/hw.h"
 
-#include "..\av\av.h"
+#include "../av/av.h"
 
 #include "meta.h"
 
@@ -56,7 +56,7 @@
 
 #include "metaiterator.h"
 
-#include "control\util\control.h"
+#include "control/util/control.h"
 
 
 

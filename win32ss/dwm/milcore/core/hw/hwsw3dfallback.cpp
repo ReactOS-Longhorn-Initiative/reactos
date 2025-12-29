@@ -99,7 +99,7 @@ CHw3DSoftwareSurface::Create(
     CD3DDeviceManager * const pD3DDeviceManager = CD3DDeviceManager::Get();
 
     IFC(pD3DDeviceManager->GetSWDevice(&pD3DDevice));
-
+{
     //
     // Only two formats are supported by copy optimization: 32bpp BGR and PBGRA
     //
@@ -134,6 +134,7 @@ CHw3DSoftwareSurface::Create(
     *ppHw3DFallbackRT = pHw3DFallback;
 
     pHw3DFallback = NULL;
+}
 
 Cleanup:
     ReleaseInterfaceNoNULL(pHw3DFallback);

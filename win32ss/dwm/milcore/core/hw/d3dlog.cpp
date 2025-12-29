@@ -40,9 +40,7 @@ CD3DLog::m_frameNames[D3DLogFrame::size] =
 void CD3DLog::Dump()
 {
     if (!IsTagEnabled(tagD3DLog)) return;
-    errno_t err;
-    err = fopen_s(&m_pFile, s_dump_filename, "wt");
-    if (err != 0) return;
+    m_pFile = fopen(s_dump_filename, "wt");
     s_dump_filename[9]++;
     DumpHead();
     for (D3DLogFrame* pFrame = m_data; pFrame != m_pCurrentFrame; pFrame++)

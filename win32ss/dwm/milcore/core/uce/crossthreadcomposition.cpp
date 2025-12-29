@@ -32,7 +32,7 @@ MtDefine(CCrossThreadComposition, MILRender, "CCrossThreadComposition");
 // 
 //------------------------------------------------------------------------------       
 
-CCrossThreadComposition::CCrossThreadComposition(__in MilMarshalType::Enum marshalType) 
+CCrossThreadComposition::CCrossThreadComposition(_In_ MilMarshalType::Enum marshalType) 
     : CComposition(marshalType)
 {
     // Zero-initialized by DECLARE_METERHEAP_CLEAR
@@ -73,7 +73,7 @@ CCrossThreadComposition::~CCrossThreadComposition()
 
 /* static */ HRESULT 
 CCrossThreadComposition::Create(
-    __in MilMarshalType::Enum marshalType,
+    _In_ MilMarshalType::Enum marshalType,
     __out_ecount(1) CCrossThreadComposition **ppCrossThreadComposition
     )
 {
@@ -111,7 +111,7 @@ Cleanup:
 
 HRESULT 
 CCrossThreadComposition::SubmitBatch(
-    __in CMilCommandBatch *pBatch
+    _In_ CMilCommandBatch *pBatch
     )
 {
     HRESULT hr = S_OK;

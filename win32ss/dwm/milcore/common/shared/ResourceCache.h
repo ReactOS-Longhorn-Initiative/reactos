@@ -156,11 +156,11 @@ private:
     // Check the single threading assumptions
     void Enter() { Assert(InterlockedIncrement(&m_cInCall) == 1); }
     void Leave() { Assert(InterlockedDecrement(&m_cInCall) == 0); }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
 #if !RESOURCE_CACHE_SINGLE_THREADED || DBG
     volatile LONG m_cInCall;
-#endif !RESOURCE_CACHE_SINGLE_THREADED || DBG
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED || DBG */
 };
 
 
@@ -223,8 +223,8 @@ public:
     ~CMILSimpleResourceCache();
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMILSimpleResourceCache));
 
-    HRESULT GetResource(__in ValidIndex index, __out_opt IMILCacheableResource **ppResource);
-    HRESULT SetResource(__in ValidIndex index, __in_opt IMILCacheableResource *pResource);
+    HRESULT GetResource(_In_ ValidIndex index, __out_opt IMILCacheableResource **ppResource);
+    HRESULT SetResource(_In_ ValidIndex index, __in_opt IMILCacheableResource *pResource);
 
 private:
     DynArrayIA<IMILCacheableResource*, RESOURCE_CACHE_INITIAL_SIZE> m_resources;

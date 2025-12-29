@@ -168,7 +168,7 @@ Cleanup:
 //------------------------------------------------------------------------
 void
 CMILDeviceContext::EndRendering(
-    __in HDC hdc      // Device context to free
+    _In_ HDC hdc      // Device context to free
     ) const
 {
     //

@@ -56,7 +56,7 @@ CBezier::GetPoint(
 //------------------------------------------------------------------------------
 void
 CBezier::GetPointAndDerivatives(
-    __in double t,
+    _In_ double t,
         // Parameter value
     __out_ecount(3) GpPointR *pValues) const
         // Point, first derivative and second derivative there
@@ -176,9 +176,9 @@ CBezier::TrimToEndAt(
 //------------------------------------------------------------------------------
 bool
 CBezier::TrimBetween(
-    __in double rStart,
+    _In_ double rStart,
         // Parameter value for the new start, must be between 0 and 1
-    __in double rEnd)
+    _In_ double rEnd)
         // Parameter value for the new end, must be between 0 and 1
 {
     Assert(0 <= rStart);

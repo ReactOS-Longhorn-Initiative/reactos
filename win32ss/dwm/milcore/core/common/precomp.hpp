@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 #include <ole2.h>
 
@@ -15,17 +15,17 @@
 
 #include "Tier.h"
 
-#include "glyph\glyph.h"
-#include "geometry\geometry.h"
-#include "api\api_include.h"
+#include "glyph/glyph.h"
+#include "geometry/geometry.h"
+#include "api/api_include.h"
 
-#include "hw\hwinit.h"
-#include "hw\HwCaps.h"
+#include "hw/hwinit.h"
+#include "hw/HwCaps.h"
 
-#include "sw\swinit.h"
+#include "sw/swinit.h"
 
 #include "mfapi.h"
 #include "dxva2api.h"
 #include "evr.h"
-#include "av\internal.h"
-#include "av\avloader.h"
+#include "av/internal.h"
+#include "av/avloader.h"

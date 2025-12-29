@@ -7,7 +7,7 @@
 
 #include "matrix_t.hpp"
 #include "xmcommon.hpp"
-#include "factories/factory.hpp"
+#include "Factories/factory.hpp"
 
 #include <DirectXMath.h>
 
@@ -152,7 +152,7 @@ namespace dxlayer
 #pragma region inverse
 
         // D3DXMatrixInverse ~= XMMatrixInverse
-        inline matrix_t<dxapi::xmath> inverse(__out float& determinant) const
+        inline matrix_t<dxapi::xmath> inverse(_Out_ float& determinant) const
         {
             DirectX::XMVECTOR det;
             auto inv = DirectX::XMMatrixInverse(&det, *this);

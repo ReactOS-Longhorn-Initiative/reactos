@@ -73,7 +73,7 @@ public:
 
     HRESULT UpdateMipmapLevels();
 
-    override bool RequiresDelayedRelease() const
+    bool RequiresDelayedRelease() const
     {
         return true;
     }

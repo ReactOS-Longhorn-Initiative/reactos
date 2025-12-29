@@ -182,7 +182,7 @@ CGlyphRunGeometrySink::~CGlyphRunGeometrySink()
 //------------------------------------------------------------------------------
 HRESULT 
 CGlyphRunGeometrySink::ProduceGeometry(
-    __in MilPoint2F* pBaselineOrigin,
+    _In_ MilPoint2F* pBaselineOrigin,
     __deref_out CMilGeometryDuce **ppGeometry
     )
 {
@@ -349,7 +349,7 @@ CGlyphRunGeometrySink::AddLine(
 //------------------------------------------------------------------------------
 void
 CGlyphRunGeometrySink::AddBezier(
-    __in CONST D2D1_BEZIER_SEGMENT *bezier 
+    _In_ CONST D2D1_BEZIER_SEGMENT *bezier 
     )
 {    
     if (SUCCEEDED(m_hr))

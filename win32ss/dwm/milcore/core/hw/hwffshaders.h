@@ -64,15 +64,15 @@ protected:
     CHwBrushContext const *m_pEffectContextNoRef;
 
 public:
-    virtual override HRESULT CreateCompatibleVertexBufferBuilder(
+    virtual HRESULT CreateCompatibleVertexBufferBuilder(
         MilVertexFormat mvfGeometryOutput,
         MilVertexFormatAttribute mvfGeometryAALocation,
         __inout_ecount(1) CBufferDispenser *pBufferDispenser,
         __deref_out_ecount(1) CHwVertexBuffer::Builder **ppBufferBuilder
-        );
+        ) /* override */;
 
 protected:
-    virtual override HRESULT Finish();
+    virtual HRESULT Finish() /* override */;
 };
 
 //+-----------------------------------------------------------------------------
@@ -107,19 +107,19 @@ public:
         );
 
 protected:
-    override HRESULT SetupPassVirtual(
+    HRESULT SetupPassVirtual(
         __in_ecount(1) IGeometryGenerator *pGeometryGenerator,
         __inout_ecount(1) CHwPipeline *pHwPipeline,
         __range(0,INT_MAX) UINT uPassNum
-        );
+        ) /* override */;
 
-    override HRESULT Begin(
+    HRESULT Begin(
         __in_ecount(1) CHwSurfaceRenderTarget *pHwTargetSurface,
         __in_ecount(1) const CMilRectL &rcRenderingBounds,
         bool fZBufferEnabled
-        );
+        ) /* override */;
 
-    override LightingValues GetRequiredLightingValues() const;
+    LightingValues GetRequiredLightingValues() const;
 };
 
 //+-----------------------------------------------------------------------------
@@ -154,19 +154,19 @@ public:
         );
 
 protected:
-    override HRESULT SetupPassVirtual(
+    HRESULT SetupPassVirtual(
         __in_ecount(1) IGeometryGenerator *pGeometryGenerator,
         __inout_ecount(1) CHwPipeline *pHwPipeline,
         __range(0,INT_MAX) UINT uPassNum
-        );
+        ) /* override */;
 
-    override HRESULT Begin(
+    HRESULT Begin(
         __in_ecount(1) CHwSurfaceRenderTarget *pHwTargetSurface,
         __in_ecount(1) const CMilRectL &rcRenderingBounds,
         bool fZBufferEnabled
-        );
+        ) /* override */;
 
-    override LightingValues GetRequiredLightingValues() const;
+    LightingValues GetRequiredLightingValues() const;
 };
 
 //+-----------------------------------------------------------------------------
@@ -201,19 +201,19 @@ public:
         );
 
 protected:
-    override HRESULT SetupPassVirtual(
+    HRESULT SetupPassVirtual(
         __in_ecount(1) IGeometryGenerator *pGeometryGenerator,
         __inout_ecount(1) CHwPipeline *pHwPipeline,
         __range(0,INT_MAX) UINT uPassNum
-        );
+        ) /* override */;
 
-    override HRESULT Begin(
+    HRESULT Begin(
         __in_ecount(1) CHwSurfaceRenderTarget *pHwTargetSurface,
         __in_ecount(1) const CMilRectL &rcRenderingBounds,
         bool fZBufferEnabled
-        );
+        ) /* override */;
 
-    override LightingValues GetRequiredLightingValues() const;
+    LightingValues GetRequiredLightingValues() const;
 };
     
 

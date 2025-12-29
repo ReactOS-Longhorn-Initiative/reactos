@@ -38,16 +38,16 @@ NTSYSAPI
 VOID
 NTAPI
 RtlInitializeBitMap (
-    __out PRTL_BITMAP BitMapHeader,
-    __in __drv_aliasesMem PULONG BitMapBuffer,
-    __in ULONG SizeOfBitMap
+    _Out_ PRTL_BITMAP BitMapHeader,
+    _In_ __drv_aliasesMem PULONG BitMapBuffer,
+    _In_ ULONG SizeOfBitMap
     );
 
 NTSYSAPI
 VOID
 NTAPI
 RtlSetBits (
-    __in PRTL_BITMAP BitMapHeader,
+    _In_ PRTL_BITMAP BitMapHeader,
     __in_range(0, BitMapHeader->SizeOfBitMap - NumberToSet) ULONG StartingIndex,
     __in_range(0, BitMapHeader->SizeOfBitMap - StartingIndex) ULONG NumberToSet
     );
@@ -57,16 +57,16 @@ NTSYSAPI
 ULONG
 NTAPI
 RtlFindClearBitsAndSet (
-    __in PRTL_BITMAP BitMapHeader,
-    __in ULONG NumberToFind,
-    __in ULONG HintIndex
+    _In_ PRTL_BITMAP BitMapHeader,
+    _In_ ULONG NumberToFind,
+    _In_ ULONG HintIndex
     );
 
 NTSYSAPI
 ULONG
 NTAPI
 RtlNumberOfSetBits (
-    __in PRTL_BITMAP BitMapHeader
+    _In_ PRTL_BITMAP BitMapHeader
     );
 
 __checkReturn
@@ -74,16 +74,16 @@ NTSYSAPI
 BOOLEAN
 NTAPI
 RtlAreBitsSet (
-    __in PRTL_BITMAP BitMapHeader,
-    __in ULONG StartingIndex,
-    __in ULONG Length
+    _In_ PRTL_BITMAP BitMapHeader,
+    _In_ ULONG StartingIndex,
+    _In_ ULONG Length
     );
 
 NTSYSAPI
 VOID
 NTAPI
 RtlClearBits (
-    __in PRTL_BITMAP BitMapHeader,
+    _In_ PRTL_BITMAP BitMapHeader,
     __in_range(0, BitMapHeader->SizeOfBitMap - NumberToClear) ULONG StartingIndex,
     __in_range(0, BitMapHeader->SizeOfBitMap - StartingIndex) ULONG NumberToClear
     );
@@ -303,7 +303,7 @@ class CMILCacheableResourceDummy :
 #define RESOURCE_CACHE_EXCLUSIVE_RELEASE_FLAG   0x40000000
 #define RESOURCE_CACHE_EXCLUSIVE_GROW       (LONG_MIN & ~RESOURCE_CACHE_EXCLUSIVE_RELEASE_FLAG)
 
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED */
 
 
 //+------------------------------------------------------------------------
@@ -317,7 +317,7 @@ CMILResourceCache::CMILResourceCache()
 {
 #if !RESOURCE_CACHE_SINGLE_THREADED || DBG
     m_cInCall = 0;
-#endif !RESOURCE_CACHE_SINGLE_THREADED || DBG
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED || DBG */
 }
 
 //+------------------------------------------------------------------------
@@ -364,7 +364,7 @@ CMILResourceCache::GetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     LONG cInCall;
 
     //
@@ -404,7 +404,7 @@ CMILResourceCache::GetResource(
         Assert(m_cInCall > 0);
 
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     // Set default value for returned resource
     *ppResource = NULL;
@@ -422,7 +422,7 @@ CMILResourceCache::GetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
         pResource = GetDataBuffer()[uIndex];
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
 
         IMILCacheableResource * volatile *ppResourceEntry;
 
@@ -464,7 +464,7 @@ CMILResourceCache::GetResource(
                      INVALID_CACHEABLE_RESOURCE,
                      pResource)
                  );
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
         //
         // Check if we've snagged a valid resource
@@ -474,7 +474,7 @@ CMILResourceCache::GetResource(
         {
 #if !RESOURCE_CACHE_SINGLE_THREADED
             Assert(pResource != INVALID_CACHEABLE_RESOURCE);
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED*/
 
             //
             // Note that we have no protection on when a resource
@@ -505,7 +505,7 @@ CMILResourceCache::GetResource(
                 pResource = NULL;
 #if RESOURCE_CACHE_SINGLE_THREADED
                 GetDataBuffer()[uIndex] = NULL;
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
             }
         }
 
@@ -535,12 +535,12 @@ CMILResourceCache::GetResource(
                 pResource->CacheRelease();
             }
         }
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED*/
     }
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Decrement to say we're done.  The new value
     // should always be non-negative.
@@ -548,7 +548,7 @@ CMILResourceCache::GetResource(
 
     cInCall = InterlockedDecrement(&m_cInCall);
     Assert(cInCall >= 0);
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -576,7 +576,7 @@ CMILResourceCache::SetResource(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     LONG cInCall;
 
     //
@@ -615,7 +615,7 @@ CMILResourceCache::SetResource(
         }
         Assert(m_cInCall > 0);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     //
     // Make sure the required space is reserved
@@ -680,7 +680,7 @@ CMILResourceCache::SetResource(
 Cleanup:
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Decrement to say we're done.  The new value
     // should always be non-negative.
@@ -688,7 +688,7 @@ Cleanup:
 
     cInCall = InterlockedDecrement(&m_cInCall);
     Assert(cInCall >= 0);
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -707,7 +707,7 @@ CMILResourceCache::ReleaseResources()
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Spin until we can take exclusive access to this cache
     //
@@ -720,7 +720,7 @@ CMILResourceCache::ReleaseResources()
     {
         SleepEx(0, TRUE);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     UINT i = Count;
     IMILCacheableResource **ppResource = GetDataBuffer();
@@ -739,14 +739,14 @@ CMILResourceCache::ReleaseResources()
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // No need to lock this assignment since we have exclusive access
     //
 
     Assert(m_cInCall < 0);
     m_cInCall = 0;
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -768,7 +768,7 @@ CMILResourceCache::ReleaseOtherResources(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Enter();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // Spin until we can take exclusive access to this cache
     //
@@ -781,7 +781,7 @@ CMILResourceCache::ReleaseOtherResources(
     {
         SleepEx(0, TRUE);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     IMILCacheableResource **ppResource = GetDataBuffer();
 
@@ -796,14 +796,14 @@ CMILResourceCache::ReleaseOtherResources(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Leave();
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     //
     // No need to lock this assignment since we have exclusive access
     //
 
     Assert(m_cInCall < 0);
     m_cInCall = 0;
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     RRETURN(hr);
 }
@@ -824,7 +824,7 @@ CMILResourceCache::EnsureCount(
 
 #if RESOURCE_CACHE_SINGLE_THREADED
     Assert(m_cInCall > 0);
-#else !RESOURCE_CACHE_SINGLE_THREADED
+#elif !RESOURCE_CACHE_SINGLE_THREADED
     LONG cInCall;
 
     //
@@ -851,7 +851,7 @@ CMILResourceCache::EnsureCount(
     {
         SleepEx(0, TRUE);
     }
-#endif RESOURCE_CACHE_SINGLE_THREADED
+#endif /* RESOURCE_CACHE_SINGLE_THREADED */
 
     //
     // Check if count is already sufficient
@@ -902,7 +902,7 @@ Cleanup:
                             &m_cInCall,
                             cCurrent - RESOURCE_CACHE_EXCLUSIVE_GROW + 1,
                             cCurrent));
-#endif !RESOURCE_CACHE_SINGLE_THREADED
+#endif /*!RESOURCE_CACHE_SINGLE_THREADED*/
 
     Assert(m_cInCall > 0);
 
@@ -955,7 +955,7 @@ CMILResourceIndex::AcquireIndex(
 
 HRESULT 
 CMILSimpleResourceCache::GetResource(
-    __in ValidIndex uIndex, 
+    _In_ ValidIndex uIndex, 
     __out_opt IMILCacheableResource **ppResource)
 {
     UINT count = m_resources.GetCount();
@@ -1027,7 +1027,7 @@ CMILSimpleResourceCache::~CMILSimpleResourceCache()
 
 HRESULT 
 CMILSimpleResourceCache::SetResource(
-    __in ValidIndex uIndex, 
+    _In_ ValidIndex uIndex, 
     __in_opt IMILCacheableResource *pResource)
 {
     HRESULT hr = S_OK;

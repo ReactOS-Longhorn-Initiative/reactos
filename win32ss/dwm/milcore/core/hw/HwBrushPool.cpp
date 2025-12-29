@@ -52,7 +52,7 @@ CHwBrushPoolManager::CHwBrushPoolManager(
 
 #if DBG
     m_fDbgReleased = FALSE;
-#endif DBG
+#endif /* DBG */
 }
 
 //+-----------------------------------------------------------------------------

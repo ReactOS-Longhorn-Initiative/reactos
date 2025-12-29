@@ -40,8 +40,7 @@ public:
     template<typename AnyCoordSpace>
     PVariantInMultiOutSpaceMatrix (CMultiOutSpaceMatrix<AnyCoordSpace> *pGenericMultiOutSpaceMatrix)
     {
-        C_ASSERT(sizeof(CMultiOutSpaceMatrix<AnyCoordSpace>) ==
-                 sizeof(CMultiOutSpaceMatrix<CoordinateSpace::Variant>));
+        static_assert(sizeof(CMultiOutSpaceMatrix<AnyCoordSpace>) == sizeof(CMultiOutSpaceMatrix<CoordinateSpace::Variant>), "sizeof(CMultiOutSpaceMatrix<AnyCoordSpace>) == sizeof(CMultiOutSpaceMatrix<CoordinateSpace::Variant>)");
         m_pmatVariantInMultiOutSpace =
             reinterpret_cast<CMultiOutSpaceMatrix<CoordinateSpace::Variant> *>
             (pGenericMultiOutSpaceMatrix);

@@ -35,7 +35,7 @@ DeclareTag(tagLimitBitmapSizeCache, "MIL", "Limit number of uniquely sized bitma
 //
 //-----------------------------------------------------------------------------
 const UINT CHwBitmapCache::CacheEntryList::c_DbgMaxExpectedCacheGrowth = 15;
-#endif DBG
+#endif /* DBG */
 
 
 //+----------------------------------------------------------------------------
@@ -1377,7 +1377,7 @@ CHwBitmapCache::CacheEntryList::GetSetBitmapColorSource(
                 (m_uNextEvictionIndexDbg + 1) % m_rgSizeEntry.GetCapacity();
         }
         else
-#endif DBG
+#endif /* DBG */
         {
             CacheEntry *pNewCacheEntry;
 
@@ -1400,7 +1400,7 @@ CHwBitmapCache::CacheEntryList::GetSetBitmapColorSource(
                           "Over %u cached Hw realizations of a bitmap.",
                           c_DbgMaxExpectedCacheGrowth));
             }
-#endif DBG
+#endif /* DBG */
         }
     }
 }

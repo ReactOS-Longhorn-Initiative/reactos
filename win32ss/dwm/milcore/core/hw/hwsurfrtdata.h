@@ -161,7 +161,7 @@ public:
         return &m_shapeScratchWiden;
     }
 
-    HRESULT CHwSurfaceRenderTargetSharedData::GetScratchDrawBitmapBrushNoAddRef(
+    HRESULT GetScratchDrawBitmapBrushNoAddRef(
         __deref_out_ecount(1) CMILBrushBitmap ** const ppDrawBitmapScratchBrushNoAddRef
         );
 

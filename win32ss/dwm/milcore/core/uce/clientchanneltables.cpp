@@ -40,7 +40,7 @@ Cleanup:
 
 
 HRESULT CMilClientChannelTable::GetMasterTableEntry(
-    __in HMIL_CHANNEL hChannel,
+    _In_ HMIL_CHANNEL hChannel,
     __out_ecount(1) CLIENT_CHANNEL_HANDLE_ENTRY **ppMasterEntry
     )
 {
@@ -58,7 +58,7 @@ Cleanup:
 }
 
 HRESULT CMilClientChannelTable::GetMasterTableEntryThreadSafe(
-    __in HMIL_CHANNEL hChannel,
+    _In_ HMIL_CHANNEL hChannel,
     __out_ecount(1) CLIENT_CHANNEL_HANDLE_ENTRY *pMasterEntry
     )
 {
@@ -107,7 +107,7 @@ Cleanup:
 }
 
 HRESULT CMilClientChannelTable::AssignChannelEntry(
-    __in HMIL_CHANNEL hChannel,
+    _In_ HMIL_CHANNEL hChannel,
     __out_ecount(1) CLIENT_CHANNEL_HANDLE_ENTRY **ppEntry
     )
 {
@@ -131,7 +131,7 @@ Cleanup:
 
 
 VOID CMilClientChannelTable::DestroyHandle(
-    __in HMIL_CHANNEL hChannel
+    _In_ HMIL_CHANNEL hChannel
     )
 {
     HRESULT hr = S_OK;

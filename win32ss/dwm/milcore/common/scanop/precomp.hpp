@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 #include <ole2.h>
 
-#include "internalguids.h"
-#include "shared\shared.h"
+#include "InternalGUIDs.h"
+#include "shared/shared.h"
 
 #include "scanop.h"
 

@@ -39,7 +39,7 @@ namespace dxlayer
         float determinant() const;
 
         // D3DXMatrixInverse
-        matrix_t<apiset> inverse(__out float& determinant) const;
+        matrix_t<apiset> inverse(_Out_ float& determinant) const;
         matrix_t<apiset> inverse() const;
 
         // D3DXMatrixMultiply

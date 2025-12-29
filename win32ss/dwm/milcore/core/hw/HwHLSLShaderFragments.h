@@ -344,7 +344,7 @@ struct ShaderFunction
     __ecount(1) PixelShaderFunction  const &PixelShader;
 
     ShaderFunction(
-        __in/*_bcount(cbFunctionName)*/ PCSTR _pszFunctionName,
+        _In_ /*_bcount(cbFunctionName)*/ PCSTR _pszFunctionName,
 //        UINT _cbFunctionName,
         TransparencyEffect::Enum _TransparencyEffect,
         __in_ecount(1) VertexShaderFunction const &_VertexShader,

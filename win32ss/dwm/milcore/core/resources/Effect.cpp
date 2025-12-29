@@ -28,17 +28,17 @@ MtDefine(CMilEffectDuce, EffectResource, "CMilEffectDuce");
 //    to clipped areas.  By default, the effect will not be clipped
 //    to prevent visual artifacts, since an effect can potentially sample
 //    from any pixel in a texture, so the whole texture may need to be drawn.
-//    If the effect can override this method it should to reduce texture
+//    If the effect can /* override */ this method it should to reduce texture
 //    size and eliminate overdraw when drawing outside visible regions.
 //
 //-----------------------------------------------------------------------------
 
 HRESULT 
 CMilEffectDuce::GetLocalSpaceClipBounds(
-        __in CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
-        __in CRectF<CoordinateSpace::PageInPixels> clip,
-        __in const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
-        __out CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace)
+        _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
+        _In_ CRectF<CoordinateSpace::PageInPixels> clip,
+        _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
+        _Out_ CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace)
 {
     HRESULT hr = S_OK;
 
@@ -81,11 +81,11 @@ CMilEffectDuce::GetShaderRenderMode()
 //-----------------------------------------------------------------------------
 HRESULT
 CMilEffectDuce::CreateIntermediateRT(
-    __in CD3DDeviceLevel1 *pD3DDevice, 
-    __in UINT uWidth, 
-    __in UINT uHeight, 
-    __in D3DFORMAT d3dfmtTarget,
-    __out CD3DVidMemOnlyTexture **ppVidMemOnlyTexture)
+    _In_ CD3DDeviceLevel1 *pD3DDevice, 
+    _In_ UINT uWidth, 
+    _In_ UINT uHeight, 
+    _In_ D3DFORMAT d3dfmtTarget,
+    _Out_ CD3DVidMemOnlyTexture **ppVidMemOnlyTexture)
 {  
     HRESULT hr = S_OK;
 
@@ -163,8 +163,8 @@ Cleanup:
 
 HRESULT 
 CMilEffectDuce::SetupVertexTransform(
-    __in const CContextState *pContextState, 
-    __in CD3DDeviceLevel1 *pDevice, 
+    _In_ const CContextState *pContextState, 
+    _In_ CD3DDeviceLevel1 *pDevice, 
     float destinationWidth, 
     float destinationHeight,
     bool passToFinalDestination
@@ -245,7 +245,7 @@ Cleanup:
 
 HRESULT
 CMilEffectDuce::SetSamplerState(
-    __in CD3DDeviceLevel1 *pDevice,
+    _In_ CD3DDeviceLevel1 *pDevice,
     UINT uSamplerRegister,
     bool setAddressMode,
     bool useBilinear
@@ -314,9 +314,9 @@ Cleanup:
 
 HRESULT
 CMilEffectDuce::LockResource(
-    __in UINT resourceId, 
+    _In_ UINT resourceId, 
     __deref_out_bcount(*pSizeInBytes) BYTE **ppResource,
-    __out UINT *pSizeInBytes
+    _Out_ UINT *pSizeInBytes
     )
 {
     HRESULT hr = S_OK;

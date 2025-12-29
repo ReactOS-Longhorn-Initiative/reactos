@@ -677,6 +677,7 @@ void
 C_Variable::AssertSSE41()
 {
     const CProgram * pProgram = WarpPlatform::GetCurrentProgram();
+    pProgram;
     WarpAssert(pProgram);
     WarpAssert(pProgram->m_fUseSSE41);
 }

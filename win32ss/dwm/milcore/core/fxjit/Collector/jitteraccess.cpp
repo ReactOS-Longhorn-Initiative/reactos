@@ -146,7 +146,7 @@ CJitterAccess::GetCodeSize()
 //
 //-------------------------------------------------------------------------------
 void
-CJitterAccess::CodeFree(__in void *pBinaryCode)
+CJitterAccess::CodeFree(_In_ void *pBinaryCode)
 {
     CJitterSupport::CodeFree(pBinaryCode);
 }

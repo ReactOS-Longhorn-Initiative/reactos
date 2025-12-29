@@ -7,7 +7,7 @@
 
 #if defined (D3D9EXTENSIONS)
 
-#include "D3DX9/dx9layercommon.hpp"
+#include <D3DX9/dx9layercommon.hpp>
 #include "D3DX9/vector2_dx9.hpp"
 #include "D3DX9/vector3_dx9.hpp"
 #include "D3DX9/vector4_dx9.hpp"

@@ -47,7 +47,7 @@ private:
 public:
 
     //
-    // CMILCOMBase overrides
+    // CMILCOMBase /* override */s
     //
 
     DECLARE_COM_BASE;
@@ -102,7 +102,7 @@ protected:
     // CHwSurfaceRenderTarget methods
     //
 
-    override bool IsValid() const;
+    bool IsValid() const;
 
 private:
 

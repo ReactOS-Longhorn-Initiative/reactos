@@ -64,7 +64,10 @@ public:
             // The remaining 3 Bezier points
     {
         m_ptB[0] = ptFirst;
-        memcpy(m_ptB + 1, pPt, 3 * sizeof(GpPointR)); 
+        for (int i = 0; i < 3; ++i)
+        {
+            m_ptB[i + 1] = pPt[i];
+        }
     }
 
     __outro_ecount(1) const GpPointR &GetControlPoint(__range(0, 3) UINT i) const
@@ -90,7 +93,7 @@ public:
             // Point there
 
     void GetPointAndDerivatives(
-        __in double t,
+        _In_ double t,
             // Parameter value
         __out_ecount(3) GpPointR *pValues) const;
                 // Point, first derivative and second derivative there
@@ -102,9 +105,9 @@ public:
         IN double t);             // Parameter value
 
     bool TrimBetween(
-        __in double rStart,
+        _In_ double rStart,
             // Parameter value for the new start, must be between 0 and 1
-        __in double rEnd);
+        _In_ double rEnd);
             // Parameter value for the new end, must be between 0 and 1
 
     bool operator ==(__in_ecount(1) const CBezier &other) const

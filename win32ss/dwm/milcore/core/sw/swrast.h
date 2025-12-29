@@ -181,7 +181,7 @@ public:
         ) = 0;
 
     virtual HRESULT GetCS_EffectShader(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush,
         __deref_out CColorSource **ppColorSource
         ) = 0;   
@@ -221,7 +221,7 @@ public:
         ) = 0;
 
 
-    HRESULT GetCS_PrefilterAndResample(
+    HRESULT GetCS_PFAndResample(
         __in_ecount(1) IWGXBitmapSource *pIBitmapSource,
         MilBitmapWrapMode::Enum wrapMode,
         __in_ecount_opt(1) const MilColorF *pBorderColor,
@@ -318,24 +318,24 @@ class CColorSourceCreator_sRGB : public CColorSourceCreator
 public:
     CColorSourceCreator_sRGB();
     virtual ~CColorSourceCreator_sRGB();
-    MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PBGRA32bpp; }
+    MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PBGRA32bpp; }
     MilPixelFormat::Enum GetSupportedSourcePixelFormat(
         MilPixelFormat::Enum fmtSourceGiven,
         bool fForceAlpha
-    ) const override;
+    ) const /* override */;
 
-    VOID ReleaseCS(CColorSource *pColorSource) override;
+    VOID ReleaseCS(CColorSource *pColorSource) /* override */;
 
     HRESULT GetCS_Constant(
         const MilColorF *pColor,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_EffectShader(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush,
         __deref_out CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_LinearGradient(
         const MilPoint2F *pGradientPoints,
@@ -346,7 +346,7 @@ public:
         MilColorInterpolationMode::Enum colorInterpolationMode,
         const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_RadialGradient(
         const MilPoint2F *pGradientPoints,
@@ -357,7 +357,7 @@ public:
         MilColorInterpolationMode::Enum colorInterpolationMode,
         const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_FocalGradient(
         const MilPoint2F *pGradientPoints,
@@ -369,7 +369,7 @@ public:
         const MilPoint2F *pptOrigin,
         const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_Resample(
         __in_ecount(1) IWGXBitmapSource *pIBitmapSource,
@@ -378,7 +378,7 @@ public:
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC,
         MilBitmapInterpolationMode::Enum interpolationMode,
         __deref_out_ecount(1) CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
 private:
     CConstantColorBrushSpan *m_pConstantColorSpan;
@@ -411,27 +411,27 @@ class CColorSourceCreator_scRGB : public CColorSourceCreator
 public:
     CColorSourceCreator_scRGB();
     virtual ~CColorSourceCreator_scRGB();
-    MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PRGBA128bppFloat; }
+    MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PRGBA128bppFloat; }
     MilPixelFormat::Enum GetSupportedSourcePixelFormat(
         MilPixelFormat::Enum,
         bool fForceAlpha
-        ) const override
+        ) const /* override */
     {
         return MilPixelFormat::PRGBA128bppFloat;
     }
 
-    VOID ReleaseCS(CColorSource *pColorSource) override;
+    VOID ReleaseCS(CColorSource *pColorSource) /* override */;
 
     HRESULT GetCS_Constant(
         const MilColorF *pColor,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_EffectShader(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush,
         __deref_out CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_LinearGradient(
         const MilPoint2F *pGradientPoints,
@@ -442,7 +442,7 @@ public:
         MilColorInterpolationMode::Enum colorInterpolationMode,
         const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_RadialGradient(
         const MilPoint2F *pGradientPoints,
@@ -453,7 +453,7 @@ public:
         MilColorInterpolationMode::Enum colorInterpolationMode,
         const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_FocalGradient(
         const MilPoint2F *pGradientPoints,
@@ -465,7 +465,7 @@ public:
         const MilPoint2F *pptOrigin,
         const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         OUT CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
     HRESULT GetCS_Resample(
         __in_ecount(1) IWGXBitmapSource *pIBitmapSource,
@@ -474,7 +474,7 @@ public:
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC,
         MilBitmapInterpolationMode::Enum interpolationMode,
         __deref_out_ecount(1) CColorSource **ppColorSource
-        ) override;
+        ) /* override */;
 
 };
 

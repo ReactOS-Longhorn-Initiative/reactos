@@ -130,7 +130,7 @@ HANDLE_TABLE::~HANDLE_TABLE()
 
 HRESULT
 HANDLE_TABLE::ResizeToFit(
-    __in HMIL_OBJECT hObject  // the handle that needs to be made addressable
+    _In_ HMIL_OBJECT hObject  // the handle that needs to be made addressable
     )
 {
     HRESULT hr = S_OK;
@@ -153,7 +153,7 @@ HANDLE_TABLE::ResizeToFit(
     // than requested:
     //
 
-    C_ASSERT(MIL_HANDLE_TABLE_SIZE_INC > 0);
+    static_assert(MIL_HANDLE_TABLE_SIZE_INC > 0, "MIL_HANDLE_TABLE_SIZE_INC > 0");
 
     IFC(UIntAdd(
             hObject, 
@@ -211,7 +211,7 @@ HRESULT HANDLE_TABLE::Resize(
     )
 {
     HRESULT hr = S_OK;
-
+{
     //
     // Ensure that the table is growing. Shrinking would imply that we leak
     // handle entries.
@@ -246,6 +246,7 @@ HRESULT HANDLE_TABLE::Resize(
 
     m_pvTable = pvTable;
     m_cHandleCount = cTableSize;
+}
 
 Cleanup:
     RRETURN(hr);
@@ -276,7 +277,7 @@ HRESULT HANDLE_TABLE::GetNewEntry(
     )
 {
     HRESULT hr = S_OK;
-
+{
     //
     // EMPTY_ENTRY (==0) is used to indicate an empty table entry.
     // Allocating a handle with this type will cause table inconsistency.
@@ -360,6 +361,7 @@ HRESULT HANDLE_TABLE::GetNewEntry(
 
     ENTRY_TYPE_FIELD(nFreePos) = type;
     *phObject = nFreePos;
+}
 
 Cleanup:
     RRETURN(hr);
@@ -388,7 +390,7 @@ Return Value:
 --*/
 
 HRESULT HANDLE_TABLE::AssignEntry(
-    __in HMIL_OBJECT object,
+    _In_ HMIL_OBJECT object,
     DWORD type
     )
 {
@@ -458,7 +460,7 @@ Return Value:
 
 BOOL HANDLE_TABLE::ValidEntry(
     DWORD type,
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     ) const
 {
     //
@@ -505,7 +507,7 @@ Return Value:
 --*/
 
 BOOL HANDLE_TABLE::ValidEntry(
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     ) const
 {
     //
@@ -536,7 +538,7 @@ Routine Description:
 --*/
 
 DWORD HANDLE_TABLE::GetObjectType(
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     )
 {
     if (object > 0 && object < m_cHandleCount)
@@ -558,7 +560,7 @@ Routine Description:
 --*/
 
 VOID HANDLE_TABLE::DestroyHandle(
-    __in HMIL_OBJECT object
+    _In_ HMIL_OBJECT object
     )
 {
     //

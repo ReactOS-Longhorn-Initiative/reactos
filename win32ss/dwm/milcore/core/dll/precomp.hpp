@@ -4,18 +4,18 @@
 
 
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 
 
-#include "common\common.h"
-#include "scanop\scanop.h"
-#include "glyph\glyph.h"
-#include "geometry\geometry.h"
-#include "api\api_include.h"
-#include "meta\meta.h"
-#include "geometry\geometry.h"
-#include "targets\targets.h"
-#include "sw\sw.h"
-#include "av\av.h"
+#include "common/common.h"
+#include "scanop/scanop.h"
+#include "glyph/glyph.h"
+#include "geometry/geometry.h"
+#include "api/api_include.h"
+#include "meta/meta.h"
+#include "geometry/geometry.h"
+#include "targets/Targets.h"
+#include "sw/sw.h"
+#include "av/av.h"
 

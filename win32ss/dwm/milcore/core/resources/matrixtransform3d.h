@@ -36,7 +36,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_MATRIXTRANSFORM3D || CMilTransform3DDuce::IsOfType(type);
     }
@@ -47,11 +47,11 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
     void ClearRealization();
     virtual HRESULT GetRealization(__out_ecount(1) CMILMatrix *pRealization);
-    override HRESULT Append(__inout_ecount(1) CMILMatrix *pMat);
+    /* override */ HRESULT Append(__inout_ecount(1) CMILMatrix *pMat);
 
     CMilMatrixTransform3DDuce_Data m_data;
 };

@@ -125,7 +125,7 @@ public:
         // To achieve this, TMilRect must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(TBaseRect) == sizeof(TMilRect) );
+        static_assert( sizeof(TBaseRect) == sizeof(TMilRect) , " sizeof(TBaseRect) == sizeof(TMilRect) ");
     }
 
     //+------------------------------------------------------------------------
@@ -146,10 +146,10 @@ public:
     {
         UNREFERENCED_PARAMETER(ltrb);
 
-        left = _left;
-        top = _top;
-        right = _right;
-        bottom = _bottom;
+        this->left = _left;
+        this->top = _top;
+        this->right = _right;
+        this->bottom = _bottom;
     }
 
     //+------------------------------------------------------------------------
@@ -174,10 +174,10 @@ public:
     {
         UNREFERENCED_PARAMETER(xywh);
 
-        left = x;
-        top = y;
-        right = x + width;
-        bottom = y + height;
+        this->left = x;
+        this->top = y;
+        this->right = x + width;
+        this->bottom = y + height;
     }
 
     //+------------------------------------------------------------------------
@@ -196,24 +196,24 @@ public:
     {
         if (pt1.X < pt2.X)
         {
-            left = pt1.X;
-            right = pt2.X;
+            this->left = pt1.X;
+            this->right = pt2.X;
         }
         else
         {
-            left = pt2.X;
-            right = pt1.X;
+            this->left = pt2.X;
+            this->right = pt1.X;
         }
 
         if (pt1.Y < pt2.Y)
         {
-            top = pt1.Y;
-            bottom = pt2.Y;
+            this->top = pt1.Y;
+            this->bottom = pt2.Y;
         }
         else
         {
-            top = pt2.Y;
-            bottom = pt1.Y;
+            this->top = pt2.Y;
+            this->bottom = pt1.Y;
         }
     }
 
@@ -229,10 +229,10 @@ public:
         __in_ecount(1) const TBaseRect &rc
         )
     {
-        left = rc.left;
-        top = rc.top;
-        right = rc.right;
-        bottom = rc.bottom;
+        this->left = rc.left;
+        this->top = rc.top;
+        this->right = rc.right;
+        this->bottom = rc.bottom;
     }
 
 
@@ -254,10 +254,10 @@ public:
 
     bool HasValidValues() const
     {
-        return (   (left == left)
-                && (top == top)
-                && (right == right)
-                && (bottom == bottom)
+        return (   (this->left == this->left)
+                && (this->top == this->top)
+                && (this->right == this->right)
+                && (this->bottom == this->bottom)
                );
     }
 
@@ -276,7 +276,7 @@ public:
 
     bool IsWellOrdered() const
     {
-        return (left <= right) && (top <= bottom);
+        return (this->left <= this->right) && (this->top <= this->bottom);
     }
 
     //+------------------------------------------------------------------------
@@ -291,7 +291,7 @@ public:
 
     bool IsEmpty() const
     {
-        return (right <= left) || (bottom <= top);
+        return (this->right <= this->left) || (this->bottom <= this->top);
     }
 
     //+------------------------------------------------------------------------
@@ -309,8 +309,8 @@ public:
         // values of the rect, not the maximum extent. The reason for this is that
         // INT_MAX is already at the extreme boundary of the range. 
         // 
-        return (   (left <= sc_rcInfinite.left && right  >= sc_rcInfinite.right )
-                || (top  <= sc_rcInfinite.top  && bottom >= sc_rcInfinite.bottom));
+        return (   (this->left <= sc_rcInfinite.left && this->right  >= sc_rcInfinite.right )
+                || (this->top  <= sc_rcInfinite.top  && this->bottom >= sc_rcInfinite.bottom));
     }
 
     //=========================================================================
@@ -337,10 +337,10 @@ protected:
         __in_ecount(1) const TBaseRect &rc
         ) const
     {
-        return (   (left == rc.left)
-                && (top  == rc.top )
-                && (right  == rc.right )
-                && (bottom == rc.bottom)
+        return (   (this->left == rc.left)
+                && (this->top  == rc.top )
+                && (this->right  == rc.right )
+                && (this->bottom == rc.bottom)
                );
     }
 
@@ -402,10 +402,10 @@ public:
             return true;
         }
 
-        return (   rc.left >= left
-                && rc.top  >= top
-                && rc.right  <= right
-                && rc.bottom <= bottom
+        return (   rc.left >= this->left
+                && rc.top  >= this->top
+                && rc.right  <= this->right
+                && rc.bottom <= this->bottom
                );
     }
 
@@ -431,10 +431,10 @@ public:
         Assert(IsWellOrdered());
         Assert(rc.IsWellOrdered());
 
-        return !(   right  >= rc.left) ? false
-             : !(rc.right  >=    left) ? false
-             : !(   bottom >= rc.top ) ? false
-             : !(rc.bottom >=    top ) ? false
+        return !(   this->right  >= rc.left) ? false
+             : !(rc.right  >=    this->left) ? false
+             : !(   this->bottom >= rc.top ) ? false
+             : !(rc.bottom >=    this->top ) ? false
              : true;
     }
 
@@ -460,10 +460,10 @@ public:
 
         return IsEmpty() ? false
             : rc.IsEmpty() ? false
-            : !(   right  > rc.left) ? false
-            : !(rc.right  >    left) ? false
-            : !(   bottom > rc.top ) ? false
-            : !(rc.bottom >    top ) ? false
+            : !(   this->right  > rc.left) ? false
+            : !(rc.right  >    this->left) ? false
+            : !(   this->bottom > rc.top ) ? false
+            : !(rc.bottom >    this->top ) ? false
             : true;
     }
 
@@ -485,7 +485,7 @@ public:
 
     VOID SetEmpty()
     {
-        left = top = right = bottom = 0;
+        this->left = this->top = this->right = this->bottom = 0;
     }
 
     //+------------------------------------------------------------------------
@@ -529,10 +529,10 @@ public:
         Assert(CX >= 0);
         Assert(CY >= 0);
 
-        left -= CX;
-        top -= CY;
-        right += CX;
-        bottom += CY;
+        this->left -= CX;
+        this->top -= CY;
+        this->right += CX;
+        this->bottom += CY;
     }
     //+------------------------------------------------------------------------
     //
@@ -566,10 +566,10 @@ public:
         Assert(CX >= 0);
         Assert(CY >= 0);
 
-        left += CX;
-        top += CY;
-        right -= CX;
-        bottom -= CY;
+        this->left += CX;
+        this->top += CY;
+        this->right -= CX;
+        this->bottom -= CY;
 
         // check for empty rect
         if (IsEmpty())
@@ -582,8 +582,8 @@ public:
             // Postcondition
 
             // For floats don't allow NaNs in result
-            Assert(right >= left);
-            Assert(bottom >= top);
+            Assert(this->right >= this->left);
+            Assert(this->bottom >= this->top);
         }
 
     }
@@ -618,10 +618,10 @@ public:
         Assert(DX == DX);
         Assert(DY == DY);
 
-        left += DX;
-        top += DY;
-        right += DX;
-        bottom += DY;
+        this->left += DX;
+        this->top += DY;
+        this->right += DX;
+        this->bottom += DY;
     }
 
 //+------------------------------------------------------------------------
@@ -646,10 +646,10 @@ public:
         TBase DY
         )
     {
-        left += DX;
-        top += DY;
-        right += DX;
-        bottom += DY;
+        this->left += DX;
+        this->top += DY;
+        this->right += DX;
+        this->bottom += DY;
     }
 
 
@@ -683,10 +683,10 @@ public:
         Assert(!(rc.right < rc.left));
         Assert(!(rc.bottom < rc.top));
 
-        SetIfGreater(left, rc.left);
-        SetIfGreater(top,  rc.top);
-        SetIfLess(right, rc.right);
-        SetIfLess(bottom, rc.bottom);
+        SetIfGreater(this->left, rc.left);
+        SetIfGreater(this->top,  rc.top);
+        SetIfLess(this->right, rc.right);
+        SetIfLess(this->bottom, rc.bottom);
 
         // check for empty rect
         if (IsEmpty())
@@ -699,8 +699,8 @@ public:
             // Postcondition
 
             // For floats don't allow NaNs in result
-            Assert(right >= left);
-            Assert(bottom >= top);
+            Assert(this->right >= this->left);
+            Assert(this->bottom >= this->top);
         }
 
         return !IsEmpty();
@@ -736,16 +736,16 @@ public:
         Assert(!(rc.right < rc.left));
         Assert(!(rc.bottom < rc.top));
 
-        SetIfLess(left, rc.left);
-        SetIfLess(top,  rc.top);
-        SetIfGreater(right, rc.right);
-        SetIfGreater(bottom, rc.bottom);
+        SetIfLess(this->left, rc.left);
+        SetIfLess(this->top,  rc.top);
+        SetIfGreater(this->right, rc.right);
+        SetIfGreater(this->bottom, rc.bottom);
 
         // Postcondition
 
         // For floats don't allow NaNs in result
-        Assert(right >= left);
-        Assert(bottom >= top);
+        Assert(this->right >= this->left);
+        Assert(this->bottom >= this->top);
     }
 
     //+------------------------------------------------------------------------
@@ -797,16 +797,16 @@ public:
             return TRUE;
         }
 
-        SetIfLess(left, rc.left);
-        SetIfLess(top,  rc.top);
-        SetIfGreater(right, rc.right);
-        SetIfGreater(bottom, rc.bottom);
+        SetIfLess(this->left, rc.left);
+        SetIfLess(this->top,  rc.top);
+        SetIfGreater(this->right, rc.right);
+        SetIfGreater(this->bottom, rc.bottom);
 
         // Postcondition
 
         // For floats don't allow NaNs in result
-        Assert(right >= left);
-        Assert(bottom >= top);
+        Assert(this->right >= this->left);
+        Assert(this->bottom >= this->top);
         return TRUE;
     }
 
@@ -860,13 +860,13 @@ public:
         UINT cResultantRects = 0;
 
         // top
-        if (subtractionRectangle.top > top)
+        if (subtractionRectangle.top > this->top)
         {
             if (cResultantRects < cMaxResultantRects)
             {
-                rgResultantRects[cResultantRects].left   = left;
-                rgResultantRects[cResultantRects].top    = top;
-                rgResultantRects[cResultantRects].right  = right;
+                rgResultantRects[cResultantRects].left   = this->left;
+                rgResultantRects[cResultantRects].top    = this->top;
+                rgResultantRects[cResultantRects].right  = this->right;
                 rgResultantRects[cResultantRects].bottom = subtractionRectangle.top;
                 Assert(!rgResultantRects[cResultantRects].IsEmpty());
             }
@@ -874,11 +874,11 @@ public:
         }
 
         // left
-        if (subtractionRectangle.left > left)
+        if (subtractionRectangle.left > this->left)
         {
             if (cResultantRects < cMaxResultantRects)
             {
-                rgResultantRects[cResultantRects].left   = left;
+                rgResultantRects[cResultantRects].left   = this->left;
                 rgResultantRects[cResultantRects].top    = subtractionRectangle.top;
                 rgResultantRects[cResultantRects].right  = subtractionRectangle.left;
                 rgResultantRects[cResultantRects].bottom = subtractionRectangle.bottom;
@@ -888,13 +888,13 @@ public:
         }
 
         // right
-        if (right > subtractionRectangle.right)
+        if (this->right > subtractionRectangle.right)
         {
             if (cResultantRects < cMaxResultantRects)
             {
                 rgResultantRects[cResultantRects].left   = subtractionRectangle.right;
                 rgResultantRects[cResultantRects].top    = subtractionRectangle.top;
-                rgResultantRects[cResultantRects].right  = right;
+                rgResultantRects[cResultantRects].right  = this->right;
                 rgResultantRects[cResultantRects].bottom = subtractionRectangle.bottom;
                 Assert(!rgResultantRects[cResultantRects].IsEmpty());
             }
@@ -902,14 +902,14 @@ public:
         }
 
         // bottom
-        if (bottom > subtractionRectangle.bottom)
+        if (this->bottom > subtractionRectangle.bottom)
         {
             if (cResultantRects < cMaxResultantRects)
             {
-                rgResultantRects[cResultantRects].left   = left;
+                rgResultantRects[cResultantRects].left   = this->left;
                 rgResultantRects[cResultantRects].top    = subtractionRectangle.bottom;
-                rgResultantRects[cResultantRects].right  = right;
-                rgResultantRects[cResultantRects].bottom = bottom;
+                rgResultantRects[cResultantRects].right  = this->right;
+                rgResultantRects[cResultantRects].bottom = this->bottom;
                 Assert(!rgResultantRects[cResultantRects].IsEmpty());
             }
             cResultantRects++;
@@ -931,7 +931,7 @@ public:
     template <typename TDiff>
     TDiff UnorderedWidth() const
     {
-        return static_cast<TDiff>(right) - left;
+        return static_cast<TDiff>(this->right) - this->left;
     }
 
     //+------------------------------------------------------------------------
@@ -950,9 +950,9 @@ public:
     {
         Assert(IsWellOrdered());
 
-        AssertOrderedDiffValid<TDiff>(left, right);
+        AssertOrderedDiffValid<TDiff>(this->left, this->right);
 
-        return static_cast<TDiff>(right) - left;
+        return static_cast<TDiff>(this->right) - this->left;
     }
 
     TBase Width() const
@@ -972,7 +972,7 @@ public:
     template <typename TDiff>
     TDiff UnorderedHeight() const
     {
-        return static_cast<TDiff>(bottom) - top;
+        return static_cast<TDiff>(this->bottom) - this->top;
     }
 
     //+------------------------------------------------------------------------
@@ -991,9 +991,9 @@ public:
     {
         Assert(IsWellOrdered());
 
-        AssertOrderedDiffValid<TDiff>(top, bottom);
+        AssertOrderedDiffValid<TDiff>(this->top, this->bottom);
 
-        return static_cast<TDiff>(bottom) - top;
+        return static_cast<TDiff>(this->bottom) - this->top;
     }
 
     TBase Height() const
@@ -1044,7 +1044,7 @@ template <typename TBase, typename TBaseRect, typename TBaseRect_WH, typename un
 class TMilRect_ : public TMilRect<TBase, TBaseRect, unique>
 {
 public:
-
+    typedef TMilRect_ RectC_t;
     //=========================================================================
     // Constructors
     //
@@ -1063,7 +1063,7 @@ public:
         // To achieve this, TMilRect must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(TBaseRect) == sizeof(TMilRect_) );
+        static_assert( sizeof(TBaseRect) == sizeof(TMilRect_) , " sizeof(TBaseRect) == sizeof(TMilRect_) ");
     }
 
     //+------------------------------------------------------------------------
@@ -1082,10 +1082,10 @@ public:
         __in_ecount(1) const TBaseRect_WH &rc
         )
     {
-        left = rc.X;
-        top = rc.Y;
-        right = rc.X + rc.Width;
-        bottom = rc.Y + rc.Height;
+        this->left = rc.X;
+        this->top = rc.Y;
+        this->right = rc.X + rc.Width;
+        this->bottom = rc.Y + rc.Height;
     }
 
 
@@ -1254,7 +1254,7 @@ void ExtendBaseByAdjacentSectionsOfRect(
         rcPossibleExtension.bottom : rcBase.bottom;
 }
 
-inline CMilRectF MilRectLToMilRectF(__in const CMilRectL &rc)
+inline CMilRectF MilRectLToMilRectF(_In_ const CMilRectL &rc)
 {
     CMilRectF output(
         static_cast<float>(rc.left),

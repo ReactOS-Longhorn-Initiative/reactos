@@ -36,26 +36,26 @@ public:
     ~CMilServerChannelTable();
 
     HRESULT AssignChannelEntry(
-        __in HMIL_CHANNEL hChannel
+        _In_ HMIL_CHANNEL hChannel
         );
 
     HRESULT GetServerChannelTableEntry(
-        __in HMIL_CHANNEL hChannel,
+        _In_ HMIL_CHANNEL hChannel,
         __out_ecount(1) SERVER_CHANNEL_HANDLE_ENTRY **ppMasterEntry
         );
 
     VOID DestroyHandle(
-        __in HMIL_CHANNEL object
+        _In_ HMIL_CHANNEL object
         );
 
     HRESULT GetServerChannel(
-        __in HMIL_CHANNEL hChannel,
+        _In_ HMIL_CHANNEL hChannel,
         __out_ecount(1) CMilServerChannel **ppServerChannel
         );
 
 private:
     HRESULT GetSlaveTableEntry(
-        __in HMIL_CHANNEL hChannel,
+        _In_ HMIL_CHANNEL hChannel,
         __out_ecount(1) SERVER_CHANNEL_HANDLE_ENTRY **ppMasterEntry
         );
 };

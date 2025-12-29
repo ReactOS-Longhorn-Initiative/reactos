@@ -64,7 +64,7 @@ protected:
         }
 
         virtual void GetValueAndDerivative(
-            __in double t,
+            _In_ double t,
                 // Where on the curve
             __out_ecount(1) double &f,
                 // The derivative of the distance at t
@@ -184,9 +184,9 @@ protected:
 
     void SetBreaks();
 
-    // CIncreasingFunction override
+    // CIncreasingFunction /* override */
     void GetValueAndDerivative(
-        __in double t,
+        _In_ double t,
             // Where on the curve
         __out_ecount(1) double &f,
             // The derivative of the distance at t
@@ -265,7 +265,7 @@ public:
         return (i < m_cSegments)? m_pSegments[i].GetBaseLength() : m_rTotalLength;
     }
 
-    // CFigureTask overrides
+    // CFigureTask /* override */s
     virtual HRESULT DoLine(
         __in_ecount(1) const MilPoint2F &ptEnd);
             // The line's end point

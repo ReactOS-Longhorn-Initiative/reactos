@@ -41,18 +41,18 @@ public:
 
     // IMILCacheableResource methods
 
-    override bool IsValid() const;
+    bool IsValid() const;
 
     // CHwCacheablePoolBrush methods
 
-    override virtual HRESULT SetBrushAndContext(
+    virtual HRESULT SetBrushAndContext(
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext
         );
 
     // IHwPrimaryColorSource methods
 
-    override virtual HRESULT SendOperations(
+    virtual HRESULT SendOperations(
         __inout_ecount(1) CHwPipelineBuilder *pBuilder
         );
 

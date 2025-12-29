@@ -586,7 +586,7 @@ Cleanup:
 
 HRESULT
 CHwDeviceBitmapColorSource::UpdateSurface(
-    __in UINT cDirtyRects,
+    _In_ UINT cDirtyRects,
     __in_ecount(cDirtyRects) const CMilRectU *prgDirtyRects,
     __in_ecount(1) IDirect3DSurface9 *pISrcSurface
     )
@@ -634,7 +634,7 @@ CHwDeviceBitmapColorSource::Flush(
     // tells us that some drivers have issues with ultra small surfaces.
     const UINT uFlushWidth = min(16u, desc.Width);
     const UINT uFlushHeight = min(16u, desc.Height);
-    const RECT rcCopy = { 0, 0, uFlushWidth, uFlushHeight };
+    const RECT rcCopy = { 0, 0, (LONG)uFlushWidth, (LONG)uFlushHeight };
     const RECT rcFlush = { 0, 0, 1, 1 };
 
     IDirect3DSurface9 *pIFlushSurface = NULL;
@@ -697,6 +697,7 @@ CHwDeviceBitmapColorSource::UpdateSurfaceSharedHandle(
 {
     HRESULT hr = S_OK;
 
+{
     Assert(m_hSharedHandle);
     
     IDirect3DDevice9 *pID3DSrcDevice = NULL;
@@ -704,7 +705,7 @@ CHwDeviceBitmapColorSource::UpdateSurfaceSharedHandle(
     IDirect3DSurface9 *pIDestSurface = NULL;
     
     IFC(pISrcSurface->GetDevice(&pID3DSrcDevice));
-
+{
     const D3DSURFACE_DESC &desc = m_pVidMemOnlyTexture->D3DSurface0Desc();
 
     IFC(pID3DSrcDevice->CreateTexture(
@@ -740,11 +741,12 @@ CHwDeviceBitmapColorSource::UpdateSurfaceSharedHandle(
     // of the shared surface, the flush won't happen because D3D doesn't
     // have cross-device object dependency tracking.
     IFC(Flush(pID3DSrcDevice, pIDestSurface, desc));
-
+}
 Cleanup:
     ReleaseInterface(pIDestSurface);
     ReleaseInterface(pIDestTexture);
     ReleaseInterface(pID3DSrcDevice);
+}
 
     RRETURN(hr);
 }

@@ -1013,7 +1013,7 @@ CMILLightData::Copy(
     )
 {
     HRESULT hr;
-
+{
     //
     // Copy dynamic array members
     //
@@ -1045,7 +1045,7 @@ CMILLightData::Copy(
                   reinterpret_cast<BYTE const *>(&rvalue)+offsetPostDynArrays,
                   sizePostDynArrays
                   );
-
+                }
 Cleanup:
     RRETURN(hr);
 }

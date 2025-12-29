@@ -41,12 +41,12 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_IMAGEBRUSH || CMilTileBrushDuce::IsOfType(type);
     }
 
-    override virtual bool NeedsBounds(
+    /* override */ virtual bool NeedsBounds(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -80,16 +80,16 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override HRESULT GetBrushRealizationInternal(
+    /* override */ HRESULT GetBrushRealizationInternal(
         __in_ecount(1) const BrushContext *pBrushContext,
         __deref_inout_ecount_opt(1) CMILBrush **ppBrushRealizationNoRef
         );
 
-    override void FreeRealizationResources();
+    /* override */ void FreeRealizationResources();
 
-    override bool RealizationMayNeedNonPow2Tiling(
+    /* override */ bool RealizationMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -98,7 +98,7 @@ public:
         return CMilTileBrushDuce::IsTiling(m_data.m_TileMode);
     }
 
-    override bool RealizationWillHaveSourceClip() const
+    /* override */ bool RealizationWillHaveSourceClip() const
     {
         return m_data.m_TileMode == MilTileMode::None;
     }
@@ -162,7 +162,7 @@ protected:
         __in_ecount(1) const CMILMatrix *pContentToViewport,
         __in_ecount(1) const CMILMatrix *pmatViewportToWorld,
         __in_ecount(1) const MilPointAndSizeD *pViewport,
-        __in MilTileMode::Enum tileMode,   
+        _In_ MilTileMode::Enum tileMode,   
         __out_ecount(1) BOOL *pfNeedsIntermediateSurfaceRealization,
         __out_ecount(1) BOOL *pfBrushIsEmpty
         );    
@@ -178,7 +178,7 @@ protected:
         __in_ecount(1) const CMILMatrix *pContentToViewport,
         __in_ecount(1) const CMILMatrix *pmatViewportToWorld,
         __in_ecount(1) const MilPointAndSizeD *pViewport,
-        __in MilTileMode::Enum tileMode,
+        _In_ MilTileMode::Enum tileMode,
         __out_ecount(1) IWGXBitmapSource **ppBaseTile,
         __out_ecount(1) CMILMatrix *pmatBaseTileToXSpace,
         __out_ecount(1) BOOL *pfTileIsEmpty,
@@ -188,7 +188,7 @@ protected:
         __out_ecount(1) XSpaceDefinition *pXSpaceDefinition
         );
 
-    override virtual bool IsCachingEnabled()
+    /* override */ virtual bool IsCachingEnabled()
     { return m_data.m_CachingHint == MilCachingHint::Cache; }
 
 private:

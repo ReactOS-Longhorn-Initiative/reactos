@@ -36,7 +36,7 @@ CMilEmissiveMaterialDuce::~CMilEmissiveMaterialDuce()
 //      Returns true if the Material is valid for rendering, false otherwise.
 //
 //------------------------------------------------------------------------------
-override bool CMilEmissiveMaterialDuce::ShouldRender()
+/* override */ bool CMilEmissiveMaterialDuce::ShouldRender()
 {
     return m_data.m_pBrush != NULL;
 }

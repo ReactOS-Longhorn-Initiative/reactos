@@ -722,7 +722,7 @@ CGradientTextureGenerator::GenerateGradientTexture(
 
     // Don't break on WINCODEC_ERR_INVALIDPARAMETER
     BEGIN_MILINSTRUMENTATION_HRESULT_LIST_WITH_DEFAULTS
-        WINCODEC_ERR_INVALIDPARAMETER
+        E_INVALIDARG
     END_MILINSTRUMENTATION_HRESULT_LIST
 
     // 
@@ -744,7 +744,7 @@ CGradientTextureGenerator::GenerateGradientTexture(
     if (uStopCount > MAX_GRADIENTSTOP_COUNT)
     {
         // User specified too many gradient stops
-        IFC(WINCODEC_ERR_INVALIDPARAMETER);    
+        IFC(E_INVALIDARG);    
     }
 
     //

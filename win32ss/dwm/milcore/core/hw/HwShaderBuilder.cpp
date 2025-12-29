@@ -715,6 +715,7 @@ CHwShaderPipelineBuilder::Mul_TextureInternal(
 
     MILSPHandle rgVertexParameterHandles[2];
     MILSPHandle *phTransform = NULL;
+    UINT uNumParams = 0;
 
 #if DBG
     ShaderFunctionConstantData::Enum rgDbgVertexParameterTypes[2];
@@ -740,7 +741,6 @@ CHwShaderPipelineBuilder::Mul_TextureInternal(
         eFunction
         ));
 
-    UINT uNumParams = 0;
 
     if (   eFunction != ShaderFunctions::MultiplyTexture_NoTransformFromTexCoord
         && eFunction != ShaderFunctions::MultiplyAlphaMask_NoTransformFromTexCoord)

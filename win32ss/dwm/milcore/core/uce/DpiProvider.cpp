@@ -26,12 +26,12 @@ void DpiProvider::UpdateDpi(const DpiScale& dpi)
     m_dpi = dpi;
 }
 
-const DPI_AWARENESS_CONTEXT DpiProvider::GetDpiAwarenessContext() const override
+const DPI_AWARENESS_CONTEXT DpiProvider::GetDpiAwarenessContext() const /* override */
 {
     return m_pDpiAwarenessContext ? *m_pDpiAwarenessContext : nullptr;
 }
 
-HRESULT DpiProvider::GetCurrentDpi(DpiScale* pDpiScale) const override
+HRESULT DpiProvider::GetCurrentDpi(DpiScale* pDpiScale) const /* override */
 {
     if (m_dpi.DpiScaleX == 0 || m_dpi.DpiScaleY == 0)
     {
@@ -47,7 +47,7 @@ HRESULT DpiProvider::GetCurrentDpi(DpiScale* pDpiScale) const override
     return S_OK;
 }
 
-BOOL DpiProvider::IsPerMonitorDpiAware() const override
+BOOL DpiProvider::IsPerMonitorDpiAware() const /* override */
 {
     DPI_AWARENESS_CONTEXT dpiContext = GetDpiAwarenessContext();
     return 

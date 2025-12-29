@@ -25,7 +25,7 @@
 *
 **************************************************************************/
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 // system includes
 
 #include "std.h"
@@ -35,46 +35,46 @@
 
 // debug output, allocator, etc.
 
-#include "common\common.h"
+#include "common/common.h"
 
 // Format converter, palette etc.
 
-#include "scanop\scanop.h"
+#include "scanop/scanop.h"
 
 // common glyph rendering classes
 
-#include "glyph\glyph.h"
+#include "glyph/glyph.h"
 
 // geometry classes
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // COMBase
 
-#include "api\api_include.h"
+#include "api/api_include.h"
 
 // common render target classes and methods
 
-#include "targets\targets.h"
+#include "targets/Targets.h"
 
 // get the primitive list from here.
 
-#include "meta\meta.h"
+#include "meta/meta.h"
 
 #include "sw.h"
 
 // Audio/Video classes
 
-#include "av\av.h"
+#include "av/av.h"
 
-#include "hw\hw.h"
-#include "resources\resources.h"
+#include "hw/hw.h"
+#include "resources/resources.h"
 
 // local includes
 
 #include "swpresentgdi.h"
 
-#include "control\util\control.h"
+#include "control/util/control.h"
 
 
 

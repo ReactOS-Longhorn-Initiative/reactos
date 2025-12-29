@@ -86,9 +86,9 @@ Cleanup:
 //-----------------------------------------------------------------------------
 HRESULT 
 CMilDropShadowEffectDuce::ApplyEffectSw(
-    __in CContextState *pContextState,
-    __in CSwRenderTargetSurface *pDestRT,
-    __in CMILMatrix *pScaleTransform,
+    _In_ CContextState *pContextState,
+    _In_ CSwRenderTargetSurface *pDestRT,
+    _In_ CMILMatrix *pScaleTransform,
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
     __in_opt IWGXBitmap *pImplicitInput
@@ -534,10 +534,10 @@ CMilDropShadowEffectDuce::GaussianBlurLineOfPixels(
 
 HRESULT
 CMilDropShadowEffectDuce::ApplyEffect(
-    __in CContextState *pContextState, 
-    __in CHwSurfaceRenderTarget *pDestRT,
-    __in CMILMatrix *pScaleTransform,
-    __in CD3DDeviceLevel1 *pDevice, 
+    _In_ CContextState *pContextState, 
+    _In_ CHwSurfaceRenderTarget *pDestRT,
+    _In_ CMILMatrix *pScaleTransform,
+    _In_ CD3DDeviceLevel1 *pDevice, 
     UINT uIntermediateWidth,
     UINT uIntermediateHeight,
     __in_opt CHwTextureRenderTarget *pImplicitInput
@@ -738,10 +738,10 @@ Cleanup:
 //-----------------------------------------------------------------------------
 HRESULT 
 CMilDropShadowEffectDuce::GetLocalSpaceClipBounds(
-        __in CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
-        __in CRectF<CoordinateSpace::PageInPixels> clip,
-        __in const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
-        __out CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace)
+        _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
+        _In_ CRectF<CoordinateSpace::PageInPixels> clip,
+        _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
+        _Out_ CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace)
 {
     HRESULT hr = S_OK;
 
@@ -791,7 +791,7 @@ Cleanup:
 //-----------------------------------------------------------------------------
 HRESULT
 CMilDropShadowEffectDuce::TransformBoundsInternal(
-    __in bool isForClipping,
+    _In_ bool isForClipping,
     __inout CMilRectF *pBounds)
 {
     HRESULT hr = S_OK;
@@ -865,10 +865,10 @@ CMilDropShadowEffectDuce::TransformBoundsInternal(
 //-----------------------------------------------------------------------------
 void
 CMilDropShadowEffectDuce::CalculateOffset(
-    __in bool isScaled, 
+    _In_ bool isScaled, 
     __in_opt const CMILMatrix *pScaleTransform,
-    __out float *offsetX,
-    __out float *offsetY)
+    _Out_ float *offsetX,
+    _Out_ float *offsetY)
 {
     double direction = GetDirection(); // in degrees
     double depth = GetShadowDepth();
@@ -1011,10 +1011,10 @@ CMilDropShadowEffectDuce::GetColor()
 
 HRESULT 
 CMilDropShadowEffectDuce::SetupShader(
-    __in CD3DDeviceLevel1 *pDevice,
-    __in const CMILMatrix *pScaleTransform,
-    __in float destinationWidth,
-    __in float destinationHeight)
+    _In_ CD3DDeviceLevel1 *pDevice,
+    _In_ const CMILMatrix *pScaleTransform,
+    _In_ float destinationWidth,
+    _In_ float destinationHeight)
 {
     HRESULT hr = S_OK;
     MilColorF color = { 0, 0, 0, 0 };
@@ -1023,7 +1023,7 @@ CMilDropShadowEffectDuce::SetupShader(
 
     //
     // Set pixel shader constants
-    
+    {
     float offsetX = 0.0f;
     float offsetY = 0.0f;
     CalculateOffset(true, pScaleTransform, &offsetX, &offsetY);
@@ -1039,6 +1039,7 @@ CMilDropShadowEffectDuce::SetupShader(
     float opacity = static_cast<float>(GetOpacity());
     float arrOpacity[4] = { opacity, /*unused values*/ 0.0f, 0.0f, 0.0f };
     IFC(pDevice->SetPixelShaderConstantF(2, arrOpacity, 1));
+    }
 
 Cleanup:
     RRETURN(hr);

@@ -36,7 +36,7 @@ CMilMaterialGroupDuce::~CMilMaterialGroupDuce()
 //      Returns true if the Material is valid for rendering, false otherwise.
 //
 //------------------------------------------------------------------------------
-override bool CMilMaterialGroupDuce::ShouldRender()
+/* override */ bool CMilMaterialGroupDuce::ShouldRender()
 {
     bool toReturn = false;
     
@@ -71,7 +71,7 @@ Cleanup:
 //
 //------------------------------------------------------------------------------
 
-override HRESULT CMilMaterialGroupDuce::Realize(
+/* override */ HRESULT CMilMaterialGroupDuce::Realize(
     __inout_ecount(1) CMILMesh3D *pMesh3D,
     __in_ecount(1) CDrawingContext *pDrawingContext,
     __in_ecount(1) CContextState *pContextState,
@@ -97,7 +97,7 @@ override HRESULT CMilMaterialGroupDuce::Realize(
 //
 //------------------------------------------------------------------------------
 
-override HRESULT CMilMaterialGroupDuce::Flatten(
+/* override */ HRESULT CMilMaterialGroupDuce::Flatten(
     __inout_ecount(1) DynArray<CMilMaterialDuce *> *pMaterialList,
     __inout_ecount(1) bool *pfDiffuseMaterialFound,
     __inout_ecount(1) bool *pfSpecularMaterialFound,

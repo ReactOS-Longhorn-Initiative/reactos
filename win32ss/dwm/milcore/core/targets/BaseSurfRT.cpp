@@ -21,6 +21,7 @@
 
 
 #include "precomp.hpp"
+#include "uce/global.h"
 
 
 //+-----------------------------------------------------------------------------
@@ -410,7 +411,7 @@ CBaseSurfaceRenderTarget<TRenderTargetLayerData>::GetPartialLayerCaptureRects(
             goto Cleanup;
         }
 
-        C_ASSERT(4 == MAX_NUM_PARTIAL_LAYER_CAPTURE_RECTS);
+        static_assert(4 == MAX_NUM_PARTIAL_LAYER_CAPTURE_RECTS, "4 == MAX_NUM_PARTIAL_LAYER_CAPTURE_RECTS");
 
         *pcCopyRects =
             pNewLayer->rcLayerBounds.CalculateSubtractionRectangles(
@@ -458,15 +459,15 @@ CBaseSurfaceRenderTarget<TRenderTargetLayerData>::DbgAssertBoundsState()
 
     return;
 }
-#endif DBG
+#endif /* DBG */
 
 
 // Explicit template instantiation
 
-#include "scanop\scanop.h"
-#include "glyph\glyph.h"
-#include "sw\sw.h"
-#include "hw\hw.h"
+#include "scanop/scanop.h"
+#include "glyph/glyph.h"
+#include "sw/sw.h"
+#include "hw/hw.h"
 
 template class CBaseSurfaceRenderTarget<CSwRenderTargetLayerData>;
 template class CBaseSurfaceRenderTarget<CHwRenderTargetLayerData>;

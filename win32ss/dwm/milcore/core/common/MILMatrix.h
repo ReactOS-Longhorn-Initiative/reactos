@@ -24,7 +24,7 @@ class CMILMatrix : public CBaseMatrix
 {
     // No extra data members, includin vtables, should ever be added to
     // CMILMatrix
-    void _CAssertSize_() { C_ASSERT(sizeof(CMILMatrix) == sizeof(CBaseMatrix)); }
+    void _CAssertSize_() { static_assert(sizeof(CMILMatrix) == sizeof(CBaseMatrix), "sizeof(CMILMatrix) == sizeof(CBaseMatrix)"); }
 
 public:
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CMILMatrix));
@@ -198,7 +198,7 @@ public:
         __in_ecount(1) const CBaseMatrix *pMatrix
         )
     {
-        C_ASSERT(sizeof(CMILMatrix) == sizeof(CBaseMatrix));
+        static_assert(sizeof(CMILMatrix) == sizeof(CBaseMatrix), "sizeof(CMILMatrix) == sizeof(CBaseMatrix)");
         return static_cast<const CMILMatrix *>(pMatrix);
     }
 
@@ -206,7 +206,7 @@ public:
         __in_ecount(1) CBaseMatrix *pMatrix
         )
     {
-        C_ASSERT(sizeof(CMILMatrix) == sizeof(CBaseMatrix));
+        static_assert(sizeof(CMILMatrix) == sizeof(CBaseMatrix), "sizeof(CMILMatrix) == sizeof(CBaseMatrix)");
         return static_cast<CMILMatrix *>(pMatrix);
     }
 

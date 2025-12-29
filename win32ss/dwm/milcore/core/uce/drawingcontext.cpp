@@ -3746,12 +3746,12 @@ Cleanup:
 
 HRESULT
 CDrawingContext::CalculateEffectTextureLimits(
-    __in UINT uTextureWidthIn,
-    __in UINT uTextureHeightIn,
-    __out UINT &uTextureWidthOut,
-    __out UINT &uTextureHeightOut,
-    __out float &uScaleX,
-    __out float &uScaleY
+    _In_ UINT uTextureWidthIn,
+    _In_ UINT uTextureHeightIn,
+    _Out_ UINT &uTextureWidthOut,
+    _Out_ UINT &uTextureHeightOut,
+    _Out_ float &uScaleX,
+    _Out_ float &uScaleY
     )
 {
     HRESULT hr = S_OK;
@@ -4740,15 +4740,15 @@ CDrawingContext::PreSubgraph(__out_ecount(1) BOOL *pfVisitChildren)
     BOOL fPushEffect = FALSE;
     CRectF<CoordinateSpace::LocalRendering> localBounds;
     CRectF<CoordinateSpace::PageInPixels> clippedBoundsWorldAAInflated;
-
     AssertMsg(m_pGraphIterator, "There is a problem with using the render context from the UiThread. You can only call this for visuals.");
-
+    
     CMilVisual* pNode = GetCurrentVisual();
     Assert(pNode);
-
+    
     // Track the current resource so for IRT event tracing.
     CMilSlaveResource* savedResource = m_pComposition->GetCurrentResourceNoRef();
     m_pComposition->SetCurrentResource(static_cast<CMilSlaveResource*>(pNode));
+{
 
     //
     // For now we assume that we need to render this node and all its children.
@@ -5075,7 +5075,7 @@ CDrawingContext::PreSubgraph(__out_ecount(1) BOOL *pfVisitChildren)
         // Render the content of the node.
         IFC(pNode->RenderContent(this));
     }
-
+}
 Cleanup:
     
     m_pComposition->SetCurrentResource(savedResource);
@@ -5209,7 +5209,7 @@ Cleanup:
 
 HRESULT
 CDrawingContext::PushDummyLayer(
-    __in CRectF<CoordinateSpace::LocalRendering> *pBounds
+    _In_ CRectF<CoordinateSpace::LocalRendering> *pBounds
     )
 {
     CLayer dummyLayer = CLayer(1.0f, NULL, NULL, NULL, pBounds);
@@ -5264,9 +5264,9 @@ Cleanup:
 //------------------------------------------------------------------------------
 void
 CDrawingContext::CheckEffectSupport(
-    __out bool *pHasHardwareSupport,
-    __out bool *pHasSoftwareSupport,
-    __in bool requiresPS30)
+    _Out_ bool *pHasHardwareSupport,
+    _Out_ bool *pHasSoftwareSupport,
+    _In_ bool requiresPS30)
 {
     // If we do not have hardware support for effects we must render them into a
     // software layer.  We might be rendering into a hardware layer even without
@@ -5333,8 +5333,8 @@ CDrawingContext::CheckEffectSupport(
 //------------------------------------------------------------------------------
 HRESULT
 CDrawingContext::DetermineEffectCompositionMode(
-    __in CMilEffectDuce * pEffect,
-    __out EffectCompositionMode * pEffectCompositionMode
+    _In_ CMilEffectDuce * pEffect,
+    _Out_ EffectCompositionMode * pEffectCompositionMode
     )
 {
     HRESULT hr = S_OK;
@@ -5344,7 +5344,7 @@ CDrawingContext::DetermineEffectCompositionMode(
     // displays in that situation, we will be pushing an unnecessary layer.
     DWORD renderTargetType = 0;
     IFC(m_pIRenderTarget->GetType(&renderTargetType));
-    
+{
     bool hasHardwareSupport = false;
     bool hasSoftwareSupport = false;
     bool requiresPS30 = (pEffect->GetShaderMajorVersion() == 3);
@@ -5434,7 +5434,7 @@ CDrawingContext::DetermineEffectCompositionMode(
             *pEffectCompositionMode = SkipRender;
         }
     }
-
+}
 Cleanup:
     RRETURN(hr);
    

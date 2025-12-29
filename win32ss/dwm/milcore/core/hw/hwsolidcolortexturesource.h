@@ -50,9 +50,9 @@ public:
     // CHwColorSource methods
     //
 
-    override TypeFlags GetSourceType() const;
+    TypeFlags GetSourceType() const;
 
-    override bool IsOpaque(
+    bool IsOpaque(
         ) const
     {
         // Note this comparison is too restrictive for sRGB which has less
@@ -60,13 +60,13 @@ public:
         return (m_color.a >= 1.0f);
     }
 
-    override HRESULT Realize(
-        );
+    HRESULT Realize(
+        ) /* override */;
 
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        );
+        ) /* override */;
 
 private:
     __checkReturn HRESULT CreateLockableTexture();

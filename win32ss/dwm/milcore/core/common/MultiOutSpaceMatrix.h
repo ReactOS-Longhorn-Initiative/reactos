@@ -64,13 +64,13 @@ public:
         __in_ecount(1) CMatrix<InCoordSpace, OutCoordSpace> const &matRef
         )
     {
-        C_ASSERT(sizeof(CMultiOutSpaceMatrix) == sizeof(matRef));
+        static_assert(sizeof(CMultiOutSpaceMatrix) == sizeof(matRef), "sizeof(CMultiOutSpaceMatrix) == sizeof(matRef)");
         return reinterpret_cast<CMultiOutSpaceMatrix const &>(matRef);
     }
 #endif
 
     template <typename OutCoordSpace>
-    operator const typename CMatrix<InCoordSpace,OutCoordSpace> &() const
+    operator const CMatrix<InCoordSpace, OutCoordSpace> &() const
     {
         Assert(m_eDbgCurrentOutCoordSpaceId == OutCoordSpace::Id);
         return *reinterpret_cast<CMatrix<InCoordSpace,OutCoordSpace> const *>(this);
@@ -83,7 +83,7 @@ public:
     //       clutter to code and can be quite difficult in certain situations
     //       with the matrix being an passed as an out parameter.
     template <typename OutCoordSpace>
-    operator typename CMatrix<InCoordSpace,OutCoordSpace> &()
+    operator CMatrix<InCoordSpace,OutCoordSpace> &()
     {
 #if DBG_ANALYSIS
         if (m_eDbgCurrentOutCoordSpaceId != OutCoordSpace::Id)
@@ -94,7 +94,7 @@ public:
         return *reinterpret_cast<CMatrix<InCoordSpace,OutCoordSpace> *>(this);
     }
 
-    operator typename CMultiOutSpaceMatrix<CoordinateSpace::Variant> &()
+    operator CMultiOutSpaceMatrix<CoordinateSpace::Variant> &()
     {
         return *reinterpret_cast<CMultiOutSpaceMatrix<CoordinateSpace::Variant> *>(this);
     }
@@ -205,7 +205,7 @@ public:
         __deref_out_range(>=, 1) UINT &uDesiredHeight
         ) const
     {
-        C_ASSERT(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling);
+        static_assert(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling, "InCoordSpace::Id == CoordinateSpaceId::RealizationSampling");
         Assert(   (m_eDbgCurrentOutCoordSpaceId == CoordinateSpaceId::Device)
                || (m_eDbgCurrentOutCoordSpaceId == CoordinateSpaceId::IdealSampling));
 
@@ -244,7 +244,7 @@ ReinterpretLocalRenderingAsBaseSampling(
     __in_ecount(1) const CMultiOutSpaceMatrix<CoordinateSpace::LocalRendering> &m
     )
 {
-    C_ASSERT(sizeof(m) == sizeof( CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> ));
+    static_assert(sizeof(m) == sizeof( CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> ), "sizeof(m) == sizeof( CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> )");
     return reinterpret_cast<const CMultiOutSpaceMatrix<CoordinateSpace::BaseSampling> &>(m);
 }
 

@@ -96,7 +96,7 @@ CMilVisual::ScheduleRender()
 
 void
 CMilVisual::PropagateFlags(
-    __in CMilVisual* pNode,
+    _In_ CMilVisual* pNode,
     BOOL fNeedsBoundingBoxUpdate,
     BOOL fDirtyForRender,
     BOOL fAdditionalDirtyRegion,  // Default value FALSE.
@@ -285,7 +285,7 @@ CMilVisual::SetParent(
 
 HRESULT
 CMilVisual::InsertChildAt(
-    __in CMilVisual *pNewChild, 
+    _In_ CMilVisual *pNewChild, 
     UINT iPosition
     )
 {
@@ -313,7 +313,7 @@ Cleanup:
 
 HRESULT
 CMilVisual::RemoveChild(
-    __in CMilVisual *pChild
+    _In_ CMilVisual *pChild
     )
 {
     HRESULT hr = S_OK;
@@ -355,7 +355,7 @@ CMilVisual::RemoveAllChildren()
 //      CMilVisual::GetChildAt
 //---------------------------------------------------------------------------------
 
-override IGraphNode* CMilVisual::GetChildAt(UINT index)
+/* override */ IGraphNode* CMilVisual::GetChildAt(UINT index)
 {
     if (m_rgpChildren.GetCount() <= index)
     {
@@ -389,17 +389,17 @@ override IGraphNode* CMilVisual::GetChildAt(UINT index)
 //      LeaveNode();
 //-------------------------------------------------------------------------
 
-override bool CMilVisual::EnterNode()
+/* override */ bool CMilVisual::EnterNode()
 {
     return EnterResource();
 }
 
-override void CMilVisual::LeaveNode()
+/* override */ void CMilVisual::LeaveNode()
 {
     LeaveResource();
 }
 
-override bool CMilVisual::CanEnterNode() const
+/* override */ bool CMilVisual::CanEnterNode() const
 {
     return CanEnterResource();
 }
@@ -541,7 +541,7 @@ CMilVisual::ProcessSetCacheMode(
     )
 {
     HRESULT hr = S_OK;
-
+{
     CMilVisualCacheSet *pCaches = NULL;
     
     // Get the resource
@@ -554,7 +554,7 @@ CMilVisual::ProcessSetCacheMode(
             IFC(WGXERR_UCE_MALFORMEDPACKET);
         }
     }
-
+{
     if (!m_pCaches)
     {
         IFCSUB1(CMilVisualCacheSet::Create(m_pComposition, this, &pCaches));
@@ -570,6 +570,7 @@ CMilVisual::ProcessSetCacheMode(
         // Mark the node as dirty for precompute to ensure the cache is updated.
         MarkDirtyForPrecompute();
     }
+}
     
 SubCleanup1:
     // Release the add-ref from creation; we're still holding a ref from RegisterNotifier
@@ -581,7 +582,7 @@ SubCleanup1:
     {
         UnRegisterNotifier(m_pCaches);
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -761,9 +762,10 @@ CMilVisual::ProcessSetAlphaMask(
     )
 {
     HRESULT hr = S_OK;
-
+{
     // Get the new resource
     CMilBrushDuce *pAlphaMask = NULL;
+    {
     if (pCmd->hAlphaMask != HMIL_RESOURCE_NULL)
     {
         pAlphaMask = DYNCAST(CMilBrushDuce, pHandleTable->GetResource(pCmd->hAlphaMask, TYPE_BRUSH));
@@ -789,7 +791,7 @@ CMilVisual::ProcessSetAlphaMask(
         // Mark the node as dirty and propagate flags
         CMilVisual::PropagateFlags(this, FALSE, TRUE);
     }
-
+}
 SubCleanup1:
     // Release the wrapper upon failure or if there is no alpha mask.
     if (FAILED(hr) || pAlphaMask == NULL)
@@ -797,7 +799,7 @@ SubCleanup1:
         delete m_pAlphaMaskWrapper;
         m_pAlphaMaskWrapper = NULL;
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -870,7 +872,7 @@ CMilVisual::AddAdditionalDirtyRects(
     __in_ecount(1) MilRectF const *pRegion
     )
 {
-    C_ASSERT(c_maxAdditionalDirtyRects > 1);
+    static_assert(c_maxAdditionalDirtyRects > 1, "c_maxAdditionalDirtyRects > 1");
     
     HRESULT hr = S_OK;
     
@@ -1094,10 +1096,10 @@ CMilVisual::HasEffects()
 
 void
 CMilVisual::TransformAndSnapScrollableRect(
-    __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+    _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
     __in_opt CMilRectF *pClip,
-    __in CRectF<CoordinateSpace::LocalRendering> *pRectIn,
-    __out CRectF<CoordinateSpace::PageInPixels> *pRectOut
+    _In_ CRectF<CoordinateSpace::LocalRendering> *pRectIn,
+    _Out_ CRectF<CoordinateSpace::PageInPixels> *pRectOut
     )
 {
     pTransform->Transform2DBoundsConservative(*pRectIn, *pRectOut);
@@ -1125,7 +1127,7 @@ CMilVisual::TransformAndSnapScrollableRect(
 
 HRESULT
 CMilVisual::TransformAndSnapOffset(
-    __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+    _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
     __inout MilPoint2F *pOffset,
     bool fReturnToLocalSpace        
     )

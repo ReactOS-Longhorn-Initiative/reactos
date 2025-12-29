@@ -20,7 +20,7 @@ DynArray<HWND> g_hwndMap;
 //  Method:     MilVisualTarget_AttachToHwnd
 //
 //------------------------------------------------------------------------------
-HRESULT
+EXTERN_C HRESULT
 WINAPI MilVisualTarget_AttachToHwnd(
     HWND hwnd
     )
@@ -63,7 +63,7 @@ WINAPI MilVisualTarget_AttachToHwnd(
 //  Method:     MilVisualTarget_DetachFromHwnd
 //
 //------------------------------------------------------------------------------
-HRESULT
+EXTERN_C HRESULT
 WINAPI MilVisualTarget_DetachFromHwnd(
     HWND hwnd
     )

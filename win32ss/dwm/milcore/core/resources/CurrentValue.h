@@ -101,7 +101,7 @@ GetCurrentValue(
         &pAnimationsType
         ));
 
-    // Override the base value with the animations, if animations exist.
+    // /* override */ the base value with the animations, if animations exist.
     if (NULL != pAnimationsType)
     {       
         // Obtain value from rectangle resource

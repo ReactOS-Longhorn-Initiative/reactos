@@ -36,6 +36,29 @@
 //
 //------------------------------------------------------------------------------
 
+enum State {
+    // Invalid state. Set only temporarily during initialization
+    Invalid = 0,
+
+    // Normal operating state.
+    Ready = 1,
+
+    // A successful update to the current window position via SetPosition
+    // is needed.
+    FlagNeedSetPosition = 0x80000000,
+    NeedSetPosition = 2 | FlagNeedSetPosition,
+
+    // A special case of NeedSetPosition set when a desktop RT no longer
+    // matches target layered window size and desktop RT needs resized via
+    // a successful call to SetPosition.
+    NeedResize = 3 | FlagNeedSetPosition,
+
+    // A RT has been lost and entire desktop RT needs recreated.
+    NeedRecreate = 4,
+};
+
+ExternTag(tagMILTraceDesktopState);
+
 class CDesktopRenderTarget:
     public CMILCOMBase,
     public CMetaRenderTarget,
@@ -65,7 +88,7 @@ protected:
     virtual ~CDesktopRenderTarget();
 
 
-    override STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppv);
+    STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppv) /* override */;
 
     virtual HRESULT EditMetaData() = 0;
 
@@ -73,18 +96,59 @@ protected:
     void SetSingleSubRT();
 
     HRESULT Init(
-        __in HWND hwnd,
+        _In_ HWND hwnd,
         MilWindowLayerType::Enum eWindowLayerType,
         MilRTInitialization::Flags dwFlags
         );
 
-    enum State;
+
+    //+-----------------------------------------------------------------------------
+    //
+    //  Member:
+    //      CDesktopRenderTarget::TransitionToState
+    //
+    //  Synopsis:
+    //      Set new state (Validate in debug)
+    //
+    //------------------------------------------------------------------------------
     MIL_FORCEINLINE void TransitionToState(
-        enum State eNewState
+        State eNewState
 #if DBG
         , const char *pszMethod = NULL
 #endif
-        );
+        )
+    {
+#if DBG
+        Assert(DbgIsValidTransition(eNewState));
+#endif
+
+        if (IsTagEnabled(tagMILTraceDesktopState))
+        {
+            static const char * const rgStateName[] = {
+                "Invalid",
+                "Ready",
+                "NeedSetPosition",
+                "NeedResize",
+                "NeedRecreate",
+            };
+
+            static_assert(ARRAY_SIZE(rgStateName) == NeedRecreate + 1, "ARRAY_SIZE(rgStateName) == NeedRecreate + 1");
+
+#if DBG
+            TraceTag((tagMILTraceDesktopState,
+                      "0x%p Desktop::%s: %s to %s",
+                      this,
+                      pszMethod,
+                      rgStateName[m_eState],
+                      rgStateName[eNewState]
+                      ));
+#endif
+        }
+
+        m_eState = eNewState;
+
+        return;
+    }
 
     // Note: This call is dangerous since the caller must handle or propagate the mode change
     //       if this returns true, otherwise the DisplaySet can change in the middle of processing
@@ -113,65 +177,65 @@ public:
 
     // IMILRenderTarget.
 
-    override STDMETHOD(Clear)(
+    STDMETHOD(Clear)(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        );
+        ) /* override */;
 
-    override STDMETHODIMP Begin3D(
+    STDMETHODIMP Begin3D(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        );
+        ) /* override */;
 
-    override STDMETHODIMP End3D(
-        );
+    STDMETHODIMP End3D(
+        ) /* override */;
 
     // IMILRenderTargetHWND.
 
-    override STDMETHOD(Present)(
-        );
+    STDMETHOD(Present)(
+        ) /* override */;
 
-    override STDMETHOD(ScrollBlt) (
+    STDMETHOD(ScrollBlt) (
         __in_ecount(1) const RECT *prcSource,
         __in_ecount(1) const RECT *prcDest
-        );
+        ) /* override */;
 
-    override STDMETHOD(Invalidate)(
+    STDMETHOD(Invalidate)(
         __in_ecount_opt(1) MilRectF const *prc
-        );
+        ) /* override */;
 
-    override STDMETHOD_(VOID, GetBounds)(
+    STDMETHOD_(VOID, GetBounds)(
         __out_ecount(1) MilRectF * const pBounds
-        );
+        ) /* override */;
 
 
-    override STDMETHOD(WaitForVBlank)(
-        );
+    STDMETHOD(WaitForVBlank)(
+        ) /* override */;
 
-    override STDMETHOD_(VOID, AdvanceFrame)(
+    STDMETHOD_(VOID, AdvanceFrame)(
         UINT uFrameNumber
-        );
+        ) /* override */;
 
-    override STDMETHOD(GetNumQueuedPresents)(
+    STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        );
+        ) /* override */;
 
-    override STDMETHOD(CanAccelerateScroll)(
+    STDMETHOD(CanAccelerateScroll)(
         __out_ecount(1) bool *pfCanAccelerateScroll
-        );
+        ) /* override */;
 
     // IRenderTargetInternal.
 
-    override STDMETHOD(CreateRenderTargetBitmap)(
+    STDMETHOD(CreateRenderTargetBitmap)(
         UINT width,
         UINT height,
         IntermediateRTUsage usageInfo,
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) ;
+        ) /* override */;
 
 #if DBG
     //
@@ -182,40 +246,40 @@ public:
 
     // IRenderTargetInternal.
 
-    override STDMETHOD(DrawBitmap)(
+    STDMETHOD(DrawBitmap)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        );
+        ) /* override */;
 
-    override STDMETHOD(DrawMesh3D)(
+    STDMETHOD(DrawMesh3D)(
         __inout_ecount(1) CContextState* pContextState,
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __inout_ecount_opt(1) CMILShader *pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        );
+        ) /* override */;
 
-    override STDMETHOD(DrawPath)(
+    STDMETHOD(DrawPath)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __inout_ecount(1) IShapeData *pShape,
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        );
+        ) /* override */;
 
-    override STDMETHOD(DrawGlyphs)(
+    STDMETHOD(DrawGlyphs)(
         __inout_ecount(1) DrawGlyphsParameters &pars
-        );
+        ) /* override */;
 
-    override STDMETHOD(DrawVideo)(
+    STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IAVSurfaceRenderer *pSurfaceRenderer,
         __inout_ecount(1) IWGXBitmapSource *pBitmapSource,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        );
-#endif DBG
+        ) /* override */;
+#endif /* DBG */
 
 protected:
 
@@ -260,27 +324,7 @@ protected:
     //      SetPosition was called to resize RTs to 0 x 0
     //
 
-    enum State {
-        // Invalid state. Set only temporarily during initialization
-        Invalid = 0,
-
-        // Normal operating state.
-        Ready = 1,
-
-        // A successful update to the current window position via SetPosition
-        // is needed.
-        FlagNeedSetPosition = 0x80000000,
-        NeedSetPosition = 2 | FlagNeedSetPosition,
-
-        // A special case of NeedSetPosition set when a desktop RT no longer
-        // matches target layered window size and desktop RT needs resized via
-        // a successful call to SetPosition.
-        NeedResize = 3 | FlagNeedSetPosition,
-
-        // A RT has been lost and entire desktop RT needs recreated.
-        NeedRecreate = 4,
-
-    } m_eState;
+    State m_eState;
 
     // Location of client region OR fullscreen RTs in virtual desktop space.
     // For HWND targets this is the last position successfuly reported to

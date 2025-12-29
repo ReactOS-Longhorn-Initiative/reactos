@@ -34,7 +34,7 @@ protected:
 
 public:
 
-    override bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_GRADIENTBRUSH || CMilBrushDuce::IsOfType(type);
     }
@@ -57,7 +57,7 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    override bool RealizationMayNeedNonPow2Tiling(
+    /* override */ bool RealizationMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -126,6 +126,7 @@ CMilGradientBrushDuce::IsConstantOpaqueInternal(
     MilGradientStop *pStop = pThis->m_data.m_pGradientStopsData;
 
     bool fIsConstantOpaque = false;
+    UINT count;
 
     IFC((GetOpacity(
         pThis->m_data.m_Opacity,
@@ -139,7 +140,7 @@ CMilGradientBrushDuce::IsConstantOpaqueInternal(
         goto Cleanup;
     }
 
-    UINT count = pThis->m_data.m_cbGradientStopsSize / sizeof(pStop[0]);
+    count = pThis->m_data.m_cbGradientStopsSize / sizeof(pStop[0]);
 
     for (UINT i = 0; i < count; i++)
     {
@@ -187,6 +188,7 @@ CMilGradientBrushDuce::GetGradientColorData(
     FLOAT rOpacity;
 
     MilGradientStop *pStop = pThis->m_data.m_pGradientStopsData;
+    UINT count;
 
     pColorData->Clear();
  
@@ -201,7 +203,7 @@ CMilGradientBrushDuce::GetGradientColorData(
     // this count will be zero -- guaranteed by the marshaling code.
     //
 
-    UINT count = pThis->m_data.m_cbGradientStopsSize / sizeof(pStop[0]);
+    count = pThis->m_data.m_cbGradientStopsSize / sizeof(pStop[0]);
 
     for(UINT i = 0; i < count; i++)
     {

@@ -78,7 +78,7 @@ CGlyphRunResource::CGlyphRunResource(__in_ecount(1) CComposition *pDevice)
 //
 //------------------------------------------------------------------------------
 void 
-CGlyphRunResource::DeleteRealizationInArray(__in DynArrayIA <CGlyphRunRealization*, 2> *pArray)
+CGlyphRunResource::DeleteRealizationInArray(_In_ DynArrayIA <CGlyphRunRealization*, 2> *pArray)
 {
     UINT count = pArray->GetCount();
     
@@ -198,7 +198,7 @@ CGlyphRunResource::GetAvailableScale(
     __in_ecount(1) const DisplaySettings *pDisplaySettings,
     MilTextRenderingMode::Enum textRenderingMode,
     MilTextHintingMode::Enum textHintingMode,
-    __out RenderingMode *pRecommendedRenderingMode,
+    _Out_ RenderingMode *pRecommendedRenderingMode,
     __out_ecount(1) CGlyphRunRealization** ppRealization,
     IDpiProvider const* pDpiProvider
     )
@@ -228,7 +228,7 @@ CGlyphRunResource::GetAvailableScale(
     {
         IFC(WGXERR_INVALIDPARAMETER);  // We should only add realizations for scales below Geometry threshold
     }
-
+{
     double matchScoreHighQuality = 0;
     bool fFoundExactMatch = false;
     bool fFoundMatch = false;
@@ -712,7 +712,7 @@ CGlyphRunResource::GetAvailableScale(
                   ));
 
     *pRecommendedRenderingMode = blendMode;
-
+                }
 Cleanup:
     ReleaseInterface(pRealization);
     
@@ -729,7 +729,7 @@ Cleanup:
 void 
 CGlyphRunResource::GetBlendMode(MilTextRenderingMode::Enum textRenderingMode,
                                 RenderingMode displayRenderingMode,
-                                __out RenderingMode *pRecommendedBlendMode
+                                _Out_ RenderingMode *pRecommendedBlendMode
                                 )
 {
     if (textRenderingMode == MilTextRenderingMode::Auto)
@@ -753,7 +753,7 @@ CGlyphRunResource::GetBlendMode(MilTextRenderingMode::Enum textRenderingMode,
                 return;
         }
     }
-    // WPF developer settings override system text display settings
+    // WPF developer settings /* override */ system text display settings
     switch (textRenderingMode)
     {
         case MilTextRenderingMode::Aliased:
@@ -782,9 +782,9 @@ CGlyphRunResource::CreateRealization(
     float scaleY,
     bool fAnimationQuality,
     bool fBiLevelRequested,
-    __in const DisplaySettings *pDisplaySettings,
+    _In_ const DisplaySettings *pDisplaySettings,
     MilTextRenderingMode::Enum textRenderingMode,
-    __out CGlyphRunRealization **ppRealization
+    _Out_ CGlyphRunRealization **ppRealization
     )                    
 {      
     HRESULT hr = S_OK;
@@ -794,7 +794,7 @@ CGlyphRunResource::CreateRealization(
 
     DWRITE_MATRIX scaleTransform;
     memset(&scaleTransform, 0, sizeof(DWRITE_MATRIX));
-
+{
     // If we are creating a full quality realization, just set the scale transform.
     scaleTransform.m11 = scaleX / m_muSize;
     scaleTransform.m22 = scaleY / m_muSize;
@@ -848,8 +848,8 @@ CGlyphRunResource::CreateRealization(
     // our encoding of [X0, Y0, X1, Y1, ...] 
     // matches an array of DWRITE_GLYPH_OFFSET
     //
-    C_ASSERT(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, advanceOffset) == 0);
-    C_ASSERT(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, ascenderOffset) == 4);
+    static_assert(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, advanceOffset) == 0, "FIELD_OFFSET(DWRITE_GLYPH_OFFSET, advanceOffset) == 0");
+    static_assert(FIELD_OFFSET(DWRITE_GLYPH_OFFSET, ascenderOffset) == 4, "FIELD_OFFSET(DWRITE_GLYPH_OFFSET, ascenderOffset) == 4");
 
     glyphRun.glyphOffsets = reinterpret_cast<const DWRITE_GLYPH_OFFSET *>(m_pGlyphOffsets);
 
@@ -929,7 +929,7 @@ CGlyphRunResource::CreateRealization(
     // Returning realization - note that reference is transferred to out argument.
     *ppRealization = pRealization;
     pRealization = NULL; 
-
+}
 Cleanup:
     ReleaseInterface(pRealization);
     ReleaseInterface(pIDWriteGlyphRunAnalysis);
@@ -959,12 +959,12 @@ Cleanup:
 // The exception to the above is when fAnimationQuality is true and we are in Ideal mode.  In this case, DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC is used.
 //============================================================================================================================
 void
-CGlyphRunResource::GetDWriteRenderingMode(__in IDWriteFontFace *pIDWriteFontFace,
+CGlyphRunResource::GetDWriteRenderingMode(_In_ IDWriteFontFace *pIDWriteFontFace,
                                           MilTextRenderingMode::Enum textRenderingMode,
                                           bool fAnimationQuality,
                                           float scaleFactor,
-                                          __in const DisplaySettings *pDisplaySettings,                                    
-                                          __out DWRITE_RENDERING_MODE *pDWriteRenderingMode
+                                          _In_ const DisplaySettings *pDisplaySettings,                                    
+                                          _Out_ DWRITE_RENDERING_MODE *pDWriteRenderingMode
                                           )
 {
     if (textRenderingMode == MilTextRenderingMode::Aliased 
@@ -1052,7 +1052,7 @@ CGlyphRunResource::GetDWriteRenderingMode(__in IDWriteFontFace *pIDWriteFontFace
 //
 //------------------------------------------------------------------------------
 void 
-CGlyphRunResource::PurgeOldEntries(__in DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray)
+CGlyphRunResource::PurgeOldEntries(_In_ DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray)
 {
     const UINT minimumEntriesForPurge = 4;
 
@@ -1104,14 +1104,14 @@ CGlyphRunResource::PurgeOldEntries(__in DynArrayIA <CGlyphRunRealization*, 2> *p
 //------------------------------------------------------------------------------
 void 
 CGlyphRunResource::FindMatchingRealization(
-    __in const DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray,
+    _In_ const DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray,
     bool fUseLastFulfilledScale,
     float desiredScaleX,
     float desiredScaleY,
-    __out double *pMatchQuality,
-    __out bool *pFoundExactMatch,
-    __out bool *pFoundMatch,
-    __out UINT *pFoundIndex
+    _Out_ double *pMatchQuality,
+    _Out_ bool *pFoundExactMatch,
+    _Out_ bool *pFoundMatch,
+    _Out_ UINT *pFoundIndex
     )
 {
     double matchQuality = 0.0;
@@ -1187,10 +1187,10 @@ CGlyphRunResource::FindMatchingRealization(
 //------------------------------------------------------------------------------
 double
 CGlyphRunResource::InspectScaleQuality(
-    __in double scaleX1,
-    __in double scaleX2,
-    __in double scaleY1,
-    __in double scaleY2
+    _In_ double scaleX1,
+    _In_ double scaleX2,
+    _In_ double scaleY1,
+    _In_ double scaleY2
     )
 {
     // For given pair (a,b) we need a function that equals to 1
@@ -1259,7 +1259,7 @@ CGlyphRunResource::ShouldUseGeometry(
 
     Assert(m_pIDWriteFont);
     DWRITE_RENDERING_MODE renderingMode;
-
+{
     IFC(CDWriteFontFaceCache::GetFontFace(m_pIDWriteFont, &pIDWriteFontFace));
 
     IFC(pIDWriteFontFace->GetRecommendedRenderingMode(
@@ -1282,7 +1282,7 @@ CGlyphRunResource::ShouldUseGeometry(
     // If glyph run size is big, then use geometry.
     // If it is small, use bitmaps 
     hr = (fShouldUseGeometry && (m_pGeometry != NULL)) ? S_OK : E_FAIL;
-
+}
 Cleanup:
     ReleaseInterface(pIDWriteFontFace);
     return SUCCEEDED(hr);
@@ -1470,7 +1470,7 @@ CGlyphRunResource::GetBounds(
 
 float
 CGlyphRunResource::SnapToScaleGrid(
-    __in double x)
+    _In_ double x)
 {
     // check for extreme values
     int a = 0;
@@ -1517,10 +1517,10 @@ CGlyphRunResource::SnapToScaleGrid(
 //
 //------------------------------------------------------------------------------
 CGlyphRunRealization::CGlyphRunRealization(
-    __in float scaleX,
-    __in float scaleY,
-    __in bool fAnimationQuality,
-    __in CMilSlaveGlyphCache *pGlyphCacheSlave
+    _In_ float scaleX,
+    _In_ float scaleY,
+    _In_ bool fAnimationQuality,
+    _In_ CMilSlaveGlyphCache *pGlyphCacheSlave
     )
 {
     m_scaleX     = scaleX;
@@ -1544,7 +1544,7 @@ CGlyphRunRealization::CGlyphRunRealization(
 //------------------------------------------------------------------------------
 void
 CGlyphRunRealization::SetAnalysis(
-    __in IDWriteGlyphRunAnalysis *pIDWriteGlyphRunAnalysis
+    _In_ IDWriteGlyphRunAnalysis *pIDWriteGlyphRunAnalysis
     )
 {
     Assert(m_pIDWriteGlyphRunAnalysis == NULL);
@@ -1669,7 +1669,7 @@ CGlyphRunRealization::SetSWGlyphRun(CSWGlyphRun *pRun)
 //
 //------------------------------------------------------------------------------
 HRESULT 
-CGlyphRunRealization::EnsureValidAlphaMap(__in const EnhancedContrastTable *pECT)
+CGlyphRunRealization::EnsureValidAlphaMap(_In_ const EnhancedContrastTable *pECT)
 {
     HRESULT hr = S_OK;
 
@@ -1840,8 +1840,8 @@ HRESULT
 CGlyphRunRealization::RealizeAlphaBoundsAndTextures(
     DWRITE_TEXTURE_TYPE textureType, 
     __in_opt const EnhancedContrastTable *pECT,
-    __out UINT32 *pTextureSize,
-    __out RECT *pBoundingBox,
+    _Out_ UINT32 *pTextureSize,
+    _Out_ RECT *pBoundingBox,
     __deref_out_ecount_opt(*pTextureSize) BYTE **pAlphaMap
     )
 {
@@ -1955,8 +1955,8 @@ Cleanup:
 //
 //------------------------------------------------------------------------------
 HRESULT CGlyphRunResource::CDWriteFontFaceCache::GetFontFace(
-    __in IDWriteFont *pFont,
-    __out IDWriteFontFace **ppFontFace
+    _In_ IDWriteFont *pFont,
+    _Out_ IDWriteFontFace **ppFontFace
     )
 {
     HRESULT hr = S_OK;
@@ -2033,8 +2033,8 @@ void CGlyphRunResource::CDWriteFontFaceCache::Reset()
 //
 //------------------------------------------------------------------------------
 HRESULT CGlyphRunResource::CDWriteFontFaceCache::AddFontFaceToCache(
-    __in IDWriteFont *pFont,
-    __out IDWriteFontFace **ppFontFace
+    _In_ IDWriteFont *pFont,
+    _Out_ IDWriteFontFace **ppFontFace
     )
 {
     HRESULT hr = S_OK;

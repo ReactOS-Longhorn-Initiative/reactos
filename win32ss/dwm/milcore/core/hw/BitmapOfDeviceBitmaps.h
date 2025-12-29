@@ -56,12 +56,12 @@ public:
         __deref_out_ecount(1) IWGXBitmapLock **ppILock
         );
 
-    // IWGXBitmap overrides.
+    // IWGXBitmap /* override */s.
 
     // Distinguishes between bitmaps with full source, no source, and
     // placeholder source for shared surfaces
 
-    override STDMETHODIMP_(SourceState::Enum) SourceState() const
+    STDMETHODIMP_(SourceState::Enum) SourceState() const
     {
         return SourceState::DeviceBitmap;
     };
@@ -93,8 +93,8 @@ public:
         );
 
     virtual bool TryCreateDependentDeviceColorSource(
-        __in const LUID &luidNewDevice,
-        __in CHwBitmapCache *pNewCache
+        _In_ const LUID &luidNewDevice,
+        _In_ CHwBitmapCache *pNewCache
         );
 
     __out_opt CHwDeviceBitmapColorSource *GetDeviceColorSourceNoRef();

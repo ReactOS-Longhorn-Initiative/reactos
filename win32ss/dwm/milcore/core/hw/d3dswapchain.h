@@ -78,7 +78,7 @@ public:
 
     virtual HRESULT ReleaseDC(
         __in_range(<, this->m_cBackBuffers) UINT iBackBuffer,
-        __in HDC hdcBackBuffer
+        _In_ HDC hdcBackBuffer
         ) const;  
 
 #if DBG

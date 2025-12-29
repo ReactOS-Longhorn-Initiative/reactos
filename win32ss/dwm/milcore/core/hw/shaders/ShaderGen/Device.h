@@ -57,7 +57,7 @@ private:
     STDMETHOD(GetSwapChain)(THIS_ UINT iSwapChain,IDirect3DSwapChain9** pSwapChain);
     STDMETHOD_(UINT, GetNumberOfSwapChains)(THIS);
     STDMETHOD(Reset)(THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters);
-    STDMETHOD(Present)(THIS_ CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
+    STDMETHOD(Present)(THIS_ CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindow/* override */,CONST RGNDATA* pDirtyRegion);
     STDMETHOD(GetBackBuffer)(THIS_ UINT iSwapChain,UINT iBackBuffer,D3DBACKBUFFER_TYPE Type,IDirect3DSurface9** ppBackBuffer);
     STDMETHOD(GetRasterStatus)(THIS_ UINT iSwapChain,D3DRASTER_STATUS* pRasterStatus);
     STDMETHOD(SetDialogBoxMode)(THIS_ BOOL bEnableDialogs);
@@ -161,7 +161,7 @@ private:
     STDMETHOD(CreateQuery)(THIS_ D3DQUERYTYPE Type,IDirect3DQuery9** ppQuery);
     STDMETHOD(SetConvolutionMonoKernel)(THIS_ UINT width,UINT height,float* rows,float* columns);
     STDMETHOD(ComposeRects)(THIS_ IDirect3DSurface9* pSrc,IDirect3DSurface9* pDst,IDirect3DVertexBuffer9* pSrcRectDescs,UINT NumRects,IDirect3DVertexBuffer9* pDstRectDescs,D3DCOMPOSERECTSOP Operation,int Xoffset,int Yoffset);
-    STDMETHOD(PresentEx)(THIS_ CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion,DWORD dwFlags,IDirect3DSurface9 * pSourceSurfaceOverride);
+    STDMETHOD(PresentEx)(THIS_ CONST RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindow/* override */,CONST RGNDATA* pDirtyRegion,DWORD dwFlags,IDirect3DSurface9 * pSourceSurface/* override */);
     STDMETHOD(GetGPUThreadPriority)(THIS_ UINT *pPriority);
     STDMETHOD(SetGPUThreadPriority)(THIS_ UINT Priority);
     STDMETHOD(WaitForVBlank)(THIS_ UINT iSwapChain);

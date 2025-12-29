@@ -68,7 +68,7 @@ CHwSurfaceRenderTarget::CHwSurfaceRenderTarget(
 
 #if DBG_STEP_RENDERING
     m_pDisplayRTParent = NULL;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 }
 
 //+----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ CHwSurfaceRenderTarget::~CHwSurfaceRenderTarget()
 
 #if DBG_STEP_RENDERING
     Assert(m_pDisplayRTParent == NULL);
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 }
 
@@ -837,7 +837,7 @@ CHwSurfaceRenderTarget::SoftwareFillPath(
 
     CMILBrush *pBrushNoRef = NULL;
     IMILEffectList *pIEffectNoRef = NULL;
-
+{
     //
     // Realize the brush again for SW fallback
     //
@@ -884,7 +884,7 @@ CHwSurfaceRenderTarget::SoftwareFillPath(
         m_uWidth,
         m_uHeight
         ));
-
+}
 Cleanup:
     // Should SW fallback class use AddRef/Release
     //ReleaseInterface(pswFallback);
@@ -1311,7 +1311,7 @@ CHwSurfaceRenderTarget::DrawPathInternal(
     Assert(pContextState);
     ENTER_DEVICE_FOR_SCOPE(*m_pD3DDevice);
     ENTER_USE_CONTEXT_FOR_SCOPE(*m_pD3DDevice);
-
+{
     //
     // Now that we have entered device scope, make sure render target is viable
     // for rendering.  Mostly this means that we haven't noticed a mode change
@@ -1420,7 +1420,7 @@ CHwSurfaceRenderTarget::DrawPathInternal(
         *pmatShapeToDevice
         );
 #endif
-
+    }
 Cleanup:
 
     // Some failure HRESULTs should only cause the primitive
@@ -1588,7 +1588,7 @@ DbgReinterpretDeviceAsShape(
     __in_ecount(1) const CRectF<CoordinateSpace::Device> &rc
     )
 {
-    C_ASSERT(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Shape>));
+    static_assert(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Shape>), "sizeof(rc) == sizeof(CRectF<CoordinateSpace::Shape>)");
     return reinterpret_cast<const CRectF<CoordinateSpace::Shape> &>(rc);
 }
 
@@ -1869,7 +1869,7 @@ CHwSurfaceRenderTarget::SoftwareDrawGlyphs(
     FLOAT flEffectAlpha;
 
     ENTER_USE_CONTEXT_FOR_SCOPE(*m_pD3DDevice);
-
+{
     //
     // Realize the brush again for SW fallback
     //
@@ -1924,7 +1924,7 @@ CHwSurfaceRenderTarget::SoftwareDrawGlyphs(
         m_uWidth,
         m_uHeight
         ));
-
+    }
 Cleanup:
     
     RRETURN(hr);
@@ -1955,7 +1955,7 @@ CHwSurfaceRenderTarget::DrawGlyphs(
     //
 
     bool fTargetSupportsClearType = m_forceClearType || !HasAlpha();
-
+    {
     if (!IsValid())
     {
         Assert(hr == S_OK);
@@ -2077,7 +2077,7 @@ CHwSurfaceRenderTarget::DrawGlyphs(
     {
         hr = WGXERR_DEVICECANNOTRENDERTEXT;
     }
-
+}
 Cleanup:
     
     if (   hr == WGXERR_DEVICECANNOTRENDERTEXT
@@ -2123,7 +2123,7 @@ CHwSurfaceRenderTarget::CreateRenderTargetBitmap(
     HRESULT hr = S_OK;
 
     UNREFERENCED_PARAMETER(pActiveDisplays);
-    
+    {
     Assert(ppIRenderTargetBitmap);
 
     Assert(m_pD3DDevice);
@@ -2242,6 +2242,7 @@ CHwSurfaceRenderTarget::CreateRenderTargetBitmap(
             DBG_STEP_RENDERING_COMMA_PARAM(m_pDisplayRTParent)
             ));
     }
+    }
 
 Cleanup:
     RRETURN(hr);
@@ -2269,7 +2270,7 @@ HRESULT CHwSurfaceRenderTarget::BeginLayerInternal(
 
     ENTER_DEVICE_FOR_SCOPE(*m_pD3DDevice);
     ENTER_USE_CONTEXT_FOR_SCOPE(*m_pD3DDevice);
-
+{
     if (!IsValid())
     {
         Assert(hr == S_OK);
@@ -2363,7 +2364,7 @@ HRESULT CHwSurfaceRenderTarget::BeginLayerInternal(
                 ));
         }
     }
-
+}
 Cleanup:
     EventWriteLayerEventEnd();
 
@@ -2409,8 +2410,8 @@ HRESULT CHwSurfaceRenderTarget::EndLayerInternal(
     CHwRasterizer *pHwRasterizer = NULL;
     IGeometryGenerator *pIGeometryGenerator = NULL;
     CDispensableBuffer<kMaxTessellatorSize, 1> localBuffer;
-
     ENTER_USE_CONTEXT_FOR_SCOPE(*m_pD3DDevice);
+{
 
     CShape *pScratchFill = m_pD3DDevice->GetScratchFillShape();
 
@@ -2745,6 +2746,7 @@ HRESULT CHwSurfaceRenderTarget::EndLayerInternal(
     }
 
     HW_DBG_RENDERING_STEP(EndLayer);
+}
 
 
 Cleanup:
@@ -3410,7 +3412,7 @@ CHwSurfaceRenderTarget::PopulateDestinationTexture(
 {
     HRESULT hr = S_OK;
     IDirect3DSurface9 *pD3DSurface = NULL;
-
+{
     ENTER_USE_CONTEXT_FOR_SCOPE(*m_pD3DDevice);
 
     Assert(prcSource->left != prcSource->right);
@@ -3436,7 +3438,7 @@ CHwSurfaceRenderTarget::PopulateDestinationTexture(
         prcDest,
         d3dFilter
         ));
-
+}
 Cleanup:
     ReleaseInterface(pD3DSurface);
     

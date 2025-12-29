@@ -45,7 +45,7 @@ public:
     // CMILCacheableResource methods
     //
 
-    bool IsValid() const override
+    bool IsValid() const /* override */
     {
         return true;
     }

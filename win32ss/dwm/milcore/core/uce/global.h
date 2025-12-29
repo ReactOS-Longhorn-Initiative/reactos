@@ -22,7 +22,7 @@ extern CMediaControl* g_pMediaControl;
 extern bool s_fRDP;
 extern bool s_fRecordUCE;
 extern bool s_fTRPC;
-extern bool s_fTRPCOverride;
+extern bool s_fTRPC/* override */;
 
 HRESULT UpdateSchedulerSettings(
     int nPriority

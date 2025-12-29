@@ -131,11 +131,11 @@ SetLineCurrentValue(
     __in_ecount(1) const MilPoint2D *pBasePoint0Value,
         // Base value of the first line point
     __in_ecount_opt(1) CMilSlaveResource *pPoint0Animations,
-        // Optional animations that override the base Point0 value
+        // Optional animations that /* override */ the base Point0 value
     __in_ecount(1) const MilPoint2D *pBasePoint1Value,
         // Base value of the second line point    
     __in_ecount_opt(1) CMilSlaveResource *pPoint1Animations, 
-        // Optional animations that override the base Point0 value    
+        // Optional animations that /* override */ the base Point0 value    
     __inout_ecount(1) CLine *pLineCurrentValue
         // Shape to which the output current value is set.
     )
@@ -188,15 +188,15 @@ GetRectangleCurrentValue(
     __in_ecount(1) const MilPointAndSizeD *pBaseRectangleValue,
         // Base value of the rectangle
     __in_ecount_opt(1) CMilSlaveResource *pRectangleAnimations,
-        // Optional animations that override the base rectangle value    
+        // Optional animations that /* override */ the base rectangle value    
     DOUBLE rRadiusXBaseValue, 
         // Base value of the x-radius    
     __in_ecount_opt(1) CMilSlaveResource *pRadiusXAnimations,
-        // Optional animations that override the base x-radius 
+        // Optional animations that /* override */ the base x-radius 
     DOUBLE rRadiusYBaseValue, 
         // Base value of the y-radius        
     __in_ecount_opt(1) CMilSlaveResource *pRadiusYAnimations,   
-        // Optional animations that override the base y-radius     
+        // Optional animations that /* override */ the base y-radius     
     __out_ecount(1) MilPointAndSizeF *pRectCurrentValue,
         // The rectangle's current value    
     __out_ecount(1) FLOAT *pRadiusXCurrentValue,
@@ -261,15 +261,15 @@ AddEllipseCurrentValueToShape(
     __in_ecount(1) const MilPoint2D *pCenterBaseValue,
         // Base value of the center    
     __in_ecount_opt(1) CMilSlaveResource *pCenterAnimations,
-        // Optional animations that override the base center value     
+        // Optional animations that /* override */ the base center value     
     DOUBLE rRadiusXBaseValue, 
         // Base value of the x-radius    
     __in_ecount_opt(1) CMilSlaveResource *pRadiusXAnimations,
-        // Optional animations that override the base x-radius value     
+        // Optional animations that /* override */ the base x-radius value     
     DOUBLE rRadiusYBaseValue, 
         // Base value of the y-radius        
     __in_ecount_opt(1) CMilSlaveResource *pRadiusYAnimations,   
-        // Optional animations that override the base y-radius value        
+        // Optional animations that /* override */ the base y-radius value        
     __inout_ecount(1) CShape *pEllipseShapeCurrentValue
         // Shape to which the output current value is set.        
     )

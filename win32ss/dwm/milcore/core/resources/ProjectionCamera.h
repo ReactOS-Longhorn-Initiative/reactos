@@ -31,12 +31,12 @@ protected:
         : CMilCameraDuce(pComposition) {}
 
 public:
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_PROJECTIONCAMERA || CMilCameraDuce::IsOfType(type);
     }
 
-    override virtual bool ShouldComputeClipPlanes() const
+    /* override */ virtual bool ShouldComputeClipPlanes() const
     {
         // Future Consideration:  - Consider gating computation on Near/Far ratio
         //

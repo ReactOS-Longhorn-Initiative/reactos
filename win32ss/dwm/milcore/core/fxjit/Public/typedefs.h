@@ -45,6 +45,7 @@
 // Win32 defines _WIN32 automatically,
 // but Macintosh doesn't, so if we are using
 // Win32 Functions, we must do it here
+#include <float.h>
 
 #ifdef _MAC
 #ifndef _WIN32
@@ -77,7 +78,7 @@ extern "C" {
 #endif
 
 #ifndef _WCHAR_T_DEFINED
-typedef unsigned short wchar_t;
+//typedef unsigned short wchar_t;
 #define _WCHAR_T_DEFINED
 #endif
 
@@ -411,7 +412,7 @@ typedef const TCHAR *LPCTSTR;
 
 typedef double DOUBLE;
 
-typedef char INT8;
+//typedef char INT8;
 
 typedef unsigned char       UINT8;
 
@@ -547,14 +548,14 @@ typedef unsigned long       ULONG;
         return( (void *)(ULONG_PTR)ul );
     }
 
-    __inline
+    /*__inline
     unsigned long
     PtrToUlong(
         const void  *p
         )
     {
         return((unsigned long) (ULONG_PTR) p );
-    }
+    }*/
 #else
     #ifndef INT_PTR_DEFINED
     typedef _W64 int INT_PTR, *PINT_PTR;
@@ -566,8 +567,12 @@ typedef unsigned long       ULONG;
 
     #define __int3264   __int32
 
+    /*#ifndef PtrToUlong
     #define PtrToUlong( p ) ((ULONG)(ULONG_PTR) (p) )
+    #endif
+    #ifndef UlongToPtr
     #define UlongToPtr( ul ) ((VOID *)(ULONG_PTR)((unsigned long)ul))
+    #endif*/
 #endif
 
 #ifdef __MACINTOSH__
@@ -582,7 +587,7 @@ typedef void *PVOID;
 
 typedef XUINT16 UINT16;
 
-typedef unsigned __int64    DWORDLONG;
+typedef unsigned long long    DWORDLONG;
 
 #define ZeroMemory(pb,cb)           memset((pb),0,(cb))
 #define FillMemory(pb,cb,b)         memset((pb),(b),(cb))
@@ -1263,7 +1268,7 @@ __success(return!=0)
 BOOL
 WINAPI
 GetComputerNameExW (
-    __in    COMPUTER_NAME_FORMAT NameType,
+    _In_    COMPUTER_NAME_FORMAT NameType,
     __out_ecount_part(*nSize, (*nSize + 1)) LPWSTR lpBuffer,
     __inout LPDWORD nSize
     );
@@ -1340,9 +1345,8 @@ typedef OLECHAR *BSTR;
 typedef const OLECHAR *LPCOLESTR;
 
 // Definitions for XMLLite
-#define __assume(p)
 #define AssertSz(x,y)
-#define SIZE_T size_t
+//#define SIZE_T size_t
 #define HINSTANCE void *
 #define EXCEPTION_POINTERS int
 #define DISP_E_OVERFLOW 0x8002000AL
@@ -1357,7 +1361,7 @@ EXTERN_C const IID IID_IUnknown;
     {
     public:
         virtual __checkReturn HRESULT STDMETHODCALLTYPE QueryInterface(
-            __in REFIID riid,
+            _In_ REFIID riid,
             __deref_out void **ppvObject) = 0;
 
         virtual ULONG STDMETHODCALLTYPE AddRef( void) = 0;
@@ -1366,7 +1370,7 @@ EXTERN_C const IID IID_IUnknown;
     };
 
 typedef IUnknown *LPUNKNOWN;
-#endif __INC_XCPUNKNWN__
+#endif /* __INC_XCPUNKNWN__ */
 
 // END Definitions for XMLLite
 

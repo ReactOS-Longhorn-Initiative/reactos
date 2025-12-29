@@ -375,7 +375,7 @@ CTileBrushUtils::GetIntermediateBaseTile(
         // User-specified base tile coordinates
     __in_ecount_opt(1) const BrushCachingParameters *pCachingParams,
         // Optional reuse parameters for brush-caching.  
-    __in MilTileMode::Enum tileMode,
+    _In_ MilTileMode::Enum tileMode,
         // Wrapping mode used to create the intermediate render target
     __out_ecount(1) IWGXBitmapSource **ppBaseTile,
         // Rasterized base image to be tiled

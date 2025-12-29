@@ -34,7 +34,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_BRUSH;
     }
@@ -110,7 +110,7 @@ public:
     //  Synopsis:
     //      Frees realized resource that shouldn't last longer than a single
     //      primitive.  That is currently true for intermediate RTs.  It is up
-    //      to derivatives to override and free.
+    //      to derivatives to /* override */ and free.
     //
     //--------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ public:
 
 protected:
 
-     override BOOL OnChanged(
+     /* override */ BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         )

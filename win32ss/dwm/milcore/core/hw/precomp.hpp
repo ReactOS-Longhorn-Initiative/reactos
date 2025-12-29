@@ -12,7 +12,7 @@
 //
 //------------------------------------------------------------------------------
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 // system includes
 
 #include "std.h"
@@ -24,60 +24,60 @@
 
 // debug output, allocator, etc.
 
-#include "common\common.h"
+#include "common/common.h"
 
 // Format converter, palette etc.
 
-#include "scanop\scanop.h"
+#include "scanop/scanop.h"
 
 // common glyph rendering classes
 
-#include "glyph\glyph.h"
+#include "glyph/glyph.h"
 
 // geometry classes
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
 // COMBase
 
-#include "api\api_include.h"
+#include "api/api_include.h"
 
 // imaging and effects classes
 
-#include "api\api_codecfactory.h"
+#include "api/api_codecfactory.h"
 
 // common render target classes and methods
 
-#include "targets\targets.h"
+#include "targets/Targets.h"
 
 // software classes
 
-#include "sw\sw.h"
+#include "sw/sw.h"
 
 // externals used in common glyph rendering
 
 // good driver database includes
 
-#include "meta\meta.h"
+#include "meta/meta.h"
 
 #include "hw.h"
-#include "av\av.h"
+#include "av/av.h"
 
-#include "resources\resources.h"
+#include "resources/resources.h"
 
 #include "d3dregistry.h"
 
 #include "HwTexturedColorSourceBrush.h"
 #include "D3DTextureSurface.h"
 
-#include "D3DSwapChainWithSwDC.h"
+#include "d3dswapchainwithswdc.h"
 
-#include "control\util\control.h"
+#include "control/util/control.h"
 
-#include "shaders.h"
+#include "Shaders.h"
 
 
-#include "..\common\effects\effectlist.h"
+#include "../common/effects/effectlist.h"
 
 #include "HwDeviceBitmapColorSource.h"
 #include "HwBitBltDeviceBitmapColorSource.h"

@@ -105,7 +105,7 @@ public:
     HRESULT Present(
         __in_ecount(1) CMILSurfaceRect const *prcSource,
         __in_ecount(1) CMILSurfaceRect const *prcDest,
-        __in RGNDATA *pDirtyRegion
+        _In_ RGNDATA *pDirtyRegion
         );
 
     void FreeResources(
@@ -139,7 +139,7 @@ private:
         __in_ecount(1) const BITMAPINFO *pbmi
         );
     
-    HRESULT CSwPresenter32bppGDI::RemoveForegroundWindowScrollArtifacts(
+    HRESULT RemoveForegroundWindowScrollArtifacts(
         __in_ecount(1) HDC hdcFront
         );
 

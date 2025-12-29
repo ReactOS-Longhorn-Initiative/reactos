@@ -10,7 +10,7 @@
 //  Description:
 //      Contains CD3DSwapChainWithSwDC implementation
 //
-//      This class overrides the GetDC method of CD3DSwapChain to implement
+//      This class /* override */s the GetDC method of CD3DSwapChain to implement
 //      GetDC using GetRenderTargetData. This approach acheived phenominal perf
 //      wins in WDDM.
 //
@@ -30,7 +30,7 @@
 #pragma warning( disable : 4355 )
 
 CD3DSwapChainWithSwDC::CD3DSwapChainWithSwDC(
-    __in HDC hdcPresentVia,
+    _In_ HDC hdcPresentVia,
     __in_range(>, 0) /*__out_range(==, this->m_cBackBuffers)*/ UINT cBackBuffers,
     __inout_ecount(1) IDirect3DSwapChain9 *pD3DSwapChain
     ) : CD3DSwapChain(
@@ -84,10 +84,12 @@ CD3DSwapChainWithSwDC::Init(
     )
 {
     HRESULT hr = S_OK;
+    MilPixelFormat::Enum milFormat;
 
     // The base class must be initialized first
     IFC(CD3DSwapChain::Init(pResourceManager));
 
+   {
     Assert(m_cBackBuffers >= 1);
     D3DSURFACE_DESC const &surfDesc = m_rgBackBuffers[0]->Desc();
 
@@ -119,7 +121,7 @@ CD3DSwapChainWithSwDC::Init(
         0
         ));
 
-    MilPixelFormat::Enum milFormat = D3DFormatToPixelFormat(surfDesc.Format, TRUE);
+    milFormat = D3DFormatToPixelFormat(surfDesc.Format, TRUE);
 
     IFC(HrCalcDWordAlignedScanlineStride(surfDesc.Width, milFormat, OUT m_stride));
 
@@ -134,6 +136,7 @@ CD3DSwapChainWithSwDC::Init(
         m_hdcCopiedBackBuffer,
         m_hbmpCopiedBackBuffer
         ));
+   }
     
 Cleanup:
     RRETURN(hr);
@@ -200,7 +203,7 @@ Cleanup:
 HRESULT
 CD3DSwapChainWithSwDC::ReleaseDC(
     /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
-    __in HDC hdcBackBuffer
+    _In_ HDC hdcBackBuffer
     ) const
 {
     //

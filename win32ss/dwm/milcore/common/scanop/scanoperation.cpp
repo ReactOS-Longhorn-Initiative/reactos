@@ -160,14 +160,14 @@ ScanOpFunc GetOp_SrcOver_or_SrcOverAL(
 
         case MilPixelFormat::BGR32bpp:    // See Notes above
         case MilPixelFormat::PBGRA32bpp:
-            if (CCPUInfo::HasSSE2())    
+            //if (CCPUInfo::HasSSE2())    
+            //{
+            //    return SrcOverAL_32bppPARGB_32bppPARGB_SSE2;
+            //}
+            //else
             {
-                return SrcOverAL_32bppPARGB_32bppPARGB_SSE2;
-            }
-            else
-            {
-                return CCPUInfo::HasMMX() ? 
-                    SrcOverAL_32bppPARGB_32bppPARGB_MMX :
+                return /*CCPUInfo::HasMMX() ? 
+                    //SrcOverAL_32bppPARGB_32bppPARGB_MMX :*/
                     SrcOverAL_32bppPARGB_32bppPARGB;
             }
 
@@ -198,14 +198,14 @@ ScanOpFunc GetOp_SrcOver_or_SrcOverAL(
         {
         case MilPixelFormat::RGB128bppFloat:   // See Notes above
         case MilPixelFormat::PRGBA128bppFloat:
-            if (CCPUInfo::HasSSE2())    
-            {
-                return SrcOver_128bppPABGR_128bppPABGR_SSE2;
-            }
-            else
-            {
+            //if (CCPUInfo::HasSSE2())    
+            //{
+            //    return SrcOver_128bppPABGR_128bppPABGR_SSE2;
+            //}
+           // else
+            //{
                 return SrcOver_128bppPABGR_128bppPABGR;
-            }
+            //}
 
         default:
             return NULL;

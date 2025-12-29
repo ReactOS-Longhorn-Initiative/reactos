@@ -68,12 +68,12 @@ public:
     {
         if (pPen)
         {
-            m_fOverrideThePen = true;
+            m_f/* override */ThePen = true;
             m_oPenGeom = pPen->GetGeometry();
         }
         else
         {
-            m_fOverrideThePen = false;
+            m_f/* override */ThePen = false;
         }
 
     }
@@ -117,9 +117,9 @@ public:
         return m_rInset;
     }
 
-    bool OverridesThePen() const
+    bool /* override */sThePen() const
     {
-        return m_fOverrideThePen;
+        return m_f/* override */ThePen;
     }
 
     __outro_ecount(1) const CPenGeometry &GetPenGeometry() const
@@ -160,9 +160,9 @@ public:
     }
 
     HRESULT GetExtents(
-        __in REAL rOwnersThickness,
+        _In_ REAL rOwnersThickness,
             // The extents of the owner pen
-        __in REAL rOwnerExtents,
+        _In_ REAL rOwnerExtents,
             // The owner's extents
         __out_ecount(1) REAL &rExtents) const;
             // The extents
@@ -177,7 +177,7 @@ private:
 
 protected:
     CShape       m_oPath;           // The line shape's geometry
-    bool         m_fOverrideThePen; // = true if we use our own pen for stroking
+    bool         m_f/* override */ThePen; // = true if we use our own pen for stroking
     CPenGeometry m_oPenGeom;        // Geometry of the pen used for the above
     bool         m_fStroke;         // Stroke the shape if true
     bool         m_fFill;           // Fill the shape if true
@@ -237,7 +237,7 @@ public:
         __out_ecount(1) GpReal &rAt);
             // Parameter where a segment is to be trimmed
 
-    // Figure task overrides
+    // Figure task /* override */s
     virtual HRESULT DoLine(
         __in_ecount(1) const MilPoint2F &ptEnd);
             // The line's end point
