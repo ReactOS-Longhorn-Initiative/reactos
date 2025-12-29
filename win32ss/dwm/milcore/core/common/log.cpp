@@ -87,7 +87,7 @@ HRESULT CLogger::Initialize()
     return hr;
 }
 
-HRESULT CLogger::Print(__in PCSTR pFormat, ...)
+HRESULT CLogger::Print(_In_ PCSTR pFormat, ...)
 {
     HRESULT hr = S_OK;
 
@@ -173,7 +173,7 @@ HRESULT CLogger::Dump()
     return S_OK;
 }
 
-#endif MIL_LOGGER
+#endif /* MIL_LOGGER */
 
 
 

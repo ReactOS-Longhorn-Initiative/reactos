@@ -418,7 +418,7 @@ CSwBitmapColorSource::SetBitmapAndContext(
         // No Reference held for m_pIBitmapSourceDbg
         //m_pIBitmapSourceDbg->AddRef();
     }
-#endif DBG
+#endif /* DBG */
 
     m_pIBitmapSource = pBitmapSource;
     // No Reference held for m_pIBitmapSource

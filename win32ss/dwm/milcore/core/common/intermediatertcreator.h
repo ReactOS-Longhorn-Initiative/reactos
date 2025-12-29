@@ -125,7 +125,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override
+        ) /* override */
     {
         UNREFERENCED_PARAMETER(width);
         UNREFERENCED_PARAMETER(height);

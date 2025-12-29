@@ -263,6 +263,7 @@ CHwSolidColorTextureSource::FillTexture()
 {
     HRESULT hr = S_OK;
     D3DLOCKED_RECT d3dRect;
+    DWORD *pdwTexel;
 
     Assert(m_pLockableTexture);
 
@@ -276,7 +277,7 @@ CHwSolidColorTextureSource::FillTexture()
         0
         ));
 
-    DWORD *pdwTexel = reinterpret_cast<DWORD *>(d3dRect.pBits);
+    pdwTexel = reinterpret_cast<DWORD *>(d3dRect.pBits);
 
 
     *pdwTexel = Convert_MilColorF_scRGB_To_Premultiplied_MilColorB_sRGB(&m_color);

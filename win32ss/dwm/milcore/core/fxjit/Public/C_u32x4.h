@@ -123,7 +123,7 @@ public:
     C_u32x4 Shuffle(UINT8 uOrder) const;
     C_u32x4 ReplicateElement(UINT32 uIndex) const
     {
-        WarpAssert(uIndex < 4);
+        //WarpAssert(uIndex < 4);
         UINT8 uOrder = (UINT8)(uIndex * 0x55);
         return Shuffle(uOrder);
     }

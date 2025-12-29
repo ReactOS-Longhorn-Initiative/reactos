@@ -38,8 +38,8 @@ template <
 VOID
 CWatermarkStack<TValue, TMinCapacity, TGrowFactor, TTrimCount>::Initialize()
 {
-    C_ASSERT(TMinCapacity > 0);
-    C_ASSERT(TGrowFactor > 1);
+    static_assert(TMinCapacity > 0, "TMinCapacity > 0");
+    static_assert(TGrowFactor > 1, "TGrowFactor > 1");
 
     m_uSize = 0;
     m_uCapacity = 0;
@@ -78,7 +78,7 @@ HRESULT CWatermarkStack<TValue, TMinCapacity, TGrowFactor, TTrimCount>::Push(
         UINT uNewCapacity = 0, cbOldSize = 0;
 
         // Make sure that the growth factor makes sense.
-        C_ASSERT(TGrowFactor > 1 && TGrowFactor < 32);
+        static_assert(TGrowFactor > 1 && TGrowFactor < 32, "TGrowFactor > 1 && TGrowFactor < 32");
 
         IFC(UIntMult(m_uCapacity, TGrowFactor, &uNewCapacity));
         uNewCapacity = max(uNewCapacity, TMinCapacity);
@@ -226,7 +226,7 @@ VOID CWatermarkStack<TValue, TMinCapacity, TGrowFactor, TTrimCount>::Optimize()
         UINT uNewCapacityGrown = 0;
 
         // Make sure that the growth factor makes sense.
-        C_ASSERT(TGrowFactor > 1 && TGrowFactor < 32);
+        static_assert(TGrowFactor > 1 && TGrowFactor < 32, "TGrowFactor > 1 && TGrowFactor < 32");
 
         MIL_THR(UIntMult(uNewCapacity, TGrowFactor + 1, &uNewCapacityGrown));
 

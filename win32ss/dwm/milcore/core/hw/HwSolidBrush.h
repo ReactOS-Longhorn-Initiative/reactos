@@ -45,7 +45,7 @@ public:
     }
 
     // AddRef is called by Pipeline builder when this is a color source.
-    override STDMETHOD_(ULONG, AddRef)()
+    STDMETHOD_(ULONG, AddRef)()
     {
         Assert(++m_cRef > 0);
         return 1;
@@ -54,7 +54,7 @@ public:
     // Release is expected by the caller of DeriveHwBrush (which calls
     // CHwBrushPool::GetHwBrush ...) and by Pipeline builder when this
     // is acting as a color source.
-    override STDMETHOD_(ULONG, Release)()
+    STDMETHOD_(ULONG, Release)()
     {
         Assert(m_cRef-- > 0);
         return 0;
@@ -64,9 +64,9 @@ public:
         __in_ecount(1) MilColorF const &color
         );
 
-    override HRESULT SendOperations(
+    HRESULT SendOperations(
         __inout_ecount(1) CHwPipelineBuilder *pBuilder
-        );
+        ) /* override */;
 };
 
 

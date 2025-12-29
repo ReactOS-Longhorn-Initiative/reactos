@@ -26,7 +26,7 @@ MtDefine(CMilSlaveGlyphCache, MILRender, "CMilSlaveGlyphCache");
 //  Synopsis:   Constructor
 //
 //-------------------------------------------------------------------------
-CMilSlaveGlyphCache::CMilSlaveGlyphCache(__in CComposition *pComposition)
+CMilSlaveGlyphCache::CMilSlaveGlyphCache(_In_ CComposition *pComposition)
 { 
     // Allow for cache to expand up to 1MB of glyph bitmaps
     m_cMaximumBitmapStorageSize = 1000000;
@@ -46,7 +46,7 @@ CMilSlaveGlyphCache::CMilSlaveGlyphCache(__in CComposition *pComposition)
 //
 //-------------------------------------------------------------------------
 HRESULT
-CMilSlaveGlyphCache::Create(__in CComposition *pComposition, __out CMilSlaveGlyphCache **ppGlyphCache)
+CMilSlaveGlyphCache::Create(_In_ CComposition *pComposition, _Out_ CMilSlaveGlyphCache **ppGlyphCache)
 {
     HRESULT hr = S_OK;
     IUnknown *pIUnknown = NULL;
@@ -56,12 +56,12 @@ CMilSlaveGlyphCache::Create(__in CComposition *pComposition, __out CMilSlaveGlyp
 
     IFC(g_DWriteLoader.DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED, 
-            __uuidof(IDWriteFactory),
+            IID_IDWriteFactory,
             &pIUnknown
             ));
 
     IFC(pIUnknown->QueryInterface(
-            __uuidof(IDWriteFactory),
+            IID_IDWriteFactory,
             reinterpret_cast<void**>(&(pGlyphCache->m_pDWriteFactory))
             ));                
 
@@ -205,7 +205,7 @@ CMilSlaveGlyphCache::GetCurrentRealizationFrame()
 //-------------------------------------------------------------------------
 
 HRESULT 
-CMilSlaveGlyphCache::RequestSubsequentPass(__in CGlyphRunResource *pGlyphRunResource)
+CMilSlaveGlyphCache::RequestSubsequentPass(_In_ CGlyphRunResource *pGlyphRunResource)
 {
     HRESULT hr = S_OK;
     UINT index = FindAnimatingGlyphRunIndex(pGlyphRunResource);
@@ -238,7 +238,7 @@ Cleanup:
 //
 //-------------------------------------------------------------------------
 void
-CMilSlaveGlyphCache::UnRegisterForSubsequentPass(__in const CGlyphRunResource *pGlyphRunResource)
+CMilSlaveGlyphCache::UnRegisterForSubsequentPass(_In_ const CGlyphRunResource *pGlyphRunResource)
 {
     UINT index = FindAnimatingGlyphRunIndex(pGlyphRunResource);
     if (index != UINT_MAX)
@@ -263,7 +263,7 @@ CMilSlaveGlyphCache::UnRegisterForSubsequentPass(__in const CGlyphRunResource *p
 //
 //-------------------------------------------------------------------------
 void 
-CMilSlaveGlyphCache::AddRealization(__in CGlyphRunRealization *pRealization, UINT32 textureSize)
+CMilSlaveGlyphCache::AddRealization(_In_ CGlyphRunRealization *pRealization, UINT32 textureSize)
 {
     m_totalGlyphBitmapStorageSize += textureSize;
 
@@ -283,7 +283,7 @@ CMilSlaveGlyphCache::AddRealization(__in CGlyphRunRealization *pRealization, UIN
 //
 //-------------------------------------------------------------------------
 void
-CMilSlaveGlyphCache::RemoveRealization(__in CGlyphRunRealization *pRealization, UINT32 textureSize)
+CMilSlaveGlyphCache::RemoveRealization(_In_ CGlyphRunRealization *pRealization, UINT32 textureSize)
 {
     if (pRealization)
     {
@@ -302,7 +302,7 @@ CMilSlaveGlyphCache::RemoveRealization(__in CGlyphRunRealization *pRealization, 
 //
 //-------------------------------------------------------------------------
 UINT
-CMilSlaveGlyphCache::FindAnimatingGlyphRunIndex(__in const CGlyphRunResource *pGlyphRunResource) const
+CMilSlaveGlyphCache::FindAnimatingGlyphRunIndex(_In_ const CGlyphRunResource *pGlyphRunResource) const
 {
     for (UINT i = 0; i < m_animatingGlyphRunArray.GetCount(); i++)
     {   

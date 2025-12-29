@@ -36,7 +36,7 @@ protected:
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_AXISANGLEROTATION3D || CMilRotation3DDuce::IsOfType(type);
     }
@@ -47,9 +47,9 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override HRESULT GetRealization(__out_ecount(1) CMILMatrix *pRealization);
+    /* override */ HRESULT GetRealization(__out_ecount(1) CMILMatrix *pRealization);
 
     HRESULT SynchronizeAnimatedFields();
 

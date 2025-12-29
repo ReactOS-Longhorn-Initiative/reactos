@@ -37,7 +37,7 @@ namespace DWMAPI
 {
     HRESULT Load();
     
-    FARPROC GetProcAddress(__in PCSTR pProcName);
+    FARPROC GetProcAddress(_In_ PCSTR pProcName);
 
     bool CheckOS();
 

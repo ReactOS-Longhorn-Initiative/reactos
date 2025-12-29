@@ -11,13 +11,13 @@
 
 #include "precomp.hpp"
 
-void WINAPI
+EXTERN_C void WINAPI
 RenderOptions_ForceSoftwareRenderingModeForProcess(BOOL fForce)
 {
     RenderOptions::ForceSoftwareRenderingForProcess(fForce);
 }
 
-BOOL WINAPI
+EXTERN_C BOOL WINAPI
 RenderOptions_IsSoftwareRenderingForcedForProcess()
 {
     return RenderOptions::IsSoftwareRenderingForcedForProcess();

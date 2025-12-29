@@ -47,7 +47,7 @@
 //      CArea::ProcessCurrentVertex
 //
 //  Synopsis:
-//      Process the current vertex - CScanner method override
+//      Process the current vertex - CScanner method /* override */
 //
 //------------------------------------------------------------------------------
 HRESULT
@@ -69,7 +69,7 @@ CArea::ProcessCurrentVertex(
 //      CArea::ProcessTheJunction
 //
 //  Synopsis:
-//      Process all the tails of this junction - CScanner method override
+//      Process all the tails of this junction - CScanner method /* override */
 //
 //  Notes:
 //      ProcessCurrentVertex is never called on the last (tail) vertex of a

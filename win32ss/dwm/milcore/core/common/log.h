@@ -33,7 +33,7 @@ public:
     // location. The format is the same as printf.
     //
 
-    HRESULT Print(__in PCSTR pFormat, ...);
+    HRESULT Print(_In_ PCSTR pFormat, ...);
 
     //
     // Dump the log to a file.
@@ -72,6 +72,6 @@ protected:
 
 extern CLogger *g_pLog;
 
-#endif MIL_LOGGER
+#endif /* MIL_LOGGER */
 
 

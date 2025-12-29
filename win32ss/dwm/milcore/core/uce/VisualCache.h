@@ -42,9 +42,9 @@ public:
         return m_pCacheMode;
     }
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const;
 
-    override virtual BOOL OnChanged(
+    /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         );
@@ -55,7 +55,7 @@ public:
 
     void Invalidate(
         bool fFullInvalidate,
-        __in MilRectF const *prcLocalBounds
+        _In_ MilRectF const *prcLocalBounds
         );
 
     bool IsValid() const;
@@ -63,27 +63,27 @@ public:
     void NotifyDeviceLost();
 
     HRESULT Update(
-        __in IRenderTargetInternal* pIRTInternal,
+        _In_ IRenderTargetInternal* pIRTInternal,
         __in_opt CDirtyRegion2 *pDirtyRegion
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
 
     HRESULT Render(
-        __in CDrawingContext *pDC,
-        __in IRenderTargetInternal *pDestRT,
+        _In_ CDrawingContext *pDC,
+        _In_ IRenderTargetInternal *pDestRT,
         float opacity
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
 
     HRESULT GetRenderTargetBitmap (
         __deref_out_opt IMILRenderTargetBitmap ** ppIRTB,
-        __in IRenderTargetInternal *pDestRT
+        _In_ IRenderTargetInternal *pDestRT
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
 
     HRESULT GetBitmapSource (
         __deref_out_opt IWGXBitmapSource ** const ppIBitmapSource,
-        __in IRenderTargetInternal *pDestRT
+        _In_ IRenderTargetInternal *pDestRT
         DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
         );
 
@@ -97,16 +97,16 @@ private:
     void ReleaseDeviceResources();
       
     HRESULT GetRealizationDimensions(
-            __in IRenderTargetInternal *pIRTInternal,
-            __out MilRectF *pBounds
+            _In_ IRenderTargetInternal *pIRTInternal,
+            _Out_ MilRectF *pBounds
             );
     
-    void GetLocalBounds(__out MilRectF *pBounds) const
+    void GetLocalBounds(_Out_ MilRectF *pBounds) const
     {
         *pBounds = m_rcLocalBounds;
     }    
 
-    void GetLocalToSurfaceTransform(__out CMILMatrix *pTransform);
+    void GetLocalToSurfaceTransform(_Out_ CMILMatrix *pTransform);
     
     HRESULT EnsureDisplaySet();
 

@@ -56,7 +56,7 @@ namespace DWMAPI
 
     FARPROC
     GetProcAddress(
-        __in PCSTR pProcName
+        _In_ PCSTR pProcName
         )
     {
         return m_Module.GetProcAddress(pProcName);

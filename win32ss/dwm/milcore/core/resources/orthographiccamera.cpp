@@ -48,7 +48,7 @@ CMilOrthographicCameraDuce::~CMilOrthographicCameraDuce()
 //      any camera animations.
 //
 //------------------------------------------------------------------------------
-/* override */ HRESULT CMilOrthographicCameraDuce::GetProjectionTransform(
+HRESULT CMilOrthographicCameraDuce::GetProjectionTransform(
     const double aspectRatio,
     const float flNearPlaneDistance,
     const float flFarPlaneDistance,
@@ -88,7 +88,7 @@ CMilOrthographicCameraDuce::~CMilOrthographicCameraDuce()
 //      camera's World-to-View transform here.
 //
 //------------------------------------------------------------------------------
-/* override */ HRESULT CMilOrthographicCameraDuce::GetViewTransform(
+HRESULT CMilOrthographicCameraDuce::GetViewTransform(
     __out_ecount(1) CMILMatrix *pViewMatrixOut) const
 {
         HRESULT hr = S_OK;
@@ -121,7 +121,7 @@ CMilOrthographicCameraDuce::~CMilOrthographicCameraDuce()
 //      farPlane)
 //
 //------------------------------------------------------------------------------
-/* override */ HRESULT CMilOrthographicCameraDuce::EnsureClippingPlaneDistance(
+HRESULT CMilOrthographicCameraDuce::EnsureClippingPlaneDistance(
     __inout_ecount(1) float &flNearPlane,
     __inout_ecount(1) float &flFarPlane
     ) const
@@ -236,7 +236,7 @@ CMilOrthographicCameraDuce::~CMilOrthographicCameraDuce()
     RRETURN(S_OK);
 }
 
-/* override */ HRESULT CMilOrthographicCameraDuce::ApplyToContextState(
+HRESULT CMilOrthographicCameraDuce::ApplyToContextState(
     __inout_ecount(1) CContextState *pCtxState,     // Context state to modify
     const float flViewportWidth,
     const float flViewportHeight,

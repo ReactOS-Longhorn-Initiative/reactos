@@ -46,8 +46,8 @@ public:
     //
 
     XRESULT SetConstant(
-        __in INT32 nChannel,
-        __in ConstDef_F constant
+        _In_ INT32 nChannel,
+        _In_ ConstDef_F constant
         );
                  
     //
@@ -55,9 +55,9 @@ public:
     //
 
     XRESULT GetRegister(
-        __in P_u8 *pPixelShaderState, 
-        __in const PSTRRegister *pRegister, 
-        __out C_f32x4 **ppRegisterOut
+        _In_ P_u8 *pPixelShaderState, 
+        _In_ const PSTRRegister *pRegister, 
+        _Out_ C_f32x4 **ppRegisterOut
         );
         
     //
@@ -66,7 +66,7 @@ public:
     //
 
     C_f32x4 *
-    CPixelShaderRegisters::GetColorOutput()
+    GetColorOutput()
     {
         return &(m_colorOutput[0]);
     }
@@ -96,7 +96,7 @@ private:
 //
 //-------------------------------------------------------------------------
 inline INT32 
-IsPredicateFalse(__in const PSTRPredInfo &predicateInfo)
+IsPredicateFalse(_In_ const PSTRPredInfo &predicateInfo)
 {
     return (predicateInfo.PredicateReg.GetRegType() == PSTRREG_PREDICATETRUE 
             && predicateInfo.bInvertPredicate == TRUE);
@@ -112,8 +112,8 @@ IsPredicateFalse(__in const PSTRPredInfo &predicateInfo)
 //-------------------------------------------------------------------------
 inline INT32
 IsMasked(
-    __in UINT32 i,
-    __in UINT8 writeMask,
+    _In_ UINT32 i,
+    _In_ UINT8 writeMask,
     __in_opt const PSTRPredInfo *pPredicateInfo
     )
 {

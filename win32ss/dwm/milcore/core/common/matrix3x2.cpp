@@ -76,14 +76,14 @@ void MILMatrix3x2::Transform2DBounds(
     pt[3].X = srcRect.right;
     pt[3].Y = srcRect.bottom;
 
-    TransformPoints(&pt[0], &pt[0], ARRAYSIZE(pt));
+    TransformPoints(&pt[0], &pt[0], ARRAY_SIZE(pt));
 
     destRect.left = pt[0].X;
     destRect.top  = pt[0].Y;
     destRect.right  = pt[0].X;
     destRect.bottom = pt[0].Y;
 
-    for (int i = 1; i < ARRAYSIZE(pt); i++)
+    for (int i = 1; i < ARRAY_SIZE(pt); i++)
     {
         if (pt[i].X < destRect.left)
         {

@@ -69,12 +69,12 @@ protected:
 
 public:
 
-    override bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_TILEBRUSH || CMilBrushDuce::IsOfType(type);
     }
 
-    override void FreeRealizationResources();
+    /* override */ void FreeRealizationResources();
 
     //+-------------------------------------------------------------------------
     //
@@ -193,7 +193,7 @@ public:
             // Viewport->World portion of the Content->World transform;
         __in_ecount(1) const MilPointAndSizeD *pViewport,
             // User-specified base tile in absolute units
-        __in MilTileMode::Enum tileMode,
+        _In_ MilTileMode::Enum tileMode,
             // User-specified tiling mode for this brush            
         __out_ecount(1) BOOL *pfNeedsIntermediateSurfaceRealization,
             // Whether or not this brush should be realized using an intermediate surface
@@ -253,7 +253,7 @@ public:
             // to determine the size of the Viewport in device coordinates.
         __in_ecount(1) const MilPointAndSizeD *pViewport,
             // User-specified base tile coordinates
-        __in MilTileMode::Enum tileMode,
+        _In_ MilTileMode::Enum tileMode,
             // Wrapping mode used to create the intermediate render target
         __out_ecount(1) IWGXBitmapSource **ppBaseTile,
             // Rasterized base image to be tiled
@@ -296,7 +296,7 @@ public:
 
 protected:    
 
-    override HRESULT GetBrushRealizationInternal(
+    /* override */ HRESULT GetBrushRealizationInternal(
         __in_ecount(1) const BrushContext *pBrushContext,
         __deref_inout_ecount_opt(1) CMILBrush **ppBrushRealizationNoRef
         );

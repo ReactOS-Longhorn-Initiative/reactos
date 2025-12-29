@@ -182,7 +182,7 @@ protected:
     };
 
 private:
-    struct __declspec(align(16)) QWords
+    struct DECLSPEC_ALIGN(16) QWords
     {
         __int64 qwords[2];
     };
@@ -244,7 +244,7 @@ public:
     static CXmmWords Half8dot8();
 
 private:
-    struct __declspec(align(16)) Words
+    struct DECLSPEC_ALIGN(16) Words
     {
         __int16 words[8];
     };
@@ -610,10 +610,10 @@ template<int idx3, int idx2, int idx1, int idx0>
 MIL_FORCEINLINE __out_ecount(1) CXmmValue&
 CXmmValue::ShuffleLowWords()
 {
-    C_ASSERT(idx0 >= 0 && idx0 <= 3);
-    C_ASSERT(idx1 >= 0 && idx1 <= 3);
-    C_ASSERT(idx2 >= 0 && idx2 <= 3);
-    C_ASSERT(idx3 >= 0 && idx3 <= 3);
+    static_assert(idx0 >= 0 && idx0 <= 3, "idx0 >= 0 && idx0 <= 3");
+    static_assert(idx1 >= 0 && idx1 <= 3, "idx1 >= 0 && idx1 <= 3");
+    static_assert(idx2 >= 0 && idx2 <= 3, "idx2 >= 0 && idx2 <= 3");
+    static_assert(idx3 >= 0 && idx3 <= 3, "idx3 >= 0 && idx3 <= 3");
 
     m_data = _mm_shufflelo_epi16(m_data, idx3 * 64 + idx2 * 16 + idx1 * 4 + idx0);
     return *this;
@@ -646,10 +646,10 @@ template<int idx3, int idx2, int idx1, int idx0>
 MIL_FORCEINLINE __out_ecount(1) CXmmValue&
 CXmmValue::ShuffleHighWords()
 {
-    C_ASSERT(idx0 >= 0 && idx0 <= 3);
-    C_ASSERT(idx1 >= 0 && idx1 <= 3);
-    C_ASSERT(idx2 >= 0 && idx2 <= 3);
-    C_ASSERT(idx3 >= 0 && idx3 <= 3);
+    static_assert(idx0 >= 0 && idx0 <= 3, "idx0 >= 0 && idx0 <= 3");
+    static_assert(idx1 >= 0 && idx1 <= 3, "idx1 >= 0 && idx1 <= 3");
+    static_assert(idx2 >= 0 && idx2 <= 3, "idx2 >= 0 && idx2 <= 3");
+    static_assert(idx3 >= 0 && idx3 <= 3, "idx3 >= 0 && idx3 <= 3");
 
     m_data = _mm_shufflehi_epi16(m_data, idx3 * 64 + idx2 * 16 + idx1 * 4 + idx0);
     return *this;
@@ -680,7 +680,7 @@ template<int idx>
 MIL_FORCEINLINE __out_ecount(1) CXmmValue&
 CXmmValue::ReplicateWord4Times()
 {
-    C_ASSERT(idx >= 0 && idx <= 7);
+    static_assert(idx >= 0 && idx <= 7, "idx >= 0 && idx <= 7");
     if (idx < 4)
     {
         return ShuffleLowWords<idx&3, idx&3, idx&3, idx&3>();

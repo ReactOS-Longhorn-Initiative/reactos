@@ -36,7 +36,7 @@ CMilSpecularMaterialDuce::~CMilSpecularMaterialDuce()
 //      Returns true if the Material is valid for rendering, false otherwise.
 //
 //------------------------------------------------------------------------------
-override bool CMilSpecularMaterialDuce::ShouldRender()
+/* override */ bool CMilSpecularMaterialDuce::ShouldRender()
 {
     return m_data.m_pBrush != NULL;
 }
@@ -54,7 +54,7 @@ override bool CMilSpecularMaterialDuce::ShouldRender()
 //
 //------------------------------------------------------------------------------
 
-override HRESULT CMilSpecularMaterialDuce::Realize(
+/* override */ HRESULT CMilSpecularMaterialDuce::Realize(
     __inout_ecount(1) CMILMesh3D *pMesh3D,
     __in_ecount(1) CDrawingContext *pDrawingContext,
     __in_ecount(1) CContextState *pContextState,
@@ -138,7 +138,7 @@ Cleanup:
 //
 //------------------------------------------------------------------------------
 
-override HRESULT CMilSpecularMaterialDuce::Flatten(
+/* override */ HRESULT CMilSpecularMaterialDuce::Flatten(
     __inout_ecount(1) DynArray<CMilMaterialDuce *> *pMaterialList,
     __inout_ecount(1) bool *pfDiffuseMaterialFound,
     __inout_ecount(1) bool *pfSpecularMaterialFound,

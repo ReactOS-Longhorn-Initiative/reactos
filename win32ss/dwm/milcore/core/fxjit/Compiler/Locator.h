@@ -63,7 +63,7 @@ public:
         m_uVarCount = 0;
     }
 
-    __checkReturn HRESULT Init(__in CProgram * pProgram);
+    __checkReturn HRESULT Init(_In_ CProgram * pProgram);
 
     // Controls
     void ConsiderSetValue(UINT32 uVarID, CRegID regID);

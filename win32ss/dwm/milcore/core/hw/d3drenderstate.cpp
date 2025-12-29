@@ -93,7 +93,7 @@ struct AlphaBlendMode
     static D3DRENDERSTATETYPE const sc_types[ABM_NUM];
 
     // This assert protected the range annoation on Type and Value
-    C_ASSERT(ABM_NUM == 3);
+    static_assert(ABM_NUM == 3, "ABM_NUM == 3");
 
     D3DRENDERSTATETYPE Type(__range(0, 2 /* this should be ABM_NUM - 1, but PREF* can't parse */) UINT uIndex) const { return sc_types[uIndex]; }
     DWORD Value(__range(0, 2 /* this should be ABM_NUM - 1, but PREF* can't parse */) UINT uIndex) const { return m_dwValues[uIndex]; }
@@ -152,7 +152,7 @@ struct TextureStageOperation
     static D3DTEXTURESTAGESTATETYPE const sc_types[TSO_NUM];
 
     // This assert protected the range annoation on Type and Value
-    C_ASSERT(TSO_NUM == 5);
+    static_assert(TSO_NUM == 5, "TSO_NUM == 5");
 
     D3DTEXTURESTAGESTATETYPE Type(__range(0, 4 /* this should be TSO_NUM - 1, but PREF* can't parse */) UINT uIndex) const { return sc_types[uIndex]; }
     DWORD Value(__range(0, 4 /* this should be TSO_NUM - 1, but PREF* can't parse */) UINT uIndex) const { return m_dwValues[uIndex]; }
@@ -202,7 +202,7 @@ struct FilterMode
     static D3DSAMPLERSTATETYPE const sc_types[FM_NUM];
 
     // This assert protected the range annoation on Type and Value
-    C_ASSERT(FM_NUM == 3);
+    static_assert(FM_NUM == 3, "FM_NUM == 3");
 
     D3DSAMPLERSTATETYPE Type(__range(0, 2 /* this should be FM_NUM - 1, but PREF* can't parse */) UINT uIndex) const { return sc_types[uIndex]; }
     DWORD Value(__range(0, 2 /* this should be FM_NUM - 1, but PREF* can't parse */) UINT uIndex) const { return m_dwValues[uIndex]; }
@@ -605,7 +605,7 @@ CD3DRenderState::sc_fmConvolution =
 
 CD3DRenderState::CD3DRenderState()
 {
-    for (int i = 0; i < ARRAYSIZE(m_pPixelShaders); i++)
+    for (int i = 0; i < ARRAY_SIZE(m_pPixelShaders); i++)
     {
         m_pPixelShaders[i] = NULL;
     }
@@ -625,7 +625,7 @@ CD3DRenderState::CD3DRenderState()
 
 CD3DRenderState::~CD3DRenderState()
 {
-    for (int i = 0; i < ARRAYSIZE(m_pPixelShaders); i++)
+    for (int i = 0; i < ARRAY_SIZE(m_pPixelShaders); i++)
     {
         ReleaseInterface(m_pPixelShaders[i]);
     }
@@ -1663,7 +1663,7 @@ CD3DRenderState::InitPixelShaders()
         }
     }
 
-    C_ASSERT(ARRAYSIZE(m_pPixelShaders) == PXS_NUM);
+    static_assert(ARRAY_SIZE(m_pPixelShaders) == PXS_NUM, "ARRAY_SIZE(m_pPixelShaders) == PXS_NUM");
     
     for (int i = 0; i < PXS_NUM; i++)
     {

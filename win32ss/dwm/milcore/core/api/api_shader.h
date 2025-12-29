@@ -79,15 +79,15 @@ public:
         __deref_out_ecount(1) CBrushRealizer **ppSurfaceSource
         );
 
-    void FreeBrushRealizations() override;
+    void FreeBrushRealizations() /* override */;
     HRESULT EnsureBrushRealizations(
         UINT uRealizationCacheIndex,
         DisplayId realizationDestination,
         __inout_ecount_opt(1) BrushContext *pBrushContext,
         __in_ecount(1) const CContextState *pContextState,
         __inout_ecount(1) CIntermediateRTCreator *pRTCreator
-        ) override;
-    void RestoreMetaIntermediates() override;
+        ) /* override */;
+    void RestoreMetaIntermediates() /* override */;
 
 protected:
     CMILShaderBrush(
@@ -133,14 +133,14 @@ public:
 
     // CMILShader Methods
 
-    ShaderTypes GetType() const override
+    ShaderTypes GetType() const /* override */
     {
         return ShaderDiffuse;
     }
 
     // IMILShader Methods
 
-    STDMETHODIMP_(CMILShader *) GetClass() override { return this; }
+    STDMETHODIMP_(CMILShader *) GetClass() /* override */ { return this; }
 };
 
 /*=========================================================================*\
@@ -176,14 +176,14 @@ public:
 
     // CMILShader Methods
 
-    ShaderTypes GetType() const override
+    ShaderTypes GetType() const /* override */
     {
         return ShaderSpecular;
     }
 
     // IMILShader Methods
 
-    STDMETHODIMP_(CMILShader *) GetClass() override { return this; }
+    STDMETHODIMP_(CMILShader *) GetClass() /* override */ { return this; }
 
     HRESULT SetSpecularPower(
         float flSpecularPower
@@ -225,14 +225,14 @@ public:
 
     // CMILShader Methods
 
-    ShaderTypes GetType() const override
+    ShaderTypes GetType() const /* override */
     {
         return ShaderEmissive;
     }
 
     // IMILShader Methods
 
-    STDMETHODIMP_(CMILShader *) GetClass() override { return this; }
+    STDMETHODIMP_(CMILShader *) GetClass() /* override */ { return this; }
 };
 
 

@@ -355,7 +355,7 @@ void
 CScanner::CVertex::InitializeAtPoint(
     __in_ecount(1) const GpPointR &pt,
         // Vertex coordinates
-    __in bool fIsEndpoint
+    _In_ bool fIsEndpoint
         // true ==> endpoint, false ==> exact intersection
     )
 {
@@ -1099,7 +1099,7 @@ HRESULT
 CScanner::CVertexPool::AllocateVertexAtPoint(
     __in_ecount(1) const GpPointR &pt,
         // Vertex coordinates
-    __in bool fEndpoint,
+    _In_ bool fEndpoint,
         // true ==> endpoint, false ==> intersection
     __deref_out_ecount(1) CVertex *&pNew)
         // The allocated vertex
@@ -2334,14 +2334,14 @@ Cleanup:
 //      CScanner::CChainList::AcceptPoint
 //
 //  Synopsis:
-//      CFlatteningSink override. Called for each point of a flattened Bezier.
+//      CFlatteningSink /* override */. Called for each point of a flattened Bezier.
 //
 //------------------------------------------------------------------------------
 HRESULT
 CScanner::CChainList::AcceptPoint(
     __in_ecount(1) const GpPointR &ptNew,
     // The new vertex to add
-    __in GpReal t,
+    _In_ GpReal t,
     // Parameter value on the curve)
     __out_ecount(1) bool &fAbort)
     // Ignored here
@@ -2395,7 +2395,7 @@ HRESULT
 CScanner::CChainList::EndFigure(
     __in_ecount(1) const GpPointR &ptCurrent,
         // The most recently added vertex
-    __in bool fClosed)
+    _In_ bool fClosed)
         // =true if the figure is closed
 {
     HRESULT hr = S_OK;
@@ -4166,7 +4166,7 @@ CScanner::SplitAtCoincidentIntersection(
     
     if (!pRight)
         goto Cleanup;
-
+{
     // This method is eventually called after processing a junction. Both chains
     // point to vertices that generated that junction. Therefore they share
     // a common point.
@@ -4224,6 +4224,7 @@ CScanner::SplitAtCoincidentIntersection(
 
         pChain->SetCoincidentWithRight();
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -4290,7 +4291,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 void
 CScanner::Trace(
-    __in PCWSTR pStr,
+    _In_ PCWSTR pStr,
         // String to dump
     int id) const
         // Chain ID

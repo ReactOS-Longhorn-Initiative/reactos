@@ -68,15 +68,15 @@ struct MetaData
             // content.  This rectangle is relative to the meta RT origin.
             CMILSurfaceRect rcLocalDeviceValidContentBounds;
 
-        };
+        } m_desktop;
 
         // Used by CMetaBitmapRenderTarget
         struct {
             IMILRenderTargetBitmap *pIRTBitmap;
             UINT uIndexOfRealRTBitmap;
             ULONG cacheIndex; // For convenience of creating
-        };
-    };
+        } m_bitmap;
+    } m_data;
 
     // When true no invalid render bounds were returned from GetInvalidRegions
     // because all bounds required for Present are already valid.
@@ -121,10 +121,10 @@ public:
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
     STDMETHOD(End3D)(
-        ) override;
+        ) /* override */;
 
     // IRenderTargetInternal.
 
@@ -179,7 +179,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override;
+        ) /* override */;
 
     STDMETHOD(BeginLayer)(
         __in_ecount(1) MilRectF const &LayerBounds,
@@ -198,21 +198,21 @@ public:
     
     STDMETHOD(ReadEnabledDisplays) (
         __inout DynArray<bool> *pEnabledDisplays
-        ) override;
+        ) /* override */;
     
     // This method is used to determine if the render target is being
     // used to render, or if it's merely being used for bounds accumulation,
     // hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType);
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType);
 
 
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHOD(SetClearTypeHint) (
-        __in bool forceClearType
+        _In_ bool forceClearType
         );
 
-    UINT GetRealizationCacheIndex() override;
+    UINT GetRealizationCacheIndex() /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
@@ -223,7 +223,7 @@ public:
     
     bool HasEnabledDeviceIndex(IMILResourceCache::ValidIndex cacheIndex);
 
-    __out_ecount_opt(1) CMetaRenderTarget *DynCastToMeta() override { return this; }
+    __out_ecount_opt(1) CMetaRenderTarget *DynCastToMeta() /* override */ { return this; }
 
 protected:
 
@@ -231,9 +231,9 @@ protected:
         __out_ecount(1) UINT *pidxFirstEnabledRT
         ) const;
 
-    override STDMETHOD(GetNumQueuedPresents)(
+    STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        );
+        ) /* override */;
 
 protected:
 

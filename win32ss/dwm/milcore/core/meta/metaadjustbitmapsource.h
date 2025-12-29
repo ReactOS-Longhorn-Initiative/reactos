@@ -169,10 +169,10 @@ HRESULT CAdjustBitmapSource::BeginDeviceAdjustInternal(
     UNREFERENCED_PARAMETER(prgMetaData);
     
     // get the bitmap specific to this RT.
-    idx = m_pMetaBitmapRT->m_rgMetaData[idx].uIndexOfRealRTBitmap;
+    idx = m_pMetaBitmapRT->m_rgMetaData[idx].m_data.m_bitmap.uIndexOfRealRTBitmap;
     Assert(m_pMetaBitmapRT->m_rgMetaData[idx].fEnable);
-    Assert(m_pMetaBitmapRT->m_rgMetaData[idx].pIRTBitmap);
-    IFC(m_pMetaBitmapRT->m_rgMetaData[idx].pIRTBitmap->GetBitmapSource(
+    Assert(m_pMetaBitmapRT->m_rgMetaData[idx].m_data.m_bitmap.pIRTBitmap);
+    IFC(m_pMetaBitmapRT->m_rgMetaData[idx].m_data.m_bitmap.pIRTBitmap->GetBitmapSource(
         &pILocalBitmap
         ));
 

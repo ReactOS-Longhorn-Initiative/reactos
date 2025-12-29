@@ -50,7 +50,7 @@ protected:
         __in_range(0,INT_MAX) UINT uMaxBottom
         ) const;
 
-    override HRESULT EditMetaData();
+    HRESULT EditMetaData() /* override */;
 
     HRESULT ResizeSubRT(
         __in_range(<=, (this->m_cRT)) UINT i,
@@ -72,33 +72,33 @@ public:
 
     // IMILRenderTargetHWND.
 
-    override STDMETHODIMP SetPosition(
+    STDMETHODIMP SetPosition(
         __in_ecount(1) MilRectF const *prc
-        );
+        ) /* override */;
 
-    override STDMETHODIMP GetInvalidRegions(
+    STDMETHODIMP GetInvalidRegions(
         __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
         __out_ecount(1) UINT *pNumRegions,
-        __out bool *fWholeTargetInvalid        
-        );
+        _Out_ bool *fWholeTargetInvalid        
+        ) /* override */;
 
-    override STDMETHODIMP_(VOID) GetIntersectionWithDisplay(
+    STDMETHODIMP_(VOID) GetIntersectionWithDisplay(
         UINT iDisplay,
         __out_ecount(1) MilRectL &rcIntersection
-        );
+        ) /* override */;
 
-    override STDMETHODIMP UpdatePresentProperties(
+    STDMETHODIMP UpdatePresentProperties(
         MilTransparency::Flags transparencyFlags,
         FLOAT constantAlpha,
         __in_ecount(1) MilColorF const &colorKey
-        );
+        ) /* override */;
 
-    override STDMETHOD(Present)(
-        );
+    STDMETHOD(Present)(
+        ) /* override */;
 
 #if DBG
 protected:
-    override bool DbgIsValidTransition(enum State eNewState);
+    bool DbgIsValidTransition(enum State eNewState) /* override */;
 
 #endif
 

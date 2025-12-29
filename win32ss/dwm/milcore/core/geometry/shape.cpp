@@ -190,7 +190,7 @@ Cleanup:
 //      A pointer to the new figure as an IFigureBuilder
 //
 //  Notes:
-//      This is a IShapeBuilder override
+//      This is a IShapeBuilder /* override */
 //
 //------------------------------------------------------------------------------
 HRESULT
@@ -676,7 +676,7 @@ CShape::ConstructFromGpPath(
     {
         IFC(E_INVALIDARG);
     }
-
+{
     Assert(pPoints);
     Assert(pTypes);
 
@@ -746,7 +746,7 @@ CShape::ConstructFromGpPath(
         Assert(pFigure); // should have been allocated in the PathPointTypeStart case
         IFC(pFigure->Close());
     }
-
+}
 Cleanup:
     if (FAILED(hr))
     {
@@ -873,9 +873,9 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CShape::AddFigureFromRawData(
-    __in UINT cPoints,
+    _In_ UINT cPoints,
         // Point count
-    __in UINT cSegments,
+    _In_ UINT cSegments,
         // Segment count
     __in_ecount(cPoints) MilPoint2D *pPoints,
         // Points

@@ -99,7 +99,7 @@ CEdgeStore::NextAddBuffer(
     )
 {
     HRESULT hr = S_OK;
-
+{
     UINT cNewTotalCount = 0;
 
     // The caller has completely filled up this chunk:
@@ -142,7 +142,7 @@ CEdgeStore::NextAddBuffer(
 
     *ppCurrentEdge = CurrentEdge = &newBuffer->EdgeArray[0];
     *puRemaining = CurrentRemaining = EDGE_STORE_ALLOCATION_NUMBER;
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -249,6 +249,28 @@ AssertActiveListOrder(
 
 #endif
 
+
+
+    extern VOID FASTCALL ScalePPAACoverage_128bppPRGBA(
+        __in_ecount(1) const PipelineParams *pPP,
+        __in_ecount(1) const ScanOpParams *pSOP);
+
+    extern VOID FASTCALL ScalePPAACoverage_32bppPBGRA(
+        __in_ecount(1) const PipelineParams *pPP,
+        __in_ecount(1) const ScanOpParams *pSOP);
+
+    extern VOID FASTCALL ScalePPAACoverage_32bppBGR(
+        __in_ecount(1) const PipelineParams *pPP,
+        __in_ecount(1) const ScanOpParams *pSOP);
+
+    extern VOID FASTCALL ScalePPAACoverage_Complement_32bppBGR(
+        __in_ecount(1) const PipelineParams *pPP,
+        __in_ecount(1) const ScanOpParams *pSOP);
+
+    extern VOID FASTCALL ScalePPAACoverage_Complement_32bppBGRA(
+        __in_ecount(1) const PipelineParams *pPP,
+        __in_ecount(1) const ScanOpParams *pSOP);
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:     CAntialiasedFiller
@@ -258,7 +280,7 @@ AssertActiveListOrder(
 
 class CAntialiasedFiller : public OpSpecificData
 {
-private:
+public:
     CScanPipeline *m_pScanPipeline;
     CCoverageBuffer m_coverageBuffer;
 
@@ -267,26 +289,6 @@ private:
     CMILSurfaceRect m_rcComplementBounds;
     float m_rComplementFactor;
 
-
-    friend VOID FASTCALL ScalePPAACoverage_128bppPRGBA(
-        __in_ecount(1) const PipelineParams *pPP,
-        __in_ecount(1) const ScanOpParams *pSOP);
-
-    friend VOID FASTCALL ScalePPAACoverage_32bppPBGRA(
-        __in_ecount(1) const PipelineParams *pPP,
-        __in_ecount(1) const ScanOpParams *pSOP);
-
-    friend VOID FASTCALL ScalePPAACoverage_32bppBGR(
-        __in_ecount(1) const PipelineParams *pPP,
-        __in_ecount(1) const ScanOpParams *pSOP);
-
-    friend VOID FASTCALL ScalePPAACoverage_Complement_32bppBGR(
-        __in_ecount(1) const PipelineParams *pPP,
-        __in_ecount(1) const ScanOpParams *pSOP);
-
-    friend VOID FASTCALL ScalePPAACoverage_Complement_32bppBGRA(
-        __in_ecount(1) const PipelineParams *pPP,
-        __in_ecount(1) const ScanOpParams *pSOP);
 
     // Implementation of the last 4 32 bit ScalePPAACoverage variants.
     // Note that the input pixel formats are different for complement
@@ -297,7 +299,7 @@ private:
     // Non-complement    PBGRA             BGR
     //
     // In all cases the output is PBGRA.
-    friend static VOID MIL_FORCEINLINE ScalePPAACoverage_32bppPBGRA_Out_Slow(
+    static VOID MIL_FORCEINLINE ScalePPAACoverage_32bppPBGRA_Out_Slow(
         __in_ecount(1) const PipelineParams *pPP,
         __in_ecount(1) const ScanOpParams *pSOP,
         bool fHasAlpha,
@@ -658,8 +660,8 @@ static VOID MIL_FORCEINLINE ScalePPAACoverage_32bppPBGRA_Out_Slow(
 
             // Convert our coverage from [0, c_nShiftSize*c_nShiftSize] to [0, 256]
             Assert(c_nShiftSize <= 16);
-            C_ASSERT(256 % (c_nShiftSize*c_nShiftSize) == 0);
-            C_ASSERT(c_nShiftSize == 8);
+            static_assert(256 % (c_nShiftSize*c_nShiftSize) == 0, "256 % (c_nShiftSize*c_nShiftSize) == 0");
+            static_assert(c_nShiftSize == 8, "c_nShiftSize == 8");
 
             // NOTE (EXTREMELY TRICKY) coverage values are 1/256ths, while color values
             // are 1/255ths.  The math in this function handles this correctly.
@@ -2884,7 +2886,7 @@ RasterizePath(
     CEdge *activeList;
     CEdgeStore edgeStore;
     CInitializeEdgesContext edgeContext;
-
+{
     Assert(rComplementFactor < 0 || antiAliasMode == MilAntiAliasMode::EightByEight);
     Assert(rComplementFactor < 0 || prcComplementBounds);
     
@@ -3100,7 +3102,7 @@ RasterizePath(
             fillMode
             );
     }
-
+}
 Cleanup:
     // Free any objects and get outta here:
 

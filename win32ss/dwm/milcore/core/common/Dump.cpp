@@ -20,7 +20,7 @@
 
 #define MAX_DUMP_SIZE 500
 
-void _cdecl MILDebugOutput(__in PCWSTR pFormat, ...)
+void _cdecl MILDebugOutput(_In_ PCWSTR pFormat, ...)
 {
     WCHAR buffer[MAX_DUMP_SIZE];
     va_list arglist;
@@ -30,7 +30,7 @@ void _cdecl MILDebugOutput(__in PCWSTR pFormat, ...)
     IGNORE_HR(StringCchVPrintfW(buffer, MAX_DUMP_SIZE, pFormat, arglist)); 
     va_end(arglist);
 
-    OutputDebugString(buffer);
+    OutputDebugStringW(buffer);
 }
 
 #endif // DBG

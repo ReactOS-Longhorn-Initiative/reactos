@@ -22,7 +22,7 @@
 #include "ptrarray.h"
 #include "ptrset.h"
 
-#include "shared\shared.h"
+#include "shared/shared.h"
 #include "basetypes.h"
 #include "CoordinateSpace.h"
 #include "fix.h"
@@ -30,8 +30,8 @@
 #include "milboxf.h"
 #include "utils.h"
 #include "SortAlgorithms.h"
-#include "shared\DpiScale.h"
-#include "shared\DpiUtil.h"
+#include "shared/DpiScale.h"
+#include "shared/DpiUtil.h"
 
 #include "stackalign.h"
 #include "BufferDispenser.h"
@@ -52,15 +52,15 @@
 #include "GradientTexture.h"
 #include "D3DLoader.h"
 #include "Gamma.h"
-#include "aliasedclip.h"
-#include "IntermediateRTCreator.h"
-#include "RTUtils.h"
+#include "AliasedClip.h"
+#include "intermediatertcreator.h"
+#include "rtutils.h"
 #include "ResourcePool.h"
-#include "GuidelineCollection.h"
+#include "guidelinecollection.h"
 #include "Tier.h"
 #include "EnhancedContrastTable.h"
 #include "Display.h"    // needs RTUtils.h (for CMILSurfaceRect) and Tier.h
-#include "internalRT.h" // needs RTUtils.h (for CMILSurfaceRect) and Display.h
+#include "InternalRT.h" // needs RTUtils.h (for CMILSurfaceRect) and Display.h
 #include "d3dutils.h"
 #include "3dutils.h"
 
@@ -76,7 +76,7 @@
 #include "slistutil.h"
 
 #include "typeconvert.inl"
-#include "dump.h"
+#include "Dump.h"
 #include "Config.h"
 
 #include "OSCompat.h"
@@ -84,8 +84,8 @@
 #include "RenderingConstants.h"
 #include "MILDC.h"
 
-#include "DelayLoadedModule.h"
-#include "DWMInterop.h"
+#include "delayloadedmodule.h"
+#include "dwminterop.h"
 
 #include "dwritefactory.h"
 

@@ -27,7 +27,7 @@ CMilAxisAngleRotation3DDuce::~CMilAxisAngleRotation3DDuce()
     UnRegisterNotifiers();
 }
 
-/* override */ HRESULT CMilAxisAngleRotation3DDuce::GetRealization(
+HRESULT CMilAxisAngleRotation3DDuce::GetRealization(
     __out_ecount(1) CMILMatrix *pRealization
     )
 {
@@ -37,7 +37,7 @@ CMilAxisAngleRotation3DDuce::~CMilAxisAngleRotation3DDuce()
     IFC(SynchronizeAnimatedFields());
 
     axis = { m_data.m_axis.X, m_data.m_axis.Y, m_data.m_axis.Z };
-    C_ASSERT(sizeof(axis) == sizeof(m_data.m_axis));
+    static_assert(sizeof(axis) == sizeof(m_data.m_axis), "sizeof(axis) == sizeof(m_data.m_axis)");
 
     // 
     // 

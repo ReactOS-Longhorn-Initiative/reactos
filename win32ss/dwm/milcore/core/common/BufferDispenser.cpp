@@ -81,7 +81,7 @@ CBufferDispenser::Allocate(
     {
         size += (alignment - kMinBufferAllocationAlignment);
         // Maximum add is (SIZE_T_MAX+1)/2, use SSIZE_T_MAX+1 to avoid C4307: '+' : integral constant overflow
-        C_ASSERT(SIZE_T(SSIZE_T_MAX)+1 + kOverheadPerBufferAllocation <= SIZE_T_MAX);
+        static_assert(SIZE_T(SSIZE_T_MAX)+1 + kOverheadPerBufferAllocation <= SIZE_T_MAX, "SIZE_T(SSIZE_T_MAX)+1 + kOverheadPerBufferAllocation <= SIZE_T_MAX");
     }
     else if (alignment < kMinBufferAllocationAlignment)
     {
@@ -89,11 +89,11 @@ CBufferDispenser::Allocate(
         size = IncrAlignTo(size, kMinBufferAllocationAlignment, alignment);
         alignment = kMinBufferAllocationAlignment;
         // Maximum add is kMinBufferAllocationAlignment-1
-        C_ASSERT(kMinBufferAllocationAlignment-1 + kOverheadPerBufferAllocation <= SIZE_T_MAX);
+        static_assert(kMinBufferAllocationAlignment-1 + kOverheadPerBufferAllocation <= SIZE_T_MAX, "kMinBufferAllocationAlignment-1 + kOverheadPerBufferAllocation <= SIZE_T_MAX");
     }
 
     // Add space for pointer storage
-    C_ASSERT(kOverheadPerBufferAllocation > 0);
+    static_assert(kOverheadPerBufferAllocation > 0, "kOverheadPerBufferAllocation > 0");
     size += kOverheadPerBufferAllocation;
 
     Assert(IsAlignedTo(size, kMinBufferAllocationAlignment));
@@ -110,7 +110,7 @@ CBufferDispenser::Allocate(
     // need this one overflow check.
     if (size > sizeRequested)
     {
-        if (this && m_cbSpaceLeft >= size)
+        if (m_cbSpaceLeft >= size)
         {
             ptrRet = AllocateFromBuffer(size, alignment, mt);
         }
@@ -239,9 +239,9 @@ CBufferDispenser::AllocateFromHeap(
         #endif
         #if DBG
             pHeader->pDbgDispenser = this;
-            if (this)
+            //if (this)
             {
-                m_cDbgHeapAllocations++;
+             //   m_cDbgHeapAllocations++;
             }
         #elif defined(PERFMETER)
             // Just to give it a value

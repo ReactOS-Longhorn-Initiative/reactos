@@ -57,7 +57,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_GLYPHRUN;
     }
@@ -75,7 +75,7 @@ public:
         __in_ecount(1) const DisplaySettings *pDisplaySettings,
         MilTextRenderingMode::Enum textRenderingMode,
         MilTextHintingMode::Enum textHintingMode,
-        __out RenderingMode *pRecommendedRenderingMode,
+        _Out_ RenderingMode *pRecommendedRenderingMode,
         __out_ecount(1) CGlyphRunRealization** ppRealization,
         IDpiProvider const* pDpiProvider
         );
@@ -151,49 +151,49 @@ private:
         float scaleY,
         bool fAnimationQuality,
         bool fBiLevelRequested,
-        __in const DisplaySettings *pDisplaySettings,
+        _In_ const DisplaySettings *pDisplaySettings,
         MilTextRenderingMode::Enum textRenderingMode,
-        __out CGlyphRunRealization **ppRealization
+        _Out_ CGlyphRunRealization **ppRealization
         );
 
-    static void DeleteRealizationInArray(__in DynArrayIA <CGlyphRunRealization*, 2> *pArray);
+    static void DeleteRealizationInArray(_In_ DynArrayIA <CGlyphRunRealization*, 2> *pArray);
 
-    void PurgeOldEntries(__in DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray);
+    void PurgeOldEntries(_In_ DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray);
 
     void GetDWriteRenderingMode(
-        __in IDWriteFontFace *pIDWriteFontFace,
+        _In_ IDWriteFontFace *pIDWriteFontFace,
         MilTextRenderingMode::Enum textRenderingMode,
         bool fAnimationQuality,
         float scaleFactor,
-        __in const DisplaySettings *pDisplaySettings,
-        __out DWRITE_RENDERING_MODE *pDWriteRenderingMode
+        _In_ const DisplaySettings *pDisplaySettings,
+        _Out_ DWRITE_RENDERING_MODE *pDWriteRenderingMode
         );
 
     void GetBlendMode(
         MilTextRenderingMode::Enum textRenderingMode,
         RenderingMode displayRenderingMode,
-        __out RenderingMode *pRecommendedBlendMode
+        _Out_ RenderingMode *pRecommendedBlendMode
         );
 
     void FindMatchingRealization(
-        __in const DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray,
+        _In_ const DynArrayIA <CGlyphRunRealization*, 2> *pRealizationArray,
         bool fUseLastFulfilledScale,
         float desiredScaleX,
         float desiredScaleY,
-        __out double *pMatchQuality,
-        __out bool *pFoundExactMatch,
-        __out bool *pFoundMatch,
-        __out UINT *pFoundIndex
+        _Out_ double *pMatchQuality,
+        _Out_ bool *pFoundExactMatch,
+        _Out_ bool *pFoundMatch,
+        _Out_ UINT *pFoundIndex
         );
 
     static double InspectScaleQuality(
-        __in double scaleX1,
-        __in double scaleX2,
-        __in double scaleY1,
-        __in double scaleY2
+        _In_ double scaleX1,
+        _In_ double scaleX2,
+        _In_ double scaleY1,
+        _In_ double scaleY2
         );
 
-    static float SnapToScaleGrid(__in double x);
+    static float SnapToScaleGrid(_In_ double x);
 
     // ------------------------------------------------------------------------
     //
@@ -214,8 +214,8 @@ private:
     public:
         
         static HRESULT GetFontFace(
-            __in IDWriteFont *pFont,
-            __out IDWriteFontFace **ppFontFace
+            _In_ IDWriteFont *pFont,
+            _Out_ IDWriteFontFace **ppFontFace
             );
 
         static void Reset();
@@ -223,8 +223,8 @@ private:
     private:
 
         static HRESULT AddFontFaceToCache(
-            __in IDWriteFont *pFont,
-            __out IDWriteFontFace **ppFontFace
+            _In_ IDWriteFont *pFont,
+            _Out_ IDWriteFontFace **ppFontFace
             );
 
         struct FontFaceCacheEntry
@@ -310,14 +310,14 @@ public:
 
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CGlyphRunRealization));
 
-    CGlyphRunRealization(__in float scaleX,
-                         __in float scaleY,
-                         __in bool fAnimationQuality,
-                         __in CMilSlaveGlyphCache *pGlyphCacheSlave
+    CGlyphRunRealization(_In_ float scaleX,
+                         _In_ float scaleY,
+                         _In_ bool fAnimationQuality,
+                         _In_ CMilSlaveGlyphCache *pGlyphCacheSlave
                          );
     virtual ~CGlyphRunRealization();
 
-    void SetAnalysis(__in IDWriteGlyphRunAnalysis *pIDWriteGlyphRunAnalysis);
+    void SetAnalysis(_In_ IDWriteGlyphRunAnalysis *pIDWriteGlyphRunAnalysis);
 
     float GetScaleX() const { return m_scaleX; }
     float GetScaleY() const { return m_scaleY; }
@@ -379,7 +379,9 @@ public:
         }
     }
 
-    HRESULT EnsureValidAlphaMap(__in const EnhancedContrastTable *pECT);
+    inline void MarkAsUnlisted(){}
+
+    HRESULT EnsureValidAlphaMap(_In_ const EnhancedContrastTable *pECT);
     bool HasAlphaMaps()
     {
         return m_fHasAlphaMaps;
@@ -389,8 +391,8 @@ public:
 
     void GetAlphaMap(
         __deref_out_ecount(*pAlphaMapSize) BYTE **ppAlphaMap, 
-        __out UINT32 *pAlphaMapSize, 
-        __out RECT *pBoundingBox
+        _Out_ UINT32 *pAlphaMapSize, 
+        _Out_ RECT *pBoundingBox
         )
     {        
         Assert(m_fHasAlphaMaps);
@@ -418,8 +420,8 @@ private:
      HRESULT RealizeAlphaBoundsAndTextures(  
         DWRITE_TEXTURE_TYPE textureType, 
         __in_opt const EnhancedContrastTable *pECT,
-        __out UINT32 *pTextureSize,
-        __out RECT *pBoundingBox,
+        _Out_ UINT32 *pTextureSize,
+        _Out_ RECT *pBoundingBox,
         __deref_out_ecount_opt(*pTextureSize) BYTE **pAlphaMap
         );
 

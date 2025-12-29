@@ -40,9 +40,9 @@ public:
     //
 
     HRESULT CreateEmptyResource(
-        __in CComposition* pDevice,
-        __in CMilServerChannel* pChannel,
-        __in const MILCMD_CHANNEL_CREATERESOURCE* pCmd,
+        _In_ CComposition* pDevice,
+        _In_ CMilServerChannel* pChannel,
+        _In_ const MILCMD_CHANNEL_CREATERESOURCE* pCmd,
         __deref_out_ecount(1) CMilSlaveResource **ppResource
         );
 
@@ -67,9 +67,9 @@ public:
     }
 
     HRESULT DuplicateHandle(
-        __in CMilServerChannel* pSourceChannel,
+        _In_ CMilServerChannel* pSourceChannel,
         HMIL_RESOURCE hOriginal,
-        __in CMilServerChannel* pTargetChannel,
+        _In_ CMilServerChannel* pTargetChannel,
         HMIL_RESOURCE hDuplicate
         );
 

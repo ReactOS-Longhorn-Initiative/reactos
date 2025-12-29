@@ -15,6 +15,8 @@
 
 #include "precomp.hpp"
 
+#if 0
+
 #if !defined(_ARM_) && !defined(_ARM64_)
 #include "xmmintrin.h"
 #elif defined (_ARM64_) 
@@ -403,6 +405,7 @@ SrcOverAL_32bppPARGB_32bppPARGB_SSE2(
 #endif // defined(_X86_)
 }
 
+#endif
 
 
 

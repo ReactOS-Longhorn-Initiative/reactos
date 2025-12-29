@@ -104,7 +104,7 @@ public:
  Here is how you'd possibly  use it for your task:
 
     * Derive and implement your subclass
-    * Override the methods with what you want done on every line and curve
+    * override the methods with what you want done on every line and curve
     * If you choose to instantiate a CBezier and call Flatten from your
       DoBezier then you need to override the AcceptPoint method.
     * Have the caller do what needs to be done at the figure's start (or end
@@ -258,7 +258,7 @@ public:
         
     virtual ~CHitTest() {}
     
-    // CFigureTask overrides
+    // CFigureTask /* override */s
     virtual HRESULT DoLine(
         __in_ecount(1) const MilPoint2F &ptEnd
             // The line's end point
@@ -425,7 +425,7 @@ public:
     {
     }
 
-    // CFigureTask overrides
+    // CFigureTask /* override */s
     virtual HRESULT DoLine(
         __in_ecount(1) const MilPoint2F &ptEnd
             // The line's end point

@@ -41,13 +41,13 @@ class CResourceGen
 public:
     CResourceGen();
     HRESULT Initialize(
-        __in char const *pszFileNameRc,
-        __in char const *pszFileNameHpp,
+        _In_ char const *pszFileNameRc,
+        _In_ char const *pszFileNameHpp,
         UINT uEnumStart
         );
     HRESULT CompileEffect(
-        __in WCHAR const *pszEffectFileName,
-        __in char const *pszEffectName
+        _In_ WCHAR const *pszEffectFileName,
+        _In_ char const *pszEffectName
         );
     ~CResourceGen();
 
@@ -58,7 +58,7 @@ private:
     HRESULT WritePixelShader();
     HRESULT WriteVertexShader();
     void WriteDwordArray(
-        __in DWORD const *pFunction
+        _In_ DWORD const *pFunction
         );
 
 private:
