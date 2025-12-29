@@ -55,9 +55,9 @@ public:
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
         );
 
-    virtual VOID ReleaseExpensiveResources() override;
+    virtual VOID ReleaseExpensiveResources() /* override */;
 
-    virtual MilPixelFormat::Enum GetPixelFormat() const override
+    virtual MilPixelFormat::Enum GetPixelFormat() const /* override */
     {
         return m_PixelFormat;
     }
@@ -83,7 +83,7 @@ protected:
         __in_ecount_opt(1) const MilColorF *pBorderColor
         );
 
-    template <class TResampleClass, class TColor>
+    template <class TResampleClass, class TColors>
     friend VOID FASTCALL ColorSource_Image_ScanOp(
         __in_ecount(1) const PipelineParams *, __in_ecount(1) const ScanOpParams *);
 
@@ -131,7 +131,7 @@ public:
     CNearestNeighborSpan();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CNearestNeighborSpan));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) GpCC *pargbDest) const;
 };
@@ -158,7 +158,7 @@ public:
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
         );
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(
         INT x,
@@ -296,7 +296,7 @@ public:
     CUnoptimizedBilinearSpan();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CBilinearSpan));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) GpCC *pargbDest) const;
 };
@@ -321,9 +321,9 @@ public:
         MilBitmapWrapMode::Enum wrapMode,
         __in_ecount_opt(1) const MilColorF *pBorderColor,
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
-        ) override;
+        ) /* override */;
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     static BOOL CanHandleInputRange(
         UINT uBitmapWidth,
@@ -378,9 +378,9 @@ public:
         MilBitmapWrapMode::Enum wrapMode,
         __in_ecount_opt(1) const MilColorF *pBorderColor,
         __in_ecount(1) const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pmatTextureHPCToDeviceHPC
-        ) override;
+        ) /* override */;
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     VOID GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) GpCC *pargbDest) const;
 
@@ -416,7 +416,7 @@ public:
     CNearestNeighborSpan_scRGB();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CNearestNeighborSpan_scRGB));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) MilColorF *pcolDest) const;
 };
@@ -435,7 +435,7 @@ public:
     CBilinearSpan_scRGB();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CBilinearSpan_scRGB));
 
-    virtual ScanOpFunc GetScanOp() const override;
+    virtual ScanOpFunc GetScanOp() const /* override */;
 
     void GenerateColors(INT x, INT y, __range(>=,1) UINT uiCount, __out_ecount_full(uiCount) MilColorF *pcolDest) const;
 };
@@ -448,6 +448,17 @@ public:
 *
 **************************************************************************/
 
+
+    extern VOID FASTCALL ConstantAlpha_32bppPARGB(
+        const PipelineParams *, const ScanOpParams *);
+
+    extern VOID FASTCALL ConstantAlpha_32bppRGB(
+        const PipelineParams *, const ScanOpParams *);
+
+    // Don't call, this is the implementation of above functions
+    extern VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
+        const PipelineParams *, const ScanOpParams *, bool);
+
 class CConstantAlphaSpan : public COwnedOSD
 {
 public:
@@ -456,16 +467,6 @@ public:
 
     HRESULT Initialize(FLOAT flAlpha);
 
-    friend VOID FASTCALL ConstantAlpha_32bppPARGB(
-        const PipelineParams *, const ScanOpParams *);
-
-    friend VOID FASTCALL ConstantAlpha_32bppRGB(
-        const PipelineParams *, const ScanOpParams *);
-
-private:
-    // Don't call, this is the implementation of above functions
-    friend static VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
-        const PipelineParams *, const ScanOpParams *, bool);
 
     INT m_nAlpha;
 };
@@ -477,6 +478,13 @@ private:
 *   Span class applying alpha mask on its input.
 *
 **************************************************************************/
+
+
+extern VOID FASTCALL MaskAlpha_32bppPARGB_32bppPARGB(
+    const PipelineParams *, const ScanOpParams *);
+
+extern VOID FASTCALL MaskAlpha_32bppRGB_32bppPARGB(
+    const PipelineParams *, const ScanOpParams *);
 
 class CMaskAlphaSpan : public COwnedOSD
 {
@@ -495,15 +503,10 @@ public:
         INT spanWidth
         );
 
-    friend VOID FASTCALL MaskAlpha_32bppPARGB_32bppPARGB(
-        const PipelineParams *, const ScanOpParams *);
 
-    friend VOID FASTCALL MaskAlpha_32bppRGB_32bppPARGB(
-        const PipelineParams *, const ScanOpParams *);
-
-private:
+public:
     // Implementation for more specific functions
-    friend static VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
+    friend VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
         const PipelineParams *,
         const ScanOpParams *,
         bool fHasAlpha
@@ -524,6 +527,7 @@ private:
 *
 **************************************************************************/
 
+extern VOID FASTCALL ConstantAlpha_128bppPABGR(const PipelineParams *, const ScanOpParams *);
 class CConstantAlphaSpan_scRGB : public COwnedOSD
 {
 public:
@@ -532,10 +536,9 @@ public:
 
     HRESULT Initialize(FLOAT flAlpha);
 
-    friend VOID FASTCALL ConstantAlpha_128bppPABGR(
-        const PipelineParams *, const ScanOpParams *);
 
-private:
+
+public:
     FLOAT m_flAlpha;
 };
 
@@ -547,6 +550,8 @@ private:
 *
 **************************************************************************/
 
+extern VOID FASTCALL MaskAlpha_128bppPABGR_128bppPABGR(
+        const PipelineParams *, const ScanOpParams *);
 class CMaskAlphaSpan_scRGB : public COwnedOSD
 {
 public:
@@ -564,10 +569,9 @@ public:
         INT spanWidth
         );
 
-    friend VOID FASTCALL MaskAlpha_128bppPABGR_128bppPABGR(
-        const PipelineParams *, const ScanOpParams *);
 
-private:
+
+public:
     FLOAT *m_pBuffer;
     UINT m_nBufferLen;
     CColorSource *m_pMaskResampleCS;

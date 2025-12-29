@@ -159,14 +159,14 @@ CMetaRenderTarget::UpdateValidContentBounds(
     )
 {
     // The valid bounds should always encompass the required Present bounds.
-    Assert(oDevData.rcLocalDeviceValidContentBounds.DoesContain(
+    Assert(oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds.DoesContain(
                oDevData.rcLocalDevicePresentBounds));
 
     if (aliasedDeviceClip.IsNullClip())
     {
         // All content is valid in this device's render bounds, but nothing
         // more.
-        oDevData.rcLocalDeviceValidContentBounds = oDevData.rcLocalDeviceRenderBounds;
+        oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds = oDevData.rcLocalDeviceRenderBounds;
     }
     else
     {
@@ -176,7 +176,7 @@ CMetaRenderTarget::UpdateValidContentBounds(
 
         // Convenience references to avoid large names through out routine
         CMILSurfaceRect const &rcRender = oDevData.rcLocalDeviceRenderBounds;
-        CMILSurfaceRect &rcValid = oDevData.rcLocalDeviceValidContentBounds;
+        CMILSurfaceRect &rcValid = oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds;
 
         //
         // Determine if any part of current valid area is affected by
@@ -363,7 +363,7 @@ CMetaRenderTarget::UpdateValidContentBounds(
 
     // Started with valid content bounds encompassing the required
     // Present bounds and they should still be contained.
-    Assert(oDevData.rcLocalDeviceValidContentBounds.DoesContain(
+    Assert(oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds.DoesContain(
                oDevData.rcLocalDevicePresentBounds));
 }
 
@@ -1325,7 +1325,7 @@ CMetaRenderTarget::ReadEnabledDisplays (
 //------------------------------------------------------------------------------
 
 STDMETHODIMP
-CMetaRenderTarget::GetType(__out DWORD *pRenderTargetType)
+CMetaRenderTarget::GetType(_Out_ DWORD *pRenderTargetType)
 {
     HRESULT hr = S_OK;
     
@@ -1388,7 +1388,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 STDMETHODIMP 
 CMetaRenderTarget::SetClearTypeHint(
-    __in bool forceClearType
+    _In_ bool forceClearType
     )
 {
     HRESULT hr = S_OK;
@@ -1462,7 +1462,9 @@ CMetaRenderTarget::DrawVideo(
     )
 {
     HRESULT hr = S_OK;
-
+    
+    BOOL bSetSrcRect = FALSE;
+{
     //
     // Either the surface renderer isn't NULL or the bitmap source isn't NULL.
     //
@@ -1473,8 +1475,6 @@ CMetaRenderTarget::DrawVideo(
     // Note that we only need to worry about alpha masks since we can't have
     // intermediates any other way
     AssertEffectListHasNoAlphaMask(pIEffect);
-
-    BOOL bSetSrcRect = FALSE;
 
     if (!(pContextState->RenderState->Options.SourceRectValid))
     {
@@ -1538,6 +1538,7 @@ CMetaRenderTarget::DrawVideo(
     }
 
     pContextState->RenderState->PrefilterEnable = fSavePrefilterEnable;
+}
 
 Cleanup:
 

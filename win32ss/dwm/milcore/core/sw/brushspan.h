@@ -27,6 +27,12 @@ MtExtern(CRadialGradientBrushSpan);
 MtExtern(CFocalGradientBrushSpan);
 MtExtern(CShaderEffectBrushSpan);
 
+// CColorSource interface
+extern VOID FASTCALL ColorSource_Constant_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+);
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:
@@ -47,19 +53,14 @@ public:
         __in_ecount(1) const MilColorF *pColor
         );
     
-    // CColorSource interface
-    friend VOID FASTCALL ColorSource_Constant_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );
 
-    ScanOpFunc GetScanOp() const override { return ColorSource_Constant_32bppPARGB; }
-    MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PBGRA32bpp; }
+    ScanOpFunc GetScanOp() const /* override */ { return ColorSource_Constant_32bppPARGB; }
+    MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PBGRA32bpp; }
 
     virtual VOID ReleaseExpensiveResources() {}  // No expensive resources are
                                                  // needed for a constant color
                                                  // brush.
-protected:
+public:
 
     ARGB m_Color;
 };
@@ -82,19 +83,19 @@ public:
     {
     }
     
-    MilPixelFormat::Enum GetPixelFormat() const  override { return MilPixelFormat::PBGRA32bpp; }
+    MilPixelFormat::Enum GetPixelFormat() const  /* override */ { return MilPixelFormat::PBGRA32bpp; }
 
 protected:
     
     HRESULT InitializeTexture(
         __in_ecount(1) const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCToDeviceHPC,
         __in_ecount(3) const MilPoint2F *pGradientPoints,
-        __in BOOL fRadialGradient,
+        _In_ BOOL fRadialGradient,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode,
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode,
         __out_ecount(1) CMILMatrix *pmatDeviceIPCtoGradientTextureHPC 
         );
 
@@ -133,6 +134,11 @@ protected:
     MilGradientWrapMode::Enum m_wrapMode;
 };
 
+extern VOID FASTCALL ColorSource_LinearGradient_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+);
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:
@@ -158,9 +164,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode
         );
 
 
@@ -168,31 +174,27 @@ public:
 
     virtual VOID ReleaseExpensiveResources();
 
-protected:
+public:
 
     INT MatrixValueToFix16(FLOAT value);
 
     MIL_FORCEINLINE void GenerateColorsInit(
-        __in INT nX,
-        __in INT nY,
-        __in INT nCount,
+        _In_ INT nX,
+        _In_ INT nY,
+        _In_ INT nCount,
         __out_ecount(1) INT *pnTexturePositionIPC,
         __out_ecount(1) INT *pnXIncrement
         );
 
-private:
+public:
 
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
     
-    friend VOID FASTCALL ColorSource_LinearGradient_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );
 
 protected:
 
@@ -221,9 +223,9 @@ protected:
 
 void
 CLinearGradientBrushSpan::GenerateColorsInit(
-    __in INT nX,
-    __in INT nY,
-    __in INT nCount,
+    _In_ INT nX,
+    _In_ INT nY,
+    _In_ INT nCount,
     __out_ecount(1) INT *pnTexturePositionIPC,
     __out_ecount(1) INT *pnXIncrement
     )
@@ -273,6 +275,11 @@ CLinearGradientBrushSpan::GenerateColorsInit(
     }
 }
 
+extern VOID FASTCALL ColorSource_LinearGradient_32bppPARGB_MMX(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+); 
+
 //+-----------------------------------------------------------------------------
 //
 //  Class:
@@ -295,27 +302,28 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode
         );
 
     virtual ScanOpFunc GetScanOp() const { return ColorSource_LinearGradient_32bppPARGB_MMX; }
 
-private:
+//private:
     
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
-    
-    friend VOID FASTCALL ColorSource_LinearGradient_32bppPARGB_MMX(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );    
+
 };
+
+extern VOID FASTCALL ColorSource_RadialGradient_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *
+); 
 
 //+-----------------------------------------------------------------------------
 //
@@ -340,9 +348,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode
         );
 
     virtual ScanOpFunc GetScanOp() const { return ColorSource_RadialGradient_32bppPARGB; }
@@ -361,21 +369,20 @@ protected:
     FLOAT m_rM22;
     FLOAT m_rDy; 
 
-private:
+public:
     
     template<typename TPlatform>
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
-    
-    friend VOID FASTCALL ColorSource_RadialGradient_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
-        );    
 };
+
+extern VOID FASTCALL ColorSource_FocalGradient_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *);
 
 //+-----------------------------------------------------------------------------
 //
@@ -399,9 +406,9 @@ public:
         __in_ecount(3) const MilPoint2F *pGradientPoints,
         __in_ecount(uCount) const MilColorF *pColors,
         __in_ecount(uCount) const FLOAT *pPositions,
-        __in UINT uCount,
-        __in MilGradientWrapMode::Enum wrapMode,
-        __in MilColorInterpolationMode::Enum colorInterpolationMode,
+        _In_ UINT uCount,
+        _In_ MilGradientWrapMode::Enum wrapMode,
+        _In_ MilColorInterpolationMode::Enum colorInterpolationMode,
         __in_ecount(1) const MilPoint2F *pFocalPoint
         );
 
@@ -417,7 +424,7 @@ protected:
     FLOAT m_rXFirstTexelRegionCenter;
     FLOAT m_rYFirstTexelRegionCenter;
 
-private:
+public:
 
     void TransformPointFromWorldHPCToGradientCircle(
         __in_ecount(1) const CMatrix<CoordinateSpace::BaseSamplingHPC,CoordinateSpace::DeviceHPC> *pmatWorldHPCtoDeviceHPC,
@@ -427,50 +434,42 @@ private:
         ) const;
 
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
-        );
-
-    friend VOID FASTCALL ColorSource_FocalGradient_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *
         );
 };
 
-
+extern VOID FASTCALL ColorSource_ShaderEffect_32bppPARGB(
+    __in_ecount(1) const PipelineParams *, 
+    __in_ecount(1) const ScanOpParams *);
 
 class CShaderEffectBrushSpan : public CColorSource
 {
 public:
     CShaderEffectBrushSpan();
-    ~CShaderEffectBrushSpan() override {}
+    ~CShaderEffectBrushSpan() /* override */ {}
 
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CShaderEffectBrushSpan));
 
     HRESULT Initialize(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CMILBrushShaderEffect* pShaderEffectBrush);
 
 
-    ScanOpFunc GetScanOp() const override { return ColorSource_ShaderEffect_32bppPARGB; }
-    MilPixelFormat::Enum GetPixelFormat() const override { return MilPixelFormat::PBGRA32bpp; }
-    void ReleaseExpensiveResources() override;
-
-private:
+    ScanOpFunc GetScanOp() const /* override */ { return ColorSource_ShaderEffect_32bppPARGB; }
+    MilPixelFormat::Enum GetPixelFormat() const /* override */ { return MilPixelFormat::PBGRA32bpp; }
+    void ReleaseExpensiveResources() /* override */;
 
     VOID GenerateColors(
-        __in INT nX, 
-        __in INT nY, 
-        __in INT nCount, 
+        _In_ INT nX, 
+        _In_ INT nY, 
+        _In_ INT nCount, 
         __out_ecount_full(nCount) ARGB *pArgbDest
         );
 
-    friend VOID FASTCALL ColorSource_ShaderEffect_32bppPARGB(
-        __in_ecount(1) const PipelineParams *, 
-        __in_ecount(1) const ScanOpParams *);
-
+private:
 
     CPixelShaderState m_pixelShaderState;
     CPixelShaderCompiler *m_pPixelShaderCompiler;

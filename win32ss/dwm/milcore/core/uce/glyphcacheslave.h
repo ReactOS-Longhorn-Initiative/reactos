@@ -29,7 +29,7 @@ public:
     //
     // Construction/Destruction
     //
-    static HRESULT Create(__in CComposition *pComposition, __out CMilSlaveGlyphCache **ppGlyphCache);
+    static HRESULT Create(_In_ CComposition *pComposition, _Out_ CMilSlaveGlyphCache **ppGlyphCache);
     ~CMilSlaveGlyphCache();
  
     //
@@ -51,7 +51,7 @@ public:
     //
     void ProcessPendingAnimations();
 
-    UINT FindAnimatingGlyphRunIndex(__in const CGlyphRunResource *pGlyphRunResource) const;
+    UINT FindAnimatingGlyphRunIndex(_In_ const CGlyphRunResource *pGlyphRunResource) const;
     
     //
     // Get the current unique realization frame count
@@ -62,27 +62,27 @@ public:
     // Mechanism for CMilSlaveGlyphRun objects to ask for another rendering
     // pass, to allow them to update their own realizations.
     //
-    HRESULT RequestSubsequentPass(__in CGlyphRunResource *pGlyphRunResource);
+    HRESULT RequestSubsequentPass(_In_ CGlyphRunResource *pGlyphRunResource);
 
     //
     // Method to unregister a CMilSlaveGlyphRun that has previously called
     // RequestSubsequentPass, in case it is destroyed before it gets the
     // chance to produce a new realization
     //
-    void UnRegisterForSubsequentPass(__in const CGlyphRunResource *pGlyphRunResource);
+    void UnRegisterForSubsequentPass(_In_ const CGlyphRunResource *pGlyphRunResource);
 
-    __out IDWriteFactory *GetDWriteFactoryNoRef()
+    _Out_ IDWriteFactory *GetDWriteFactoryNoRef()
     {
         return m_pDWriteFactory;        
     }
 
-    void AddRealization(__in CGlyphRunRealization *pRealization, UINT32 textureSize);
-    void RemoveRealization(__in CGlyphRunRealization *pRealization, UINT32 textureSize);
+    void AddRealization(_In_ CGlyphRunRealization *pRealization, UINT32 textureSize);
+    void RemoveRealization(_In_ CGlyphRunRealization *pRealization, UINT32 textureSize);
         
     static const UINT c_invalidHandleValue = (FontFaceHandle)(-1);
 
 private:
-    CMilSlaveGlyphCache(__in CComposition *pComposition);
+    CMilSlaveGlyphCache(_In_ CComposition *pComposition);
 
     typedef struct {
         UTC_TIME RequestedCallbackFrame;

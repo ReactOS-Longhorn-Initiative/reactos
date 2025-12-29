@@ -80,7 +80,7 @@ namespace Microsoft.Windows.Media
             {
             }
 
-            public override bool IsInvalid
+            public /* override */ bool IsInvalid
             {
                 get
                 {
@@ -88,7 +88,7 @@ namespace Microsoft.Windows.Media
                 }
             }
 
-            protected override bool ReleaseHandle()
+            protected /* override */ bool ReleaseHandle()
             {
                 Imports.Release(handle);
                 return true;

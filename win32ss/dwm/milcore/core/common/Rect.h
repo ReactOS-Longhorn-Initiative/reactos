@@ -36,9 +36,6 @@
 template <typename TBaseMILRect, typename Space>
 class TRect_ : public TBaseMILRect
 {
-  __if_exists (TBaseMILRect::HasBaseType)
-  {
-protected:
 
     //+------------------------------------------------------------------------
     //
@@ -51,9 +48,10 @@ protected:
     //
     //-------------------------------------------------------------------------
 
-    typedef TBaseMILRect BaseMILRectType;
 
 public:
+ typedef TBaseMILRect BaseMILRectType;
+
     //=========================================================================
     // Constructors
     //
@@ -76,7 +74,7 @@ public:
 
         // This is a compile time assert so we only need it once here, but no
         // where else.
-        C_ASSERT( sizeof(BaseMILRectType) == sizeof(TRect_) );
+        static_assert( sizeof(TBaseMILRect) == sizeof(TRect_) , " sizeof(BaseMILRectType) == sizeof(TRect_) ");
     }
 
 
@@ -89,33 +87,33 @@ public:
     //-------------------------------------------------------------------------
 
     TRect_(
-        typename BaseMILRectType::BaseUnitType _left,
-        typename BaseMILRectType::BaseUnitType _top,
-        typename BaseMILRectType::BaseUnitType _right,
-        typename BaseMILRectType::BaseUnitType _bottom,
+        typename TBaseMILRect::BaseUnitType _left,
+        typename TBaseMILRect::BaseUnitType _top,
+        typename TBaseMILRect::BaseUnitType _right,
+        typename TBaseMILRect::BaseUnitType _bottom,
         LTRB ltrb
         )
 //
 // [pfx_parse] - workaround for PREfix parse problems with initializing
 //
 #if (!defined(_PREFIX_)) && (!defined(_PREFAST_))
-    : BaseMILRectType(_left, _top, _right, _bottom, ltrb)
+    : TBaseMILRect(_left, _top, _right, _bottom, ltrb)
 #endif // !_PREFIX_
     {}
 
 
     TRect_(
-        typename BaseMILRectType::BaseUnitType x,
-        typename BaseMILRectType::BaseUnitType y,
-        typename BaseMILRectType::BaseUnitType width,
-        typename BaseMILRectType::BaseUnitType height,
+        typename TBaseMILRect::BaseUnitType x,
+        typename TBaseMILRect::BaseUnitType y,
+        typename TBaseMILRect::BaseUnitType width,
+        typename TBaseMILRect::BaseUnitType height,
         XYWH xywh
         )
 //
 // [pfx_parse] - workaround for PREfix parse problems with initializing
 //
 #if (!defined(_PREFIX_)) && (!defined(_PREFAST_))
-    : BaseMILRectType(x, y, width, height, xywh)
+    : TBaseMILRect(x, y, width, height, xywh)
 #endif // !_PREFIX_
     {}
 
@@ -124,7 +122,7 @@ public:
     // !!! No automatic conversion from generic rectangle of the base type !!!
     //
 #if NEVER
-    TRect_(__in_ecount(1) const typename BaseMILRectType::BaseRectType &rc)
+    TRect_(__in_ecount(1) const typename TBaseMILRect::BaseRectType &rc)
 //
 // [pfx_parse] - workaround for PREfix parse problems with initializing
 //
@@ -132,7 +130,7 @@ public:
     : BaseMILRectType(rc)
 #endif // !_PREFIX_
     {}
-#endif NEVER
+#endif /* NEVER */
 
 
     template<typename TPoint>
@@ -177,8 +175,6 @@ public:
         return reinterpret_cast<const TRect_ *>(base);
     }
 
-  }
-
 };
 
 
@@ -196,7 +192,7 @@ public:
 //
 //-----------------------------------------------------------------------------
 
-template <typename Space> 
+template <typename Space>
 class CRectF : public TRect_<CMilRectF, Space>
 {
 public:
@@ -224,7 +220,7 @@ public:
         // To achieve this, CRectF must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(MilRectF) == sizeof(CRectF) );
+        static_assert( sizeof(MilRectF) == sizeof(CRectF) , " sizeof(MilRectF) == sizeof(CRectF) ");
     }
 
 
@@ -237,10 +233,10 @@ public:
     //-------------------------------------------------------------------------
 
     CRectF(
-        typename BaseMILRectType::BaseUnitType _left,
-        typename BaseMILRectType::BaseUnitType _top,
-        typename BaseMILRectType::BaseUnitType _right,
-        typename BaseMILRectType::BaseUnitType _bottom,
+        typename CMilRectF::BaseUnitType _left,
+        typename CMilRectF::BaseUnitType _top,
+        typename CMilRectF::BaseUnitType _right,
+        typename CMilRectF::BaseUnitType _bottom,
         LTRB ltrb
         )
 //
@@ -253,10 +249,10 @@ public:
 
 
     CRectF(
-        typename BaseMILRectType::BaseUnitType x,
-        typename BaseMILRectType::BaseUnitType y,
-        typename BaseMILRectType::BaseUnitType width,
-        typename BaseMILRectType::BaseUnitType height,
+        typename CMilRectF::BaseUnitType x,
+        typename CMilRectF::BaseUnitType y,
+        typename CMilRectF::BaseUnitType width,
+        typename CMilRectF::BaseUnitType height,
         XYWH xywh
         )
 //
@@ -279,7 +275,7 @@ public:
     : TRect_<CMilRectF, Space>(rc)
 #endif // !_PREFIX_
     {}
-#endif NEVER
+#endif /* NEVER */
 
     template<typename TPoint>
     CRectF(
@@ -313,8 +309,8 @@ public:
     __returnro CRectF<CoordinateSpace::Variant> const &ReinterpretAsVariant(
         ) const
     {
-        C_ASSERT(Space::Id != CoordinateSpaceId::Invalid);
-        C_ASSERT(sizeof(*this) == sizeof(CRectF<CoordinateSpace::Variant>));
+        static_assert(Space::Id != CoordinateSpaceId::Invalid, "Space::Id != CoordinateSpaceId::Invalid");
+        static_assert(sizeof(*this) == sizeof(CRectF<CoordinateSpace::Variant>), "sizeof(*this) == sizeof(CRectF<CoordinateSpace::Variant>)");
         return reinterpret_cast<CRectF<CoordinateSpace::Variant> const &>(*this);
     }
 
@@ -332,12 +328,12 @@ public:
     //
     //-------------------------------------------------------------------------
 
-    static CRectF * ReinterpretBaseType(__in_ecount_opt(1) TRect_<typename BaseMILRectType::BaseRectType, Space> *base)
+    static CRectF * ReinterpretBaseType(__in_ecount_opt(1) TRect_<typename CMilRectF::BaseRectType, Space> *base)
     {
         return reinterpret_cast<CRectF *>(base);
     }
 
-    static const CRectF * ReinterpretBaseType(__in_ecount_opt(1) const TRect_<typename BaseMILRectType::BaseRectType, Space> *base)
+    static const CRectF * ReinterpretBaseType(__in_ecount_opt(1) const TRect_<typename CMilRectF::BaseRectType, Space> *base)
     {
         return reinterpret_cast<const CRectF *>(base);
     }
@@ -362,7 +358,7 @@ public:
         __in_ecount_opt(1) const MilRectF *prc
         )
     {
-        C_ASSERT(sizeof(*prc) == sizeof(CRectF));
+        static_assert(sizeof(*prc) == sizeof(CRectF), "sizeof(*prc) == sizeof(CRectF)");
         return static_cast<const CRectF *>(prc);
     }
 
@@ -370,7 +366,7 @@ public:
         __in_ecount_opt(1) const MilRectF &rc
         )
     {
-        C_ASSERT(sizeof(rc) == sizeof(CRectF));
+        static_assert(sizeof(rc) == sizeof(CRectF), "sizeof(rc) == sizeof(CRectF)");
         return static_cast<const CRectF &>(rc);
     }
 };
@@ -396,7 +392,7 @@ ReinterpretPageInPixelsAsDevice(
     __in_ecount(1) const CRectF<CoordinateSpace::PageInPixels> &rc
     )
 {
-    C_ASSERT(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Device>));
+    static_assert(sizeof(rc) == sizeof(CRectF<CoordinateSpace::Device>), "sizeof(rc) == sizeof(CRectF<CoordinateSpace::Device>)");
     return reinterpret_cast<const CRectF<CoordinateSpace::Device> &>(rc);
 }
 
@@ -405,7 +401,7 @@ ReinterpretRealizationSamplingAsLocalRendering(
     __in_ecount(1) const CRectF<CoordinateSpace::RealizationSampling> &rc
     )
 {
-    C_ASSERT(sizeof(rc) == sizeof(CRectF<CoordinateSpace::LocalRendering>));
+    static_assert(sizeof(rc) == sizeof(CRectF<CoordinateSpace::LocalRendering>), "sizeof(rc) == sizeof(CRectF<CoordinateSpace::LocalRendering>)");
     return reinterpret_cast<const CRectF<CoordinateSpace::LocalRendering> &>(rc);
 }
 
@@ -428,11 +424,11 @@ ReinterpretNonSpaceTypeDUCERectAsLocalRenderingRect(
     __ecount(1) MilRectF *prc
     )
 {
-    C_ASSERT(sizeof(*prc) == sizeof(CRectF<CoordinateSpace::LocalRendering>));
-    C_ASSERT(offsetof(MilRectF, left) == offsetof(CRectF<CoordinateSpace::LocalRendering>, left));
-    C_ASSERT(offsetof(MilRectF, top) == offsetof(CRectF<CoordinateSpace::LocalRendering>, top));
-    C_ASSERT(offsetof(MilRectF, right) == offsetof(CRectF<CoordinateSpace::LocalRendering>, right));
-    C_ASSERT(offsetof(MilRectF, bottom) == offsetof(CRectF<CoordinateSpace::LocalRendering>, bottom));
+    static_assert(sizeof(*prc) == sizeof(CRectF<CoordinateSpace::LocalRendering>), "sizeof(*prc) == sizeof(CRectF<CoordinateSpace::LocalRendering>)");
+    static_assert(offsetof(MilRectF, left) == offsetof(CRectF<CoordinateSpace::LocalRendering>, left), "offsetof(MilRectF, left) == offsetof(CRectF<CoordinateSpace::LocalRendering>, left)");
+    static_assert(offsetof(MilRectF, top) == offsetof(CRectF<CoordinateSpace::LocalRendering>, top), "offsetof(MilRectF, top) == offsetof(CRectF<CoordinateSpace::LocalRendering>, top)");
+    static_assert(offsetof(MilRectF, right) == offsetof(CRectF<CoordinateSpace::LocalRendering>, right), "offsetof(MilRectF, right) == offsetof(CRectF<CoordinateSpace::LocalRendering>, right)");
+    static_assert(offsetof(MilRectF, bottom) == offsetof(CRectF<CoordinateSpace::LocalRendering>, bottom), "offsetof(MilRectF, bottom) == offsetof(CRectF<CoordinateSpace::LocalRendering>, bottom)");
     return reinterpret_cast<CRectF<CoordinateSpace::LocalRendering> *>(prc);
 }
 
@@ -447,6 +443,8 @@ class CMultiSpaceRectF;
 #include "MultiSpaceRectF.inl"
 
 // define CMultiSpaceRectF<PageInPixels, Device>
+#undef CoordSpace1
+#undef CoordSpace2
 #define CoordSpace1 PageInPixels
 #define CoordSpace2 Device
 #include "MultiSpaceRectF.inl"

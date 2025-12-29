@@ -20,8 +20,8 @@ extern "C" {
 
 struct TAGINFO
 {
-    CHAR *  pchOwner;
-    CHAR *  pchDesc;
+    const CHAR *  pchOwner;
+    const CHAR *  pchDesc;
     BOOL    fEnabled;
 };
 
@@ -75,7 +75,7 @@ char * GetModuleName(HINSTANCE hInst)
     return(psz);
 }
 
-void LeakDumpAppend(__in PSTR pszMsg, void * pvArg = NULL)
+void LeakDumpAppend(_In_ const char* pszMsg, void * pvArg = NULL)
 {
     HANDLE hFile;
     char ach[1024];
@@ -137,7 +137,7 @@ BOOL WINAPI _DbgExEnableTag(TRACETAG tag, BOOL fEnable)
 {
     BOOL fOld = FALSE;
 
-    if (tag > 0 && tag < ARRAY_SIZE(g_rgtaginfo) - 1)
+    if (tag > 0 && tag < (TRACETAG)(ARRAY_SIZE(g_rgtaginfo) - 1))
     {
         fOld = g_rgtaginfo[tag].fEnabled;
         g_rgtaginfo[tag].fEnabled = fEnable;
@@ -158,15 +158,15 @@ BOOL WINAPI _DbgExSetBreakFlag(TRACETAG tag, BOOL fBreak)
 
 BOOL WINAPI _DbgExIsTagEnabled(TRACETAG tag)
 {
-    return(tag >= 0 && tag < ARRAY_SIZE(g_rgtaginfo) && g_rgtaginfo[tag].fEnabled);
+    return(tag >= 0 && tag < (TRACETAG)ARRAY_SIZE(g_rgtaginfo) && g_rgtaginfo[tag].fEnabled);
 }
 
-TRACETAG WINAPI _DbgExFindTag(__in PCSTR szTagDesc)
+TRACETAG WINAPI _DbgExFindTag(_In_ PCSTR szTagDesc)
 {
     TAGINFO * pti = g_rgtaginfo;
     TRACETAG tag;
 
-    for (tag = 0; tag < ARRAY_SIZE(g_rgtaginfo); ++tag, ++pti)
+    for (tag = 0; tag < (TRACETAG)ARRAY_SIZE(g_rgtaginfo); ++tag, ++pti)
     {
         if (!lstrcmpiA(pti->pchDesc, szTagDesc))
         {
@@ -227,12 +227,12 @@ TRACETAG WINAPI _DbgExTagOLEWatch()
     return(local_tagOLEWatch);
 }
 
-TRACETAG WINAPI _DbgExTagRegisterTrace(__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, BOOL fEnabled)
+TRACETAG WINAPI _DbgExTagRegisterTrace(_In_ PCSTR szTag, _In_ PCSTR szOwner, _In_ PCSTR szDescrip, BOOL fEnabled)
 {
     TAGINFO * pti = g_rgtaginfo;
     TRACETAG tag;
 
-    for (tag = 0; tag < ARRAY_SIZE(g_rgtaginfo) - 1; ++tag, ++pti)
+    for (tag = 0; tag < (TRACETAG)ARRAY_SIZE(g_rgtaginfo) - 1; ++tag, ++pti)
     {
         if (!lstrcmpiA(pti->pchDesc, szDescrip) && !lstrcmpiA(pti->pchOwner, szOwner))
         {
@@ -244,7 +244,7 @@ TRACETAG WINAPI _DbgExTagRegisterTrace(__in PCSTR szTag, __in PCSTR szOwner, __i
 }
 
 
-BOOL WINAPI _DbgExTaggedTraceListEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, va_list valMarker)
+BOOL WINAPI _DbgExTaggedTraceListEx(TRACETAG tag, USHORT usFlags, _In_ PCSTR szFmt, va_list valMarker)
 {
     if (DbgExIsTagEnabled(tag))
     {
@@ -420,22 +420,22 @@ BOOL WINAPI _DbgExValidateKnownAllocations()
     return(TRUE);
 }
 
-LONG_PTR WINAPI _DbgExTraceFailL(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+LONG_PTR WINAPI _DbgExTraceFailL(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return(errExpr);
 }
 
-LONG_PTR WINAPI _DbgExTraceWin32L(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+LONG_PTR WINAPI _DbgExTraceWin32L(LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return(errExpr);
 }
 
-HRESULT WINAPI _DbgExTraceHR(HRESULT hrTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line)
+HRESULT WINAPI _DbgExTraceHR(HRESULT hrTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line)
 {
     return(hrTest);
 }
 
-HRESULT WINAPI _DbgExTraceOLE(HRESULT hrTest, BOOL fIgnore, __in LPSTR pstrExpr, __in LPSTR pstrFile, int line, LPVOID lpsite)
+HRESULT WINAPI _DbgExTraceOLE(HRESULT hrTest, BOOL fIgnore, _In_ LPSTR pstrExpr, _In_ LPSTR pstrFile, int line, LPVOID lpsite)
 {
     return(hrTest);
 }
@@ -470,7 +470,7 @@ void WINAPI _DbgExDumpProcessHeaps()
 {
 } 
 
-PERFMETERTAG WINAPI _DbgExMtRegister(__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, DWORD dwFlags)
+PERFMETERTAG WINAPI _DbgExMtRegister(_In_ PCSTR szTag, _In_ PCSTR szOwner, _In_ PCSTR szDescrip, DWORD dwFlags)
 {
     return(0);
 }
@@ -483,12 +483,12 @@ void WINAPI _DbgExMtSet(PERFMETERTAG mt, LONG lCnt, LONG lVal)
 {
 }
 
-char * WINAPI _DbgExMtGetName(PERFMETERTAG mt)
+const char * WINAPI _DbgExMtGetName(PERFMETERTAG mt)
 {
     return("");
 }
 
-char * WINAPI _DbgExMtGetDesc(PERFMETERTAG mt)
+const char * WINAPI _DbgExMtGetDesc(PERFMETERTAG mt)
 {
     return("");
 }
@@ -517,11 +517,11 @@ void WINAPI _DbgExMtOpenMonitor()
 {
 }
 
-void WINAPI _DbgExMtLogDump(__in PCSTR pchFile)
+void WINAPI _DbgExMtLogDump(_In_ PCSTR pchFile)
 {
 }
 
-PERFMETERTAG WINAPI _DbgExMtLookupMeter(__in PCSTR szTag)
+PERFMETERTAG WINAPI _DbgExMtLookupMeter(_In_ PCSTR szTag)
 {
     return 0;
 }
@@ -546,7 +546,7 @@ PERFMETERTAG WINAPI _DbgExMtSetDefaultMeter(PERFMETERTAG mtDefault)
     return NULL;
 }
 
-void WINAPI _DbgExSetTopUrl(__in LPWSTR pstrUrl)
+void WINAPI _DbgExSetTopUrl(_In_ LPWSTR pstrUrl)
 {
 }
 
@@ -574,7 +574,7 @@ BOOL WINAPI _DbgExGetChkStkFill(DWORD * pdwFill)
 // cdecl function "wrappers" to their va_list equivalent ----------------------
 
 BOOL __cdecl
-DbgExTaggedTrace(TRACETAG tag, __in PCSTR szFmt, ...)
+DbgExTaggedTrace(TRACETAG tag, _In_ PCSTR szFmt, ...)
 {
     va_list va;
     BOOL    f;
@@ -587,7 +587,7 @@ DbgExTaggedTrace(TRACETAG tag, __in PCSTR szFmt, ...)
 }
 
 BOOL __cdecl
-DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...)
+DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, _In_ PCSTR szFmt, ...)
 {
     va_list va;
     BOOL    f;
@@ -613,7 +613,7 @@ DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...)
     DBGEXWRAP (BOOL, DbgExSetDiskFlag, (TRACETAG tag, BOOL fSendToDisk), (tag, fSendToDisk)) \
     DBGEXWRAP (BOOL, DbgExSetBreakFlag, (TRACETAG tag, BOOL fBreak), (tag, fBreak)) \
     DBGEXWRAP (BOOL, DbgExIsTagEnabled, (TRACETAG tag), (tag)) \
-    DBGEXWRAP (TRACETAG, DbgExFindTag, (__in PCSTR szTagDesc), (szTagDesc)) \
+    DBGEXWRAP (TRACETAG, DbgExFindTag, (_In_ PCSTR szTagDesc), (szTagDesc)) \
     DBGEXWRAP (TRACETAG, DbgExTagError, (), ()) \
     DBGEXWRAP (TRACETAG, DbgExTagWarning, (), ()) \
     DBGEXWRAP (TRACETAG, DbgExTagThread, (), ()) \
@@ -624,8 +624,8 @@ DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...)
     DBGEXWRAP (TRACETAG, DbgExTagMemoryStrictTail, (), ()) \
     DBGEXWRAP (TRACETAG, DbgExTagMemoryStrictAlign, (), ()) \
     DBGEXWRAP (TRACETAG, DbgExTagOLEWatch, (), ()) \
-    DBGEXWRAP (TRACETAG, DbgExTagRegisterTrace, (__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, BOOL fEnabled), (szTag, szOwner, szDescrip, fEnabled)) \
-    DBGEXWRAP (BOOL, DbgExTaggedTraceListEx, (TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, __in va_list valMarker), (tag, usFlags, szFmt, valMarker)) \
+    DBGEXWRAP (TRACETAG, DbgExTagRegisterTrace, (_In_ PCSTR szTag, _In_ PCSTR szOwner, _In_ PCSTR szDescrip, BOOL fEnabled), (szTag, szOwner, szDescrip, fEnabled)) \
+    DBGEXWRAP (BOOL, DbgExTaggedTraceListEx, (TRACETAG tag, USHORT usFlags, _In_ PCSTR szFmt, _In_ va_list valMarker), (tag, usFlags, szFmt, valMarker)) \
     DBGEXWRAP_(void, DbgExTaggedTraceCallers, (TRACETAG tag, int iStart, int cTotal), (tag, iStart, cTotal)) \
     DBGEXWRAP_(void, DbgExAssertThreadDisable, (BOOL fDisable), (fDisable)) \
     DBGEXWRAP (size_t, DbgExPreAlloc, (size_t cbRequest, PERFMETERTAG mt), (cbRequest, mt)) \
@@ -649,9 +649,9 @@ DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...)
     DBGEXWRAP_(void, DbgExMemoryBlockTrackDisable, (void * pv), (pv)) \
     DBGEXWRAP_(void, DbgExTraceMemoryLeaks, (), ()) \
     DBGEXWRAP (BOOL, DbgExValidateKnownAllocations, (), ()) \
-    DBGEXWRAP (LONG_PTR, DbgExTraceFailL, (LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line), (errExpr, errTest, fIgnore, pstrExpr, pstrFile, line)) \
-    DBGEXWRAP (LONG_PTR, DbgExTraceWin32L, (LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line), (errExpr, errTest, fIgnore, pstrExpr, pstrFile, line)) \
-    DBGEXWRAP (HRESULT, DbgExTraceHR, (HRESULT hrTest, BOOL fIgnore, __in PCSTR pstrExpr, __in PCSTR pstrFile, int line), (hrTest, fIgnore, pstrExpr, pstrFile, line)) \
+    DBGEXWRAP (LONG_PTR, DbgExTraceFailL, (LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line), (errExpr, errTest, fIgnore, pstrExpr, pstrFile, line)) \
+    DBGEXWRAP (LONG_PTR, DbgExTraceWin32L, (LONG_PTR errExpr, LONG_PTR errTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line), (errExpr, errTest, fIgnore, pstrExpr, pstrFile, line)) \
+    DBGEXWRAP (HRESULT, DbgExTraceHR, (HRESULT hrTest, BOOL fIgnore, _In_ PCSTR pstrExpr, _In_ PCSTR pstrFile, int line), (hrTest, fIgnore, pstrExpr, pstrFile, line)) \
     DBGEXWRAP_(void, DbgExSetSimFailCounts, (int firstFailure, int cInterval), (firstFailure, cInterval)) \
     DBGEXWRAP_(void, DbgExShowSimFailDlg, (), ()) \
     DBGEXWRAP (BOOL, DbgExFFail, (), ()) \
@@ -659,18 +659,18 @@ DbgExTaggedTraceEx(TRACETAG tag, USHORT usFlags, __in PCSTR szFmt, ...)
     DBGEXWRAP_(void, DbgExOpenMemoryMonitor, (), ()) \
     DBGEXWRAP_(void, DbgExOpenLogFile, (LPCSTR szFName), (szFName)) \
     DBGEXWRAP_(void, DbgExDumpProcessHeaps, (), ()) \
-    DBGEXWRAP(PERFMETERTAG, DbgExMtRegister, (__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, DWORD dwFlags), (szTag, szOwner, szDescrip, dwFlags)) \
+    DBGEXWRAP(PERFMETERTAG, DbgExMtRegister, (_In_ PCSTR szTag, _In_ PCSTR szOwner, _In_ PCSTR szDescrip, DWORD dwFlags), (szTag, szOwner, szDescrip, dwFlags)) \
     DBGEXWRAP_(void, DbgExMtAdd, (PERFMETERTAG mt, LONG lCnt, LONG lVal), (mt, lCnt, lVal)) \
     DBGEXWRAP_(void, DbgExMtSet, (PERFMETERTAG mt, LONG lCnt, LONG lVal), (mt, lCnt, lVal)) \
-    DBGEXWRAP (char *, DbgExMtGetName, (PERFMETERTAG mt), (mt)) \
-    DBGEXWRAP (char *, DbgExMtGetDesc, (PERFMETERTAG mt), (mt)) \
+    DBGEXWRAP (const char *, DbgExMtGetName, (PERFMETERTAG mt), (mt)) \
+    DBGEXWRAP (const char *, DbgExMtGetDesc, (PERFMETERTAG mt), (mt)) \
     DBGEXWRAP (PERFMETERTAG, DbgExMtGetParent, (PERFMETERTAG mt), (mt)) \
     DBGEXWRAP (DWORD, DbgExMtGetFlags, (PERFMETERTAG mt), (mt)) \
     DBGEXWRAP_(void, DbgExMtSetFlags, (PERFMETERTAG mt, DWORD dwFlags), (mt, dwFlags)) \
     DBGEXWRAP (BOOL, DbgExMtSimulateOutOfMemory, (PERFMETERTAG mt, LONG lNewValue), (mt, lNewValue)) \
     DBGEXWRAP_(void, DbgExMtOpenMonitor, (), ()) \
-    DBGEXWRAP_(void, DbgExMtLogDump, (__in PCSTR pchFile), (pchFile)) \
-    DBGEXWRAP (PERFMETERTAG, DbgExMtLookupMeter, (__in PCSTR szTag), (szTag)) \
+    DBGEXWRAP_(void, DbgExMtLogDump, (_In_ PCSTR pchFile), (pchFile)) \
+    DBGEXWRAP (PERFMETERTAG, DbgExMtLookupMeter, (_In_ PCSTR szTag), (szTag)) \
     DBGEXWRAP (long, DbgExMtGetMeterCnt, (PERFMETERTAG mt, BOOL fExclusive), (mt, fExclusive)) \
     DBGEXWRAP (long, DbgExMtGetMeterVal, (PERFMETERTAG mt, BOOL fExclusive), (mt, fExclusive)) \
     DBGEXWRAP (PERFMETERTAG, DbgExMtGetDefaultMeter, (), ()) \
@@ -693,14 +693,14 @@ DBGEXFUNCTIONS()
 
 DBGEXFUNCTIONS()
 
-BOOL InitDebugProcedure(void ** ppv, __in PSTR pchFn)
+BOOL InitDebugProcedure(void ** ppv, _In_ const char* pchFn)
 {
     *ppv = (void *)GetProcAddress(g_hInstDbg, pchFn);
 
     if (*ppv == NULL)
     {
         char ach[512];
-        StringCchVPrintfA(ach, ARRAY_SIZE(ach), "InitDebugLib: Can't find PresentationDebug.dll entrypoint %s\r\n", pchFn);
+        StringCchVPrintfA(ach, ARRAY_SIZE(ach), "InitDebugLib: Can't find PresentationDebug.dll entrypoint %s\r\n", (va_list)pchFn);
         OutputDebugStringA(ach);
         return(FALSE);
     }

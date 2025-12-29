@@ -53,11 +53,11 @@
 #include "HwBoxColorSource.h"               // needs HwTexturedColorSource.h, HwVidMemTextureManager.h
 #include "HwColorComponentColorSource.h"
 #include "HwLightingColorSource.h"
-#include "HwDestinationTexture.h"           // needs HwTexturedColorSource.h
-#include "HwDestinationTexturePool.h"       // needs HwDestinationTexture.h
+#include "hwdestinationtexture.h"           // needs HwTexturedColorSource.h
+#include "hwdestinationtexturepool.h"       // needs HwDestinationTexture.h
 
 #include "HwHLSLShaderFragments.h"
-#include "HwPipeline.h"             // needs HwColorSource.h
+#include "hwpipeline.h"             // needs HwColorSource.h
 #include "HwPipelineBuilder.h"      // needs HwPipeline.h
 #include "HwShaderPipeline.h"
 #include "HwShaderBuilder.h"        // needs HwPipeline.h, HwHLSLShaderFragments.h
@@ -73,7 +73,7 @@
 #include "HwBrushPool.h"            // needs HwBrush.h
 #include "HwLinearGradientBrush.h"  // needs HwBrushPool.h, HwLinearGradientColorSource.h
 
-#include "HwSurfRTData.h"           // needs HwBrushPool.h
+#include "hwsurfrtdata.h"           // needs HwBrushPool.h
 
 #include "gpumarker.h"           
 
@@ -94,7 +94,7 @@
 #include "hwdisplayrt.h"
 #include "hwhwndrt.h"
 
-#include "d3ddevicemanager.h"
+#include "D3DDeviceManager.h"
 
 #include "hwinit.h"
 #include "hwsw3dfallback.h"
@@ -105,6 +105,6 @@
 #include "HwUtils.h"
 
 #include "HwShaderEffect.h"
-#include "ShaderAssemblies\Shaders.h"
+#include "ShaderAssemblies/Shaders.h"
 
 

@@ -289,7 +289,7 @@ HRESULT CSwPresenter32bppGDI::CopyPixels(
 
     WICRect rcCopy;
     WICRect rcBack = {0, 0, m_nWidth, m_nHeight};
-
+{
     if (prc == NULL)
     {
         rcCopy = rcBack;
@@ -346,7 +346,7 @@ HRESULT CSwPresenter32bppGDI::CopyPixels(
         pbSurface += m_nBufferStride;
         pbPixels += cbOutputBufferStride;
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -676,7 +676,7 @@ Cleanup:
 HRESULT CSwPresenter32bppGDI::Present(
     __in_ecount(1) CMILSurfaceRect const *prcSource,
     __in_ecount(1) CMILSurfaceRect const *prcDest,
-    __in RGNDATA *pDirtyRegion
+    _In_ RGNDATA *pDirtyRegion
     )
 {
     HRESULT hr = S_OK;
@@ -1067,8 +1067,8 @@ HRESULT CSwPresenter32bppGDI::CreateFormatConverter(
     // Allocate memory for the rendering backbuffer
     //
 
-    IFC(UIntMult(m_nBufferStride, abs(pbmi->bmiHeader.biHeight), &m_cbRenderBits));
-
+    IFC(UIntMult(m_nBufferStride, (int)abs((int)pbmi->bmiHeader.biHeight), &m_cbRenderBits));
+{
     //
     // For the 16 bpp case, we need to create a DIB section for the rendering bits with
     // an associated DC. This is so that we can call BitBlt on it to scroll the bits to 
@@ -1171,7 +1171,7 @@ HRESULT CSwPresenter32bppGDI::CreateFormatConverter(
 
     IFC(m_pConverterInput->HrInit(
             pbmi->bmiHeader.biWidth,
-            abs(pbmi->bmiHeader.biHeight),
+            abs((int)pbmi->bmiHeader.biHeight),
             fmtBackBuffer,
             m_cbRenderBits,
             m_pvRenderBits,
@@ -1282,7 +1282,7 @@ HRESULT CSwPresenter32bppGDI::CreateFormatConverter(
     hr = HrCalcDWordAlignedScanlineStride(
         pbmi->bmiHeader.biWidth,
         m_PresentPixelFormat, m_nDeviceStride);
-
+    }
 Cleanup:
     ReleaseInterfaceNoNULL(pWrapperBitmapSource);
     ReleaseInterfaceNoNULL(pIWICFactory);

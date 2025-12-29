@@ -864,7 +864,7 @@ CD3DDeviceManager::GetAvailableDevice(
                       ));
         }
     }
-#endif DBG
+#endif /* DBG */
 
     // No RRETURN because we don't want spew or capture here.
     return hr;
@@ -1519,7 +1519,7 @@ CD3DDeviceManager::CreateNewDevice(
     __inout_ecount(1)
     D3DPRESENT_PARAMETERS *pBasePresentParams,      // Base D3D Presentation
                                                     // parameters
-    __in_xcount(pD3DCreateParams->NumberOfAdaptersInGroup)
+    _In_reads_(pD3DCreateParams->NumberOfAdaptersInGroup)
     D3DDISPLAYMODEEX *rgDisplayModes,               // Array of display modes
 
     __deref_out_ecount(1) CD3DDeviceLevel1 **ppDeviceLevel1
@@ -1813,7 +1813,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 HRESULT 
-CD3DDeviceManager::AddAdapterStatusListener(__in IAdapterStatusListener *pListener)
+CD3DDeviceManager::AddAdapterStatusListener(_In_ IAdapterStatusListener *pListener)
 {
     CGuard<CCriticalSection> oGuard(m_csManagement);
     
@@ -1831,7 +1831,7 @@ CD3DDeviceManager::AddAdapterStatusListener(__in IAdapterStatusListener *pListen
 //------------------------------------------------------------------------------
 
 void 
-CD3DDeviceManager::RemoveAdapterStatusListener(__in IAdapterStatusListener *pListener)
+CD3DDeviceManager::RemoveAdapterStatusListener(_In_ IAdapterStatusListener *pListener)
 {
     CGuard<CCriticalSection> oGuard(m_csManagement);
         

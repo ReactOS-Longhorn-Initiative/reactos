@@ -174,7 +174,7 @@ RenderingBuilder::Append_AlphaMask(
 
     COwnedOSD *pNewOSD = NULL;
     ScanOpFunc pfnOp = NULL;
-
+{
     switch (fmtBlendSource)
     {
     case MilPixelFormat::PBGRA32bpp:
@@ -235,7 +235,7 @@ RenderingBuilder::Append_AlphaMask(
 
     IFC(pSPR->m_rgosdOwned.Add(pNewOSD));
     pNewOSD = NULL;   // Ownership transfered to pSPR->m_rgosdOwned.
-
+}
 Cleanup:
     delete pNewOSD;
 
@@ -265,7 +265,7 @@ RenderingBuilder::AddOp_ScalePPAACoverage(
     ScanOpFunc pfnOp = GetOp_ScalePPAACoverage(fmtBlendSource, fComplementAlpha, pFmtBlendOutput);
 
     IFC(AddOp_Unary(pfnOp, NULL, SP_BLENDSOURCE));
-
+{
     // We only support 1 of these operations in the pipeline.
     // Check that we haven't added one already.
 
@@ -276,12 +276,15 @@ RenderingBuilder::AddOp_ScalePPAACoverage(
     // Record the index of this operation so that m_posd can be updated later.
 
     pSPR->m_idxosdAAFiller = pSPR->m_rgPipeline.GetCount() - 1;
-
+}
 Cleanup:
 
     RRETURN(hr);
 }
 
+// bilinearspan.cpp
+extern VOID FASTCALL ConstantAlpha_32bppRGB(
+        const PipelineParams *, const ScanOpParams *);
 
 //+-----------------------------------------------------------------------------
 //
@@ -303,7 +306,7 @@ HRESULT RenderingBuilder::Append_AlphaScale(
 
     COwnedOSD *pNewOSD = NULL;
     ScanOpFunc pfnOp = NULL;
-
+{
     switch (fmtBlendSource)
     {
     case MilPixelFormat::PBGRA32bpp:
@@ -352,7 +355,7 @@ HRESULT RenderingBuilder::Append_AlphaScale(
     Assert(pSPR);
     IFC(pSPR->m_rgosdOwned.Add(pNewOSD));
     pNewOSD = NULL;   // Ownership transfered to pSPR->m_rgosdOwned.
-
+}
 Cleanup:
     delete pNewOSD;
 

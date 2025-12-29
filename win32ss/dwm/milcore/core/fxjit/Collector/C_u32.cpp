@@ -14,9 +14,6 @@
 
 #include "precomp.h"
 
-extern "C" _Success_(return != 0) unsigned char _BitScanReverse(_Out_ unsigned long * Index, _In_ unsigned long Mask);
-#pragma intrinsic(_BitScanReverse)
-
 //+-----------------------------------------------------------------------------
 //
 //  Member:
@@ -210,6 +207,7 @@ C_u32::operator*(UINT32 src) const
         // src is power if two, use shift instead
         unsigned long shift;
         auto success = _BitScanReverse(&shift, src);
+        success;
         Assert(success != FALSE);
 
         SOperator *pOperator = pProgram->AddOperator(otUINT32ImmShiftLeft, tmp.m_ID, m_ID);

@@ -120,7 +120,7 @@ class CScanPipelineRendering::Builder2
 {
 public:
 
-    CScanPipelineRendering::Builder2(
+    Builder2(
         __in_ecount(1) CScanPipelineRendering *pSP,
         __in_ecount(1) CSPIntermediateBuffers *pIntermediateBuffers
         );
@@ -392,7 +392,7 @@ HRESULT
 CScanPipelineRendering::Builder2::AllocIntermediateBuffer(VBID vbid)
 {
     HRESULT hr = S_OK;
-
+{
     if (!IsInternal(vbid))
         goto Cleanup; // preallocated or null
 
@@ -430,6 +430,7 @@ CScanPipelineRendering::Builder2::AllocIntermediateBuffer(VBID vbid)
 
     RIP("No free intermediate buffers");
     IFC(WGXERR_INTERNALERROR);
+}
 
 Cleanup:
     RRETURN(hr);

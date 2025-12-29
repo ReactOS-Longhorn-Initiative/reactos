@@ -29,7 +29,7 @@ DeclareTag(tagMILStepRenderingDisableBreak, "MIL", "MIL Step Rendering - Disable
 UINT CCommonRegistryData::m_uResCheckInSeconds = 15 * 60;
 bool CCommonRegistryData::m_fGPUThrottlingDisabled = false;
 
-//can be overriden by HKLM\Software\Microsoft\Avalon.Graphics\DisableInstrumentationBreaking(DWORD) = !0
+//can be /* override */n by HKLM\Software\Microsoft\Avalon.Graphics\DisableInstrumentationBreaking(DWORD) = !0
 
 /**************************************************************************\
 *
@@ -41,7 +41,7 @@ bool CCommonRegistryData::m_fGPUThrottlingDisabled = false;
 \**************************************************************************/
 
 HRESULT GetAvalonRegistrySettingsKey(
-    __out HKEY *phRegSettings, 
+    _Out_ HKEY *phRegSettings, 
     BOOL fCurrentUser
     )
 {
@@ -64,7 +64,7 @@ HRESULT GetAvalonRegistrySettingsKey(
 \**************************************************************************/
 
 HRESULT GetDWMRegistrySettingsKey(
-    __out HKEY *phRegSettings
+    _Out_ HKEY *phRegSettings
     )
 {
     return (RegOpenKeyEx(
@@ -86,8 +86,8 @@ HRESULT GetDWMRegistrySettingsKey(
 \**************************************************************************/
 
 bool RegReadDWORD(
-    __in HKEY hKey, 
-    __in PCWSTR pName, 
+    _In_ HKEY hKey, 
+    _In_ PCWSTR pName, 
     __inout_ecount(1) DWORD *pValue
     )
 {
@@ -222,7 +222,7 @@ CCommonRegistryData::InitializeFromRegistry()
     {
         DWORD dwTemp = 0;
 
-        if (   RegReadDWORD(hRegAvalonGraphicsLocalMachine, _T("DisableGpuThrottling"), &dwTemp)
+        if (   RegReadDWORD(hRegAvalonGraphicsLocalMachine, L"DisableGpuThrottling", &dwTemp)
             && dwTemp != 0
                )
         {

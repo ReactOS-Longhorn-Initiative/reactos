@@ -84,7 +84,7 @@ public:
         __in_ecount(1) dxlayer::basetypes<dxlayer::dx_apiset>::matrix_base_t const *pm
         )
     {
-        C_ASSERT(sizeof(*pm) == sizeof(CBaseMatrix));
+        static_assert(sizeof(*pm) == sizeof(CBaseMatrix), "sizeof(*pm) == sizeof(CBaseMatrix)");
         return static_cast<CBaseMatrix const *>(pm);
     }
 
@@ -122,7 +122,7 @@ public:
     VOID TransformAsVectors(
         __in_ecount(count) const MilPoint2F *srcVectors,
         __out_ecount(count) MilPoint2F *destVectors,
-        __in UINT count
+        _In_ UINT count
         ) const;
 
     REAL GetDeterminant2D() const
@@ -196,7 +196,7 @@ public:
         __in_ecount(1) const CBaseMatrix &m1,
         __in_ecount(1) const CBaseMatrix &m2
         );
-#ifdef DBG
+#if 0
     VOID Dump() const;
 #endif
 

@@ -32,11 +32,11 @@ protected:
     {
     }
 
-    override virtual ~CMilQuaternionRotation3DDuce();
+    /* override */ virtual ~CMilQuaternionRotation3DDuce();
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_QUATERNIONROTATION3D || CMilRotation3DDuce::IsOfType(type);
     }
@@ -47,11 +47,11 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override virtual HRESULT GetRealization(__out_ecount(1) CMILMatrix *pRealization);
+    /* override */ virtual HRESULT GetRealization(__out_ecount(1) CMILMatrix *pRealization);
 
-    override virtual HRESULT SynchronizeAnimatedFields();
+    /* override */ virtual HRESULT SynchronizeAnimatedFields();
 
     CMilQuaternionRotation3DDuce_Data m_data;
 };

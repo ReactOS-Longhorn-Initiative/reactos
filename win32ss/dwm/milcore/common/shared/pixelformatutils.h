@@ -475,17 +475,17 @@ MIL_FORCEINLINE UINT BitsToBytes(UINT cBits)
 //
 //----------------------------------------------------------------------------
 HRESULT HrCheckBufferSize(
-    __in MilPixelFormat::Enum fmt,  // Pixel format
-    __in UINT cbStride,
+    _In_ MilPixelFormat::Enum fmt,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc,
-    __in UINT cbBufferSize
+    _In_ UINT cbBufferSize
     );
 
 HRESULT HrCheckBufferSize(
-    __in UINT fmtBpp,  // Pixel format
-    __in UINT cbStride,
+    _In_ UINT fmtBpp,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc,
-    __in UINT cbBufferSize
+    _In_ UINT cbBufferSize
     );
 
 //+---------------------------------------------------------------------------
@@ -499,19 +499,19 @@ HRESULT HrCheckBufferSize(
 //
 //----------------------------------------------------------------------------
 HRESULT HrCheckBufferSize(
-    __in MilPixelFormat::Enum fmt,  // Pixel format
-    __in UINT cbStride,
-    __in UINT width,
-    __in UINT height,
-    __in UINT cbBufferSize
+    _In_ MilPixelFormat::Enum fmt,  // Pixel format
+    _In_ UINT cbStride,
+    _In_ UINT width,
+    _In_ UINT height,
+    _In_ UINT cbBufferSize
     );
 
 HRESULT HrCheckBufferSize(
-    __in REFWICPixelFormatGUID fmt,  // Pixel format
-    __in UINT cbStride,
-    __in UINT width,
-    __in UINT height,
-    __in UINT cbBufferSize
+    _In_ REFWICPixelFormatGUID fmt,  // Pixel format
+    _In_ UINT cbStride,
+    _In_ UINT width,
+    _In_ UINT height,
+    _In_ UINT cbBufferSize
     );
 
 //+---------------------------------------------------------------------------
@@ -525,10 +525,10 @@ HRESULT HrCheckBufferSize(
 //
 //----------------------------------------------------------------------------
 HRESULT HrCheckBufferSize(
-    __in REFWICPixelFormatGUID fmt,  // Pixel format
-    __in UINT cbStride,
+    _In_ REFWICPixelFormatGUID fmt,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc,
-    __in UINT cbBufferSize
+    _In_ UINT cbBufferSize
     );
 
 //+---------------------------------------------------------------------------
@@ -542,18 +542,18 @@ HRESULT HrCheckBufferSize(
 //
 //----------------------------------------------------------------------------
 HRESULT HrGetRequiredBufferSize(
-    __in MilPixelFormat::Enum fmt,  // Pixel format
-    __in UINT cbStride,
-    __in UINT width,
-    __in UINT height,
+    _In_ MilPixelFormat::Enum fmt,  // Pixel format
+    _In_ UINT cbStride,
+    _In_ UINT width,
+    _In_ UINT height,
     __out_ecount(1) UINT *pcbSize
     );
 
 HRESULT HrGetRequiredBufferSize(
-    __in UINT fmtBpp,  // Pixel format
-    __in UINT cbStride,
-    __in UINT width,
-    __in UINT height,
+    _In_ UINT fmtBpp,  // Pixel format
+    _In_ UINT cbStride,
+    _In_ UINT width,
+    _In_ UINT height,
     __out_ecount(1) UINT *pcbSize
     );
 
@@ -569,16 +569,16 @@ HRESULT HrGetRequiredBufferSize(
 //
 //----------------------------------------------------------------------------
 HRESULT HrGetRequiredBufferSize(
-    __in MilPixelFormat::Enum fmt,  // Pixel format
-    __in UINT cbStride,
+    _In_ MilPixelFormat::Enum fmt,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc,
     __out_ecount(1) UINT *pcbSize
     );
 
 
 HRESULT HrGetRequiredBufferSize(
-    __in UINT fmtBpp,  // Pixel format
-    __in UINT cbStride,
+    _In_ UINT fmtBpp,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc,
     __out_ecount(1) UINT *pcbSize
     );
@@ -596,8 +596,8 @@ HRESULT HrGetRequiredBufferSize(
 //----------------------------------------------------------------------------
 inline UINT
 GetRequiredBufferSize(
-    __in MilPixelFormat::Enum fmt,  // Pixel format
-    __in UINT cbStride,
+    _In_ MilPixelFormat::Enum fmt,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc
     )
 {
@@ -644,8 +644,8 @@ GetRequiredBufferSize(
 //----------------------------------------------------------------------------
 inline UINT
 GetRequiredBufferSize(
-    __in REFWICPixelFormatGUID fmt,  // Pixel format
-    __in UINT cbStride,
+    _In_ REFWICPixelFormatGUID fmt,  // Pixel format
+    _In_ UINT cbStride,
     __in_ecount(1) const WICRect *prc
     )
 {
@@ -886,7 +886,7 @@ void Put_sRGB_Alpha_In_D3DCOLOR_WithNoAlpha(
 UINT16 Convert_scRGB_float_To_sRGB_UINT16(float v);
 
 // Definition for Convert_scRGB_Channel_To_sRGB_Byte
-#include "gammaluts.inc"
+#include "GammaLUTs.inc"
 
 //+----------------------------------------------------------------------------
 //

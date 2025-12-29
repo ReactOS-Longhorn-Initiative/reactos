@@ -44,7 +44,7 @@ public:
         // To achieve this, CMilPointAndSizeF must have no data members or virtual functions.
 
         // This is a compile time assert so we only need it once here, but no where else.
-        C_ASSERT( sizeof(MilPointAndSizeF) == sizeof(CMilPointAndSizeF) );
+        static_assert( sizeof(MilPointAndSizeF) == sizeof(CMilPointAndSizeF) , " sizeof(MilPointAndSizeF) == sizeof(CMilPointAndSizeF) ");
     }
 
     CMilPointAndSizeF(FLOAT x, FLOAT y, FLOAT width, FLOAT height)

@@ -42,7 +42,7 @@ CProgram::BuildSpanGraph()
 
     m_pSpanGraph = (OpSpan*)AllocMem(sizeof(OpSpan) * m_uSpanCount);
     IFCOOM(m_pSpanGraph);
-
+{
     OpSpan *pSpan = NULL;
     OpSpan *pPreviousSpan = NULL;
     UINT32 uSpanIdx = 0;
@@ -203,7 +203,7 @@ CProgram::BuildSpanGraph()
             IFC(AddSpanLink(pNextSpan, pReturnSpan));
         }
     }
-
+}
 Cleanup:
     return hr;
 }
@@ -574,7 +574,7 @@ CProgram::RemoveLink(Link *pLink)
 SpanLink*
 CProgram::AllocSpanLink()
 {
-    C_ASSERT(sizeof(Link) == sizeof(SpanLink));
+    static_assert(sizeof(Link) == sizeof(SpanLink), "sizeof(Link) == sizeof(SpanLink)");
     return ((SpanLink*)AllocLink());
 }
 
@@ -706,6 +706,7 @@ CProgram::ConvertToSSA()
                 for (Link * pLink2 = pConsumer->m_pProviders; pLink2; pLink2 = pLink2->m_pNextProvider)
                 {
                     const COperator * pDbgProvider = pLink2->m_pProvider;
+                    pDbgProvider;
                     WarpAssert(pDbgProvider == pNextProvider || pDbgProvider->m_vResult != uVarID);
                 }
 #endif
@@ -1115,7 +1116,7 @@ CProgram::SetInUse(COperator *pOperator)
         WarpAssert(pProvider);
         if (pProvider->m_uFlags)
             continue; // we've already considered this operator useful
-            SetInUse(pProvider);
+        SetInUse(pProvider);
     }
 }
 
@@ -1290,7 +1291,7 @@ Cleanup:
 InstructionHook *
 CProgram::AllocInstructionHook()
 {
-    C_ASSERT(sizeof(InstructionHook) == sizeof(Hook));
+    static_assert(sizeof(InstructionHook) == sizeof(Hook), "sizeof(InstructionHook) == sizeof(Hook)");
     return ((InstructionHook*)AllocHook());
 }
 

@@ -89,6 +89,7 @@ CHwLinearGradientColorSource::SetBrushAndContext(
 {
     HRESULT hr = S_OK;
 
+   {
     CMILMatrix matSampleSpaceToTexture;
     CMILMatrix matXSpaceToTexture;
 
@@ -178,10 +179,12 @@ CHwLinearGradientColorSource::SetBrushAndContext(
 
     // Mark matrix as set
 #if DBG
-    XSpaceDefinition dbgXSpaceDefinition = (SourceCoordSpace == CoordinateSpaceId::Device)
+    {
+        XSpaceDefinition dbgXSpaceDefinition = (SourceCoordSpace == CoordinateSpaceId::Device)
         ? XSpaceIsSampleSpace
         : XSpaceIsWorldSpace;
-    DbgMarkXSpaceToTextureUVAsSet(dbgXSpaceDefinition);
+        DbgMarkXSpaceToTextureUVAsSet(dbgXSpaceDefinition);
+    }
 #endif
 
     //
@@ -223,6 +226,7 @@ CHwLinearGradientColorSource::SetBrushAndContext(
         taU,
         D3DTADDRESS_CLAMP
         );
+   }
 
 Cleanup:
 

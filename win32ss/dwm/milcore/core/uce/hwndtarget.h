@@ -42,9 +42,9 @@ private:
 public:
     DECLARE_COM_BASE
 
-    inline STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppvObject) override
+    inline STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppvObject) /* override */
     {
-        if (riid == __uuidof(IDpiProvider))
+        if (riid == IID_IDpiProvider)
         {
             *ppvObject = static_cast<DpiProvider*>(this);
             return S_OK;
@@ -53,13 +53,13 @@ public:
         return E_NOINTERFACE;
     }
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_HWNDRENDERTARGET ||
             CRenderTarget::IsOfType(type);
     }
     
-    override HRESULT GetBaseRenderTargetInternal(
+    /* override */ HRESULT GetBaseRenderTargetInternal(
         __deref_out_opt IRenderTargetInternal **ppIRT
         );
     
@@ -69,9 +69,9 @@ public:
     
     virtual HRESULT Present();
 
-    override HRESULT NotifyDisplaySetChange(bool invalid, int oldDisplayCount, int displayCount);
-    override BOOL PostDisplayAvailabilityMessage(int displayCount);
-    override HRESULT UpdateRenderTargetFlags();
+    /* override */ HRESULT NotifyDisplaySetChange(bool invalid, int oldDisplayCount, int displayCount);
+    /* override */ BOOL PostDisplayAvailabilityMessage(int displayCount);
+    /* override */ HRESULT UpdateRenderTargetFlags();
     
     HRESULT WaitForVBlank();
 
@@ -82,7 +82,7 @@ public:
     void AdvanceFrame(UINT uFrameNumber);
     
     void GetIntersectionWithDisplay(
-        __in UINT iDisplay,
+        _In_ UINT iDisplay,
         __out_ecount(1) CMILSurfaceRect &rcIntersection
         );
 
@@ -114,24 +114,24 @@ public:
         __in_ecount(1) const MILCMD_HWNDTARGET_DPICHANGED* pCmd
     );
 
-    override virtual HRESULT ProcessSetClearColor(
+    /* override */ virtual HRESULT ProcessSetClearColor(
         __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_SETCLEARCOLOR* pCmd
         );
 
-    override virtual HRESULT ProcessSetFlags(
+    /* override */ virtual HRESULT ProcessSetFlags(
         __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_SETFLAGS* pCmd
         );
 
-    override virtual HRESULT ProcessInvalidate(
+    /* override */ virtual HRESULT ProcessInvalidate(
         __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_INVALIDATE* pCmd,
         __in_bcount_opt(cbPayload) LPCVOID pPayload,
         UINT cbPayload
         );
 
-     override virtual HRESULT ProcessUpdateWindowSettings(
+     /* override */ virtual HRESULT ProcessUpdateWindowSettings(
         __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_UPDATEWINDOWSETTINGS* pCmd
         );

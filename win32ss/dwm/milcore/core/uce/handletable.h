@@ -87,7 +87,7 @@ public:
     //
 
     HRESULT ResizeToFit(
-        __in HMIL_OBJECT object
+        _In_ HMIL_OBJECT object
         );
 
     //
@@ -104,29 +104,29 @@ public:
     // empty - it has the assigned type.
     //
 
-    HRESULT AssignEntry(__in HMIL_OBJECT object, DWORD type);
+    HRESULT AssignEntry(_In_ HMIL_OBJECT object, DWORD type);
 
     //
     // Reclaims a handle entry for reuse. Objects referenced by the HANDLE_ENTRY
     // must have been previously reclaimed.
     //
 
-    VOID DestroyHandle(__in HMIL_OBJECT object);
+    VOID DestroyHandle(_In_ HMIL_OBJECT object);
 
     //
     // Validate that the object in the table is the expected type and
     // is actually an object assigned to this client.
     //
 
-    BOOL ValidEntry(DWORD type, __in HMIL_OBJECT object) const;
-    BOOL ValidEntry(__in HMIL_OBJECT object) const;
+    BOOL ValidEntry(DWORD type, _In_ HMIL_OBJECT object) const;
+    BOOL ValidEntry(_In_ HMIL_OBJECT object) const;
 
     //
     // Return the type of the object stored at the given location. Returns
     // zero if the entry is empty or invalid.
     //
 
-    DWORD GetObjectType(__in HMIL_OBJECT object);
+    DWORD GetObjectType(_In_ HMIL_OBJECT object);
 
 private:
     //

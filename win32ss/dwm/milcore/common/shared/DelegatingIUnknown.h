@@ -24,7 +24,7 @@ DECLARE_INTERFACE_(IDelegatingIUnknown, IUnknown)
     END_INTERFACE
 };
 
-interface __declspec(uuid("4c812044-98aa-470c-9676-7cd5550bbd3f")) IDelegatingIUnknown;
+interface DECLSPEC_UUID("4c812044-98aa-470c-9676-7cd5550bbd3f") IDelegatingIUnknown;
 
 /// <summary>
 /// This class is a helper for multiple-inheritance 
@@ -60,7 +60,8 @@ protected:
     {
         if (m_pUnkOther == nullptr)
         {
-            throw std::logic_error("pUnkOther==nullptr");
+            //pUnkOther==nullptr
+            DebugBreak();
         }
     }
 
@@ -107,7 +108,7 @@ public:
 /// </code>
 /// </summary>
 #define  DECLARE_DELEGATING_INTERFACE(iface,guid)       \
-interface __declspec(uuid(guid)) iface;                 \
+interface DECLSPEC_UUID(guid) iface;                 \
 DECLARE_INTERFACE_(iface, IDelegatingIUnknown)          \
 
 

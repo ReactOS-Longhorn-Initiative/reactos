@@ -49,12 +49,12 @@ protected:
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_VISUAL3D;
     }
 
-    override virtual BOOL OnChanged(
+    /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         );
@@ -94,11 +94,11 @@ public:
     // 
     // IGraphNode interface implementation.
 
-    override UINT GetChildrenCount() const { return static_cast<UINT>(m_rgpChildren.GetCount()); }
-    override IGraphNode* GetChildAt(UINT index);
-    override bool EnterNode();
-    override void LeaveNode();
-    override bool CanEnterNode() const;
+    /* override */ UINT GetChildrenCount() const { return static_cast<UINT>(m_rgpChildren.GetCount()); }
+    /* override */ IGraphNode* GetChildAt(UINT index);
+    /* override */ bool EnterNode();
+    /* override */ void LeaveNode();
+    /* override */ bool CanEnterNode() const;
 
 protected:
     void SetParent(

@@ -78,10 +78,10 @@ void CalcHomogeneousClipTo2D(
     // We assume that this transform which is used for ViewportProjectionModifier3D
     // will leave Z and W unchanged (i.e., the 3rd and 4th columns are identity or
     // NaN in degenerate cases like an empty viewport which will not render.)
-    // 
+    //
     // This assumption allows CalcProjectedBounds to clip to the camera near and far
     // planes in device space rather then going through an intermediate clip space.
-    
+
     Assert(!(matProjection._13 < 0 || matProjection._13 > 0));  // _13 == 0 or NaN
     Assert(!(matProjection._23 < 0 || matProjection._23 > 0));  // _23 == 0 or NaN
     Assert(!(matProjection._33 < 1 || matProjection._33 > 1));  // _33 == 1 or NaN
@@ -437,7 +437,7 @@ ApplyProjectedMeshTo2DState(
     __out_ecount(1) CRectF<CoordinateSpace::BaseSampling> *prcBrushSamplingBounds
         // Brush sampling bounds of pMesh3D
     )
-    
+
 {
     HRESULT hr = S_OK;
 
@@ -465,7 +465,7 @@ ApplyProjectedMeshTo2DState(
     //
     // Compute the 3D brush transform & bounds from the trasformed mesh bounds
     //
-    
+
     Calc2DBoundsAndIdealSamplingEstimates(
         IN full3DTransform,
         IN &meshBoundingBox3D,
@@ -494,16 +494,16 @@ Cleanup:
 //
 //  Function:  CombineContextState3DTransforms
 //
-//  Synopsis:  Computes the full model to page 3D transform for the 
+//  Synopsis:  Computes the full model to page 3D transform for the
 //             specified context state, i.e.
-// 
-//             result =  WorldTransform3D 
-//                     * ViewTransform3D 
-//                     * ProjectionTransform3D 
+//
+//             result =  WorldTransform3D
+//                     * ViewTransform3D
+//                     * ProjectionTransform3D
 //                     * ViewportProjectionModifier3D
 //-------------------------------------------------------------------------
 
-void 
+void
 CombineContextState3DTransforms(
     __in_ecount(1) const CContextState *pContextState,
     __out_ecount(1) CMultiOutSpaceMatrix<CoordinateSpace::Local3D> *pCombined3DTransform
@@ -554,9 +554,9 @@ CalcProjectedBounds(
 
     // The following line could be written simply as:
     //
-    //    vector4 rvecBoxVertices[8]; 
+    //    vector4 rvecBoxVertices[8];
     //
-    // There is a compiler bug in VS2013 that forces us to use the 
+    // There is a compiler bug in VS2013 that forces us to use the
     // array initializer form seen here.
     vector4 rvecBoxVertices[8]{ {}, {}, {}, {}, {}, {}, {}, {} };
 
@@ -568,7 +568,7 @@ CalcProjectedBounds(
     auto vertices =
         math_extensions::transform_array(
             sizeof(rvecBoxVertices[0]),                                                   // out_stride
-            std::vector<vector4>(std::begin(rvecBoxVertices), std::end(rvecBoxVertices)), // in 
+            std::vector<vector4>(std::begin(rvecBoxVertices), std::end(rvecBoxVertices)), // in
             sizeof(rvecBoxVertices[0]),                                                   // in_stride
             matFullTransform3D,                                                           // transformation
             ARRAY_SIZE(rvecBoxVertices));
@@ -692,6 +692,40 @@ CalcProjectedBounds(
         );
 }
 
+template void CalcProjectedBounds<CoordinateSpace::PageInPixels>(CMatrix<CoordinateSpace::Local3D, CoordinateSpace::PageInPixels> const&, CMilPointAndSize3F const*, CRectF<CoordinateSpace::PageInPixels>*);
+
+//+------------------------------------------------------------------------
+//
+//  Function:  MIL3DCalcProjected2DBounds
+//
+//  Synopsis:  Computes the 2D screen bounds of the CMilPointAndSize3F after
+//             projecting with the current 3D world, view, and projection
+//             transforms and clipping to the camera's Near and Far
+//             planes.
+//
+//-------------------------------------------------------------------------
+
+EXTERN_C HRESULT WINAPI
+MIL3DCalcProjected2DBounds(
+    __in_ecount(1) const CMatrix<CoordinateSpace::Local3D,CoordinateSpace::PageInPixels> *pFullTransform3D,
+    __in_ecount(1) const CMilPointAndSize3F *pboxBounds,
+    __out_ecount(1) CRectF<CoordinateSpace::PageInPixels> *prcTargetRect
+    )
+{
+    HRESULT hr =  S_OK;
+
+    CFloatFPU oGuard;
+
+    if (pFullTransform3D == NULL || pboxBounds == NULL || prcTargetRect == NULL)
+    {
+        IFC(E_INVALIDARG);
+    }
+
+    CalcProjectedBounds(*pFullTransform3D, pboxBounds, prcTargetRect);
+
+Cleanup:
+    RRETURN(hr);
+}
 
 //+----------------------------------------------------------------------------
 //
@@ -710,11 +744,11 @@ Calc2DBoundsAndIdealSamplingEstimates(
     __in_ecount(1) const CRectF<CoordinateSpace::BaseSampling>* prcBrushSampleBounds,
         // Texture coordinates are in world sampling space
     __out_ecount(1) CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::IdealSampling> *pmatBrushSpaceToIdealSampleSpace,
-    __out_ecount_opt(1) CMultiSpaceRectF<CoordinateSpace::PageInPixels,CoordinateSpace::Device> *prcMeshBoundsTargetSpace 
+    __out_ecount_opt(1) CMultiSpaceRectF<CoordinateSpace::PageInPixels,CoordinateSpace::Device> *prcMeshBoundsTargetSpace
     )
 {
     CMultiSpaceRectF<CoordinateSpace::PageInPixels,CoordinateSpace::Device> rcMeshBoundsTargetSpace;
-       
+
     float flBrushSampleWidthSpan = prcBrushSampleBounds->Width();
     bool fBrushSpanHasWidth = !IsCloseReal(flBrushSampleWidthSpan, 0.0f);
 
@@ -775,7 +809,7 @@ Calc2DBoundsAndIdealSamplingEstimates(
         //
         // The ideal brush realization size is currently calculated as the
         // length of the longest line that could be drawn on the screen based
-        // on the bounds of the object.  This is the diagonal of the bounds. 
+        // on the bounds of the object.  This is the diagonal of the bounds.
         // This ideal brush realization size is subject to change.
         //
 
@@ -788,7 +822,7 @@ Calc2DBoundsAndIdealSamplingEstimates(
         float flHeight = prcMeshBoundsTargetSpace->AnySpace().UnorderedHeight<float>();
 
         flIdealBrushSampleSpan = sqrtf(
-            flWidth*flWidth + 
+            flWidth*flWidth +
             flHeight*flHeight
             );
 
@@ -815,16 +849,16 @@ Calc2DBoundsAndIdealSamplingEstimates(
 //  Function:  IsUniformNonZeroVec3
 //
 //  Synopsis:  Returns "true" if x, y, and z are the same and non-zero
-//             
+//
 //-------------------------------------------------------------------------
-bool 
+bool
 IsUniformNonZeroVec3(
     __in_ecount(1) const vector3 *vec3V
     )
 {
     float flAvg = (vec3V->x + vec3V->y + vec3V->z) / 3.0f;
     // if it isn't a zero vector...
-    if (fabs(flAvg) > FLT_EPSILON) 
+    if (fabs(flAvg) > FLT_EPSILON)
     {
         // ...and the vector is uniform
         if (fabs(vec3V->x - flAvg) <= FLT_EPSILON &&
@@ -843,9 +877,9 @@ IsUniformNonZeroVec3(
 //  Function:  IsFiniteVec3
 //
 //  Synopsis:  Returns "true" if x, y, and z are all finite and non-NaN
-//             
+//
 //-------------------------------------------------------------------------
-bool 
+bool
 IsFiniteVec3(
     __in_ecount(1) const vector3 *vec3V
     )
@@ -860,7 +894,7 @@ IsFiniteVec3(
 //
 //  Synopsis:  Converts an angle from degrees to radians. If the angle is
 //             greater than or less than 360, we mod it with 360.
-//             
+//
 //-------------------------------------------------------------------------
 
 float

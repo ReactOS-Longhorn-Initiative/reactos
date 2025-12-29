@@ -34,7 +34,7 @@ ExternTag(tagLimitBitmapSizeCache);
 //-----------------------------------------------------------------------------
 
 const UINT CSwBitmapCache::FormatCacheEntry::c_DbgMaxExpectedCacheGrowth = 7;
-#endif DBG
+#endif /* DBG */
 
 
 //+----------------------------------------------------------------------------
@@ -506,7 +506,7 @@ CSwBitmapCache::FormatCacheEntry::GetSetBitmapColorSource(
                 (m_uNextEvictionIndexDbg + 1) % m_rgSizeLayoutEntry.GetCapacity();
         }
         else
-#endif DBG
+#endif /* DBG */
         {
             CacheEntry *pNewCacheEntry;
 
@@ -529,7 +529,7 @@ CSwBitmapCache::FormatCacheEntry::GetSetBitmapColorSource(
                           "Over %u cached Sw realizations of a bitmap.",
                           c_DbgMaxExpectedCacheGrowth));
             }
-#endif DBG
+#endif /* DBG */
         }
     }
 

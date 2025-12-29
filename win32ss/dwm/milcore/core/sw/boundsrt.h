@@ -38,35 +38,35 @@ public:
 
     STDMETHOD(GetNumQueuedPresents)(
         __out_ecount(1) UINT *puNumQueuedPresents
-        ) override;
+        ) /* override */;
 
     // IMILRenderTarget.
 
     STDMETHOD_(VOID, GetBounds)(
         __out_ecount(1) MilRectF * const pBounds
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Clear)(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Begin3D)(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
     STDMETHOD(End3D)(
-        ) override;
+        ) /* override */;
 
 
     //
     // IRenderTargetInternal methods
     //
 
-    STDMETHOD_(__outro_ecount(1) const CMILMatrix *, GetDeviceTransform)() const override;
+    STDMETHOD_(__outro_ecount(1) const CMILMatrix *, GetDeviceTransform)() const /* override */;
 
     // Draw a surface.
 
@@ -74,7 +74,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     // Draw a mesh3D.
 
@@ -84,7 +84,7 @@ public:
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __inout_ecount_opt(1) CMILShader *pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     // Draw a path.
 
@@ -95,7 +95,7 @@ public:
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     // Fill render target with a brush.
 
@@ -103,7 +103,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     STDMETHOD(ComposeEffect)(
         __inout_ecount(1) CContextState *pContextState,
@@ -112,21 +112,21 @@ public:
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IMILRenderTargetBitmap* pImplicitInput
-        )  override { return E_NOTIMPL; };
+        )  /* override */ { return E_NOTIMPL; };
 
 
     // Draw the glyph run
 
     STDMETHOD(DrawGlyphs)(
         __inout_ecount(1) DrawGlyphsParameters &pars
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount_opt(1) IAVSurfaceRenderer *pSurfaceRenderer,
         __inout_ecount_opt(1) IWGXBitmapSource *pMILBitmapSource,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(CreateRenderTargetBitmap)(
         UINT width,
@@ -135,7 +135,7 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        )  override;
+        )  /* override */;
 
     STDMETHOD(BeginLayer)(
         __in_ecount(1) MilRectF const &LayerBounds,
@@ -144,22 +144,22 @@ public:
         __in_ecount_opt(1) CMILMatrix const *pGeometricMaskToTarget,
         FLOAT flAlphaScale,
         __in_ecount_opt(1) CBrushRealizer *pAlphaMask
-        )  override;
+        )  /* override */;
 
     STDMETHOD(EndLayer)(
-        )  override;
+        )  /* override */;
 
     STDMETHOD_(void, EndAndIgnoreAllLayers)(
-        ) override;
+        ) /* override */;
 
     STDMETHOD(ReadEnabledDisplays) (
         __inout DynArray<bool> *pEnabledDisplays
-        )  override;
+        )  /* override */;
 
     // This method is used to determine if the render target is being
     // used to render, or if it's merely being used for bounds accumulation,
     // hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType) override
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType) /* override */
     { 
         *pRenderTargetType = BoundsRenderTarget; 
         RRETURN(S_OK);
@@ -168,13 +168,13 @@ public:
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHOD(SetClearTypeHint)(
-        __in bool forceClearType
-        ) override
+        _In_ bool forceClearType
+        ) /* override */
     {
         RRETURN(S_OK);
     }
 
-    UINT GetRealizationCacheIndex() override;
+    UINT GetRealizationCacheIndex() /* override */;
 
     VOID ResetBounds() {
         m_rcResult = CMilPointAndSizeF::sc_rcEmpty;
@@ -212,7 +212,7 @@ protected:
     CMILMatrix m_DeviceTransform;  // Always identity. We keep this just because
                                  // GetDeviceTransform returns a pointer to it.
 
-    STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppv) override;
+    STDMETHOD(HrFindInterface)(__in_ecount(1) REFIID riid, __deref_out void **ppv) /* override */;
 
 protected:
 

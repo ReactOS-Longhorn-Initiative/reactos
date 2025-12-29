@@ -286,8 +286,8 @@ CD3DModuleLoaderInternal::Init()
 #else
 #define D3DINIT_ERR(msg) \
     OutputDebugString( TEXT("WARNING: MILCore: ") TEXT(msg) TEXT("\n") )
-#endif DBG
-#endif USE_MESSAGEBOX_FOR_D3DINIT_ERRORS
+#endif /* DBG */
+#endif /* USE_MESSAGEBOX_FOR_D3DINIT_ERRORS */
 
 HRESULT
 CD3DModuleLoaderInternal::LoadD3DModule(
@@ -566,7 +566,7 @@ GetSwRastModuleName(
 {
     // Future Consideration:   Key RGBRast module name off secure reg key
     //  because OSVersion may be shimmed for app compat.
-    C_ASSERT( WIN32_VISTA_MINORVERSION == 0 );
+    static_assert( WIN32_VISTA_MINORVERSION == 0 , " WIN32_VISTA_MINORVERSION == 0 ");
     return (WPFUtils::OSVersionHelper::IsWindowsVistaOrGreater()) ?
         TEXT("RGB9Rast.dll") :
         TEXT("RGB9Rast_2.dll");
@@ -735,7 +735,8 @@ CD3DModuleLoaderInternal::RegisterSoftwareDevice(
     // Register
     //
 
-    IFC(pID3D->RegisterSoftwareDevice(m_pfnSwRastD3D9GetSWInfo));
+    // TOOD: Microsoft bug?
+    IFC(pID3D->RegisterSoftwareDevice((void*)m_pfnSwRastD3D9GetSWInfo));
 
 Cleanup:
 

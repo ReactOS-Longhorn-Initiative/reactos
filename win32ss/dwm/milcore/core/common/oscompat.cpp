@@ -13,8 +13,8 @@
 #include "precomp.hpp"
 
 typedef BOOL (WINAPI* UpdateLayeredWindowIndirectPtr)(
-    __in HWND hWnd,
-    __in const UPDATELAYEREDWINDOWINFO* pULWInfo);
+    _In_ HWND hWnd,
+    _In_ const UPDATELAYEREDWINDOWINFO* pULWInfo);
 
 static volatile UpdateLayeredWindowIndirectPtr s_pfnUpdateLayeredWindowIndirect = NULL;
 static HRESULT volatile s_hrULWFound = WGXERR_NOTINITIALIZED;
@@ -102,7 +102,7 @@ OSSupportsUpdateLayeredWindowIndirect(
 //-----------------------------------------------------------------------------
 HRESULT
 UpdateLayeredWindowEx(
-    __in HWND hWnd,
+    _In_ HWND hWnd,
     __in_opt HDC hdcDst,
     __in_ecount_opt(1) CONST POINT *pptDst,
     __in_ecount_opt(1) CONST SIZE *psize,
@@ -186,12 +186,12 @@ UpdateLayeredWindowEx(
         IFCW32(UpdateLayeredWindow(
             hWnd,
             hdcDst,
-            (pXY) ? &POINT(*pXY) : NULL,
-            (psize) ? &SIZE(*psize) : NULL,
+            (POINT*)pXY,
+            (SIZE*)psize,
             hdcSrc,
-            (pptSrc) ? &POINT(*pptSrc) : NULL,
+            (POINT*)pptSrc,
             crKey,
-            (pblend) ? &BLENDFUNCTION(*pblend) : NULL,
+            (BLENDFUNCTION*)pblend,
             dwFlags
             ));
         #pragma warning( pop )

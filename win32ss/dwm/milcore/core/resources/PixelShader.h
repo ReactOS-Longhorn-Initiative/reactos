@@ -42,8 +42,8 @@ public:
 
     static HRESULT Create(
         __in_ecount(1) CComposition *pComposition,
-        __in ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
-        __in UINT cbBytecodeSize,
+        _In_ ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
+        _In_ UINT cbBytecodeSize,
         __in_bcount(cbBytecodeSize) BYTE* pBytecode, 
         __deref_out CMilPixelShaderDuce **ppOut);
 
@@ -51,7 +51,7 @@ public:
     // Composition Resource Methods
     //
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_PIXELSHADER;
     }
@@ -63,11 +63,11 @@ public:
         UINT cbPayload);
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
-    override CMilSlaveResource* GetResource();
+    /* override */ void UnRegisterNotifiers();
+    /* override */ CMilSlaveResource* GetResource();
 
     // Gets the right effect for the device and sets it in.
-    HRESULT SetupShader(__in CD3DDeviceLevel1* pDevice);
+    HRESULT SetupShader(_In_ CD3DDeviceLevel1* pDevice);
 
     HRESULT GetSwPixelShader(__deref_out CPixelShaderCompiler **ppPixelShaderCompiler);
 
@@ -77,7 +77,7 @@ public:
 
 protected:
     
-     override virtual BOOL OnChanged(
+     /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender, 
         NotificationEventArgs::Flags e
         );
@@ -87,13 +87,13 @@ private:
 
     HRESULT Initialize(
         __inout_ecount(1) CComposition *pComposition,
-        __in ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
-        __in UINT cbBytecodeSize, 
-        __in BYTE* pBytecode);
+        _In_ ShaderEffectShaderRenderMode::Enum shaderEffectShaderRenderMode,
+        _In_ UINT cbBytecodeSize, 
+        _In_ BYTE* pBytecode);
         
     HRESULT GetHwPixelShaderEffectFromCache(
-        __in CD3DDeviceLevel1 *pDevice,   
-        __out CHwPixelShaderEffect **ppPixelShaderEffect);
+        _In_ CD3DDeviceLevel1 *pDevice,   
+        _Out_ CHwPixelShaderEffect **ppPixelShaderEffect);
 
     static HRESULT EnsurePassThroughShaderResourceRead();
 

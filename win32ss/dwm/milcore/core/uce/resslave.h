@@ -108,7 +108,7 @@ public:
     }
 
     //
-    // Derived classes override this and call UnRegisterNotifier for each
+    // Derived classes /* override */ this and call UnRegisterNotifier for each
     // of their member fields.
     //
 
@@ -245,42 +245,7 @@ protected:
         MIL_RESOURCE_TYPE resType,
         __in_ecount(1) DynArray<TResourceType *, TRUE> *prgpResource,
         __in_ecount(1) CMilSlaveHandleTable *pHandleTable
-        )
-    {
-        HRESULT hr = S_OK;
-
-        if (*phObject)
-        {
-            // Grab the resource pointer from the handle table.
-            TResourceType *pResource =
-                static_cast<TResourceType*>(pHandleTable->GetResource(*phObject, resType));
-            IFCNULL(pResource);
-
-            // RegisterNotifier adds a reference to the resource. Since all resources in this array
-            // are also registered we do no need to take another reference.
-            IFC(RegisterNotifier(pResource));
-
-            // We want to ensure that a given resource isn't in the dependency list twice.
-            // However, in order to do this, we'd have to add an addition ref count on the object
-            // to know when to remove the registered notifier.  For now, we'll allow duplicates in the
-            // resource array because this will correctly address multi-use of dependents.
-            MIL_THR(prgpResource->Add(pResource));
-
-            if (SUCCEEDED(hr))
-            {
-                // Return the index into the resource array...
-                *phObject = prgpResource->GetCount() - 1;
-            }
-            else
-            {
-                // Prevent leaks -- always unregister the resource on failure.
-                UnRegisterNotifier(pResource);
-            }
-        }
-
-    Cleanup:
-        RRETURN(hr);
-    }
+        );
 
 protected:
 

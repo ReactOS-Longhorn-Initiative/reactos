@@ -69,7 +69,7 @@ CMilPenDuce::GetPen(
         // Initialize thickness to inline value
         double thickness = m_data.m_Thickness;
 
-        // Override inline value with thickness resource, if one exists
+        // /* override */ inline value with thickness resource, if one exists
         if (m_data.m_pThicknessAnimation)
         {
             thickness = *m_data.m_pThicknessAnimation->GetValue();

@@ -39,7 +39,7 @@ public:
         );
     
     HRESULT ProduceGeometry(
-        __in MilPoint2F* pBaselineOrigin,
+        _In_ MilPoint2F* pBaselineOrigin,
         __deref_out CMilGeometryDuce **ppGeometry
         );
 
@@ -54,41 +54,41 @@ public:
 //
     DECLARE_COM_BASE
     
-    override STDMETHOD(HrFindInterface)(
+    /* override */ STDMETHOD(HrFindInterface)(
         __in_ecount(1) REFIID riid, __deref_out void **ppvObject
         );
  
 //
 // ID2D1SimplifiedGeometrySink interface
 //
-    override STDMETHOD_(void, SetFillMode)(
+    /* override */ STDMETHOD_(void, SetFillMode)(
         D2D1_FILL_MODE fillMode 
         );
      
-    override STDMETHOD_(void, SetSegmentFlags)(
+    /* override */ STDMETHOD_(void, SetSegmentFlags)(
         D2D1_PATH_SEGMENT vertexFlags 
         );
     
-    override STDMETHOD_(void, BeginFigure)(
+    /* override */ STDMETHOD_(void, BeginFigure)(
         D2D1_POINT_2F startPoint,
         D2D1_FIGURE_BEGIN figureBegin 
         );
     
-    override STDMETHOD_(void, AddLines)(
+    /* override */ STDMETHOD_(void, AddLines)(
         __in_ecount(pointsCount) CONST D2D1_POINT_2F *points,
         UINT pointsCount 
         );
     
-    override STDMETHOD_(void, AddBeziers)(
+    /* override */ STDMETHOD_(void, AddBeziers)(
         __in_ecount(beziersCount) CONST D2D1_BEZIER_SEGMENT *beziers,
         UINT beziersCount 
         );
     
-    override STDMETHOD_(void, EndFigure)(
+    /* override */ STDMETHOD_(void, EndFigure)(
         D2D1_FIGURE_END figureEnd 
         );
     
-    override STDMETHOD(Close)(
+    /* override */ STDMETHOD(Close)(
         );
 
 protected:
@@ -105,7 +105,7 @@ private:
         );
     
     STDMETHOD_(void, AddBezier)(
-        __in CONST D2D1_BEZIER_SEGMENT *bezier 
+        _In_ CONST D2D1_BEZIER_SEGMENT *bezier 
         );
 
     void AddGenericPoly(

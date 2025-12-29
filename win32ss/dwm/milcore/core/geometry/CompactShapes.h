@@ -55,7 +55,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual bool IsEmpty() const
     {
         return false;
@@ -103,7 +103,7 @@ protected:
     
     inline static void ComputeBoundsOfPoints(
         __in_ecount(cPoints) const MilPoint2F *points,
-        __in UINT cPoints,
+        _In_ UINT cPoints,
         __out_ecount(1) MilRectF &rect
         );    
 };
@@ -129,7 +129,7 @@ public:
     {
     }
 
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual bool HasGaps() const
     {
         return false;
@@ -187,7 +187,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual HRESULT GetCountsEstimate(
         __out_ecount(1) UINT &cSegments,    // A bound on the number of segments 
         __out_ecount(1) UINT &cPoints       // A bound on the number of points
@@ -432,19 +432,19 @@ public:
             // The pen (NULL OK but not optional)
         __in_ecount_opt(1) const CMILMatrix *pMatrix,
             // Transformation (NULL OK but not optional)
-        __in double rTolerance=0, 
+        _In_ double rTolerance=0, 
             // Error tolerance (optional)
-        __in bool fRelative=false,
+        _In_ bool fRelative=false,
             // True if the tolerance is relative (optional)       
-        __in bool fSkipHollows=true) const override;
+        _In_ bool fSkipHollows=true) const /* override */;
             // If true, skip non-fillable figures when computing fill bounds (optional)       
 
     HRESULT WidenToShape(
         __in_ecount(1) const            CPlainPen &pen,
             // The pen
-        __in double           rTolerance,
+        _In_ double           rTolerance,
             // Flattening tolerance
-        __in bool             fRelative,
+        _In_ bool             fRelative,
             // True if the tolerance is relative       
         __in_ecount(1) CShape &widened,
             // The widened shape, populated here
@@ -512,7 +512,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual HRESULT GetCountsEstimate(
         __out_ecount(1) UINT &cSegments,    // A bound on the number of segments 
         __out_ecount(1) UINT &cPoints       // A bound on the number of points
@@ -665,9 +665,9 @@ protected:
 
         // Check that the vertex at m_pt[0] has one horizontal and one vertical edge.
         // Since this is a parallelogram, all other edges comply with that.
-        return ((m_pt[0].X == m_pt[3].X)  &&  (m_pt[0].Y == m_pt[1].Y) 
+        return (((m_pt[0].X == m_pt[3].X)  &&  (m_pt[0].Y == m_pt[1].Y))
             ||
-                (m_pt[0].Y == m_pt[3].Y)  &&  (m_pt[0].X == m_pt[1].X));
+                ((m_pt[0].Y == m_pt[3].Y)  &&  (m_pt[0].X == m_pt[1].X)));
     }
 
 protected:
@@ -814,7 +814,7 @@ public:
     {
     }
 
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual HRESULT GetCountsEstimate(
         __out_ecount(1) UINT &cSegments,    // A bound on the number of segments 
         __out_ecount(1) UINT &cPoints       // A bound on the number of points
@@ -982,7 +982,7 @@ public:
     {
     }
 
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual __outro_ecount(1) const IFigureData &GetFigure(IN UINT index) const
     {
         Assert(index == 0);

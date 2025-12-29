@@ -192,7 +192,7 @@ public:
     CTessellator(
         __inout_ecount(1) IGeometrySink &sink,
             // Tessellation sink
-        __in double rTolerance)
+        _In_ double rTolerance)
             // Flattening tolerance
             
         : CScanner(rTolerance),
@@ -224,14 +224,14 @@ public:
         return static_cast<CVertexRef *>(pChain->GetTaskData());
     }
 
-    // CScanner overrides
+    // CScanner /* override */s
     virtual HRESULT ProcessTheJunction();
 
     virtual HRESULT ProcessCurrentVertex(
         __inout_ecount(1) CChain *pChain);
             // The chain whose current vertex we're processing
 
-    // Methods supporting these overrides
+    // Methods supporting these /* override */s
     HRESULT CreateBands(
         __inout_ecount(1) CChain *pFirst,
             // The first left chain
@@ -296,7 +296,7 @@ public:
         __in_ecount(1) const CVertexRef &vr3)
             // Third vertex
     {
-#ifdef DBG
+#if 0
          if (g_fTesselatorTrace)
         {
             OutputDebugString(L"Triangle\n");

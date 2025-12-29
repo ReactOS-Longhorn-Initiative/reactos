@@ -7,12 +7,12 @@
 // Get NT headers.
 //
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <winnt.h>
 #include <d3dx9.h>
 
 #define Assert(x) NT_ASSERT(x)
 
-#include "..\memreader.h"
+#include "../memreader.h"
 
 

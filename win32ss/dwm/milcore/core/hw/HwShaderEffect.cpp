@@ -26,10 +26,10 @@ MtDefine(CHwPixelShaderEffect_NotImplementedAndShouldAlwaysBeZero, CHwPixelShade
 
 HRESULT 
 CHwPixelShaderEffect::Create(
-    __in CD3DDeviceLevel1 *pDevice,
+    _In_ CD3DDeviceLevel1 *pDevice,
     __in_bcount(sizeInBytes) BYTE *pPixelShaderByteCode,
-    __in UINT sizeInBytes,
-    __out CHwPixelShaderEffect **ppHwPixelShaderEffect)
+    _In_ UINT sizeInBytes,
+    _Out_ CHwPixelShaderEffect **ppHwPixelShaderEffect)
 {
     HRESULT hr = S_OK;
 
@@ -59,9 +59,9 @@ Cleanup:
 
 HRESULT 
 CHwPixelShaderEffect::Init(
-    __in CD3DDeviceLevel1 *pDevice,
+    _In_ CD3DDeviceLevel1 *pDevice,
     __in_bcount(sizeInBytes) BYTE *pPixelShaderByteCode,
-    __in UINT sizeInBytes)
+    _In_ UINT sizeInBytes)
 {
     HRESULT hr = S_OK;
 
@@ -89,7 +89,7 @@ Cleanup:
 
 HRESULT 
 CHwPixelShaderEffect::SendToDevice(
-    __in CD3DDeviceLevel1 *pDevice)
+    _In_ CD3DDeviceLevel1 *pDevice)
 {
     HRESULT hr = S_OK;
 
@@ -107,7 +107,7 @@ Cleanup:
 
 //+-----------------------------------------------------------------------------
 //
-//  CHwPixelShaderEffect::ReleaseD3DResources (override CD3DResource)
+//  CHwPixelShaderEffect::ReleaseD3DResources (/* override */ CD3DResource)
 //
 //  Synopsis:
 //     Called by the device to release D3D resources associated with it on 

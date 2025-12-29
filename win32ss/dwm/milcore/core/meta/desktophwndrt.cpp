@@ -62,7 +62,7 @@ void CDesktopHWNDRenderTarget::ComputeRenderAndAdjustPresentBounds(
     //
     // Assert to validate that RENDER_INFLATION_MARGIN may be safely added to
     // or subtracted from starting rectangle without worry of overflow.
-    C_ASSERT(RENDER_INFLATION_MARGIN <= INT_MAX);
+    static_assert(RENDER_INFLATION_MARGIN <= INT_MAX, "RENDER_INFLATION_MARGIN <= INT_MAX");
     Assert(oDevData.rcLocalDevicePresentBounds.left >= 0);
     Assert(oDevData.rcLocalDevicePresentBounds.top  >= 0);
     Assert(oDevData.rcLocalDevicePresentBounds.right  > 0);
@@ -212,7 +212,7 @@ CDesktopHWNDRenderTarget::CDesktopHWNDRenderTarget(
       m_eWindowLayerType(eWindowLayerType),
       m_rgInvalidRegions(reinterpret_cast<CMilRectF *>(&m_rgMetaData[cMaxRTs]))
 {
-    // override these variables' initialization
+    // /* override */ these variables' initialization
     m_fAccumulateValidBounds = true;
     m_eState = NeedSetPosition;
 
@@ -254,15 +254,15 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
     // surface and therefore the entire backbuffer is invalid. 
     //
 
-    pDevData->rcLocalDeviceValidContentBounds.SetEmpty();
+    pDevData->m_data.m_desktop.rcLocalDeviceValidContentBounds.SetEmpty();
 
     //
     // If this monitor has a HW RT, then try to resize with
     // it first.
     //
-    if (pDevData->pHwDisplayRT)
+    if (pDevData->m_data.m_desktop.pHwDisplayRT)
     {
-        hr = THR(pDevData->pHwDisplayRT->Resize(
+        hr = THR(pDevData->m_data.m_desktop.pHwDisplayRT->Resize(
             uWidthNew,
             uHeightNew
             ));
@@ -270,7 +270,7 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
         if (SUCCEEDED(hr))
         {
             // Upon success make HW RT the target if it isn't already.
-            if (pDevData->pInternalRTHWND != pDevData->pHwDisplayRT)
+            if (pDevData->m_data.m_desktop.pInternalRTHWND != pDevData->m_data.m_desktop.pHwDisplayRT)
             {
                 //
                 // Make new SW RT active, but don't get rid of
@@ -279,17 +279,17 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
                 //
 
                 pDevData->pInternalRT->Release();
-                pDevData->pInternalRT = pDevData->pHwDisplayRT;
+                pDevData->pInternalRT = pDevData->m_data.m_desktop.pHwDisplayRT;
                 pDevData->pInternalRT->AddRef();
-                pDevData->pInternalRTHWND = pDevData->pHwDisplayRT;
+                pDevData->m_data.m_desktop.pInternalRTHWND = pDevData->m_data.m_desktop.pHwDisplayRT;
 
                 // Mark as not previously enabled to call
                 // UpdatePresentProperties
                 pDevData->fEnable = false;
 
                 // Release the old SW RT - recreation is not intense
-                Verify(pDevData->pSwHWNDRT->Release() == 0);
-                pDevData->pSwHWNDRT = NULL;
+                Verify(pDevData->m_data.m_desktop.pSwHWNDRT->Release() == 0);
+                pDevData->m_data.m_desktop.pSwHWNDRT = NULL;
 
                 //
                 // Log when successfully falling back to a
@@ -314,16 +314,16 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
         // At this point either a HW RT failed to resize
         // or there is no HW RT (hr unchanged from
         // it initial E_FAIL value).
-        Assert(pDevData->pHwDisplayRT ||
+        Assert(pDevData->m_data.m_desktop.pHwDisplayRT ||
                (hr == E_FAIL));
 
-        if (pDevData->pSwHWNDRT)
+        if (pDevData->m_data.m_desktop.pSwHWNDRT)
         {
             // In either case, the SW RT should be active
-            Assert(pDevData->pInternalRTHWND ==
-                   pDevData->pSwHWNDRT);
+            Assert(pDevData->m_data.m_desktop.pInternalRTHWND ==
+                   pDevData->m_data.m_desktop.pSwHWNDRT);
             // Resize the SW RT.
-            hr = THR(pDevData->pSwHWNDRT->Resize(
+            hr = THR(pDevData->m_data.m_desktop.pSwHWNDRT->Resize(
                 uWidthNew,
                 uHeightNew
                 ));
@@ -331,11 +331,11 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
         else if (!(m_dwRTInitFlags & MilRTInitialization::HardwareOnly))
         {
             // We should only being handling fallback here.
-            Assert(pDevData->pHwDisplayRT);
+            Assert(pDevData->m_data.m_desktop.pHwDisplayRT);
 
             // The HW RT should be active
-            Assert(pDevData->pInternalRTHWND ==
-                   pDevData->pHwDisplayRT);
+            Assert(pDevData->m_data.m_desktop.pInternalRTHWND ==
+                   pDevData->m_data.m_desktop.pHwDisplayRT);
 
             //
             // Check for special handling of XP SP2 layered windows
@@ -377,12 +377,12 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
 
                     for (i = 0; i < m_cRT; i++)
                     {
-                        Assert(m_rgMetaData[i].pSwHWNDRT == NULL);
-                        Assert(m_rgMetaData[i].pHwDisplayRT != NULL);
-                        ReleaseInterface(m_rgMetaData[i].pHwDisplayRT);
-                        m_rgMetaData[i].pInternalRTHWND = NULL;
+                        Assert(m_rgMetaData[i].m_data.m_desktop.pSwHWNDRT == NULL);
+                        Assert(m_rgMetaData[i].m_data.m_desktop.pHwDisplayRT != NULL);
+                        ReleaseInterface(m_rgMetaData[i].m_data.m_desktop.pHwDisplayRT);
+                        m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND = NULL;
                         ReleaseInterface(m_rgMetaData[i].pInternalRT);
-                        m_rgMetaData[i].rcVirtualDeviceBounds.SetEmpty();
+                        m_rgMetaData[i].m_data.m_desktop.rcVirtualDeviceBounds.SetEmpty();
                     }
 
                     SetSingleSubRT();
@@ -396,10 +396,10 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
                     pDevData->pInternalRT->Release();
                 }
 
-                pDevData->pSwHWNDRT = pSwHWNDRT;    // Transfer reference
-                pDevData->pInternalRT = pDevData->pSwHWNDRT;
+                pDevData->m_data.m_desktop.pSwHWNDRT = pSwHWNDRT;    // Transfer reference
+                pDevData->pInternalRT = pDevData->m_data.m_desktop.pSwHWNDRT;
                 pDevData->pInternalRT->AddRef();
-                pDevData->pInternalRTHWND = pDevData->pSwHWNDRT;
+                pDevData->m_data.m_desktop.pInternalRTHWND = pDevData->m_data.m_desktop.pSwHWNDRT;
 
                 // Mark as not previously enabled to call
                 // UpdatePresentProperties just below here.
@@ -412,7 +412,7 @@ CDesktopHWNDRenderTarget::ResizeSubRT(
     {
         if (!pDevData->fEnable)
         {
-            pDevData->pInternalRTHWND->UpdatePresentProperties(
+            pDevData->m_data.m_desktop.pInternalRTHWND->UpdatePresentProperties(
                 m_ePresentTransparency,
                 m_bPresentAlpha,
                 m_crPresentColorKey
@@ -456,7 +456,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
     CMILSurfaceRect rcClosestMonitorBounds(0, 0, 0, 0, LTRB_Parameters);
 
     CMILSurfaceRect rcNewPosition;
-
+{
     //
     // Check if display state has changed
     //
@@ -593,15 +593,15 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
             //
             // If rcClosestMonitorBounds == oDevData.rcVirtualDeviceBounds, we know that the current 
             // virtual device under consideration is the one that is the right match.
-            if (oDevData.rcLocalDevicePresentBounds.Intersect(oDevData.rcVirtualDeviceBounds) ||
-                (fRetryIdentifyIntersectingMonitor && rcClosestMonitorBounds.IsEquivalentTo(oDevData.rcVirtualDeviceBounds)))
+            if (oDevData.rcLocalDevicePresentBounds.Intersect(oDevData.m_data.m_desktop.rcVirtualDeviceBounds) ||
+                (fRetryIdentifyIntersectingMonitor && rcClosestMonitorBounds.IsEquivalentTo(oDevData.m_data.m_desktop.rcVirtualDeviceBounds)))
             {
                 fIntersectsAnyMonitor = true;
 
                 // Check if the window is outside the device (monitor) bounds in a multi-mon setup 
                 if (fDisableMultimonDisplayClipping                                // display clipping is disabled
                     && (m_cRT > 1)                                                 // multimon
-                    && !oDevData.rcVirtualDeviceBounds.DoesContain(rcNewPosition)) // window extends outside the monitor
+                    && !oDevData.m_data.m_desktop.rcVirtualDeviceBounds.DoesContain(rcNewPosition)) // window extends outside the monitor
                 {
                     // do not clip to device bounds
                     oDevData.rcLocalDevicePresentBounds = rcNewPosition;
@@ -676,7 +676,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
                 if (oDevData.fEnable)
                 {
                     POINT pos = {rcNewPosition.left, rcNewPosition.top};
-                    oDevData.pInternalRTHWND->SetPosition(pos);
+                    oDevData.m_data.m_desktop.pInternalRTHWND->SetPosition(pos);
                 }
             }
             else
@@ -690,7 +690,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
                         "0x%p Desktop: Disabling rendering to monitor %u",
                         this,
                         i));
-                    IGNORE_HR(oDevData.pInternalRTHWND->Resize(0, 0));
+                    IGNORE_HR(oDevData.m_data.m_desktop.pInternalRTHWND->Resize(0, 0));
                 }
             }
         }
@@ -712,7 +712,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
                 auto hMonitor = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
                 MONITORINFOEX mi;
                 mi.cbSize = sizeof(MONITORINFOEX);
-                if (GetMonitorInfo(hMonitor, &mi))
+                if (GetMonitorInfo(hMonitor, (LPMONITORINFO)&mi))
                 {
                     rcClosestMonitorBounds = mi.rcMonitor;
                     fRetryIdentifyIntersectingMonitor = true;
@@ -749,6 +749,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::SetPosition(
     {
         Assert(hr == WGXERR_DISPLAYSTATEINVALID);
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -769,7 +770,7 @@ Cleanup:
 STDMETHODIMP CDesktopHWNDRenderTarget::GetInvalidRegions(
     __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
     __out_ecount(1) UINT *pNumRegions,
-    __out bool *fWholeTargetInvalid    
+    _Out_ bool *fWholeTargetInvalid    
     )
 {
     bool fWholeTargetInvalidLocal = false;
@@ -783,13 +784,13 @@ STDMETHODIMP CDesktopHWNDRenderTarget::GetInvalidRegions(
         if (   oDevData.fEnable
                // Present bounds must contain valid content by the time Present
                // is called.  If all is valid then there is nothing to return.
-            && !oDevData.rcLocalDeviceValidContentBounds.DoesContain(
+            && !oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds.DoesContain(
                     oDevData.rcLocalDevicePresentBounds)
            )
         {
             // Convenience references to avoid large names through out routine
             CMILSurfaceRect const &rcRender = oDevData.rcLocalDeviceRenderBounds;
-            CMILSurfaceRect &rcValid = oDevData.rcLocalDeviceValidContentBounds;
+            CMILSurfaceRect &rcValid = oDevData.m_data.m_desktop.rcLocalDeviceValidContentBounds;
 
             TraceTag((tagMILTraceDesktopState,
                       "0x%p Desktop: Invalidated present region on monitor %u",
@@ -846,7 +847,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::GetInvalidRegions(
             }
             else
             {
-                C_ASSERT(MAX_INVALID_REGIONS_PER_DEVICE == 4);
+                static_assert(MAX_INVALID_REGIONS_PER_DEVICE == 4, "MAX_INVALID_REGIONS_PER_DEVICE == 4");
                 //
                 // Generate up to four invalid rectangles by subtracting valid
                 // rectangle from render bounds.  Present bounds must contain
@@ -1008,7 +1009,7 @@ STDMETHODIMP_(VOID) CDesktopHWNDRenderTarget::GetIntersectionWithDisplay(
 
     if (iDisplay < m_cRT)
     {
-        rcIntersectionOut = m_rgMetaData[iDisplay].rcVirtualDeviceBounds;
+        rcIntersectionOut = m_rgMetaData[iDisplay].m_data.m_desktop.rcVirtualDeviceBounds;
 
         rcIntersectionOut.Intersect(m_rcCurrentPosition);
     }
@@ -1034,7 +1035,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::UpdatePresentProperties(
     )
 {
     HRESULT hr = S_OK;
-
+{
     if (m_eWindowLayerType == MilWindowLayerType::NotLayered)
     {
         Assert(transparencyFlags == MilTransparency::Opaque);
@@ -1080,7 +1081,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::UpdatePresentProperties(
             // non-zero Resize.
             if (oDevData.fEnable)
             {
-                oDevData.pInternalRTHWND->UpdatePresentProperties(
+                oDevData.m_data.m_desktop.pInternalRTHWND->UpdatePresentProperties(
                     m_ePresentTransparency,
                     m_bPresentAlpha,
                     m_crPresentColorKey
@@ -1088,6 +1089,7 @@ STDMETHODIMP CDesktopHWNDRenderTarget::UpdatePresentProperties(
             }
         }
     }
+}
 
 Cleanup:
     RRETURN(hr);

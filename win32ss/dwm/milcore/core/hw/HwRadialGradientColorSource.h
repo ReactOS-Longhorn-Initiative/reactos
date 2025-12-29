@@ -76,9 +76,9 @@ public:
         m_hflHalfTexelSizeNormalized    = hflHalfTexelSizeNormalized;
     }
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pShader
-        );
+        ) /* override */;
 
 private:
     MILSPHandle m_hptGradientOrigin;

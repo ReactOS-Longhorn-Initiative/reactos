@@ -49,7 +49,7 @@ extern CCriticalSection g_csGraphicsStream;
 //-----------------------------------------------------------------------------
 BOOL
 MILCoreDllMain(
-    __in HINSTANCE   dllHandle,
+    _In_ HINSTANCE   dllHandle,
     ULONG reason
     )
 {
@@ -71,7 +71,7 @@ MILCoreDllMain(
             IFC(AvDllInitialize());
 
 
-#if DBG==1
+#if 0
             // DX is allocating memory on the first call of a DX math function during CPU Optimization checks.
             // This causes a debug break because our meter code asserts that all allocations are done against
             // a valid memory meter. By calling D3DMatrixMultiply we force that this code will execute here under

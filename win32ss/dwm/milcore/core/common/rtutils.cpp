@@ -25,12 +25,14 @@
 //
 //-----------------------------------------------------------------------------
 
+template<>
 const CMILSurfaceRect::Rect_t CMILSurfaceRect::sc_rcEmpty(
     0, 0,
     0, 0,
     LTRB_Parameters
     );
 
+template<>
 const CMILSurfaceRect::Rect_t CMILSurfaceRect::sc_rcInfinite(
     SURFACE_RECT_MIN, SURFACE_RECT_MIN,
     SURFACE_RECT_MAX, SURFACE_RECT_MAX,
@@ -68,8 +70,8 @@ IntersectAliasedBoundsRectFWithSurfaceRect(
     // no intersection
     //
 
-    C_ASSERT(SURFACE_RECT_MIN >= FIXED4_INT_MIN);
-    C_ASSERT(SURFACE_RECT_MAX <= FIXED4_INT_MAX);
+    static_assert(SURFACE_RECT_MIN >= FIXED4_INT_MIN, "SURFACE_RECT_MIN >= FIXED4_INT_MIN");
+    static_assert(SURFACE_RECT_MAX <= FIXED4_INT_MAX, "SURFACE_RECT_MAX <= FIXED4_INT_MAX");
 
     #define SURFACE_RECT_MIN_FLOAT              (SURFACE_RECT_MIN - 1 + REAL_FIX4_ROUNDUP_FRACTION)
     #define SURFACE_RECT_MAX_FLOAT_PLUS_EPSILON (SURFACE_RECT_MAX + REAL_FIX4_ROUNDUP_FRACTION)
@@ -157,8 +159,8 @@ IntersectAntiAliasedBoundsRectFWithSurfaceRect(
     // no intersection
     //
 
-    C_ASSERT(SURFACE_RECT_MIN >= FIXED4_INT_MIN);
-    C_ASSERT(SURFACE_RECT_MAX <= FIXED4_INT_MAX);
+    static_assert(SURFACE_RECT_MIN >= FIXED4_INT_MIN, "SURFACE_RECT_MIN >= FIXED4_INT_MIN");
+    static_assert(SURFACE_RECT_MAX <= FIXED4_INT_MAX, "SURFACE_RECT_MAX <= FIXED4_INT_MAX");
 
     Assert(SURFACE_RECT_MIN == rcSurface.sc_rcInfinite.left  );
     Assert(SURFACE_RECT_MIN == rcSurface.sc_rcInfinite.top   );

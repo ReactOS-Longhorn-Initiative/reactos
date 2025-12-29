@@ -42,7 +42,7 @@ protected:
 
     ~CMilShaderEffectDuce();
 
-     override virtual BOOL OnChanged(
+     /* override */ virtual BOOL OnChanged(
         CMilSlaveResource *pSender, 
         NotificationEventArgs::Flags e
         );
@@ -61,7 +61,7 @@ public:
     // Composition Resource Methods
     //
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_SHADEREFFECT || CMilEffectDuce::IsOfType(type);
     }
@@ -81,40 +81,40 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override ShaderEffectShaderRenderMode::Enum GetShaderRenderMode();
+    /* override */ ShaderEffectShaderRenderMode::Enum GetShaderRenderMode();
 
-    override HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
+    /* override */ HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds);
     
-    override HRESULT ApplyEffect(
-        __in CContextState *pContextState, 
-        __in CHwSurfaceRenderTarget *pDestRT,
-        __in CMILMatrix *pScaleTransform,
-        __in CD3DDeviceLevel1 *pDevice, 
+    /* override */ HRESULT ApplyEffect(
+        _In_ CContextState *pContextState, 
+        _In_ CHwSurfaceRenderTarget *pDestRT,
+        _In_ CMILMatrix *pScaleTransform,
+        _In_ CD3DDeviceLevel1 *pDevice, 
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt CHwTextureRenderTarget *pImplicitInput
         );
 
-    override HRESULT ApplyEffectSw(
-        __in CContextState *pContextState,
-        __in CSwRenderTargetSurface *pDestRT,
-        __in CMILMatrix *pScaleTransform,
+    /* override */ HRESULT ApplyEffectSw(
+        _In_ CContextState *pContextState,
+        _In_ CSwRenderTargetSurface *pDestRT,
+        _In_ CMILMatrix *pScaleTransform,
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IWGXBitmap *pImplicitInput
         );
 
-    override HRESULT PrepareSoftwarePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    /* override */ HRESULT PrepareSoftwarePass(
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
         );
 
-    override bool UsesImplicitInput();
+    /* override */ bool UsesImplicitInput();
 
-    override byte GetShaderMajorVersion();
+    /* override */ byte GetShaderMajorVersion();
 
     static HRESULT InitializeJitterLock()
     {
@@ -141,71 +141,71 @@ public:
 private:
 
     HRESULT DrawIntoIntermediate(
-        __in CContextState *pContextState,
-        __in CMilBrushDuce *pBrush, 
-        __in IRenderTargetInternal *pDestRT, 
+        _In_ CContextState *pContextState,
+        _In_ CMilBrushDuce *pBrush, 
+        _In_ IRenderTargetInternal *pDestRT, 
         float implicitInputWidth,
         float implicitInputHeight,
-        __in const CMILMatrix *pScaleTransform,
+        _In_ const CMILMatrix *pScaleTransform,
         __deref_out IMILRenderTargetBitmap** ppTexture
         );
 
     HRESULT SendShaderSamplersSw(
-        __in CContextState *pContextState,
-        __in CSwRenderTargetSurface *pDestRT,
+        _In_ CContextState *pContextState,
+        _In_ CSwRenderTargetSurface *pDestRT,
         __in_opt IWGXBitmap *pImplicitInputTexture,
         float implicitInputWidth,
         float implicitInputHeight,
-        __in const CMILMatrix *pScaleTransform
+        _In_ const CMILMatrix *pScaleTransform
         );
 
     HRESULT PrepareCacheBrushSamplerSw(
-        __in CMilBitmapCacheBrushDuce *pBrush,
-        __in CSwRenderTargetSurface *pDestRT, 
+        _In_ CMilBitmapCacheBrushDuce *pBrush,
+        _In_ CSwRenderTargetSurface *pDestRT, 
         __deref_out_opt IWGXBitmap** ppBrushSwTexture
         );
 
     HRESULT PrepareTileBrushSamplerSw(
-        __in CContextState *pContextState,
-        __in CMilBrushDuce *pBrush, 
-        __in CSwRenderTargetSurface *pDestRT,
+        _In_ CContextState *pContextState,
+        _In_ CMilBrushDuce *pBrush, 
+        _In_ CSwRenderTargetSurface *pDestRT,
         float implicitInputWidth,
         float implicitInputHeight,
-        __in const CMILMatrix *pScaleTransform,
+        _In_ const CMILMatrix *pScaleTransform,
         __deref_out IWGXBitmap** ppBrushSwTexture
         );
     
     HRESULT SendShaderConstantsHw(__inout CD3DDeviceLevel1 *pDevice);
  
     HRESULT SendShaderSamplersHw(
-        __in CContextState *pContextState,
-        __in CD3DDeviceLevel1 *pDevice,
-        __in CHwSurfaceRenderTarget *pDestRT,
+        _In_ CContextState *pContextState,
+        _In_ CD3DDeviceLevel1 *pDevice,
+        _In_ CHwSurfaceRenderTarget *pDestRT,
         __in_opt CD3DVidMemOnlyTexture* pImplicitInputTexture,
         float implicitInputWidth,
         float implicitInputHeight,
-        __in const CMILMatrix *pScaleTransform
+        _In_ const CMILMatrix *pScaleTransform
         );
 
     HRESULT PrepareTileBrushSamplerHw(
-        __in CContextState *pContextState,
-        __in CMilBrushDuce *pBrush, 
-        __in CHwSurfaceRenderTarget *pDestRT, 
+        _In_ CContextState *pContextState,
+        _In_ CMilBrushDuce *pBrush, 
+        _In_ CHwSurfaceRenderTarget *pDestRT, 
         float implicitInputWidth,
         float implicitInputHeight,
-        __in const CMILMatrix *pScaleTransform,
+        _In_ const CMILMatrix *pScaleTransform,
         __deref_out CD3DVidMemOnlyTexture** ppBrushTexture
         );
 
     HRESULT PrepareCacheBrushSamplerHw(
-        __in CMilBitmapCacheBrushDuce *pBrush,
-        __in CD3DDeviceLevel1 *pDevice,
-        __in CHwSurfaceRenderTarget *pDestRT, 
+        _In_ CMilBitmapCacheBrushDuce *pBrush,
+        _In_ CD3DDeviceLevel1 *pDevice,
+        _In_ CHwSurfaceRenderTarget *pDestRT, 
         __deref_out CD3DVidMemOnlyTexture** ppBrushTexture
         );
 
     HRESULT ResetTextureStagesHw(
-        __in CD3DDeviceLevel1 *pDevice
+        _In_ CD3DDeviceLevel1 *pDevice
         );
 
     void FreeSamplerData();
@@ -254,7 +254,7 @@ private:
             ReplaceInterface(m_pD3DTexture, pD3DTexture);
         }
 
-        __out CD3DVidMemOnlyTexture* GetD3DTextureNoRef()
+        _Out_ CD3DVidMemOnlyTexture* GetD3DTextureNoRef()
         {
             return m_pD3DTexture;
         }        
