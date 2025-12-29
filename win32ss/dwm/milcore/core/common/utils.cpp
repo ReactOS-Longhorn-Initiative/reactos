@@ -28,8 +28,8 @@ RoundToPow2(__in_range(1,ROUNDTOPOW2_UPPER_BOUND) UINT num)
 {
 
     AssertMsg(num != 0, ("Zero passed to RoundToPow2"));
-    AssertMsg(num <= (1 << 31), ("Num passed to RoundToPow2 is too high"));
-    C_ASSERT(ROUNDTOPOW2_UPPER_BOUND == (1<<31));
+    AssertMsg(num <= (UINT)(1 << 31), ("Num passed to RoundToPow2 is too high"));
+    static_assert(ROUNDTOPOW2_UPPER_BOUND == (1<<31), "ROUNDTOPOW2_UPPER_BOUND == (1<<31)");
 
 #if defined(_USE_X86_ASSEMBLY)
 

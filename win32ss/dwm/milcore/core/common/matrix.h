@@ -36,7 +36,7 @@ template <typename InCoordSpace, typename OutCoordSpace>
 class CMatrix : public CBaseMatrix
 {
     // No extra data members, including vtables, should ever be added to CMatrix
-    void _CAssertSize_() { C_ASSERT(sizeof(CMatrix) == sizeof(CBaseMatrix)); }
+    void _CAssertSize_() { static_assert(sizeof(CMatrix) == sizeof(CBaseMatrix), "sizeof(CMatrix) == sizeof(CBaseMatrix)"); }
 
 public:
 
@@ -238,9 +238,9 @@ public:
         __deref_out_range(>=, 1) UINT &uDesiredHeight
         ) const
     {
-        { C_ASSERT(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling); }
-        { C_ASSERT(   (OutCoordSpace::Id == CoordinateSpaceId::Device)
-                   || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling)); }
+        { static_assert(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling, "InCoordSpace::Id == CoordinateSpaceId::RealizationSampling"); }
+        { static_assert(   (OutCoordSpace::Id == CoordinateSpaceId::Device)
+                   || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling, "OutCoordSpace::Id == CoordinateSpaceId::Device || id == IdealSampling")); }
 
         CBaseMatrix::ComputePrefilteringDimensions(
             uRealizationWidth,
@@ -274,9 +274,9 @@ public:
         __deref_out_range(>=, 1) UINT *puDesiredHeight
         )
     {
-        { C_ASSERT(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling); }
-        { C_ASSERT(   (OutCoordSpace::Id == CoordinateSpaceId::Device)
-                   || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling)); }
+        { static_assert(InCoordSpace::Id == CoordinateSpaceId::RealizationSampling, "InCoordSpace::Id == CoordinateSpaceId::RealizationSampling"); }
+        { static_assert((OutCoordSpace::Id == CoordinateSpaceId::Device)
+            || (OutCoordSpace::Id == CoordinateSpaceId::IdealSampling, "OutCoordSpace::Id == CoordinateSpaceId::Device || id == IdealSampling")); }
 
         CBaseMatrix::AdjustForPrefiltering(
             uRealizationWidth,
@@ -306,8 +306,8 @@ public:
     __ecount(1) CMatrix<InCoordSpace,CoordinateSpace::Variant> const &ReinterpretAsVariantOut(
         ) const
     {
-        C_ASSERT(OutCoordSpace::Id != CoordinateSpaceId::Invalid);
-        C_ASSERT(sizeof(*this) == sizeof(CMatrix<InCoordSpace,CoordinateSpace::Variant>));
+        static_assert(OutCoordSpace::Id != CoordinateSpaceId::Invalid, "OutCoordSpace::Id != CoordinateSpaceId::Invalid");
+        static_assert(sizeof(*this) == sizeof(CMatrix<InCoordSpace,CoordinateSpace::Variant>), "sizeof(*this) == sizeof(CMatrix<InCoordSpace,CoordinateSpace::Variant>)");
         return reinterpret_cast<CMatrix<InCoordSpace,CoordinateSpace::Variant> const &>(*this);
     }
 
@@ -385,7 +385,7 @@ ReinterpretLocalRenderingAsBaseSampling(
     __in_ecount(1) const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::Device> &m
     )
 {
-    C_ASSERT(sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> ));
+    static_assert(sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> ), "sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> )");
     return reinterpret_cast<const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &>(m);
 }
 
@@ -410,7 +410,7 @@ ReinterpretIdealSamplingAsDevice(
     __in_ecount(1) const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::IdealSampling> &m
     )
 {
-    C_ASSERT(sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> ));
+    static_assert(sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> ), "sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> )");
     return reinterpret_cast<const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &>(m);
 }
 
@@ -432,7 +432,7 @@ ReinterpretLocalRenderingAsRealizationSampling(
     __in_ecount(1) const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::Device> &m
     )
 {
-    C_ASSERT(sizeof(m) == sizeof( CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> ));
+    static_assert(sizeof(m) == sizeof( CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> ), "sizeof(m) == sizeof( CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> )");
     return reinterpret_cast<const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> &>(m);
 }
 
@@ -455,7 +455,7 @@ ReinterpretPageInPixelsAsLocalRendering(
     __in_ecount(1) const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::PageInPixels> &m
     )
 {
-    C_ASSERT(sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::LocalRendering> ));
+    static_assert(sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::LocalRendering> ), "sizeof(m) == sizeof( CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::LocalRendering> )");
     return reinterpret_cast<const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::LocalRendering> &>(m);
 }
 
@@ -479,7 +479,7 @@ ReinterpretLocalRenderingAsMILMatrix(
     __in_ecount(1) const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *m
     )
 {
-    C_ASSERT(sizeof(*m) == sizeof( CMILMatrix ));
+    static_assert(sizeof(*m) == sizeof( CMILMatrix ), "sizeof(*m) == sizeof( CMILMatrix )");
     return reinterpret_cast<const CMILMatrix *>(m);
 }
 

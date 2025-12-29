@@ -119,7 +119,7 @@ CD3DSurface::Init(
     
         if (m_d3dsd.MultiSampleType >= D3DMULTISAMPLE_2_SAMPLES)
         {
-            C_ASSERT(D3DMULTISAMPLE_2_SAMPLES == 2);
+            static_assert(D3DMULTISAMPLE_2_SAMPLES == 2, "D3DMULTISAMPLE_2_SAMPLES == 2");
             uSamplesPerPixel = static_cast<UINT>(m_d3dsd.MultiSampleType);
         }
     
@@ -295,9 +295,10 @@ CD3DSurface::ReadIntoSysMemBuffer(
     UINT const uSourceWidth = rcSource.Width();
     UINT const uSourceHeight = rcSource.Height();
 
-    RECT const rcDest = { 0, 0, uSourceWidth, uSourceHeight };
+    RECT const rcDest = { 0, 0, (LONG)uSourceWidth, (LONG)uSourceHeight };
 
     BYTE const BitsPerPixel = GetPixelFormatSize(fmtOut);
+    D3DFORMAT d3dfmtOut;
 
     if (BitsPerPixel % BITS_PER_BYTE)
     {
@@ -315,7 +316,7 @@ CD3DSurface::ReadIntoSysMemBuffer(
 
     Assert(Device().IsInAUseContext());
 
-    D3DFORMAT d3dfmtOut = PixelFormatToD3DFormat(fmtOut);
+    d3dfmtOut = PixelFormatToD3DFormat(fmtOut);
 
     if ((m_d3dsd.Pool == D3DPOOL_MANAGED) || (m_d3dsd.Pool == D3DPOOL_SYSTEMMEM))
     {

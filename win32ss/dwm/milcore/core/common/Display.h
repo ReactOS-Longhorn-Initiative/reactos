@@ -197,23 +197,23 @@ private:
     HRESULT ReadDisplayModes();
 
     static BOOL CALLBACK MonitorEnumProc(
-        __in HMONITOR hMonitor,
-        __in HDC hdcMonitor,
-        __in LPRECT lprcMonitor,
-        __in LPARAM dwData
+        _In_ HMONITOR hMonitor,
+        _In_ HDC hdcMonitor,
+        _In_ LPRECT lprcMonitor,
+        _In_ LPARAM dwData
         );
 
     static HRESULT GetMonitorDescription(
-        __in HMONITOR hMonitor,
+        _In_ HMONITOR hMonitor,
         __out_ecount(1) MONITORINFOEX *pMonitorInfo
         );
 
     __out_ecount_opt(1) CDisplay* FindDisplayByName(__in_ecount(1) const MONITORINFOEX *pmi);
-    int FindDisplayByHMonitor(__in HMONITOR hMonitor) const;
+    int FindDisplayByHMonitor(_In_ HMONITOR hMonitor) const;
 
     static HRESULT ValidateDeviceName(
         __in_bcount(cbBuffer) LPCTSTR pstrDeviceName,
-        __in size_t cbBuffer
+        _In_ size_t cbBuffer
         );
 
     void ComputeDisplayBounds();
@@ -239,7 +239,10 @@ private:
             return DpiAwarenessContext::GetValidDpiAwarenessContextValues();
         }
 
-        return { m_defaultDpiAwarenessContextValue };
+        std::vector<DpiAwarenessContextValue> result;
+        result.push_back(m_defaultDpiAwarenessContextValue);
+
+        return result;
     }
 
 public:
@@ -273,7 +276,7 @@ public:
         ) const;
 
     HRESULT GetDisplayIndexFromMonitor(
-        __in HMONITOR hMonitor,
+        _In_ HMONITOR hMonitor,
         __out_ecount(1) UINT &uDisplayIndex
         ) const;
 
@@ -393,13 +396,13 @@ private:
 
     CDisplay(
         __in_ecount(1) const CDisplaySet * pDisplaySet,
-        __in UINT uDisplayIndex,
+        _In_ UINT uDisplayIndex,
         __in_ecount(1) const DISPLAY_DEVICE *pdd
         );
     //~CDisplay(); not required
 
     HRESULT SetMonitorInfo(
-        __in HMONITOR hMonitor,
+        _In_ HMONITOR hMonitor,
         __in_ecount(1) LPCRECT prcMonitor
         );
 
@@ -416,7 +419,7 @@ private:
         __in_ecount(1) CDisplay const * pDisplay
         ) const;
 
-    bool CheckForRecentDriver(__in PCTSTR pstrDriver) const;
+    bool CheckForRecentDriver(_In_ PCTSTR pstrDriver) const;
 
     void CheckBadDeviceDrivers();
 
@@ -427,7 +430,10 @@ private:
             return DpiAwarenessContext::GetValidDpiAwarenessContextValues();
         }
 
-        return { m_defaultDpiAwarenessContextValue };
+        std::vector<DpiAwarenessContextValue> result;
+        result.push_back(m_defaultDpiAwarenessContextValue);
+
+        return result;
     }
 
 public:
@@ -468,7 +474,7 @@ public:
     }
 
     LUID GetLUID() const { return m_luidD3DAdapter;}
-    __out HMONITOR GetHMONITOR() const { return m_hMonitor; }
+    _Out_ HMONITOR GetHMONITOR() const { return m_hMonitor; }
 
     bool IsDeviceDriverBad() const { return m_fIsBadDriver; }
     DWORD GetVendorId() const { return m_uGraphicsCardVendorId; }
@@ -594,12 +600,12 @@ class CDisplayRegKey
 {
 public:
     CDisplayRegKey(
-        __in HKEY hKeyRoot, 
-        __in PCTSTR pszDeviceName
+        _In_ HKEY hKeyRoot, 
+        _In_ PCTSTR pszDeviceName
         );
 
     CDisplayRegKey(
-        __in PCTSTR pszDeviceKey
+        _In_ PCTSTR pszDeviceKey
         );
 
     ~CDisplayRegKey();
@@ -607,12 +613,12 @@ public:
     bool IsValid() const { return m_fOpened; }
 
     bool ReadDWORD(
-        __in PCTSTR pName,
+        _In_ PCTSTR pName,
         __out_ecount(1) DWORD *pValue  // unchanged on failure
         );
 
     bool ReadUINT(
-        __in PCTSTR pName,
+        _In_ PCTSTR pName,
         __out_ecount(1) UINT *pValue  // unchanged on failure
         )
     {
@@ -620,7 +626,7 @@ public:
     }
 
     bool ReadString(
-        __in PCTSTR pName,
+        _In_ PCTSTR pName,
         DWORD cb,
         __out_bcount(cb) PTSTR str
         );

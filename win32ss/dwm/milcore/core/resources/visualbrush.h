@@ -41,12 +41,12 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_VISUALBRUSH || CMilTileBrushDuce::IsOfType(type);
     }
 
-    override virtual bool NeedsBounds(
+    /* override */ virtual bool NeedsBounds(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -62,10 +62,10 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
-    override CMilSlaveResource* GetResource();
+    /* override */ void UnRegisterNotifiers();
+    /* override */ CMilSlaveResource* GetResource();
 
-    override bool RealizationMayNeedNonPow2Tiling(
+    /* override */ bool RealizationMayNeedNonPow2Tiling(
         __in_ecount(1) const BrushContext *pBrushContext
         ) const
     {
@@ -74,7 +74,7 @@ public:
         return CMilTileBrushDuce::IsTiling(m_data.m_TileMode);
     }
 
-    override bool RealizationWillHaveSourceClip() const
+    /* override */ bool RealizationWillHaveSourceClip() const
     {
         return m_data.m_TileMode == MilTileMode::None;
     }
@@ -89,8 +89,8 @@ public:
     }
 
     static HRESULT PreComputeHelper(
-        __in CPreComputeContext *pPreComputeContext,
-        __in CMilVisual *pVisual
+        _In_ CPreComputeContext *pPreComputeContext,
+        _In_ CMilVisual *pVisual
         );
 
 protected:    
@@ -129,7 +129,7 @@ protected:
         __inout_ecount(1) CDrawingContext *pDrawingContext
         );    
     
-    override virtual bool IsCachingEnabled()
+    /* override */ virtual bool IsCachingEnabled()
     { return m_data.m_CachingHint == MilCachingHint::Cache; }    
 
 private:

@@ -13,18 +13,20 @@
 //-----------------------------------------------------------------------------
 
 #pragma once 
-#include "shared\DpiUtil.h"
-#include "shared\DpiScale.h"
-#include "shared\DelegatingIUnknown.h"
+#include "shared/DpiUtil.h"
+#include "shared/DpiScale.h"
+#include "shared/DelegatingIUnknown.h"
 
 #include <combaseapi.h>
-#include <Unknwn.h>
+#include <unknwn.h>
 #include <windef.h>
-#include <ShellScalingApi.h>
+#include <shellscalingapi.h>
 
 #if !defined(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 (DPI_AWARENESS_CONTEXT)-4
 #endif
+
+DEFINE_GUID(IID_IDpiProvider, 0xAB9362AC, 0xE5EF, 0x43DB, 0x9D, 0x4A, 0x55, 0x62, 0x83, 0x34, 0x1D, 0xC8);
 
 DECLARE_DELEGATING_INTERFACE(IDpiProvider, "AB9362AC-E5EF-43DB-9D4A-556283341DC8")
 {
@@ -56,9 +58,9 @@ DEFINE_DELEGATING_INTERFACE(IDpiProvider, DpiProvider)
         {}
     
         // DpiProvider
-        STDMETHOD_(const DPI_AWARENESS_CONTEXT, GetDpiAwarenessContext)(THIS) const override;
-        STDMETHOD(GetCurrentDpi)(THIS_ DpiScale* pDpiScale) const override;
-        STDMETHOD_(BOOL, IsPerMonitorDpiAware)(THIS) const override;
+        STDMETHOD_(const DPI_AWARENESS_CONTEXT, GetDpiAwarenessContext)(THIS) const /* override */;
+        STDMETHOD(GetCurrentDpi)(THIS_ DpiScale* pDpiScale) const /* override */;
+        STDMETHOD_(BOOL, IsPerMonitorDpiAware)(THIS) const /* override */;
         
     protected:
         void UpdateDpi(const DpiScale& dpi);

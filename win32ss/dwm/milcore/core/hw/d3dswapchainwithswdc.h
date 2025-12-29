@@ -17,7 +17,7 @@
 //  Class: CD3DSwapChainWithSwDC
 //
 //  Description:
-//      This class overrides the GetDC method of CD3DSwapChain to implement
+//      This class /* override */s the GetDC method of CD3DSwapChain to implement
 //      GetDC using GetRenderTargetData. This approach acheived phenominal perf
 //      wins in WDDM since there is no GDI hardware acceleration in WDDM.
 //
@@ -25,7 +25,7 @@
 
 class CD3DSwapChainWithSwDC : public CD3DSwapChain
 {
-    friend static HRESULT CD3DSwapChain::Create(
+    friend HRESULT CD3DSwapChain::Create(
         __inout_ecount(1) CD3DResourceManager *pResourceManager,
         __inout_ecount(1) IDirect3DSwapChain9 *pID3DSwapChain9,
         UINT BackBufferCount,
@@ -34,20 +34,20 @@ class CD3DSwapChainWithSwDC : public CD3DSwapChain
         );
 
 public:
-    override HRESULT GetDC(
+    HRESULT GetDC(
         /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
         __in_ecount(1) const CMilRectU& rcDirty,
         __deref_out HDC *phdcBackBuffer
         ) const;
 
-    override HRESULT ReleaseDC(
+    HRESULT ReleaseDC(
         /*__in_range(<, this->m_cBackBuffers)*/ UINT iBackBuffer,
-        __in HDC hdcBackBuffer
+        _In_ HDC hdcBackBuffer
         ) const;
 
 private:
     CD3DSwapChainWithSwDC(
-        __in HDC hdcPresentVia,
+        _In_ HDC hdcPresentVia,
         __in_range(>, 0) /*__out_range(==, this->m_cBackBuffers)*/ UINT cBackBuffers,
         __inout_ecount(1) IDirect3DSwapChain9 *pID3DSwapChain
         );
@@ -57,9 +57,9 @@ protected:
 
 protected:
 
-    override HRESULT Init(
+    HRESULT Init(
         __inout_ecount(1) CD3DResourceManager *pResourceManager
-        );
+        ) /* override */;
 
 private:
     HDC m_hdcCopiedBackBuffer;

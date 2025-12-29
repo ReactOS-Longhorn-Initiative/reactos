@@ -54,7 +54,7 @@ public:
 
     STDMETHOD(Lock)(
         __in_ecount_opt(1) IN const WICRect *prcLock,
-        __in DWORD dwFlags,
+        _In_ DWORD dwFlags,
         __deref_out_ecount(1) IWGXBitmapLock **ppILock
         ) override;
 

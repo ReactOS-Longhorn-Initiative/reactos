@@ -35,8 +35,8 @@ private :
 
    
 public:
-    static HRESULT Create(UINT cbSize, __out CMilCommandBatch **ppBatch);
-    static HRESULT Create(__out CMilCommandBatch **ppBatch);
+    static HRESULT Create(UINT cbSize, _Out_ CMilCommandBatch **ppBatch);
+    static HRESULT Create(_Out_ CMilCommandBatch **ppBatch);
 
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilCommandBatch));
 
@@ -110,7 +110,7 @@ private:
 interface IMilBatchDevice :
     public IMILRefCount
 {
-    virtual HRESULT SubmitBatch(__in CMilCommandBatch *ppBatch) = 0;
+    virtual HRESULT SubmitBatch(_In_ CMilCommandBatch *ppBatch) = 0;
 };
 
 

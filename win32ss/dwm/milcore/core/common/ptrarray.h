@@ -50,8 +50,8 @@ protected:
     // Functions to add and remove entries in the array.
     //
 
-    HRESULT InsertAt(__in_xcount(sizeof(T)) UINT_PTR p, size_t index);
-    bool Remove(__in_xcount(sizeof(T)) UINT_PTR p);
+    HRESULT InsertAt(_In_reads_(sizeof(T)) UINT_PTR p, size_t index);
+    bool Remove(_In_reads_(sizeof(T)) UINT_PTR p);
     __out_xcount_opt(sizeof(T)) UINT_PTR operator[](size_t index) const;
 
     void Clear();

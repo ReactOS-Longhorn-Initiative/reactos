@@ -130,7 +130,7 @@ DbgHasMultipleReferences(
     // Are there more references that the reference passed in and the one we just added?
     return (cRef > 2);      
 }
-#endif DBG
+#endif /* DBG */
 
 /**************************************************************************
 *

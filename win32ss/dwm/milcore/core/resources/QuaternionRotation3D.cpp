@@ -22,12 +22,12 @@ using namespace dxlayer;
 MtDefine(QuaternionRotation3DResource, MILRender, "QuaternionRotation3D Resource");
 MtDefine(CMilQuaternionRotation3DDuce, QuaternionRotation3DResource, "CMilQuaternionRotation3DDuce");
 
-/* override */ CMilQuaternionRotation3DDuce::~CMilQuaternionRotation3DDuce()
+CMilQuaternionRotation3DDuce::~CMilQuaternionRotation3DDuce()
 {
     UnRegisterNotifiers();
 }
 
-/* override */ HRESULT CMilQuaternionRotation3DDuce::GetRealization(
+HRESULT CMilQuaternionRotation3DDuce::GetRealization(
     __out_ecount(1) CMILMatrix *pRealization
 )
 {

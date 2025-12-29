@@ -197,6 +197,8 @@ Routine Description:
 HRESULT CMilDataStreamWriter::EndItem()
 {
     HRESULT hr = S_OK;
+    UINT cbRounded;
+    UINT nPreviousItemSize;
 
     //
     // Validate the writer state.
@@ -223,9 +225,9 @@ HRESULT CMilDataStreamWriter::EndItem()
     //
 
     // Calculate the padding needed
-    UINT nPreviousItemSize = m_nItemSize;    
+    nPreviousItemSize = m_nItemSize;    
     IFC(RoundUpToAlignDWORD(&m_nItemSize));
-    UINT cbRounded = m_nItemSize - nPreviousItemSize;    
+    cbRounded = m_nItemSize - nPreviousItemSize;    
 
     // Add the alignment padding to the amount written
     IFC(IncreaseWrittenByteCount(cbRounded));

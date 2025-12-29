@@ -20,9 +20,9 @@ Environment:
 
 --*/
 
-#include <UCE\ResSlave.h>
-#include <UCE\GlyphCacheSlave.h>    // Should be in resources directory
-#include <UCE\GraphWalker.h>
+#include <uce/resslave.h>
+#include <uce/glyphcacheslave.h>    // Should be in resources directory
+#include <uce/graphwalker.h>
 
 #ifndef OFFSET_OF
 #define OFFSET_OF(s, m)    UINT32(UINT64(HANDLE(&(((s *) 0)->m))))
@@ -35,15 +35,15 @@ Environment:
 // JIT  headers
 //
 
-#include "fxjit\public\warpplatform.h"
+#include "fxjit/Public/warpplatform.h"
 
-#include "fxjit\Public\SIMDJit.h"
+#include "fxjit/Public/SIMDJit.h"
 
-#include "fxjit\Compiler\FlushMemory.h"
-#include "fxjit\Compiler\Register.h"
-#include "fxjit\Compiler\Operator.h"
-#include "fxjit\Compiler\Locator.h"
-#include "fxjit\Compiler\Program.h"
+#include "fxjit/Compiler/FlushMemory.h"
+#include "fxjit/Compiler/Register.h"
+#include "fxjit/Compiler/Operator.h"
+#include "fxjit/Compiler/Locator.h"
+#include "fxjit/Compiler/Program.h"
 
 #endif
 
@@ -60,11 +60,11 @@ class CMilSlaveBitmap;
 #include "transform.h"
 #include "CurrentValue.h"
 
-#include "brushcontext.h"
+#include "BrushContext.h"
 #include "BrushRealizer.h"
 
 #include "PathGeometryWrapper.h"
-#include "brushtypeutils.h"
+#include "BrushTypeUtils.h"
 
 #include "CacheMode.h"
 #include "BitmapCacheMode.h"
@@ -102,7 +102,7 @@ class CMilSlaveBitmap;
 #include "drawingimage.h"
 
 #include "camera.h"
-#include "projectioncamera.h"
+#include "ProjectionCamera.h"
 #include "perspectivecamera.h"
 #include "orthographiccamera.h"
 #include "matrixcamera.h"
@@ -130,7 +130,7 @@ class CMilSlaveBitmap;
 #include "matrixtransform3d.h"
 #include "rotation3d.h"
 #include "axisanglerotation3d.h"
-#include "quaternionrotation3d.h"
+#include "QuaternionRotation3D.h"
 
 #include "modelwalker.h"
 #include "modelrenderwalker.h"
@@ -152,10 +152,10 @@ class CMilSlaveBitmap;
 #include "bitmapres.h"
 #include "doublebufferedbitmapres.h"
 #include "glyphrunslave.h"
-#include "glyphrungeometrysink.h"
+#include "GlyphRunGeometrySink.h"
 #include "node.h"
-#include "viewport3dvisual.h"
-#include "visual3d.h"
+#include "Viewport3DVisual.h"
+#include "Visual3D.h"
 
 #include "GuidelineCollectionResource.h"
 
@@ -166,12 +166,12 @@ class CMilSlaveBitmap;
 //
 
 #include "renderdata.h"
-#include "drawing.h"
-#include "geometrydrawing.h"
-#include "imagedrawing.h"
-#include "glyphrundrawing.h"
-#include "videodrawing.h"
-#include "drawinggroup.h"
+#include "Drawing.h"
+#include "GeometryDrawing.h"
+#include "ImageDrawing.h"
+#include "GlyphRunDrawing.h"
+#include "VideoDrawing.h"
+#include "DrawingGroup.h"
 
 //
 // ETW Performance Tracing resource

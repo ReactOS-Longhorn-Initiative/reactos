@@ -33,7 +33,7 @@ MtDefine(CSameThreadComposition, MILRender, "CSameThreadComposition");
 //------------------------------------------------------------------------------       
 
 CSameThreadComposition::CSameThreadComposition(
-    __in MilMarshalType::Enum marshalType
+    _In_ MilMarshalType::Enum marshalType
     ) : CComposition(marshalType)
 {
     // Zero-initialized by DECLARE_METERHEAP_CLEAR
@@ -65,7 +65,7 @@ CSameThreadComposition::~CSameThreadComposition()
 
 /* static */ HRESULT 
 CSameThreadComposition::Create(
-    __in MilMarshalType::Enum marshalType,
+    _In_ MilMarshalType::Enum marshalType,
     __out_ecount(1) CSameThreadComposition **ppSynchronousComposition
     )
 {
@@ -102,7 +102,7 @@ Cleanup:
 
 /* override */ HRESULT 
 CSameThreadComposition::SubmitBatch(
-    __in CMilCommandBatch* pBatch
+    _In_ CMilCommandBatch* pBatch
     )
 {
     HRESULT hr = S_OK;

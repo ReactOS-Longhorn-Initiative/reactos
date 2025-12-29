@@ -351,7 +351,7 @@ CHwSoftwareFallback::FillPath(
                                NULL,
                                CMILMatrix::ReinterpretBase(pmatShapeToDevice)
                                ));
-
+{
     // 
     // Early out if the tight bounds have zero size
     // 
@@ -429,7 +429,7 @@ CHwSoftwareFallback::FillPath(
         //
         IFC(DrawCurrentTile());
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }

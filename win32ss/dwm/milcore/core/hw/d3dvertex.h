@@ -93,7 +93,7 @@
 //  ptTx.
 //
 #define NUM_OF_VERTEX_TEXTURE_COORDS(VertexType) \
-    ARRAYSIZE(((VertexType*)0)->ptTx)
+    ARRAY_SIZE(((VertexType*)0)->ptTx)
 
 
 // class CD3DVertexXYZDUV2

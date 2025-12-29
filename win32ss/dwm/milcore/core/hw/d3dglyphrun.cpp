@@ -63,6 +63,7 @@ CD3DSubGlyph::ValidateAlphaMap(CD3DGlyphRunPainter* pPainter)
 
     IFC(pPainter->EnsureAlphaMap());
 
+   {
     int wid = m_rcFiltered.right - m_rcFiltered.left;
     int hei = m_rcFiltered.bottom - m_rcFiltered.top;
 
@@ -100,6 +101,7 @@ CD3DSubGlyph::ValidateAlphaMap(CD3DGlyphRunPainter* pPainter)
             m_rcFiltered
             ));
     }
+   }
 Cleanup:
     if (FAILED(hr)) 
     { 

@@ -51,17 +51,17 @@ public:
     STDMETHOD(Clear)(
         __in_ecount_opt(1) const MilColorF *pColor,
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
-        ) override;
+        ) /* override */;
 
     STDMETHOD(Begin3D)(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
     STDMETHOD(End3D)(
-        ) override;
+        ) /* override */;
 
 
     //
@@ -74,7 +74,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IWGXBitmapSource *pIBitmap,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     // Draw a mesh.
 
@@ -84,7 +84,7 @@ public:
         __inout_ecount(1) CMILMesh3D *pMesh3D,
         __inout_ecount_opt(1) CMILShader *pShader,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     // Draw a path.
 
@@ -95,7 +95,7 @@ public:
         __inout_ecount_opt(1) CPlainPen *pPen,
         __inout_ecount_opt(1) CBrushRealizer *pStrokeBrush,
         __inout_ecount_opt(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     // Fill render target with a brush.
 
@@ -103,7 +103,7 @@ public:
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        ) override;
+        ) /* override */;
 
     STDMETHOD(ComposeEffect)(
         __inout_ecount(1) CContextState *pContextState,
@@ -112,20 +112,20 @@ public:
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IMILRenderTargetBitmap* pImplicitInput
-        ) override;
+        ) /* override */;
 
     // Draw the glyph run
 
     STDMETHOD(DrawGlyphs)(
         __inout_ecount(1) DrawGlyphsParameters &pars
-        ) override;
+        ) /* override */;
 
     STDMETHOD(DrawVideo)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) IAVSurfaceRenderer *pSurfaceRenderer,
         __inout_ecount(1) IWGXBitmapSource *pBitmapSource,
         __inout_ecount_opt(1) IMILEffectList *pIEffect
-        ) override;
+        ) /* override */;
 
     STDMETHOD(CreateRenderTargetBitmap)(
         UINT width,
@@ -134,26 +134,26 @@ public:
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        ) override;
+        ) /* override */;
 
     HRESULT BeginLayerInternal(
         __inout_ecount(1) CRenderTargetLayer *pNewLayer
-        ) override;
+        ) /* override */;
 
     HRESULT EndLayerInternal(
-        ) override;
+        ) /* override */;
     
     // This method is used to determine if the render target is being
     // used to render hardware or software, or if it's merely being used 
     // for bounds accumulation, hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType) 
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType) 
     { 
         *pRenderTargetType = SWRasterRenderTarget; 
         RRETURN(S_OK);
     }
 
 
-    UINT GetRealizationCacheIndex() override
+    UINT GetRealizationCacheIndex() /* override */
     {
         return CMILResourceCache::SwRealizationCacheIndex;
     }
@@ -164,8 +164,8 @@ public:
 
     // CSpanSink interface
 
-    void OutputSpan(INT y, INT xMin, INT xMax)  override;
-    void AddDirtyRect(__in_ecount(1) const MilPointAndSizeL *prcDirty) override;
+    void OutputSpan(INT y, INT xMin, INT xMax)  /* override */;
+    void AddDirtyRect(__in_ecount(1) const MilPointAndSizeL *prcDirty); ///* override */
 
     HRESULT SetupPipeline(
         MilPixelFormat::Enum fmtColorData,
@@ -177,18 +177,18 @@ public:
         __in_ecount_opt(1) IMILEffectList *pIEffectList,
         __in_ecount_opt(1) const CMatrix<CoordinateSpace::Effect,CoordinateSpace::Device> *pmatEffectToDevice,
         __in_ecount(1) const CContextState *pContextState
-        ) override;
+        ) /* override */;
 
     HRESULT SetupPipelineForText(
         __in_ecount(1) CColorSource *pColorSource,
         MilCompositingMode::Enum eCompositingMode,
         __inout_ecount(1) CSWGlyphRunPainter &painter,
         bool fNeedsAA
-        ) override;
+        ) /* override */;
 
-    VOID ReleaseExpensiveResources() override;
+    VOID ReleaseExpensiveResources() /* override */;
 
-    VOID SetAntialiasedFiller(__inout_ecount(1) CAntialiasedFiller *pFiller) override;
+    VOID SetAntialiasedFiller(__inout_ecount(1) CAntialiasedFiller *pFiller) /* override */;
 
     // misc
 
@@ -223,7 +223,7 @@ private:
         __out_ecount(1) CRectClipper *pRectClipperOut
         );
 
-    bool HasAlpha() const override;
+    bool HasAlpha() const /* override */;
 
     // Implementation for DrawPath and DrawInfinitePath.
     // Treats NULL pShape as infinite shape.
@@ -290,20 +290,20 @@ protected:
 
 public:
 
-    override void DbgGetSurfaceBitmapNoRef(
+    /* override */ void DbgGetSurfaceBitmapNoRef(
         __deref_out_ecount_opt(1) IWGXBitmap **ppSurfaceBitmap
         ) const
     {
         *ppSurfaceBitmap = m_pIInternalSurface;
     }
-    override void DbgGetTargetSurface(
+    /* override */ void DbgGetTargetSurface(
         __deref_out_ecount_opt(1) CD3DSurface **ppD3DSurface
         ) const
     {
          *ppD3DSurface = NULL; // DbgGetSurfaceBitmapNoRef should be used instead
     }
-    override UINT DbgTargetWidth() const { return m_uWidth; }
-    override UINT DbgTargetHeight() const { return m_uHeight; }
+    /* override */ UINT DbgTargetWidth() const { return m_uWidth; }
+    /* override */ UINT DbgTargetHeight() const { return m_uHeight; }
 
     #define SW_DBG_RENDERING_STEP(func)                             \
         do {                                                        \
@@ -317,7 +317,7 @@ public:
         } while (UNCONDITIONAL_EXPR(0))
 #else
     #define SW_DBG_RENDERING_STEP(func)
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 };
 
 
@@ -371,9 +371,9 @@ public:
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        ) override;
+        ) /* override */;
 
-    STDMETHOD(End3D)() override;
+    STDMETHOD(End3D)() /* override */;
 
     //
     // IMILRenderTargetBitmap methods

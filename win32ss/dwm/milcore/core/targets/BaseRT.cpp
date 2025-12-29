@@ -364,7 +364,7 @@ CBaseRenderTarget::ShouldPresent(
     __in_ecount(1) RECT const *pInputRect,
     __out_ecount(1) CMILSurfaceRect *pResultRect,
     __inout_bcount((CDirtyRegion2::MaxDirtyRegionCount) * sizeof(RECT) + sizeof(RGNDATA)) RGNDATA **ppDirtyRegion,
-    __out bool *fPresent
+    _Out_ bool *fPresent
     )
 {
     HRESULT hr = S_OK;

@@ -27,14 +27,14 @@
 
 #pragma optimize("t", on)
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 // system includes
 
 #include "std.h"
 
 // debug output, allocator, etc.
 
-#include "common\common.h"
+#include "common/common.h"
 
 #include "geometry.h"
 

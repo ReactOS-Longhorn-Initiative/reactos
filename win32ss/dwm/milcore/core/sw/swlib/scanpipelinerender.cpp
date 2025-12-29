@@ -325,6 +325,11 @@ Cleanup:
     RRETURN(hr);
 }
 
+
+// bilinearspan.cpp
+extern VOID FASTCALL ConstantAlpha_32bppRGB(
+        const PipelineParams *, const ScanOpParams *);
+
 //+-----------------------------------------------------------------------------
 //
 //  Member:

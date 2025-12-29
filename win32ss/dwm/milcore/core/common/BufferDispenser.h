@@ -83,11 +83,11 @@ public:
     //
     // Assertions for constants
     //
-    C_ASSERT_IS_ALIGNED_TO(kExtraSpacePreAllocation, kMinBufferAllocationAlignment);
+    /*C_ASSERT_IS_ALIGNED_TO(kExtraSpacePreAllocation, kMinBufferAllocationAlignment);
     C_ASSERT_IS_ALIGNED_TO(kExtraSpacePostAllocation, kMinBufferAllocationAlignment);
-    C_ASSERT_IS_ALIGNED_TO((size_t)kOverheadPerBufferAllocation, kMinBufferAllocationAlignment);
-    C_ASSERT(MEMORY_ALLOCATION_ALIGNMENT >= kMinBufferAllocationAlignment);
-    C_ASSERT((MEMORY_ALLOCATION_ALIGNMENT & AllocatedFromHeap) == 0);
+    C_ASSERT_IS_ALIGNED_TO((size_t)kOverheadPerBufferAllocation, kMinBufferAllocationAlignment);*/
+    static_assert(MEMORY_ALLOCATION_ALIGNMENT >= kMinBufferAllocationAlignment, "MEMORY_ALLOCATION_ALIGNMENT >= kMinBufferAllocationAlignment");
+    static_assert((MEMORY_ALLOCATION_ALIGNMENT & AllocatedFromHeap) == 0, "(MEMORY_ALLOCATION_ALIGNMENT & AllocatedFromHeap) == 0");
 
     CBufferDispenser(
         __inout_bcount(size) void *pvBuffer,
@@ -263,8 +263,8 @@ private:
 
     // Generate a compile time error (via private protection) when trying to
     // dynamically allocate one of these.  They should always be on the stack
-    // or be a member.
-    MIL_FORCEINLINE void *operator new(size_t size) { return NULL; }
+    // or be a member. note: doesnt work on GCC
+    //MIL_FORCEINLINE void *operator new(size_t size) { return NULL; }
 
     BYTE m_rgBuffer[BufferSize +
                     ExpectedAllocationCount*kOverheadPerBufferAllocation +

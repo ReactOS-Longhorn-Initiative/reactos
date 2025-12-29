@@ -41,7 +41,7 @@ UTC_TIME CComposition::s_frameLastComposed = 0;
 // 
 //------------------------------------------------------------------------------       
 
-CComposition::CComposition(__in MilMarshalType::Enum marshalType) 
+CComposition::CComposition(_In_ MilMarshalType::Enum marshalType) 
       : m_mType(marshalType),
         m_deviceState(MilCompositionDeviceState::NoDevice),
         m_fLastForceSoftwareForProcessValue(false)
@@ -156,7 +156,7 @@ Cleanup:
 HRESULT 
 CComposition::ProcessPartitionCommand(
     __in_ecount(1) CMilCommandBatch* pBatch,
-    __in bool fProcessBatchCommands
+    _In_ bool fProcessBatchCommands
     )
 {
     HRESULT hr = S_OK;
@@ -446,7 +446,7 @@ Cleanup:
             }
             else
             {
-                MilUnexpectedError(hr, TEXT("failed to override flush channel action for fuzzing"));
+                MilUnexpectedError(hr, TEXT("failed to /* override */ flush channel action for fuzzing"));
             }
         }
 
@@ -648,7 +648,7 @@ HRESULT CComposition::ProcessComposition(
         // Make sure that we invalidate all of the render targets and caches,
         // and notify any listeners that display set is not valid
         // If the UI thread has requested that we try to render despite this, 
-        // then override and lie to listeners that displays are valid.
+        // then /* override */ and lie to listeners that displays are valid.
         IFC(m_pRenderTargetManager->NotifyDisplaySetChange(doRenderPass, displayCount));
         GetVisualCacheManagerNoRef()->NotifyDeviceLost();
     }
@@ -941,7 +941,7 @@ CComposition::RenderingStatusFromHr(HRESULT hr)
 
 HRESULT
 CComposition::NotifyRenderStatus(
-    __in HRESULT hrRender
+    _In_ HRESULT hrRender
     )
 {
     HRESULT hr = S_OK;
@@ -975,7 +975,7 @@ CComposition::Present(
 {
     HRESULT hr = S_OK;
     QPC_TIME qpcPresentationTime = UINT64_MAX;
-
+{
     if (m_deviceState == MilCompositionDeviceState::Occluded)
     {
         hr = S_PRESENT_OCCLUDED;
@@ -1031,7 +1031,7 @@ CComposition::Present(
                                         &qpcPresentationTime));
 
     NotifyPresentListeners(ePresentationResults, uiRefreshRate, qpcPresentationTime);
-
+    }
 Cleanup:
     if (SUCCEEDED(hr) &&
         ETW_ENABLED_CHECK(TRACE_LEVEL_INFORMATION))
@@ -1217,9 +1217,9 @@ CComposition::RemoveEtwEvent(
 //
 //------------------------------------------------------------------------
 HRESULT CComposition::Partition_NotifyPolicyChangeForNonInteractiveMode(
-    __in CMilServerChannel *pChannel, 
-    __in CMilSlaveHandleTable *pHandleTable, 
-    __in const MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE* pCmd
+    _In_ CMilServerChannel *pChannel, 
+    _In_ CMilSlaveHandleTable *pHandleTable, 
+    _In_ const MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE* pCmd
 )
 {
     bool fForceRender = 
@@ -1239,9 +1239,9 @@ HRESULT CComposition::Partition_NotifyPolicyChangeForNonInteractiveMode(
 //
 //------------------------------------------------------------------------
 HRESULT CComposition::Partition_RegisterForNotifications(
-    __in CMilServerChannel *pChannel,
-    __in CMilSlaveHandleTable *pHandleTable,
-    __in const MILCMD_PARTITION_REGISTERFORNOTIFICATIONS *pCmd
+    _In_ CMilServerChannel *pChannel,
+    _In_ CMilSlaveHandleTable *pHandleTable,
+    _In_ const MILCMD_PARTITION_REGISTERFORNOTIFICATIONS *pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1304,9 +1304,9 @@ Returns:
 --*/
 
 HRESULT CComposition::Transport_DestroyResourcesOnChannel(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_TRANSPORT_DESTROYRESOURCESONCHANNEL* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_TRANSPORT_DESTROYRESOURCESONCHANNEL* pCmd
     )
 {
     //
@@ -1340,9 +1340,9 @@ Returns:
 --*/
 
 HRESULT CComposition::Transport_SyncFlush(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_TRANSPORT_SYNCFLUSH* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_TRANSPORT_SYNCFLUSH* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1375,9 +1375,9 @@ Cleanup:
 
 HRESULT 
 CComposition::Channel_DeleteResource(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_CHANNEL_DELETERESOURCE* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_CHANNEL_DELETERESOURCE* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1451,9 +1451,9 @@ Returns:
 --*/
 
 HRESULT CComposition::Channel_CreateResource(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_CHANNEL_CREATERESOURCE* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_CHANNEL_CREATERESOURCE* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1519,9 +1519,9 @@ Description:
 --*/
 
 HRESULT CComposition::Channel_DuplicateHandle(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_CHANNEL_DUPLICATEHANDLE* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_CHANNEL_DUPLICATEHANDLE* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1565,9 +1565,9 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT 
 CComposition::Channel_RequestTier(
-    __in CMilServerChannel *pChannel,
-    __in CMilSlaveHandleTable *pHandleTable,
-    __in const MILCMD_CHANNEL_REQUESTTIER *pCmd
+    _In_ CMilServerChannel *pChannel,
+    _In_ CMilSlaveHandleTable *pHandleTable,
+    _In_ const MILCMD_CHANNEL_REQUESTTIER *pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1601,7 +1601,7 @@ CComposition::Channel_RequestTier(
     //
 
     {
-        static const PTSTR szWinSatKey = _T("Software\\Microsoft\\Windows NT\\CurrentVersion\\WinSAT");
+        static LPCWSTR szWinSatKey = _T("Software\\Microsoft\\Windows NT\\CurrentVersion\\WinSAT");
         
         // Grab WinSAT dropped bandwidth number
         DWORD VideoMemoryBandwidth = 0;
@@ -1647,9 +1647,9 @@ Returns:
 --*/
 
 HRESULT CComposition::Partition_SetVBlankSyncMode(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_PARTITION_SETVBLANKSYNCMODE* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_PARTITION_SETVBLANKSYNCMODE* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1682,9 +1682,9 @@ Returns:
 --*/
 
 HRESULT CComposition::Partition_NotifyPresent(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_PARTITION_NOTIFYPRESENT* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_PARTITION_NOTIFYPRESENT* pCmd
     )
 {
     NotifyPresentInfo notifyInfo;
@@ -1710,9 +1710,9 @@ Returns:
 --*/
 
 HRESULT CComposition::GlyphRun_Create(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_GLYPHRUN_CREATE* pCmd,
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_GLYPHRUN_CREATE* pCmd,
     __in_bcount(cbPayload) LPCVOID pcvPayload,
     UINT cbPayload
     )
@@ -1797,9 +1797,9 @@ Returns:
 --*/
 
 HRESULT CComposition::HwndTarget_Create(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_HWNDTARGET_CREATE* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_HWNDTARGET_CREATE* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1851,9 +1851,9 @@ Cleanup:
 
 HRESULT
 CComposition::GenericTarget_Create(
-    __in CMilServerChannel* pChannel,
-    __in CMilSlaveHandleTable* pHandleTable,
-    __in const MILCMD_GENERICTARGET_CREATE* pCmd
+    _In_ CMilServerChannel* pChannel,
+    _In_ CMilSlaveHandleTable* pHandleTable,
+    _In_ const MILCMD_GENERICTARGET_CREATE* pCmd
     )
 {
     HRESULT hr = S_OK;
@@ -1911,8 +1911,8 @@ HRESULT CComposition::WaitForVBlank()
 //------------------------------------------------------------------------------
 
 HRESULT CComposition::AttachChannel(
-    __in HMIL_CHANNEL hChannel,
-    __in CMilServerChannel *pChannel
+    _In_ HMIL_CHANNEL hChannel,
+    _In_ CMilServerChannel *pChannel
     )
 {
     HRESULT hr = S_OK;
@@ -1960,11 +1960,11 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 HRESULT CComposition::DetachChannel(
-    __in HMIL_CHANNEL hChannel
+    _In_ HMIL_CHANNEL hChannel
     )
 {
     HRESULT hr = S_OK;
-
+{
     CMilServerChannel *pChannel = NULL;
 
     IFC(GetAttachedChannel(hChannel, &pChannel));
@@ -2011,6 +2011,7 @@ HRESULT CComposition::DetachChannel(
     {
         m_rgpAttachedChannels.ShrinkToSize();
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -2028,8 +2029,8 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 HRESULT CComposition::GetAttachedChannel(
-    __in HMIL_CHANNEL hChannel,
-    __out CMilServerChannel **ppChannel
+    _In_ HMIL_CHANNEL hChannel,
+    _Out_ CMilServerChannel **ppChannel
     )
 {
     HRESULT hr = S_OK;
@@ -2433,7 +2434,7 @@ CComposition::NotifyPresentListeners(
 HRESULT 
 CComposition::ReleaseResource(
     __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
-    __in HMIL_RESOURCE hResource,
+    _In_ HMIL_RESOURCE hResource,
     __in_ecount(1) CMilSlaveResource *pResource,
     bool fShutdownCleanup
     )
