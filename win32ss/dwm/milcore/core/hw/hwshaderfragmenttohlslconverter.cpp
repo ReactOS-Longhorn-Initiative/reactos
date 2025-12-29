@@ -94,7 +94,7 @@ private:
         );
 
     void AppendVariableString(
-        __in PCSTR pString
+        _In_ PCSTR pString
         );
 
     void AppendNumber(
@@ -144,42 +144,42 @@ private:
 
 
     void WriteSamplerName(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_SAMPLER) UINT uFragmentNum
         );
 
     void WriteFragmentName(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
 
     void WriteVertexFragmentConstDataType(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
 
     void WriteVertexFragmentConstDataName(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
 
     void WritePixelFragmentConstDataType(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
 
     void WritePixelFragmentConstDataName(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
 
     void WriteVertexShaderFragmentName(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
 
     void WritePixelShaderFragmentName(
-        __in PCSTR szFragmentName,
+        _In_ PCSTR szFragmentName,
         __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
         );
     
@@ -495,7 +495,7 @@ CHwShaderFragmentToHLSLConverter::AppendConstantString(
 
 void
 CHwShaderFragmentToHLSLConverter::AppendVariableString(
-    __in PCSTR pString
+    _In_ PCSTR pString
     )
 {
     UINT cbString = static_cast<UINT>(strlen(pString)*sizeof(*pString));
@@ -1924,7 +1924,7 @@ CHwShaderFragmentToHLSLConverter::AppendInterpolatorDesc(
 
 void
 CHwShaderFragmentToHLSLConverter::WriteSamplerName(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_SAMPLER) UINT uFragmentNum
     )
 {
@@ -1948,7 +1948,7 @@ CHwShaderFragmentToHLSLConverter::WriteSamplerName(
 
 void
 CHwShaderFragmentToHLSLConverter::WriteFragmentName(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {
@@ -1965,7 +1965,7 @@ CHwShaderFragmentToHLSLConverter::WriteFragmentName(
 
 void
 CHwShaderFragmentToHLSLConverter::WriteVertexFragmentConstDataType(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {
@@ -1982,7 +1982,7 @@ CHwShaderFragmentToHLSLConverter::WriteVertexFragmentConstDataType(
 
 void
 CHwShaderFragmentToHLSLConverter::WriteVertexFragmentConstDataName(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {
@@ -2000,7 +2000,7 @@ CHwShaderFragmentToHLSLConverter::WriteVertexFragmentConstDataName(
 
 void
 CHwShaderFragmentToHLSLConverter::WritePixelFragmentConstDataType(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {
@@ -2018,7 +2018,7 @@ CHwShaderFragmentToHLSLConverter::WritePixelFragmentConstDataType(
 
 void
 CHwShaderFragmentToHLSLConverter::WritePixelFragmentConstDataName(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {
@@ -2036,7 +2036,7 @@ CHwShaderFragmentToHLSLConverter::WritePixelFragmentConstDataName(
 
 void
 CHwShaderFragmentToHLSLConverter::WriteVertexShaderFragmentName(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {
@@ -2057,7 +2057,7 @@ CHwShaderFragmentToHLSLConverter::WriteVertexShaderFragmentName(
 
 void
 CHwShaderFragmentToHLSLConverter::WritePixelShaderFragmentName(
-    __in PCSTR szFragmentName,
+    _In_ PCSTR szFragmentName,
     __range(0,MAX_SHADER_FRAGMENT) UINT uFragmentNum
     )
 {

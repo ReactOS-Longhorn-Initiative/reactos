@@ -166,6 +166,7 @@ CD3DGlyphBank::AllocRect(
     )
 {
     HRESULT hr = S_OK;
+    CD3DGlyphTank* pTankReuse = NULL;
 
     if (!fPersistent)
     {
@@ -224,7 +225,6 @@ retry:
 
     ReleaseStubs();
 
-    CD3DGlyphTank* pTankReuse = NULL;
 
     if (CountTanks() == MAX_TANK_NUM)
     {
@@ -326,11 +326,13 @@ HRESULT CD3DGlyphBank::RectFillAlpha(
     UINT uWidth = srcRect.right - srcRect.left;
     UINT uHeight = srcRect.bottom - srcRect.top;
 
-    RECT rcTemp = {0, 0, uWidth, uHeight};
+    RECT rcTemp = {0, 0, (LONG)uWidth, (LONG)uHeight};
     IDirect3DSurface9* pTankSurface = pTank->GetSurfaceNoAddref();
     IDirect3DSurface9* pTempSurface = NULL;
+    int ymax, xmin, xmax, y;
 
-    IFC( EnsureTempSurface(uWidth, uHeight, &pTempSurface) );
+    {
+        IFC( EnsureTempSurface(uWidth, uHeight, &pTempSurface) );
 
     int srcPitch = fullDataRect.right - fullDataRect.left;
 
@@ -348,7 +350,6 @@ HRESULT CD3DGlyphBank::RectFillAlpha(
                         - fullDataRect.left;
     // pSrc00 points to (x,y) = (0,0) in given data array
 
-    int y;
     // fill top edge
     for (y = srcRect.top; y < fullDataRect.top; y++)
     {
@@ -357,9 +358,9 @@ HRESULT CD3DGlyphBank::RectFillAlpha(
     }
 
     // fill real data and side edges
-    int ymax = min(fullDataRect.bottom, srcRect.bottom);
-    int xmin = max(fullDataRect.left,   srcRect.left  );
-    int xmax = min(fullDataRect.right,  srcRect.right );
+    ymax = min(fullDataRect.bottom, srcRect.bottom);
+    xmin = max(fullDataRect.left,   srcRect.left  );
+    xmax = min(fullDataRect.right,  srcRect.right );
     if (xmax > xmin)
     {
         for (; y < ymax; y++)
@@ -400,6 +401,7 @@ HRESULT CD3DGlyphBank::RectFillAlpha(
         pTankSurface,
         &dstPoint
         ));
+    }
 
 Cleanup:
     return hr;

@@ -62,7 +62,7 @@ CBoundsTask::DoLineNoHRESULT(
 //      CBoundsTask::DoBezier
 //
 //  Synopsis:
-//      Process a Bezier segment - CFigureTask override
+//      Process a Bezier segment - CFigureTask /* override */
 //
 //------------------------------------------------------------------------------
 HRESULT 
@@ -454,7 +454,7 @@ CMILBezierFlattener::SetPoints(
 //
 //  Member:    CFigureDumper::DoLine
 //
-//  Synopsis:  Dump line segment - CFigureTask override
+//  Synopsis:  Dump line segment - CFigureTask /* override */
 //
 //  Returns:   Always false
 //
@@ -475,7 +475,7 @@ CFigureDumper::DoLine(
 //      CFigureDumper::DoBezier
 //
 //  Synopsis:
-//      Dump a Bezier segment - CFigureTask override
+//      Dump a Bezier segment - CFigureTask /* override */
 //
 //  Returns:
 //      Always false.

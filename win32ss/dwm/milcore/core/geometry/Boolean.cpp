@@ -146,8 +146,8 @@ Cleanup:
 
                         // Implementation of COutline
 
-// COutline overrides CScanner::ProcessTheJunction, picking up chains and stringing them together to
-// form figures in a shape.  The override of CScanner::ProcessCandidate is a do-nothing stub.
+// COutline /* override */s CScanner::ProcessTheJunction, picking up chains and stringing them together to
+// form figures in a shape.  The /* override */ of CScanner::ProcessCandidate is a do-nothing stub.
 
 //+-----------------------------------------------------------------------------
 //
@@ -161,9 +161,9 @@ Cleanup:
 COutline::COutline(
     __inout_ecount_opt(1) IShapeBuilder *pResult,
         // The recepient of the resulting shape
-    __in bool fRetrieveCurves,
+    _In_ bool fRetrieveCurves,
             // Retrieve curves if true
-    __in double rTolerance)
+    _In_ double rTolerance)
             // Curve retrieval error tolerance
     :CScanner(rTolerance),
      m_pShape(pResult), 
@@ -193,7 +193,7 @@ COutline::COutline(
 //      COutline::ProcessTheJunction
 //
 //  Synopsis:
-//      Process the junction - CScanner method override
+//      Process the junction - CScanner method /* override */
 //
 //  Notes:
 //      The choice of actions depend on the following factors:
@@ -1182,7 +1182,7 @@ CRelation::CRelation(double rTolerance)
 //      CRelation::ProcessTheJunction
 //
 //  Synopsis:
-//      Process the junction - CScanner method override
+//      Process the junction - CScanner method /* override */
 //
 //  Notes:
 //      This methods updates the result of detecting the location of edges of

@@ -38,7 +38,7 @@ Environment:
 #include "serverchannel.h"
 
 #include "resslave.h"
-#include "resources\valueres.h"
+#include "resources/valueres.h"
 #include "idrawingcontext.h"
 #include "schedulemanager.h"
 
@@ -65,23 +65,23 @@ Environment:
 //
 
 #include "UceTypes.h"
-#include "resources\brushcontext.h"
+#include "resources/BrushContext.h"
 
 #include "graphwalker.h"
 
 #include "RenderDataBounder.h"
-#include "AlphamaskWrapper.h"
+#include "alphamaskwrapper.h"
 
 #include "dirtyregion.h"
 #include "precompctx.h"
 
 #include "ZOrderedRect.h"
 
-#include "prerender3dcontext.h"
-#include "render3dcontext.h"
+#include "Prerender3DContext.h"
+#include "Render3DContext.h"
 #include "drawingcontext.h"
 
-#include "rendertarget.h"
+#include "RenderTarget.h"
 #include "hwndtarget.h"
 #include "printtarget.h"
 #include "rendertargetmanager.h"

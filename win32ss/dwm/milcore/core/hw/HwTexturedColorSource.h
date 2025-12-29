@@ -31,13 +31,13 @@ public:
     // CHwColorSource methods
     //
 
-    override TypeFlags GetSourceType(
+    TypeFlags GetSourceType(
         ) const;    
 
-    virtual override HRESULT SendVertexMapping(
+    virtual HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder,
         MilVertexFormatAttribute mvfaLocation
-        );
+        ) /* override */;
 
     __out_ecount(1) const MILMatrix3x2 &GetXSpaceToTextureUV() const
     {
@@ -68,10 +68,10 @@ public:
         return GetXSpaceToTextureUV();
     }
 
-    virtual override HRESULT SendDeviceStates(
+    virtual HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        );
+        ) /* override */;
 
     HRESULT SendDeviceStates(
         DWORD dwStage,
@@ -79,15 +79,15 @@ public:
         DWORD dwTexCoordIndex
         );
 
-    override void ResetForPipelineReuse()
+    void ResetForPipelineReuse()
     {
         m_hTextureTransform = MILSP_INVALID_HANDLE;
         m_fUseHwTransform = false;
     }
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        );
+        ) /* override */;
 
     void SetTextureTransformHandle(
         MILSPHandle hTransform

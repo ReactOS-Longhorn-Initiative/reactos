@@ -29,9 +29,9 @@ class CJitterSupport
 {
 public:
     static CProgram* __STDCALL GetCurrentProgram();
-    static __checkReturn HRESULT __STDCALL CodeAllocate(__in UINT32 cbSize, __out UINT8 **ppAddress);
-    static void __STDCALL CodeFree(__in void *pAddress);
-    static UINT8* __STDCALL MemoryAllocate(__in UINT32 cbSize, __out UINT32 & cbActualSize);
-    static void __STDCALL MemoryFree(__in void *pAddress);
+    static __checkReturn HRESULT __STDCALL CodeAllocate(_In_ UINT32 cbSize, _Out_ UINT8 **ppAddress);
+    static void __STDCALL CodeFree(_In_ void *pAddress);
+    static UINT8* __STDCALL MemoryAllocate(_In_ UINT32 cbSize, _Out_ UINT32 & cbActualSize);
+    static void __STDCALL MemoryFree(_In_ void *pAddress);
 };
 

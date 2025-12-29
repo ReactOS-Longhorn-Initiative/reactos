@@ -71,7 +71,7 @@ public:
     {
     }
 
-    // IFigureBuilder overrides
+    // IFigureBuilder /* override */s
     virtual HRESULT StartAt(
         REAL x, REAL y); // In: Figure's start point
 
@@ -124,7 +124,7 @@ public:
         m_rgTypes.Reset(shrink);
     }
    
-    // IFigureData overrides
+    // IFigureData /* override */s
     virtual bool IsEmpty() const
     {
 #if DBG
@@ -282,8 +282,8 @@ public:
             // The data to copy
 
     HRESULT AddSegments(
-    __in int                             cPoints,        // Number of points to add
-    __in int                             cSegs,          // Number of segment to add
+    _In_ int                             cPoints,        // Number of points to add
+    _In_ int                             cSegs,          // Number of segment to add
     __in_ecount(cPoints) const MilPoint2F *pPt,           // Array of points to add
     IN MilCoreSeg::Flags                   eSegType,       // The type of segments
     IN bool                              fSmooth=false); // Enforce smoothness at joins if true
@@ -462,9 +462,9 @@ public:
     }
 
     HRESULT InitFromRawData(
-        __in UINT cPoints,
+        _In_ UINT cPoints,
             // Point count
-        __in UINT cSegments,
+        _In_ UINT cSegments,
             // Segment count
         __in_ecount(cPoints) MilPoint2D *pPoints,
             // Points
@@ -547,7 +547,7 @@ public:
     {
     }
 
-    // IFigureBuilder overrides
+    // IFigureBuilder /* override */s
     virtual HRESULT StartAt(
         REAL x, REAL y) // In: Figure's start point
     {

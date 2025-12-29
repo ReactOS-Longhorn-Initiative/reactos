@@ -39,7 +39,7 @@ private:
     virtual ~CMilGuidelineSetDuce();
 
 public:
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_GUIDELINESET;
     }
@@ -52,7 +52,7 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
     HRESULT GetGuidelineCollection(
         __deref_out_ecount(1) CGuidelineCollection **ppGuidelineCollection
@@ -99,7 +99,7 @@ CMilGuidelineSetDuce::GetGuidelineCollection(
     //
     // Likely we could do better. Say, generated code could call
     // CompleteProcessUpdate() that could be defined as costless stub
-    // in CMilSlaveResource so that particular resource could override it.
+    // in CMilSlaveResource so that particular resource could /* override */ it.
     // NotifyOnChanged() could serve this way, but unfortunately
     // it is void.
 

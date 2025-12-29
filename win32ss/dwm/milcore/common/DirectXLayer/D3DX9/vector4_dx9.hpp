@@ -96,7 +96,12 @@ namespace dxlayer
         // get members as a float array
         operator const std::array<float, 4>() const
         {
-            return { x, y, z, w };
+            std::array<float, 4> result;
+            result[0] = x;
+            result[1] = y;
+            result[2] = z;
+            result[3] = w;
+            return result;
         }
     };
 }

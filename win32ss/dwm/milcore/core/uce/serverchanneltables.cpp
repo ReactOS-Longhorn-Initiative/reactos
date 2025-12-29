@@ -23,7 +23,7 @@ CMilServerChannelTable::~CMilServerChannelTable()
 }
 
 HRESULT CMilServerChannelTable::AssignChannelEntry(
-    __in HMIL_CHANNEL hChannel
+    _In_ HMIL_CHANNEL hChannel
     )
 {
     HRESULT hr = S_OK;
@@ -39,7 +39,7 @@ Cleanup:
 }
 
 HRESULT CMilServerChannelTable::GetServerChannelTableEntry(
-    __in HMIL_CHANNEL hChannel,
+    _In_ HMIL_CHANNEL hChannel,
     __out_ecount(1) SERVER_CHANNEL_HANDLE_ENTRY **ppMasterEntry
     )
 {
@@ -57,7 +57,7 @@ Cleanup:
 }
 
 VOID CMilServerChannelTable::DestroyHandle(
-    __in HMIL_CHANNEL hChannel
+    _In_ HMIL_CHANNEL hChannel
     )
 {
     HRESULT hr = S_OK;
@@ -74,7 +74,7 @@ Cleanup:
 }
 
 HRESULT CMilServerChannelTable::GetServerChannel(
-    __in HMIL_CHANNEL hChannel,
+    _In_ HMIL_CHANNEL hChannel,
     __out_ecount(1) CMilServerChannel **ppServerChannel
     )
 {
@@ -95,7 +95,7 @@ Cleanup:
 }
 
 HRESULT CMilServerChannelTable::GetSlaveTableEntry(
-    __in HMIL_CHANNEL hChannel,
+    _In_ HMIL_CHANNEL hChannel,
     __out_ecount(1) SERVER_CHANNEL_HANDLE_ENTRY **ppSlaveEntry
     )
 {

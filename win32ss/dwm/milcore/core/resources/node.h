@@ -47,13 +47,13 @@ class CMilVisualCacheSet;
 #define MIL_RENDEROPTIONSFLAGS_BITS 6
 
 
-C_ASSERT((1 << MIL_EDGE_MODE_BITS) >= MilEdgeMode::Last);
-C_ASSERT((1 << MIL_CLEARTYPEHINT_BITS) >= MilClearTypeHint::Last);
-C_ASSERT((1 << MIL_COMPOSITING_MODE_BITS) >= MilCompositingMode::Last);
-C_ASSERT((1 << MIL_BITMAPSCALING_MODE_BITS) >= MilBitmapScalingMode::Last);
-C_ASSERT((1 << MIL_TEXTRENDERINGMODE_BITS) >= MilTextRenderingMode::Last);
-C_ASSERT((1 << MIL_TEXTHINTINGMODE_BITS) >= MilTextHintingMode::Last);
-C_ASSERT((1 << (MIL_RENDEROPTIONSFLAGS_BITS-1)) + 1 == MilRenderOptionFlags::Last);
+static_assert((1 << MIL_EDGE_MODE_BITS) >= MilEdgeMode::Last, "(1 << MIL_EDGE_MODE_BITS) >= MilEdgeMode::Last");
+static_assert((1 << MIL_CLEARTYPEHINT_BITS) >= MilClearTypeHint::Last, "(1 << MIL_CLEARTYPEHINT_BITS) >= MilClearTypeHint::Last");
+static_assert((1 << MIL_COMPOSITING_MODE_BITS) >= MilCompositingMode::Last, "(1 << MIL_COMPOSITING_MODE_BITS) >= MilCompositingMode::Last");
+static_assert((1 << MIL_BITMAPSCALING_MODE_BITS) >= MilBitmapScalingMode::Last, "(1 << MIL_BITMAPSCALING_MODE_BITS) >= MilBitmapScalingMode::Last");
+static_assert((1 << MIL_TEXTRENDERINGMODE_BITS) >= MilTextRenderingMode::Last, "(1 << MIL_TEXTRENDERINGMODE_BITS) >= MilTextRenderingMode::Last");
+static_assert((1 << MIL_TEXTHINTINGMODE_BITS) >= MilTextHintingMode::Last, "(1 << MIL_TEXTHINTINGMODE_BITS) >= MilTextHintingMode::Last");
+static_assert((1 << (MIL_RENDEROPTIONSFLAGS_BITS-1)) + 1 == MilRenderOptionFlags::Last, "(1 << (MIL_RENDEROPTIONSFLAGS_BITS-1)) + 1 == MilRenderOptionFlags::Last");
 
 typedef struct ScrollableAreaPropertyBagStruct
 {
@@ -94,12 +94,12 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_VISUAL;
     }
 
-    override BOOL OnChanged(
+    /* override */ BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         );
@@ -204,11 +204,11 @@ public:
     // 
     // IGraphNode interface implementation.
 
-    override UINT GetChildrenCount() const { return static_cast<UINT>(m_rgpChildren.GetCount()); }
-    override IGraphNode* GetChildAt(UINT index);
-    override bool EnterNode();
-    override void LeaveNode();
-    override bool CanEnterNode() const;
+    /* override */ UINT GetChildrenCount() const { return static_cast<UINT>(m_rgpChildren.GetCount()); }
+    /* override */ IGraphNode* GetChildAt(UINT index);
+    /* override */ bool EnterNode();
+    /* override */ void LeaveNode();
+    /* override */ bool CanEnterNode() const;
 
     //+------------------------------------------------------------------------
     //
@@ -269,18 +269,18 @@ protected:
         );
 
     HRESULT InsertChildAt(
-        __in CMilVisual *pNewChild,
+        _In_ CMilVisual *pNewChild,
         UINT iPosition
         );
 
     HRESULT RemoveChild(
-        __in CMilVisual *pChild
+        _In_ CMilVisual *pChild
         );
 
     VOID RemoveAllChildren();
 
     static void PropagateFlags(
-        __in CMilVisual *pNode,
+        _In_ CMilVisual *pNode,
         BOOL fNeedsBoundingBoxUpdate,
         BOOL fDirtyForRender,
         BOOL fAdditionalDirtyRegion = FALSE,
@@ -316,14 +316,14 @@ protected:
     BOOL HasEffects();
     
     static void TransformAndSnapScrollableRect(
-        __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+        _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
         __in_opt CMilRectF *pClip,
-        __in CRectF<CoordinateSpace::LocalRendering> *pRectIn,
-        __out CRectF<CoordinateSpace::PageInPixels> *pRectOut
+        _In_ CRectF<CoordinateSpace::LocalRendering> *pRectIn,
+        _Out_ CRectF<CoordinateSpace::PageInPixels> *pRectOut
         );
 
     static HRESULT TransformAndSnapOffset(
-        __in CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
+        _In_ CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pTransform,
         __inout MilPoint2F *pOffset,
         bool fReturnToLocalSpace        
         );

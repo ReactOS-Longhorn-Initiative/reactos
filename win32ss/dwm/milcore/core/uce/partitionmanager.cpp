@@ -218,7 +218,7 @@ CPartitionManager::Initialize(
 
     if (fEnableDebugControl)
     {
-#if DBG==1
+#if 0
         CSetDefaultMeter mtDefault(Mt(CMediaControl));
 #endif
         WCHAR wszBuffer [64];
@@ -236,7 +236,7 @@ CPartitionManager::Initialize(
         // *** ATTENTION    ATTENTION    ATTENTION    ATTENTION    ATTENTION ***
         //
         
-        IFC(StringCchPrintfW(wszBuffer, ARRAYSIZE(wszBuffer), L"wpfgfx_v0400-%d", pid));
+        IFC(StringCchPrintfW(wszBuffer, ARRAY_SIZE(wszBuffer), L"wpfgfx_v0400-%d", pid));
 
         CPerformanceCounter::Initialize();
 
@@ -1038,7 +1038,7 @@ HRESULT CPartitionManager::UpdateSchedulerSettings(
 
     if (GetWorkerThreadPriority() != nPriority) 
     {
-        C_ASSERT(NUM_WORKER_THREADS == 1);
+        static_assert(NUM_WORKER_THREADS == 1, "NUM_WORKER_THREADS == 1");
 
         Assert(GetWorkerThreadCount() == 0);
         

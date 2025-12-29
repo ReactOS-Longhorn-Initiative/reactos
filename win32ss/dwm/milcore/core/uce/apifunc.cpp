@@ -19,6 +19,11 @@ extern void DumpInstrumentationData();
 
 ExternTag(tagMILConnection);
 
+UINT g_uMilPerfInstrumentationFlags = 0;
+
+extern "C"
+{
+
 //+-----------------------------------------------------------------------------
 //
 //    Function:
@@ -115,6 +120,133 @@ MilCompositionEngine_DeinitializePartitionManager()
     return S_OK;
 }
 
+//+-----------------------------------------------------------------------
+//
+//    Function:
+//        MilTransport_AddRef
+//
+//    Synopsis:
+//        Icrement reference to the connection.
+//------------------------------------------------------------------------
+
+HRESULT
+WINAPI
+MilTransport_AddRef(
+    _In_ HMIL_CONNECTION hConnection
+    )
+{
+    HRESULT hr = S_OK;
+    CMilConnection* pConnection = HandleToPointer(hConnection);
+    IFC(pConnection->AddRef());
+
+Cleanup:
+    RRETURN(hr);
+}
+
+EXTERN_C
+HRESULT
+WINAPI
+MilTransport_Create(PVOID CMilConnectionManager,
+                    PVOID TransportParams,
+                    UINT32 Boolean,
+                    HMIL_CONNECTION *phConnection)
+{
+    HRESULT hr = S_OK;
+    CMilConnection* pConnection = NULL;
+
+    CHECKPTRARG(phConnection);
+
+    IFC(CMilConnection::Create(
+        MilMarshalType::SameThread ,
+        OUT &pConnection));
+
+    *phConnection = PointerToHandle(pConnection);
+    pConnection = NULL;
+
+Cleanup:
+    ReleaseInterface(pConnection);
+    
+    RRETURN(hr);
+}
+
+HRESULT
+WINAPI
+MilTransport_CreateFromPacketTransport(PVOID CMilConnectionManager,
+                                       PVOID TransportParams,
+                                       HMIL_CONNECTION *phConnection)
+{
+    HRESULT hr = S_OK;
+    CMilConnection* pConnection = NULL;
+
+    CHECKPTRARG(phConnection);
+
+    IFC(CMilConnection::Create(
+        MilMarshalType::CrossThread,
+        OUT &pConnection));
+
+    *phConnection = PointerToHandle(pConnection);
+    pConnection = NULL;
+
+Cleanup:
+    ReleaseInterface(pConnection);
+    
+    RRETURN(hr);
+}
+
+HRESULT
+WINAPI
+MilTransport_CreateSurfaceManager(PVOID IMilRedirectedGDISurfaceManager)
+{
+    //DbgPrint("MilTransport_CreateSurfaceManager: Not implemented\n");
+    __debugbreak();
+    return S_OK;
+}	
+
+HRESULT
+WINAPI
+MilTransport_CreateTransportParameters(PVOID Todo)
+{
+    //DbgPrint("MilTransport_CreateTransportParameters: Not implemented\n");
+    __debugbreak();
+    return S_OK;
+}
+
+HRESULT
+WINAPI
+MilTransport_DisconnectTransport(HMIL_CONNECTION hConnection)
+{
+    HRESULT hr = S_OK;
+
+    CMilConnection *pConnection;
+
+    CHECKPTRARG(hConnection);
+
+    pConnection = HandleToPointer(hConnection);
+
+    pConnection->Release();
+
+Cleanup:
+    RRETURN(hr);
+}
+
+EXTERN_C
+HRESULT
+WINAPI
+MilTransport_InitializeConnectionManager(PVOID IMilRedirectedGDISurfaceManager, PULONG * ConnectionManager)
+{
+    __debugbreak();
+    *ConnectionManager = (PULONG)1;
+    return S_OK;
+}
+HRESULT
+WINAPI
+MilTransport_ShutDownConnectionManager(CMilConnectionManager* ConnectionManager)
+{
+    __debugbreak();
+    ConnectionManager = NULL;
+    return S_OK;
+}
+
 
 //+-----------------------------------------------------------------------
 //
@@ -127,7 +259,7 @@ MilCompositionEngine_DeinitializePartitionManager()
 
 
 HRESULT WINAPI WgxConnection_SameThreadPresent(
-    __in HMIL_CONNECTION hConnection
+    _In_ HMIL_CONNECTION hConnection
     )
 {
     HRESULT hr = S_OK;
@@ -215,9 +347,11 @@ HRESULT WINAPI WgxConnection_Disconnect(
 {
     HRESULT hr = S_OK;
 
+    CMilConnection *pConnection;
+
     CHECKPTRARG(hConnection);
 
-    CMilConnection *pConnection = HandleToPointer(hConnection);
+    pConnection = HandleToPointer(hConnection);
 
     pConnection->Release();
 
@@ -233,7 +367,7 @@ HRESULT WINAPI MilConnection_CreateChannel(
 {
     HRESULT hr = S_OK;
     HMIL_CHANNEL hPartSource = NULL;
-
+{
     CHECKPTRARG(phChannel);
 
     CMilConnection *pConnection = NULL;
@@ -253,7 +387,7 @@ HRESULT WINAPI MilConnection_CreateChannel(
     *phChannel = PointerToHandle(pChannel);
 
     EventWriteCreateChannel(pChannel, pChannel->GetChannel());
-
+}
 Cleanup:
     RRETURN(hr);
 }
@@ -321,9 +455,9 @@ Cleanup:
 }
 
 HRESULT WINAPI MilComposition_PeekNextMessage(
-    __in MIL_CHANNEL hChannel,
+    _In_ MIL_CHANNEL hChannel,
     __out_bcount_part(cbSize, sizeof(MIL_MESSAGE)) MIL_MESSAGE *pmsg,
-    __in size_t cbSize,
+    _In_ size_t cbSize,
     __out_ecount(1) BOOL *pfMessageRetrieved
     )
 {
@@ -440,6 +574,7 @@ Cleanup:
     RRETURN(hr);
 }
 
+EXTERN_C
 HRESULT WINAPI
 MilResource_GetRefCountOnChannel(
     MIL_CHANNEL hChannel,
@@ -499,7 +634,7 @@ HRESULT WINAPI
 MilResource_SendCommand(
     __in_bcount(cbSize) VOID *pvCommandData,
     UINT32 cbSize,
-    bool sendInSeparateBatch,
+   // bool sendInSeparateBatch, Not In Vista RTM?
     MIL_CHANNEL hChannel
     )
 {
@@ -513,7 +648,7 @@ MilResource_SendCommand(
 
     CHECKPTRARG(pChannel);
 
-    IFC(pChannel->SendCommand(pvCommandData, cbSize, sendInSeparateBatch));
+    IFC(pChannel->SendCommand(pvCommandData, cbSize, TRUE));
 
 Cleanup:
     RRETURN(hr);
@@ -658,7 +793,7 @@ Routine Description:
 MtDefine(BitmapMemory, MILRender, "BitmapMemory");
 MtDefine(PaletteMemory, MILRender, "PaletteMemory");
 
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 MilResource_CreateCWICWrapperBitmap(
     __in_ecount(1) IWICBitmapSource *pIBitmapSource,
     __out_ecount(1) IWICBitmapSource **ppCWICWrapperBitmap
@@ -755,7 +890,7 @@ Cleanup:
 
 HRESULT WINAPI
 MilChannel_SetNotificationWindow(
-    __in MIL_CHANNEL hChannel,
+    _In_ MIL_CHANNEL hChannel,
     HWND hwnd,
     UINT message
     )
@@ -821,10 +956,10 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT WINAPI MilPlayer_Process(
+EXTERN_C HRESULT WINAPI MilPlayer_Process(
     __in_ecount(1) HMIL_PLAYER hPlayer,
-    __in_xcount(sizeof(MIL_REC_PACKET_HEADER)) const BYTE* pbHeader,
-    __in_xcount_opt(sizeof(UCE_RDP_HEADER)) const BYTE* pbRdpHeader,
+    _In_reads_(sizeof(MIL_REC_PACKET_HEADER)) const BYTE* pbHeader,
+    _In_opt_count_(sizeof(UCE_RDP_HEADER)) const BYTE* pbRdpHeader,
     __in_bcount_opt(cbData) const BYTE* pbData,
     UINT cbData
     )
@@ -884,7 +1019,7 @@ HRESULT WINAPI MilCompositionEngine_GetComposedEventId(
 //      to external callers (e.g., managed code).
 //
 //-------------------------------------------------------------------------
-VOID WINAPI
+EXTERN_C VOID WINAPI
 MilUtility_GetTileBrushMapping(
     __in_ecount_opt(1) const D3DMATRIX *pTransform,
         // Transform that is applied to the Viewport
@@ -949,7 +1084,6 @@ Routine Description:
     See comments for "MilPerfInstrumentationFlags" in partition.h.
 --*/
 
-UINT g_uMilPerfInstrumentationFlags = 0;
 VOID WINAPI SetMilPerfInstrumentationFlags(UINT flags)
 {
     g_uMilPerfInstrumentationFlags = flags;
@@ -966,15 +1100,15 @@ VOID WINAPI SetMilPerfInstrumentationFlags(UINT flags)
 //
 //------------------------------------------------------------------------------
 
-HRESULT WINAPI
+EXTERN_C HRESULT WINAPI
 MilGlyphRun_GetGlyphOutline(
-    __in IDWriteFontFace* pFontFace,
+    _In_ IDWriteFontFace* pFontFace,
     USHORT glyphIndex, 
     bool sideways, 
     double renderingEmSize,
     __deref_out_ecount(*pSize) byte **ppFigureDataBytes,
-    __out UINT *pSize,
-    __out MilFillMode::Enum *pFillRule
+    _Out_ UINT *pSize,
+    _Out_ MilFillMode::Enum *pFillRule
     )
 {
     HRESULT hr = S_OK;
@@ -1022,7 +1156,7 @@ Cleanup:
 
 HRESULT WINAPI
 MilGlyphRun_ReleasePathGeometryData(
-    __in byte* pPathGeometryData
+    _In_ byte* pPathGeometryData
     )
 {
     MilPathGeometry *pFigureData = reinterpret_cast<MilPathGeometry*>(pPathGeometryData);
@@ -1051,6 +1185,7 @@ __int64 _InterlockedCompareExchange64(__int64 volatile *, __int64, __int64);
 #endif
 }
 
+EXTERN_C
 LONGLONG WINAPI
 GetNextPerfElementId()
 {
@@ -1065,3 +1200,4 @@ GetNextPerfElementId()
 }
 
 
+}

@@ -64,12 +64,12 @@ public:
 
     // CMILBrush methods
 
-    __override BrushTypes GetType() const
+    BrushTypes GetType() const
     {
         return BrushSolid;
     }
 
-    BOOL ObviouslyHasZeroAlpha() const override
+    BOOL ObviouslyHasZeroAlpha() const /* override */
     {
         return HasZeroAlpha();
     }
@@ -281,18 +281,18 @@ public:
     // IMILResourceCache
     STDMETHOD_(void, GetUniquenessToken)(
         __out_ecount(1) UINT *puToken
-        ) const override;
+        ) const /* override */;
 
     // CMILBrush Methods
 
-    BrushTypes GetType() const override
+    BrushTypes GetType() const /* override */
     {
         return BrushBitmap;
     }
 
-    bool MayNeedNonPow2Tiling() const override;
+    bool MayNeedNonPow2Tiling() const /* override */;
 
-    BOOL ObviouslyHasZeroAlpha() const override
+    BOOL ObviouslyHasZeroAlpha() const /* override */
     {
         return GetOpacity() == 0.0f;
     }
@@ -508,14 +508,14 @@ public:
     // Creation methods
 
     static HRESULT Create(
-        __in CMilEffectDuce *pShaderEffect,
+        _In_ CMilEffectDuce *pShaderEffect,
         __deref_out CMILBrushShaderEffect **ppShaderEffectBrush);
 
 
 protected:
 
-    CMILBrushShaderEffect(__in CMilEffectDuce *pShaderEffect);
-    ~CMILBrushShaderEffect() override;
+    CMILBrushShaderEffect(_In_ CMilEffectDuce *pShaderEffect);
+    ~CMILBrushShaderEffect() /* override */;
 
 private:
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CMILBrushShaderEffect));
@@ -525,26 +525,26 @@ public:
     DECLARE_MIL_OBJECT   
 
     HRESULT ConfigurePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::BaseSampling> &matBitmapToBaseSamplingSpace);
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::BaseSampling> &matBitmapToBaseSamplingSpace);
     
     void GetBitmapToSampleSpaceTransform(
-        __in const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &matBaseSamplingToSampleSpace, // Composition: local to device.
-        __out CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pMatBitmapToBaseSamplingSpace); // Composition: texture to device
+        _In_ const CMatrix<CoordinateSpace::BaseSampling,CoordinateSpace::Device> &matBaseSamplingToSampleSpace, // Composition: local to device.
+        _Out_ CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::Device> *pMatBitmapToBaseSamplingSpace); // Composition: texture to device
     
 
     HRESULT PreparePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler);
 
     // CMILBrush methods
 
-    BrushTypes GetType() const override
+    BrushTypes GetType() const /* override */
     {
         return BrushShaderEffect;
     }  
 
-    BOOL ObviouslyHasZeroAlpha() const override
+    BOOL ObviouslyHasZeroAlpha() const /* override */
     {
         return false;
     }

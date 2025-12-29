@@ -186,7 +186,8 @@ template <class TElement, UINT uInitialCapacity>
 void
 CHeap<TElement, uInitialCapacity>::Swap(UINT index1, UINT index2)
 {
-    __if_exists(TElement::SetIndex)
+    // TODO FIX
+    //__if_exists(TElement::SetIndex)
     {
         m_elements[index1].SetIndex(index2);
         m_elements[index2].SetIndex(index1);
@@ -246,7 +247,7 @@ CHeap<TElement, uInitialCapacity>::RemoveByIndex(UINT index)
 
     Assert(index > 0 && index < m_elements.GetCount());
 
-    __if_exists(TElement::SetIndex)
+    //__if_exists(TElement::SetIndex)
     {
         m_elements[index].SetIndex(NULL_INDEX);
     }
@@ -256,7 +257,7 @@ CHeap<TElement, uInitialCapacity>::RemoveByIndex(UINT index)
         // Remove the last guy from the heap
         m_elements[index] = m_elements[lastIndex];
 
-        __if_exists(TElement::SetIndex)
+        //__if_exists(TElement::SetIndex)
         {
             m_elements[index].SetIndex(index);
         }
@@ -310,8 +311,9 @@ HRESULT
 CHeap<TElement, uInitialCapacity>::InsertElement(TElement element)
 {
     HRESULT hr = S_OK;
+    UINT lastIndex;
 
-    __if_exists(TElement::GetIndex)
+    //__if_exists(TElement::GetIndex)
     {
         Assert(element.GetIndex() == NULL_INDEX);
     }
@@ -319,9 +321,9 @@ CHeap<TElement, uInitialCapacity>::InsertElement(TElement element)
     // First, append the entry on to the end of the heap.
     IFC(m_elements.Add(element));
 
-    UINT lastIndex = m_elements.GetCount()-1;
+    lastIndex = m_elements.GetCount()-1;
 
-    __if_exists(TElement::SetIndex)
+    //__if_exists(TElement::SetIndex)
     {
         element.SetIndex(lastIndex);
     }

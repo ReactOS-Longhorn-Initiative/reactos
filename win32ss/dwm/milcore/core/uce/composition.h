@@ -72,7 +72,7 @@ class CComposition :
 protected:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CComposition));
 
-    CComposition(__in MilMarshalType::Enum marshalType);
+    CComposition(_In_ MilMarshalType::Enum marshalType);
 
     virtual ~CComposition();
 
@@ -142,27 +142,27 @@ public:
 
     // Runs any necessary updates to the composition - all the resources
     // participating in the composition, the thread, or device management.
-    override HRESULT Compose(
+    /* override */ HRESULT Compose(
         __out_ecount(1) bool *pfPresentNeeded
         );
 
-    override HRESULT WaitForVBlank();
+    /* override */ HRESULT WaitForVBlank();
 
     // present any target with unpresented rendering
-    override HRESULT Present(
+    /* override */ HRESULT Present(
         __in_ecount(1) CPartitionManager* pPartitionManager
         );
 
-    override void FlushChannels(
+    /* override */ void FlushChannels(
         bool fForceAllChannels = false
         );
 
     // This method sends a "this partition is in zombie state" notification 
     // back to the server side on all channels that have registered 
     // to receive them.
-    override HRESULT NotifyPartitionIsZombie();
+    /* override */ HRESULT NotifyPartitionIsZombie();
 
-    override virtual MilCompositionDeviceState::Enum GetCompositionDeviceState()
+    /* override */ virtual MilCompositionDeviceState::Enum GetCompositionDeviceState()
     {
         return m_deviceState;
     }
@@ -191,7 +191,7 @@ public:
 
     static RENDERING_STATUS RenderingStatusFromHr(HRESULT hr);
 
-    HRESULT NotifyRenderStatus(__in HRESULT hrRender);
+    HRESULT NotifyRenderStatus(_In_ HRESULT hrRender);
 
 
     //+-------------------------------------------------------------------------
@@ -214,7 +214,7 @@ public:
     // Releases a resource associated with this composition
     static HRESULT ReleaseResource(
         __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
-        __in HMIL_RESOURCE hResource,
+        _In_ HMIL_RESOURCE hResource,
         __in_ecount(1) CMilSlaveResource *pResource,
         bool fShutdownCleanup
         );
@@ -225,7 +225,7 @@ public:
         m_bNeedBadShaderNotification = true;
     }
 
-    __out CMilSlaveGlyphCache *GetGlyphCache()
+    _Out_ CMilSlaveGlyphCache *GetGlyphCache()
     {
         return m_pGlyphCache;
     }
@@ -250,19 +250,19 @@ protected:
 
     // Signals that a channel has been connected to this composition.
     HRESULT AttachChannel(
-        __in HMIL_CHANNEL hChannel,
-        __in CMilServerChannel *pChannel
+        _In_ HMIL_CHANNEL hChannel,
+        _In_ CMilServerChannel *pChannel
         );
 
     // Signals that a channel has been disconnected from this composition.
     HRESULT DetachChannel(
-        __in HMIL_CHANNEL hChannel
+        _In_ HMIL_CHANNEL hChannel
         );
 
     // Looks up a channel attached to this composition
     HRESULT GetAttachedChannel(
-        __in HMIL_CHANNEL hChannel,
-        __out CMilServerChannel **ppChannel
+        _In_ HMIL_CHANNEL hChannel,
+        _Out_ CMilServerChannel **ppChannel
         );
 
     HRESULT BeginProcessVideo(
@@ -274,7 +274,7 @@ protected:
     // Processes a partition command, optionally skipping command batches
     HRESULT ProcessPartitionCommand(
         __in_ecount(1) CMilCommandBatch* pBatch,
-        __in bool fProcessBatchCommands
+        _In_ bool fProcessBatchCommands
         );
 
     // Processes a command batch
@@ -386,85 +386,85 @@ private:
     //
     // ------------------------------------------------------------------------
 
-    HRESULT CComposition::Partition_NotifyPolicyChangeForNonInteractiveMode(
-        __in CMilServerChannel *pChannel,
-        __in CMilSlaveHandleTable *pHandleTable,
-        __in const MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE* pCmd
+    HRESULT Partition_NotifyPolicyChangeForNonInteractiveMode(
+        _In_ CMilServerChannel *pChannel,
+        _In_ CMilSlaveHandleTable *pHandleTable,
+        _In_ const MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE* pCmd
         );
 
     HRESULT Partition_RegisterForNotifications(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_PARTITION_REGISTERFORNOTIFICATIONS * pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_PARTITION_REGISTERFORNOTIFICATIONS * pCmd
         );
 
     HRESULT Transport_DestroyResourcesOnChannel(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_TRANSPORT_DESTROYRESOURCESONCHANNEL* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_TRANSPORT_DESTROYRESOURCESONCHANNEL* pCmd
         );
 
     HRESULT Transport_SyncFlush(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_TRANSPORT_SYNCFLUSH* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_TRANSPORT_SYNCFLUSH* pCmd
         );
 
     HRESULT Channel_DeleteResource(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_CHANNEL_DELETERESOURCE* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_CHANNEL_DELETERESOURCE* pCmd
         );
 
     HRESULT Channel_CreateResource(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_CHANNEL_CREATERESOURCE* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_CHANNEL_CREATERESOURCE* pCmd
         );
 
     HRESULT Channel_DuplicateHandle(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_CHANNEL_DUPLICATEHANDLE* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_CHANNEL_DUPLICATEHANDLE* pCmd
         );
 
     // Requests that the current hardware caps be determined and sent back to the channel.
     HRESULT Channel_RequestTier(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_CHANNEL_REQUESTTIER* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_CHANNEL_REQUESTTIER* pCmd
         );
 
     HRESULT Partition_SetVBlankSyncMode(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_PARTITION_SETVBLANKSYNCMODE* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_PARTITION_SETVBLANKSYNCMODE* pCmd
         );
 
     HRESULT Partition_NotifyPresent(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_PARTITION_NOTIFYPRESENT* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_PARTITION_NOTIFYPRESENT* pCmd
         );
 
     HRESULT GlyphRun_Create(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_GLYPHRUN_CREATE* pCmd,
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_GLYPHRUN_CREATE* pCmd,
         __in_bcount(cbPayload) LPCVOID pcvPayload,
         UINT cbPayload
         );
 
     HRESULT HwndTarget_Create(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_HWNDTARGET_CREATE* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_HWNDTARGET_CREATE* pCmd
         );
 
     HRESULT GenericTarget_Create(
-        __in CMilServerChannel* pChannel,
-        __in CMilSlaveHandleTable* pHandleTable,
-        __in const MILCMD_GENERICTARGET_CREATE* pCmd
+        _In_ CMilServerChannel* pChannel,
+        _In_ CMilSlaveHandleTable* pHandleTable,
+        _In_ const MILCMD_GENERICTARGET_CREATE* pCmd
         );
     
 private:

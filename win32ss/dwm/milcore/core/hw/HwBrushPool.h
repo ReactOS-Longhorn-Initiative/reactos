@@ -47,13 +47,13 @@ class CHwCacheablePoolBrush :
 public:
     DEFINE_POOLRESOURCE_REF_COUNT_BASE
 
-    override STDMETHOD(CacheAddRef)(void)
+    STDMETHOD(CacheAddRef)(void)
     {
         AddRef();
         return S_OK;
     }
 
-    override STDMETHOD_(void, CacheRelease)(void)
+    STDMETHOD_(void, CacheRelease)(void)
     {
         Release();
     }
@@ -140,15 +140,15 @@ public:
 
     // Used to notify the manager that there are no outstanding uses and
     //  the manager has full control.
-    override void UnusedNotification(
+    void UnusedNotification(
         __inout_ecount(1) CMILPoolResource *pUnused
-        );
+        ) /* override */;
 
     // Used to notify the manager that the resource is no longer usable
     //  and should be removed from the pool.
-    override void UnusableNotification(
+    void UnusableNotification(
         __inout_ecount(1) CMILPoolResource *pUnusable
-        );
+        ) /* override */;
 
     //
     // Methods called by the brush pool
@@ -236,7 +236,7 @@ private:
     // once all outstanding brushes are dereferenced this
     // object should be deleted.
     BOOL m_fDbgReleased;
-#endif DBG
+#endif /* DBG */
 };
 
 
@@ -275,11 +275,11 @@ protected:
 
 protected:
 
-    override HRESULT CreateHwBrush(
+    HRESULT CreateHwBrush(
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext,
         __deref_out_ecount(1) CHwBrush ** const ppHwBrush
-        );
+        ) /* override */;
 };
 
 //+-----------------------------------------------------------------------------
@@ -317,11 +317,11 @@ protected:
 
 protected:
 
-    override HRESULT CreateHwBrush(
+    HRESULT CreateHwBrush(
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext,
         __deref_out_ecount(1) CHwBrush ** const ppHwBrush
-        );
+        ) /* override */;
 };
 
 //+-----------------------------------------------------------------------------

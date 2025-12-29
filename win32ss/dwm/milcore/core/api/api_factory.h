@@ -41,7 +41,7 @@ public:
     __success(true) STDMETHOD(UpdateDisplayState)(
         __out_ecount(1) bool *pDisplayStateChanged, 
         __out_ecount(1) int *pDisplayCount
-        ) override;
+        ) /* override */;
 
     // Query graphics accleration capabilities
     STDMETHOD_(void, QueryCurrentGraphicsAccelerationCaps)(

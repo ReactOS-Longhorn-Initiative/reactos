@@ -44,10 +44,10 @@
 #define OpcodeUINT32Store                mov_mr
 
 #define OpcodeUINT32Add                  add
-#define OpcodeUINT32Or                   or
-#define OpcodeUINT32And                  and
+#define OpcodeUINT32Or                   _or
+#define OpcodeUINT32And                  _and
 #define OpcodeUINT32Sub                  sub
-#define OpcodeUINT32Xor                  xor
+#define OpcodeUINT32Xor                  _xor
 #define OpcodeUINT32Cmp                  cmp
 #define OpcodeUINT32Mul                  imul
 #define OpcodeUINT32Div                  0
@@ -256,16 +256,16 @@
 
 #define OpcodeXmmConvertToMm             0
 
-#else _AMD64_
+#else /* _AMD64_ */
 
 #define OpcodeUINT64Assign               0
 #define OpcodeUINT64Assign32             0
 #define OpcodeUINT32Assign64             0
 #define OpcodeUINT64Add                  add
-#define OpcodeUINT64Or                   or
-#define OpcodeUINT64And                  and
+#define OpcodeUINT64Or                   _or
+#define OpcodeUINT64And                  _and
 #define OpcodeUINT64Sub                  sub
-#define OpcodeUINT64Xor                  xor
+#define OpcodeUINT64Xor                  _xor
 #define OpcodeUINT64Mul                  imul
 
 #define OpcodeUINT64ImmAssign            0

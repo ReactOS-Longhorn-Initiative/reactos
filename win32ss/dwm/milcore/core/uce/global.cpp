@@ -47,7 +47,7 @@ extern CMilSlaveHandleTable *g_pht;
 
 //---------------------------------------------------------------------------------
 //
-// Global transport setting overrides.
+// Global transport setting /* override */s.
 //
 //---------------------------------------------------------------------------------
 

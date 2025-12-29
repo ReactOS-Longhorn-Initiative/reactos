@@ -36,7 +36,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_MATRIXCAMERA || CMilCameraDuce::IsOfType(type);
     }
@@ -47,19 +47,19 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override virtual bool ShouldComputeClipPlanes() const
+    /* override */ virtual bool ShouldComputeClipPlanes() const
     {
         // Our contract for MatrixCamera is to always render using the matrices
         // exactly as the user specified.  We do not auto-range the clip planes.
         return false;
     }
 
-    override virtual HRESULT GetViewTransform(
+    /* override */ virtual HRESULT GetViewTransform(
         __out_ecount(1) CMILMatrix *pViewMatrixOut) const;
 
-    override virtual HRESULT ApplyToContextState(
+    /* override */ virtual HRESULT ApplyToContextState(
         __inout_ecount(1) CContextState *pCtxState,     // Context state to modify
         const float flViewportWidth,
         const float flViewportHeight,
@@ -69,7 +69,7 @@ public:
         bool &fRenderRequiredOut
         ) const;
 
-    override virtual HRESULT SynchronizeAnimations()
+    /* override */ virtual HRESULT SynchronizeAnimations()
     {
         RRETURN(S_OK);
     }

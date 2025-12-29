@@ -51,7 +51,7 @@ class ISteppedRenderingDisplayRT
 public:
 
     virtual void ShowSteppedRendering(
-        __in LPCTSTR pszRenderDesc,
+        _In_ LPCTSTR pszRenderDesc,
         __in_ecount(1) const ISteppedRenderingSurfaceRT *pRT
         ) PURE;
 };
@@ -104,12 +104,12 @@ public:
     
     STDMETHOD(ReadEnabledDisplays) (
         __inout DynArray<bool> *pEnabledDisplays
-        ) override;
+        ) /* override */;
     
     // This method is used to allow a developer to force ClearType use in
     // intermediate render targets with alpha channels.
     STDMETHODIMP SetClearTypeHint(
-        __in bool forceClearType
+        _In_ bool forceClearType
         )
     {
         m_forceClearType = forceClearType;

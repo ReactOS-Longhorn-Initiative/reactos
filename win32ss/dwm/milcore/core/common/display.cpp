@@ -16,8 +16,8 @@
 
 #include "strsafe.h"
 
-#include "hw\D3DDeviceManager.h"
-#include "hw\HwGraphicsCards.h"
+#include "hw/D3DDeviceManager.h"
+#include "hw/HwGraphicsCards.h"
 
 using DpiAwarenessContext = wpf::util::DpiAwarenessContext;
 using DpiAwarenssContextValue = wpf::util::DpiAwarenessContextValue;
@@ -83,7 +83,7 @@ bool IsMultiAdapterCodeEnabled()
         DWORD cFullPath = GetModuleFileName(NULL, szFullPath, sizeof(szFullPath)/sizeof(szFullPath[0]));
         if (cFullPath > 0)
         {
-            // First check for a value in HKCU (which should override any HKLM setting).
+            // First check for a value in HKCU (which should /* override */ any HKLM setting).
             HKEY hKey = NULL;
             LONG r = RegOpenKeyEx(
                 HKEY_CURRENT_USER,
@@ -148,8 +148,8 @@ bool IsMultiAdapterCodeEnabled()
 //
 //-------------------------------------------------------------------------
 CDisplayRegKey::CDisplayRegKey(
-    __in HKEY hKeyRoot,
-    __in PCTSTR pszDeviceName
+    _In_ HKEY hKeyRoot,
+    _In_ PCTSTR pszDeviceName
     )
 {
     HKEY hKeyAvalonGraphics = NULL;
@@ -198,7 +198,7 @@ CDisplayRegKey::CDisplayRegKey(
 //
 //-------------------------------------------------------------------------
 CDisplayRegKey::CDisplayRegKey(
-    __in PCTSTR pszDeviceKey
+    _In_ PCTSTR pszDeviceKey
     )
 {
     m_fOpened = TW32(0, ERROR_SUCCESS == RegOpenKeyEx(
@@ -236,7 +236,7 @@ CDisplayRegKey::~CDisplayRegKey()
 //-------------------------------------------------------------------------
 bool
 CDisplayRegKey::ReadDWORD(
-    __in PCTSTR pName,
+    _In_ PCTSTR pName,
     __out_ecount(1) DWORD *pValue
     )
 {
@@ -277,7 +277,7 @@ CDisplayRegKey::ReadDWORD(
 //-------------------------------------------------------------------------
 bool
 CDisplayRegKey::ReadString(
-    __in PCTSTR pName,
+    _In_ PCTSTR pName,
     DWORD cb,
     __out_bcount(cb) PTSTR pstr
     )
@@ -815,11 +815,11 @@ CDisplaySet::GetDWriteFactoryNoRef(IDWriteFactory **ppIDWriteFactory)
         // Initialize DWriteFactory object
         IFC(g_DWriteLoader.DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
-            __uuidof(IDWriteFactory),
+            IID_IDWriteFactory,
             &pIUnknown
             ));
 
-        IFC(pIUnknown->QueryInterface(__uuidof(IDWriteFactory),
+        IFC(pIUnknown->QueryInterface(IID_IDWriteFactory,
                                         reinterpret_cast<void**>(&(m_pIDWriteFactory))
                                         ));
 
@@ -1157,7 +1157,7 @@ Cleanup:
 
 HRESULT
 CDisplaySet::GetDisplayIndexFromMonitor(
-    __in HMONITOR hMonitor,
+    _In_ HMONITOR hMonitor,
     __out_ecount(1) UINT &uDisplayIndex
     ) const
 {
@@ -1387,10 +1387,10 @@ Cleanup:
 //------------------------------------------------------------------------
 BOOL CALLBACK
 CDisplaySet::MonitorEnumProc(
-  __in HMONITOR hMonitor,  // handle to display monitor
-  __in HDC hdcMonitor,     // handle to monitor DC
-  __in LPRECT lprcMonitor, // monitor intersection rectangle
-  __in LPARAM lpData       // this pointer
+  _In_ HMONITOR hMonitor,  // handle to display monitor
+  _In_ HDC hdcMonitor,     // handle to monitor DC
+  _In_ LPRECT lprcMonitor, // monitor intersection rectangle
+  _In_ LPARAM lpData       // this pointer
 )
 {
     Assert(lpData);
@@ -1432,7 +1432,7 @@ Cleanup:
 //------------------------------------------------------------------------
 HRESULT
 CDisplaySet::GetMonitorDescription(
-    __in HMONITOR hMonitor,
+    _In_ HMONITOR hMonitor,
     __out_ecount(1) MONITORINFOEX *pMonitorInfo
     )
 {
@@ -1443,7 +1443,7 @@ CDisplaySet::GetMonitorDescription(
     pMonitorInfo->cbSize = sizeof(MONITORINFOEX);
 
     SetLastError(ERROR_SUCCESS);
-    if (0 == TW32(0,GetMonitorInfo(hMonitor, pMonitorInfo)))
+    if (0 == TW32(0,GetMonitorInfo(hMonitor, (MONITORINFO*)pMonitorInfo)))
     {
         IFC( InspectLastError() );
     }
@@ -1490,7 +1490,7 @@ CDisplaySet::FindDisplayByName(__in_ecount(1) const MONITORINFOEX *pmi)
 //
 //------------------------------------------------------------------------
 int
-CDisplaySet::FindDisplayByHMonitor(__in HMONITOR hMonitor) const
+CDisplaySet::FindDisplayByHMonitor(_In_ HMONITOR hMonitor) const
 {
     // DevDiv Servicing :
     // If this app has asked to disable the multi-adapter code, then just
@@ -1576,7 +1576,7 @@ HRESULT
 CDisplaySet::ValidateDeviceName(
     __in_bcount(cbBuffer) LPCTSTR pstrDeviceName,
         // Device name to validate
-    __in size_t cbBuffer
+    _In_ size_t cbBuffer
         // Size of pstrDeviceName, including NULL-terminator, in bytes
     )
 {
@@ -2307,7 +2307,7 @@ CDisplaySet::IsEquivalentTo(
 //-------------------------------------------------------------------------
 CDisplay::CDisplay(
     __in_ecount(1) const CDisplaySet * pDisplaySet,
-    __in UINT uDisplayIndex,
+    _In_ UINT uDisplayIndex,
     __in_ecount(1) const DISPLAY_DEVICE *pdd
     ) : 
     m_defaultDpiAwarenessContextValue(DpiAwarenessContext::GetThreadDpiAwarenessContextValue())
@@ -2321,7 +2321,7 @@ CDisplay::CDisplay(
     m_luidD3DAdapter.HighPart = 0;
     m_dwStateFlags = pdd->StateFlags;
 
-    C_ASSERT( sizeof(m_szDeviceName) == sizeof(pdd->DeviceName) );
+    static_assert( sizeof(m_szDeviceName) == sizeof(pdd->DeviceName) , " sizeof(m_szDeviceName) == sizeof(pdd->DeviceName) ");
     memcpy( m_szDeviceName, pdd->DeviceName, sizeof(m_szDeviceName) );
 
     m_hMonitor = NULL;
@@ -2345,7 +2345,7 @@ CDisplay::CDisplay(
     size_t KeyLength = 0;
     const size_t c_RegKeyPrefix = 18;   // "\Registry\Machine\"
 
-    if (   SUCCEEDED(StringCchLength(pdd->DeviceKey, ARRAYSIZE(pdd->DeviceKey), &KeyLength))
+    if (   SUCCEEDED(StringCchLength(pdd->DeviceKey, ARRAY_SIZE(pdd->DeviceKey), &KeyLength))
         && KeyLength > c_RegKeyPrefix)
     {
         CDisplayRegKey keyDev(&pdd->DeviceKey[c_RegKeyPrefix]);
@@ -2408,7 +2408,7 @@ CMILSurfaceRect const & CDisplaySet::GetBounds() const
 
 HRESULT
 CDisplay::SetMonitorInfo(
-    __in HMONITOR hMonitor,
+    _In_ HMONITOR hMonitor,
     __in_ecount(1) LPCRECT prcMonitor
     )
 {
@@ -2599,10 +2599,10 @@ CDisplay::ReadMode(
         if (   (m_DisplayRotation == static_cast<D3DDISPLAYROTATION>(0))
             && (displayModeGDI.dmFields & DM_DISPLAYORIENTATION))
         {
-            C_ASSERT(DMDO_DEFAULT+1 == D3DDISPLAYROTATION_IDENTITY);
-            C_ASSERT(DMDO_90+1 == D3DDISPLAYROTATION_90);
-            C_ASSERT(DMDO_180+1 == D3DDISPLAYROTATION_180);
-            C_ASSERT(DMDO_270+1 == D3DDISPLAYROTATION_270);
+            static_assert(DMDO_DEFAULT+1 == D3DDISPLAYROTATION_IDENTITY, "DMDO_DEFAULT+1 == D3DDISPLAYROTATION_IDENTITY");
+            static_assert(DMDO_90+1 == D3DDISPLAYROTATION_90, "DMDO_90+1 == D3DDISPLAYROTATION_90");
+            static_assert(DMDO_180+1 == D3DDISPLAYROTATION_180, "DMDO_180+1 == D3DDISPLAYROTATION_180");
+            static_assert(DMDO_270+1 == D3DDISPLAYROTATION_270, "DMDO_270+1 == D3DDISPLAYROTATION_270");
             m_DisplayRotation = static_cast<D3DDISPLAYROTATION>
                 (displayModeGDI.dmDisplayOrientation+1);
         }
@@ -2775,7 +2775,7 @@ CDisplay::IsEquivalentTo(
 
 HRESULT
 GetDriverDate(
-    __in PCTSTR pstrDriver,
+    _In_ PCTSTR pstrDriver,
     __out_ecount(1) unsigned __int64 *pui64DriverDate
     )
 {
@@ -2856,7 +2856,7 @@ CDisplay::GetMode(
 
 bool
 CDisplay::CheckForRecentDriver(
-    __in PCTSTR pstrDriver
+    _In_ PCTSTR pstrDriver
     ) const
 {
     bool fDriverIsGood = true;

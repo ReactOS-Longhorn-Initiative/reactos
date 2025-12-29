@@ -310,7 +310,7 @@ CBaseMatrix::TransformAsVectors(
     __out_ecount(count) MilPoint2F *destVectors,
         // Destination to place transformed vectors.
         // Can be the same array as destVectors.
-    __in UINT count
+    _In_ UINT count
         // Number of vectors to transform
     ) const
 {
@@ -1036,7 +1036,7 @@ ComputePrefilteredSize(
             //
             //   Assert(rScaleThreshold <= 1.0f);    // Failure is handled with log check
 
-            uPrefiltered = CFloatFPU::Ceiling(uOriginal * TOREAL(std::pow(rScaleThreshold, nExp)));
+            uPrefiltered = CFloatFPU::Ceiling(uOriginal * TOREAL(pow(rScaleThreshold, nExp)));
 #if defined(RESTORE_POW)
 #pragma pop_macro("pow")
 #endif 
@@ -1207,7 +1207,7 @@ CBaseMatrix::CompareWithoutOffset(__in_ecount(1) const CBaseMatrix &in) const
 }
 
 
-#if DBG
+#if 0
 #include <strsafe.h>
 
 //+-------------------------------------------------------------------------------------------------
@@ -1224,15 +1224,15 @@ CBaseMatrix::Dump() const
 
     OutputDebugString(L"CBaseMatrix\n");
     // Debug spew -- ignore failure.
-    IGNORE_HR(StringCchPrintfW(wzString, ARRAYSIZE(wzString), L"%f, %f\n", _11, _12));
+    IGNORE_HR(StringCchPrintfW(wzString, ARRAY_SIZE(wzString), L"%f, %f\n", _11, _12));
     OutputDebugString(wzString);
 
     // Debug spew -- ignore failure.
-    IGNORE_HR(StringCchPrintfW(wzString, ARRAYSIZE(wzString), L"%f, %f\n", _21, _22));
+    IGNORE_HR(StringCchPrintfW(wzString, ARRAY_SIZE(wzString), L"%f, %f\n", _21, _22));
     OutputDebugString(wzString);
 
     // Debug spew -- ignore failure.
-    IGNORE_HR(StringCchPrintfW(wzString, ARRAYSIZE(wzString), L"%f, %f\n", _41, _42));
+    IGNORE_HR(StringCchPrintfW(wzString, ARRAY_SIZE(wzString), L"%f, %f\n", _41, _42));
     OutputDebugString(wzString);
 }
 #endif

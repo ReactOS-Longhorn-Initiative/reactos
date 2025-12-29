@@ -35,7 +35,7 @@ protected:
     
     virtual ~CMilTranslateTransformDuce();
 
-    CMilTranslateTransformDuce(__in MilPoint2F *pTransformBy) 
+    CMilTranslateTransformDuce(_In_ MilPoint2F *pTransformBy) 
     { 
         m_data.m_pXAnimation = m_data.m_pYAnimation = NULL;
         m_data.m_X = pTransformBy->X;
@@ -50,7 +50,7 @@ public:
         __deref_out CMilTranslateTransformDuce **ppTranslateTransform
         );
     
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_TRANSLATETRANSFORM || CMilTransformDuce::IsOfType(type);
     }
@@ -61,7 +61,7 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
     HRESULT SynchronizeAnimatedFields();
 

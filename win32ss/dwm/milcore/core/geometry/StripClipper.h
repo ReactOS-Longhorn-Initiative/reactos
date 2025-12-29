@@ -122,9 +122,10 @@ public:
             // The recepient of the result of the operation
         double rTolerance=0)
             // Curve retrieval error tolerance
-        : m_a(a), m_b(b), m_c(c), m_d(d), m_fFirstPointAdded(false),
-          m_lastPoint(0,0), m_startPoint(0,0), m_pSink(pSink),
-          m_rTolerance(rTolerance), m_lastPointRegion(PointRegionInvalid)
+        : m_fFirstPointAdded(false),
+            m_startPoint(0, 0), m_lastPoint(0, 0), m_lastPointRegion(PointRegionInvalid),
+            m_pSink(pSink), m_rTolerance(rTolerance), m_a(a),
+            m_b(b), m_c(c), m_d(d)
     {
         Assert(m_pSink != NULL);
 
@@ -143,9 +144,9 @@ protected:
             // The recepient of the result of the operation
         double rTolerance=0)
             // Curve retrieval error tolerance
-        : m_c(c), m_d(d), m_fFirstPointAdded(false),
-          m_lastPoint(0,0), m_startPoint(0,0), m_pSink(pSink),
-          m_rTolerance(rTolerance), m_lastPointRegion(PointRegionInvalid)
+        : m_fFirstPointAdded(false), m_startPoint(0, 0), m_lastPoint(0, 0),
+  m_lastPointRegion(PointRegionInvalid), m_pSink(pSink), m_rTolerance(rTolerance),
+  m_a(0), m_b(0), m_c(c), m_d(d)
     {
         Assert(m_pSink != NULL);
 

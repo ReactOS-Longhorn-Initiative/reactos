@@ -433,13 +433,13 @@ HRESULT
 CShapeBase::Outline(
     __inout_ecount(1) IShapeBuilder &result,
         // The outline shape, populated here
-    __in double rTolerance,
+    _In_ double rTolerance,
         // Flattening tolerance
-    __in bool fRelative,
+    _In_ bool fRelative,
         // True if the tolerance is relative       
     __in_ecount_opt(1) const CMILMatrix *pMatrix,
         // Transformation matrix (NULL OK)
-    __in bool fRetrieveCurves) const
+    _In_ bool fRetrieveCurves) const
         // Retrieve curves in the result if true
 {
     HRESULT hr = S_OK;
@@ -497,9 +497,9 @@ CShapeBase::ClipWithParallelogram(
         // The recipient of the result
     __in_ecount_opt(1) const CMatrix<CoordinateSpace::Shape,CoordinateSpace::Device> *pShapeTransform,
         // Transform for the first shape (Optional, NULL OK)
-    __in double rTolerance,
+    _In_ double rTolerance,
         // Flattening tolerance
-    __in bool fRelative)
+    _In_ bool fRelative)
         // True if the tolerance is relative       
 {
     HRESULT hr = S_OK;
@@ -509,7 +509,7 @@ CShapeBase::ClipWithParallelogram(
     MilPoint2F vertices[4];
 
     double rAbsoluteTolerance;
-
+{
     IFC(pShape->GetAbsoluteTolerance(
             rTolerance,
             fRelative,
@@ -572,6 +572,7 @@ CShapeBase::ClipWithParallelogram(
 
         IFC(pShape->Populate(&clip2, pShapeTransform));
     }
+}
 
 Cleanup:
     RRETURN(hr);
@@ -598,9 +599,9 @@ CShapeBase::ClipWithRect(
         // The recipient of the result
     __in_ecount_opt(1) const CMatrix<CoordinateSpace::Shape,CoordinateSpace::Device> *pShapeTransform,
         // Transform for the first shape (Optional, NULL OK)
-    __in double rTolerance,
+    _In_ double rTolerance,
         // Flattening tolerance
-    __in bool fRelative)
+    _In_ bool fRelative)
         // True if the tolerance is relative       
 {
     HRESULT hr = S_OK;
@@ -647,9 +648,9 @@ CShapeBase::Combine(
         // First operand
     __in_ecount(1) const IShapeData *pSecond,
         // Second operand
-    __in MilCombineMode::Enum eOperation,
+    _In_ MilCombineMode::Enum eOperation,
         // The operation
-    __in bool fRetrieveCurves,
+    _In_ bool fRetrieveCurves,
         // Retrieve curves in the result if true
     __inout_ecount(1) IShapeBuilder *pResult,
         // The recipient of the result
@@ -657,9 +658,9 @@ CShapeBase::Combine(
         // Transform for the first shape (Optional, NULL OK)
     __in_ecount_opt(1) const CMILMatrix *pSecondTransform,
         // Transform for the second shape (Optional, NULL OK)
-    __in double rTolerance,
+    _In_ double rTolerance,
         // Flattening tolerance
-    __in bool fRelative)
+    _In_ bool fRelative)
         // True if the tolerance is relative       
 {
     HRESULT hr = S_OK;
@@ -877,8 +878,8 @@ Cleanup:
 HRESULT
 CShapeBase::GetRelation(
     __in_ecount(1) const IShapeData  &data,      // The other shape
-    __in double                      rTolerance, // Flattening tolerance
-    __in bool                        fRelative,  // True if the tolerance is relative       
+    _In_ double                      rTolerance, // Flattening tolerance
+    _In_ bool                        fRelative,  // True if the tolerance is relative       
     __out_ecount(1) MilPathsRelation::Enum &eResult    // The operation
     ) const
 {
@@ -1257,11 +1258,11 @@ CShapeBase::GetTightBoundsNoBadNumber(
         // The pen (NULL OK)
     __in_ecount_opt(1) const CMILMatrix *pMatrix,
         // Transformation (NULL OK)
-    __in double rTolerance, 
+    _In_ double rTolerance, 
         // Error tolerance (optional)
-    __in bool fRelative,
+    _In_ bool fRelative,
         // True if the tolerance is relative (optional)       
-    __in bool fSkipHollows) const
+    _In_ bool fSkipHollows) const
         // If true, skip non-fillable figures when computing fill bound       
 {
     HRESULT hr = S_OK;
@@ -1312,11 +1313,11 @@ CShapeBase::GetTightBounds(
         // The pen (NULL OK)
     __in_ecount_opt(1) const CMILMatrix *pMatrix,
         // Transformation (NULL OK)
-    __in double rTolerance, 
+    _In_ double rTolerance, 
         // Error tolerance (optional)
-    __in bool fRelative,
+    _In_ bool fRelative,
         // True if the tolerance is relative (optional)       
-    __in bool fSkipHollows) const
+    _In_ bool fSkipHollows) const
         // If true, skip non-fillable figures when computing fill bound       
 {
     HRESULT hr = S_OK;
@@ -1395,7 +1396,7 @@ HRESULT
 CShapeBase::GetFillBounds(
     __out_ecount(1) CMilRectF &rect,
         // The bounds of this shape
-    __in bool fFillOnly,
+    _In_ bool fFillOnly,
         // Skip non-fillable figures if true
     __in_ecount_opt(1) const CMILMatrix *pMatrix 
         // Transformation (NULL OK)
@@ -1424,7 +1425,7 @@ HRESULT
 CShapeBase::UpdateBounds(
     __inout_ecount(1) CBounds &bounds,
         // Bounds, updated here
-    __in bool fFillOnly,
+    _In_ bool fFillOnly,
         // Skip non-fillable figures if true
     __in_ecount_opt(1) const CMILMatrix *pMatrix
         // Transformation (NULL OK)
@@ -1559,8 +1560,8 @@ Cleanup:
 //------------------------------------------------------------------------------
 HRESULT
 CShapeBase::GetAbsoluteTolerance(
-    __in double                          rTolerance, // The tolerance
-    __in bool                            fRelative,  // =true if the tolerance is relative
+    _In_ double                          rTolerance, // The tolerance
+    _In_ bool                            fRelative,  // =true if the tolerance is relative
     __in_ecount_opt(1) const CPlainPen   *pPen,      // A pen that may be stroking this shape
     __in_ecount_opt(1) const CBaseMatrix *pMatrix,   // Transformation matrix
     __out_ecount(1) double               &rAbsolute  // absolute tolerance

@@ -148,8 +148,8 @@ Cleanup:
 
 HRESULT
 ReadRenderTargetIntoSysMemBuffer(
-    __in IDirect3DSurface9 *pSourceSurface,
-    __in const CMilRectU &rcCopy,
+    _In_ IDirect3DSurface9 *pSourceSurface,
+    _In_ const CMilRectU &rcCopy,
     MilPixelFormat::Enum fmtOut,
     UINT uStrideOut,
     DBG_ANALYSIS_PARAM_COMMA(UINT cbBufferOut)
@@ -162,7 +162,7 @@ ReadRenderTargetIntoSysMemBuffer(
     UINT uStrideCopy;
     const UINT uCopyWidth = rcCopy.Width();
     const UINT uCopyHeight = rcCopy.Height();
-    const RECT rcDest = { 0, 0, uCopyWidth, uCopyHeight };
+    const RECT rcDest = { 0, 0, (LONG)uCopyWidth, (LONG)uCopyHeight };
 
     IDirect3DDevice9 *pIDevice = NULL;
     IDirect3DDevice9Ex *pIDeviceEx = NULL;
@@ -170,7 +170,9 @@ ReadRenderTargetIntoSysMemBuffer(
     IDirect3DTexture9 *pD3DLockableTexture = NULL;
     IDirect3DSurface9 *pD3DLockableSurface = NULL;
     IDirect3DSurface9 *pD3DVidMemCopySurface = NULL;
-
+    bool fNeedToManuallyCopyBits = true;
+    void *pvSysMemPixels = NULL;
+{
     if (   rcCopy.left > SURFACE_RECT_MAX 
         || rcCopy.right > SURFACE_RECT_MAX 
         || rcCopy.top > SURFACE_RECT_MAX 
@@ -208,12 +210,9 @@ ReadRenderTargetIntoSysMemBuffer(
 
     IFC(pSourceSurface->GetDevice(&pIDevice));
     IGNORE_HR(pIDevice->QueryInterface(
-        __uuidof(IDirect3DDevice9Ex),
+        IID_IDirect3DDevice9Ex,
         reinterpret_cast<void **>(&pIDeviceEx)
         ));
-
-    bool fNeedToManuallyCopyBits = true;
-    void *pvSysMemPixels = NULL;
 
     // If we're on WDDM, D3D can make a surface with our system memory assuming the layout
     // is the same.
@@ -323,7 +322,7 @@ ReadRenderTargetIntoSysMemBuffer(
 
         IGNORE_HR(pD3DLockableSurface->UnlockRect());
     }
-
+}
 Cleanup:
     ReleaseInterface(pD3DLockableTexture);
     ReleaseInterface(pD3DLockableSurface);

@@ -26,10 +26,10 @@ private:
     CMilBitmapCacheDuce_Data m_data;
 
     CMilBitmapCacheDuce(
-        __in CComposition *pComposition,
-        __in double renderAtScale,
-        __in bool snapsToDevicePixels,
-        __in bool enableClearType
+        _In_ CComposition *pComposition,
+        _In_ double renderAtScale,
+        _In_ bool snapsToDevicePixels,
+        _In_ bool enableClearType
         );
     
 protected:
@@ -51,18 +51,18 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_BITMAPCACHE || CMilCacheModeDuce::IsOfType(type);
     }
 
     static HRESULT Create(
-        __in CComposition *pComposition,
-        __in double renderAtScale,
-        __in bool snapsToDevicePixels,
-        __in bool enableClearType,
+        _In_ CComposition *pComposition,
+        _In_ double renderAtScale,
+        _In_ bool snapsToDevicePixels,
+        _In_ bool enableClearType,
         __deref_out CMilBitmapCacheDuce **pCacheMode
         );
 

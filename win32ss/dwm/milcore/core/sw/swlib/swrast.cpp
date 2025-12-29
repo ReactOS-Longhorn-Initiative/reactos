@@ -155,7 +155,7 @@ HRESULT CSoftwareRasterizer::Clear(
         {
             // Fill the path.
 
-            C_ASSERT(ARRAY_SIZE(points) == ARRAY_SIZE(types));
+            static_assert(ARRAY_SIZE(points) == ARRAY_SIZE(types), "ARRAY_SIZE(points) == ARRAY_SIZE(types)");
 
             MilPointAndSizeL rcMilPointAndSizeL = {rc.left, rc.top, rc.Width(), rc.Height()};
 
@@ -270,7 +270,7 @@ HRESULT CSoftwareRasterizer::DrawBitmap(
 
         CMilColorF defColor;
 
-        MIL_THR(m_pCSCreator->GetCS_PrefilterAndResample(
+        MIL_THR(m_pCSCreator->GetCS_PFAndResample(
             pIBitmap,
             MilBitmapWrapMode::Extend,
             &defColor,
@@ -341,7 +341,7 @@ HRESULT CSoftwareRasterizer::DrawBitmap(
 
             // fill the path.
 
-            C_ASSERT(ARRAY_SIZE(points) == ARRAY_SIZE(types));            
+            static_assert(ARRAY_SIZE(points) == ARRAY_SIZE(types), "ARRAY_SIZE(points) == ARRAY_SIZE(types)");            
 
             MIL_THR(RasterizePath(
                 points,
@@ -403,7 +403,7 @@ HRESULT CSoftwareRasterizer::DrawGlyphRun(
     }
     
     pSpanClipper->GetClipBounds(&rcClipBounds);
-
+{
     {
         // Do a rough check for glyph run visibility.
         // We need it, at least, to protect against
@@ -504,7 +504,7 @@ HRESULT CSoftwareRasterizer::DrawGlyphRun(
     }
 
     pSpanSink->ReleaseExpensiveResources();
-
+}
 Cleanup:
 
     // Always reset the geometry scratch buffers to prevent stale
@@ -863,7 +863,7 @@ CSoftwareRasterizer::GetCS_Brush(
                 OUT matBitmapToDeviceHPC
                 );
 
-            hr = m_pCSCreator->GetCS_PrefilterAndResample(
+            hr = m_pCSCreator->GetCS_PFAndResample(
                 pBitmapBrush->GetTextureNoAddRef(),
                 pBitmapBrush->GetWrapMode(),
                 &pBitmapBrush->GetBorderColorRef(),
@@ -956,7 +956,7 @@ HRESULT CResampleSpanCreator_sRGB::GetCS_Resample(
     IWICBitmapSource *pIWICBitmapSourceNoRef = NULL;
     
     MilPixelFormat::Enum pixelFormat;
-
+{
     IFC(pIBitmapSource->GetPixelFormat(&pixelFormat));
 
     IFC(WrapInClosestBitmapInterface(pIBitmapSource, &pWGXWrapper));
@@ -1039,7 +1039,7 @@ HRESULT CResampleSpanCreator_sRGB::GetCS_Resample(
 
             BOOL fSupportsSSE2 = FALSE;
 
-#if defined(_X86_) 
+#if 0//defined(_X86_) 
             // Check for SSE2 on x86 machines.  SSE2 acceleration
             // is disabled for 64-bit targets because intrinsics
             // are causing compile errors.
@@ -1093,7 +1093,7 @@ HRESULT CResampleSpanCreator_sRGB::GetCS_Resample(
         ));
     
     *ppColorSource = pResampleSpan;
-
+    }
 Cleanup:
     ReleaseInterfaceNoNULL(pWGXWrapper);
     ReleaseInterfaceNoNULL(pIWICFactory);
@@ -1103,7 +1103,7 @@ Cleanup:
     RRETURN(hr);
 }
 
-HRESULT CColorSourceCreator::GetCS_PrefilterAndResample(
+HRESULT CColorSourceCreator::GetCS_PFAndResample(
     __in_ecount(1) IWGXBitmapSource *pIBitmapSource,
     MilBitmapWrapMode::Enum wrapMode,
     __in_ecount_opt(1) const MilColorF *pBorderColor,
@@ -1269,7 +1269,7 @@ CColorSourceCreator_sRGB::GetCS_Constant(
 
 HRESULT 
 CColorSourceCreator_sRGB::GetCS_EffectShader(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
     __inout CMILBrushShaderEffect* pShaderEffectBrush,
     __deref_out CColorSource **ppColorSource
     )
@@ -1546,7 +1546,7 @@ CColorSourceCreator_scRGB::GetCS_Constant(
 
 HRESULT 
 CColorSourceCreator_scRGB::GetCS_EffectShader(
-    __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
+    _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,
     __inout CMILBrushShaderEffect* pShaderEffectBrush,
     __deref_out CColorSource **ppColorSource
     )

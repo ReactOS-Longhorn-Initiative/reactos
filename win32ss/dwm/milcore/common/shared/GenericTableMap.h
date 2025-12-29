@@ -147,8 +147,8 @@ private:
     // Default comparison implementation - use template specialization to override
     static RTL_GENERIC_COMPARE_RESULTS NTAPI CompareTableData(
         __in_ecount(1) RTL_GENERIC_TABLE * /*pTable*/,
-        __in_xcount(sizeof(Element)) LPVOID pBuffer1,
-        __in_xcount(sizeof(Element)) LPVOID pBuffer2
+        _In_reads_(sizeof(Element)) LPVOID pBuffer1,
+        _In_reads_(sizeof(Element)) LPVOID pBuffer2
         )
     {
         Key key1 = reinterpret_cast<Element *>(pBuffer1)->GetKey();

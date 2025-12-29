@@ -36,7 +36,7 @@ public:
     {
     }
 
-    // CScanner override
+    // CScanner /* override */
     virtual HRESULT ProcessTheJunction();
 
     virtual HRESULT ProcessCurrentVertex(

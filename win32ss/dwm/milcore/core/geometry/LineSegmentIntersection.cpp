@@ -2844,9 +2844,9 @@ CLineSegmentIntersection::ResetAuditCounters()
 
 void 
 CLineSegmentIntersection::ReportAuditCounters(
-    __in PCSTR reportTitle,
-    __in PCSTR reportPrefix,
-    __in PCSTR outputFileName
+    _In_ PCSTR reportTitle,
+    _In_ PCSTR reportPrefix,
+    _In_ PCSTR outputFileName
     )
 {
     ReportAudit(reportTitle, reportPrefix, outputFileName, s_countersNames, s_counters)

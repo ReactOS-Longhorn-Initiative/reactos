@@ -71,12 +71,12 @@ private:
 public:
     MIL_FORCEINLINE LONG lParentErrorDividedBy4() 
     { 
-        return(max(abs(e3), abs(e2 + e2 - e3))); 
+        return(max(abs((double)e3), abs((double)(e2 + e2 - e3)))); 
     }
 
     MIL_FORCEINLINE LONG lError()                 
     { 
-        return(max(abs(e2), abs(e3))); 
+        return(max(abs((double)e2), abs((double)e3))); 
     }
 
     MIL_FORCEINLINE INT fxValue() const
@@ -119,7 +119,7 @@ public:
         e0 <<= HFD32_ADDITIONAL_SHIFT;
         e1 <<= HFD32_ADDITIONAL_SHIFT;
     
-        register LONG lShift = cShift - HFD32_ADDITIONAL_SHIFT;
+        LONG lShift = cShift - HFD32_ADDITIONAL_SHIFT;
     
         if (lShift < 0)
         {
@@ -151,7 +151,7 @@ public:
     MIL_FORCEINLINE VOID vTakeStep()
     {
         e0 += e1;
-        register LONG lTemp = e2;
+        LONG lTemp = e2;
         e1 += lTemp;
         e2 += lTemp - e3;
         e3 = lTemp;

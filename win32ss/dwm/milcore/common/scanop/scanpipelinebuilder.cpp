@@ -83,8 +83,8 @@ ScanPipelineBuilder::ScanPipelineBuilder(
         break;
     }
 
-    C_ASSERT(BM_NUM == 2);
-    C_ASSERT(SP_NUM == 2);  // This initialization code will need to be
+    static_assert(BM_NUM == 2, "BM_NUM == 2");
+    static_assert(SP_NUM == 2, "SP_NUM == 2");  // This initialization code will need to be
                             // updated if SP_NUM or BM_NUM changes.
 }
 
@@ -558,10 +558,11 @@ ScanPipelineBuilder::Append_Convert_NonHalftoned_ReportNOP(
     HRESULT hr = S_OK;
 
     UINT uStart = GetOpCount();
+    UINT uEnd;
 
     IFC(Append_Convert_NonHalftoned(fmtDest, fmtSrc, fSrcOpaque, eSubpipe));
 
-    UINT uEnd = GetOpCount();
+    uEnd = GetOpCount();
 
     *fIsNop = (uEnd == uStart);
 

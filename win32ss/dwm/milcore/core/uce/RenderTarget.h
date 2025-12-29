@@ -41,7 +41,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_RENDERTARGET;
     }
@@ -91,12 +91,12 @@ public:
     virtual HRESULT ProcessSetRoot(
         __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_SETROOT *pCmd
-        ); /* overriden in wintarget.h */
+        );
 
     virtual HRESULT ProcessSetClearColor(
         __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_SETCLEARCOLOR *pCmd
-        ) /* overriden in surftarget.h, hwndtarget.h, wintarget.h */
+        )
     {
         RRETURN(E_UNEXPECTED);
     } 
@@ -106,7 +106,7 @@ public:
         __in_ecount(1) const MILCMD_TARGET_INVALIDATE *pCmd,
         __in_bcount_opt(cbPayload) LPCVOID pPayload,
         UINT cbPayload
-        ) /* overriden in surftarget.h, hwndtarget.h */
+        )
     {
         RRETURN(E_UNEXPECTED);
     }
@@ -114,7 +114,7 @@ public:
     virtual HRESULT ProcessSetFlags(
         __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
         __in_ecount(1) const MILCMD_TARGET_SETFLAGS *pCmd
-        ) /* overriden in hwndtarget.h */
+        )
     {
         RRETURN(E_UNEXPECTED);
     }

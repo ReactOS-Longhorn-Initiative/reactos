@@ -72,7 +72,7 @@ struct BlendOperationProperties {
     },
 };
 
-C_ASSERT(ARRAYSIZE(sc_BlendOpProperties)==HBO_Total);
+static_assert(ARRAY_SIZE(sc_BlendOpProperties)==HBO_Total, "ARRAY_SIZE(sc_BlendOpProperties)==HBO_Total");
 
 //+-----------------------------------------------------------------------------
 //
@@ -561,6 +561,8 @@ CHwPipelineBuilder::TryToMultiplyConstantAlphaToExistingStage(
     CHwConstantAlphaScalableColorSource *pScalableAlphaSource = NULL;
     bool fStageToMultiplyFound = false;
     INT iItemCount = static_cast<INT>(m_pHP->m_rgItem.GetCount());
+    int iLastAlphaScalableItem;
+    int iItemAvailableForAlphaMultiply;
 
     // Parameter Assertions
     Assert(flAlpha >= 0.0f);
@@ -579,8 +581,8 @@ CHwPipelineBuilder::TryToMultiplyConstantAlphaToExistingStage(
         goto Cleanup;
     }
 
-    int iLastAlphaScalableItem = GetLastAlphaScalableItem();
-    int iItemAvailableForAlphaMultiply = GetEarliestItemAvailableForAlphaMultiply();
+    iLastAlphaScalableItem = GetLastAlphaScalableItem();
+    iItemAvailableForAlphaMultiply = GetEarliestItemAvailableForAlphaMultiply();
 
     //  We can add logic to recognize that an alpha scale of 0 would give us a
     //  completely transparent result and then "compress" previous stages.
@@ -758,6 +760,7 @@ CHwPipelineBuilder::SetupVertexBuilder(
     IFC(ChooseVertexBuilder(ppVertexBuilder));
 
     // Send vertex mappings for each color source
+   {
     HwPipelineItem *pItem = m_pHP->m_rgItem.GetDataBuffer();
 
     CHwVertexBuffer::Builder *pVertexBuilder = *ppVertexBuilder;
@@ -798,6 +801,7 @@ CHwPipelineBuilder::SetupVertexBuilder(
 
     // Let vertex builder know that is the end of the vertex mappings
     IFC((*ppVertexBuilder)->FinalizeMappings());
+}
 
 Cleanup:
 
@@ -1522,7 +1526,7 @@ CHwFFPipelineBuilder::Mul_ConstAlpha(
     Assert(GetEarliestItemAvailableForAlphaMultiply() >= 0);
 
     CHwConstantAlphaScalableColorSource *pScalableAlphaSource = NULL;
-
+{
     if (TryToMultiplyConstantAlphaToExistingStage(pAlphaColorSource))
     {
         //
@@ -1591,7 +1595,7 @@ CHwFFPipelineBuilder::Mul_ConstAlpha(
         // No suitable vertex location could be found
         IFC(E_NOTIMPL);
     }
-
+}
 Cleanup:
     ReleaseInterfaceNoNULL(pScalableAlphaSource);
     RRETURN(hr);

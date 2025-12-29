@@ -173,8 +173,8 @@ public:
     bool IsDefined() const { return m_bData < g_uRegsTotal; }
     RegisterType GetRegType() const { return (RegisterType)(m_bData >> g_uRegGroupOffset); }
 
-    CRegID& operator=(RegGPR r) { m_bData = (UINT8)(r | (rtGPR << g_uRegGroupOffset)); }
-    CRegID& operator=(RegXMM r) { m_bData = (UINT8)(r | (rtXMM << g_uRegGroupOffset)); }
+    CRegID& operator=(RegGPR r) { m_bData = (UINT8)(r | (rtGPR << g_uRegGroupOffset)); return *this;}
+    CRegID& operator=(RegXMM r) { m_bData = (UINT8)(r | (rtXMM << g_uRegGroupOffset)); return *this;}
 
     CRegID& operator=(UINT32 r) { m_bData = (UINT8)r; return *this; }
 
@@ -184,7 +184,7 @@ public:
 #if WPFGFX_FXJIT_X86
     CRegID(RegMMX r) { m_bData = (UINT8)(r | (rtMMX << g_uRegGroupOffset)); }
     RegMMX MMX() const { WarpAssert(GetRegType() == rtMMX); return (RegMMX)(m_bData & g_uRegMask); }
-    CRegID& operator=(RegMMX r) { m_bData = (UINT8)(r | (rtMMX << g_uRegGroupOffset)); }
+    CRegID& operator=(RegMMX r) { m_bData = (UINT8)(r | (rtMMX << g_uRegGroupOffset)); return *this; }
 #endif
 
 private:

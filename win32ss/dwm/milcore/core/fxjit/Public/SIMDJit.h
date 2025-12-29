@@ -27,7 +27,7 @@
 #include "C_u8x8.h"
 #else //_AMD64_
 #include "C_u64.h"
-#endif WPFGFX_FXJIT_X86
+#endif /* WPFGFX_FXJIT_X86 */
 
 #include "XmmValue.h"
 #include "C_u128x1.h"
@@ -41,7 +41,7 @@
 #include "C_s32x4.h"
 #include "C_LazyVar.h"
 #include "Branch.h"
-#include "PVoid.h"
+#include "PVOID.h"
 #include "P_u8.h"
 #include "P_u16.h"
 #include "P_u32.h"

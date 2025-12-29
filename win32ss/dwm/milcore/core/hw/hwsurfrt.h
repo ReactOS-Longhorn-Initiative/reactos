@@ -14,7 +14,7 @@
 class CD3DDeviceLevel1;
 #if DBG_STEP_RENDERING
 class CHwDisplayRenderTarget;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
 class CHwBlurShader;
@@ -99,15 +99,15 @@ public:
         __in_ecount_opt(1) const CAliasedClip *pAliasedClip
         );
 
-    override STDMETHOD(Begin3D)(
+    STDMETHOD(Begin3D)(
         __in_ecount(1) MilRectF const &rcBounds,
         MilAntiAliasMode::Enum AntiAliasMode,
         bool fUseZBuffer,
         FLOAT rZ
-        );
+        ) /* override */;
 
-    override STDMETHOD(End3D)(
-        );
+    STDMETHOD(End3D)(
+        ) /* override */;
 
     //
     // IRenderTargetInternal methods
@@ -144,20 +144,20 @@ public:
 
     // Fill render target with a brush.
 
-    override STDMETHOD(DrawInfinitePath)(
+    STDMETHOD(DrawInfinitePath)(
         __inout_ecount(1) CContextState *pContextState,
         __inout_ecount(1) BrushContext *pBrushContext,
         __inout_ecount(1) CBrushRealizer *pFillBrush
-        );
+        ) /* override */;
 
-    override STDMETHOD(ComposeEffect)(
+    STDMETHOD(ComposeEffect)(
         __inout_ecount(1) CContextState *pContextState,
         __in_ecount(1) CMILMatrix *pScaleTransform,
         __inout_ecount(1) CMilEffectDuce* pEffect,
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IMILRenderTargetBitmap* pImplicitInput
-        );
+        ) /* override */;
 
     // Draw a glyph run
 
@@ -165,14 +165,14 @@ public:
         __inout_ecount(1) DrawGlyphsParameters &pars
         );
 
-    override STDMETHOD(CreateRenderTargetBitmap)(
+    STDMETHOD(CreateRenderTargetBitmap)(
         UINT width,
         UINT height,
         IntermediateRTUsage usageInfo,
         MilRTInitialization::Flags dwFlags,
         __deref_out_ecount(1) IMILRenderTargetBitmap **ppIRenderTargetBitmap,
         __in_opt DynArray<bool> const *pActiveDisplays = NULL
-        );
+        ) /* override */;
 
     HRESULT BeginLayerInternal(
         __inout_ecount(1) CRenderTargetLayer *pNewLayer
@@ -197,13 +197,13 @@ public:
     // This method is used to determine if the render target is being
     // used to render hardware or software, or if it's merely being used 
     // for bounds accumulation, hit test, etc.
-    STDMETHOD(GetType) (__out DWORD *pRenderTargetType) 
+    STDMETHOD(GetType) (_Out_ DWORD *pRenderTargetType) 
     { 
         *pRenderTargetType = HWRasterRenderTarget; 
         RRETURN(S_OK);
     }
 
-    override UINT GetRealizationCacheIndex()
+    UINT GetRealizationCacheIndex()
     {
         return m_pD3DDevice->GetRealizationCacheIndex();
     }
@@ -363,7 +363,7 @@ protected:
         __in_ecount(1) const CMilPointAndSizeF &rcShapeBounds
         );
 
-    override bool HasAlpha() const;
+    bool HasAlpha() const;
 
 #if DBG
     void DbgDrawBoundingRectangles(
@@ -430,21 +430,21 @@ protected:
 
 public:
 
-    override void DbgGetSurfaceBitmapNoRef(
+    void DbgGetSurfaceBitmapNoRef(
         __deref_out_ecount_opt(1) IWGXBitmap **ppSurfaceBitmap
         ) const
     {
          *ppSurfaceBitmap = NULL; // DbgGetTargetSurface should be used instead
     }
-    override void DbgGetTargetSurface(
+    void DbgGetTargetSurface(
         __deref_out_ecount_opt(1) CD3DSurface **ppD3DSurface
         ) const
     { 
         *ppD3DSurface = m_pD3DTargetSurface;
         m_pD3DTargetSurface->AddRef();
     }
-    override UINT DbgTargetWidth() const { return m_uWidth; }
-    override UINT DbgTargetHeight() const { return m_uHeight; }
+    UINT DbgTargetWidth() const { return m_uWidth; }
+    UINT DbgTargetHeight() const { return m_uHeight; }
 
     #define HW_DBG_RENDERING_STEP(func)                             \
         do {                                                        \
@@ -458,7 +458,7 @@ public:
         } while (UNCONDITIONAL_EXPR(0))
 #else
     #define HW_DBG_RENDERING_STEP(func)
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 };
 
 

@@ -33,8 +33,8 @@ typedef int (__cdecl *compare_fptr)(const void*, const void*);
 
 int __cdecl
 compare_pointers(
-    const __in_xcount(sizeof(T)) UINT_PTR *ptr1,
-    const __in_xcount(sizeof(T)) UINT_PTR *ptr2
+    const _In_reads_(sizeof(T)) UINT_PTR *ptr1,
+    const _In_reads_(sizeof(T)) UINT_PTR *ptr2
     )
 {
     if (*ptr1 > *ptr2)
@@ -135,7 +135,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 HRESULT
-CPtrMultisetBase::Add(__in_xcount(sizeof(T)) UINT_PTR p)
+CPtrMultisetBase::Add(_In_reads_(sizeof(T)) UINT_PTR p)
 {
     HRESULT hr = S_OK;
     size_t cEntries = GetCount();
@@ -309,7 +309,7 @@ Cleanup:
 //------------------------------------------------------------------------------
 
 bool
-CPtrMultisetBase::Remove(__in_xcount(sizeof(T)) UINT_PTR p)
+CPtrMultisetBase::Remove(_In_reads_(sizeof(T)) UINT_PTR p)
 {
     size_t cEntries = GetCount();
     bool fRemoved = false;
@@ -429,7 +429,7 @@ CPtrMultisetBase::Remove(__in_xcount(sizeof(T)) UINT_PTR p)
 //------------------------------------------------------------------------------
 
 bool
-CPtrMultisetBase::Contains(__in_xcount(sizeof(T)) UINT_PTR p)
+CPtrMultisetBase::Contains(_In_reads_(sizeof(T)) UINT_PTR p)
 {
     UINT cEntries = static_cast<UINT>(GetCount());
     bool fFound = false;

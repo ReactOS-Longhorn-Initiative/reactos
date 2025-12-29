@@ -141,7 +141,7 @@ getBilinearFilteredARGB(
                 );
 }
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
 
 //+-----------------------------------------------------------------------------
 //
@@ -226,7 +226,7 @@ getBilinearFilteredARGB_Fixed16(
 {
     ARGB retval;
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
     if (g_fUseSSE2)
     {
         CXmmWords xFrac4, yFrac8, color10, color32;
@@ -642,7 +642,7 @@ VOID CResampleSpan<TColor>::ReleaseExpensiveResources()
 //      ScanOps
 //
 
-template <class TResampleClass, class TColor>
+template <class TResampleClass, class TColors>
 VOID FASTCALL ColorSource_Image_ScanOp(
     __in_ecount(1) const PipelineParams *pPP,
     __in_ecount(1) const ScanOpParams *pSOP
@@ -653,7 +653,7 @@ MeasurePerf(ColorSource_Image_ScanOp, pPP->m_uiCount);
         DYNCAST(TResampleClass, pSOP->m_posd);
     Assert(pColorSource);
     
-    pColorSource->GenerateColors(pPP->m_iX, pPP->m_iY, pPP->m_uiCount, static_cast<TColor *>(pSOP->m_pvDest));
+    pColorSource->GenerateColors(pPP->m_iX, pPP->m_iY, pPP->m_uiCount, static_cast<TColors *>(pSOP->m_pvDest));
 }
 
 
@@ -1448,7 +1448,7 @@ void CBilinearSpan::GenerateColors(
     //      2^32 * 2^28 + 2^32 + 2^28 + 2^32
     // This only requires 62 bits of precision and we have 63 available.
     //
-    C_ASSERT(SURFACE_RECT_MAX <= (1 << 27));
+    static_assert(SURFACE_RECT_MAX <= (1 << 27), "SURFACE_RECT_MAX <= (1 << 27)");
     Assert(x >= 0); // overagressive- routine could work with values as low as SURFACE_RECT_MIN
     Assert(y >= 0); // overagressive- routine could work with values as low as SURFACE_RECT_MIN
     Assert(x <= SURFACE_RECT_MAX);
@@ -1543,7 +1543,7 @@ void CBilinearSpan::GenerateColors(
                     // Optimization for cases where we are outside the texture.  This is common, for example, when
                     // dealing with one-dimensional textures (e.g. for gradients).  At least 50% faster than the old
                     // MMX version, far faster than the C fallback
-#if defined(_X86_)
+#if 0//defined(_X86_)
                     if (g_fUseSSE2 && m_WrapMode == MilBitmapWrapMode::Extend && uiCount > SSE_THRESHOLD)
                     {
                         // handles a 1 dimensional interpolation in SSE2 (intrinsics)
@@ -1556,7 +1556,7 @@ void CBilinearSpan::GenerateColors(
                     {
 #endif
                         N = Handle_OutsideTexture_C(u, v, N, pargbDest);
-#if defined(_X86_)
+#if 0//defined(_X86_)
                     }
 #endif
 
@@ -1643,7 +1643,7 @@ void CBilinearSpan::GenerateColors(
             // Postcondition:  horiz_min <= u+(N-1)*UIncrement < horiz_max
             // Postcondition:  vert_min <= v+(N-1)*VIncrement < vert_max
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
             if (g_fUseSSE2 && N > SSE_THRESHOLD)
             {
                 // If either the x or y flip modes are set, use the slower version that supports flipping
@@ -2166,7 +2166,7 @@ void CBilinearSpan::FlippedTile_Interpolation_C(
     }
 }
 
-#if defined(_X86_)
+#if 0//defined(_X86_)
 //+-----------------------------------------------------------------------------
 //
 //  Member:
@@ -2437,7 +2437,7 @@ void CBilinearSpan::InTile_Interpolation_SSE2(
 
     // Set up uv_inc with following: (2*VIncrement, 2*UIncrement, 2*VIncrement, 2*UIncrement).
     // Ensure that VIncrement follows UIncrement so we can fetch them together
-    C_ASSERT(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement));
+    static_assert(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement), "offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement)");
     uv_inc.LoadQWord(reinterpret_cast<__int64 const *>(&UIncrement));
     uv_inc.DuplicateLowQWord();
     uv_inc <<= 1;
@@ -2602,7 +2602,7 @@ void CBilinearSpan::FlippedTile_Interpolation_SSE2(
     uv.Load4DWords(0,0,v,u);    // [0,0,vIntvFrac,uIntuFrac]
 
     // Ensure that VIncrement follows UIncrement so we can fetch them together
-    C_ASSERT(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement));
+    static_assert(offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement), "offsetof(CBilinearSpan, UIncrement) + sizeof(UIncrement) == offsetof(CBilinearSpan, VIncrement)");
     uv_inc.LoadQWord(reinterpret_cast<__int64 const *>(&UIncrement)); //(0,0,vInc, uInc)
 
     INT x = u >> 16;    // x offset of A
@@ -3254,7 +3254,7 @@ void CBilinearSpan_MMX::GenerateColors(
     Assert((((ULONG_PTR) m_pvBits) & 3) == 0);
     Assert((m_cbStride & 3) == 0);
 
-#if defined(_X86_)
+/*#if defined(_X86_)
 
     // Transform an array of points using the matrix v' = v M:
     //
@@ -3763,7 +3763,7 @@ void CBilinearSpan_MMX::GenerateColors(
 
     }
 
-#endif
+#endif*/
 
 }
 
@@ -4300,7 +4300,7 @@ HRESULT CConstantAlphaSpan::Initialize(FLOAT flAlpha)
     return S_OK;
 }
 
-static VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
+VOID MIL_FORCEINLINE ConstantAlpha_32bppPARGB_or_32bppRGB_Slow(
     __in_ecount(1) const PipelineParams *pPP,
     __in_ecount(1) const ScanOpParams *pSOP,
     bool fHasAlpha
@@ -4408,7 +4408,7 @@ HRESULT CMaskAlphaSpan::Initialize(
         reinterpret_cast<void**>(&m_pBuffer)
         ));
 
-    IFC( m_Creator_sRGB.GetCS_PrefilterAndResample(
+    IFC( m_Creator_sRGB.GetCS_PFAndResample(
         pIMask,
         MilBitmapWrapMode::Extend,
         NULL,
@@ -4447,7 +4447,7 @@ Cleanup:
 
 // MaskAlpha a 32bppPARGB mask bitmap over 32bppPARGB or 32bppRGB color data
 
-static VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
+VOID MIL_FORCEINLINE MaskAlpha_32bpp_Slow_32bppPARGB(
     __in_ecount(1) const PipelineParams *pPP,
     __in_ecount(1) const ScanOpParams *pSOP,
     bool fHasAlpha
@@ -4639,7 +4639,7 @@ HRESULT CMaskAlphaSpan_scRGB::Initialize(
         reinterpret_cast<void**>(&m_pBuffer)
         ));
 
-    IFC( m_Creator_scRGB.GetCS_PrefilterAndResample(
+    IFC( m_Creator_scRGB.GetCS_PFAndResample(
         pIMask,
         MilBitmapWrapMode::Extend,
         NULL,

@@ -248,9 +248,10 @@ __checkReturn HRESULT
 CProgram::ShuffleSpan(OpSpan * pSpan)
 {
     HRESULT hr = S_OK;
-
+{
 #if DBG
     UINT32 uSpanIdx = static_cast<UINT32>(pSpan - m_pSpanGraph);
+    uSpanIdx;
 #endif
     UINT32 uLongestChainSize = 0;
 
@@ -337,7 +338,7 @@ CProgram::ShuffleSpan(OpSpan * pSpan)
 
     pSpan->m_uLongestChainSize = uLongestChainSize;
     pSpan->m_uVariety = ctx.readyList.GetMaxSize();
-
+}
 Cleanup:
     return hr;
 }

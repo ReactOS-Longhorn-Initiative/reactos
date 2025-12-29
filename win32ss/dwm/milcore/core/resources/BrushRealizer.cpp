@@ -70,7 +70,7 @@ GetAlphaScaleFromEffect(
             IGNORE_HR(pEffect->GetCLSID(0, &clsid));
             Assert(clsid == CLSID_MILEffectAlphaScale);
         }
-        #endif DBG
+#endif /* DBG */
     
         AlphaScaleParams alphaScale;
 
@@ -434,7 +434,7 @@ CBrushRealizer::RestoreMetaIntermediates()
 //      Replaces a meta-intermediate RT within a realized bitmap brush with the
 //      internal RT designed for the given cache index and display id.
 //
-//      The display id is optional, but if it exists it overrides the cache
+//      The display id is optional, but if it exists it /* override */s the cache
 //      index as a lookup mechanism.
 //
 //  Note:
@@ -1114,7 +1114,7 @@ CImmediateBrushRealizer::SetEffect(
 //      Replaces a meta-intermediate RT within a realized effect with the
 //      internal RT designed for the given cache index and display target.
 //
-//      The display target is optional, but if it exists it overrides the cache
+//      The display target is optional, but if it exists it /* override */s the cache
 //      index as a lookup mechanism..
 //
 //  Note:
@@ -1216,7 +1216,7 @@ DbgAssertEffectWellKnown(
     // Get the count of the transform blocks in the effect object.
     IFC( pEffect->GetCount(&cEntries) );
     Assert(cEntries <= 3);
-
+{
     UINT uNumAlphaScales = 0;
     UINT uNumAlphaMasks = 0;
 
@@ -1243,7 +1243,7 @@ DbgAssertEffectWellKnown(
             RIPW(L"Unknown effect found!");
         }
     }
-
+}
 Cleanup:
     IGNORE_HR(hr);
 }

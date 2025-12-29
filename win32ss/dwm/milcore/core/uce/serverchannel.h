@@ -23,8 +23,8 @@ class CMilServerChannel :
 {
 protected:
     CMilServerChannel(
-        __in CConnectionContext *pTransport,
-        __in IMilBatchDevice *pdevTarget,
+        _In_ CConnectionContext *pTransport,
+        _In_ IMilBatchDevice *pdevTarget,
         HMIL_CHANNEL hChannel
         );
 
@@ -35,10 +35,10 @@ public:
     DEFINE_REF_COUNT_BASE
 
     static HRESULT Create(
-        __in CConnectionContext *pTransport,
-        __in IMilBatchDevice *pdevTarget,
+        _In_ CConnectionContext *pTransport,
+        _In_ IMilBatchDevice *pdevTarget,
         HMIL_CHANNEL hChannel,
-        __out CMilServerChannel **ppChannel
+        _Out_ CMilServerChannel **ppChannel
         );
 
 
@@ -46,7 +46,7 @@ public:
         __in_ecount(1) const MIL_MESSAGE *pLocalNotification
         );
 
-    HRESULT SubmitBatch(__in CMilCommandBatch* pBatch);
+    HRESULT SubmitBatch(_In_ CMilCommandBatch* pBatch);
     CMilSlaveHandleTable* GetChannelTable();
 
     HMIL_CHANNEL GetChannel() const

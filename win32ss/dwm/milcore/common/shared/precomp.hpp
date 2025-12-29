@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 #include <ole2.h>
 #include "shared.h"

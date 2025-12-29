@@ -59,7 +59,7 @@ CMilCommandBatch::~CMilCommandBatch()
 //------------------------------------------------------------------------
 
 HRESULT
-CMilCommandBatch::Create(UINT cbSize, __out CMilCommandBatch **ppBatch)
+CMilCommandBatch::Create(UINT cbSize, _Out_ CMilCommandBatch **ppBatch)
 {
     HRESULT hr = S_OK;
 
@@ -85,7 +85,7 @@ Cleanup:
 //------------------------------------------------------------------------
 
 HRESULT
-CMilCommandBatch::Create(__out CMilCommandBatch **ppBatch)
+CMilCommandBatch::Create(_Out_ CMilCommandBatch **ppBatch)
 {
     RRETURN(Create(0, ppBatch));
 }

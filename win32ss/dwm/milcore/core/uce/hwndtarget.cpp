@@ -84,7 +84,7 @@ CSlaveHWndRenderTarget::Render(
     )
 {
     HRESULT hr = S_OK;
-
+{
     IFC(EnsureRenderTargetInternal());
 
     CDrawingContext *pDrawingContext = NULL;
@@ -236,7 +236,7 @@ CSlaveHWndRenderTarget::Render(
     }
 
     *pfNeedsPresent = m_fNeedsPresent;
-
+}
 Cleanup:
     if (FAILED(hr))
     {
@@ -345,7 +345,7 @@ BOOL CSlaveHWndRenderTarget::PostDisplayAvailabilityMessage(int displayCount)
 //  Returns:  Currently always succeeds.
 //
 //------------------------------------------------------------------------
-override
+/* override */
 HRESULT
 CSlaveHWndRenderTarget::NotifyDisplaySetChange(bool invalid , int oldDisplayCount, int displayCount)
 {
@@ -375,7 +375,7 @@ CSlaveHWndRenderTarget::NotifyDisplaySetChange(bool invalid , int oldDisplayCoun
 //------------------------------------------------------------------
 
 void CSlaveHWndRenderTarget::GetIntersectionWithDisplay(
-    __in UINT iDisplay,
+    _In_ UINT iDisplay,
     __out_ecount(1) CMILSurfaceRect &rcIntersection
     )
 {
@@ -783,7 +783,7 @@ Cleanup:
 // CSlaveHWndRenderTarget::UpdateRenderTargetFlags
 //-----------------------------------------------------------------------------
 
-override
+/* override */
 HRESULT
 CSlaveHWndRenderTarget::UpdateRenderTargetFlags()
 {

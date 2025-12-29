@@ -55,8 +55,8 @@ public:
     // Constructor/destructor
     CShape()
         :   m_eFillMode(MilFillMode::Winding),
-            m_wCacheState(SHAPE_BOX_VALID),
-            m_fFillState(true)    
+            m_fFillState(true),
+            m_wCacheState(SHAPE_BOX_VALID)
     {
         m_cachedBounds.left = m_cachedBounds.right = m_cachedBounds.top = m_cachedBounds.bottom = 0;
     }
@@ -65,7 +65,7 @@ public:
     
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CShape));
 
-    // IShapeBuilder overrides
+    // IShapeBuilder /* override */s
     virtual HRESULT AddNewFigure(
         __deref_out_ecount(1) IFigureBuilder *&pFigure);   // The newly added figure
     
@@ -73,7 +73,7 @@ public:
         __in_ecount(1) const MilRectF &rect,             // The rectangle
         __in_ecount_opt(1) const CMILMatrix *pMatrix=NULL); // Optional: Transformation matrix (NULL OK)
 
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual bool HasGaps() const;
 
     virtual bool HasHollows() const;
@@ -152,9 +152,9 @@ public:
             // Path types
     
     HRESULT AddFigureFromRawData(
-        __in UINT cPoints,
+        _In_ UINT cPoints,
             // Point count
-        __in UINT cSegments,
+        _In_ UINT cSegments,
             // Segment count
         __in_ecount(cPoints) MilPoint2D *pPoints,
             // Points

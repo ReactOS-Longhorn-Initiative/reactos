@@ -68,7 +68,7 @@ HRESULT CDesktopRenderTarget::Create(
     UINT cAdapters = 0;
 
     *ppIRT = NULL;
-
+{
     // Check for the null render target
     if ((dwFlags & MilRTInitialization::TypeMask) == MilRTInitialization::Null)
     {
@@ -131,7 +131,7 @@ HRESULT CDesktopRenderTarget::Create(
 
 SubCleanup1:
     ReleaseInterfaceNoNULL(pRT);
-
+    }
 Cleanup:
 
     RRETURN(hr);
@@ -154,7 +154,7 @@ void CDesktopRenderTarget::SetSingleSubRT(
     // The one RT needed has been acquired.  Set its device bounds to the
     // desktop and then change RT count to one, which will avoid any future
     // walking of sub-RTs that won't possibly get enabled.
-    m_rgMetaData[0].rcVirtualDeviceBounds = m_pDisplaySet->GetBounds();
+    m_rgMetaData[0].m_data.m_desktop.rcVirtualDeviceBounds = m_pDisplaySet->GetBounds();
 
 #if DBG_ANALYSIS
     // Paranoid assert that no other sub-RTs are valid.  Start
@@ -162,10 +162,10 @@ void CDesktopRenderTarget::SetSingleSubRT(
     for (UINT extras = 1; extras < m_cRT; extras++)
     {
         Assert(m_rgMetaData[extras].pInternalRT == NULL);
-        Assert(m_rgMetaData[extras].rcVirtualDeviceBounds.IsEmpty());
-        Assert(m_rgMetaData[extras].pInternalRTHWND == NULL);
-        Assert(m_rgMetaData[extras].pHwDisplayRT == NULL);
-        Assert(m_rgMetaData[extras].pSwHWNDRT == NULL);
+        Assert(m_rgMetaData[extras].m_data.m_desktop.rcVirtualDeviceBounds.IsEmpty());
+        Assert(m_rgMetaData[extras].m_data.m_desktop.pInternalRTHWND == NULL);
+        Assert(m_rgMetaData[extras].m_data.m_desktop.pHwDisplayRT == NULL);
+        Assert(m_rgMetaData[extras].m_data.m_desktop.pSwHWNDRT == NULL);
     }
 #endif
 
@@ -191,7 +191,7 @@ void CDesktopRenderTarget::SetSingleSubRT(
 //
 //------------------------------------------------------------------------------
 HRESULT CDesktopRenderTarget::Init(
-    __in HWND hwnd,
+    _In_ HWND hwnd,
     MilWindowLayerType::Enum eWindowLayerType,
     MilRTInitialization::Flags dwFlags
     )
@@ -223,13 +223,13 @@ HRESULT CDesktopRenderTarget::Init(
         Assert(metadata.ptInternalRTOffset.y == 0);
         Assert(metadata.rcLocalDeviceRenderBounds.IsEmpty());
         Assert(metadata.rcLocalDevicePresentBounds.IsEmpty());
-        Assert(metadata.rcVirtualDeviceBounds.IsEmpty());
-        Assert(metadata.rcLocalDeviceValidContentBounds.IsEmpty());
+        Assert(metadata.m_data.m_desktop.rcVirtualDeviceBounds.IsEmpty());
+        Assert(metadata.m_data.m_desktop.rcLocalDeviceValidContentBounds.IsEmpty());
 
         // Initialize internal HWND RTs
-        Assert(metadata.pInternalRTHWND == NULL);
-        Assert(metadata.pHwDisplayRT == NULL);
-        Assert(metadata.pSwHWNDRT == NULL);
+        Assert(metadata.m_data.m_desktop.pInternalRTHWND == NULL);
+        Assert(metadata.m_data.m_desktop.pHwDisplayRT == NULL);
+        Assert(metadata.m_data.m_desktop.pSwHWNDRT == NULL);
     }
 #endif
 
@@ -273,12 +273,12 @@ HRESULT CDesktopRenderTarget::Init(
            //    this is acceptable.
         || (DisplaySet()->GetDisplayCount() > 1);
 
-    // If we're not HW only, we may fall back to SW at a later time and not 
-    // know. Assume we only have a single device when we're HW only, and 
+    // If we're not HW only, we may fall back to SW at a later time and not
+    // know. Assume we only have a single device when we're HW only, and
     // then while creating the RTs in the loop below, we'll set it to false
     // if we learn that's not the case.
     UINT uCacheIndex = CMILResourceCache::InvalidToken;
-    
+
     //
     // Create all of the render targets
     //
@@ -291,7 +291,7 @@ HRESULT CDesktopRenderTarget::Init(
 
         if (fLimitRenderToDisplayBounds)
         {
-            metadata.rcVirtualDeviceBounds = pDisplay->GetDisplayRect();
+            metadata.m_data.m_desktop.rcVirtualDeviceBounds = pDisplay->GetDisplayRect();
         }
         else
         {
@@ -306,7 +306,7 @@ HRESULT CDesktopRenderTarget::Init(
             // acceptable as the scenario is a little out there (pardon the
             // pun).
             //
-            metadata.rcVirtualDeviceBounds.SetInfinite();
+            metadata.m_data.m_desktop.rcVirtualDeviceBounds.SetInfinite();
         }
 
         // Is HW allowed?
@@ -341,7 +341,7 @@ HRESULT CDesktopRenderTarget::Init(
                 pDisplay,
                 d3dDeviceType,
                 dwFlags,
-                &metadata.pHwDisplayRT
+                &metadata.m_data.m_desktop.pHwDisplayRT
                 ));
         }
 
@@ -353,7 +353,7 @@ HRESULT CDesktopRenderTarget::Init(
             // attempt to create a software render target.
             //
 
-            if (!metadata.pHwDisplayRT)
+            if (!metadata.m_data.m_desktop.pHwDisplayRT)
             {
                 MIL_THR(CSwRenderTargetHWND::Create(
                     m_hwnd,
@@ -363,7 +363,7 @@ HRESULT CDesktopRenderTarget::Init(
                     0,
                     0,
                     dwFlags,
-                    &metadata.pSwHWNDRT
+                    &metadata.m_data.m_desktop.pSwHWNDRT
                     ));
 
                 // Check for successful creation of Sw when one Sw RT is
@@ -397,16 +397,16 @@ HRESULT CDesktopRenderTarget::Init(
                 // Clean up prior RT creations in preparation for Sw only attempt
                 //
 
-                metadata.rcVirtualDeviceBounds.SetEmpty();
+                metadata.m_data.m_desktop.rcVirtualDeviceBounds.SetEmpty();
 
                 while (i-- > 0)
                 {
-                    Assert(m_rgMetaData[i].pSwHWNDRT == NULL);
-                    Assert(m_rgMetaData[i].pHwDisplayRT != NULL);
-                    ReleaseInterface(m_rgMetaData[i].pHwDisplayRT);
-                    m_rgMetaData[i].pInternalRTHWND = NULL;
+                    Assert(m_rgMetaData[i].m_data.m_desktop.pSwHWNDRT == NULL);
+                    Assert(m_rgMetaData[i].m_data.m_desktop.pHwDisplayRT != NULL);
+                    ReleaseInterface(m_rgMetaData[i].m_data.m_desktop.pHwDisplayRT);
+                    m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND = NULL;
                     ReleaseInterface(m_rgMetaData[i].pInternalRT);
-                    m_rgMetaData[i].rcVirtualDeviceBounds.SetEmpty();
+                    m_rgMetaData[i].m_data.m_desktop.rcVirtualDeviceBounds.SetEmpty();
                 }
 
                 //
@@ -421,13 +421,13 @@ HRESULT CDesktopRenderTarget::Init(
             goto Cleanup;
         }
 
-        if (metadata.pHwDisplayRT)
+        if (metadata.m_data.m_desktop.pHwDisplayRT)
         {
-            metadata.pInternalRTHWND = metadata.pHwDisplayRT;
-            metadata.pInternalRT = metadata.pHwDisplayRT;
+            metadata.m_data.m_desktop.pInternalRTHWND = metadata.m_data.m_desktop.pInternalRTHWND;
+            metadata.pInternalRT = metadata.m_data.m_desktop.pHwDisplayRT;
 
-            UINT uCurrentCacheIndex = 
-                metadata.pHwDisplayRT->GetRealizationCacheIndex();
+            UINT uCurrentCacheIndex =
+                metadata.m_data.m_desktop.pHwDisplayRT->GetRealizationCacheIndex();
 
             Assert(uCurrentCacheIndex != CMILResourceCache::SwRealizationCacheIndex);
 
@@ -442,8 +442,8 @@ HRESULT CDesktopRenderTarget::Init(
         }
         else
         {
-            metadata.pInternalRTHWND = metadata.pSwHWNDRT;
-            metadata.pInternalRT = metadata.pSwHWNDRT;
+            metadata.m_data.m_desktop.pInternalRTHWND = metadata.m_data.m_desktop.pSwHWNDRT;
+            metadata.pInternalRT = metadata.m_data.m_desktop.pSwHWNDRT;
         }
         metadata.pInternalRT->AddRef();
     }
@@ -491,14 +491,14 @@ CDesktopRenderTarget::~CDesktopRenderTarget()
         // InternalRTHWND is not ref counted
         //ReleaseInterface(m_rgMetaData[i].pInternalRTHWND)
 
-        if (m_rgMetaData[i].pHwDisplayRT)
+        if (m_rgMetaData[i].m_data.m_desktop.pHwDisplayRT)
         {
-            m_rgMetaData[i].pHwDisplayRT->Release();
+            m_rgMetaData[i].m_data.m_desktop.pHwDisplayRT->Release();
         }
 
-        if (m_rgMetaData[i].pSwHWNDRT)
+        if (m_rgMetaData[i].m_data.m_desktop.pSwHWNDRT)
         {
-            m_rgMetaData[i].pSwHWNDRT->Release();
+            m_rgMetaData[i].m_data.m_desktop.pSwHWNDRT->Release();
         }
     }
 }
@@ -608,7 +608,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
 
     Assert(m_eState == Ready);
 
-#if DBG
+#if 0//DBG
     if (g_fDbgMemMonitor)
     {
         // If this variable is set to a non-zero value in the debugger,
@@ -630,7 +630,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
         m_rcSurfaceBounds.right,
         m_rcSurfaceBounds.bottom
         };
- 
+
 #if DBG
     static bool fDbgClearToAqua = false;
 #endif
@@ -658,10 +658,10 @@ STDMETHODIMP CDesktopRenderTarget::Present()
 
                 if (m_fAccumulateValidBounds)
                 {
-                    Assert(m_rgMetaData[i].rcLocalDeviceValidContentBounds.DoesContain(rcSubRTPresent));
+                    Assert(m_rgMetaData[i].m_data.m_desktop.rcLocalDeviceValidContentBounds.DoesContain(rcSubRTPresent));
                 }
 
-                hrPresent = THR(m_rgMetaData[i].pInternalRTHWND->Present(
+                hrPresent = THR(m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND->Present(
                     &rcSubRTPresent
                     ));
 
@@ -742,7 +742,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
                             EnableTag(tagMILStepRendering, TRUE);
                         }
                     }
-#endif DBG
+#endif /* DBG */
                 }
             }
         }
@@ -756,7 +756,7 @@ STDMETHODIMP CDesktopRenderTarget::Present()
 Cleanup:
 
     // Note: There didn't appear to be a compelling reason to check for
-    //       NeedRecreate and avoid ClearDirtyList while investigating an 
+    //       NeedRecreate and avoid ClearDirtyList while investigating an
     //       an Assert in CHwHWNDRenderTarget::UpdateFlippingChain on mode changes.
     //       However the bug was fixed by allowing to
     //       SetPosition to be called even when the dirty list hasn't been
@@ -776,7 +776,7 @@ Cleanup:
         {
             if (m_rgMetaData[i].fEnable)
             {
-                IGNORE_HR(m_rgMetaData[i].pInternalRTHWND->ClearInvalidatedRects());
+                IGNORE_HR(m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND->ClearInvalidatedRects());
             }
         }
     }
@@ -835,17 +835,17 @@ STDMETHODIMP CDesktopRenderTarget::ScrollBlt(
                     -m_rgMetaData[i].ptInternalRTOffset.x,
                     -m_rgMetaData[i].ptInternalRTOffset.y);
 
-                OffsetRect(&dest, 
+                OffsetRect(&dest,
                     -m_rgMetaData[i].ptInternalRTOffset.x,
                     -m_rgMetaData[i].ptInternalRTOffset.y);
 
                 HRESULT hrScroll = S_OK;
-                
-                hrScroll = THR(m_rgMetaData[i].pInternalRTHWND->ScrollBlt(
+
+                hrScroll = THR(m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND->ScrollBlt(
                     &source,
                     &dest
                     ));
-    
+
                 if (FAILED(hrScroll))
                 {
                     // If the display state has changed that is the error
@@ -877,7 +877,7 @@ STDMETHODIMP CDesktopRenderTarget::ScrollBlt(
 Cleanup:
     RRETURN(hr);
 }
-    
+
 
 
 //+-----------------------------------------------------------------------------
@@ -959,7 +959,7 @@ STDMETHODIMP CDesktopRenderTarget::Invalidate(
                 //Assert(oDevData.rcLocalDeviceValidContentBounds.DoesContain(rcInvalid));
             }
 
-            IFC(oDevData.pInternalRTHWND->InvalidateRect(&rcInvalid));
+            IFC(oDevData.m_data.m_desktop.pInternalRTHWND->InvalidateRect(&rcInvalid));
         }
     }
 
@@ -1180,55 +1180,6 @@ Cleanup:
 //+-----------------------------------------------------------------------------
 //
 //  Member:
-//      CDesktopRenderTarget::TransitionToState
-//
-//  Synopsis:
-//      Set new state (Validate in debug)
-//
-//------------------------------------------------------------------------------
-MIL_FORCEINLINE void
-CDesktopRenderTarget::TransitionToState(
-    enum State eNewState
-#if DBG
-    , const char *pszMethod
-#endif
-    )
-{
-    #if DBG
-    Assert(DbgIsValidTransition(eNewState));
-    #endif
-
-    if (IsTagEnabled(tagMILTraceDesktopState))
-    {
-        static const char * const rgStateName[] = {
-            "Invalid",
-            "Ready",
-            "NeedSetPosition",
-            "NeedResize",
-            "NeedRecreate",
-        };
-
-        C_ASSERT(ARRAY_SIZE(rgStateName) == NeedRecreate + 1);
-
-        #if DBG
-        TraceTag((tagMILTraceDesktopState,
-                  "0x%p Desktop::%s: %s to %s",
-                  this,
-                  pszMethod,
-                  rgStateName[m_eState],
-                  rgStateName[eNewState]
-                  ));
-        #endif
-    }
-
-    m_eState = eNewState;
-
-    return;
-}
-
-//+-----------------------------------------------------------------------------
-//
-//  Member:
 //      CDesktopRenderTarget::GetBounds
 //
 //  Synopsis:
@@ -1274,7 +1225,7 @@ CDesktopRenderTarget::WaitForVBlank()
     }
     if (i < m_cRT)
     {
-        hr = m_rgMetaData[0].pInternalRTHWND->WaitForVBlank();
+        hr = m_rgMetaData[0].m_data.m_desktop.pInternalRTHWND->WaitForVBlank();
     }
 
     RRETURN(hr);
@@ -1296,7 +1247,7 @@ CDesktopRenderTarget::AdvanceFrame(
 {
     for (UINT i = 0; i < m_cRT; ++i)
     {
-        m_rgMetaData[i].pInternalRTHWND->AdvanceFrame(uFrameNumber);
+        m_rgMetaData[i].m_data.m_desktop.pInternalRTHWND->AdvanceFrame(uFrameNumber);
     }
 }
 
@@ -1323,21 +1274,21 @@ CDesktopRenderTarget::GetNumQueuedPresents(
 //
 //  Synopsis:
 //      Determines if the current HWND straddles more than 1 monitor. If it does,
-//      we currently can't accelerate scrolling due to known bug. 
-// Details: 
-// If the app is straddling an edge of the screen which does not align with another 
-// monitor(eg the right side of the right hand monitor), we do not present the content 
-// that is offscreen.This means that the content in the DWM thumbnailand flip3d is 
+//      we currently can't accelerate scrolling due to known bug.
+// Details:
+// If the app is straddling an edge of the screen which does not align with another
+// monitor(eg the right side of the right hand monitor), we do not present the content
+// that is offscreen.This means that the content in the DWM thumbnailand flip3d is
 // incorrect.
 //
-// In singlemon, we appear to present the whole rect regardless.Somewhere we 
+// In singlemon, we appear to present the whole rect regardless.Somewhere we
 // make an incorrect optimization for the multimon case.If the app straddles 2 monitors,
 // we can present the partial rects to each monitor, and DWM will splice them together
 // for the thumbnail.We appear to be taking excessive advantage of this optimization.
 //
 //------------------------------------------------------------------------------
 
-STDMETHODIMP 
+STDMETHODIMP
 CDesktopRenderTarget::CanAccelerateScroll(
     __out_ecount(1) bool *pfCanAccelerateScroll
     )
@@ -1346,17 +1297,17 @@ CDesktopRenderTarget::CanAccelerateScroll(
 	*pfCanAccelerateScroll = true;
 
     DynArray<bool> rgActiveDisplays;
-    
+    {
     // Now check if this Hwnd extends onto multiple physical displays. If so, we can't scroll
-    // because that would involve BLTing from one display to another, which we don't support 
-    // currently.              
+    // because that would involve BLTing from one display to another, which we don't support
+    // currently.
 
     const CDisplaySet *pDisplaySet = NULL;
     g_DisplayManager.GetCurrentDisplaySet(&pDisplaySet);
 
     UINT displayCount = pDisplaySet->GetDisplayCount();
 
-    ReleaseInterface(pDisplaySet);                
+    ReleaseInterface(pDisplaySet);
 
     IFC(rgActiveDisplays.AddAndSet(displayCount, false));
     IFC(ReadEnabledDisplays(&rgActiveDisplays));
@@ -1385,7 +1336,7 @@ CDesktopRenderTarget::CanAccelerateScroll(
             }
         }
     }
-    
+}
 Cleanup:
     RRETURN(hr);
 }

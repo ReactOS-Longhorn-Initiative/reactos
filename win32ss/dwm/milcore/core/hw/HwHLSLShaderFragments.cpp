@@ -65,28 +65,23 @@ namespace name \
 #define VS_INPUTS \
     static const VertexFunctionParameter::Enum sc_rg_VS_Inputs[] 
 #define VS_DATA \
-    static const FunctionConstDataParameter sc_rg_VS_Data[] 
+    static bool sc_hasVSData = true; \
+    static const FunctionConstDataParameter sc_rg_VS_Data[]
+#define VS_NO_DATA \
+    static bool sc_hasVSData = false; static FunctionConstDataParameter sc_rg_VS_Data[1]= {NULL};
+
 #define VS_LOOPABLE \
-    static const bool sc_fLoopable
+    static bool sc_fLoopable
+
 #define VS_END \
     static const VertexShaderFunction VS                  \
     (                                               \
         sc_szBody, sizeof(sc_szBody),       \
-        ARRAYSIZE(sc_rg_VS_Inputs), sc_rg_VS_Inputs,  \
-        __if_exists(sc_rg_VS_Data) { \
-        ARRAYSIZE(sc_rg_VS_Data)  , sc_rg_VS_Data,     \
-        }\
-        __if_not_exists(sc_rg_VS_Data) { \
-        0, NULL,     \
-        }\
-        __if_exists(sc_fLoopable) { \
-        sc_fLoopable \
-        }\
-        __if_not_exists(sc_fLoopable) { \
-        false \
-        }\
-    );                                              \
-}
+        ARRAY_SIZE(sc_rg_VS_Inputs), sc_rg_VS_Inputs,  \
+        sc_hasVSData ? ARRAY_SIZE(sc_rg_VS_Data) : 0, \
+        sc_hasVSData ? sc_rg_VS_Data : 0,     \
+        sc_fLoopable);\
+}\
 
 
 // Pixel Shader specific macros
@@ -95,18 +90,16 @@ namespace name \
 #define PS_INPUTS \
     static const PixelFunctionParameter::Enum sc_rg_PS_Inputs[] 
 #define PS_DATA \
-    static const FunctionConstDataParameter sc_rg_PS_Data[] 
+static bool ps_hasData = true; static const FunctionConstDataParameter sc_rg_PS_Data[] 
+#define PS_NO_DATA \
+static bool ps_hasData = false; static const FunctionConstDataParameter sc_rg_PS_Data[1] = {NULL};
 #define PS_END \
     static const PixelShaderFunction PS                  \
     (                                               \
         sc_szBody, sizeof(sc_szBody),       \
-        ARRAYSIZE(sc_rg_PS_Inputs), sc_rg_PS_Inputs,  \
-        __if_exists(sc_rg_PS_Data) { \
-        ARRAYSIZE(sc_rg_PS_Data)  , sc_rg_PS_Data     \
-        }\
-        __if_not_exists(sc_rg_PS_Data) { \
-        0, NULL     \
-        }\
+        ARRAY_SIZE(sc_rg_PS_Inputs), sc_rg_PS_Inputs,  \
+        ps_hasData ? ARRAY_SIZE(sc_rg_PS_Data) : 0, \
+        ps_hasData ? sc_rg_PS_Data : 0 \
     );                                              \
 }
 
@@ -143,7 +136,7 @@ DEFINE_VERTEX_SHADER_FUNCTION(Transform_World2D_By_Matrix4x4)
                 ShaderFunctionConstantData::Matrix4x4
             }
         };
-    
+    VS_LOOPABLE = false;
 VS_END;
 
 //+----------------------------------------------------------------------------
@@ -170,6 +163,8 @@ DEFINE_VERTEX_SHADER_FUNCTION(MultiplyByInputDiffuse)
         };
 
         //VS_DATA = {};
+    VS_NO_DATA;
+    VS_LOOPABLE = false;
 
 VS_END;
 
@@ -191,6 +186,9 @@ DEFINE_PIXEL_SHADER_FUNCTION(MultiplyByInputDiffuse_Premultiplied)
         };
     
     //PS_DATA = {};
+    PS_NO_DATA;
+    VS_NO_DATA;
+    VS_LOOPABLE = false;
 
 PS_END;
 
@@ -218,6 +216,9 @@ DEFINE_PIXEL_SHADER_FUNCTION(MultiplyByInputDiffuse_NonPremultiplied)
         };
     
     //PS_DATA = {};
+    PS_NO_DATA;
+    VS_NO_DATA;
+    VS_LOOPABLE = false;
     
 PS_END;
 
@@ -254,6 +255,8 @@ DEFINE_VERTEX_SHADER_FUNCTION(Transform_World2D_By_Matrix3x2_Into_TexCoord2)
                 ShaderFunctionConstantData::Matrix3x2
             }
         };
+    
+    VS_LOOPABLE = false;
 
 VS_END;
 
@@ -290,6 +293,7 @@ DEFINE_VERTEX_SHADER_FUNCTION(Transform_InputUV_By_Matrix3x2_Into_TexCoord2)
                 ShaderFunctionConstantData::Matrix3x2
             }
         };
+    VS_LOOPABLE = false;
 
 VS_END;
 
@@ -326,6 +330,7 @@ DEFINE_VERTEX_SHADER_FUNCTION(MultiplyAlphaMask_Transformed_From_InputUV)
                 ShaderFunctionConstantData::Matrix3x2
             }
         };
+    VS_LOOPABLE = false;
 
 VS_END;
 
@@ -354,6 +359,9 @@ DEFINE_PIXEL_SHADER_FUNCTION(MultiplyTexture)
             PixelFunctionParameter::Sampler,                 
             PixelFunctionParameter::ShaderOutputStruct,      
         };
+    
+    VS_LOOPABLE = false;
+    PS_NO_DATA;
 
     //
     // No Data
@@ -384,6 +392,8 @@ DEFINE_VERTEX_SHADER_FUNCTION(Pass_InputVertex_UV2_ToTexCoord2)
         };
 
     //VS_DATA {}
+    VS_LOOPABLE = false;
+    VS_NO_DATA;
 
 VS_END;
 
@@ -417,6 +427,7 @@ DEFINE_PIXEL_SHADER_FUNCTION(MultiplyConstant)
                 ShaderFunctionConstantData::Float4
             }
         };
+    VS_LOOPABLE = false;
 
 PS_END;
 
@@ -450,6 +461,7 @@ DEFINE_PIXEL_SHADER_FUNCTION(Multiply_By_Alpha_Premultiplied)
                 ShaderFunctionConstantData::Float4
             }
         };
+    VS_LOOPABLE = false;
 
 PS_END;
 
@@ -483,6 +495,7 @@ DEFINE_PIXEL_SHADER_FUNCTION(Multiply_By_Alpha_NonPremultiplied)
                 ShaderFunctionConstantData::Float4
             }
         };
+    VS_LOOPABLE = false;
 
 PS_END;
 
@@ -512,6 +525,8 @@ DEFINE_PIXEL_SHADER_FUNCTION(Multiply_By_Alpha_Mask_Premultiplied)
             PixelFunctionParameter::Sampler, 
             PixelFunctionParameter::ShaderOutputStruct      
         };
+    VS_LOOPABLE = false;
+    PS_NO_DATA;
 
 PS_END;
 
@@ -541,6 +556,8 @@ DEFINE_PIXEL_SHADER_FUNCTION(Multiply_By_Alpha_Mask_NonPremultiplied)
             PixelFunctionParameter::Sampler, 
             PixelFunctionParameter::ShaderOutputStruct      
         };
+    VS_LOOPABLE = false;
+    PS_NO_DATA;
 
 PS_END;
 
@@ -597,6 +614,7 @@ DEFINE_PIXEL_SHADER_FUNCTION(MultiplyRadialGradientCentered)
                 ShaderFunctionConstantData::Float
             },            
         };
+    VS_LOOPABLE = false;
 
 PS_END;
 
@@ -730,6 +748,7 @@ DEFINE_PIXEL_SHADER_FUNCTION(MultiplyRadialGradientNonCentered)
                 ShaderFunctionConstantData::Float
             },            
         };
+    VS_LOOPABLE = false;
 
 PS_END;
 
@@ -777,6 +796,7 @@ DEFINE_VERTEX_SHADER_FUNCTION(Get3DTransforms)
                 ShaderFunctionConstantData::Matrix4x4
             }
         };
+    VS_LOOPABLE = false;
     
 VS_END;
 
@@ -815,6 +835,8 @@ DEFINE_VERTEX_SHADER_FUNCTION(Transform_World3D)
             VertexFunctionParameter::Normal,
             VertexFunctionParameter::ShaderOutputStruct,
         };
+    VS_LOOPABLE = false;
+    VS_NO_DATA;
     
 VS_END;
 
@@ -848,6 +870,7 @@ DEFINE_VERTEX_SHADER_FUNCTION(Ambient_Lighting)
                 ShaderFunctionConstantData::Float4
             },
         }; 
+    VS_LOOPABLE = false;
     
 VS_END;
 
@@ -871,6 +894,8 @@ DEFINE_VERTEX_SHADER_FUNCTION(Flip_Normal)
         {
             VertexFunctionParameter::Normal,
         };
+    VS_LOOPABLE = false;
+    VS_NO_DATA;
     
 VS_END;
 
@@ -1619,6 +1644,6 @@ const ShaderFunction *g_pHwHLSLShaderFunctions[] =
     &g_Specular_Spot_Lighting_Function
 };
 
-C_ASSERT(ARRAYSIZE(g_pHwHLSLShaderFunctions)==ShaderFunctions::Total);
+static_assert(ARRAY_SIZE(g_pHwHLSLShaderFunctions)==ShaderFunctions::Total, "ARRAY_SIZE(g_pHwHLSLShaderFunctions)==ShaderFunctions::Total");
 
 

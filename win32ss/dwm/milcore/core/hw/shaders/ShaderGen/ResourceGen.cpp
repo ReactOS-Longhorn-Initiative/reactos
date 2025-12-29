@@ -60,8 +60,8 @@ CResourceGen::~CResourceGen()
 //-----------------------------------------------------------------------------
 HRESULT
 CResourceGen::Initialize(
-    __in char const *pszFileNameRc,
-    __in char const *pszFileNameHpp,
+    _In_ char const *pszFileNameRc,
+    _In_ char const *pszFileNameHpp,
     UINT uEnumStart
     )
 {
@@ -101,8 +101,8 @@ Cleanup:
 //-----------------------------------------------------------------------------
 HRESULT
 CResourceGen::CompileEffect(
-    __in WCHAR const *pszEffectFileName,
-    __in char const *pszEffectName
+    _In_ WCHAR const *pszEffectFileName,
+    _In_ char const *pszEffectName
     )
 {
     HRESULT hr = S_OK;
@@ -317,7 +317,7 @@ CResourceGen::WriteVertexShader()
 //-----------------------------------------------------------------------------
 void
 CResourceGen::WriteDwordArray(
-    __in DWORD const *pFunction
+    _In_ DWORD const *pFunction
     )
 {
     // open array data

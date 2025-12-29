@@ -22,7 +22,7 @@
 class CSWGlyphRun;
 class CSWGlyphRunPainter;
 
-#include "glyphruncore.h"
+#include "GlyphRunCore.h"
 #include "baseglyphrun.h"
 #include "baseglyphpainter.h"
 #include "perf.h"

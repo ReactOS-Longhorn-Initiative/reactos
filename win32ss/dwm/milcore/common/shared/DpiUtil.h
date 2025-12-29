@@ -14,8 +14,7 @@
 
 #pragma once
 
-#include <Windows.h>
-#include "DynamicCall\DelayCall.h"
+#include <windows.h>
 
 /// <summary>
 /// Generates a string literal representation
@@ -35,9 +34,6 @@ namespace wpf
         template<typename = void>
         class DpiUtilT
         {
-            using LoadLibraryFlags = wpf::util::DynamicCall::LoadLibraryFlags;
-            using DynCall = wpf::util::DynamicCall::DynCall;
-
             static const char* user32_dll;
 
         public:
@@ -53,10 +49,11 @@ namespace wpf
                 {
                     try
                     {
-                        dpiContext = DynCall::InvokeEx<DPI_AWARENESS_CONTEXT(WINAPI*)()>(
+                        // TODO Add GetThreadDpiAwarenessContext
+                        /*dpiContext = DynCall::InvokeEx<DPI_AWARENESS_CONTEXT(WINAPI*)()>(
                             user32_dll,
                             NAME_OF(GetThreadDpiAwarenessContext),
-                            LoadLibraryFlags::LoadLibrarySearchSystem32);
+                            LoadLibraryFlags::LoadLibrarySearchSystem32);*/
                     }
                     catch (const std::exception&)
                     {
@@ -81,12 +78,12 @@ namespace wpf
                     {
                         try
                         {
-                            isValid =
-                                !!DynCall::InvokeEx<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT)>(
+                            isValid = true;
+                                /*!!DynCall::InvokeEx<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT)>(
                                     user32_dll,
                                     NAME_OF(IsValidDpiAwarenessContext),
                                     LoadLibraryFlags::LoadLibrarySearchSystem32,
-                                    dpiContext);
+                                    dpiContext);*/
                         }
                         catch (const std::exception&)
                         {
@@ -112,13 +109,14 @@ namespace wpf
                     {
                         try
                         {
-                            areEqual =
+                            areEqual = false; // TODO
+                            /*areEqual =
                                 !!DynCall::InvokeEx<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT, DPI_AWARENESS_CONTEXT)>(
                                     user32_dll,
                                     NAME_OF(AreDpiAwarenessContextsEqual),
                                     LoadLibraryFlags::LoadLibrarySearchSystem32,
                                     dpiContextA,
-                                    dpiContextB);
+                                    dpiContextB);*/
                         }
                         catch (const std::exception&)
                         {
@@ -142,10 +140,10 @@ namespace wpf
                 {
                     try
                     {
-                        systemDpi = DynCall::InvokeEx<UINT(WINAPI*)()>(
+                        systemDpi = 96; /*DynCall::InvokeEx<UINT(WINAPI*)()>(
                             user32_dll,
                             NAME_OF(GetDpiForSystem),
-                            LoadLibraryFlags::LoadLibrarySearchSystem32);
+                            LoadLibraryFlags::LoadLibrarySearchSystem32);*/
                     }
                     catch (const std::exception&)
                     {
@@ -168,11 +166,12 @@ namespace wpf
                 {
                     try
                     {
-                        dpiContext = DynCall::InvokeEx<DPI_AWARENESS_CONTEXT(WINAPI*)(HWND)>(
+                        // TODO REACTOS
+                        /*dpiContext = DynCall::InvokeEx<DPI_AWARENESS_CONTEXT(WINAPI*)(HWND)>(
                             user32_dll,
                             NAME_OF(GetWindowDpiAwarenessContext),
                             LoadLibraryFlags::LoadLibrarySearchSystem32,
-                            hWnd);
+                            hWnd);*/
                     }
                     catch (const std::exception&)
                     {
@@ -195,11 +194,11 @@ namespace wpf
                 {
                     try
                     {
-                        oldDpiContext = DynCall::InvokeEx<DPI_AWARENESS_CONTEXT(WINAPI*)(DPI_AWARENESS_CONTEXT)>(
+                        /*oldDpiContext = DynCall::InvokeEx<DPI_AWARENESS_CONTEXT(WINAPI*)(DPI_AWARENESS_CONTEXT)>(
                             user32_dll,
                             NAME_OF(SetThreadDpiAwarenessContext),
                             LoadLibraryFlags::LoadLibrarySearchSystem32,
-                            dpiContext);
+                            dpiContext);*/
                     }
                     catch (const std::exception&)
                     {
@@ -211,7 +210,7 @@ namespace wpf
             }
         };
 
-        const char* DpiUtilT<void>::user32_dll = "user32.dll";
+        //const char* DpiUtilT<void>::user32_dll = "user32.dll";
         typedef DpiUtilT<void> DpiUtil;
 
         /// <summary>
@@ -280,8 +279,8 @@ namespace wpf
             }
 
             inline DpiAwarenessContext(DpiAwarenessContextValue dpiContextValue) :
-                m_dpiAwarenessContextValue(dpiContextValue),
-                m_dpiAwarenessContext(dpiContextValue != DpiAwarenessContextValue::Invalid ? reinterpret_cast<DPI_AWARENESS_CONTEXT>(dpiContextValue) : nullptr)
+                m_dpiAwarenessContext(dpiContextValue != DpiAwarenessContextValue::Invalid ? reinterpret_cast<DPI_AWARENESS_CONTEXT>(dpiContextValue) : nullptr),
+                m_dpiAwarenessContextValue(dpiContextValue)
             {
             }
 
@@ -302,7 +301,11 @@ namespace wpf
 
             inline static std::vector<DpiAwarenessContextValue> GetValidDpiAwarenessContextValues()
             {
-                static std::shared_ptr<std::vector<DpiAwarenessContextValue>> pValidDpiAwarenessContextValues;
+                std::vector<DpiAwarenessContextValue> allDpiAwarenessContextValues;
+                allDpiAwarenessContextValues.push_back(DpiAwarenessContextValue::Unaware); // REACTOS TODO
+
+                return allDpiAwarenessContextValues;
+                /*static std::shared_ptr<std::vector<DpiAwarenessContextValue>> pValidDpiAwarenessContextValues;
 
                 const std::vector<DpiAwarenessContextValue> allDpiAwarenessContextValues =
                 {
@@ -325,7 +328,7 @@ namespace wpf
                     }
                 }
 
-                return *pValidDpiAwarenessContextValues;
+                return *pValidDpiAwarenessContextValues;*/
             }
 
             inline bool IsValid() const
@@ -371,7 +374,8 @@ namespace wpf
 
             inline static DpiAwarenessContextValue FindCanonicalValue(DPI_AWARENESS_CONTEXT dpiAwarenessContext)
             {
-                auto canonicalValue = DpiAwarenessContextValue::Invalid;
+                // TODO REACTOS DPI
+                auto canonicalValue = DpiAwarenessContextValue::PerMonitorAwareVersion2; /*DpiAwarenessContextValue::Invalid;
 
                 if (DpiUtil::IsValidDpiAwarenessContext(dpiAwarenessContext))
                 {
@@ -384,23 +388,23 @@ namespace wpf
                             break;
                         }
                     }
-                }
+                }*/
 
                 return canonicalValue;
             }
 
             inline static DpiAwarenessContextValue FindCanonicalValue(int context)
             {
-                auto dpiAwarenessContextValue = DpiAwarenessContextValue::Invalid;
+                auto dpiAwarenessContextValue = (DpiAwarenessContextValue)context;
 
-                for (auto dpiContextValue : GetValidDpiAwarenessContextValues())
+                /*for (auto dpiContextValue : GetValidDpiAwarenessContextValues())
                 {
                     if (static_cast<int>(dpiContextValue) == context)
                     {
                         dpiAwarenessContextValue = dpiContextValue;
                         break;
                     }
-                }
+                }*/
 
                 return dpiAwarenessContextValue;
             }
@@ -437,7 +441,7 @@ namespace wpf
         class DpiAwarenessScope : public DpiAwarenessScopeBase
         {
         public:
-            inline DpiAwarenessScope(TDpiAwarenessScopeSource source, std::function<DPI_AWARENESS_CONTEXT(TDpiAwarenessScopeSource)> extractor)
+            inline DpiAwarenessScope(TDpiAwarenessScopeSource source, DPI_AWARENESS_CONTEXT extractor)
                 : DpiAwarenessScopeBase(extractor(source))
             {
             }

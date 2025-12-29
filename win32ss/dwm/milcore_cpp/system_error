@@ -1,0 +1,100 @@
+#pragma once
+#include <windows.h>
+
+namespace std
+{
+    
+    class error_category {
+        public:
+            virtual const char* name() const noexcept = 0;
+            virtual const char* message(int ev) const noexcept = 0;
+            virtual ~error_category() = default;
+        };
+        
+        // system_category singleton
+        class system_category_impl : public error_category {
+        public:
+            const char* name() const noexcept override {
+                return "system";
+            }
+        
+            const char* message(int ev) const noexcept override {
+                static char buffer[1024];
+        
+                DWORD size = FormatMessageA(
+                    FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    nullptr,
+                    ev,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    buffer,
+                    sizeof(buffer),
+                    nullptr
+                );
+        
+                if (size == 0) {
+                    return "Unknown system error";
+                }
+        
+                // Remove trailing newline characters
+                for (DWORD i = size - 1; i > 0; --i) {
+                    if (buffer[i] == '\n' || buffer[i] == '\r') {
+                        buffer[i] = '\0';
+                    } else {
+                        break;
+                    }
+                }
+        
+                return buffer;
+            }
+        };
+        
+        // Singleton accessor
+        inline const error_category& system_category() noexcept {
+            static system_category_impl instance;
+            return instance;
+        }
+
+        class error_code {
+            private:
+                int value_;
+                const error_category* category_;
+            
+            public:
+                error_code(int val = 0, const error_category& cat = system_category())
+                    : value_(val), category_(&cat) {}
+            
+                int value() const noexcept { return value_; }
+                const error_category& category() const noexcept { return *category_; }
+            
+                const char* message() const noexcept {
+                    return category_->message(value_);
+                }
+            };
+            
+class system_error {
+    private:
+        error_code code_;
+        const char* custom_msg_;
+    
+    public:
+        system_error(int err_val)
+            : code_(err_val), custom_msg_(nullptr) {}
+    
+        system_error(int err_val, const char* custom_message)
+            : code_(err_val), custom_msg_(custom_message) {}
+    
+        system_error(const error_code& ec)
+            : code_(ec), custom_msg_(nullptr) {}
+    
+        system_error(const error_code& ec, const char* custom_message)
+            : code_(ec), custom_msg_(custom_message) {}
+    
+        const char* what() const noexcept {
+            return custom_msg_ ? custom_msg_ : code_.message();
+        }
+    
+        const error_code& code() const noexcept {
+            return code_;
+        }
+    };
+}

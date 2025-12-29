@@ -136,7 +136,7 @@ STDMETHODIMP CSystemMemoryBitmap::HrFindInterface(
 
 HRESULT CSystemMemoryBitmap::Lock(
     __in_ecount_opt(1) const WICRect *prcLock,
-    __in DWORD dwFlags,
+    _In_ DWORD dwFlags,
     __deref_out_ecount(1) IWGXBitmapLock **ppILock
     )
 {
@@ -236,8 +236,8 @@ HRESULT CSystemMemoryBitmap::UnsafeUpdateFromSource(
     Assert(uDstTop < m_nHeight);
 
     WICRect rcUpdate = {
-        rcSrc.left, rcSrc.top,
-        rcSrc.right - rcSrc.left, rcSrc.bottom - rcSrc.top
+        (INT)rcSrc.left, (INT)rcSrc.top,
+        (INT)(rcSrc.right - rcSrc.left), (INT)(rcSrc.bottom - rcSrc.top)
     };
 
     Assert(static_cast<UINT>(rcUpdate.Width) <= m_nWidth);
@@ -293,11 +293,11 @@ HRESULT CSystemMemoryBitmap::IsDynamicResource(
 **************************************************************************/
 
 HRESULT CSystemMemoryBitmap::Init(
-    __in UINT nWidth,
-    __in UINT nHeight,
-    __in MilPixelFormat::Enum pxlFormat,
-    __in BOOL fClear,
-    __in BOOL fIsDynamic
+    _In_ UINT nWidth,
+    _In_ UINT nHeight,
+    _In_ MilPixelFormat::Enum pxlFormat,
+    _In_ BOOL fClear,
+    _In_ BOOL fIsDynamic
     )
 {
     HRESULT hr = S_OK;
@@ -368,7 +368,7 @@ HRESULT CSystemMemoryBitmap::Init(
 
         if (SUCCEEDED(hr))
         {
-            WICRect rc = {0, 0, m_nWidth, m_nHeight};
+            WICRect rc = {0, 0, (INT)m_nWidth, (INT)m_nHeight};
             MIL_THR(pISource->CopyPixels(&rc, m_nStride, m_nStride*m_nHeight, (BYTE*)m_pPixels));
         }
 
@@ -485,7 +485,7 @@ HRESULT CSystemMemoryBitmap::Init(
         {
             if (srcRect == NULL)
             {
-                WICRect rcDefault = {0, 0, m_nWidth, m_nHeight};
+                WICRect rcDefault = {0, 0, (INT)m_nWidth, (INT)m_nHeight};
                 MIL_THR(pISource->CopyPixels(&rcDefault, m_nStride, m_nStride*m_nHeight, (BYTE*)m_pPixels));
             }
             else
@@ -529,12 +529,12 @@ CClientMemoryBitmap::~CClientMemoryBitmap()
 **************************************************************************/
 
 HRESULT CClientMemoryBitmap::HrInit(
-    __in UINT nWidth,
-    __in UINT nHeight,
-    __in MilPixelFormat::Enum pxlFormat,
-    __in UINT cbBufferSize,
+    _In_ UINT nWidth,
+    _In_ UINT nHeight,
+    _In_ MilPixelFormat::Enum pxlFormat,
+    _In_ UINT cbBufferSize,
     __in_bcount(cbBufferSize) void *pvPixels,
-    __in UINT cbStride
+    _In_ UINT cbStride
     )
 {
     HRESULT hr = S_OK;
@@ -590,9 +590,9 @@ HRESULT CClientMemoryBitmap::HrInit(
 **************************************************************************/
 
 CDummySource::CDummySource(
-    __in UINT nWidth,
-    __in UINT nHeight,
-    __in MilPixelFormat::Enum pxlFormat)
+    _In_ UINT nWidth,
+    _In_ UINT nHeight,
+    _In_ MilPixelFormat::Enum pxlFormat)
 {
     m_nWidth = nWidth;
     m_nHeight = nHeight;
@@ -651,8 +651,8 @@ STDMETHODIMP CDummySource::HrFindInterface(
 
 HRESULT CDummySource::CopyPixels(
     __in_ecount_opt(1) const MILRect *prc,
-    __in UINT cbStride,
-    __in UINT cbBufferSize,
+    _In_ UINT cbStride,
+    _In_ UINT cbBufferSize,
     __out_ecount(cbBufferSize) BYTE *pvPixels
     )
 {
@@ -663,42 +663,43 @@ HRESULT CDummySource::CopyPixels(
 
     HRESULT hr = S_OK;
     RECT rcLock;
-
-    SetRect(&rcLock, 0, 0, m_nWidth, m_nHeight);
-    if (prc)
     {
-        RECT rc = {
-            prc->X,
-            prc->Y,
-            prc->X+prc->Width,
-            prc->Y+prc->Height
-        };
-
-        IntersectRect(&rcLock, &rc, &rcLock);
-
-        if (IsRectEmpty(&rc) || !EqualRect(&rcLock, &rc))
+        SetRect(&rcLock, 0, 0, m_nWidth, m_nHeight);
+        if (prc)
         {
-            RRETURN(E_INVALIDARG);
+            RECT rc = {
+                prc->X,
+                prc->Y,
+                prc->X+prc->Width,
+                prc->Y+prc->Height
+            };
+
+            IntersectRect(&rcLock, &rc, &rcLock);
+
+            if (IsRectEmpty(&rc) || !EqualRect(&rcLock, &rc))
+            {
+                RRETURN(E_INVALIDARG);
+            }
         }
-    }
 
-    WICRect mrc = {rcLock.left, rcLock.top, rcLock.right - rcLock.left, rcLock.bottom - rcLock.top};
+        WICRect mrc = {rcLock.left, rcLock.top, rcLock.right - rcLock.left, rcLock.bottom - rcLock.top};
 
-    IFC(HrCheckBufferSize(m_PixelFormat, cbStride, &mrc, cbBufferSize));
+        IFC(HrCheckBufferSize(m_PixelFormat, cbStride, &mrc, cbBufferSize));
 
-    rcLock.right -= rcLock.left;
-    rcLock.bottom -= rcLock.top;
+        rcLock.right -= rcLock.left;
+        rcLock.bottom -= rcLock.top;
 
-    UINT nStride;
-    IFC(HrCalcDWordAlignedScanlineStride(rcLock.right, m_PixelFormat, nStride));
-    BYTE *pbPixels = pvPixels;
-    for (INT n = 0; n < rcLock.bottom; n++)
-    {
-#pragma prefast(push)
-#pragma prefast(disable:2015, "prefast can't correctly recognize the buffer size validation")
-        GpMemset(pbPixels, 0, nStride);
-#pragma prefast(pop)
-        pbPixels += cbStride;
+        UINT nStride;
+        IFC(HrCalcDWordAlignedScanlineStride(rcLock.right, m_PixelFormat, nStride));
+        BYTE *pbPixels = pvPixels;
+        for (INT n = 0; n < rcLock.bottom; n++)
+        {
+    #pragma prefast(push)
+    #pragma prefast(disable:2015, "prefast can't correctly recognize the buffer size validation")
+            GpMemset(pbPixels, 0, nStride);
+    #pragma prefast(pop)
+            pbPixels += cbStride;
+        }
     }
 
 Cleanup:

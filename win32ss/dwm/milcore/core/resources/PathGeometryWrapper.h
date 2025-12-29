@@ -39,7 +39,7 @@ public:
     
     void SetInnerIndexToLast() const;
 
-    // IShapdData overrides
+    // IShapdData /* override */s
     virtual bool IsEmpty() const;
     virtual bool HasNoSegments() const;
     virtual HRESULT GetCountsEstimate(
@@ -183,7 +183,7 @@ public:
         MilFillMode::Enum fillRule, 
         const CMILMatrix *pMatrix=NULL);
         
-    // IShapeData overrides
+    // IShapeData /* override */s
     virtual bool HasGaps() const;    
     virtual bool HasHollows() const;
     virtual bool IsEmpty() const;

@@ -50,7 +50,7 @@ public:
     // CHwColorSource methods
     //
 
-    override bool IsOpaque(
+    bool IsOpaque(
         ) const
     {
         return false;
@@ -66,7 +66,7 @@ public:
     //
     //-------------------------------------------------------------------------
 
-    override bool IsAlphaScalable() const { return true; }
+    bool IsAlphaScalable() const { return true; }
 
     //+-----------------------------------------------------------------------
     //
@@ -76,18 +76,18 @@ public:
     //
     //------------------------------------------------------------------------
 
-    override void AlphaScale(
+    void AlphaScale(
         FLOAT alphaScale
-        );
+        ) /* override */;
 
 
-    override HRESULT Realize(
-        );
+    HRESULT Realize(
+        ) /* override */;
 
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         DWORD dwStage,
         DWORD dwSampler
-        );
+        ) /* override */;
 
     void ResetAlphaScaleFactor() { m_alphaScale = 1.0f; }
 

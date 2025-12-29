@@ -49,7 +49,7 @@ HRESULT HrValidateInitializeCall(
     {
         IFC(HRESULT_FROM_WIN32(ERROR_INVALID_WINDOW_HANDLE));
     }
-
+{
     // Make sure that no more than one of MilRTInitialization::UseRefRast,
     // MilRTInitialization::UseRgbRast, or MilRTInitialization::SoftwareOnly is set
     DWORD dwMask = dwFlags & (MilRTInitialization::SoftwareOnly | MilRTInitialization::UseRefRast | MilRTInitialization::UseRgbRast);
@@ -77,7 +77,7 @@ HRESULT HrValidateInitializeCall(
     {
         IFC(E_INVALIDARG);
     }
-
+}
 Cleanup:
     RRETURN(hr);
 }

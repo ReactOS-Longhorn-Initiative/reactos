@@ -34,7 +34,7 @@ protected:
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_LIGHT || CMilModel3DDuce::IsOfType(type);
     }

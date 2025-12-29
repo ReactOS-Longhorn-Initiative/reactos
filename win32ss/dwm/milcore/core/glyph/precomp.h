@@ -8,28 +8,28 @@
 //
 //------------------------------------------------------------------------------
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include "std.h"
 #include "d2d1.h"
 
 #include <strsafe.h>
 
-#include "common\common.h"
-#include "scanop\scanop.h"
+#include "common/common.h"
+#include "scanop/scanop.h"
 
 #include "BitmapDbgIO.h"
 
 #include "glyph.h"
 
-#include "geometry\geometry.h"
+#include "geometry/geometry.h"
 
-#include "api\api_include.h"
+#include "api/api_include.h"
 
-#include "targets\targets.h"
+#include "targets/Targets.h"
 
-#include "sw\sw.h"
+#include "sw/sw.h"
 
-#include "hw\hw.h"
+#include "hw/hw.h"
 
-#include "resources\resources.h"
+#include "resources/resources.h"
 

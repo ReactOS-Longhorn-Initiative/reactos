@@ -11,11 +11,13 @@
 //
 //------------------------------------------------------------------------
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <sal.h>
-#include <salextra.h>
+//#include <salextra.h>
+#include <intrin.h>
+#include <specstrings.h>
 
-#include "types.h"
+#include "Types.h"
 #include "warpplatform.h"
 
 #include "SIMDJit.h"

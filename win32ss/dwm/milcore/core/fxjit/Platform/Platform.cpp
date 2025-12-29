@@ -98,7 +98,7 @@ CJitterSupport::GetCurrentProgram()
 //
 //-------------------------------------------------------------------------
 HRESULT __STDCALL __checkReturn
-CJitterSupport::CodeAllocate(__in UINT32 cbSize, __out UINT8 **ppAddress)
+CJitterSupport::CodeAllocate(_In_ UINT32 cbSize, _Out_ UINT8 **ppAddress)
 {
     HRESULT hr = S_OK;
     
@@ -118,7 +118,7 @@ Cleanup:
 //
 //-------------------------------------------------------------------------
 void __STDCALL 
-CJitterSupport::CodeFree(__in void *pAddress)
+CJitterSupport::CodeFree(_In_ void *pAddress)
 {
     VirtualFree(pAddress, 0, MEM_RELEASE);
 }
@@ -132,7 +132,7 @@ CJitterSupport::CodeFree(__in void *pAddress)
 //
 //-------------------------------------------------------------------------
 UINT8* __STDCALL 
-CJitterSupport::MemoryAllocate(__in UINT32 cbSize, __out UINT32 & cbActualSize)
+CJitterSupport::MemoryAllocate(_In_ UINT32 cbSize, _Out_ UINT32 & cbActualSize)
 {
     UINT8 *pbResult;
 
@@ -162,7 +162,7 @@ CJitterSupport::MemoryAllocate(__in UINT32 cbSize, __out UINT32 & cbActualSize)
 //
 //-------------------------------------------------------------------------
 void __STDCALL 
-CJitterSupport::MemoryFree(__in void *pAddress)
+CJitterSupport::MemoryFree(_In_ void *pAddress)
 {
     WPFFree(ProcessHeap, pAddress);
 }
@@ -205,7 +205,7 @@ WarpPlatform::FreeMemory(void* pAddress)
 //-------------------------------------------------------------------------
 void 
 WarpPlatform::TraceMessage(
-    __in_z const unsigned short *pzTraceMessage
+    __in_z const wchar_t* pzTraceMessage
     )
 {
 #if DBG
@@ -224,8 +224,8 @@ WarpPlatform::TraceMessage(
 //-------------------------------------------------------------------------
 void 
 WarpPlatform::AssertMessage(
-    __in_z const unsigned short *pzCondition,
-    __in_z const unsigned short *pzFile,
+    __in_z const wchar_t* pzCondition,
+    __in_z const wchar_t* pzFile,
     unsigned nLine
     )
 {

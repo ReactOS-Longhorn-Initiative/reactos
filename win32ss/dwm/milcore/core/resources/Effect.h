@@ -39,16 +39,16 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_EFFECT;
     }
 
     virtual HRESULT ApplyEffect(
-        __in CContextState *pContextState,
-        __in CHwSurfaceRenderTarget *pDestRT,
+        _In_ CContextState *pContextState,
+        _In_ CHwSurfaceRenderTarget *pDestRT,
         __in_ecount(1) CMILMatrix *pScaleTransform,
-        __in CD3DDeviceLevel1 *pDevice, 
+        _In_ CD3DDeviceLevel1 *pDevice, 
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt CHwTextureRenderTarget *pImplicitInputNoRef
@@ -57,25 +57,25 @@ public:
     virtual HRESULT TransformBoundsForInflation(__inout CMilRectF *bounds) = 0;
     
     virtual HRESULT GetLocalSpaceClipBounds(
-        __in CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
-        __in CRectF<CoordinateSpace::PageInPixels> clip,
-        __in const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
-        __out CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace
+        _In_ CRectF<CoordinateSpace::LocalRendering> unclippedBoundsLocalSpace,
+        _In_ CRectF<CoordinateSpace::PageInPixels> clip,
+        _In_ const CMatrix<CoordinateSpace::LocalRendering,CoordinateSpace::PageInPixels> *pWorldTransform,
+        _Out_ CRectF<CoordinateSpace::LocalRendering> *pClippedBoundsLocalSpace
         );
 
     virtual ShaderEffectShaderRenderMode::Enum GetShaderRenderMode();
 
     virtual HRESULT ApplyEffectSw(
-        __in CContextState *pContextState,
-        __in CSwRenderTargetSurface *pDestRT,
-        __in CMILMatrix *pScaleTransform,
+        _In_ CContextState *pContextState,
+        _In_ CSwRenderTargetSurface *pDestRT,
+        _In_ CMILMatrix *pScaleTransform,
         UINT uIntermediateWidth,
         UINT uIntermediateHeight,
         __in_opt IWGXBitmap *pImplicitInput
         ) = 0;
 
     virtual HRESULT PrepareSoftwarePass(
-        __in const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,        
+        _In_ const CMatrix<CoordinateSpace::RealizationSampling,CoordinateSpace::DeviceHPC> *pRealizationSamplingToDevice,        
         __inout CPixelShaderState *pPixelShaderState, 
         __deref_out CPixelShaderCompiler **ppPixelShaderCompiler
         ) = 0;
@@ -93,7 +93,7 @@ public:
 
 protected:
 
-    __out CComposition *GetCompositionDeviceNoRef() 
+    _Out_ CComposition *GetCompositionDeviceNoRef() 
     {
         Assert(m_pCompositionNoRef != NULL);
         return m_pCompositionNoRef;
@@ -101,23 +101,23 @@ protected:
 
 
     static HRESULT CreateIntermediateRT(
-        __in CD3DDeviceLevel1 *pD3DDevice, 
-        __in UINT uWidth, 
-        __in UINT uHeight, 
-        __in D3DFORMAT d3dfmtTarget,
-        __out CD3DVidMemOnlyTexture **ppVidMemOnlyTexture
+        _In_ CD3DDeviceLevel1 *pD3DDevice, 
+        _In_ UINT uWidth, 
+        _In_ UINT uHeight, 
+        _In_ D3DFORMAT d3dfmtTarget,
+        _Out_ CD3DVidMemOnlyTexture **ppVidMemOnlyTexture
         );
 
     static HRESULT SetupVertexTransform(    
-        __in const CContextState *pContextState, 
-        __in CD3DDeviceLevel1 *pDevice, 
+        _In_ const CContextState *pContextState, 
+        _In_ CD3DDeviceLevel1 *pDevice, 
         float destinationWidth, 
         float destinationHeight,
         bool passToFinalDestination
         );
 
     static HRESULT SetSamplerState(
-        __in CD3DDeviceLevel1 *pDevice,
+        _In_ CD3DDeviceLevel1 *pDevice,
         UINT uSamplerRegister,
         bool setAddressMode,
         bool useBilinear
@@ -127,22 +127,22 @@ protected:
     // Hw Pixel Shader Cache
     //
     HRESULT GetHwPixelShaderEffectFromCache(
-        __in CD3DDeviceLevel1 *pDevice,   
-        __in UINT cacheIndex,
-        __in bool forceRecreation,
+        _In_ CD3DDeviceLevel1 *pDevice,   
+        _In_ UINT cacheIndex,
+        _In_ bool forceRecreation,
         __in_bcount(sizeInBytes) BYTE *pPixelShaderByteCode,
-        __in UINT sizeInBytes,        
+        _In_ UINT sizeInBytes,        
         __out_opt CHwPixelShaderEffect **ppPixelShaderEffect);
 
-    void ReleasePixelShaderEffectFromCache(__in UINT cacheIndex);
+    void ReleasePixelShaderEffectFromCache(_In_ UINT cacheIndex);
    
-    HRESULT SetPixelShaderCacheCapacity(__in UINT cacheSize);
+    HRESULT SetPixelShaderCacheCapacity(_In_ UINT cacheSize);
     
 
     static HRESULT LockResource(
-        __in UINT resourceId, 
+        _In_ UINT resourceId, 
         __deref_out_bcount(*pSizeInBytes) BYTE **ppResource,
-        __out UINT *pSizeInBytes
+        _Out_ UINT *pSizeInBytes
         );
 
 };

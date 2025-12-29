@@ -15,7 +15,7 @@
 #include "precomp.hpp"
 
 HRESULT WINAPI MediaControl_CanAttach(
-    __in PCWSTR lpName,
+    _In_ PCWSTR lpName,
     __out_ecount(1) BOOL* pCanAttach)
 {
     HRESULT hr = S_OK;
@@ -33,7 +33,7 @@ Cleanup:
 }
 
 HRESULT WINAPI MediaControl_Attach(
-    __in PCWSTR lpName, 
+    _In_ PCWSTR lpName, 
     __deref_out void** ppMediaControl)
 {
     HRESULT hr = S_OK;
@@ -58,7 +58,7 @@ void WINAPI MediaControl_Release(void* pMediaControl)
 }
 
 HRESULT WINAPI MediaControl_GetDataPtr(
-    __in void* pMediaControl,
+    _In_ void* pMediaControl,
     __deref_out void** pFile)
 {
     HRESULT hr = S_OK;

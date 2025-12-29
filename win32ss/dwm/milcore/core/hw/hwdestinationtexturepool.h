@@ -36,7 +36,7 @@ MtExtern(CHwDestinationTexturePool);
 //      This pool is intended to live in a CD3DDeviceLevel1 as a member.
 //
 //------------------------------------------------------------------------------
-class CHwDestinationTexturePool : public IMILPoolManager
+class CHwDestinationTexturePool final : public IMILPoolManager
 {
 public:
     static __checkReturn HRESULT Create(

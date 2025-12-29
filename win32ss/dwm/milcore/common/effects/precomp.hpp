@@ -17,17 +17,17 @@
 *      Created it.
 *
 **************************************************************************/
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 #include <std.h>
 
-#include "shared\shared.h"
+#include "shared/shared.h"
 
 // API stubs/proxy classes.
 
 // Format converter, palette etc.
 
 
-#include "internalGuids.h"
+#include "InternalGUIDs.h"
 #include "effectlist.h"
 
 

@@ -113,8 +113,8 @@ InvalidateLastCompositionSampleTime(
 HRESULT
 CMilSlaveVideo::
 BeginComposition(
-    __in    bool            displaySetChanged,
-    __out   bool            *pbFrameReady
+    _In_    bool            displaySetChanged,
+    _Out_   bool            *pbFrameReady
     )
 {
     HRESULT hr = S_OK;

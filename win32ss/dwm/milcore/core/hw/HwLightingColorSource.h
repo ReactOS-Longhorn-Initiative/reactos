@@ -52,7 +52,7 @@ public:
         __deref_out_ecount(1) CHwLightingColorSource ** const ppHwLightingColorSource
         );
 
-    override TypeFlags GetSourceType() const
+    TypeFlags GetSourceType() const
     {
         return Programmatic;
     }
@@ -67,7 +67,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override bool IsOpaque() const
+    bool IsOpaque() const
     {
         return !m_pLightDataNoRef->RequiresDestinationBlending();
     }
@@ -83,7 +83,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override HRESULT SendVertexMapping(
+    HRESULT SendVertexMapping(
         __inout_ecount_opt(1) CHwVertexBuffer::Builder *pVertexBuilder, 
         MilVertexFormatAttribute mvfaLocation
         )
@@ -105,7 +105,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override HRESULT Realize()
+    HRESULT Realize()
     {
         return S_OK;
     }
@@ -121,7 +121,7 @@ public:
     //
     //--------------------------------------------------------------------------
     
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         DWORD dwStage, 
         DWORD dwSampler
         )
@@ -129,14 +129,14 @@ public:
         return S_OK;
     }
 
-    override void ResetForPipelineReuse()
+    void ResetForPipelineReuse()
     {
         m_hParameter = MILSP_INVALID_HANDLE;
     }
 
-    override HRESULT SendShaderData(
+    HRESULT SendShaderData(
         __inout_ecount(1) CHwPipelineShader *pHwShader
-        );
+        ) /* override */;
 
     float GetNormalScale() const
     {

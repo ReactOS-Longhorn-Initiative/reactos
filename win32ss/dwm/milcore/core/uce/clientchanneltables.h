@@ -39,7 +39,7 @@ public:
     HRESULT Initialize();
 
     HRESULT AssignChannelEntry(
-        __in HMIL_CHANNEL hChannel,
+        _In_ HMIL_CHANNEL hChannel,
         __out_ecount(1) CLIENT_CHANNEL_HANDLE_ENTRY **ppEntry
         );
 
@@ -49,16 +49,16 @@ public:
         );
 
     VOID DestroyHandle(
-        __in HMIL_CHANNEL object
+        _In_ HMIL_CHANNEL object
         );
 
     HRESULT GetMasterTableEntry(
-        __in HMIL_CHANNEL hChannel,
+        _In_ HMIL_CHANNEL hChannel,
         __out_ecount(1) CLIENT_CHANNEL_HANDLE_ENTRY **ppMasterEntry
         );
 
     HRESULT GetMasterTableEntryThreadSafe(
-        __in HMIL_CHANNEL hChannel,
+        _In_ HMIL_CHANNEL hChannel,
         __out_ecount(1) CLIENT_CHANNEL_HANDLE_ENTRY *pMasterEntry
         );
 

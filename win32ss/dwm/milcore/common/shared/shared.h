@@ -14,6 +14,7 @@
 #include <emmintrin.h>
 #endif
 #pragma warning (pop)
+#include "common/Dump.h"
 #include "milcom.h"
 #include "basetypes.h"
 #include "utc.h"
@@ -25,16 +26,16 @@
 #include "engine.h"
 #include "List.h"
 #include "MILInterlocked.h"
-#include "assertentry.h"
-#include "refcountbase.h"
-#include "arithmetic.h"
+#include "AssertEntry.h"
+#include "RefCountBase.h"
+#include "Arithmetic.h"
 #include "dynarrayimpl.h"
 #include "dynarray.h"
 #include "heap.h"
-#include "resourcecache.h"
-#include "generictablemap.h"
-#include "internalGuids.h"
-#include "xmm.h"
+#include "ResourceCache.h"
+#include "GenericTableMap.h"
+#include "InternalGUIDs.h"
+#include "Xmm.h"
 #include "rgnutils.h"
 #include "etwtrace.h"
 

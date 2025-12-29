@@ -143,8 +143,8 @@ public:
 
     STDMETHOD(CopyPixels)(
         __in_ecount_opt(1) const WICRect *prc,
-        __in UINT cbStride,
-        __in UINT cbBufferSize,
+        _In_ UINT cbStride,
+        _In_ UINT cbBufferSize,
         __out_ecount(cbBufferSize) BYTE *pvPixels
         );
 
@@ -172,7 +172,7 @@ public:
 
     STDMETHOD(Lock)(
         __in_ecount_opt(1) const MILRect *prcLock,
-        __in DWORD flags,
+        _In_ DWORD flags,
         __deref_out_ecount(1) IWGXBitmapLock **ppILock
         ) = 0;
 
@@ -181,8 +181,8 @@ public:
         );
 
     STDMETHOD(SetResolution)(
-        __in double dblDpiX,
-        __in double dblDpiY
+        _In_ double dblDpiX,
+        _In_ double dblDpiY
         );
 
 protected:
@@ -215,13 +215,13 @@ protected:
 
     HRESULT HrLock(
         __in_ecount(1) const RECT &rcLock,
-        __in MilPixelFormat::Enum pxlFormat,
-        __in UINT cbStride,
-        __in UINT cbBufferSize,
+        _In_ MilPixelFormat::Enum pxlFormat,
+        _In_ UINT cbStride,
+        _In_ UINT cbBufferSize,
         __in_bcount(cbBufferSize) VOID *pvPixels,
-        __in DWORD dwFlags,
+        _In_ DWORD dwFlags,
         __deref_out_ecount(1) IWGXBitmapLock **ppILock,
-        __in BOOL fLockOwnsPixelData = FALSE
+        _In_ BOOL fLockOwnsPixelData = FALSE
         );
 
     HRESULT HrLockUnaligned(
@@ -243,14 +243,14 @@ protected:
 private:
 
     HRESULT CopyPixelsHelper(
-        __in MilPixelFormat::Enum pixelFormat,
-        __in UINT width,
-        __in UINT height,
-        __in UINT cbInputStride,
-        __in UINT cbInputBufferSize,
+        _In_ MilPixelFormat::Enum pixelFormat,
+        _In_ UINT width,
+        _In_ UINT height,
+        _In_ UINT cbInputStride,
+        _In_ UINT cbInputBufferSize,
         __in_bcount(cbInputBufferSize) BYTE *pbInputBuffer,
-        __in UINT cbOutputStride,
-        __in UINT cbOutputBufferSize,
+        _In_ UINT cbOutputStride,
+        _In_ UINT cbOutputBufferSize,
         __out_bcount(cbOutputBufferSize) BYTE *pbOutputBuffer
         );
 };
@@ -258,11 +258,11 @@ private:
 // We can't use WIC's version of this because it hard codes TRUE for fCopySource
 HRESULT CreateBitmapFromSourceRect(
     __in_ecount(1) IWGXBitmapSource *pISource,
-    __in UINT x,
-    __in UINT y,
-    __in UINT width,
-    __in UINT height,
-    __in BOOL fCopySource,
+    _In_ UINT x,
+    _In_ UINT y,
+    _In_ UINT width,
+    _In_ UINT height,
+    _In_ BOOL fCopySource,
     __deref_out_ecount(1) IWGXBitmap **ppBitmap
     );
 
@@ -333,14 +333,14 @@ public:
 
     HRESULT Init(
         __in_ecount(1) CWGXBitmap *pIBitmap,
-        __in UINT nWidth,
-        __in UINT nHeight,
-        __in MilPixelFormat::Enum pxlFormat,
-        __in UINT cbStride,
-        __in UINT cbBufferSize,
+        _In_ UINT nWidth,
+        _In_ UINT nHeight,
+        _In_ MilPixelFormat::Enum pxlFormat,
+        _In_ UINT cbStride,
+        _In_ UINT cbBufferSize,
         __in_bcount(cbBufferSize) VOID *pvPixels,
-        __in DWORD dwFlags,
-        __in BOOL fOwnsPixelData = FALSE
+        _In_ DWORD dwFlags,
+        _In_ BOOL fOwnsPixelData = FALSE
         );
 
     HRESULT CheckValid();

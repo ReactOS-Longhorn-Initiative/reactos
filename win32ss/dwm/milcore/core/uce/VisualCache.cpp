@@ -69,7 +69,7 @@ CMilVisualCache::~CMilVisualCache()
 //    resource's type.
 //
 //-----------------------------------------------------------------------------
-__override
+/* override */
 bool
 CMilVisualCache::IsOfType(MIL_RESOURCE_TYPE type) const
 {
@@ -230,8 +230,8 @@ CMilVisualCache::GetScaleInflation()
 
 HRESULT
 CMilVisualCache::GetRealizationDimensions(
-    __in IRenderTargetInternal *pIRTInternal,
-    __out MilRectF *pBounds
+    _In_ IRenderTargetInternal *pIRTInternal,
+    _Out_ MilRectF *pBounds
     )
 {
     HRESULT hr = S_OK;
@@ -326,7 +326,7 @@ Cleanup:
 //-----------------------------------------------------------------------------
 
 void
-CMilVisualCache::GetLocalToSurfaceTransform(__out CMILMatrix *pTransform)
+CMilVisualCache::GetLocalToSurfaceTransform(_Out_ CMILMatrix *pTransform)
 {   
     double scale = m_pCacheMode->GetScale();
 
@@ -354,7 +354,7 @@ CMilVisualCache::GetLocalToSurfaceTransform(__out CMILMatrix *pTransform)
 void
 CMilVisualCache::Invalidate(
     bool fFullInvalidate,
-    __in MilRectF const *prcLocalBounds
+    _In_ MilRectF const *prcLocalBounds
     )
 {
     // A cache should always be updated in the cache-render pass immediately after the precompute pass.
@@ -422,7 +422,7 @@ CMilVisualCache::NotifyDeviceLost()
 
 HRESULT
 CMilVisualCache::Update(
-    __in IRenderTargetInternal* pIRTInternal,
+    _In_ IRenderTargetInternal* pIRTInternal,
     __in_opt CDirtyRegion2 *pDirtyRegion
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
@@ -674,7 +674,7 @@ Cleanup:
 HRESULT
 CMilVisualCache::GetRenderTargetBitmap (
     __deref_out_opt IMILRenderTargetBitmap ** ppIRTB,
-    __in IRenderTargetInternal *pDestRT
+    _In_ IRenderTargetInternal *pDestRT
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
 {
@@ -682,7 +682,7 @@ CMilVisualCache::GetRenderTargetBitmap (
     
     IRenderTargetInternal *pBaseIRT = NULL;
     DynArray<bool> arrActiveDisplays;
-    
+    {
     // If we are rendering in hardware anywhere, we choose to render caches only in hardware.  
     // This means that in some scenarios (a VisualBrush in a software HWnd, certain cases of 
     // tiled TileBrushes) we might always render the cache bitmap in software 
@@ -751,7 +751,7 @@ CMilVisualCache::GetRenderTargetBitmap (
     }
 
     *ppIRTB = m_pIRenderTargetBitmap; // Pass ref or null to out arg
-
+}
 Cleanup:
     ReleaseInterface(pBaseIRT);
     
@@ -770,7 +770,7 @@ Cleanup:
 HRESULT
 CMilVisualCache::GetBitmapSource (
     __deref_out_opt IWGXBitmapSource ** const ppIBitmapSource,
-    __in IRenderTargetInternal *pDestRT
+    _In_ IRenderTargetInternal *pDestRT
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )
 {
@@ -808,8 +808,8 @@ Cleanup:
 
 HRESULT
 CMilVisualCache::Render(
-    __in CDrawingContext *pDC,
-    __in IRenderTargetInternal *pDestRT,
+    _In_ CDrawingContext *pDC,
+    _In_ IRenderTargetInternal *pDestRT,
     float opacity
     DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::Enum dbgTargetCoordSpaceId)
     )

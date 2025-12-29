@@ -105,12 +105,12 @@ private:
     __allocator __out_bcount(cb) void * operator new(size_t cb);
     __allocator __out_bcount(cb) void * operator new[](size_t cb);
     __out_bcount(cb) void * operator new(size_t cb, __out_bcount(cb) void * pv);
-    // delete is not overriden to allow CBufferDispenser usage
+    // delete is not /* override */n to allow CBufferDispenser usage
 
     //
-    // AddRef and Release are overriden to avoid the cost of InterlockedIncrement
+    // AddRef and Release are /* override */n to avoid the cost of InterlockedIncrement
     //
-    ULONG STDMETHODCALLTYPE AddRef(void) override
+    ULONG STDMETHODCALLTYPE AddRef(void) /* override */
     {
     #if DBG 
         ++m_uDbgRefCount; 
@@ -120,7 +120,7 @@ private:
         return 1;
      }
 
-    ULONG STDMETHODCALLTYPE Release(void) override
+    ULONG STDMETHODCALLTYPE Release(void) /* override */
     {
     #if DBG
         // Assert that nothing is trying to delete this object through Release

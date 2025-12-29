@@ -83,7 +83,7 @@ DynArrayImpl<fZeroMemory>::DynArrayImpl(
         // Validate that the initial allocation size in bytes doesn't overflow UINT
         // This constructor is only used by DynArrayIA, which has a C_ASSERT on the same
         // condition.
-#if DBG_ANALYSIS
+#if 0
         UINT uResult;
 
         Assert(SUCCEEDED(UInt32Mult(allocSize, eltSize, &uResult)));
@@ -278,7 +278,7 @@ DynArrayImpl<fZeroMemory>::Grow(
         {
             // Assert this success, since we've already ensured that Count < Capacity and that
             // Capacity * eltSize can be represented as a UINT32.
-#if DBG_ANALYSIS
+#if 0
             UINT cbContents = 0;
 
             Assert(SUCCEEDED(UInt32Mult(Count, eltSize, &cbContents)));
@@ -458,12 +458,12 @@ DynArrayImpl<fZeroMemory>::AddMultipleAndSet(
         // newElements <= Capacity, we know that none of the computations below
         // will overflow.
 
-#if DBG_ANALYSIS
+#if 0
         UINT tmpOut = 0;
         UINT64 tmpOut64 = 0;
 
         Assert(SUCCEEDED(UInt32Mult(Capacity, eltSize, &tmpOut)));
-        Assert(SUCCEEDED(UInt64Add(reinterpret_cast<__int64>(m_pData), tmpOut, &tmpOut64)));
+        Assert(SUCCEEDED(ULongLongAdd(reinterpret_cast<__int64>(m_pData), tmpOut, &tmpOut64)));
         Assert(SUCCEEDED(UInt32Mult(newElements, eltSize, &tmpOut)));
 #endif
 

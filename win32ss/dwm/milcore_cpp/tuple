@@ -1,0 +1,33 @@
+#pragma once
+#include <functional>
+
+namespace std {
+    template <typename... Types>
+    class tuple;
+    
+    template <typename T, typename... Types>
+    class tuple<T, Types...> {
+    private:
+        T value;
+        tuple<Types...> rest;
+    
+    public:
+        tuple() = default;
+    
+        tuple(T&& value, Types&&... args)
+            : value(std::forward<T>(value)), rest(std::forward<Types>(args)...) {}
+    
+        T& get_value() { return value; }
+        const T& get_value() const { return value; }
+    
+        tuple<Types...>& get_rest() { return rest; }
+        const tuple<Types...>& get_rest() const { return rest; }
+    };
+    
+    template <>
+    class tuple<> {}; // Base case for an empty tuple
+    template <class... Types>
+    tuple<Types...> make_tuple(Types&&... args) {
+        return tuple<Types...>(std::forward<Types>(args)...);
+    }
+} // namespace std

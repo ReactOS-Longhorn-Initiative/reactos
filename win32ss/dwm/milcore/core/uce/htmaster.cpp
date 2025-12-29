@@ -170,12 +170,12 @@ HRESULT CMilMasterHandleTable::DuplicateHandle(
     )
 {
     HRESULT hr = S_OK;
-
     CGuard<CCriticalSection> oGuard(g_csCompositionEngine);
-
+    
     const HANDLE_ENTRY* pOriginalEntry = NULL;
     HANDLE_ENTRY* pDuplicateEntry = NULL;
     HMIL_RESOURCE hDuplicate = NULL;
+{
 
 
     //
@@ -239,6 +239,7 @@ HRESULT CMilMasterHandleTable::DuplicateHandle(
             pTargetHandleTable->m_handletable.DestroyHandle(hDuplicate);
         }
     }
+}
 
 Cleanup:
     RRETURN(hr);

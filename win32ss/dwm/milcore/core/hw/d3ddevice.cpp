@@ -295,7 +295,7 @@ CD3DDeviceLevel1::CD3DDeviceLevel1(
 #if DBG_STEP_RENDERING
     m_fDbgInStepRenderingPresent = false;
     m_pDbgSaveSurface = NULL;
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 }
 
 
@@ -322,7 +322,7 @@ CD3DDeviceLevel1::Init(
     Assert(m_pD3DDeviceEx == NULL);
 
     IDirect3D9* pd3d9 = NULL;
-
+{
     // Initialize the resource manager as early as possible since the resource manager asserts on
     // shutdown that it has a valid device associated. If not, failures in the hardware detection code
     // below will lead to asserts firing in the D3DResourceManager code on shutdown.
@@ -573,7 +573,7 @@ CD3DDeviceLevel1::Init(
     m_presentFailureWindowMessage = RegisterWindowMessage(L"NeedsRePresentOnWake");
 
     } // Leave device scope
-
+}
 Cleanup:
     ReleaseInterfaceNoNULL(pd3d9);
 
@@ -1735,7 +1735,7 @@ CD3DDeviceLevel1::MarkUnusable(
            // For example CHwSurfaceRenderTarget::DrawBitmap does that with the
            // m_pDrawBitmapScratchBrush.
         && !DbgInStepRenderingPresent()
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
        )
     {
         // Destroy all GPUMarkers created using this device
@@ -2399,7 +2399,7 @@ CD3DDeviceLevel1::CreateSysMemUpdateSurface(
     UINT uWidth,
     UINT uHeight,
     D3DFORMAT fmtTexture,
-    __in_xcount_opt(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
+    _In_opt_count_(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
     __deref_out_ecount(1) IDirect3DSurface9 ** const ppD3DSysMemSurface
     )
 {
@@ -2510,7 +2510,7 @@ Cleanup:
 HRESULT
 CD3DDeviceLevel1::CreateSysMemReferenceTexture(
     __in_ecount(1) const D3DSURFACE_DESC *pSurfDesc,
-    __in_xcount(
+    _In_reads_(
         pSurfDesc->Width * pSurfDesc->Height
         * D3DFormatSize(pSurfDesc->Format)
         ) void *pvPixels,
@@ -3127,7 +3127,7 @@ CD3DDeviceLevel1::Present(
     AssertDeviceEntry(*this);
 
     HRESULT hr;
-
+{
     if (FAILED(m_hrDisplayInvalid))
     {
         // Call MarkUnusable to check if we still need to handle loss now that
@@ -3276,7 +3276,7 @@ CD3DDeviceLevel1::Present(
             }
         }
     }
-
+}
 Cleanup:
 
     RRETURN1(hr, S_PRESENT_OCCLUDED); // DIE already handled
@@ -3591,7 +3591,7 @@ CD3DDeviceLevel1::PresentWithGDI(
 
     if ((pMILDC->GetRTInitializationFlags() & MilRTInitialization::PresentUsingMask) == MilRTInitialization::PresentUsingUpdateLayeredWindow)
     {
-        SIZE sz = { uBufferWidth, uBufferHeight };
+        SIZE sz = { (LONG)uBufferWidth, (LONG)uBufferHeight };
         POINT ptSrc = { 0, 0 };
         HWND hWnd = pMILDC->GetHWND();
 
@@ -4205,12 +4205,12 @@ CD3DDeviceLevel1::CompilePipelineVertexShader(
     std::shared_ptr<buffer> pShader;
     std::shared_ptr<buffer> pErr;
 
-    std::string profile_name = 
+    const char* profile_name = 
         shader::get_vertex_shader_profile_name(m_pD3DDevice);
 
     HRESULT hr =
         shader::compile(
-            std::string(pHLSLSource, pHLSLSource + cbHLSLSource),
+            pHLSLSource,
             "VertexShaderImpl",
             profile_name,
             0, 0,
@@ -4250,12 +4250,12 @@ CD3DDeviceLevel1::CompilePipelinePixelShader(
     std::shared_ptr<buffer> pShader;
     std::shared_ptr<buffer> pErr;
 
-    std::string profile_name 
+    const char* profile_name 
         = shader::get_pixel_shader_profile_name(m_pD3DDevice);
 
     HRESULT hr =
         shader::compile(
-            std::string(pHLSLSource, pHLSLSource + cbHLSLSource),
+            pHLSLSource,
             "PixelShaderImpl",
             profile_name,
             0, 0,
@@ -4286,7 +4286,7 @@ CD3DDeviceLevel1::CompilePipelinePixelShader(
 
 HRESULT
 CD3DDeviceLevel1::CreateVertexShader(
-    __in const DWORD *pdwfnVertexShader,
+    _In_ const DWORD *pdwfnVertexShader,
     __deref_out_ecount(1) IDirect3DVertexShader9 ** const ppOutShader
     )
 {
@@ -4317,7 +4317,7 @@ CD3DDeviceLevel1::CreateVertexShader(
 
 HRESULT
 CD3DDeviceLevel1::CreatePixelShader(
-    __in const DWORD *pdwfnPixelShader,
+    _In_ const DWORD *pdwfnPixelShader,
     __deref_out_ecount(1) IDirect3DPixelShader9 ** const ppOutShader
     )
 {
@@ -4635,7 +4635,7 @@ CD3DDeviceLevel1::SetClipRect(
     )
 {
     HRESULT hr = S_OK;
-    MilPointAndSizeL rcTargetSurface = {0, 0, m_desc.Width, m_desc.Height};
+    MilPointAndSizeL rcTargetSurface = {0, 0, (INT)m_desc.Width, (INT)m_desc.Height};
     MilPointAndSizeL rcSurfaceIntersectClip;
     const MilPointAndSizeL *prcNewClip = NULL;
 
@@ -4761,7 +4761,7 @@ CD3DDeviceLevel1::GetClipRect(
 void
 CD3DDeviceLevel1::DbgTraceDeviceCreationFailure(
     UINT uAdapter,
-    __in PCSTR szMessage,
+    _In_ PCSTR szMessage,
     HRESULT hrError
     )
 {
@@ -5064,7 +5064,7 @@ CD3DDeviceLevel1::DbgRestoreSurface(
 
     RRETURN(HandleDIE(hr));
 }
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 
 //+-----------------------------------------------------------------------------
@@ -5286,8 +5286,8 @@ HRESULT
 CD3DDeviceLevel1::DrawIndexedTriangleListUP(
     __range(1, UINT_MAX) UINT uNumVertices,
     __range(1, UINT_MAX) UINT uPrimitiveCount,
-    __in_xcount(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
-    __in const void* pVertexStreamZeroData,
+    _In_reads_(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
+    _In_ const void* pVertexStreamZeroData,
     __range(1, UINT_MAX) UINT uVertexStreamZeroStride
     )
 {
@@ -5567,7 +5567,7 @@ HRESULT
 CD3DDeviceLevel1::DrawLargePrimitiveUP(
     D3DPRIMITIVETYPE primitiveType,
     UINT uPrimitiveCount,
-    __in_xcount(
+    _In_reads_(
         //
         // Vertex counts are:
         //
@@ -5753,7 +5753,7 @@ HRESULT
 CD3DDeviceLevel1::DrawPrimitiveUP(
     D3DPRIMITIVETYPE primitiveType,
     UINT uPrimitiveCount,
-    __in_xcount(
+    _In_reads_(
         //
         // Vertex counts are:
         //

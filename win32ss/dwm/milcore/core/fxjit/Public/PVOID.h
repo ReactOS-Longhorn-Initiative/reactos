@@ -113,7 +113,7 @@ public:
         , m_uIndexVarID(uIndexVarID)
         , m_uDisplacement(uDisplacement)
     {
-        WarpAssert(uBaseVarID);
+        //WarpAssert(uBaseVarID);
         // uIndexVarID might be zero; this means no indexing
     }
 
@@ -127,18 +127,20 @@ public:
         }
         else
         {
-            __if_exists(TypedRef::IndexScale)
+           // __if_exists(TypedRef::IndexScale)
             {
                 // Short path: use CPU ability to scale the index by 1/2/4/8
-                C_pVoid::AddOperator(ot, tmp.GetID(), m_uBaseVarID, m_uIndexVarID, 0, TypedRef::IndexScale, m_uDisplacement);
+               // C_pVoid::AddOperator(ot, tmp.GetID(), m_uBaseVarID, m_uIndexVarID, 0, TypedRef::IndexScale, m_uDisplacement);
             }
 
-            __if_not_exists(TypedRef::IndexScale)
-            {
-                // Longer path: index should be scaled by separate instruction
+            // TODO REACTOS CHECK
+
+            //__if_not_exists(TypedRef::IndexScale)
+            //{
+            //    // Longer path: index should be scaled by separate instruction
                 UINT32 uScaledIdxVarID = C_pVoid::ScaleIdx(m_uIndexVarID, TypedRef::IndexShift);
                 C_pVoid::AddOperator(ot, tmp.GetID(), m_uBaseVarID, uScaledIdxVarID, 0, RefType_Index_1, m_uDisplacement);
-            }
+            //}
         }
         return tmp;
     }
@@ -151,12 +153,12 @@ public:
         }
         else
         {
-            __if_exists(TypedRef::IndexScale)
-            {
-                C_pVoid::AddOperator(ot, 0, origin.GetID(), m_uBaseVarID, m_uIndexVarID, TypedRef::IndexScale, m_uDisplacement);
-            }
+            //__if_exists(TypedRef::IndexScale)
+           // {
+            //    C_pVoid::AddOperator(ot, 0, origin.GetID(), m_uBaseVarID, m_uIndexVarID, TypedRef::IndexScale, m_uDisplacement);
+            //}
 
-            __if_not_exists(TypedRef::IndexScale)
+            //__if_not_exists(TypedRef::IndexScale)
             {
                 // Longer path: index should be scaled by separate instruction
                 UINT32 uScaledIdxVarID = C_pVoid::ScaleIdx(m_uIndexVarID, TypedRef::IndexShift);
@@ -177,17 +179,17 @@ public:
         }
         else
         {
-            __if_exists(TypedRef::IndexScale)
-            {
-                C_pVoid::AddOperator(ot, result.GetID(), src.GetID(), m_uBaseVarID, m_uIndexVarID, TypedRef::IndexScale, m_uDisplacement);
-            }
+            //__if_exists(TypedRef::IndexScale)
+            //{
+            //    C_pVoid::AddOperator(ot, result.GetID(), src.GetID(), m_uBaseVarID, m_uIndexVarID, TypedRef::IndexScale, m_uDisplacement);
+            //}
 
-            __if_not_exists(TypedRef::IndexScale)
-            {
+           // __if_not_exists(TypedRef::IndexScale)
+           // {
                 // Longer path: index should be scaled by separate instruction
                 UINT32 uScaledIdxVarID = C_pVoid::ScaleIdx(m_uIndexVarID, TypedRef::IndexShift);
                 C_pVoid::AddOperator(ot, result.GetID(), src.GetID(), m_uBaseVarID, uScaledIdxVarID, RefType_Index_1, m_uDisplacement);
-            }
+           // }
         }
 
         return result;
@@ -203,17 +205,17 @@ public:
         }
         else
         {
-            __if_exists(TypedRef::IndexScale)
-            {
-                C_pVoid::AddOperator(ot, result.GetID(), src.GetID(), m_uBaseVarID, m_uIndexVarID, TypedRef::IndexScale, m_uDisplacement);
-            }
+           // __if_exists(TypedRef::IndexScale)
+            //{
+            //    C_pVoid::AddOperator(ot, result.GetID(), src.GetID(), m_uBaseVarID, m_uIndexVarID, TypedRef::IndexScale, m_uDisplacement);
+            //}
 
-            __if_not_exists(TypedRef::IndexScale)
-            {
+            //__if_not_exists(TypedRef::IndexScale)
+            //{
                 // Longer path: index should be scaled by separate instruction
                 UINT32 uScaledIdxVarID = C_pVoid::ScaleIdx(m_uIndexVarID, TypedRef::IndexShift);
                 C_pVoid::AddOperator(ot, result.GetID(), m_uBaseVarID, uScaledIdxVarID, 0, RefType_Index_1, m_uDisplacement);
-            }
+            //}
         }
 
         return result;
@@ -317,11 +319,11 @@ public:
     {
         TypedPointer tmp = *(TypedPointer*)this;
 
-        __if_exists (TypedRef::IndexScale)
-        {
-            tmp.ScaledOffset(IndexDelta, TypedRef::IndexScale);
-        }
-        __if_not_exists (TypedRef::IndexScale)
+        //__if_exists (TypedRef::IndexScale)
+       // {
+        //    tmp.ScaledOffset(IndexDelta, TypedRef::IndexScale);
+        //}
+        //__if_not_exists (TypedRef::IndexScale)
         {
             tmp.ScaledOffset(IndexDelta << TypedRef::IndexShift, RefType_Index_1);
         }
@@ -332,14 +334,14 @@ public:
     // Offset with variable index and assign.
     TypedPointer& operator+=(C_u32 const& IndexDelta)
     {
-        __if_exists (TypedRef::IndexScale)
+        //__if_exists (TypedRef::IndexScale)
         {
             ScaledOffset(IndexDelta, TypedRef::IndexScale);
         }
-        __if_not_exists (TypedRef::IndexScale)
-        {
-            ScaledOffset(IndexDelta << TypedRef::IndexShift, RefType_Index_1);
-        }
+       // __if_not_exists (TypedRef::IndexScale)
+        //{
+        //    ScaledOffset(IndexDelta << TypedRef::IndexShift, RefType_Index_1);
+        //}
 
         return *this;
     }

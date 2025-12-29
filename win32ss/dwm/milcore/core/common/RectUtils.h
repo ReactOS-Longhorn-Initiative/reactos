@@ -20,7 +20,7 @@ AreTransformedRectanglesClose(
     __in_ecount(1) const CMilRectF *pFirstRect,
     __in_ecount(1) const CMilRectF *pSecondRect,
     __in_ecount_opt(1) const CMILMatrix *pTransform,
-    __in float closeTolerance
+    _In_ float closeTolerance
     );
 
 BOOL

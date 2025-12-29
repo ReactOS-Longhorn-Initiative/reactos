@@ -45,7 +45,7 @@ public:
 protected:
 
     inline VOID SetCurrentBlock(
-        __in_xcount(static_cast<DataStreamBlock*>(pBlock)->cbWritten + sizeof(DataStreamBlock) - 4) LIST_ENTRY *pBlock
+        _In_reads_(static_cast<DataStreamBlock*>(pBlock)->cbWritten + sizeof(DataStreamBlock) - 4) LIST_ENTRY *pBlock
         )
     {
         //

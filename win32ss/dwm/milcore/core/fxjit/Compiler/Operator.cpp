@@ -86,7 +86,7 @@ COperator::AssembleIrregular(CAssembleContext & actx)
             }
             else
             {
-                actx.cmd(xor, CRegID(gdx), CRegID(gdx), 0, 0);
+                actx.cmd(_xor, CRegID(gdx), CRegID(gdx), 0, 0);
             }
 
             switch (m_refType)
@@ -721,7 +721,7 @@ case otUINT32ImmAssign:
         RegGPR dst  = RegGPRResult();
         if (m_immediateData == 0)
         {
-            actx.cmd(xor, m_rResult, m_rResult);
+            actx.cmd(_xor, m_rResult, m_rResult);
         }
         else
         {

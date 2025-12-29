@@ -306,7 +306,7 @@ void CPSTrans::Initialize(  const DWORD *pCode,
     {
         EXIT_WITH_STATUS(E_FAIL);
     }
-
+{
     FLOAT fMax = FLT_MAX;
     FLOAT fMin = -fMax;
 
@@ -950,7 +950,8 @@ void CPSTrans::Initialize(  const DWORD *pCode,
         }
         // Note the end token.
         pInst->Opcode = D3DPS_END();
-        pInst->ByteOffset = pInst->ByteOffset = (BYTE*)pToken - (BYTE*)m_pCode;
+        //pInst->ByteOffset = pInst->ByteOffset = (BYTE*)pToken - (BYTE*)m_pCode;
+        pInst->ByteOffset = (BYTE*)pToken - (BYTE*)m_pCode; // TODO REACTOS check
         if(pPrevious_NonTrivial_Inst && (pPrevious_NonTrivial_Inst->Opcode & D3DSI_COISSUE))
         {
             pPrevious_NonTrivial_Inst->bFlushQueue = TRUE;
@@ -1036,7 +1037,7 @@ void CPSTrans::Initialize(  const DWORD *pCode,
                     
                     if( pDclInfo->RegNum>2 )
                     {
-                        C_ASSERT((RDATTR_DIFFUSE+4) == RDATTR_SPECULAR);
+                        static_assert((RDATTR_DIFFUSE+4) == RDATTR_SPECULAR, "(RDATTR_DIFFUSE+4) == RDATTR_SPECULAR");
                         WarpError("CPSTrans::Initialize - Unexpected input register number");
                     }
                 }
@@ -1277,7 +1278,7 @@ void CPSTrans::Initialize(  const DWORD *pCode,
                     if( D3DPS_VERSION(2,0) > Version )
                     {
                         // Force a [-1,1] clamp after applying modifier (for constants only)
-                        // This overrides the the standard [-PixelShader1xMaxValue,PixelShader1xMaxValue] clamp.
+                        // This /* override */s the the standard [-PixelShader1xMaxValue,PixelShader1xMaxValue] clamp.
                         // An IHV that supports PixelShader1xMaxValue > 1 forgot to do this for constants.
                         bForceNeg1To1Clamp[i] = TRUE;
                     }
@@ -3841,10 +3842,11 @@ void CPSTrans::Initialize(  const DWORD *pCode,
     {
         NO_DEFAULT;     // CPSTrans::Initialize - Pixel shader contains broken flow control structure."
     }
+}
     m_Status = S_OK;
     return;
 ERROR_EXIT:
-    CPSTrans::~CPSTrans();
+    //CPSTrans::~CPSTrans();
     return;
 }
 

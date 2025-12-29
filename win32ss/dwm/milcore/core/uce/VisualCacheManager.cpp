@@ -24,8 +24,8 @@ MtDefine(CVisualCacheManager, MILRender, "CVisualCacheManager");
 //------------------------------------------------------------------------------
 
 CVisualCacheManager::CVisualCacheManager(
-    __in CComposition *pComposition, 
-    __in CMILFactory *pFactory
+    _In_ CComposition *pComposition, 
+    _In_ CMILFactory *pFactory
     )
 {
     m_pCompositionNoRef = pComposition;
@@ -239,7 +239,7 @@ CVisualCacheManager::NotifyDeviceLost()
 HRESULT
 CVisualCacheManager::GetBaseRenderInterface(
     __deref_out_xcount(1) IRenderTargetInternal **ppIRT
-    DBG_ANALYSIS_COMMA_PARAM(__out CoordinateSpaceId::Enum *pdbgTargetCoordSpaceId)
+    DBG_ANALYSIS_COMMA_PARAM(_Out_ CoordinateSpaceId::Enum *pdbgTargetCoordSpaceId)
     )
 {
     HRESULT hr = S_OK;

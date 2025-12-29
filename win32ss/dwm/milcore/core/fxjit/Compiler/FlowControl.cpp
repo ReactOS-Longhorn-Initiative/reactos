@@ -78,7 +78,9 @@ CProgram::SplitFlow()
     m_fFlowIsSplit = true;
     m_uCurrentFlow = 0;
 }
-
+#ifndef __in_range
+#define __in_range(a,b)
+#endif
 //------------------------------------------------------------------------
 //
 //  Member:

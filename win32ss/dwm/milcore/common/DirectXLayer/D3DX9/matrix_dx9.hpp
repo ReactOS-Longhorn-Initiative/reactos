@@ -7,7 +7,7 @@
 
 #include "matrix_t.hpp"
 #include "dx9layercommon.hpp"
-#include "factories/factory.hpp"
+#include "Factories/factory.hpp"
 
 #include <d3dx9math.h>
 
@@ -83,7 +83,7 @@ namespace dxlayer
         }
 
         // D3DXMatrixDecompose
-        inline std::tuple<vector3_t<dxapi::d3dx9>, quaternion_t<dxapi::d3dx9>, vector3_t<dxapi::d3dx9>> decompose() const
+        inline bool decompose() const
         {
             vector3_t<dxapi::d3dx9> scale;
             quaternion_t<dxapi::d3dx9> rotation;
@@ -95,7 +95,9 @@ namespace dxlayer
                 throw dxlayer_exception(hresult(hResult));
             }
 
-            return std::make_tuple(scale, rotation, translation);
+            // NOTE: Result is not used
+
+            return true;//std::make_tuple(scale, rotation, translation);
         }
 
         // D3DXMatrixDeterminant
@@ -105,7 +107,7 @@ namespace dxlayer
         }
 
         // D3DXMatrixInverse
-        inline matrix_t<dxapi::d3dx9> inverse(__out float& determinant) const
+        inline matrix_t<dxapi::d3dx9> inverse(_Out_ float& determinant) const
         {
             matrix_t<dxapi::d3dx9> result;
             if (D3DXMatrixInverse(&result, &determinant, this) == nullptr)

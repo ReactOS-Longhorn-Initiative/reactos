@@ -36,7 +36,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_MEDIAPLAYER;
     }
@@ -53,8 +53,8 @@ public:
 
     HRESULT
     BeginComposition(
-        __in        bool        displaySetChanged,
-        __out       bool        *pbFrameReady
+        _In_        bool        displaySetChanged,
+        _Out_       bool        *pbFrameReady
         );
 
     HRESULT

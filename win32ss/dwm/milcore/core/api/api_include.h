@@ -52,10 +52,10 @@ class DpiProvider;
 
 // pixel jit
 
-#include "fxjit\public\public.h"
+#include "fxjit/Public/public.h"
 
 // DpiProvider
-#include "uce\DpiProvider.h"
+#include "uce/DpiProvider.h"
 
 /*=========================================================================*\
     Stub implementation header files

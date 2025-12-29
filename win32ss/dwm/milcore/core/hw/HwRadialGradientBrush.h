@@ -50,16 +50,16 @@ public:
 
     // CHwCacheablePoolBrush methods
 
-    override HRESULT SetBrushAndContext(
+    HRESULT SetBrushAndContext(
         __inout_ecount(1) CMILBrush *pBrush,
         __in_ecount(1) const CHwBrushContext &hwBrushContext
-        );
+        ) /* override */;
 
     // IHwPrimaryColorSource methods
 
-    override HRESULT SendOperations(
+    HRESULT SendOperations(
         __inout_ecount(1) CHwPipelineBuilder *pBuilder
-        );
+        ) /* override */;
 };
 
 

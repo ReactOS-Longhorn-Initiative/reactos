@@ -58,7 +58,7 @@ public:
     //
     //-------------------------------------------------------------------------
 
-    override void GetPerVertexDataType(
+    void GetPerVertexDataType(
         __out_ecount(1) MilVertexFormat &mvfFullyGenerated
         ) const
     {
@@ -80,9 +80,9 @@ public:
     //  Synopsis:  Geometry is generated and passed to given sink.
     //
     //------------------------------------------------------------------------
-    override HRESULT SendGeometry(
+    HRESULT SendGeometry(
         __inout_ecount(1) IGeometrySink *pGeomSink
-        );
+        ) /* override */;
 
     //+-----------------------------------------------------------------------
     //
@@ -92,9 +92,9 @@ public:
     //             order to apply anti-aliasing, blend colors, etc.
     //
     //------------------------------------------------------------------------
-    override HRESULT SendGeometryModifiers(
+    HRESULT SendGeometryModifiers(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
-        );
+        ) /* override */;
 
     //+-----------------------------------------------------------------------
     //
@@ -104,7 +104,7 @@ public:
     //             pipeline.
     //
     //------------------------------------------------------------------------
-    override HRESULT SendLighting(
+    HRESULT SendLighting(
         __inout_ecount(1) CHwPipelineBuilder *pPipelineBuilder
         )
     {

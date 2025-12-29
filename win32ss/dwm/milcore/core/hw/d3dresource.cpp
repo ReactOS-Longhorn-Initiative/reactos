@@ -1484,7 +1484,7 @@ CD3DResourceManager::DbgAssertPrevFrameListSorted()
     }
 }
 
-#endif DBG_ANALYSIS
+#endif /* DBG_ANALYSIS */
 
 
 

@@ -24,10 +24,10 @@ MtDefine(CMilBitmapCacheDuce, MILRender, "BitmapCache Resource");
 //-----------------------------------------------------------------------------
 
 CMilBitmapCacheDuce::CMilBitmapCacheDuce(
-    __in CComposition *pComposition,
-    __in double renderAtScale,
-    __in bool snapsToDevicePixels,
-    __in bool enableClearType
+    _In_ CComposition *pComposition,
+    _In_ double renderAtScale,
+    _In_ bool snapsToDevicePixels,
+    _In_ bool enableClearType
     )
 {
     m_pCompositionNoRef = pComposition;
@@ -48,10 +48,10 @@ CMilBitmapCacheDuce::CMilBitmapCacheDuce(
 
 HRESULT 
 CMilBitmapCacheDuce::Create(
-    __in CComposition *pComposition,
-    __in double renderAtScale,
-    __in bool snapsToDevicePixels,
-    __in bool enableClearType,
+    _In_ CComposition *pComposition,
+    _In_ double renderAtScale,
+    _In_ bool snapsToDevicePixels,
+    _In_ bool enableClearType,
     __deref_out CMilBitmapCacheDuce **ppCacheMode
     )
 {

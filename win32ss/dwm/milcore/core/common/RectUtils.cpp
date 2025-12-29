@@ -31,7 +31,7 @@ AreTransformedRectanglesClose(
     __in_ecount_opt(1) const CMILMatrix *pTransform,
         // Transform to apply to both rectangles before determining how close they are
         // to each other.
-    __in float closeTolerance
+    _In_ float closeTolerance
         // The maximum distance the mapped rectangle edges can be before they are no
         // longer 'close'.
     )

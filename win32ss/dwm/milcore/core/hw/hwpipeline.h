@@ -400,7 +400,7 @@ public:
         : CHwPipeline(pDevice)
     {};
 
-    override HRESULT InitializeForRendering(
+    HRESULT InitializeForRendering(
         MilCompositingMode::Enum CompositingMode,
         __inout_ecount(1) IGeometryGenerator *pGeometryGenerator,
         __inout_ecount(1) IHwPrimaryColorSource *pIPCS,
@@ -408,7 +408,7 @@ public:
         __in_ecount(1) const CHwBrushContext    *pEffectContext,
         __in_ecount_opt(1) const CMILSurfaceRect *prcOutsideBounds = NULL,
         bool fNeedInside = true
-        );
+        ) /* override */;
 
 private:
     HRESULT SendRenderStates();
@@ -416,9 +416,9 @@ private:
         __in_ecount(1) HwPipelineItem &oFFItem
         );
     
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         __in_ecount_opt(1) const CHwVertexBuffer *pVB
-        );
+        ) /* override */;
 };
 
 
@@ -450,7 +450,7 @@ public:
 
     ~CHwShaderPipeline();
 
-    override HRESULT InitializeForRendering(
+    HRESULT InitializeForRendering(
         MilCompositingMode::Enum CompositingMode,
         __inout_ecount(1) IGeometryGenerator *pGeometryGenerator,
         __inout_ecount(1) IHwPrimaryColorSource *pIPCS,
@@ -458,7 +458,7 @@ public:
         __in_ecount(1) const CHwBrushContext    *pEffectContext,
         __in_ecount_opt(1) const CMILSurfaceRect *prcOutsideBounds,
         bool fNeedInside
-        );
+        ) /* override */;
 
     HRESULT ReInitialize(
         MilCompositingMode::Enum CompositingMode,
@@ -473,15 +473,15 @@ public:
         __in_ecount(1) const CD3DDeviceLevel1 *pDevice
         );
 
-    override HRESULT Execute();
+    HRESULT Execute() /* override */;
 
 private:
     CHwPipelineShader *m_pPipelineShader;
     bool m_f2D;
 
-    override HRESULT SendDeviceStates(
+    HRESULT SendDeviceStates(
         __in_ecount_opt(1) const CHwVertexBuffer *pVB
-        );
+        ) /* override */;
 
 };
 

@@ -98,9 +98,9 @@ CDWriteFactory::Shutdown()
 //------------------------------------------------------------------------------
 HRESULT 
 CDWriteFactory::DWriteCreateFactory(
-    __in DWRITE_FACTORY_TYPE factoryType,
-    __in REFIID iid,
-    __out IUnknown **factory
+    _In_ DWRITE_FACTORY_TYPE factoryType,
+    _In_ REFIID iid,
+    _Out_ IUnknown **factory
     )
 {
     HRESULT hr = S_OK;
@@ -113,7 +113,7 @@ CDWriteFactory::DWriteCreateFactory(
             void *pfnDWriteCreateFactory = NULL;
             
             m_hDWriteLibrary = WPFUtils::LoadDWriteLibraryAndGetProcAddress(&pfnDWriteCreateFactory);
-            m_pfnDWriteCreateFactory = static_cast<DWRITECREATEFACTORY>(pfnDWriteCreateFactory);
+            m_pfnDWriteCreateFactory = reinterpret_cast<DWRITECREATEFACTORY>(pfnDWriteCreateFactory);
             
             IFCNULL(m_hDWriteLibrary);
             IFCNULL(m_pfnDWriteCreateFactory);   
@@ -126,4 +126,19 @@ Cleanup:
     RRETURN(hr);
 }
 
+namespace WPFUtils
+{
+
+HMODULE LoadDWriteLibraryAndGetProcAddress(void **pfncptrDWriteCreateFactory)
+{
+    HMODULE hDWriteLibrary = LoadLibraryEx(L"dwrite.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (hDWriteLibrary)
+    {
+        *pfncptrDWriteCreateFactory = (void*)GetProcAddress(hDWriteLibrary, "DWriteCreateFactory");
+    }
+
+    return hDWriteLibrary;
+}
+
+}// namespace WPFUtils
 

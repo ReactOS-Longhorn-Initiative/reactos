@@ -26,7 +26,7 @@ interface IMediaDeviceConsumer;
 
 MtExtern(CD3DDeviceLevel1);
 
-#include "uce\global.h"
+#include "uce/global.h"
 
 #define NUM_PRESENTS_BEFORE_GPU_MARKER_FLUSH 3
 
@@ -360,12 +360,12 @@ public:
         );
 
     HRESULT CreateVertexShader(
-        __in const DWORD *pdwfnVertexShader,
+        _In_ const DWORD *pdwfnVertexShader,
         __deref_out_ecount(1) IDirect3DVertexShader9 ** const ppOutShader
         );
 
     HRESULT CreatePixelShader(
-        __in const DWORD *pdwfnPixelShader,
+        _In_ const DWORD *pdwfnPixelShader,
         __deref_out_ecount(1) IDirect3DPixelShader9 **const ppOutShader
         );
 
@@ -379,13 +379,13 @@ public:
         UINT uWidth,
         UINT uHeight,
         D3DFORMAT fmtTexture,
-        __in_xcount_opt(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
+        _In_opt_count_(uWidth * uHeight * D3DFormatSize(fmtTexture)) void *pvPixels,
         __deref_out_ecount(1) IDirect3DSurface9 ** const ppD3DSysMemSurface
         );
 
     HRESULT CreateSysMemReferenceTexture(
         __in_ecount(1) const D3DSURFACE_DESC *pSurfDesc,
-        __in_xcount(
+        _In_reads_(
             pSurfDesc->Width * pSurfDesc->Height
             * D3DFormatSize(pSurfDesc->Format)
             ) void *pvPixels,
@@ -681,15 +681,15 @@ public:
     HRESULT DrawIndexedTriangleListUP(
         __range(1, UINT_MAX) UINT uNumVertices,
         __range(1, UINT_MAX) UINT uPrimitiveCount,
-        __in_xcount(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
-        __in const void* pVertexStreamZeroData,
+        _In_reads_(sizeof(WORD) * uPrimitiveCount * 3) const WORD* pIndexData,
+        _In_ const void* pVertexStreamZeroData,
         __range(1, UINT_MAX) UINT uVertexStreamZeroStride
         );
 
     HRESULT DrawPrimitiveUP(
         D3DPRIMITIVETYPE primitiveType,
         UINT uPrimitiveCount,
-        __in_xcount(
+        _In_reads_(
             //
             // Vertex counts are:
             //
@@ -756,7 +756,7 @@ public:
     }
 
 #if DBG==1
-    static void DbgTraceDeviceCreationFailure(UINT uAdapter, __in PCSTR szMessage, HRESULT hrError);
+    static void DbgTraceDeviceCreationFailure(UINT uAdapter, _In_ PCSTR szMessage, HRESULT hrError);
     const IDirect3DDevice9* DbgGetID3DDevice9() const { return m_pD3DDevice; }
 #endif
 
@@ -822,7 +822,7 @@ private:
     HRESULT DrawLargePrimitiveUP(
         D3DPRIMITIVETYPE primitiveType,
         UINT uPrimitiveCount,
-        __in_xcount(
+        _In_reads_(
             //
             // Vertex counts are:
             //
@@ -1100,7 +1100,7 @@ private:
     bool m_fDbgInStepRenderingPresent;
     CD3DSurface *m_pDbgSaveSurface;
 
-#endif DBG_STEP_RENDERING
+#endif /* DBG_STEP_RENDERING */
 
 #if DBG
 public:
@@ -1114,7 +1114,7 @@ private:
 
     // Rendering stats
     CD3DStats m_d3dStats;
-#endif DBG
+#endif /* DBG */
 
 
 public: 

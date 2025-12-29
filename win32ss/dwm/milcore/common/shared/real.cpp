@@ -18,7 +18,7 @@
 
 CFloatFPU::CFloatFPU()
 {
-    #if defined(_X86_)
+    #if 0//defined(_X86_)
     
         WORD wSaveState;
 
@@ -68,7 +68,7 @@ CFloatFPU::~CFloatFPU()
 //        InterlockedDecrement(&m_cNesting);
     #endif
     
-    #if defined(_X86_)
+    #if 0//defined(_X86_)
 
         WORD wSaveState = m_wFPUControl;
 
@@ -152,7 +152,7 @@ void CFloatFPU::AssertMode()
 void
 CFloatFPU::AssertPrecisionAndRoundingMode()
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
     // Future Consideration:   X64 and X86 floating point consistency
     //  The assembly is also supported on X64 platforms and we should consider
     //  consistency.
@@ -182,7 +182,7 @@ CFloatFPU::AssertPrecisionAndRoundingMode()
 void
 CFloatFPU::AssertRoundingMode()
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
     // Future Consideration:   X64 and X86 floating point consistency
     //  The assembly is also supported on X64 platforms and we should consider
     //  consistency.
@@ -204,7 +204,7 @@ LONG CFloatFPU::m_cNesting = 0;
 
 CDoubleFPU::CDoubleFPU()
 {
-    #if defined(_X86_)
+    #if 0//defined(_X86_)
     
         WORD wSaveState;
 
@@ -254,7 +254,7 @@ CDoubleFPU::~CDoubleFPU()
         InterlockedDecrement(&m_cNesting);
     #endif
     
-    #if defined(_X86_)
+    #if 0//defined(_X86_)
 
         WORD wSaveState = m_wFPUControl;
 
@@ -298,7 +298,7 @@ void CDoubleFPU::AssertMode()
 {
     AssertMsg(m_cNesting >= 1, "FPU mode not set via CDoubleFPU class");
     
-    #if defined(_X86_)
+    #if 0//defined(_X86_)
 
     UINT32 tempState;
     
@@ -328,6 +328,7 @@ LONG CDoubleFPU::m_cNesting = 0;
 
 void CDoubleFPU::AssertMode() 
 {
+    return;
     #if defined(_X86_)
     #if FREE_BUILD_FP_BARRIER
     _asm fwait
@@ -380,7 +381,7 @@ GpRealInstrinsics::Pow(
     
     // CDoubleFPU::AssertMode();
 
-#if defined(_X86_)
+#if 0 // defined(_X86_)
     
     static const double fphalf = 0.5;
     static const double fpone = 1.0;
@@ -556,7 +557,7 @@ REAL GpModF(REAL x, REAL y)
 //-------------------------------------------------------------------------
 int CFloatFPU::LargeRound(float x)
 {
-#if defined(_X86_)
+#if 0//defined(_X86_)
     if (CCPUInfo::HasSSE())
     {
         FI fi;
@@ -578,7 +579,7 @@ int CFloatFPU::LargeRound(float x)
         return RoundWithHalvesUp(x);
     }
     
-#elif defined(_AMD64_)
+#elif 0// defined(_AMD64_)
     __m128 given = _mm_set_ss(x);                       // load given value
     __int32 result = _mm_cvtss_si32(given);             // convert it to integer (rounding mode doesn't matter)
     __m128 rounded = _mm_cvtsi32_ss(rounded, result);   // convert back to float
@@ -593,7 +594,7 @@ int CFloatFPU::LargeRound(float x)
 #endif
 }
 
-#if defined(_X86_)
+#if 0 //defined(_X86_)
 
 //+------------------------------------------------------------------------
 //
@@ -611,7 +612,7 @@ int CFloatFPU::LargeRound(float x)
 //-------------------------------------------------------------------------
 int CFloatFPU::LargeFloor(float x)
 {
-    if (CCPUInfo::HasSSE())
+    /*if (CCPUInfo::HasSSE())
     {
         FI fi;
         __asm
@@ -625,8 +626,8 @@ int CFloatFPU::LargeFloor(float x)
         }
     }
     else
-    {
-        int i = RoundWithHalvesToEven(x);
+    {*/
+        int i = floor(x);//RoundWithHalvesToEven(x);
 
         if (static_cast<float>(i) > x)
         {
@@ -634,7 +635,7 @@ int CFloatFPU::LargeFloor(float x)
         }
 
         return i;
-    }
+    //}
 }
 
 //+------------------------------------------------------------------------
@@ -653,7 +654,7 @@ int CFloatFPU::LargeFloor(float x)
 //-------------------------------------------------------------------------
 int CFloatFPU::LargeCeiling(float x)
 {
-    if (CCPUInfo::HasSSE())
+    /*if (CCPUInfo::HasSSE())
     {
         FI fi;
         __asm
@@ -667,8 +668,8 @@ int CFloatFPU::LargeCeiling(float x)
         }
     }
     else
-    {
-        int i = RoundWithHalvesToEven(x);
+    {*/
+        int i = ceil(x);//RoundWithHalvesToEven(x);
 
         if (static_cast<float>(i) < x)
         {
@@ -676,7 +677,7 @@ int CFloatFPU::LargeCeiling(float x)
         }
 
         return i;
-    }
+    //}
 }
 
 #endif

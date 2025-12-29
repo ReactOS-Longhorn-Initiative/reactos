@@ -55,8 +55,8 @@ public:
         __deref_opt_inout_ecount(1) HANDLE * const pSharedHandle
         );
 
-    override virtual HRESULT Realize(
-        );
+    virtual HRESULT Realize(
+        ) /* override */;
 
     //
     // Query methods
@@ -98,7 +98,7 @@ public:
         );
 
     virtual HRESULT UpdateSurface(
-        __in UINT cDirtyRects,
+        _In_ UINT cDirtyRects,
         __in_ecount(cDirtyRects) const CMilRectU *prgDirtyRects,
         __in_ecount(1) IDirect3DSurface9 *pISrcSurface
         );
@@ -118,10 +118,10 @@ protected:
     virtual ~CHwDeviceBitmapColorSource();
     
     static HRESULT GetRealizationDesc(
-        __in IWGXBitmap *pBitmap,
+        _In_ IWGXBitmap *pBitmap,
         MilPixelFormat::Enum fmt,
-        __in const CMilRectU &rcBoundsRequired,
-        __out CacheParameters &oRealizationDesc
+        _In_ const CMilRectU &rcBoundsRequired,
+        _Out_ CacheParameters &oRealizationDesc
         );
 
     HRESULT Init(
@@ -173,7 +173,7 @@ private:
 
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CHwDeviceBitmapColorSource));
     
-    override HRESULT GetPointerToValidSourceRects(
+    HRESULT GetPointerToValidSourceRects(
         __in_ecount_opt(1) IWGXBitmap *pBitmap,
         __out_ecount(1) UINT &cValidSourceRects,
         __deref_out_ecount_full(cValidSourceRects) CMilRectU const * &rgValidSourceRects

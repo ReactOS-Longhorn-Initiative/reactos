@@ -320,7 +320,7 @@ CDeviceAlignedIntermediateRealizer::AdjustSurfaceSizeAndMappingForMaxIntermediat
 {
     Assert(*puSize > 0);
 
-    C_ASSERT(IS_POWER_OF_2(MAX_TILEBRUSH_INTERMEDIATE_SIZE));
+    static_assert(IS_POWER_OF_2(MAX_TILEBRUSH_INTERMEDIATE_SIZE), "IS_POWER_OF_2(MAX_TILEBRUSH_INTERMEDIATE_SIZE)");
 
     //
     // Cap the size at the MAX_TILEBRUSH_INTERMEDIATE_SIZE to avoid creating intermediates

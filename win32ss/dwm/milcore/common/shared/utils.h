@@ -218,7 +218,7 @@ AssertOrderedDiffValid(
     TBase end
     )
 {
-#if DBG
+#if 0 // TODO remove __if_exists
     typedef TypeProperties<TBase> TBaseTraitMap;
 
     // This assert is only for overflow and not underflow; so assert that
@@ -393,18 +393,18 @@ InterlockedDecrementULONG(
 }
 
 
-inline int RectWidth(__in const RECT &rc)
+inline int RectWidth(_In_ const RECT &rc)
 {
     return max(0L, rc.right - rc.left);
 }
 
-inline int RectHeight(__in const RECT &rc)
+inline int RectHeight(_In_ const RECT &rc)
 {
     return max(0L, rc.bottom - rc.top);
 }
 
 
-inline bool IsRectEmpty(__in const RECT &rc)
+inline bool IsRectEmpty(_In_ const RECT &rc)
 {
     return ((rc.right <= rc.left) || (rc.bottom <= rc.top));
 }
@@ -439,7 +439,7 @@ inline bool operator!=(const LUID &l1, const LUID &l2)
 inline UINT64 WrapHandleInUInt64(HANDLE handle)
 {
     // Note: this conversion is always safe by the assertion below
-    C_ASSERT(sizeof(HANDLE) <= sizeof(UINT64));
+    static_assert(sizeof(HANDLE) <= sizeof(UINT64), "sizeof(HANDLE) <= sizeof(UINT64)");
 
     return static_cast<UINT64>(reinterpret_cast<UINT_PTR>(handle));
 }
@@ -458,7 +458,7 @@ inline UINT64 WrapHandleInUInt64(HANDLE handle)
 inline HANDLE UnwrapHandleFromUInt64(UINT64 handle)
 {
     // Note: Win32 handles take 32-bit values only. Convert larger values to INVALID_HANDLE_VALUE...
-    C_ASSERT((sizeof(HANDLE) == sizeof(UINT32)) || (sizeof(HANDLE) == sizeof(UINT64)));
+    static_assert((sizeof(HANDLE) == sizeof(UINT32)) || (sizeof(HANDLE) == sizeof(UINT64)), "(sizeof(HANDLE) == sizeof(UINT32)) || (sizeof(HANDLE) == sizeof(UINT64))");
 
     return (handle <= UINT_MAX)
         ? reinterpret_cast<HANDLE>(static_cast<UINT_PTR>(handle))

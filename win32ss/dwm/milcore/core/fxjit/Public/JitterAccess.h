@@ -32,7 +32,7 @@ public:
     static UINT8* AllocFlushMemory(UINT32 cbSize);
     static __checkReturn HRESULT Compile(__deref_out UINT8 **ppBinaryCode);
     static UINT32 GetCodeSize();
-    static void CodeFree(__in void *pBinaryCode);
+    static void CodeFree(_In_ void *pBinaryCode);
 
     static void SplitFlow();
     static void SetFlow(UINT32 uFlowID);

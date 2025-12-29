@@ -46,7 +46,7 @@ CMilPerspectiveCameraDuce::~CMilPerspectiveCameraDuce()
 //      any camera animations.
 //
 //------------------------------------------------------------------------------
-/* override */ HRESULT CMilPerspectiveCameraDuce::GetProjectionTransform(
+HRESULT CMilPerspectiveCameraDuce::GetProjectionTransform(
     const double aspectRatio,
     const float flNearPlaneDistance,
     const float flFarPlaneDistance,
@@ -108,7 +108,7 @@ CMilPerspectiveCameraDuce::~CMilPerspectiveCameraDuce()
 //
 //------------------------------------------------------------------------------
 
-/* override */ HRESULT CMilPerspectiveCameraDuce::GetViewTransform(
+HRESULT CMilPerspectiveCameraDuce::GetViewTransform(
     __out_ecount(1) CMILMatrix *pViewMatrixOut) const
 {
     HRESULT hr = S_OK;
@@ -141,7 +141,7 @@ Cleanup:
 //
 //------------------------------------------------------------------------------
 
-/* override */ HRESULT CMilPerspectiveCameraDuce::EnsureClippingPlaneDistance(
+HRESULT CMilPerspectiveCameraDuce::EnsureClippingPlaneDistance(
     __inout_ecount(1) float &flNearPlane,
     __inout_ecount(1) float &flFarPlane
     ) const
@@ -205,7 +205,7 @@ Cleanup:
     RRETURN(S_OK);
 }
 
-/* override */ HRESULT CMilPerspectiveCameraDuce::ApplyToContextState(
+HRESULT CMilPerspectiveCameraDuce::ApplyToContextState(
     __inout_ecount(1) CContextState *pCtxState,     // Context state to modify
     const float flViewportWidth,
     const float flViewportHeight,

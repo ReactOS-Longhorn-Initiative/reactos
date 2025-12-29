@@ -115,7 +115,7 @@ public:
         // Flattening tolerance 
 
     void SetPoint(
-        __in UINT i,
+        _In_ UINT i,
             // index of the point (must be between 0 and 3)
         __in_ecount(1) const GpPointR &pt)
             // point value

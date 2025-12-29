@@ -169,7 +169,7 @@ public:
     }
 
 protected:
-    // Allow A line shape to override the corresponding line cap
+    // Allow A line shape to /* override */ the corresponding line cap
     friend class CPlainPen;
 
     // Data

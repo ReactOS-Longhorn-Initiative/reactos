@@ -46,11 +46,11 @@ public:
         );
 
     HRESULT Init(
-        __in UINT nWidth,
-        __in UINT nHeight,
-        __in MilPixelFormat::Enum pxlFormat,
-        __in BOOL fClear = FALSE,
-        __in BOOL fIsDynamic = FALSE
+        _In_ UINT nWidth,
+        _In_ UINT nHeight,
+        _In_ MilPixelFormat::Enum pxlFormat,
+        _In_ BOOL fClear = FALSE,
+        _In_ BOOL fIsDynamic = FALSE
         );
 
     HRESULT UnsafeUpdateFromSource(
@@ -64,7 +64,7 @@ public:
 
     STDMETHOD(Lock)(
         __in_ecount_opt(1) IN const WICRect *prcLock,
-        __in DWORD dwFlags,
+        _In_ DWORD dwFlags,
         __deref_out_ecount(1) IWGXBitmapLock **ppILock
         );
 
@@ -103,12 +103,12 @@ public:
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CClientMemoryBitmap));
 
     HRESULT HrInit(
-        __in UINT nWidth,
-        __in UINT nHeight,
-        __in MilPixelFormat::Enum pxlFormat,
-        __in UINT cbBufferSize,
+        _In_ UINT nWidth,
+        _In_ UINT nHeight,
+        _In_ MilPixelFormat::Enum pxlFormat,
+        _In_ UINT cbBufferSize,
         __in_bcount(cbBufferSize) void *pvPixels,
-        __in UINT cbStride
+        _In_ UINT cbStride
         );
 };
 
@@ -123,9 +123,9 @@ protected:
 
 public:
     CDummySource(
-        __in UINT nWidth,
-        __in UINT nHeight,
-        __in MilPixelFormat::Enum pxlFormat
+        _In_ UINT nWidth,
+        _In_ UINT nHeight,
+        _In_ MilPixelFormat::Enum pxlFormat
         );
     virtual ~CDummySource();
     DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CDummySource));
@@ -138,8 +138,8 @@ public:
 
     STDMETHOD(CopyPixels)(
         __in_ecount_opt(1) const MILRect *prc,
-        __in UINT cbStride,
-        __in UINT cbBufferSize,
+        _In_ UINT cbStride,
+        _In_ UINT cbBufferSize,
         __out_ecount(cbBufferSize) BYTE *pbPixels
         );
 

@@ -1,0 +1,4 @@
+add_subdirectory(Collector)
+add_subdirectory(Compiler)
+add_subdirectory(PixelShader)
+add_subdirectory(Platform)

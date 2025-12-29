@@ -68,7 +68,7 @@ BOOL CMILMatrix::Invert()
         *this = this->inverse();
         success = true;
     }
-    catch (dxlayer_exception)
+    catch (const dxlayer::dxlayer_exception&)
     {
         // do nothing
     }

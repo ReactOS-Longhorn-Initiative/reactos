@@ -1091,15 +1091,15 @@ CMilPoint2F::Unitize()
 //------------------------------------------------------------------------------
 bool
 CRealFunction::SolveNewtonRaphson(
-    __in double from,
+    _In_ double from,
         // The start of the search interval
-    __in double to,
+    _In_ double to,
         // The end of the search interval
-    __in double seed,
+    _In_ double seed,
         // Initial guess
-    __in double   delta,
+    _In_ double   delta,
         // Convergence is assumed when consecutive guesses are less than this
-    __in double   epsilon,
+    _In_ double   epsilon,
         // Convergence is assumed when the function value is less than this
     __out_ecount(1) double &root
         // The root
@@ -1196,15 +1196,15 @@ CRealFunction::SolveNewtonRaphson(
 //------------------------------------------------------------------------------
 bool
 CIncreasingFunction::SolveNewtonRaphson(
-    __in double from,
+    _In_ double from,
         // The start of the search interval
-    __in double to,
+    _In_ double to,
         // The end of the search interval
-    __in double seed,
+    _In_ double seed,
         // Initial guess
-    __in double   delta,
+    _In_ double   delta,
         // Convergence is assumed when consecutive guesses are less than this
-    __in double   epsilon,
+    _In_ double   epsilon,
         // Convergence is assumed when the function value is less than this
     __out_ecount(1) double &root
         // The root

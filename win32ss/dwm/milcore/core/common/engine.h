@@ -42,9 +42,9 @@ FillMemoryInt32(
     }
 }
 
-HRESULT GetAvalonRegistrySettingsKey(__out HKEY *phRegSettings, BOOL fCurrentUser = TRUE);
+HRESULT GetAvalonRegistrySettingsKey(_Out_ HKEY *phRegSettings, BOOL fCurrentUser = TRUE);
 #if PRERELEASE
-HRESULT GetDWMRegistrySettingsKey(__out HKEY *phRegSettings);
+HRESULT GetDWMRegistrySettingsKey(_Out_ HKEY *phRegSettings);
 #endif
 
 /**************************************************************************\
@@ -57,8 +57,8 @@ HRESULT GetDWMRegistrySettingsKey(__out HKEY *phRegSettings);
 \**************************************************************************/
 
 bool RegReadDWORD(
-    __in HKEY hKey, 
-    __in PCWSTR pName, 
+    _In_ HKEY hKey, 
+    _In_ PCWSTR pName, 
     __inout_ecount(1) DWORD *pValue
     );
 

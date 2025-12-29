@@ -202,8 +202,8 @@ BOOL Bezier32::bInit(
     *((BEZIERCONTROLS*) aptfx) = *((BEZIERCONTROLS*) aptfxBez);
 
     {
-        register INT fxOr;
-        register INT fxOffset;
+        INT fxOr;
+        INT fxOffset;
 
         fxOffset = rcfxBound.left;
         fxOr  = (aptfx[0].x -= fxOffset);
@@ -236,7 +236,7 @@ BOOL Bezier32::bInit(
     {
         for ( ; ; )
         {
-            register LONG lTestMagnitude = HFD32_INITIAL_TEST_MAGNITUDE << cShift;
+            LONG lTestMagnitude = HFD32_INITIAL_TEST_MAGNITUDE << cShift;
 
             if (x.lError() <= lTestMagnitude && y.lError() <= lTestMagnitude)
                 break;

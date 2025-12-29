@@ -26,30 +26,30 @@ public:
         UINT uVersion
         );
     
-    override ~CInteropDeviceBitmap();
+    ~CInteropDeviceBitmap() /* override */;
     
     static HRESULT Create(
-        __in IUnknown *pIUserSurface,
+        _In_ IUnknown *pIUserSurface,
         __in_range(0, DBL_MAX) double dpiX,
         __in_range(0, DBL_MAX) double dpiY,
         UINT uVersion,
-        __in FrontBufferAvailableCallbackPtr pfnAvailable,
+        _In_ FrontBufferAvailableCallbackPtr pfnAvailable,
         bool isSoftwareFallbackEnabled,
         __deref_out CInteropDeviceBitmap **ppInteropDeviceBitmap
         );
 
-    HRESULT AddUserDirtyRect(__in const CMilRectU &rc);
+    HRESULT AddUserDirtyRect(_In_ const CMilRectU &rc);
 
     HRESULT Present();
 
     void Detach();
 
-    override void NotifyAdapterStatus(UINT uAdapter, bool fIsValid);
+    void NotifyAdapterStatus(UINT uAdapter, bool fIsValid) /* override */;
 
-    override bool TryCreateDependentDeviceColorSource(
-        __in const LUID &luidNewDevice,
-        __in CHwBitmapCache *pNewCache
-        );
+    bool TryCreateDependentDeviceColorSource(
+        _In_ const LUID &luidNewDevice,
+        _In_ CHwBitmapCache *pNewCache
+        ) /* override */;
 
     bool IsHwRenderingDisabled() const { CGuard<CCriticalSection> oGuard(m_cs); return m_fIsHwRenderingDisabled; }
     bool IsSoftwareFallbackEnabled() const { CGuard<CCriticalSection> oGuard(m_cs); return m_fIsSoftwareFallbackEnabled; }
@@ -72,22 +72,22 @@ protected:
     
     CInteropDeviceBitmap(
         UINT uVersion,
-        __in FrontBufferAvailableCallbackPtr pfnAvailable,
+        _In_ FrontBufferAvailableCallbackPtr pfnAvailable,
         bool isSoftwareFallbackEnabled,
         __in_range(0, SURFACE_RECT_MAX) UINT uWidth,
         __in_range(0, SURFACE_RECT_MAX) UINT uHeight,
         MilPixelFormat::Enum fmtPixel,
         FrontBufferUpdateMethod oUpdateMethod,
         UINT uAdapter,
-        __in IDirect3DSurface9 *pUserSurface
+        _In_ IDirect3DSurface9 *pUserSurface
         );
 
 private:
     
     static FrontBufferUpdateMethod GetUpdateMethod(
-        __in IDirect3DDevice9 *pID3DDevice,
+        _In_ IDirect3DDevice9 *pID3DDevice,
         __in_opt const IDirect3DDevice9Ex *pID3DDeviceEx,
-        __in IDirect3DSurface9 *pID3DSurface
+        _In_ IDirect3DSurface9 *pID3DSurface
         );
     
     HRESULT UpdateFrontBuffer();

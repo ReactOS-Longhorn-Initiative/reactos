@@ -15,7 +15,7 @@
 //  $ENDTAG
 //
 //------------------------------------------------------------------------------
-
+#if 0
 MtExtern(CMilOrthographicCameraDuce);
 
 // Class: CMilOrthographicCameraDuce
@@ -36,7 +36,7 @@ protected:
 
 public:
 
-    override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_ORTHOGRAPHICCAMERA || CMilProjectionCameraDuce::IsOfType(type);
     }
@@ -47,18 +47,18 @@ public:
         );
 
     HRESULT RegisterNotifiers(__in_ecount(1) CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
-    override HRESULT GetProjectionTransform(
+    /* override */ HRESULT GetProjectionTransform(
         const double aspectRatio,
         const float flNearPlaneDistance,
         const float flFarPlaneDistance,
         __out_ecount(1) CMILMatrix *pProjectionMatrixOut) const;
 
-    override virtual HRESULT GetViewTransform(
+    /* override */ virtual HRESULT GetViewTransform(
         __out_ecount(1) CMILMatrix *pViewMatrixOut) const;
 
-    override virtual HRESULT ApplyToContextState(
+    /* override */ virtual HRESULT ApplyToContextState(
         __inout_ecount(1) CContextState *pCtxState,     // Context state to modify
         const float flViewportWidth,
         const float flViewportHeight,
@@ -68,7 +68,7 @@ public:
         __out_ecount(1) bool &fRenderRequiredOut
         ) const;
 
-    override virtual HRESULT SynchronizeAnimations()
+    /* override */ virtual HRESULT SynchronizeAnimations()
     {
         return SynchronizeAnimatedFields();
     }
@@ -76,7 +76,7 @@ public:
     HRESULT SynchronizeAnimatedFields();
 
 protected:    
-    override HRESULT EnsureClippingPlaneDistance(
+    /* override */ HRESULT EnsureClippingPlaneDistance(
         __inout_ecount(1) float &flNearPlane,
         __inout_ecount(1) float &flFarPlane
         ) const;
@@ -86,3 +86,4 @@ public:
 
 };
 
+#endif

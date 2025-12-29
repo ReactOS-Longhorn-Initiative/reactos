@@ -37,7 +37,7 @@ inline void
 CCompactFigure::ComputeBoundsOfPoints(
     __in_ecount(cPoints) const MilPoint2F *points,
         // Points to compute bounds of
-    __in UINT cPoints,
+    _In_ UINT cPoints,
         // Number of points
     __out_ecount(1) MilRectF &rect
         // Resultant bounds
@@ -401,11 +401,11 @@ CRectangle::GetTightBounds(
     // The pen (NULL OK but not optional)
     __in_ecount_opt(1) const CMILMatrix *pMatrix,
     // Transformation (NULL OK but not optional)
-    __in double rTolerance, 
+    _In_ double rTolerance, 
     // Error tolerance (optional)
-    __in bool fRelative,
+    _In_ bool fRelative,
     // True if the tolerance is relative (optional)       
-    __in bool fSkipHollows) const
+    _In_ bool fSkipHollows) const
     // If true, skip non-fillable figures when computing fill bounds (optional)       
 {
     HRESULT hr = S_OK;
@@ -506,9 +506,9 @@ HRESULT
 CRectangle::WidenToShape(
         __in_ecount(1) const  CPlainPen &pen,
             // The pen
-        __in double           rTolerance,
+        _In_ double           rTolerance,
             // Flattening tolerance
-        __in bool             fRelative,
+        _In_ bool             fRelative,
             // True if the tolerance is relative       
         __in_ecount(1) CShape &widened,
             // The widened shape, populated here

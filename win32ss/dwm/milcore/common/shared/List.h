@@ -138,7 +138,7 @@ public:
         // it is removed from the list.
         //
 
-        __if_exists (TEntry::MarkAsUnlisted)
+        //__if_exists (TEntry::MarkAsUnlisted)
         {
             pEntry->MarkAsUnlisted();
         }
@@ -165,7 +165,7 @@ public:
         // it is removed from the list.
         //
 
-        __if_exists (TEntry::MarkAsUnlisted)
+        //__if_exists (TEntry::MarkAsUnlisted)
         {
             pEntry->MarkAsUnlisted();
         }

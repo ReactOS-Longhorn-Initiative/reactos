@@ -53,7 +53,7 @@ CSWGlyphRunPainter::Init(
     Assert(pars.pContextState);
     DisplaySettings const * pDisplaySettings = pars.pContextState->GetCurrentOrDefaultDisplaySettings();
     Assert(pDisplaySettings);
-
+{
     m_flEffectAlpha = flEffectAlpha;
 
     *pfVisible = super::Init(
@@ -234,7 +234,7 @@ CSWGlyphRunPainter::Init(
 
     IFC(pars.pGlyphRun->GetGammaTable(pDisplaySettings, &m_pGammaTable));
     Assert(m_pGammaTable);
-
+}
 Cleanup:
     RRETURN(hr);
 }

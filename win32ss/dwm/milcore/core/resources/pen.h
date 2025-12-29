@@ -63,7 +63,7 @@ protected:
 
 public:
 
-    __override virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
         return type == TYPE_PEN;
     }
@@ -74,7 +74,7 @@ public:
         );
 
     HRESULT RegisterNotifiers(CMilSlaveHandleTable *pHandleTable);
-    override void UnRegisterNotifiers();
+    /* override */ void UnRegisterNotifiers();
 
 public:
     virtual HRESULT GetPen(__deref_out_ecount(1) CMilPenRealization **pRealization);
@@ -83,7 +83,7 @@ public:
 
 protected:
     
-    override BOOL OnChanged(
+    /* override */ BOOL OnChanged(
         CMilSlaveResource *pSender,
         NotificationEventArgs::Flags e
         )    

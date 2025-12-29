@@ -107,7 +107,7 @@ public:
 //------------------------------------------------------------------------------
 __checkReturn HRESULT
 CLocator::Init(
-    __in CProgram * pProgram
+    _In_ CProgram * pProgram
     )
 {
     HRESULT hr = S_OK;

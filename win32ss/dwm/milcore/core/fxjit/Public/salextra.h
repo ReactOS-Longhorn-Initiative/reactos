@@ -12,7 +12,7 @@
 //      Includes SAL defines not in the public sal.h.
 //
 
-#include <codeanalysis/sourceannotations.h>  // TEMPORARY INCLUDE
+//#include <codeanalysis/sourceannotations.h>  // TEMPORARY INCLUDE
 
 #if !defined(MIDL_PASS) && defined(_PREFAST_) && _MSC_VER >= 1000 
 
@@ -45,7 +45,7 @@
 #endif
 
 #ifndef __in_xcount
-#define __in_xcount(x)            __in __pre __inexpressible_readableTo(size)
+#define _In_reads_(x)            _In_ __pre __inexpressible_readableTo(size)
 #endif
 
 #ifndef __RPC_unique_pointer
@@ -65,19 +65,19 @@
 #endif
 
 #ifndef __RPC__out
-#define __RPC__out                                  __out
+#define __RPC_Out_                                  __out
 #endif
 
 #ifndef __RPC__in
-#define __RPC__in                                  __in
+#define __RPC_In_                                  __in
 #endif
 
 #ifndef __RPC__in_opt
-#define __RPC__in_opt                               __RPC__in __pre __exceptthat __maybenull
+#define __RPC__in_opt                               __RPC_In_ __pre __exceptthat __maybenull
 #endif
 
 #ifndef __RPC__in_ecount
-#define __RPC__in_ecount(size)                      __RPC__in __pre __elem_readableTo(size)
+#define __RPC__in_ecount(size)                      __RPC_In_ __pre __elem_readableTo(size)
 #endif
 
 #ifndef __RPC__in_ecount_full
@@ -141,7 +141,7 @@
 #endif
 
 #ifndef __in_opt
-#define __in_opt __in __exceptthat __maybenull
+#define __in_opt _In_ __exceptthat __maybenull
 #endif
 
 #ifndef __out_ecount_part
@@ -188,7 +188,7 @@
 #endif
 
 #ifndef __in_xcount
-#define __in_xcount(x)        
+#define _In_reads_(x)        
 #endif
 
 #ifndef __RPC__in_ecount_full

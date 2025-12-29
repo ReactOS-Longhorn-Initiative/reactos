@@ -36,7 +36,7 @@ protected:
         );
 
 #if PERFMETER
-    virtual override PERFMETERTAG GetPerfMeterTag() const
+    virtual PERFMETERTAG GetPerfMeterTag() const
     {
         return Mt(D3DResource_TextureSurface);
     }
@@ -47,7 +47,7 @@ private:
     // CD3DResource methods
     //
 
-    override void ReleaseD3DResources();
+    void ReleaseD3DResources() /* override */;
 
 };
 

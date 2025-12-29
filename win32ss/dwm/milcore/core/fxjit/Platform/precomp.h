@@ -20,7 +20,7 @@
 *
 **************************************************************************/
 
-#include <wpfsdl.h>
+#include <WPFSDL.h>
 // system includes
 
 #include "std.h"
@@ -29,7 +29,7 @@
 
 #include "warpplatform.h"
 
-#include "types.h"
+#include "Types.h"
 #include "SIMDJit.h"
 
 
