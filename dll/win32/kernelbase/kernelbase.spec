@@ -396,7 +396,7 @@
 @ stdcall FlushConsoleInputBuffer(long)
 @ stdcall FlushFileBuffers(long)
 @ stdcall FlushInstructionCache(long long long)
-@ stdcall -stub FlushProcessWriteBuffers() ;ntdll.NtFlushProcessWriteBuffers
+@ stdcall FlushProcessWriteBuffers() ntdll.NtFlushProcessWriteBuffers
 @ stdcall FlushViewOfFile(ptr long)
 @ stdcall FoldStringW(long wstr long ptr long)
 # @ stub ForceSyncFgPolicyInternal
