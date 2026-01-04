@@ -151,7 +151,7 @@ ResultsPrint(const TCHAR* format, ...)
 }
 
 static void
-ApplyAffinityAndRealtime(DWORD* oldPriorityClass, DWORD_PTR* oldAffinity)
+ApplyAffinityAndRealtime(const ProfilerConfig* cfg, DWORD* oldPriorityClass, DWORD_PTR* oldAffinity)
 {
     SYSTEM_INFO si;
     GetSystemInfo(&si);
@@ -167,13 +167,16 @@ ApplyAffinityAndRealtime(DWORD* oldPriorityClass, DWORD_PTR* oldAffinity)
     }
 
     if (oldAffinity)
-        *oldAffinity = SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)1);
-    else
-        SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)1);
+        *oldAffinity = 0;
 
-    if (oldAffinity && *oldAffinity == 0)
+    /* Legacy behavior pins to CPU0 for stability; multicore mode leaves affinity unchanged. */
+    if (!cfg || cfg->PinSingleCore)
     {
-        ResultsPrint(TEXT("WARNING: SetThreadAffinityMask failed: %lu"), GetLastError());
+        DWORD_PTR prev = SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)1);
+        if (oldAffinity)
+            *oldAffinity = prev;
+        if (oldAffinity && *oldAffinity == 0)
+            ResultsPrint(TEXT("WARNING: SetThreadAffinityMask failed: %lu"), GetLastError());
     }
 }
 
@@ -815,7 +818,7 @@ ProfilerRunTest(const ProfilerConfig* cfg, W32PROF_TEST_ID id)
     freq = QpcFreq();
     ResultsPrint(TEXT("QPC Frequency: %lld"), freq);
 
-    ApplyAffinityAndRealtime(&oldPriorityClass, &oldAffinity);
+    ApplyAffinityAndRealtime(cfg, &oldPriorityClass, &oldAffinity);
 
     ResultsPrint(TEXT("--- W32Prof starting ---"));
 
@@ -840,7 +843,7 @@ ProfilerRunContinuous(const ProfilerConfig* cfg, W32PROF_TEST_ID id)
     freq = QpcFreq();
     ResultsPrint(TEXT("QPC Frequency: %lld"), freq);
 
-    ApplyAffinityAndRealtime(&oldPriorityClass, &oldAffinity);
+    ApplyAffinityAndRealtime(cfg, &oldPriorityClass, &oldAffinity);
     ResultsPrint(TEXT("--- W32Prof continuous start ---"));
 
     while (!ShouldStop(cfg))
