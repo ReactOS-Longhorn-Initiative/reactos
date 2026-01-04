@@ -1,5 +1,6 @@
 #include "profiler.h"
 #include "tga.h"
+#include "fps.h"
 
 #include <windows.h>
 #include <tchar.h>
@@ -213,6 +214,7 @@ W32Prof_Test_D3D7TexturedCube(const ProfilerConfig* cfg)
     DWORD frames;
     DWORD i;
     LARGE_INTEGER q0, q1, qf;
+    W32PROF_FPS_STATE fps;
 
     HWND hRender = NULL;
     LPDIRECTDRAW7 dd = NULL;
@@ -471,6 +473,7 @@ W32Prof_Test_D3D7TexturedCube(const ProfilerConfig* cfg)
 
     QueryPerformanceFrequency(&qf);
     QueryPerformanceCounter(&q0);
+    W32Prof_FpsInit(&fps);
 
     i = 0;
     while (1)
@@ -598,6 +601,7 @@ W32Prof_Test_D3D7TexturedCube(const ProfilerConfig* cfg)
         }
 
         i++;
+        W32Prof_FpsMaybeReport(cfg, &fps, i, qf.QuadPart, TEXT("D3D7 Textured Cube"));
     }
 
     QueryPerformanceCounter(&q1);
