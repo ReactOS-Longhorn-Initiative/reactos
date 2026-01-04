@@ -9,7 +9,8 @@
 #define IDC_TESTSELECT 100
 #define IDC_RUNTEST    101
 #define IDC_RUNCONT    102
-#define IDC_STOP       103
+#define IDC_RUNCONT_MC 103
+#define IDC_STOP       104
 
 static HINSTANCE g_hInst;
 static HWND g_hResultsWnd;
@@ -17,6 +18,7 @@ static HWND g_hEdit;
 static HWND g_hCombo;
 static HWND g_hRunBtn;
 static HWND g_hRunContBtn;
+static HWND g_hRunContMcBtn;
 static HWND g_hStopBtn;
 static HWND g_hTestWnd;
 static W32PROF_TESTWND_STATE g_TestState;
@@ -55,6 +57,7 @@ BuildDefaultConfig(ProfilerConfig* cfg, BOOL headless)
     cfg->TestId = W32PROF_TEST_ALL;
 
     cfg->Continuous = FALSE;
+    cfg->PinSingleCore = TRUE;
     cfg->StopEvent = g_hStopEvent;
 }
 
@@ -104,6 +107,16 @@ CreateResultsControls(HWND hWnd)
                                    (HMENU)IDC_RUNCONT,
                                    g_hInst,
                                    NULL);
+
+    g_hRunContMcBtn = CreateWindowEx(0,
+                                     TEXT("BUTTON"),
+                                     TEXT("Run Continuous (Multicore)"),
+                                     WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                     0, 0, 0, 0,
+                                     hWnd,
+                                     (HMENU)IDC_RUNCONT_MC,
+                                     g_hInst,
+                                     NULL);
 
     g_hStopBtn = CreateWindowEx(0,
                                 TEXT("BUTTON"),
@@ -181,18 +194,61 @@ ResultsWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 int w = (int)LOWORD(lParam);
                 int h = (int)HIWORD(lParam);
                 int top = 28;
-                int btnW = 160;
-                int btnW2 = 140;
-                int btnW3 = 80;
-                if (g_hCombo)
-                    MoveWindow(g_hCombo, 6, 4, w - (btnW + btnW2 + btnW3 + 24), 400, TRUE);
-                if (g_hRunBtn)
-                    MoveWindow(g_hRunBtn, w - (btnW + btnW2 + btnW3 + 6), 4, btnW, 20, TRUE);
-                if (g_hRunContBtn)
-                    MoveWindow(g_hRunContBtn, w - (btnW2 + btnW3 + 6), 4, btnW2, 20, TRUE);
+                int margin = 6;
+                int y = 4;
+                int ctrlH = 20;
+                int spacing = 6;
+
+                int btnRunW = 160;
+                int btnContW = 140;
+                int btnContMcW = 190;
+                int btnStopW = 80;
+
+                int right = w - margin;
+                int x;
+
                 if (g_hStopBtn)
-                    MoveWindow(g_hStopBtn, w - (btnW3 + 6), 4, btnW3, 20, TRUE);
-                MoveWindow(g_hEdit, 0, top, w, h - top, TRUE);
+                {
+                    x = right - btnStopW;
+                    MoveWindow(g_hStopBtn, x, y, btnStopW, ctrlH, TRUE);
+                    right = x - spacing;
+                }
+                if (g_hRunContMcBtn)
+                {
+                    x = right - btnContMcW;
+                    MoveWindow(g_hRunContMcBtn, x, y, btnContMcW, ctrlH, TRUE);
+                    right = x - spacing;
+                }
+                if (g_hRunContBtn)
+                {
+                    x = right - btnContW;
+                    MoveWindow(g_hRunContBtn, x, y, btnContW, ctrlH, TRUE);
+                    right = x - spacing;
+                }
+                if (g_hRunBtn)
+                {
+                    x = right - btnRunW;
+                    MoveWindow(g_hRunBtn, x, y, btnRunW, ctrlH, TRUE);
+                    right = x - spacing;
+                }
+
+                if (g_hCombo)
+                {
+                    int comboX = margin;
+                    int comboW = right - comboX;
+                    if (comboW < 0)
+                        comboW = 0;
+                    MoveWindow(g_hCombo, comboX, y, comboW, 400, TRUE);
+                }
+
+                {
+                    int editH = h - top;
+                    if (w < 0)
+                        w = 0;
+                    if (editH < 0)
+                        editH = 0;
+                    MoveWindow(g_hEdit, 0, top, w, editH, TRUE);
+                }
             }
             return 0;
 
@@ -201,7 +257,7 @@ ResultsWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             WORD id = LOWORD(wParam);
             WORD code = HIWORD(wParam);
 
-            if ((id == IDC_RUNTEST || id == IDC_RUNCONT) && code == BN_CLICKED)
+            if ((id == IDC_RUNTEST || id == IDC_RUNCONT || id == IDC_RUNCONT_MC) && code == BN_CLICKED)
             {
                 if (g_hProfilerThread)
                     return 0;
@@ -214,6 +270,11 @@ ResultsWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 g_RunCfg.TestState = &g_TestState;
 
                 g_RunCfg.Continuous = (id == IDC_RUNCONT);
+                if (id == IDC_RUNCONT_MC)
+                {
+                    g_RunCfg.Continuous = TRUE;
+                    g_RunCfg.PinSingleCore = FALSE;
+                }
 
                 if (g_hCombo)
                 {
@@ -233,6 +294,8 @@ ResultsWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     EnableWindow(g_hRunBtn, FALSE);
                 if (g_hRunContBtn)
                     EnableWindow(g_hRunContBtn, FALSE);
+                if (g_hRunContMcBtn)
+                    EnableWindow(g_hRunContMcBtn, FALSE);
                 if (g_hStopBtn)
                     EnableWindow(g_hStopBtn, TRUE);
 
@@ -291,6 +354,8 @@ ResultsWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 EnableWindow(g_hRunBtn, TRUE);
             if (g_hRunContBtn)
                 EnableWindow(g_hRunContBtn, TRUE);
+            if (g_hRunContMcBtn)
+                EnableWindow(g_hRunContMcBtn, TRUE);
             if (g_hStopBtn)
                 EnableWindow(g_hStopBtn, FALSE);
             ResultsPrint(TEXT("Done."));

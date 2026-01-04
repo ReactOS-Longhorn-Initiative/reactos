@@ -1,5 +1,6 @@
 #include "profiler.h"
 #include "tga.h"
+#include "fps.h"
 
 #include <windows.h>
 #include <tchar.h>
@@ -206,6 +207,7 @@ W32Prof_Test_D3D9TexturedCubeFullscreen(const ProfilerConfig* cfg)
     W32PROF_IMAGE_RGBA img;
     MSG msg;
     BOOL quit;
+    W32PROF_FPS_STATE fps;
 
     d3d = NULL;
     dev = NULL;
@@ -348,6 +350,7 @@ W32Prof_Test_D3D9TexturedCubeFullscreen(const ProfilerConfig* cfg)
 
     QueryPerformanceFrequency(&qf);
     QueryPerformanceCounter(&q0);
+    W32Prof_FpsInit(&fps);
 
     i = 0;
     quit = FALSE;
@@ -394,6 +397,7 @@ W32Prof_Test_D3D9TexturedCubeFullscreen(const ProfilerConfig* cfg)
         IDirect3DDevice9_Present(dev, NULL, NULL, NULL, NULL);
 
         i++;
+        W32Prof_FpsMaybeReport(cfg, &fps, i, qf.QuadPart, TEXT("D3D9 Textured Cube (Fullscreen)"));
     }
 
     QueryPerformanceCounter(&q1);

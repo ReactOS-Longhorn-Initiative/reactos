@@ -79,6 +79,7 @@ typedef struct _ProfilerConfig
     W32PROF_TEST_ID TestId;
 
     BOOL Continuous;
+    BOOL PinSingleCore;
     HANDLE StopEvent;
 
     HWND hTestWnd;
