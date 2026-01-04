@@ -22,6 +22,16 @@ typedef enum _W32PROF_TEST_ID
     W32PROF_TEST_SELECTOBJECT,
     W32PROF_TEST_TEXTOUT,
     W32PROF_TEST_INVALIDATE_UPDATE,
+    W32PROF_TEST_LISTVIEW_POPULATE,
+    W32PROF_TEST_TREEVIEW_POPULATE,
+    W32PROF_TEST_IMAGELIST_DRAW,
+    W32PROF_TEST_TEXT_MEASURE,
+    W32PROF_TEST_DEFERWINDOWPOS,
+    W32PROF_TEST_WINDOW_CREATE_DESTROY,
+    W32PROF_TEST_DRAWICON_GRID,
+    W32PROF_TEST_REGISTRY_QUERY,
+    W32PROF_TEST_FILE_ENUM_SYSTEM32,
+    W32PROF_TEST_GDI_PATH_STROKE,
     W32PROF_TEST_WIN32_TGA_BLIT,
     W32PROF_TEST_DDRAW_TGA_BLIT,
     W32PROF_TEST_D3D7_CUBE,
@@ -114,6 +124,18 @@ void W32Prof_Test_GL42TexturedCubeFullscreen(const ProfilerConfig* cfg);
 
 void W32Prof_Test_Win32TgaBlit(const ProfilerConfig* cfg);
 void W32Prof_Test_DDrawTgaBlit(const ProfilerConfig* cfg);
+
+void W32Prof_Test_ListViewPopulate(const ProfilerConfig* cfg);
+void W32Prof_Test_TreeViewPopulate(const ProfilerConfig* cfg);
+void W32Prof_Test_ImageListDraw(const ProfilerConfig* cfg);
+void W32Prof_Test_TextMeasure(const ProfilerConfig* cfg);
+void W32Prof_Test_DeferWindowPosBatch(const ProfilerConfig* cfg);
+
+void W32Prof_Test_WindowCreateDestroy(const ProfilerConfig* cfg);
+void W32Prof_Test_DrawIconGrid(const ProfilerConfig* cfg);
+void W32Prof_Test_RegistryQuery(const ProfilerConfig* cfg);
+void W32Prof_Test_FileEnumSystem32(const ProfilerConfig* cfg);
+void W32Prof_Test_GdiPathStroke(const ProfilerConfig* cfg);
 
 #ifdef __cplusplus
 }
