@@ -1,6 +1,16 @@
 list(APPEND SOURCE
     main.c
     profiler.c
+    test_listview_populate.c
+    test_treeview_populate.c
+    test_imagelist_draw.c
+    test_text_measure.c
+    test_deferwindowpos.c
+    test_window_create_destroy.c
+    test_drawicon_grid.c
+    test_registry_query.c
+    test_file_enum_system32.c
+    test_gdi_path_stroke.c
     test_win32_tga.c
     test_ddraw_tga.c
     tga.c
@@ -28,7 +38,7 @@ add_rc_deps(w32prof.rc ${CMAKE_CURRENT_SOURCE_DIR}/logo_test.tga)
 
 add_executable(w32prof ${SOURCE} w32prof.rc)
 set_module_type(w32prof win32gui UNICODE)
-add_importlibs(w32prof user32 gdi32 advapi32 opengl32 ddraw d3d8 d3d9 msvcrt kernel32)
+add_importlibs(w32prof user32 gdi32 advapi32 comctl32 opengl32 ddraw d3d8 d3d9 msvcrt kernel32)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     target_compile_options(w32prof PRIVATE -Wno-error)

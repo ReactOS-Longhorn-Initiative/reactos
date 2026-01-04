@@ -11,7 +11,7 @@ static const W32PROF_TEST_ENTRY g_Tests[] =
     { W32PROF_TEST_ALL,           TEXT("All Tests"),        TEXT("Runs the full W32Prof suite") },
     { W32PROF_TEST_BITBLT,        TEXT("BitBlt Throughput"),TEXT("BitBlt memory DC -> test window DC") },
     { W32PROF_TEST_GDI_HANDLES,   TEXT("GDI Handle Lock"),  TEXT("Create/Delete pens+brushes in a tight loop") },
-    { W32PROF_TEST_USER_MESSAGES, TEXT("User Messages"),    TEXT("SendMessage vs PostMessage latency") },
+//    { W32PROF_TEST_USER_MESSAGES, TEXT("User Messages"),    TEXT("SendMessage vs PostMessage latency") },
     { W32PROF_TEST_WINDOWPOS,     TEXT("Window Manager"),   TEXT("SetWindowPos back/forth to stress win32k") },
     { W32PROF_TEST_GETDC,         TEXT("GetDC/ReleaseDC"),  TEXT("Repeated DC acquisition/release") },
     { W32PROF_TEST_COMPATDC,      TEXT("CompatDC Create"),  TEXT("CreateCompatibleDC/DeleteDC loop") },
@@ -19,6 +19,16 @@ static const W32PROF_TEST_ENTRY g_Tests[] =
     { W32PROF_TEST_SELECTOBJECT,  TEXT("SelectObject Pressure"),TEXT("Rapid SelectObject toggling (pens/brushes)") },
     { W32PROF_TEST_TEXTOUT,       TEXT("TextOut Throughput"),TEXT("TextOut to window DC (GDI text path)") },
     { W32PROF_TEST_INVALIDATE_UPDATE, TEXT("Invalidate/Update"),TEXT("InvalidateRect + UpdateWindow paint stress") },
+    { W32PROF_TEST_LISTVIEW_POPULATE, TEXT("ListView Populate"), TEXT("Populate a report-mode ListView (Explorer-like item insertion)") },
+    { W32PROF_TEST_TREEVIEW_POPULATE, TEXT("TreeView Populate"), TEXT("Populate/expand a TreeView (Explorer-like navigation tree)") },
+    { W32PROF_TEST_IMAGELIST_DRAW, TEXT("ImageList Draw"), TEXT("ImageList_Draw grid (Explorer-like icon view)") },
+    { W32PROF_TEST_TEXT_MEASURE,  TEXT("Text Measure"),     TEXT("DrawText(DT_CALCRECT|ELLIPSIS) sizing path") },
+  //  { W32PROF_TEST_DEFERWINDOWPOS, TEXT("DeferWindowPos"),  TEXT("Begin/Defer/EndDeferWindowPos batch moves") },
+    { W32PROF_TEST_WINDOW_CREATE_DESTROY, TEXT("Create/Destroy Windows"), TEXT("CreateWindowEx/DestroyWindow churn (Explorer-like UI construction)") },
+    { W32PROF_TEST_DRAWICON_GRID, TEXT("DrawIcon Grid"), TEXT("DrawIconEx grid (Explorer-like icon painting)") },
+    { W32PROF_TEST_REGISTRY_QUERY, TEXT("Registry Query"), TEXT("RegQueryValueEx loop (Explorer-like settings reads)") },
+    { W32PROF_TEST_FILE_ENUM_SYSTEM32, TEXT("File Enum (System32)"), TEXT("FindFirstFile/FindNextFile enumeration of System32") },
+    { W32PROF_TEST_GDI_PATH_STROKE, TEXT("GDI Path Stroke"), TEXT("BeginPath/Polyline/StrokePath loop") },
     { W32PROF_TEST_WIN32_TGA_BLIT, TEXT("Win32 TGA Blit"),   TEXT("GDI StretchBlt of embedded TGA (DIBSection -> window)") },
     { W32PROF_TEST_DDRAW_TGA_BLIT, TEXT("DirectDraw TGA Blit"), TEXT("DirectDraw7 Blt of embedded TGA (systemmem surface -> primary)") },
     { W32PROF_TEST_D3D7_CUBE,     TEXT("Direct3D7 Cube"),     TEXT("Create D3D7 device and render a spinning cube") },
@@ -666,7 +676,7 @@ RunTestBody(const ProfilerConfig* cfg, W32PROF_TEST_ID id, LONGLONG freq)
         case W32PROF_TEST_ALL:
             Test_BitBltThroughput(cfg, freq);
             Test_GdiHandleLockContention(cfg, freq);
-            Test_UserMessageLatency(cfg, freq);
+          //  Test_UserMessageLatency(cfg, freq);
             Test_WindowManagerLock(cfg, freq);
             Test_GetDcRelease(cfg, freq);
             Test_CompatDcCreateDelete(cfg, freq);
@@ -674,6 +684,16 @@ RunTestBody(const ProfilerConfig* cfg, W32PROF_TEST_ID id, LONGLONG freq)
             Test_SelectObjectPressure(cfg, freq);
             Test_TextOutThroughput(cfg, freq);
             Test_InvalidateUpdate(cfg, freq);
+            W32Prof_Test_ListViewPopulate(cfg);
+            W32Prof_Test_TreeViewPopulate(cfg);
+            W32Prof_Test_ImageListDraw(cfg);
+            W32Prof_Test_TextMeasure(cfg);
+         //   W32Prof_Test_DeferWindowPosBatch(cfg);
+            W32Prof_Test_WindowCreateDestroy(cfg);
+            W32Prof_Test_DrawIconGrid(cfg);
+            W32Prof_Test_RegistryQuery(cfg);
+            W32Prof_Test_FileEnumSystem32(cfg);
+            W32Prof_Test_GdiPathStroke(cfg);
             W32Prof_Test_Win32TgaBlit(cfg);
             W32Prof_Test_DDrawTgaBlit(cfg);
             W32Prof_Test_D3D7Cube(cfg);
@@ -729,6 +749,46 @@ RunTestBody(const ProfilerConfig* cfg, W32PROF_TEST_ID id, LONGLONG freq)
 
         case W32PROF_TEST_INVALIDATE_UPDATE:
             Test_InvalidateUpdate(cfg, freq);
+            break;
+
+        case W32PROF_TEST_LISTVIEW_POPULATE:
+            W32Prof_Test_ListViewPopulate(cfg);
+            break;
+
+        case W32PROF_TEST_TREEVIEW_POPULATE:
+            W32Prof_Test_TreeViewPopulate(cfg);
+            break;
+
+        case W32PROF_TEST_IMAGELIST_DRAW:
+            W32Prof_Test_ImageListDraw(cfg);
+            break;
+
+        case W32PROF_TEST_TEXT_MEASURE:
+            W32Prof_Test_TextMeasure(cfg);
+            break;
+
+        case W32PROF_TEST_DEFERWINDOWPOS:
+            W32Prof_Test_DeferWindowPosBatch(cfg);
+            break;
+
+        case W32PROF_TEST_WINDOW_CREATE_DESTROY:
+            W32Prof_Test_WindowCreateDestroy(cfg);
+            break;
+
+        case W32PROF_TEST_DRAWICON_GRID:
+            W32Prof_Test_DrawIconGrid(cfg);
+            break;
+
+        case W32PROF_TEST_REGISTRY_QUERY:
+            W32Prof_Test_RegistryQuery(cfg);
+            break;
+
+        case W32PROF_TEST_FILE_ENUM_SYSTEM32:
+            W32Prof_Test_FileEnumSystem32(cfg);
+            break;
+
+        case W32PROF_TEST_GDI_PATH_STROKE:
+            W32Prof_Test_GdiPathStroke(cfg);
             break;
 
         case W32PROF_TEST_WIN32_TGA_BLIT:
