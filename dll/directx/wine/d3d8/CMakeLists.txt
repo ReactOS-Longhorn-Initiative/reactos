@@ -3,7 +3,7 @@ add_definitions(
     -D__ROS_LONG64__
     -DUSE_WIN32_OPENGL)
 
-spec2def(d3d8.dll d3d8.spec)
+spec2def(d3d8.dll d3d8.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
     buffer.c
