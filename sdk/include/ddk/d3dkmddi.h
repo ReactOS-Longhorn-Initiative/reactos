@@ -9,6 +9,110 @@
 #define _D3DKMDDI_H_
 
 #include <d3dkmdt.h>
+#include <windef.h>
+
+/*
+ * Some WDDM/DDI structs are referenced as payloads in unions/structs below.
+ * For this header to compile as C++ (and for non-display drivers that may
+ * include it indirectly), we provide minimal declarations where only pointers
+ * are required.
+ */
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+typedef enum _DXGK_PRESENT_DISPLAY_ONLY_PROGRESS_ID
+{
+    DXGK_PRESENT_DISPLAYONLY_PROGRESS_ID_COMPLETE  = 0,
+    DXGK_PRESENT_DISPLAYONLY_PROGRESS_ID_FAILED    = 1,
+} DXGK_PRESENT_DISPLAY_ONLY_PROGRESS_ID;
+
+typedef struct _DXGKARGCB_PRESENT_DISPLAYONLY_PROGRESS
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID        VidPnSourceId;
+    DXGK_PRESENT_DISPLAY_ONLY_PROGRESS_ID ProgressId;
+} DXGKARGCB_PRESENT_DISPLAYONLY_PROGRESS;
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_PRESENT_DISPLAYONLY_PROGRESS)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARGCB_PRESENT_DISPLAYONLY_PROGRESS* pArgs
+    );
+
+typedef struct _DXGK_MULTIPLANE_OVERLAY_VSYNC_INFO DXGK_MULTIPLANE_OVERLAY_VSYNC_INFO;
+#endif
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+
+typedef struct _D3DKMT_PRESENT_DISPLAY_ONLY_FLAGS
+{
+    union
+    {
+        struct
+        {
+            UINT Rotate   : 1;
+            UINT Reserved : 31;
+        };
+        UINT Value;
+    };
+} D3DKMT_PRESENT_DISPLAY_ONLY_FLAGS;
+
+typedef struct _DXGKARG_PRESENT_DISPLAYONLY
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID     VidPnSourceId;
+    VOID*                              pSource;
+    ULONG                              BytesPerPixel;
+    LONG                               Pitch;
+    D3DKMT_PRESENT_DISPLAY_ONLY_FLAGS  Flags;
+    ULONG                              NumMoves;
+    _Field_size_(NumMoves)
+    D3DKMT_MOVE_RECT*                  pMoves;
+    ULONG                              NumDirtyRects;
+    _Field_size_(NumDirtyRects)
+    RECT*                              pDirtyRect;
+    DXGKCB_PRESENT_DISPLAYONLY_PROGRESS pfnPresentDisplayOnlyProgress;
+} DXGKARG_PRESENT_DISPLAYONLY;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_PRESENTDISPLAYONLY(
+    _In_ const HANDLE                   hAdapter,
+    _In_ const DXGKARG_PRESENT_DISPLAYONLY* pPresentDisplayOnly
+    );
+
+typedef DXGKDDI_PRESENTDISPLAYONLY *PDXGKDDI_PRESENTDISPLAYONLY;
+
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+
+typedef struct _DXGKARG_ESCAPE
+{
+    HANDLE            hDevice;
+    D3DDDI_ESCAPEFLAGS Flags;
+    VOID*             pPrivateDriverData;
+    UINT              PrivateDriverDataSize;
+    HANDLE            hContext;
+    HANDLE            hKmdProcessHandle;
+} DXGKARG_ESCAPE, *PDXGKARG_ESCAPE;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_ESCAPE(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_ESCAPE* pEscape
+    );
+
+typedef DXGKDDI_ESCAPE *PDXGKDDI_ESCAPE;
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_1)
+typedef struct _DXGK_MULTIPLANE_OVERLAY_VSYNC_INFO2 DXGK_MULTIPLANE_OVERLAY_VSYNC_INFO2;
+#endif
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_9)
+typedef struct _DXGK_MULTIPLANE_OVERLAY_VSYNC_INFO3 DXGK_MULTIPLANE_OVERLAY_VSYNC_INFO3;
+#endif
 
 typedef enum _DXGK_HANDLE_TYPE
 {
@@ -24,7 +128,8 @@ typedef enum _DXGK_INTERRUPT_TYPE
     DXGK_INTERRUPT_DMA_FAULTED                  = 4,
 
 #if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-    DXGK_INTERRUPT_DISPLAYONLY_VSYNC            = 5,
+/* PDXGKDDI_PRESENTDISPLAYONLY is defined above for Win8+ */
+    DXGK_INTERRUPT_DISPLAYONLY_VSYNC             = 5,
     DXGK_INTERRUPT_DISPLAYONLY_PRESENT_PROGRESS = 6,
     DXGK_INTERRUPT_CRTC_VSYNC_WITH_MULTIPLANE_OVERLAY = 7,
 #endif // DXGKDDI_INTERFACE_VERSION
@@ -153,6 +258,41 @@ typedef enum _DXGK_QUERYADAPTERINFOTYPE
 #endif // DXGKDDI_INTERFACE_VERSION_WDDM3_1
 
 } DXGK_QUERYADAPTERINFOTYPE;
+
+/*
+ * Driver capability structures used with DXGKQAITYPE_DRIVERCAPS and
+ * DXGKQAITYPE_DISPLAY_DRIVERCAPS_EXTENSION.
+ * ReactOS currently only needs a minimal subset for display-only bring-up.
+ */
+
+typedef enum _DXGK_WDDMVERSION
+{
+    DXGKDDI_WDDMv1_0 = 0x1000,
+    DXGKDDI_WDDMv1_1 = 0x1100,
+    DXGKDDI_WDDMv1_2 = 0x1200,
+} DXGK_WDDMVERSION;
+
+typedef struct _DXGK_DRIVERCAPS
+{
+    DXGK_WDDMVERSION WDDMVersion;
+    LARGE_INTEGER    HighestAcceptableAddress;
+    BOOLEAN          SupportNonVGA;
+    BOOLEAN          SupportSmoothRotation;
+    UCHAR            Reserved[2];
+} DXGK_DRIVERCAPS;
+
+typedef struct _DXGK_DISPLAY_DRIVERCAPS_EXTENSION
+{
+    union
+    {
+        struct
+        {
+            UINT VirtualModeSupport : 1;
+            UINT Reserved           : 31;
+        };
+        UINT Value;
+    };
+} DXGK_DISPLAY_DRIVERCAPS_EXTENSION;
 
 typedef struct _DXGKCB_GETHANDLEDATAFLAGS
 {
@@ -395,7 +535,40 @@ C_ASSERT(sizeof(DXGK_ALLOCATIONINFO) == 0x3C);
 #endif
 #endif
 
-#endif // _D3DKMDDI_H_
+typedef struct _DXGK_CREATEALLOCATIONFLAGS
+{
+    union
+    {
+        struct
+        {
+            UINT                Resource    : 1;    // 0x00000001
+            UINT                Reserved    :31;    // 0xFFFFFFFE
+        };
+        UINT                    Value;
+    };
+} DXGK_CREATEALLOCATIONFLAGS;
+
+typedef struct _DXGKARG_CREATEALLOCATION
+{
+    CONST VOID*                 pPrivateDriverData;
+    UINT                        PrivateDriverDataSize;
+    UINT                        NumAllocations;
+    DXGK_ALLOCATIONINFO*        pAllocationInfo;
+    HANDLE                      hResource;
+    DXGK_CREATEALLOCATIONFLAGS  Flags;
+} DXGKARG_CREATEALLOCATION, *PDXGKARG_CREATEALLOCATION;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_CREATEALLOCATION(
+    _In_ const HANDLE                      hAdapter,
+    _Inout_ PDXGKARG_CREATEALLOCATION      pCreateAllocation
+    );
+
+typedef DXGKDDI_CREATEALLOCATION *PDXGKDDI_CREATEALLOCATION;
+
 typedef struct _DXGKCB_NOTIFY_INTERRUPT_DATA_FLAGS
 {
     union
@@ -620,6 +793,8 @@ typedef struct _DXGKARGCB_GETHANDLEDATA
     DXGKCB_GETHANDLEDATAFLAGS Flags;
 } DXGKARGCB_GETHANDLEDATA , *PDXGKARGCB_GETHANDLEDATA;
 
+typedef _In_ CONST DXGKARGCB_GETHANDLEDATA* IN_CONST_PDXGKARGCB_GETHANDLEDATA;
+
 typedef struct _DXGKARGCB_GETCAPTUREADDRESS
 {
     D3DKMT_HANDLE      hAllocation;          
@@ -632,6 +807,144 @@ typedef struct _DXGKARGCB_ENUMHANDLECHILDREN
     D3DKMT_HANDLE   hObject;
     UINT            Index;
 } DXGKARGCB_ENUMHANDLECHILDREN, *PDXGKARGCB_ENUMHANDLECHILDREN;
+
+typedef _In_ CONST DXGKARGCB_ENUMHANDLECHILDREN* IN_CONST_PDXGKARGCB_ENUMHANDLECHILDREN;
+
+typedef struct _DXGK_ENUM_PIVOT
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+    D3DDDI_VIDEO_PRESENT_TARGET_ID VidPnTargetId;
+} DXGK_ENUM_PIVOT;
+
+typedef struct _DXGKARG_ENUMVIDPNCOFUNCMODALITY
+{
+    _In_ D3DKMDT_HVIDPN                        hConstrainingVidPn;
+    _In_ D3DKMDT_ENUMCOFUNCMODALITY_PIVOT_TYPE EnumPivotType;
+    _In_ DXGK_ENUM_PIVOT                       EnumPivot;
+} DXGKARG_ENUMVIDPNCOFUNCMODALITY;
+
+typedef _In_ CONST DXGKARG_ENUMVIDPNCOFUNCMODALITY* CONST IN_CONST_PDXGKARG_ENUMVIDPNCOFUNCMODALITY_CONST;
+
+/* Pointer / cursor DDIs */
+typedef struct _DXGK_SETPOINTERPOSITION_FLAGS
+{
+    union
+    {
+        struct
+        {
+            UINT Visible  : 1;
+            UINT Reserved : 31;
+        };
+        UINT Value;
+    };
+} DXGK_SETPOINTERPOSITION_FLAGS;
+
+typedef struct _DXGKARG_SETPOINTERPOSITION
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+    DXGK_SETPOINTERPOSITION_FLAGS Flags;
+    POINT Position;
+} DXGKARG_SETPOINTERPOSITION;
+
+typedef struct _DXGKARG_SETPOINTERSHAPE
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+    UINT Width;
+    UINT Height;
+    UINT Pitch;
+    POINT HotSpot;
+    const VOID* pPixels;
+} DXGKARG_SETPOINTERSHAPE;
+
+/* VidPn support / recommendation / modeset DDIs */
+typedef struct _DXGKARG_ISSUPPORTEDVIDPN
+{
+    D3DKMDT_HVIDPN hDesiredVidPn;
+    BOOLEAN IsVidPnSupported;
+    UCHAR Reserved[3];
+} DXGKARG_ISSUPPORTEDVIDPN;
+
+typedef struct _DXGKARG_RECOMMENDFUNCTIONALVIDPN
+{
+    D3DKMDT_HVIDPN hRecommendedFunctionalVidPn;
+} DXGKARG_RECOMMENDFUNCTIONALVIDPN;
+
+typedef struct _DXGKARG_RECOMMENDVIDPNTOPOLOGY
+{
+    D3DKMDT_HVIDPNTOPOLOGY hVidPnTopology;
+} DXGKARG_RECOMMENDVIDPNTOPOLOGY;
+
+typedef struct _DXGK_MONITORSOURCEMODESET_INTERFACE DXGK_MONITORSOURCEMODESET_INTERFACE;
+
+typedef struct _DXGKARG_RECOMMENDMONITORMODES
+{
+    D3DDDI_VIDEO_PRESENT_TARGET_ID VideoPresentTargetId;
+    D3DKMDT_HMONITORSOURCEMODESET hMonitorSourceModeSet;
+    const DXGK_MONITORSOURCEMODESET_INTERFACE* pMonitorSourceModeSetInterface;
+} DXGKARG_RECOMMENDMONITORMODES;
+
+typedef struct _DXGKARG_SETVIDPNSOURCEVISIBILITY
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+    BOOLEAN Visible;
+    UCHAR Reserved[3];
+} DXGKARG_SETVIDPNSOURCEVISIBILITY;
+
+typedef struct _DXGK_COMMITVIDPN_FLAGS
+{
+    union
+    {
+        struct
+        {
+            UINT PathPowerTransition : 1;
+            UINT PathPoweredOff : 1;
+            UINT Reserved       : 30;
+        };
+        UINT Value;
+    };
+} DXGK_COMMITVIDPN_FLAGS;
+
+typedef struct _DXGKARG_COMMITVIDPN
+{
+    D3DKMDT_HVIDPN hFunctionalVidPn;
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID AffectedVidPnSourceId;
+    DXGK_COMMITVIDPN_FLAGS Flags;
+    HANDLE hPrimaryAllocation;
+    D3DKMDT_MONITOR_CONNECTIVITY_CHECKS MonitorConnectivityChecks;
+} DXGKARG_COMMITVIDPN;
+
+typedef struct _DXGKARG_UPDATEACTIVEVIDPNPRESENTPATH
+{
+    D3DKMDT_VIDPN_PRESENT_PATH VidPnPresentPathInfo;
+} DXGKARG_UPDATEACTIVEVIDPNPRESENTPATH;
+
+typedef struct _DXGK_SETVIDPNSOURCEADDRESS_FLAGS
+{
+    union
+    {
+        struct
+        {
+            UINT ModeChange      : 1;
+            UINT FlipImmediate   : 1;
+            UINT FlipOnNextVSync : 1;
+            UINT Reserved        : 29;
+        };
+        UINT Value;
+    };
+} DXGK_SETVIDPNSOURCEADDRESS_FLAGS;
+
+typedef struct _DXGKARG_SETVIDPNSOURCEADDRESS
+{
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID   VidPnSourceId;
+    UINT                             PrimarySegment;
+    PHYSICAL_ADDRESS                 PrimaryAddress;
+    HANDLE                           hAllocation;
+    UINT                             ContextCount;
+    HANDLE                           Context[1 + D3DDDI_MAX_BROADCAST_CONTEXT];
+    DXGK_SETVIDPNSOURCEADDRESS_FLAGS Flags;
+} DXGKARG_SETVIDPNSOURCEADDRESS;
+
+typedef _Inout_ DXGKARGCB_NOTIFY_INTERRUPT_DATA* IN_CONST_PDXGKARGCB_NOTIFY_INTERRUPT_DATA;
 
 typedef
 NTSTATUS
@@ -668,7 +981,7 @@ typedef
 NTSTATUS
 (APIENTRY *DXGKDDI_VIDPNSOURCEMODESET_CREATENEWMODEINFO)(
     _In_ const D3DKMDT_HVIDPNSOURCEMODESET           hVidPnSourceModeSet,
-    _Outptr_ const D3DKMDT_VIDPN_SOURCE_MODE**       ppNewVidPnSourceModeInfo);
+    _Outptr_ D3DKMDT_VIDPN_SOURCE_MODE**             ppNewVidPnSourceModeInfo);
 
 typedef
 NTSTATUS
@@ -729,7 +1042,7 @@ typedef
 NTSTATUS
 (APIENTRY *DXGKDDI_VIDPNTARGETMODESET_CREATENEWMODEINFO)(
     _In_ const D3DKMDT_HVIDPNTARGETMODESET           hVidPnTargetModeSet,
-    _Outptr_ const D3DKMDT_VIDPN_TARGET_MODE**       ppNewVidPnTargetModeInfo);
+    _Outptr_ D3DKMDT_VIDPN_TARGET_MODE**             ppNewVidPnTargetModeInfo);
 
 typedef
 NTSTATUS
@@ -857,7 +1170,7 @@ NTSTATUS
 (APIENTRY *DXGKDDI_VIDPN_GETTOPOLOGY)(
     _In_ const D3DKMDT_HVIDPN                              hVidPn,
     _Out_ D3DKMDT_HVIDPNTOPOLOGY*                          phVidPnTopology,
-    _Outptr_ const PDXGK_VIDPNTOPOLOGY_INTERFACE           ppVidPnTopologyInterface);
+    _Outptr_ const DXGK_VIDPNTOPOLOGY_INTERFACE**           ppVidPnTopologyInterface);
 
 
 typedef
@@ -1113,7 +1426,7 @@ DXGK_MONITOR_INTERFACE, *PDXGK_MONITOR_INTERFACE;
 
 typedef
 VOID*
-(APIENTRY CALLBACK *DXGKCB_GETHANDLEDATA)(_In_ const PDXGKARGCB_GETHANDLEDATA);
+(APIENTRY CALLBACK *DXGKCB_GETHANDLEDATA)(IN_CONST_PDXGKARGCB_GETHANDLEDATA);
 
 typedef
 D3DKMT_HANDLE
@@ -1121,11 +1434,11 @@ D3DKMT_HANDLE
 
 typedef
 D3DKMT_HANDLE
-(APIENTRY CALLBACK *DXGKCB_ENUMHANDLECHILDREN)(_In_ const PDXGKARGCB_ENUMHANDLECHILDREN);
+(APIENTRY CALLBACK *DXGKCB_ENUMHANDLECHILDREN)(IN_CONST_PDXGKARGCB_ENUMHANDLECHILDREN);
 
 typedef
 VOID (APIENTRY CALLBACK *DXGKCB_NOTIFY_INTERRUPT)(
-    _In_ const HANDLE hAdapter, _In_ const PDXGKARGCB_NOTIFY_INTERRUPT_DATA);
+    _In_ const HANDLE hAdapter, IN_CONST_PDXGKARGCB_NOTIFY_INTERRUPT_DATA);
 
 typedef
 VOID
@@ -1135,20 +1448,231 @@ VOID
 typedef
 NTSTATUS
 (APIENTRY CALLBACK *DXGKCB_QUERYVIDPNINTERFACE)(
-    _In_ const D3DKMDT_HVIDPN                                 hVidPn,
-    _In_ const DXGK_VIDPN_INTERFACE_VERSION                   VidPnInterfaceVersion,
-    _Outptr_ const PDXGK_VIDPN_INTERFACE                  ppVidPnInterface);
+    _In_ const D3DKMDT_HVIDPN                          hVidPn,
+    _In_ const DXGK_VIDPN_INTERFACE_VERSION            VidPnInterfaceVersion,
+    _Outptr_ const DXGK_VIDPN_INTERFACE**              ppVidPnInterface);
 
 typedef
 NTSTATUS
 (APIENTRY CALLBACK *DXGKCB_QUERYMONITORINTERFACE)(
     _In_ const HANDLE                          hAdapter,
     _In_ const DXGK_MONITOR_INTERFACE_VERSION  MonitorInterfaceVersion,
-    _Outptr_ const PDXGK_MONITOR_INTERFACE*    ppMonitorInterface);
+    _Outptr_ const DXGK_MONITOR_INTERFACE**    ppMonitorInterface);
 
 typedef
 NTSTATUS
 (APIENTRY CALLBACK *DXGKCB_GETCAPTUREADDRESS)(_Inout_ PDXGKARGCB_GETCAPTUREADDRESS);
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+
+typedef struct _DXGK_CREATECONTEXTALLOCATIONFLAGS
+{
+    union
+    {
+        struct
+        {
+            UINT SharedAcrossContexts : 1;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+            UINT MapGpuVirtualAddress : 1;
+            UINT Reserved : 30;
+#else
+            UINT Reserved : 31;
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+        };
+        UINT Value;
+    };
+} DXGK_CREATECONTEXTALLOCATIONFLAGS;
+
+typedef struct _DXGKARGCB_CREATECONTEXTALLOCATION
+{
+    DXGK_CREATECONTEXTALLOCATIONFLAGS  ContextAllocationFlags;
+    HANDLE                             hAdapter;
+    HANDLE                             hDevice;
+    HANDLE                             hContext;
+    HANDLE                             hDriverAllocation;
+    SIZE_T                             Size;
+    UINT                               Alignment;
+    UINT                               SupportedSegmentSet;
+    UINT                               EvictionSegmentSet;
+    DXGK_SEGMENTPREFERENCE             PreferredSegment;
+    DXGK_SEGMENTBANKPREFERENCE         HintedBank;
+    DXGK_ALLOCATIONINFOFLAGS           Flags;
+    HANDLE                             hAllocation;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+    UINT                               PhysicalAdapterIndex;
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+} DXGKARGCB_CREATECONTEXTALLOCATION, *PDXGKARGCB_CREATECONTEXTALLOCATION;
+
+typedef
+NTSTATUS
+(APIENTRY CALLBACK *DXGKCB_CREATECONTEXTALLOCATION)(
+    _Inout_ PDXGKARGCB_CREATECONTEXTALLOCATION
+    );
+
+typedef
+NTSTATUS
+(APIENTRY CALLBACK *DXGKCB_DESTROYCONTEXTALLOCATION)(
+    _In_ const HANDLE hAdapter,
+    _In_ const HANDLE hAllocation
+    );
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_SETPOWERCOMPONENTACTIVE)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT ComponentIndex
+    );
+
+typedef
+NTSTATUS
+(APIENTRY CALLBACK *DXGKCB_POWERRUNTIMECONTROLREQUEST)(
+    _In_ const HANDLE hAdapter,
+    _In_ const LPCGUID PowerControlCode,
+    _In_opt_ PVOID InBuffer,
+    _In_ SIZE_T InBufferSize,
+    _Out_opt_ PVOID OutBuffer,
+    _In_ SIZE_T OutBufferSize,
+    _Out_opt_ PSIZE_T BytesReturned
+    );
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_SETPOWERCOMPONENTIDLE)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT ComponentIndex
+    );
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_SETPOWERCOMPONENTLATENCY)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT ComponentIndex,
+    _In_ ULONGLONG Latency
+    );
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_SETPOWERCOMPONENTRESIDENCY)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT ComponentIndex,
+    _In_ ULONGLONG Residency
+    );
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_COMPLETEFSTATETRANSITION)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT ComponentIndex
+    );
+
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM1_3)
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_COMPLETEPSTATETRANSITION)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT ComponentIndex,
+    _In_ UINT CompletedPState
+    );
+
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM1_3)
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+
+typedef VOID* DXGKARG_RELEASE_HANDLE;
+typedef DXGKARG_RELEASE_HANDLE* PDXGKARG_RELEASE_HANDLE;
+
+typedef
+VOID*
+(APIENTRY CALLBACK *DXGKCB_ACQUIREHANDLEDATA)(
+    _In_ const PDXGKARGCB_GETHANDLEDATA pGetHandleData,
+    _Out_ PDXGKARG_RELEASE_HANDLE pReleaseHandle
+    );
+
+typedef struct _DXGKARGCB_RELEASEHANDLEDATA
+{
+    DXGKARG_RELEASE_HANDLE ReleaseHandle;
+    DXGK_HANDLE_TYPE       Type;
+} DXGKARGCB_RELEASEHANDLEDATA;
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_RELEASEHANDLEDATA)(
+    _In_ const DXGKARGCB_RELEASEHANDLEDATA pArgs
+    );
+
+typedef struct _DXGKARGCB_MAPCONTEXTALLOCATION
+{
+    D3DGPU_VIRTUAL_ADDRESS                  BaseAddress;
+    D3DGPU_VIRTUAL_ADDRESS                  MinimumAddress;
+    D3DGPU_VIRTUAL_ADDRESS                  MaximumAddress;
+    HANDLE                                  hAllocation;
+    D3DGPU_SIZE_T                           OffsetInPages;
+    D3DGPU_SIZE_T                           SizeInPages;
+    D3DDDIGPUVIRTUALADDRESS_PROTECTION_TYPE Protection;
+    UINT64                                  DriverProtection;
+} DXGKARGCB_MAPCONTEXTALLOCATION;
+
+typedef
+D3DGPU_VIRTUAL_ADDRESS
+(APIENTRY CALLBACK *DXGKCB_MAPCONTEXTALLOCATION)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARGCB_MAPCONTEXTALLOCATION* pArgs
+    );
+
+typedef struct _DXGKARGCB_UPDATECONTEXTALLOCATION
+{
+    HANDLE hAllocation;
+    PVOID  pPrivateDriverData;
+    UINT   PrivateDriverDataSize;
+} DXGKARGCB_UPDATECONTEXTALLOCATION;
+
+typedef
+NTSTATUS
+(APIENTRY CALLBACK *DXGKCB_UPDATECONTEXTALLOCATION)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARGCB_UPDATECONTEXTALLOCATION* pArgs
+    );
+
+typedef struct _DXGKARGCB_RESERVEGPUVIRTUALADDRESSRANGE
+{
+    HANDLE hDxgkProcess;
+    UINT64 SizeInBytes;
+    UINT   Alignment;
+    UINT64 StartVirtualAddress;
+    UINT64 BaseAddress;
+    union
+    {
+        struct
+        {
+            UINT AllowUserModeMapping : 1;
+        };
+        UINT Flags;
+    };
+} DXGKARGCB_RESERVEGPUVIRTUALADDRESSRANGE;
+
+typedef
+NTSTATUS
+(APIENTRY CALLBACK *DXGKCB_RESERVEGPUVIRTUALADDRESSRANGE)(
+    _In_ const HANDLE hAdapter,
+    _Inout_ DXGKARGCB_RESERVEGPUVIRTUALADDRESSRANGE* pArgs
+    );
+
+typedef enum _DXGK_HARDWARE_CONTENT_PROTECTION_TEARDOWN_FLAGS
+{
+    DXGK_HARDWARE_CONTENT_PROTECTION_TEARDOWN_FLAG_PREEMPTIVE = 1
+} DXGK_HARDWARE_CONTENT_PROTECTION_TEARDOWN_FLAGS;
+
+typedef
+VOID
+(APIENTRY CALLBACK *DXGKCB_HARDWARECONTENTPROTECTIONTEARDOWN)(
+    _In_ const HANDLE hAdapter,
+    _In_ UINT Flags
+    );
+
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
 
 #if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_2)
 typedef struct _DXGK_QUERYADAPTERINFOFLAGS
@@ -1239,7 +1763,7 @@ NTSTATUS
 APIENTRY
 DXGKDDI_QUERYADAPTERINFO(
     _In_ const HANDLE                         hAdapter,
-    _In_ const PDXGKARG_QUERYADAPTERINFO      pQueryAdapterInfo);
+    _In_ const DXGKARG_QUERYADAPTERINFO*      pQueryAdapterInfo);
 
 
 typedef
@@ -1248,11 +1772,33 @@ APIENTRY
 DXGKDDI_CREATEDEVICE(_In_ const HANDLE                 hAdapter,
                      _Inout_ PDXGKARG_CREATEDEVICE     pCreateDevice);
 
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN7)
+
+typedef struct _DXGKARG_QUERYVIDPNHWCAPABILITY
+{
+    _In_  D3DKMDT_HVIDPN                  hFunctionalVidPn;
+    _In_  D3DDDI_VIDEO_PRESENT_SOURCE_ID  SourceId;
+    _In_  D3DDDI_VIDEO_PRESENT_TARGET_ID  TargetId;
+    _Out_ D3DKMDT_VIDPN_HW_CAPABILITY     VidPnHWCaps;
+} DXGKARG_QUERYVIDPNHWCAPABILITY;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_QUERYVIDPNHWCAPABILITY(
+    _In_ const HANDLE                      hAdapter,
+    _Inout_ DXGKARG_QUERYVIDPNHWCAPABILITY* pVidPnHWCaps);
+
+typedef DXGKDDI_QUERYVIDPNHWCAPABILITY *PDXGKDDI_QUERYVIDPNHWCAPABILITY;
+
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN7)
+
 typedef DXGKDDI_QUERYADAPTERINFO                *PDXGKDDI_QUERYADAPTERINFO;
 typedef DXGKDDI_CREATEDEVICE                    *PDXGKDDI_CREATEDEVICE;
-// TODO: Lazy
+// Allocation DDIs are now properly defined above
 #if 0
-typedef DXGKDDI_CREATEALLOCATION                *PDXGKDDI_CREATEALLOCATION;
+// Legacy stub typedefs - now replaced by real definitions above
 typedef DXGKDDI_DESTROYALLOCATION               *PDXGKDDI_DESTROYALLOCATION;
 typedef DXGKDDI_DESCRIBEALLOCATION              *PDXGKDDI_DESCRIBEALLOCATION;
 typedef DXGKDDI_GETSTANDARDALLOCATIONDRIVERDATA *PDXGKDDI_GETSTANDARDALLOCATIONDRIVERDATA;
@@ -1296,7 +1842,22 @@ typedef DXGKDDI_CREATECONTEXT                   *PDXGKDDI_CREATECONTEXT;
 typedef DXGKDDI_DESTROYCONTEXT                  *PDXGKDDI_DESTROYCONTEXT;
 typedef DXGKDDI_SETDISPLAYPRIVATEDRIVERFORMAT   *PDXGKDDI_SETDISPLAYPRIVATEDRIVERFORMAT;
 #endif
-typedef UINT32 *PDXGKDDI_CREATEALLOCATION;
+/*
+ * NOTE:
+ * dispmprt.h's DRIVER_INITIALIZATION_DATA relies on a large set of PDXGKDDI_*
+ * function pointer typedefs.
+ *
+ * Historically this header used UINT32* placeholders for many of these types.
+ * That is dangerous because it silently turns function pointers into data
+ * pointers, obscuring ABI and making debugging/interop harder (even if pointer
+ * sizes match on x64).
+ *
+ * Only keep placeholders for DDIs we truly don't model yet. For DDIs we do
+ * model (Escape, OpenAllocation, Present, CreateContext, DestroyContext, etc)
+ * we must NOT override the real prototypes.
+ */
+
+/* PDXGKDDI_CREATEALLOCATION is now properly defined above with DXGKDDI_CREATEALLOCATION */
 typedef UINT32 *PDXGKDDI_DESTROYALLOCATION;
 typedef UINT32 *PDXGKDDI_DESCRIBEALLOCATION;
 typedef UINT32 *PDXGKDDI_GETSTANDARDALLOCATIONDRIVERDATA;
@@ -1308,35 +1869,215 @@ typedef UINT32 *PDXGKDDI_PREEMPTCOMMAND;
 typedef UINT32 *PDXGKDDI_CANCELCOMMAND;
 typedef UINT32 *PDXGKDDI_BUILDPAGINGBUFFER;
 typedef UINT32 *PDXGKDDI_SETPALETTE;
-typedef UINT32 *PDXGKDDI_SETPOINTERPOSITION;
-typedef UINT32 *PDXGKDDI_SETPOINTERSHAPE;
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_SETPOINTERPOSITION)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_SETPOINTERPOSITION* pSetPointerPosition
+    );
+
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_SETPOINTERSHAPE)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_SETPOINTERSHAPE* pSetPointerShape
+    );
 typedef UINT32 *PDXGKDDI_RESETFROMTIMEOUT;
 typedef UINT32 *PDXGKDDI_RESTARTFROMTIMEOUT;
-typedef UINT32 *PDXGKDDI_ESCAPE;
+/* PDXGKDDI_ESCAPE is defined above as a real function pointer type. */
 typedef UINT32 *PDXGKDDI_COLLECTDBGINFO;
 typedef UINT32 *PDXGKDDI_QUERYCURRENTFENCE;
-typedef UINT32 *PDXGKDDI_ISSUPPORTEDVIDPN;
-typedef UINT32 *PDXGKDDI_RECOMMENDFUNCTIONALVIDPN;
-typedef UINT32 *PDXGKDDI_ENUMVIDPNCOFUNCMODALITY;
-typedef UINT32 *PDXGKDDI_SETVIDPNSOURCEADDRESS;
-typedef UINT32 *PDXGKDDI_SETVIDPNSOURCEVISIBILITY;
-typedef UINT32 *PDXGKDDI_COMMITVIDPN;
-typedef UINT32 *PDXGKDDI_UPDATEACTIVEVIDPNPRESENTPATH;
-typedef UINT32 *PDXGKDDI_RECOMMENDMONITORMODES;
-typedef UINT32 *PDXGKDDI_RECOMMENDVIDPNTOPOLOGY;
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_ISSUPPORTEDVIDPN)(
+    _In_ const HANDLE hAdapter,
+    _Inout_ DXGKARG_ISSUPPORTEDVIDPN* pIsSupportedVidPn
+    );
+
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_RECOMMENDFUNCTIONALVIDPN)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_RECOMMENDFUNCTIONALVIDPN* pRecommendFunctionalVidPn
+    );
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_ENUMVIDPNCOFUNCMODALITY)(
+    _In_ const HANDLE                                    hAdapter,
+    _In_ IN_CONST_PDXGKARG_ENUMVIDPNCOFUNCMODALITY_CONST pEnumCofuncModality
+    );
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_SETVIDPNSOURCEADDRESS)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_SETVIDPNSOURCEADDRESS* pSetVidPnSourceAddress
+    );
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_SETVIDPNSOURCEVISIBILITY)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_SETVIDPNSOURCEVISIBILITY* pSetVidPnSourceVisibility
+    );
+
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_COMMITVIDPN)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_COMMITVIDPN* pCommitVidPn
+    );
+
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_UPDATEACTIVEVIDPNPRESENTPATH)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_UPDATEACTIVEVIDPNPRESENTPATH* pUpdateActiveVidPnPresentPath
+    );
+
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_RECOMMENDMONITORMODES)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_RECOMMENDMONITORMODES* pRecommendMonitorModes
+    );
+
+typedef
+_Check_return_
+NTSTATUS
+(APIENTRY *PDXGKDDI_RECOMMENDVIDPNTOPOLOGY)(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_RECOMMENDVIDPNTOPOLOGY* pRecommendVidPnTopology
+    );
 typedef UINT32 *PDXGKDDI_GETSCANLINE;
 typedef UINT32 *PDXGKDDI_STOPCAPTURE;
 typedef UINT32 *PDXGKDDI_CONTROLINTERRUPT;
 typedef UINT32 *PDXGKDDI_CREATEOVERLAY;
 typedef UINT32 *PDXGKDDI_DESTROYDEVICE;
-typedef UINT32 *PDXGKDDI_OPENALLOCATIONINFO;
 typedef UINT32 *PDXGKDDI_CLOSEALLOCATION;
-typedef UINT32 *PDXGKDDI_RENDER;
-typedef UINT32 *PDXGKDDI_PRESENT;
 typedef UINT32 *PDXGKDDI_UPDATEOVERLAY;
 typedef UINT32 *PDXGKDDI_FLIPOVERLAY;
 typedef UINT32 *PDXGKDDI_DESTROYOVERLAY;
-typedef UINT32 *PDXGKDDI_CREATECONTEXT;
-typedef UINT32 *PDXGKDDI_DESTROYCONTEXT;
 typedef UINT32 *PDXGKDDI_SETDISPLAYPRIVATEDRIVERFORMAT;
+
+/*
+ * Real prototypes required by dispmprt.h's DRIVER_INITIALIZATION_DATA:
+ * Define these as function pointer types (NOT UINT32* placeholders).
+ * We only need forward declarations for the payload structs here.
+ */
+
+typedef struct _DXGKARG_OPENALLOCATION DXGKARG_OPENALLOCATION;
+typedef struct _DXGKARG_PRESENT DXGKARG_PRESENT;
+typedef struct _DXGKARG_RENDER DXGKARG_RENDER;
+typedef struct _DXGKARG_CREATECONTEXT DXGKARG_CREATECONTEXT;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_OPENALLOCATIONINFO(
+    _In_ const HANDLE hDevice,
+    _In_ const DXGKARG_OPENALLOCATION* pOpenAllocation
+    );
+typedef DXGKDDI_OPENALLOCATIONINFO *PDXGKDDI_OPENALLOCATIONINFO;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_PRESENT(
+    _In_ const HANDLE hContext,
+    _Inout_ DXGKARG_PRESENT* pPresent
+    );
+typedef DXGKDDI_PRESENT *PDXGKDDI_PRESENT;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_RENDER(
+    _In_ const HANDLE hContext,
+    _Inout_ DXGKARG_RENDER* pRender
+    );
+typedef DXGKDDI_RENDER *PDXGKDDI_RENDER;
+
+/* Win7+ has RenderKm; for bring-up treat it as the same signature. */
+typedef DXGKDDI_RENDER *PDXGKDDI_RENDERKM;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_CREATECONTEXT(
+    _In_ const HANDLE hDevice,
+    _Inout_ DXGKARG_CREATECONTEXT* pCreateContext
+    );
+typedef DXGKDDI_CREATECONTEXT *PDXGKDDI_CREATECONTEXT;
+
+typedef
+_Check_return_
+NTSTATUS
+APIENTRY
+DXGKDDI_DESTROYCONTEXT(
+    _In_ const HANDLE hContext
+    );
+typedef DXGKDDI_DESTROYCONTEXT *PDXGKDDI_DESTROYCONTEXT;
+
+/*
+ * dispmprt.h's DRIVER_INITIALIZATION_DATA references a number of additional
+ * WDDM DDI entrypoints whose full prototypes are not yet declared in ReactOS.
+ * For now, provide minimal placeholder typedefs so the interface structs can
+ * be compiled and consumed by dxgkrnl.
+ */
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+typedef VOID* PDXGKDDISETPOWERCOMPONENTFSTATE;
+typedef VOID* PDXGKDDI_QUERYDEPENDENTENGINEGROUP;
+typedef VOID* PDXGKDDI_QUERYENGINESTATUS;
+typedef VOID* PDXGKDDI_RESETENGINE;
+typedef VOID* PDXGKDDIPOWERRUNTIMECONTROLREQUEST;
+typedef VOID* PDXGKDDI_SETVIDPNSOURCEADDRESSWITHMULTIPLANEOVERLAY;
+#endif
+
+/* These are defined (with real prototypes) in dispmprt.h for Win8+. */
+#if 0
+typedef VOID* PDXGKDDI_STOP_DEVICE_AND_RELEASE_POST_DISPLAY_OWNERSHIP;
+typedef VOID* PDXGKDDI_SYSTEM_DISPLAY_ENABLE;
+typedef VOID* PDXGKDDI_SYSTEM_DISPLAY_WRITE;
+typedef VOID* PDXGKDDI_GET_CHILD_CONTAINER_ID;
+typedef VOID* PDXGKDDI_NOTIFY_SURPRISE_REMOVAL;
+#endif
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM1_3)
+typedef VOID* PDXGKDDI_GETNODEMETADATA;
+typedef VOID* PDXGKDDISETPOWERPSTATE;
+typedef VOID* PDXGKDDI_CONTROLINTERRUPT2;
+typedef VOID* PDXGKDDI_CHECKMULTIPLANEOVERLAYSUPPORT;
+typedef VOID* PDXGKDDI_CALIBRATEGPUCLOCK;
+typedef VOID* PDXGKDDI_FORMATHISTORYBUFFER;
+#endif
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+typedef VOID* PDXGKDDI_RENDERGDI;
+typedef VOID* PDXGKDDI_SUBMITCOMMANDVIRTUAL;
+typedef VOID* PDXGKDDI_SETROOTPAGETABLE;
+typedef VOID* PDXGKDDI_GETROOTPAGETABLESIZE;
+typedef VOID* PDXGKDDI_MAPCPUHOSTAPERTURE;
+typedef VOID* PDXGKDDI_UNMAPCPUHOSTAPERTURE;
+typedef VOID* PDXGKDDI_CHECKMULTIPLANEOVERLAYSUPPORT2;
+typedef VOID* PDXGKDDI_CREATEPROCESS;
+typedef VOID* PDXGKDDI_DESTROYPROCESS;
+typedef VOID* PDXGKDDI_SETVIDPNSOURCEADDRESSWITHMULTIPLANEOVERLAY2;
+typedef VOID* PDXGKDDI_POWERRUNTIMESETDEVICEHANDLE;
+typedef VOID* PDXGKDDI_SETSTABLEPOWERSTATE;
+typedef VOID* PDXGKDDI_SETVIDEOPROTECTEDREGION;
+#endif
 #endif // _D3DKMDDI_H_

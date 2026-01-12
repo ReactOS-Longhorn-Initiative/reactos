@@ -38,6 +38,14 @@ extern "C" {
 #endif
 
 
+#if defined(_WDMDDK_) || defined(_NTDDK_) || defined(_NTIFS_)
+/* When building kernel-mode code, the DDK headers (wdm.h/ntddk.h/ntifs.h)
+ * already provide DEVICE_TYPE, FILE_DEVICE_* constants, CTL_CODE(), etc.
+ * Avoid redefining them here (warning C4005, treated as error with /WX). */
+#ifndef _DEVIOCTL_
+#define _DEVIOCTL_
+#endif
+#else
 #ifndef _DEVIOCTL_
 #define _DEVIOCTL_
 
@@ -144,6 +152,7 @@ extern "C" {
 #define DEVICE_TYPE_FROM_CTL_CODE(c)     (((DWORD)((c)&0xffff0000))>>16)
 
 #endif /* _DEVIOCTL_ */
+#endif /* _WDMDDK_ || _NTDDK_ || _NTIFS_ */
 
 #ifndef _NTDDSTOR_H_
 // #define _NTDDSTOR_H_
