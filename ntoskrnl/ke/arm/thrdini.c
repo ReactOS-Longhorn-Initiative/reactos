@@ -181,10 +181,17 @@ KiIdleLoop(VOID)
         {
             /* Thread already selected, proceed with context switch */
         }
-        else if (Prcb->ReadySummary != 0)
+        else if ((Prcb->ReadySummary != 0) || (Prcb->DeferredReadyListHead.Next != NULL))
         {
             /* We have ready threads but no NextThread set - select one now */
             PKTHREAD SelectedThread;
+
+            /* If we have deferred ready threads, process them first */
+            if (Prcb->DeferredReadyListHead.Next)
+            {
+                /* Process deferred ready list to move threads to ready queues */
+                KiProcessDeferredReadyList(Prcb);
+            }
 
             /* Acquire PRCB lock to safely select a thread */
             KiAcquirePrcbLock(Prcb);
