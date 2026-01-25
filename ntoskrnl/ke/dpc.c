@@ -653,14 +653,16 @@ KiRetireDpcList(IN PKPRCB Prcb)
         Prcb->DpcRoutineActive = FALSE;
         Prcb->DpcInterruptRequested = FALSE;
 
-#ifdef CONFIG_SMP
-        /* Check if we have deferred threads */
+        /* Check if we have deferred threads (both UP and SMP need this) */
         if (Prcb->DeferredReadyListHead.Next)
         {
-
             /* Re-enable interrupts and raise to synch */
             _enable();
+#ifdef CONFIG_SMP
             OldIrql = KeRaiseIrqlToSynchLevel();
+#else
+            KIRQL OldIrql = KeRaiseIrqlToSynchLevel();
+#endif
 
             /* Process deferred threads */
             KiProcessDeferredReadyList(Prcb);
@@ -669,7 +671,6 @@ KiRetireDpcList(IN PKPRCB Prcb)
             KeLowerIrql(OldIrql);
             _disable();
         }
-#endif
     } while (DpcData->DpcQueueDepth != 0);
 }
 
