@@ -179,6 +179,32 @@ KiIdleLoop(VOID)
         /* Check if a new thread is scheduled for execution */
         if (Prcb->NextThread)
         {
+            /* Thread already selected, proceed with context switch */
+        }
+        else if (Prcb->ReadySummary != 0)
+        {
+            /* We have ready threads but no NextThread set - select one now */
+            PKTHREAD SelectedThread;
+
+            /* Acquire PRCB lock to safely select a thread */
+            KiAcquirePrcbLock(Prcb);
+
+            /* Select the highest priority ready thread */
+            SelectedThread = KiSelectReadyThread(0, Prcb);
+            if (SelectedThread)
+            {
+                /* Set it as the next thread to run */
+                SelectedThread->State = Standby;
+                Prcb->NextThread = SelectedThread;
+            }
+
+            /* Release PRCB lock */
+            KiReleasePrcbLock(Prcb);
+        }
+
+        /* Check if we have a thread to run */
+        if (Prcb->NextThread)
+        {
             /* Enable interrupts */
             _enable();
 

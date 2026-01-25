@@ -1,0 +1,143 @@
+diff --git a/ntoskrnl/ke/amd64/stubs.c b/ntoskrnl/ke/amd64/stubs.c
+index 9b87b588df0..ad2701c17c5 100644
+--- a/ntoskrnl/ke/amd64/stubs.c
++++ b/ntoskrnl/ke/amd64/stubs.c
+@@ -128,6 +128,32 @@ KiIdleLoop(VOID)
+ 
+         /* Check if a new thread is scheduled for execution */
+         if (Prcb->NextThread)
++        {
++            /* Thread already selected, proceed with context switch */
++        }
++        else if (Prcb->ReadySummary != 0)
++        {
++            /* We have ready threads but no NextThread set - select one now */
++            PKTHREAD SelectedThread;
++
++            /* Acquire PRCB lock to safely select a thread */
++            KiAcquirePrcbLock(Prcb);
++
++            /* Select the highest priority ready thread */
++            SelectedThread = KiSelectReadyThread(0, Prcb);
++            if (SelectedThread)
++            {
++                /* Set it as the next thread to run */
++                SelectedThread->State = Standby;
++                Prcb->NextThread = SelectedThread;
++            }
++
++            /* Release PRCB lock */
++            KiReleasePrcbLock(Prcb);
++        }
++
++        /* Check if we have a thread to run */
++        if (Prcb->NextThread)
+         {
+             /* Enable interrupts */
+             _enable();
+diff --git a/ntoskrnl/ke/arm/thrdini.c b/ntoskrnl/ke/arm/thrdini.c
+index c32b39c392d..eef227f51db 100644
+--- a/ntoskrnl/ke/arm/thrdini.c
++++ b/ntoskrnl/ke/arm/thrdini.c
+@@ -178,6 +178,32 @@ KiIdleLoop(VOID)
+ 
+         /* Check if a new thread is scheduled for execution */
+         if (Prcb->NextThread)
++        {
++            /* Thread already selected, proceed with context switch */
++        }
++        else if (Prcb->ReadySummary != 0)
++        {
++            /* We have ready threads but no NextThread set - select one now */
++            PKTHREAD SelectedThread;
++
++            /* Acquire PRCB lock to safely select a thread */
++            KiAcquirePrcbLock(Prcb);
++
++            /* Select the highest priority ready thread */
++            SelectedThread = KiSelectReadyThread(0, Prcb);
++            if (SelectedThread)
++            {
++                /* Set it as the next thread to run */
++                SelectedThread->State = Standby;
++                Prcb->NextThread = SelectedThread;
++            }
++
++            /* Release PRCB lock */
++            KiReleasePrcbLock(Prcb);
++        }
++
++        /* Check if we have a thread to run */
++        if (Prcb->NextThread)
+         {
+             /* Enable interrupts */
+             _enable();
+diff --git a/ntoskrnl/ke/dpc.c b/ntoskrnl/ke/dpc.c
+index 39e2c16b9d7..bc49f64437f 100644
+--- a/ntoskrnl/ke/dpc.c
++++ b/ntoskrnl/ke/dpc.c
+@@ -653,14 +653,16 @@ KiRetireDpcList(IN PKPRCB Prcb)
+         Prcb->DpcRoutineActive = FALSE;
+         Prcb->DpcInterruptRequested = FALSE;
+ 
+-#ifdef CONFIG_SMP
+-        /* Check if we have deferred threads */
++        /* Check if we have deferred threads (both UP and SMP need this) */
+         if (Prcb->DeferredReadyListHead.Next)
+         {
+-
+             /* Re-enable interrupts and raise to synch */
+             _enable();
++#ifdef CONFIG_SMP
+             OldIrql = KeRaiseIrqlToSynchLevel();
++#else
++            KIRQL OldIrql = KeRaiseIrqlToSynchLevel();
++#endif
+ 
+             /* Process deferred threads */
+             KiProcessDeferredReadyList(Prcb);
+@@ -669,7 +671,6 @@ KiRetireDpcList(IN PKPRCB Prcb)
+             KeLowerIrql(OldIrql);
+             _disable();
+         }
+-#endif
+     } while (DpcData->DpcQueueDepth != 0);
+ }
+ 
+diff --git a/ntoskrnl/ke/i386/thrdini.c b/ntoskrnl/ke/i386/thrdini.c
+index 91e8ad3931f..6b8e6072659 100644
+--- a/ntoskrnl/ke/i386/thrdini.c
++++ b/ntoskrnl/ke/i386/thrdini.c
+@@ -285,6 +285,32 @@ KiIdleLoop(VOID)
+ 
+         /* Check if a new thread is scheduled for execution */
+         if (Prcb->NextThread)
++        {
++            /* Thread already selected, proceed with context switch */
++        }
++        else if (Prcb->ReadySummary != 0)
++        {
++            /* We have ready threads but no NextThread set - select one now */
++            PKTHREAD SelectedThread;
++
++            /* Acquire PRCB lock to safely select a thread */
++            KiAcquirePrcbLock(Prcb);
++
++            /* Select the highest priority ready thread */
++            SelectedThread = KiSelectReadyThread(0, Prcb);
++            if (SelectedThread)
++            {
++                /* Set it as the next thread to run */
++                SelectedThread->State = Standby;
++                Prcb->NextThread = SelectedThread;
++            }
++
++            /* Release PRCB lock */
++            KiReleasePrcbLock(Prcb);
++        }
++
++        /* Check if we have a thread to run */
++        if (Prcb->NextThread)
+         {
+             /* Enable interrupts */
+             _enable();
