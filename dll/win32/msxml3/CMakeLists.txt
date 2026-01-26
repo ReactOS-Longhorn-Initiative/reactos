@@ -32,7 +32,6 @@ list(APPEND SOURCE
     nodemap.c
     parseerror.c
     pi.c
-    reactos.c
     saxreader.c
     schema.c
     selection.c
