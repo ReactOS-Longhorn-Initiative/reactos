@@ -45,9 +45,20 @@ HANDLE GlobalKeyedEventHandle = NULL;
 
 static VOID InitializeGlobalKeyedEventHandle(void)
 {
-    if (GlobalKeyedEventHandle == NULL)
+    HANDLE h = GlobalKeyedEventHandle;
+    if (h == NULL)
     {
-        NtCreateKeyedEvent(&GlobalKeyedEventHandle, EVENT_ALL_ACCESS, NULL, 0);
+        HANDLE temp = NULL;
+        NTSTATUS status = NtCreateKeyedEvent(&temp, EVENT_ALL_ACCESS, NULL, 0);
+        if (NT_SUCCESS(status))
+        {
+            // Only store if another thread hasn't already initialized it
+            if (InterlockedCompareExchangePointer(&GlobalKeyedEventHandle, temp, NULL) != NULL)
+            {
+                // Another thread already set it, close ours
+                NtClose(temp);
+            }
+        }
     }
 }
 
@@ -72,19 +83,14 @@ static NTSTATUS NTAPI CvWaitKeyedEventSecondPhase(
     IN BOOLEAN Alertable,
     IN PLARGE_INTEGER Timeout OPTIONAL)
 {
+    LARGE_INTEGER zeroTimeout = {0};
+    NTSTATUS status;
+
     if (Timeout == NULL)
-    {
-        LARGE_INTEGER _t; _t.QuadPart = 0;
-        while (Key->wakerTid == 0)
-        {
-            NTSTATUS s = NtWaitForKeyedEvent(KeyedEventHandle, Key, Alertable, &_t);
-            if (s != STATUS_TIMEOUT) return STATUS_TIMEOUT;
-        }
-        _t.QuadPart = -50000; /* ~5ms */
-        NtWaitForKeyedEvent(KeyedEventHandle, Key, Alertable, &_t);
-        return STATUS_SUCCESS;
-    }
-    return NtWaitForKeyedEvent(KeyedEventHandle, Key, Alertable, Timeout);
+        Timeout = &zeroTimeout;
+
+    status = NtWaitForKeyedEvent(GlobalKeyedEventHandle, Key, FALSE, Timeout);
+    return status;
 }
 
 static NTSTATUS NTAPI CvSignalKeyedEventWithMark(
@@ -455,7 +461,7 @@ NTSTATUS NTAPI RtlSleepConditionVariableCS(IN OUT PRTL_CONDITION_VARIABLE Condit
     }
 
     InitializeGlobalKeyedEventHandle();
-    for (SpinCount = 1024; SpinCount; --SpinCount)
+    for (SpinCount = 16; SpinCount; --SpinCount)
     {
         if (!(StackNode.flags & CVF_SPIN)) break;
         YieldProcessor();
@@ -487,6 +493,10 @@ NTSTATUS NTAPI RtlSleepConditionVariableSRW(IN OUT PRTL_CONDITION_VARIABLE Condi
 
     if (Flags & ~RTL_CONDITION_VARIABLE_LOCKMODE_SHARED)
         return STATUS_INVALID_PARAMETER;
+
+    PVOID stack[4];
+    (VOID)RtlCaptureStackBackTrace(0, 4, (PVOID*)&stack, NULL);
+
 
     StackNode.next = NULL;
     StackNode.flags = CVF_SPIN;
@@ -520,7 +530,7 @@ NTSTATUS NTAPI RtlSleepConditionVariableSRW(IN OUT PRTL_CONDITION_VARIABLE Condi
 
     if ((Current ^ New) & 0x8) CvNormalizeWaitChain(ConditionVariable, New);
     InitializeGlobalKeyedEventHandle();
-    for (SpinCount = 1024; SpinCount; --SpinCount)
+    for (SpinCount = 16; SpinCount; --SpinCount)
     {
         if (!(StackNode.flags & CVF_SPIN)) break;
         YieldProcessor();
