@@ -76,6 +76,7 @@ RTL_CRITICAL_SECTION LdrpLoaderLock =
     0
 };
 RTL_CRITICAL_SECTION FastPebLock;
+extern RTL_CRITICAL_SECTION LdrpDllDirectoryLock;
 
 BOOLEAN ShowSnaps;
 
@@ -2139,6 +2140,7 @@ LdrpInitializeProcess(IN PCONTEXT Context,
     /* Setup Fast PEB Lock */
     RtlInitializeCriticalSection(&FastPebLock);
     Peb->FastPebLock = &FastPebLock;
+    RtlInitializeCriticalSection(&LdrpDllDirectoryLock);
     //Peb->FastPebLockRoutine = (PPEBLOCKROUTINE)RtlEnterCriticalSection;
     //Peb->FastPebUnlockRoutine = (PPEBLOCKROUTINE)RtlLeaveCriticalSection;
 
