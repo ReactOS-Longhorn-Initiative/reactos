@@ -810,7 +810,8 @@ WINAPI
 GetCurrentProcessExplicitAppUserModelID(PWSTR *AppID)
 {
     FIXME("GetCurrentProcessExplicitAppUserModelID() stub\n");
-    return S_OK;
+    *AppID = NULL;
+    return E_NOTIMPL;
 }
 
 /*
