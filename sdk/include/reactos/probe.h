@@ -214,9 +214,13 @@ ProbeAndCaptureUnicodeString(OUT PUNICODE_STRING Dest,
             {
                 ExFreePoolWithTag(Buffer, 'RTSU');
             }
-            Dest->Length = 0;
-            Dest->MaximumLength = 0;
-            Dest->Buffer = NULL;
+
+            if (Dest)
+            {
+                Dest->Length = 0;
+                Dest->MaximumLength = 0;
+                Dest->Buffer = NULL;
+            }
 
             /* Return the error code */
             Status = _SEH2_GetExceptionCode();
