@@ -22,96 +22,20 @@
 #include "videoprt.h"
 
 #include <ndk/kefuncs.h>
+#include <ndk/halfuncs.h>
 #include <ndk/mmfuncs.h>
 
 #define NDEBUG
 #include <debug.h>
 
-/* GLOBAL VARIABLES ***********************************************************/
-
-#ifdef _M_IX86
-/* Use the 32-bit x86 emulator by default, on NT 6.x (Vista+), or on NT 5.x
- * if the HAL has the necessary exports. Otherwise fall back to V86 mode. */
-BOOLEAN VideoPortDisableX86Emulator = FALSE;
-#endif
-
-KMUTEX VideoPortInt10Mutex;
-
-
-/* X86 EMULATOR & V86 MODE INITIALIZATION *************************************/
-
-#if (NTDDI_VERSION < NTDDI_VISTA) && (DLL_EXPORT_VERSION < _WIN32_WINNT_VISTA)
-/*
- * x86 Emulator callbacks
- */
-#include <ndk/haltypes.h> // For X86_BIOS_REGISTERS
-
-static BOOLEAN
-(NTAPI *x86BiosCall)(
-    _In_ ULONG InterruptNumber,
-    _Inout_ PX86_BIOS_REGISTERS Registers);
-
-static NTSTATUS
-(NTAPI *x86BiosAllocateBuffer)(
-    _Inout_ PULONG Size,
-    _Out_ PUSHORT Segment,
-    _Out_ PUSHORT Offset);
-
-static NTSTATUS
-(NTAPI *x86BiosFreeBuffer)(
-    _In_ USHORT Segment,
-    _In_ USHORT Offset);
-
-static NTSTATUS
-(NTAPI *x86BiosReadMemory)(
-    _In_ USHORT Segment,
-    _In_ USHORT Offset,
-    _Out_writes_bytes_(Size) PVOID Buffer,
-    _In_ ULONG Size);
-
-static NTSTATUS
-(NTAPI *x86BiosWriteMemory)(
-    _In_ USHORT Segment,
-    _In_ USHORT Offset,
-    _In_reads_bytes_(Size) PVOID Buffer,
-    _In_ ULONG Size);
-
-#else // (NTDDI_VERSION >= NTDDI_VISTA) || (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
-#include <ndk/halfuncs.h> // For x86Bios*()
-#endif
-
-static BOOLEAN
-IntInitializeX86Emu(VOID)
-{
-#if (NTDDI_VERSION < NTDDI_VISTA) && (DLL_EXPORT_VERSION < _WIN32_WINNT_VISTA)
-    UNICODE_STRING ImportName;
-#define LOAD_IMPORT(func) \
-    (RtlInitUnicodeString(&ImportName, L ## #func), \
-     (func) = MmGetSystemRoutineAddress(&ImportName))
-
-    if (!LOAD_IMPORT(x86BiosCall)) // Check also HalInitializeBios ?
-        return FALSE; /* No emulator available */
-    if (!LOAD_IMPORT(x86BiosAllocateBuffer))
-        return FALSE;
-    if (!LOAD_IMPORT(x86BiosFreeBuffer))
-        return FALSE;
-    if (!LOAD_IMPORT(x86BiosReadMemory))
-        return FALSE;
-    if (!LOAD_IMPORT(x86BiosWriteMemory))
-        return FALSE;
-#undef LOAD_IMPORT
-#endif
-
-    return TRUE;
-}
-
-#ifdef _M_IX86
+/* PRIVATE FUNCTIONS **********************************************************/
 
 #define IsLowV86Mem(_Seg, _Off) ((((_Seg) << 4) + (_Off)) < (0xa0000))
 
 /* Those two functions below are there so that CSRSS can't access low mem.
  * Especially, MAKE IT CRASH ON NULL ACCESS */
-static VOID
+static
+VOID
 ProtectLowV86Mem(VOID)
 {
     /* We pass a non-NULL address so that ZwAllocateVirtualMemory really does it
@@ -133,7 +57,8 @@ ProtectLowV86Mem(VOID)
     ASSERT(NT_SUCCESS(Status));
 }
 
-static VOID
+static
+VOID
 UnprotectLowV86Mem(VOID)
 {
     /* We pass a non-NULL address so that ZwAllocateVirtualMemory really does it
@@ -155,8 +80,9 @@ UnprotectLowV86Mem(VOID)
     ASSERT(NT_SUCCESS(Status));
 }
 
-static inline
+#if defined(_M_IX86) || defined(_M_AMD64)
 NTSTATUS
+NTAPI
 IntInitializeVideoAddressSpace(VOID)
 {
     OBJECT_ATTRIBUTES ObjectAttributes;
@@ -166,7 +92,9 @@ IntInitializeVideoAddressSpace(VOID)
     PVOID BaseAddress;
     LARGE_INTEGER Offset;
     SIZE_T ViewSize;
+#ifdef _M_IX86
     CHAR IVTAndBda[1024 + 256];
+#endif // _M_IX86
 
     /* We should only do that for CSRSS */
     ASSERT(PsGetCurrentProcess() == (PEPROCESS)CsrProcess);
@@ -253,6 +181,7 @@ IntInitializeVideoAddressSpace(VOID)
         return 0;
     }
 
+#ifdef _M_IX86
     /* Get the real mode IVT and BDA from the kernel */
     Status = NtVdmControl(VdmInitialize, IVTAndBda);
     if (!NT_SUCCESS(Status))
@@ -260,6 +189,7 @@ IntInitializeVideoAddressSpace(VOID)
         DPRINT1("NtVdmControl failed (status %x)\n", Status);
         return Status;
     }
+#endif // _M_IX86
 
     /* Protect the V86 address space after this */
     ProtectLowV86Mem();
@@ -267,62 +197,33 @@ IntInitializeVideoAddressSpace(VOID)
     /* Return success */
     return STATUS_SUCCESS;
 }
-
-#endif // _M_IX86
-
-
-/* VideoPortServicesInt10 CALLBACKS *******************************************/
-
-#ifdef _M_IX86
-typedef struct _INT10_INTERFACE
-{
-    PINT10_ALLOCATE_BUFFER Int10AllocateBuffer;
-    PINT10_FREE_BUFFER Int10FreeBuffer;
-    PINT10_READ_MEMORY Int10ReadMemory;
-    PINT10_WRITE_MEMORY Int10WriteMemory;
-    PINT10_CALL_BIOS Int10CallBios;
-} INT10_INTERFACE;
-
-// Remark: Instead of `Int10Vtbl->`, one could use: `Int10IFace[VideoPortDisableX86Emulator].`
-static const INT10_INTERFACE *Int10Vtbl; // Int10IFace[2];
-#define INT10(func) Int10Vtbl->Int10##func
 #else
-#define INT10(func) IntInt10##func##Emu
-#endif // _M_IX86
-
-
-static VP_STATUS
+NTSTATUS
 NTAPI
-IntInt10AllocateBufferEmu(
-    _In_ PVOID Context,
-    _Out_ PUSHORT Seg,
-    _Out_ PUSHORT Off,
-    _Inout_ PULONG Length)
+IntInitializeVideoAddressSpace(VOID)
 {
-    NTSTATUS Status;
-
-    UNREFERENCED_PARAMETER(Context);
-
-    Status = x86BiosAllocateBuffer(Length, Seg, Off);
-    return (NT_SUCCESS(Status) ? NO_ERROR : ERROR_NOT_ENOUGH_MEMORY);
+    UNIMPLEMENTED;
+    NT_ASSERT(FALSE);
+    return STATUS_NOT_IMPLEMENTED;
 }
+#endif
 
-#ifdef _M_IX86
-static VP_STATUS
+VP_STATUS
 NTAPI
-IntInt10AllocateBufferV86(
-    _In_ PVOID Context,
-    _Out_ PUSHORT Seg,
-    _Out_ PUSHORT Off,
-    _Inout_ PULONG Length)
+IntInt10AllocateBuffer(
+    IN PVOID Context,
+    OUT PUSHORT Seg,
+    OUT PUSHORT Off,
+    IN OUT PULONG Length)
 {
     NTSTATUS Status;
+#ifdef _M_IX86
     PVOID MemoryAddress;
     PKPROCESS CallingProcess;
     KAPC_STATE ApcState;
     SIZE_T Size;
 
-    UNREFERENCED_PARAMETER(Context);
+    TRACE_(VIDEOPRT, "IntInt10AllocateBuffer\n");
 
     /* Perform the call in the CSRSS context */
     if (!IntAttachToCSRSS(&CallingProcess, &ApcState))
@@ -361,63 +262,34 @@ IntInt10AllocateBufferV86(
     *Seg = (USHORT)((ULONG_PTR)MemoryAddress >> 4);
     *Off = (USHORT)((ULONG_PTR)MemoryAddress & 0xF);
 
+    INFO_(VIDEOPRT, "- Segment: %x\n", *Seg);
+    INFO_(VIDEOPRT, "- Offset: %x\n", *Off);
+    INFO_(VIDEOPRT, "- Length: %x\n", *Length);
+
     return NO_ERROR;
+#else
+    Status = x86BiosAllocateBuffer(Length, Seg, Off);
+    return NT_SUCCESS(Status) ? NO_ERROR : ERROR_NOT_ENOUGH_MEMORY;
+#endif
 }
-#endif // _M_IX86
 
 VP_STATUS
 NTAPI
-IntInt10AllocateBuffer(
-    _In_ PVOID Context,
-    _Out_ PUSHORT Seg,
-    _Out_ PUSHORT Off,
-    _Inout_ PULONG Length)
-{
-    VP_STATUS Status;
-
-    TRACE_(VIDEOPRT, "IntInt10AllocateBuffer\n");
-
-    Status = INT10(AllocateBuffer)(Context, Seg, Off, Length);
-    if (Status == NO_ERROR)
-    {
-        INFO_(VIDEOPRT, "- Segment: 0x%x\n", *Seg);
-        INFO_(VIDEOPRT, "- Offset : 0x%x\n", *Off);
-        INFO_(VIDEOPRT, "- Length : 0x%x\n", *Length);
-    }
-    return Status;
-}
-
-
-static VP_STATUS
-NTAPI
-IntInt10FreeBufferEmu(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off)
+IntInt10FreeBuffer(
+    IN PVOID Context,
+    IN USHORT Seg,
+    IN USHORT Off)
 {
     NTSTATUS Status;
-
-    UNREFERENCED_PARAMETER(Context);
-
-    Status = x86BiosFreeBuffer(Seg, Off);
-    return (NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER);
-}
-
 #ifdef _M_IX86
-static VP_STATUS
-NTAPI
-IntInt10FreeBufferV86(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off)
-{
-    NTSTATUS Status;
     PVOID MemoryAddress = (PVOID)((ULONG_PTR)(Seg << 4) | Off);
     PKPROCESS CallingProcess;
     KAPC_STATE ApcState;
     SIZE_T Size = 0;
 
-    UNREFERENCED_PARAMETER(Context);
+    TRACE_(VIDEOPRT, "IntInt10FreeBuffer\n");
+    INFO_(VIDEOPRT, "- Segment: %x\n", Seg);
+    INFO_(VIDEOPRT, "- Offset: %x\n", Off);
 
     /* Perform the call in the CSRSS context */
     if (!IntAttachToCSRSS(&CallingProcess, &ApcState))
@@ -431,55 +303,30 @@ IntInt10FreeBufferV86(
     IntDetachFromCSRSS(CallingProcess, &ApcState);
 
     return Status;
+#else
+    Status = x86BiosFreeBuffer(Seg, Off);
+    return NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER;
+#endif
 }
-#endif // _M_IX86
 
 VP_STATUS
 NTAPI
-IntInt10FreeBuffer(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off)
+IntInt10ReadMemory(
+    IN PVOID Context,
+    IN USHORT Seg,
+    IN USHORT Off,
+    OUT PVOID Buffer,
+    IN ULONG Length)
 {
-    TRACE_(VIDEOPRT, "IntInt10FreeBuffer\n");
-    INFO_(VIDEOPRT, "- Segment: 0x%x\n", Seg);
-    INFO_(VIDEOPRT, "- Offset : 0x%x\n", Off);
-
-    return INT10(FreeBuffer)(Context, Seg, Off);
-}
-
-
-static VP_STATUS
-NTAPI
-IntInt10ReadMemoryEmu(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off,
-    _Out_writes_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
-{
-    NTSTATUS Status;
-
-    UNREFERENCED_PARAMETER(Context);
-
-    Status = x86BiosReadMemory(Seg, Off, Buffer, Length);
-    return (NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER);
-}
-
 #ifdef _M_IX86
-static VP_STATUS
-NTAPI
-IntInt10ReadMemoryV86(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off,
-    _Out_writes_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
-{
     PKPROCESS CallingProcess;
     KAPC_STATE ApcState;
 
-    UNREFERENCED_PARAMETER(Context);
+    TRACE_(VIDEOPRT, "IntInt10ReadMemory\n");
+    INFO_(VIDEOPRT, "- Segment: %x\n", Seg);
+    INFO_(VIDEOPRT, "- Offset: %x\n", Off);
+    INFO_(VIDEOPRT, "- Buffer: %x\n", Buffer);
+    INFO_(VIDEOPRT, "- Length: %x\n", Length);
 
     /* Perform the call in the CSRSS context */
     if (!IntAttachToCSRSS(&CallingProcess, &ApcState))
@@ -494,59 +341,32 @@ IntInt10ReadMemoryV86(
     IntDetachFromCSRSS(CallingProcess, &ApcState);
 
     return NO_ERROR;
+#else
+    NTSTATUS Status;
+
+    Status = x86BiosReadMemory(Seg, Off, Buffer, Length);
+    return NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER;
+#endif
 }
-#endif // _M_IX86
 
 VP_STATUS
 NTAPI
-IntInt10ReadMemory(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off,
-    _Out_writes_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
+IntInt10WriteMemory(
+    IN PVOID Context,
+    IN USHORT Seg,
+    IN USHORT Off,
+    IN PVOID Buffer,
+    IN ULONG Length)
 {
-    TRACE_(VIDEOPRT, "IntInt10ReadMemory\n");
-    INFO_(VIDEOPRT, "- Segment: 0x%x\n", Seg);
-    INFO_(VIDEOPRT, "- Offset : 0x%x\n", Off);
-    INFO_(VIDEOPRT, "- Buffer : 0x%x\n", Buffer);
-    INFO_(VIDEOPRT, "- Length : 0x%x\n", Length);
-
-    return INT10(ReadMemory)(Context, Seg, Off, Buffer, Length);
-}
-
-
-static VP_STATUS
-NTAPI
-IntInt10WriteMemoryEmu(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off,
-    _In_reads_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
-{
-    NTSTATUS Status;
-
-    UNREFERENCED_PARAMETER(Context);
-
-    Status = x86BiosWriteMemory(Seg, Off, Buffer, Length);
-    return (NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER);
-}
-
 #ifdef _M_IX86
-static VP_STATUS
-NTAPI
-IntInt10WriteMemoryV86(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off,
-    _In_reads_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
-{
     PKPROCESS CallingProcess;
     KAPC_STATE ApcState;
 
-    UNREFERENCED_PARAMETER(Context);
+    TRACE_(VIDEOPRT, "IntInt10WriteMemory\n");
+    INFO_(VIDEOPRT, "- Segment: %x\n", Seg);
+    INFO_(VIDEOPRT, "- Offset: %x\n", Off);
+    INFO_(VIDEOPRT, "- Buffer: %x\n", Buffer);
+    INFO_(VIDEOPRT, "- Length: %x\n", Length);
 
     /* Perform the call in the CSRSS context */
     if (!IntAttachToCSRSS(&CallingProcess, &ApcState))
@@ -561,89 +381,28 @@ IntInt10WriteMemoryV86(
     IntDetachFromCSRSS(CallingProcess, &ApcState);
 
     return NO_ERROR;
+#else
+    NTSTATUS Status;
+
+    Status = x86BiosWriteMemory(Seg, Off, Buffer, Length);
+    return NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER;
+#endif
 }
-#endif // _M_IX86
 
 VP_STATUS
 NTAPI
-IntInt10WriteMemory(
-    _In_ PVOID Context,
-    _In_ USHORT Seg,
-    _In_ USHORT Off,
-    _In_reads_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
+IntInt10CallBios(
+    IN PVOID Context,
+    IN OUT PINT10_BIOS_ARGUMENTS BiosArguments)
 {
-    TRACE_(VIDEOPRT, "IntInt10WriteMemory\n");
-    INFO_(VIDEOPRT, "- Segment: 0x%x\n", Seg);
-    INFO_(VIDEOPRT, "- Offset : 0x%x\n", Off);
-    INFO_(VIDEOPRT, "- Buffer : 0x%x\n", Buffer);
-    INFO_(VIDEOPRT, "- Length : 0x%x\n", Length);
-
-    return INT10(WriteMemory)(Context, Seg, Off, Buffer, Length);
-}
-
-
-static VP_STATUS
-NTAPI
-IntInt10CallBiosEmu(
-    _In_ PVOID Context,
-    _Inout_ PINT10_BIOS_ARGUMENTS BiosArguments)
-{
+#ifdef _M_AMD64
     X86_BIOS_REGISTERS BiosContext;
-    BOOLEAN Success;
-
-    UNREFERENCED_PARAMETER(Context);
-
-    /* Clear the context and fill out the BIOS arguments */
-    RtlZeroMemory(&BiosContext, sizeof(BiosContext));
-    BiosContext.Eax = BiosArguments->Eax;
-    BiosContext.Ebx = BiosArguments->Ebx;
-    BiosContext.Ecx = BiosArguments->Ecx;
-    BiosContext.Edx = BiosArguments->Edx;
-    BiosContext.Esi = BiosArguments->Esi;
-    BiosContext.Edi = BiosArguments->Edi;
-    BiosContext.Ebp = BiosArguments->Ebp;
-    BiosContext.SegDs = BiosArguments->SegDs;
-    BiosContext.SegEs = BiosArguments->SegEs;
-
-    /* Do the ROM BIOS call */
-    (void)KeWaitForMutexObject(&VideoPortInt10Mutex,
-                               Executive,
-                               KernelMode,
-                               FALSE,
-                               NULL);
-
-    Success = x86BiosCall(0x10, &BiosContext);
-
-    KeReleaseMutex(&VideoPortInt10Mutex, FALSE);
-
-    /* Return the arguments */
-    BiosArguments->Eax = BiosContext.Eax;
-    BiosArguments->Ebx = BiosContext.Ebx;
-    BiosArguments->Ecx = BiosContext.Ecx;
-    BiosArguments->Edx = BiosContext.Edx;
-    BiosArguments->Esi = BiosContext.Esi;
-    BiosArguments->Edi = BiosContext.Edi;
-    BiosArguments->Ebp = BiosContext.Ebp;
-    BiosArguments->SegDs = (USHORT)BiosContext.SegDs;
-    BiosArguments->SegEs = (USHORT)BiosContext.SegEs;
-
-    return (Success ? NO_ERROR : ERROR_INVALID_PARAMETER);
-}
-
-#ifdef _M_IX86
-static VP_STATUS
-NTAPI
-IntInt10CallBiosV86(
-    _In_ PVOID Context,
-    _Inout_ PINT10_BIOS_ARGUMENTS BiosArguments)
-{
+#else
     CONTEXT BiosContext;
+#endif
     NTSTATUS Status;
     PKPROCESS CallingProcess;
     KAPC_STATE ApcState;
-
-    UNREFERENCED_PARAMETER(Context);
 
     /* Clear the context and fill out the BIOS arguments */
     RtlZeroMemory(&BiosContext, sizeof(BiosContext));
@@ -670,18 +429,11 @@ IntInt10CallBiosV86(
 
     /* The kernel needs access here */
     UnprotectLowV86Mem();
-
-    /* Invoke the V86 monitor under SEH, as it can raise exceptions */
-    _SEH2_TRY
-    {
-        Status = Ke386CallBios(0x10, &BiosContext);
-    }
-    _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
-    {
-        Status = _SEH2_GetExceptionCode();
-    }
-    _SEH2_END;
-
+#ifdef _M_AMD64
+    Status = x86BiosCall(0x10, &BiosContext) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
+#else
+    Status = Ke386CallBios(0x10, &BiosContext);
+#endif
     ProtectLowV86Mem();
 
     KeReleaseMutex(&VideoPortInt10Mutex, FALSE);
@@ -699,67 +451,8 @@ IntInt10CallBiosV86(
     BiosArguments->SegDs = (USHORT)BiosContext.SegDs;
     BiosArguments->SegEs = (USHORT)BiosContext.SegEs;
 
-    return (NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER);
+    return NT_SUCCESS(Status) ? NO_ERROR : ERROR_INVALID_PARAMETER;
 }
-#endif // _M_IX86
-
-VP_STATUS
-NTAPI
-IntInt10CallBios(
-    _In_ PVOID Context,
-    _Inout_ PINT10_BIOS_ARGUMENTS BiosArguments)
-{
-    return INT10(CallBios)(Context, BiosArguments);
-}
-
-
-#ifdef _M_IX86
-static const INT10_INTERFACE Int10IFace[2] =
-{ { IntInt10AllocateBufferEmu,
-    IntInt10FreeBufferEmu,
-    IntInt10ReadMemoryEmu,
-    IntInt10WriteMemoryEmu,
-    IntInt10CallBiosEmu }
-  ,
-  { IntInt10AllocateBufferV86,
-    IntInt10FreeBufferV86,
-    IntInt10ReadMemoryV86,
-    IntInt10WriteMemoryV86,
-    IntInt10CallBiosV86 }
-};
-static const INT10_INTERFACE *Int10Vtbl = &Int10IFace[0];
-#endif
-
-
-/* PRIVATE FUNCTIONS **********************************************************/
-
-NTSTATUS
-IntInitializeInt10(VOID)
-{
-#ifdef _M_IX86
-    /* We should only do that for CSRSS */
-    ASSERT(PsGetCurrentProcess() == (PEPROCESS)CsrProcess);
-
-    /* Initialize the x86 emulator if necessary, otherwise fall back to V86 mode */
-    if (!VideoPortDisableX86Emulator)
-    {
-        /* Use the emulation routines */
-        //Int10Vtbl = &Int10IFace[0];
-        if (IntInitializeX86Emu())
-            return STATUS_SUCCESS;
-        DPRINT1("Could not initialize the x86 emulator; falling back to V86 mode\n");
-        VideoPortDisableX86Emulator = TRUE;
-    }
-
-    /* Fall back to the V86 routines */
-    Int10Vtbl = &Int10IFace[1];
-    return IntInitializeVideoAddressSpace();
-#else
-    /* Initialize the x86 emulator */
-    return (IntInitializeX86Emu() ? STATUS_SUCCESS : STATUS_NOT_SUPPORTED);
-#endif
-}
-
 
 /* PUBLIC FUNCTIONS ***********************************************************/
 
@@ -772,8 +465,13 @@ VideoPortInt10(
     IN PVOID HwDeviceExtension,
     IN PVIDEO_X86_BIOS_ARGUMENTS BiosArguments)
 {
-    VP_STATUS Status;
     INT10_BIOS_ARGUMENTS Int10BiosArguments;
+    VP_STATUS Status;
+
+    if (!CsrProcess)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
 
     /* Copy arguments to other format */
     RtlCopyMemory(&Int10BiosArguments, BiosArguments, sizeof(*BiosArguments));

@@ -39,7 +39,7 @@ BOOLEAN VpNoVesa = FALSE;
 PKPROCESS CsrProcess = NULL;
 static ULONG VideoPortMaxObjectNumber = -1;
 BOOLEAN VideoPortUseNewKey = FALSE;
-
+KMUTEX VideoPortInt10Mutex;
 KSPIN_LOCK HwResetAdaptersLock;
 RTL_STATIC_LIST_HEAD(HwResetAdaptersList);
 KMUTEX VgaSyncLock;
@@ -774,21 +774,21 @@ IntLoadRegistryParameters(VOID)
 {
     NTSTATUS Status;
     HANDLE KeyHandle;
-    UNICODE_STRING KeyPath;
+    UNICODE_STRING UseNewKeyPath = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\GraphicsDrivers\\UseNewKey");
+    UNICODE_STRING Path = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\System\\CurrentControlSet\\Control");
     UNICODE_STRING ValueName = RTL_CONSTANT_STRING(L"SystemStartOptions");
     OBJECT_ATTRIBUTES ObjectAttributes;
     PKEY_VALUE_PARTIAL_INFORMATION KeyInfo;
     ULONG Length, NewLength;
 
     /* Check if we need to use new registry */
-    RtlInitUnicodeString(&KeyPath, L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\GraphicsDrivers\\UseNewKey");
     InitializeObjectAttributes(&ObjectAttributes,
-                               &KeyPath,
+                               &UseNewKeyPath,
                                OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
                                NULL,
                                NULL);
     Status = ZwOpenKey(&KeyHandle,
-                       KEY_QUERY_VALUE,
+                       GENERIC_READ | GENERIC_WRITE,
                        &ObjectAttributes);
     if (NT_SUCCESS(Status))
     {
@@ -796,29 +796,9 @@ IntLoadRegistryParameters(VOID)
         ZwClose(KeyHandle);
     }
 
-#ifdef _M_IX86
-    /* Check whether we need to use the 32-bit x86 emulator instead of V86 mode */
-    RtlInitUnicodeString(&KeyPath, L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\GraphicsDrivers\\DisableEmulator");
-    InitializeObjectAttributes(&ObjectAttributes,
-                               &KeyPath,
-                               OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
-                               NULL,
-                               NULL);
-    Status = ZwOpenKey(&KeyHandle,
-                       KEY_QUERY_VALUE,
-                       &ObjectAttributes);
-    if (NT_SUCCESS(Status))
-    {
-        VideoPortDisableX86Emulator = TRUE;
-        ZwClose(KeyHandle);
-    }
-    DPRINT1("Using %s\n", VideoPortDisableX86Emulator ? "V86 mode" : "x86 emulator");
-#endif // _M_IX86
-
     /* Initialize object attributes with the path we want */
-    RtlInitUnicodeString(&KeyPath, L"\\Registry\\Machine\\System\\CurrentControlSet\\Control");
     InitializeObjectAttributes(&ObjectAttributes,
-                               &KeyPath,
+                               &Path,
                                OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
                                NULL,
                                NULL);
@@ -843,7 +823,7 @@ IntLoadRegistryParameters(VOID)
     if (Status != STATUS_BUFFER_OVERFLOW && Status != STATUS_BUFFER_TOO_SMALL)
     {
         VideoPortDebugPrint(Error, "ZwQueryValueKey failed (0x%x)\n", Status);
-        ZwClose(KeyHandle);
+        ObCloseHandle(KeyHandle, KernelMode);
         return;
     }
 
@@ -852,7 +832,7 @@ IntLoadRegistryParameters(VOID)
     if (!KeyInfo)
     {
         VideoPortDebugPrint(Error, "Out of memory\n");
-        ZwClose(KeyHandle);
+        ObCloseHandle(KeyHandle, KernelMode);
         return;
     }
 
@@ -863,7 +843,7 @@ IntLoadRegistryParameters(VOID)
                              KeyInfo,
                              Length,
                              &NewLength);
-    ZwClose(KeyHandle);
+    ObCloseHandle(KeyHandle, KernelMode);
 
     if (!NT_SUCCESS(Status))
     {
@@ -899,9 +879,10 @@ IntLoadRegistryParameters(VOID)
     /* If we are in BASEVIDEO, create the volatile registry key for Win32k */
     if (VpBaseVideo)
     {
-        RtlInitUnicodeString(&KeyPath, L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\GraphicsDrivers\\BaseVideo");
+        RtlInitUnicodeString(&Path, L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\GraphicsDrivers\\BaseVideo");
+
         InitializeObjectAttributes(&ObjectAttributes,
-                                   &KeyPath,
+                                   &Path,
                                    OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
                                    NULL,
                                    NULL);
@@ -914,7 +895,7 @@ IntLoadRegistryParameters(VOID)
                              REG_OPTION_VOLATILE,
                              NULL);
         if (NT_SUCCESS(Status))
-            ZwClose(KeyHandle);
+            ObCloseHandle(KeyHandle, KernelMode);
         else
             ERR_(VIDEOPRT, "Failed to create the BaseVideo key (0x%x)\n", Status);
     }
