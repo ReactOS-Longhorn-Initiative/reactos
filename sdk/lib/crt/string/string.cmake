@@ -21,7 +21,7 @@ list(APPEND LIBCNTPR_STRING_SOURCE
     string/strrev.c
     string/strset.c
     string/strspn.c
-    string/strstr.c
+    #string/strstr.c
     string/strtoi64.c
     string/strtol.c
     string/strtoul.c
@@ -43,7 +43,7 @@ list(APPEND LIBCNTPR_STRING_SOURCE
 if(ARCH STREQUAL "i386")
     list(APPEND LIBCNTPR_STRING_ASM_SOURCE
         string/i386/strcat_asm.s
-        string/i386/strchr_asm.s
+        #string/i386/strchr_asm.s
         string/i386/strcmp_asm.s
         string/i386/strcpy_asm.s
         string/i386/strlen_asm.s
@@ -51,9 +51,9 @@ if(ARCH STREQUAL "i386")
         string/i386/strncmp_asm.s
         string/i386/strncpy_asm.s
         string/i386/strnlen_asm.s
-        string/i386/strrchr_asm.s
+        #string/i386/strrchr_asm.s
         string/i386/wcscat_asm.s
-        string/i386/wcschr_asm.s
+        #string/i386/wcschr_asm.s
         string/i386/wcscmp_asm.s
         string/i386/wcscpy_asm.s
         string/i386/wcslen_asm.s
@@ -61,12 +61,12 @@ if(ARCH STREQUAL "i386")
         string/i386/wcsncmp_asm.s
         string/i386/wcsncpy_asm.s
         string/i386/wcsnlen_asm.s
-        string/i386/wcsrchr_asm.s
+        #string/i386/wcsrchr_asm.s
     )
 else()
     list(APPEND LIBCNTPR_STRING_SOURCE
         string/strcat.c
-        string/strchr.c
+        #string/strchr.c
         string/strcmp.c
         string/strcpy.c
         string/strlen.c
@@ -74,9 +74,9 @@ else()
         string/strncmp.c
         string/strncpy.c
         string/strnlen.c
-        string/strrchr.c
+        #string/strrchr.c
         string/wcscat.c
-        string/wcschr.c
+        #string/wcschr.c
         string/wcscmp.c
         string/wcscpy.c
         string/wcslen.c
@@ -84,7 +84,7 @@ else()
         string/wcsncmp.c
         string/wcsncpy.c
         string/wcsnlen.c
-        string/wcsrchr.c
+        #string/wcsrchr.c
     )
 endif()
 

@@ -4,9 +4,6 @@ if(ARCH STREQUAL "i386")
         except/i386/chkstk_asm.s
     )
 elseif(ARCH STREQUAL "amd64")
-    list(APPEND LIBCNTPR_EXCEPT_SOURCE
-        except/amd64/ehandler.c
-    )
     list(APPEND LIBCNTPR_EXCEPT_ASM_SOURCE
         except/amd64/chkstk_ms.s
         except/amd64/seh.s

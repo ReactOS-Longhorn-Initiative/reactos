@@ -207,6 +207,14 @@ _CRT_BEGIN_C_HEADER
     #define _UNALIGNED
 #endif
 
+#ifndef NULL
+    #ifdef __cplusplus
+        #define NULL 0
+    #else
+        #define NULL ((void *)0)
+    #endif
+#endif
+
 #ifdef __cplusplus
     // Safer than the C definition, as it ensures that the argument is not a pointer
     extern "C++" template<typename _T, size_t _Size>

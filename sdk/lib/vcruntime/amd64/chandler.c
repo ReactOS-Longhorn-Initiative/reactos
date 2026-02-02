@@ -5,9 +5,7 @@
  * COPYRIGHT:   Copyright 2018-2021 Timo Kreuzer <timo.kreuzer@reactos.org>
 */
 
-#include <precomp.h>
-#include <winnt.h>
-
+#include <windef.h>
 
 _CRTIMP
 EXCEPTION_DISPOSITION
@@ -132,9 +130,4 @@ __C_specific_handler(
 
     /* Reached the end of the scope table */
     return ExceptionContinueSearch;
-}
-
-void __cdecl _local_unwind(void* frame, void* target)
-{
-    RtlUnwind(frame, target, NULL, 0);
 }
