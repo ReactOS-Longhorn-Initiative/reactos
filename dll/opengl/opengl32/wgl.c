@@ -120,6 +120,83 @@ struct wgl_context* get_context(HGLRC hglrc)
     return context;
 }
 
+HGLRC CreateAnyContext(HDC hdc, PINT iLayerPlane)
+{
+    struct wgl_dc_data* dc_data = get_dc_data(hdc);
+    struct wgl_context* context;
+    DHGLRC dhglrc;
+
+    TRACE("Creating%scontext for %p.\n", (iLayerPlane ? " layer " : " "), hdc);
+
+    if(!dc_data)
+    {
+        ERR("Not a DC handle!\n");
+        SetLastError(ERROR_INVALID_HANDLE);
+        return NULL;
+    }
+
+    if(!dc_data->pixelformat)
+    {
+        ERR("Pixel format not set!\n");
+        release_dc_data(dc_data);
+        SetLastError(ERROR_INVALID_PIXEL_FORMAT);
+        return NULL;
+    }
+
+    if(!dc_data->icd_data)
+    {
+        if(iLayerPlane && (*iLayerPlane != 0))
+        {
+            /* Not supported in SW implementation  */
+            release_dc_data(dc_data);
+            SetLastError(ERROR_INVALID_PIXEL_FORMAT);
+            return NULL;
+        }
+        WARN("Calling SW implementation\n");
+        dhglrc = sw_CreateContext(dc_data);
+    }
+    else
+    {
+        TRACE("Calling ICD\n");
+        dhglrc = (iLayerPlane ? dc_data->icd_data->DrvCreateLayerContext(hdc, *iLayerPlane) :
+                    dc_data->icd_data->DrvCreateContext(hdc));
+    }
+
+    if(!dhglrc)
+    {
+        ERR("Failed!\n");
+        release_dc_data(dc_data);
+        SetLastError(ERROR_INVALID_PIXEL_FORMAT);
+        return NULL;
+    }
+
+    context = HeapAlloc(GetProcessHeap(), 0, sizeof(*context));
+    if(!context)
+    {
+        ERR("Failed to allocate a context!\n");
+        if(!dc_data->icd_data)
+            sw_DeleteContext(dhglrc);
+        else
+            dc_data->icd_data->DrvDeleteContext(dhglrc);
+        release_dc_data(dc_data);
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        return NULL;
+    }
+    /* Copy info from the DC data */
+    context->dhglrc = dhglrc;
+    context->icd_data = dc_data->icd_data;
+    context->pixelformat = dc_data->pixelformat;
+    context->thread_id = 0;
+    context->magic = 'GLRC';
+
+    /* Insert into the list */
+    InsertTailList(&ContextListHead, &context->ListEntry);
+
+    TRACE("Success!\n");
+    release_dc_data(dc_data);
+    return (HGLRC)context;
+}
+
 INT WINAPI wglDescribePixelFormat(HDC hdc, INT format, UINT size, PIXELFORMATDESCRIPTOR *descr )
 {
     struct wgl_dc_data* dc_data = get_dc_data_ex(hdc, format, size, descr);
@@ -382,135 +459,12 @@ BOOL WINAPI wglCopyContext(HGLRC hglrcSrc, HGLRC hglrcDst, UINT mask)
 
 HGLRC WINAPI wglCreateContext(HDC hdc)
 {
-    struct wgl_dc_data* dc_data = get_dc_data(hdc);
-    struct wgl_context* context;
-    DHGLRC dhglrc;
-
-    TRACE("Creating context for %p.\n", hdc);
-
-    if(!dc_data)
-    {
-        WARN("Not a DC handle!\n");
-        SetLastError(ERROR_INVALID_HANDLE);
-        return NULL;
-    }
-
-    if(!dc_data->pixelformat)
-    {
-        WARN("Pixel format not set!\n");
-        SetLastError(ERROR_INVALID_PIXEL_FORMAT);
-        return NULL;
-    }
-
-    if(!dc_data->icd_data)
-    {
-        TRACE("Calling SW implementation.\n");
-        dhglrc = sw_CreateContext(dc_data);
-        TRACE("done\n");
-    }
-    else
-    {
-        TRACE("Calling ICD.\n");
-        dhglrc = dc_data->icd_data->DrvCreateContext(hdc);
-    }
-
-    if(!dhglrc)
-    {
-        WARN("Failed!\n");
-        SetLastError(ERROR_INVALID_PIXEL_FORMAT);
-        return NULL;
-    }
-
-    context = HeapAlloc(GetProcessHeap(), 0, sizeof(*context));
-    if(!context)
-    {
-        WARN("Failed to allocate a context!\n");
-        if(!dc_data->icd_data)
-            sw_DeleteContext(dhglrc);
-        else
-            dc_data->icd_data->DrvDeleteContext(dhglrc);
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return NULL;
-    }
-    /* Copy info from the DC data */
-    context->dhglrc = dhglrc;
-    context->icd_data = dc_data->icd_data;
-    context->pixelformat = dc_data->pixelformat;
-    context->thread_id = 0;
-    context->magic = 'GLRC';
-
-    /* Insert into the list */
-    InsertTailList(&ContextListHead, &context->ListEntry);
-
-    TRACE("Success!\n");
-    return (HGLRC)context;
+    return CreateAnyContext(hdc, NULL);
 }
 
 HGLRC WINAPI wglCreateLayerContext(HDC hdc, int iLayerPlane)
 {
-    struct wgl_dc_data* dc_data = get_dc_data(hdc);
-    struct wgl_context* context;
-    DHGLRC dhglrc;
-
-    if(!dc_data)
-    {
-        SetLastError(ERROR_INVALID_HANDLE);
-        return NULL;
-    }
-
-    if(!dc_data->pixelformat)
-    {
-        release_dc_data(dc_data);
-        SetLastError(ERROR_INVALID_PIXEL_FORMAT);
-        return NULL;
-    }
-
-    if(!dc_data->icd_data)
-    {
-        if(iLayerPlane != 0)
-        {
-            /* Not supported in SW implementation  */
-            release_dc_data(dc_data);
-            SetLastError(ERROR_INVALID_PIXEL_FORMAT);
-            return NULL;
-        }
-        dhglrc = sw_CreateContext(dc_data);
-    }
-    else
-    {
-        dhglrc = dc_data->icd_data->DrvCreateLayerContext(hdc, iLayerPlane);
-    }
-
-    if(!dhglrc)
-    {
-        release_dc_data(dc_data);
-        SetLastError(ERROR_INVALID_PIXEL_FORMAT);
-        return NULL;
-    }
-
-    context = HeapAlloc(GetProcessHeap(), 0, sizeof(*context));
-    if(!context)
-    {
-        if(!dc_data->icd_data)
-            sw_DeleteContext(dhglrc);
-        else
-            dc_data->icd_data->DrvDeleteContext(dhglrc);
-        release_dc_data(dc_data);
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return NULL;
-    }
-    /* Copy info from the DC data */
-    context->dhglrc = dhglrc;
-    context->icd_data = dc_data->icd_data;
-    context->pixelformat = dc_data->pixelformat;
-    context->thread_id = 0;
-    context->magic = 'GLRC';
-
-    /* Insert into the list */
-    InsertTailList(&ContextListHead, &context->ListEntry);
-
-    release_dc_data(dc_data);
-    return (HGLRC)context;
+    return CreateAnyContext(hdc, &iLayerPlane);
 }
 
 BOOL WINAPI wglDeleteContext(HGLRC hglrc)
