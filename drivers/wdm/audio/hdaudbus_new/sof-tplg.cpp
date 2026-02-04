@@ -113,6 +113,7 @@ GetSOFTplg(
 	sofTplg->magic = SOFTPLG_MAGIC;
 	sofTplg->length = sizeof(*sofTplg);
 
+	{
 	PACPI_METHOD_ARGUMENT currArgument = &outputBuffer->Argument[0];
 	for (ULONG i = 0; i < outputBuffer->Count; i += 2) {
 		PACPI_METHOD_ARGUMENT guidArg = currArgument;
@@ -146,6 +147,7 @@ GetSOFTplg(
 				copyDSDParam(dsdParameterData, (char**)&sofTplg->dmic_tplg);
 			}
 		}
+	}
 	}
 
 Exit:

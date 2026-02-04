@@ -33,7 +33,7 @@ NTSTATUS ResetHDAController(PFDO_CONTEXT fdoCtx, BOOLEAN wakeup) {
 	}
 
 	if (gctl & HDA_GCTL_RESET) {
-		DbgPrint("Error: unable to put controller in reset\n");
+		SklHdAudBusPrint(DEBUG_LEVEL_ERROR, DBG_INIT, "%s Error: unable to put controller in reset\n", __func__);
 		return STATUS_DEVICE_POWER_FAILURE;
 	}
 
@@ -53,7 +53,7 @@ NTSTATUS ResetHDAController(PFDO_CONTEXT fdoCtx, BOOLEAN wakeup) {
 		udelay(10);
 	}
 	if (!(gctl & HDA_GCTL_RESET)) {
-		DbgPrint("Error: controller stuck in reset\n");
+		SklHdAudBusPrint(DEBUG_LEVEL_ERROR, DBG_INIT, "%s Error: controller stuck in reset\n", __func__);
 		return STATUS_DEVICE_POWER_FAILURE;
 	}
 
@@ -127,8 +127,15 @@ void HDAInitRirb(PFDO_CONTEXT fdoCtx) {
 	//Set the rirb size to 256 entries
 	hda_write8(fdoCtx, RIRBSIZE, 0x02);
 
-	//Setup CORB address
-	fdoCtx->rirb.buf = (UINT32*)(fdoCtx->rb + 0x800);
+	//Setup RIRB address
+	UINT32 offset = HDA_MAX_RIRB_ENTRIES;
+	if (fdoCtx->is64BitOK) {
+		offset *= 16;
+	} else {
+		offset *= 8;
+	}
+
+	fdoCtx->rirb.buf = (UINT32*)(fdoCtx->rb + offset);
 	fdoCtx->rirb.addr = MmGetPhysicalAddress(fdoCtx->rirb.buf);
 	RtlZeroMemory(fdoCtx->rirb.cmds, sizeof(fdoCtx->rirb.cmds));
 	hda_write32(fdoCtx, RIRBLBASE, fdoCtx->rirb.addr.LowPart);
@@ -179,10 +186,12 @@ NTSTATUS StartHDAController(PFDO_CONTEXT fdoCtx) {
 	hda_write32(fdoCtx, GCTL, hda_read32(fdoCtx, GCTL) | HDA_GCTL_UNSOL);
 	hda_write32(fdoCtx, INTCTL, hda_read32(fdoCtx, INTCTL) | HDA_INT_CTRL_EN | HDA_INT_GLOBAL_EN);
 
+	{
 	//Program position buffer
 	PHYSICAL_ADDRESS posbufAddr = MmGetPhysicalAddress(fdoCtx->posbuf);
 	hda_write32(fdoCtx, DPLBASE, posbufAddr.LowPart);
 	hda_write32(fdoCtx, DPUBASE, posbufAddr.HighPart);
+	}
 
 	udelay(1000);
 
@@ -367,7 +376,9 @@ int hda_stream_interrupt(PFDO_CONTEXT fdoCtx, unsigned int status) {
 	return handled;
 }
 
-BOOLEAN hda_interrupt(
+BOOLEAN
+NTAPI
+hda_interrupt(
 	WDFINTERRUPT Interrupt,
 	ULONG MessageID) {
 	UNREFERENCED_PARAMETER(MessageID);
@@ -406,7 +417,9 @@ BOOLEAN hda_interrupt(
 	return handled;
 }
 
-void hda_dpc(
+void
+NTAPI
+hda_dpc(
 	WDFINTERRUPT Interrupt,
 	WDFOBJECT AssociatedObject
 ) {

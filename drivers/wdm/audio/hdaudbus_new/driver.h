@@ -77,6 +77,7 @@ static inline void udelay(LONG usec) {
 // Helper macros
 //
 
+#if DBG
 #define DEBUG_LEVEL_ERROR   1
 #define DEBUG_LEVEL_INFO    2
 #define DEBUG_LEVEL_VERBOSE 3
@@ -85,13 +86,12 @@ static inline void udelay(LONG usec) {
 #define DBG_PNP   2
 #define DBG_IOCTL 4
 
-static ULONG SklHdAudBusDebugLevel = 100;
-static ULONG SklHdAudBusDebugCatagories = DBG_INIT | DBG_PNP | DBG_IOCTL;
+#define SklHdAudBusDebugLevel 100
+#define SklHdAudBusDebugCategories (DBG_INIT | DBG_PNP | DBG_IOCTL)
 
-#if DBG
-#define SklHdAudBusPrint(dbglevel, dbgcatagory, fmt, ...) {          \
+#define SklHdAudBusPrint(dbglevel, dbgcategory, fmt, ...) {          \
     if (SklHdAudBusDebugLevel >= dbglevel &&                         \
-        (SklHdAudBusDebugCatagories && dbgcatagory))                 \
+        (SklHdAudBusDebugCategories & dbgcategory))                 \
 		    {                                                           \
         DbgPrint(DRIVERNAME);                                   \
         DbgPrint(fmt, ##__VA_ARGS__);                             \
