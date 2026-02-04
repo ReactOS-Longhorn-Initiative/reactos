@@ -23,16 +23,10 @@ static inline void write32(PVOID addr, UINT32 data) {
 }
 
 static inline void pci_read_cfg_byte(PBUS_INTERFACE_STANDARD pciInterface, UINT reg, BYTE* data) {
-	if (!data) {
-		return;
-	}
 	pciInterface->GetBusData(pciInterface->Context, PCI_WHICHSPACE_CONFIG, data, reg, sizeof(BYTE));
 }
 
 static inline void pci_read_cfg_dword(PBUS_INTERFACE_STANDARD pciInterface, UINT reg, UINT32* data) {
-	if (!data) {
-		return;
-	}
 	pciInterface->GetBusData(pciInterface->Context, PCI_WHICHSPACE_CONFIG, data, reg, sizeof(UINT32));
 }
 

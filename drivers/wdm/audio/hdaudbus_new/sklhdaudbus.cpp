@@ -1,6 +1,7 @@
 #include "driver.h"
 
 NTSTATUS
+NTAPI
 SklHdAudBusEvtDeviceAdd(
 	_In_ WDFDRIVER Driver,
 	_Inout_ PWDFDEVICE_INIT DeviceInit
@@ -22,6 +23,7 @@ SklHdAudBusEvtDeviceAdd(
 }
 
 extern "C" NTSTATUS
+NTAPI
 DriverEntry(
 __in PDRIVER_OBJECT  DriverObject,
 __in PUNICODE_STRING RegistryPath

@@ -37,9 +37,6 @@ void hdac_stream_stop(PHDAC_STREAM stream) {
 void hdac_stream_reset(PHDAC_STREAM stream) {
 	hdac_stream_clear(stream);
 
-	UINT8 dma_run_state;
-	dma_run_state = stream_read8(stream, SD_CTL) & SD_CTL_DMA_START;
-
 	stream_update8(stream, SD_CTL, 0, SD_CTL_STREAM_RESET);
 	KeStallExecutionProcessor(3);
 	int timeout = 300;
