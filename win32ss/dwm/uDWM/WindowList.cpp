@@ -60,6 +60,77 @@ typedef struct _MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1
 } MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1;
 
 /*
+ * Vista SP1 WindowNode sprite clip command (dwmredir DuceHelper::WindowNode_SetSpriteClip):
+ * - cmd.Type = 64, sizeof=0x10
+ * Layout (from dwmredir.dll.c):
+ *   UINT32 Type(64), UINT32 Handle, UINT32 fSomething, UINT32 hClip
+ */
+typedef struct _MILCMD_WINDOWNODE_SETSPRITECLIP_VSP1
+{
+    MILCMD Type;              /* 64 */
+    HMIL_RESOURCE Handle;     /* WindowNode handle */
+    UINT32 Flags;             /* dwmredir passes !m_fUsingWindowRgn */
+    HMIL_RESOURCE hClip;      /* geometry handle (PATHGEOMETRY) or 0 */
+} MILCMD_WINDOWNODE_SETSPRITECLIP_VSP1;
+
+/* Minimal MIL path geometry structures for region->clip marshalling. */
+typedef struct _MIL_POINT2D
+{
+    double X;
+    double Y;
+} MIL_POINT2D;
+
+typedef struct _MIL_RECTD
+{
+    double X;
+    double Y;
+    double Width;
+    double Height;
+} MIL_RECTD;
+
+typedef struct _MIL_PATHGEOMETRY
+{
+    UINT32 Size;
+    UINT32 Flags;
+    MIL_RECTD Bounds;
+    UINT32 FigureCount;
+    UINT32 ForcePacking;
+} MIL_PATHGEOMETRY;
+
+typedef struct _MIL_PATHFIGURE
+{
+    UINT32 BackSize;
+    UINT32 Flags;
+    UINT32 Count;
+    UINT32 Size;
+    MIL_POINT2D StartPoint;
+    UINT32 OffsetToLastSegment;
+    UINT32 ForcePacking;
+} MIL_PATHFIGURE;
+
+typedef struct _MIL_SEGMENT
+{
+    UINT32 Type;
+    UINT32 Flags;
+    UINT32 BackSize;
+} MIL_SEGMENT;
+
+typedef struct _MIL_SEGMENTPOLY
+{
+    MIL_SEGMENT Base;
+    UINT32 Count;
+} MIL_SEGMENTPOLY;
+
+typedef struct _MILCMD_PATHGEOMETRY_VSP1
+{
+    MILCMD Type;          /* 173 */
+    HMIL_RESOURCE Handle; /* geometry */
+    UINT32 Unknown0;      /* 0 */
+    UINT32 Unknown1;      /* 0 */
+    UINT32 cbDataSize;    /* extra data */
+} MILCMD_PATHGEOMETRY_VSP1;
+
+/*
  * Vista SP1 translate transform command as used by dwmredir:
  * DuceHelper::CreateTranslateTransform:
  * - CreateResource(TYPE_TRANSLATETRANSFORM=68)
@@ -534,8 +605,8 @@ static HRESULT uDwmWindowNode_SetSpriteImage(PRWM_WINDOWDATA_VISTA_SP1 pData, UI
     if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
         return E_UNEXPECTED;
 
-    /* Reuse ClientNodeClone as "last sprite image surface" cache (UINT32 handle). */
-    if (pData->ClientNodeClone == hSurface)
+    /* Cache last surface to avoid redundant commands. */
+    if (pData->LastSpriteImageSurface == hSurface)
         return S_OK;
 
     MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1 cmd = {};
@@ -545,7 +616,7 @@ static HRESULT uDwmWindowNode_SetSpriteImage(PRWM_WINDOWDATA_VISTA_SP1 pData, UI
 
     HRESULT hr = MilResource_SendCommand(&cmd, sizeof(cmd), DwmDesktopInstance->GlobalChannel);
     if (SUCCEEDED(hr))
-        pData->ClientNodeClone = hSurface;
+        pData->LastSpriteImageSurface = hSurface;
     else
         DPRINT1("uDwmWindowNode_SetSpriteImage failed hr=0x%08lx node=0x%lx surf=0x%lx\n",
                 hr, (ULONG)pData->ClientNode, (ULONG)hSurface);
@@ -638,6 +709,167 @@ static HRESULT uDwmUpdateWindowTransform(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
         (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, hNew, NULL);
     }
 
+    return hr;
+}
+
+static HRESULT uDwmCreateOrUpdateClipGeometryFromRegionData(_In_ const RGNDATA* pRgnData,
+                                                           _Inout_ HMIL_RESOURCE* phGeometry)
+{
+    if (!pRgnData || !phGeometry || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel)
+        return E_INVALIDARG;
+
+    HMIL_RESOURCE h = *phGeometry;
+    HRESULT hr = S_OK;
+
+    if (!h)
+    {
+        hr = MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                 (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_PATHGEOMETRY,
+                                                 &h);
+        if (FAILED(hr) || !h)
+            return FAILED(hr) ? hr : E_FAIL;
+    }
+
+    const UINT32 n = (UINT32)pRgnData->rdh.nCount;
+    const UINT32 cbFigure = (UINT32)(sizeof(MIL_PATHFIGURE) + sizeof(MIL_SEGMENTPOLY) + (3u * sizeof(MIL_POINT2D)));
+    const UINT32 cbData = (UINT32)sizeof(MIL_PATHGEOMETRY) + (n * cbFigure);
+
+    MILCMD_PATHGEOMETRY_VSP1 cmd = {};
+    cmd.Type = (MILCMD)RWM_MILCMD_VSP1_PATHGEOMETRY;
+    cmd.Handle = h;
+    cmd.Unknown0 = 0;
+    cmd.Unknown1 = 0;
+    cmd.cbDataSize = cbData;
+
+    BOOL began = FALSE;
+    hr = MilChannel_BeginCommand(DwmDesktopInstance->GlobalChannel, &cmd, sizeof(cmd), cbData);
+    if (SUCCEEDED(hr))
+        began = TRUE;
+    else
+        goto Cleanup;
+
+    {
+        MIL_PATHGEOMETRY pg = {};
+        pg.Size = cbData;
+        pg.Flags = 0x00000002u /* BoundsValid */ | 0x00000010u /* IsRegionData */;
+        pg.Bounds.X = (double)pRgnData->rdh.rcBound.left;
+        pg.Bounds.Y = (double)pRgnData->rdh.rcBound.top;
+        pg.Bounds.Width = (double)(pRgnData->rdh.rcBound.right - pRgnData->rdh.rcBound.left);
+        pg.Bounds.Height = (double)(pRgnData->rdh.rcBound.bottom - pRgnData->rdh.rcBound.top);
+        pg.FigureCount = n;
+        pg.ForcePacking = 0;
+
+        hr = MilChannel_AppendCommandData(DwmDesktopInstance->GlobalChannel, &pg, sizeof(pg));
+        if (FAILED(hr))
+            goto CleanupEnd;
+    }
+
+    const RECT* prc = (const RECT*)((const BYTE*)pRgnData + pRgnData->rdh.dwSize);
+    for (UINT32 i = 0; i < n; ++i)
+    {
+        const RECT r = prc[i];
+
+        MIL_PATHFIGURE fig = {};
+        fig.BackSize = cbFigure;
+        fig.Flags = 0x00000004u /* IsClosed */ | 0x00000008u /* IsFillable */ | 0x00000010u /* IsRectangleData */;
+        fig.Count = 1; /* one segment (polyline) */
+        fig.Size = cbFigure;
+        fig.StartPoint.X = (double)r.left;
+        fig.StartPoint.Y = (double)r.top;
+        fig.OffsetToLastSegment = (UINT32)sizeof(MIL_PATHFIGURE);
+        fig.ForcePacking = 0;
+
+        hr = MilChannel_AppendCommandData(DwmDesktopInstance->GlobalChannel, &fig, sizeof(fig));
+        if (FAILED(hr))
+            goto CleanupEnd;
+
+        MIL_SEGMENTPOLY seg = {};
+        seg.Base.Type = 5u /* MilSegmentType::PolyLine */;
+        seg.Base.Flags = 0x00000001u /* MilCoreSeg::TypeLine */;
+        seg.Base.BackSize = (UINT32)(sizeof(MIL_SEGMENTPOLY) + (3u * sizeof(MIL_POINT2D)));
+        seg.Count = 3;
+
+        hr = MilChannel_AppendCommandData(DwmDesktopInstance->GlobalChannel, &seg, sizeof(seg));
+        if (FAILED(hr))
+            goto CleanupEnd;
+
+        MIL_POINT2D pts[3] = {};
+        pts[0].X = (double)r.right;  pts[0].Y = (double)r.top;
+        pts[1].X = (double)r.right;  pts[1].Y = (double)r.bottom;
+        pts[2].X = (double)r.left;   pts[2].Y = (double)r.bottom;
+
+        hr = MilChannel_AppendCommandData(DwmDesktopInstance->GlobalChannel, pts, sizeof(pts));
+        if (FAILED(hr))
+            goto CleanupEnd;
+    }
+
+CleanupEnd:
+    /* EndCommand even on failure to keep channel state sane. */
+    if (began)
+        (void)MilChannel_EndCommand(DwmDesktopInstance->GlobalChannel);
+
+Cleanup:
+    if (SUCCEEDED(hr))
+        *phGeometry = h;
+    else if (!*phGeometry && h)
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, h, NULL);
+
+    return hr;
+}
+
+static HRESULT uDwmUpdateWindowSpriteClip(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
+{
+    if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
+        return E_UNEXPECTED;
+
+    if (!pData->hWnd || !IsWindow(pData->hWnd))
+        return S_FALSE;
+
+    HRGN hrgn = CreateRectRgn(0, 0, 0, 0);
+    if (!hrgn)
+        return E_OUTOFMEMORY;
+
+    int rgnType = GetWindowRgn(pData->hWnd, hrgn);
+    const BOOL usingWindowRgn = (rgnType == SIMPLEREGION || rgnType == COMPLEXREGION);
+
+    HRESULT hr = S_OK;
+    if (usingWindowRgn)
+    {
+        DWORD cb = GetRegionData(hrgn, 0, NULL);
+        if (cb)
+        {
+            RGNDATA* pDataRgn = (RGNDATA*)HeapAlloc(GetProcessHeap(), 0, cb);
+            if (pDataRgn)
+            {
+                if (GetRegionData(hrgn, cb, pDataRgn))
+                    hr = uDwmCreateOrUpdateClipGeometryFromRegionData(pDataRgn, &pData->hClipGeometry);
+                HeapFree(GetProcessHeap(), 0, pDataRgn);
+            }
+            else
+            {
+                hr = E_OUTOFMEMORY;
+            }
+        }
+    }
+    else
+    {
+        /* No window region: drop any previous clip geometry. */
+        if (pData->hClipGeometry)
+        {
+            (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hClipGeometry, NULL);
+            pData->hClipGeometry = 0;
+        }
+    }
+
+    /* Apply clip (or clear it). */
+    MILCMD_WINDOWNODE_SETSPRITECLIP_VSP1 clip = {};
+    clip.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETSPRITECLIP;
+    clip.Handle = (HMIL_RESOURCE)pData->ClientNode;
+    clip.Flags = usingWindowRgn ? 0u : 1u; /* dwmredir passes !m_fUsingWindowRgn */
+    clip.hClip = usingWindowRgn ? pData->hClipGeometry : 0;
+    (void)MilResource_SendCommand(&clip, sizeof(clip), DwmDesktopInstance->GlobalChannel);
+
+    DeleteObject(hrgn);
     return hr;
 }
 
@@ -759,6 +991,7 @@ static HRESULT uDwmEnsureWindowVisual(PRWM_WINDOWDATA_VISTA_SP1 pData)
         (void)uDwmWindowNode_SetBounds(pData);
         (void)uDwmWindowNode_SetAlphaMargins(pData);
         (void)uDwmUpdateWindowTransform(pData);
+        (void)uDwmUpdateWindowSpriteClip(pData);
         if (pData->hSprite)
             (void)uDwmWindowNode_UpdateSpriteHandle(pData, pData->hSprite);
 
@@ -875,6 +1108,28 @@ HRESULT WINAPI uDwmDestroyWindow(CompositedWindow* DwmWindowInterface)
     {
         (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hWindowTransform, NULL);
         pData->hWindowTransform = 0;
+    }
+
+    if (pData->hClipGeometry)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hClipGeometry, NULL);
+        pData->hClipGeometry = 0;
+    }
+
+    /*
+     * Release per-window MIL resources that are cloned/owned on our channel.
+     * (Reference: Vista tears down the per-window visual tree on destroy.)
+     *
+     * Do NOT release the shared desktop root visual.
+     */
+    if (pData->ClientNode &&
+        DwmDesktopInstance->GlobalChannel &&
+        pData->ClientNode != (UINT32)DwmDesktopInstance->hRootNode)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel,
+                                           (HMIL_RESOURCE)pData->ClientNode,
+                                           NULL);
+        pData->ClientNode = 0;
     }
 
     DwmWindowInterface->SetClientData(NULL);
@@ -1076,6 +1331,19 @@ HRESULT WINAPI uDwmDXContentChange(CompositedWindow* DwmWindowInterface)
     {
         (void)uDwmEnsureWindowVisual(pData);
         (void)uDwmTryAttachClientSurface(pData);
+
+        /*
+         * Ensure the command stream makes forward progress immediately.
+         * Some apps (notably GDI/DX hybrid surfaces) rely on surface-change
+         * notifications driving a commit even when UpdateScene is not called.
+         */
+        if (DwmDesktopInstance->GlobalChannel)
+        {
+            MILCMD_TRANSPORT_SYNCFLUSH tf = {};
+            tf.Type = (MILCMD)RWM_MILCMD_VSP1_TRANSPORT_SYNCFLUSH;
+            (void)MilResource_SendCommand(&tf, sizeof(tf), DwmDesktopInstance->GlobalChannel);
+            (void)MilChannel_CommitChannel(DwmDesktopInstance->GlobalChannel);
+        }
     }
     LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
     return S_OK;
@@ -1093,7 +1361,27 @@ HRESULT WINAPI uDwmGDISurfaceChange(CompositedWindow* DwmWindowInterface)
     {
         (void)uDwmEnsureWindowVisual(pData);
 
+        /*
+         * GDI surfaces can change contents without changing the surface handle.
+         * Force a best-effort re-bind to act as a "dirty" hint.
+         */
+        pData->LastSpriteImageSurface = 0;
         (void)uDwmTryAttachClientSurface(pData);
+        (void)uDwmUpdateWindowSpriteClip(pData);
+
+        /*
+         * Fix "needs minimize/restore to update":
+         * this callback may arrive even when uDwmUpdateScene is not being called
+         * frequently. We must commit the MIL channel here so the render thread
+         * sees the updated surface.
+         */
+        if (DwmDesktopInstance->GlobalChannel)
+        {
+            MILCMD_TRANSPORT_SYNCFLUSH tf = {};
+            tf.Type = (MILCMD)RWM_MILCMD_VSP1_TRANSPORT_SYNCFLUSH;
+            (void)MilResource_SendCommand(&tf, sizeof(tf), DwmDesktopInstance->GlobalChannel);
+            (void)MilChannel_CommitChannel(DwmDesktopInstance->GlobalChannel);
+        }
     }
     LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
     return S_OK;

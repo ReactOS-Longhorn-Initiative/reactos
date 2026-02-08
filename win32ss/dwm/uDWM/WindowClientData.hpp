@@ -22,18 +22,23 @@ typedef struct _RWM_WINDOWDATA_VISTA_SP1
     HWND hWnd;                     /* HWND for quick lookup */
     HSPRITE hSprite;               /* Sprite handle (if any) */
     UINT32 ClientNode;             /* MIL client node on our channel */
-    UINT32 ClientNodeClone;        /* Optional clone */
+    union
+    {
+        UINT32 ClientNodeClone;        /* Optional clone (if we ever start using it) */
+        UINT32 LastSpriteImageSurface; /* Cache: last surface set via SetSpriteImage */
+    };
     RECT WindowRect;               /* Cached window rect (best-effort) */
     RECT ClientMarginsRect;        /* Cached client margins (best-effort) */
     LIST_ENTRY ListEntry;          /* uDWM internal tracking */
     HMIL_RESOURCE hWindowVisual;   /* Per-window TYPE_VISUAL resource */
     HMIL_RESOURCE hWindowTransform;/* Per-window TYPE_TRANSLATETRANSFORM */
+    HMIL_RESOURCE hClipGeometry;   /* Per-window TYPE_PATHGEOMETRY for sprite clipping */
     DOUBLE OffsetX;                /* Cached translation X */
     DOUBLE OffsetY;                /* Cached translation Y */
     UINT32 Flags;                  /* RWM_WD_* */
 
 #if !defined(_WIN64)
-    BYTE Reserved[0xB3C - (4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 16 + 8 + 4 + 8 + 8 + 4)];
+    BYTE Reserved[0xB3C - (4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 16 + 8 + 4 + 4 + 8 + 8 + 4)];
 #endif
 } RWM_WINDOWDATA_VISTA_SP1, *PRWM_WINDOWDATA_VISTA_SP1;
 #pragma pack(pop)

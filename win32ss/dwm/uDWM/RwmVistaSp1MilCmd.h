@@ -86,11 +86,13 @@
  * - WindowNode_SetBounds:        cmd.Type = 58, size 0x38
  * - WindowNode_SetSpriteImage:   cmd.Type = 62, size 0x0C
  * - WindowNode_UpdateSpriteHandle cmd.Type = 60, size 0x10
+ * - WindowNode_SetSpriteClip:    cmd.Type = 64, size 0x10
  * - WindowNode_SetAlphaMargins:  cmd.Type = 67, size 0x18
  */
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETBOUNDS     (58u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_UPDATESPRITE  (60u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETSPRITEIMAGE (62u)
+#define RWM_MILCMD_VSP1_WINDOWNODE_SETSPRITECLIP (64u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETALPHAMARGINS (67u)
 
 /*
@@ -100,4 +102,12 @@
  *   We trust dwmredir here because it shows the exact send size and layout.
  */
 #define RWM_MILCMD_VSP1_WINDOWNODE_CREATE        (54u)
+
+/*
+ * Geometry resources used for clipping (Vista SP1 dwmredir DuceHelper):
+ * - CreateResource(TYPE_PATHGEOMETRY) uses resource type id 79
+ * - UpdateGeometryFromRegionData uses cmd.Type = 173 (MilChannel_BeginCommand sizeof=0x14)
+ */
+#define RWM_MILRT_VSP1_PATHGEOMETRY              (79u)
+#define RWM_MILCMD_VSP1_PATHGEOMETRY             (173u)
 

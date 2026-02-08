@@ -49,6 +49,6 @@ target_link_libraries(uDWM cppstl)
 
 set_target_cpp_properties(uDWM WITH_EXCEPTIONS WITH_RTTI)
 set_module_type(uDWM win32dll)
-add_importlibs(uDWM milcore dwmredir msvcrt advapi32 kernel32 ntdll user32)
+add_importlibs(uDWM milcore dwmredir msvcrt advapi32 gdi32 kernel32 ntdll user32)
 add_dependencies(uDWM psdk)
 add_cd_file(TARGET uDWM DESTINATION reactos/system32 FOR all)
