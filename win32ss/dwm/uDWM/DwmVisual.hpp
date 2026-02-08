@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MilResource.hpp"
+
 class DwmVisual
 {
 private:
@@ -9,6 +11,7 @@ public:
     DwmVisual();
     ~DwmVisual();
     VOID    HideVisual();
+    HMIL_RESOURCE GetHandle() const { return MilResource ? MilResource->GlobalResourceHandle : 0; }
 HRESULT
 WINAPI
  DrawBullshit();

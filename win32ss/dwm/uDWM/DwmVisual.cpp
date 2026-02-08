@@ -1,6 +1,7 @@
 #include "uDWM.h"
 
 #include <debug.h>
+#include "RwmVistaSp1MilCmd.h"
 
 /*
  * For abstraction purses, every resource in uDWM should be based on this MilResource Class.
@@ -41,14 +42,26 @@ HRESULT
 WINAPI
 DwmVisual::DrawBullshit()
 {
+#if UDWM_TARGET_VISTA_SP1_MILCORE
+    /*
+     * Disabled for Vista SP1 interop.
+     *
+     * Our tree is WindowNode-based; emitting "value resource" commands here is
+     * unrelated to the desktop composition path and historically poisoned the
+     * command stream when tested against Vista's milcore.dll.
+     */
+    return E_NOTIMPL;
+#else
     MILCMD_COLORRESOURCE cmd = {};
-    cmd.Type = MilCmdColorResource;
+    cmd.Type =
+        MilCmdColorResource;
     cmd.Handle = MilResource->GlobalResourceHandle;
     cmd.Value = {1.0f, 1.0f, 1.0f, 1.0f};
     MilResource->SendCommand(
         (PVOID)&cmd,
         sizeof(MILCMD_COLORRESOURCE));
         return S_OK;
+#endif
 }
 
 EXTERN_C
@@ -62,7 +75,12 @@ DwmVisual::HideVisual()
 {
     MILCMD_VISUAL_SETALPHA cmd = {};
     cmd.alpha = 0.0;
-    cmd.Type = MilCmdVisualSetAlpha;
+    cmd.Type =
+#if UDWM_TARGET_VISTA_SP1_MILCORE
+        (MILCMD)RWM_MILCMD_VSP1_VISUAL_SETALPHA;
+#else
+        MilCmdVisualSetAlpha;
+#endif
     MilResource->SendCommand(
         (PVOID)&cmd,
         sizeof(MILCMD_VISUAL_SETALPHA));

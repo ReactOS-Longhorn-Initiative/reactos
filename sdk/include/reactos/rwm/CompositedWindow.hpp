@@ -15,7 +15,7 @@ typedef enum _MIL_SOURCE_FLAGS
     None =  3,
 } MIL_SOURCE_FLAGS;
 
-#define VISTA_DWM = 0x1
+#define VISTA_DWM 0x1
 
 /*
  * When DWM calls our CreateWindow it gives us an interface that is formated similar to this.

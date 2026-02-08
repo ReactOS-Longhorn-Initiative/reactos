@@ -23,6 +23,7 @@ include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/Generated)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_include/processed)
 add_definitions(-D_UDWM_)
+add_definitions(-DUDWM_TARGET_VISTA_SP1_MILCORE=1)
 spec2def(uDWM.dll uDWM.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE

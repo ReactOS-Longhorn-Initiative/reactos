@@ -54,6 +54,11 @@ HRESULT WINAPI MilChannel_CommitChannel(
     );
 
 EXTERN_C
+HRESULT WINAPI MilComposition_SyncFlush(
+    MIL_CHANNEL hChannel
+    );
+
+EXTERN_C
 HRESULT WINAPI MilConnection_CreateChannel(
     HMIL_CONNECTION hConnection,
     MIL_CHANNEL hSourceChannel,
