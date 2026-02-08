@@ -14,6 +14,137 @@
 //------------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <new>
+#include <unknwn.h>
+
+struct MilConnectionHandleVTable
+{
+    HRESULT (STDAPICALLTYPE *QueryInterface)(MilConnectionHandle *pHandle, REFIID riid, void **ppvObject);
+    ULONG (STDAPICALLTYPE *AddRef)(MilConnectionHandle *pHandle);
+    ULONG (STDAPICALLTYPE *Release)(MilConnectionHandle *pHandle);
+};
+
+static HRESULT STDMETHODCALLTYPE MilConnectionHandleQueryInterface(_In_opt_ MilConnectionHandle *pHandle, REFIID riid, _COM_Outptr_ void **ppvObject)
+{
+    if (!ppvObject)
+    {
+        return E_POINTER;
+    }
+
+    *ppvObject = nullptr;
+
+    if (!pHandle)
+    {
+        return E_POINTER;
+    }
+
+    if (InlineIsEqualGUID(riid, IID_IUnknown))
+    {
+        MilConnectionHandle *pUnknown = pHandle;
+        pUnknown->lpVtbl->AddRef(pUnknown);
+        *ppvObject = pUnknown;
+        return S_OK;
+    }
+
+    return E_NOINTERFACE;
+}
+
+static ULONG STDMETHODCALLTYPE MilConnectionHandleAddRef(_In_ MilConnectionHandle *pHandle)
+{
+    if (!pHandle)
+    {
+        return 0;
+    }
+
+    LONG cRef = InterlockedIncrement(&pHandle->cRef);
+
+    if (pHandle->pConnection)
+    {
+        pHandle->pConnection->AddRef();
+    }
+
+    return static_cast<ULONG>(cRef);
+}
+
+static ULONG STDMETHODCALLTYPE MilConnectionHandleRelease(_In_ MilConnectionHandle *pHandle)
+{
+    if (!pHandle)
+    {
+        return 0;
+    }
+
+    LONG cRef = InterlockedDecrement(&pHandle->cRef);
+
+    if (pHandle->pConnection)
+    {
+        pHandle->pConnection->Release();
+    }
+
+    if (cRef <= 0)
+    {
+        pHandle->pConnection = nullptr;
+        delete pHandle;
+        cRef = 0;
+    }
+
+    return static_cast<ULONG>(cRef);
+}
+
+static const MilConnectionHandleVTable g_MilConnectionHandleVTable =
+{
+    &MilConnectionHandleQueryInterface,
+    &MilConnectionHandleAddRef,
+    &MilConnectionHandleRelease
+};
+
+MilConnectionHandle *DecodeMilConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport)
+{
+    return reinterpret_cast<MilConnectionHandle*>(hTransport);
+}
+
+HMIL_CONNECTION PointerToHandle(_In_opt_ CMilConnection *pTransport)
+{
+    if (!pTransport)
+    {
+        return nullptr;
+    }
+
+    MilConnectionHandle *pHandle = new (std::nothrow) MilConnectionHandle;
+    if (!pHandle)
+    {
+        return nullptr;
+    }
+
+    pHandle->lpVtbl = &g_MilConnectionHandleVTable;
+    pHandle->cRef = 1;
+    pHandle->pConnection = pTransport;
+
+    return reinterpret_cast<HMIL_CONNECTION>(pHandle);
+}
+
+ULONG AddRefConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport)
+{
+    MilConnectionHandle *pHandle = DecodeMilConnectionHandle(hTransport);
+
+    if (!pHandle || !pHandle->lpVtbl)
+    {
+        return 0;
+    }
+
+    return pHandle->lpVtbl->AddRef(pHandle);
+}
+
+ULONG ReleaseConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport)
+{
+    MilConnectionHandle *pHandle = DecodeMilConnectionHandle(hTransport);
+
+    if (!pHandle || !pHandle->lpVtbl)
+    {
+        return 0;
+    }
+
+    return pHandle->lpVtbl->Release(pHandle);
+}
 
 MtDefine(CMilConnection, Mem, "CMilConnection");
 
@@ -220,7 +351,6 @@ CMilConnection::CreateChannel(
     HRESULT hr = S_OK;
     HMIL_CHANNEL hChannel = NULL;
     CLIENT_CHANNEL_HANDLE_ENTRY *pEntry = NULL;
-
     IFC(m_channelTable.GetNewChannelEntry(&hChannel, &pEntry));
 
     IFC(CreateChannelHelper(hChannel, hChannelSource, pEntry, ppChannel));

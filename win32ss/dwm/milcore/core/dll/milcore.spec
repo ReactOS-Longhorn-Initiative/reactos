@@ -104,6 +104,7 @@
 @ stdcall RenderOptions_ForceSoftwareRenderingModeForProcess(ptr)
 @ stdcall RenderOptions_IsSoftwareRenderingForcedForProcess()
 @ stdcall MilTransport_AddRef(ptr)
+@ stdcall MilTransport_Release(ptr)
 @ stdcall MilTransport_Create(ptr ptr ptr ptr)
 @ stdcall MilTransport_CreateTransportParameters(long ptr ptr ptr ptr)
 @ stdcall MilTransport_CreateFromPacketTransport(ptr ptr ptr)

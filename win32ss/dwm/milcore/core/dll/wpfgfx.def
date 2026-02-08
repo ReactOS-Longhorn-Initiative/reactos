@@ -139,6 +139,7 @@ EXPORTS
     RenderOptions_IsSoftwareRenderingForcedForProcess
 
     MilTransport_AddRef
+    MilTransport_Release
     MilTransport_Create
     MilTransport_CreateTransportParameters
     MilTransport_CreateFromPacketTransport

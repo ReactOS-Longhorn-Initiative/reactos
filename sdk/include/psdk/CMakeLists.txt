@@ -60,6 +60,7 @@ list(APPEND SOURCE
     d3d12shader.idl
     d3d12video.idl
     d3dx11core.idl
+    d3dcommon.idl
     ddstream.idl
 #   dbccmd.idl
 #   dbcses.idl

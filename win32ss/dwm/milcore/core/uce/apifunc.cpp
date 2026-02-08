@@ -288,18 +288,24 @@ MilCompositionEngine_DeinitializePartitionManager()
 //        Icrement reference to the connection.
 //------------------------------------------------------------------------
 
-HRESULT
+EXTERN_C
+ULONG
 WINAPI
 MilTransport_AddRef(
-    _In_ HMIL_CONNECTION hConnection
+    _In_opt_ HMIL_CONNECTION hConnection
     )
 {
-    HRESULT hr = S_OK;
-    CMilConnection* pConnection = HandleToPointer(hConnection);
-    IFC(pConnection->AddRef());
+    return AddRefConnectionHandle(hConnection);
+}
 
-Cleanup:
-    RRETURN(hr);
+EXTERN_C
+ULONG
+WINAPI
+MilTransport_Release(
+    _In_opt_ HMIL_CONNECTION hConnection
+    )
+{
+    return ReleaseConnectionHandle(hConnection);
 }
 
 EXTERN_C
@@ -323,7 +329,10 @@ MilTransport_Create(CMilConnectionManager *pConnectionManager,
         MilMarshalType::SameThread ,
         OUT &pConnection));
 
-    *phConnection = PointerToHandle(pConnection);
+    HMIL_CONNECTION hNewConnection = PointerToHandle(pConnection);
+    IFCOOM(hNewConnection);
+
+    *phConnection = hNewConnection;
     pConnection = NULL;
 
 Cleanup:
@@ -350,7 +359,10 @@ MilTransport_CreateFromPacketTransport(CMilConnectionManager *pConnectionManager
         MilMarshalType::CrossThread,
         OUT &pConnection));
 
-    *phConnection = PointerToHandle(pConnection);
+    HMIL_CONNECTION hNewConnection = PointerToHandle(pConnection);
+    IFCOOM(hNewConnection);
+
+    *phConnection = hNewConnection;
     pConnection = NULL;
 
 Cleanup:
@@ -510,13 +522,15 @@ MilTransport_DisconnectTransport(HMIL_CONNECTION hConnection)
 {
     HRESULT hr = S_OK;
 
-    CMilConnection *pConnection;
-
     CHECKPTRARG(hConnection);
 
-    pConnection = HandleToPointer(hConnection);
-
-    pConnection->Release();
+    hr = ReleaseConnectionHandle(hConnection);
+    if (hr != 0)
+    {
+        TraceTag((tagMILTransport,
+                  "MilTransport_DisconnectTransport: failed hr=0x%08x",
+                  hr));
+    }
 
 Cleanup:
     RRETURN(hr);
@@ -584,6 +598,7 @@ HRESULT WINAPI WgxConnection_SameThreadPresent(
 {
     HRESULT hr = S_OK;
     CMilConnection* pConnection = HandleToPointer(hConnection);
+    CHECKPTRARG(pConnection);
     IFC(pConnection->PresentAllPartitions());
 
 Cleanup:
@@ -649,7 +664,10 @@ HRESULT WINAPI WgxConnection_Create(
         requestSynchronousTransport ? MilMarshalType::SameThread : MilMarshalType::CrossThread,
         OUT &pConnection));
 
-    *phConnection = PointerToHandle(pConnection);
+    HMIL_CONNECTION hNewConnection = PointerToHandle(pConnection);
+    IFCOOM(hNewConnection);
+
+    *phConnection = hNewConnection;
     pConnection = NULL;
 
 Cleanup:
@@ -667,13 +685,9 @@ HRESULT WINAPI WgxConnection_Disconnect(
 {
     HRESULT hr = S_OK;
 
-    CMilConnection *pConnection;
-
     CHECKPTRARG(hConnection);
 
-    pConnection = HandleToPointer(hConnection);
-
-    pConnection->Release();
+    ReleaseConnectionHandle(hConnection);
 
 Cleanup:
     RRETURN(hr);
@@ -687,16 +701,18 @@ HRESULT WINAPI MilConnection_CreateChannel(
 {
     HRESULT hr = S_OK;
     HMIL_CHANNEL hPartSource = NULL;
-{
-    CHECKPTRARG(phChannel);
-    __debugbreak();
     CMilConnection *pConnection = NULL;
+    CMilChannel *pChannel = NULL;
+    const CMilChannel *pSourceChannel = HandleToPointer(hSourceChannel);
+
+    CHECKPTRARG(phChannel);
     CHECKPTRARG(hConnection);
 
-    const CMilChannel *pSourceChannel = HandleToPointer(hSourceChannel);
-    CMilChannel *pChannel = NULL;
-
     pConnection = HandleToPointer(hConnection);
+    if (!pConnection)
+    {
+        IFC(E_HANDLE);
+    }
 
     if (pSourceChannel)
     {
@@ -704,10 +720,11 @@ HRESULT WINAPI MilConnection_CreateChannel(
     }
 
     IFC(pConnection->CreateChannel(hPartSource, &pChannel));
+
     *phChannel = PointerToHandle(pChannel);
 
     EventWriteCreateChannel(pChannel, pChannel->GetChannel());
-}
+
 Cleanup:
     RRETURN(hr);
 }

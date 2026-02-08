@@ -87,7 +87,6 @@ HRESULT CMilClientChannelTable::GetNewChannelEntry(
     CLIENT_CHANNEL_HANDLE_ENTRY *pMasterEntry = NULL;
     HMIL_CHANNEL hChannel;
     CGuard<CCriticalSection> oGuard(m_csChannelTable);
-
     IFC(GetNewEntry(DEVICE_ENTRY, &hChannel));
 
     IFC(GetMasterTableEntry(hChannel, &pMasterEntry));
