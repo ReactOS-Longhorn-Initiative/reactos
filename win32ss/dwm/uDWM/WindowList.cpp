@@ -7,6 +7,7 @@ static LIST_ENTRY g_RwmWindowListHead;
 static BOOLEAN g_RwmWindowListInitialized = FALSE;
 static UINT g_RwmWindowCount = 0;
 static ULONG g_uDwmUpdateSceneCount = 0;
+static BOOLEAN g_RwmRebuildChildren = TRUE;
 
 #pragma pack(push, 4)
 typedef struct _MILCMD_WINDOWNODE_SETBOUNDS_VSP1
@@ -57,6 +58,32 @@ typedef struct _MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1
     HMIL_RESOURCE Handle;     /* WindowNode handle */
     HMIL_RESOURCE hSpriteImage; /* typically a redirection/GDI surface handle */
 } MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1;
+
+/*
+ * Vista SP1 translate transform command as used by dwmredir:
+ * DuceHelper::CreateTranslateTransform:
+ * - CreateResource(TYPE_TRANSLATETRANSFORM=68)
+ * - Send cmd.Type=163, sizeof=0x20
+ * Layout (from dwmredir.dll.c):
+ *   UINT32 Type(163), UINT32 Handle, double X, double Y, UINT32 unk0, UINT32 unk1
+ */
+typedef struct _MILCMD_TRANSLATETRANSFORM_VSP1
+{
+    MILCMD Type;              /* 163 */
+    HMIL_RESOURCE Handle;     /* transform handle */
+    double X;
+    double Y;
+    UINT32 Unknown0;
+    UINT32 Unknown1;
+} MILCMD_TRANSLATETRANSFORM_VSP1;
+
+/* Visual_SetTransform (also used on WindowNode handles in Vista) */
+typedef struct _MILCMD_VISUAL_SETTRANSFORM_VSP1
+{
+    MILCMD Type;              /* 35 */
+    HMIL_RESOURCE Handle;     /* visual/window node */
+    HMIL_RESOURCE hTransform; /* transform handle or 0 */
+} MILCMD_VISUAL_SETTRANSFORM_VSP1;
 #pragma pack(pop)
 
 static __forceinline VOID uDwmInitializeWindowTracking(VOID)
@@ -122,6 +149,145 @@ static BOOLEAN uDwmGetDesiredVisible(const RWM_WINDOWDATA_VISTA_SP1* pData)
     return (pData->Flags & RWM_WD_DESIRED_VISIBLE) ? TRUE : FALSE;
 }
 
+static __forceinline BOOLEAN uDwmComputeVisibleFromHwnd(_In_opt_ HWND hWnd)
+{
+    if (!hWnd)
+        return FALSE;
+
+    /*
+     * Visibility is surprisingly tricky during startup:
+     * - IsWindowVisible() can transiently return FALSE during reparenting/show sequences.
+     * - GetWindowLongPtrW() can fail (returns 0) and must be error-checked.
+     *
+     * We bias toward "visible" when queries are unreliable to avoid the classic symptom:
+     * "renders briefly, then disappears forever".
+     */
+    if (!IsWindow(hWnd))
+        return FALSE;
+
+    BOOLEAN visWin32 = IsWindowVisible(hWnd) ? TRUE : FALSE;
+
+    SetLastError(0);
+    const LONG_PTR style = GetWindowLongPtrW(hWnd, GWL_STYLE);
+    const DWORD gle = GetLastError();
+
+    BOOLEAN visStyle = FALSE;
+    if (!(style == 0 && gle != 0))
+        visStyle = (style & WS_VISIBLE) ? TRUE : FALSE;
+
+    /* If either method says visible, treat as visible (unless minimized). */
+    BOOLEAN vis = (visWin32 || visStyle) ? TRUE : FALSE;
+    if (vis && IsIconic(hWnd))
+        vis = FALSE;
+
+    /*
+     * If both checks say "not visible" but style query failed, keep it visible.
+     * This avoids incorrect hides when GetWindowLongPtrW() is temporarily failing.
+     */
+    if (!vis && (style == 0 && gle != 0))
+        vis = TRUE;
+
+    return vis;
+}
+
+/*
+ * Reference behavior (Vista uDWM): Z-order and show/hide are modeled on a higher-level
+ * VisualCollection and become MIL commands during RenderRecursive().
+ *
+ * Our uDWM implementation talks directly to the MIL channel. To avoid "remove without
+ * successful reinsert" scenarios (which present as "shows briefly then disappears forever"),
+ * we rebuild the root's child list in UpdateScene whenever the logical order/visibility changes.
+ */
+static __forceinline VOID uDwmMarkRebuildNeeded(VOID)
+{
+    g_RwmRebuildChildren = TRUE;
+}
+
+static VOID uDwmRebuildRootChildren(VOID)
+{
+    if (!g_RwmWindowListInitialized || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !DwmDesktopInstance->hRootNode)
+        return;
+
+    if (!g_RwmRebuildChildren)
+        return;
+
+    UINT cVisible = 0;
+    const UINT cTotal = g_RwmWindowCount;
+
+    /* Pass 1: remove everything we believe is currently inserted. */
+    for (PLIST_ENTRY e = g_RwmWindowListHead.Flink; e != &g_RwmWindowListHead; e = e->Flink)
+    {
+        PRWM_WINDOWDATA_VISTA_SP1 pData = CONTAINING_RECORD(e, RWM_WINDOWDATA_VISTA_SP1, ListEntry);
+        if (!pData || pData->Signature != RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
+            continue;
+
+        if ((pData->Flags & RWM_WD_VISUAL_INSERTED) && pData->ClientNode &&
+            (HMIL_RESOURCE)pData->ClientNode != (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
+        {
+            MILCMD_VISUAL_REMOVECHILD removeChild = {};
+            removeChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_REMOVECHILD;
+            removeChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
+            removeChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
+            (void)MilResource_SendCommand(&removeChild, sizeof(removeChild), DwmDesktopInstance->GlobalChannel);
+            pData->Flags &= ~RWM_WD_VISUAL_INSERTED;
+        }
+    }
+
+    /* Pass 2: refresh visibility + insert visible windows in current list order. */
+    UINT idx = 0;
+    for (PLIST_ENTRY e = g_RwmWindowListHead.Flink; e != &g_RwmWindowListHead; e = e->Flink)
+    {
+        PRWM_WINDOWDATA_VISTA_SP1 pData = CONTAINING_RECORD(e, RWM_WINDOWDATA_VISTA_SP1, ListEntry);
+        if (!pData || pData->Signature != RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
+            continue;
+
+        if (pData->hWnd)
+            uDwmSetDesiredVisible(pData, uDwmComputeVisibleFromHwnd(pData->hWnd));
+
+        if (!uDwmGetDesiredVisible(pData) || !pData->ClientNode)
+            continue;
+        if ((HMIL_RESOURCE)pData->ClientNode == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
+            continue;
+
+        cVisible++;
+
+        MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
+        insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
+        insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
+        insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
+        insertChild.index = idx;
+
+        HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
+        if (SUCCEEDED(hrIns))
+        {
+            pData->Flags |= RWM_WD_VISUAL_INSERTED;
+            idx++;
+        }
+        else
+        {
+            DPRINT1("uDwmRebuildRootChildren: InsertChildAt failed hr=0x%08lx root=0x%lx child=0x%lx idx=%u hwnd=0x%p\n",
+                    hrIns,
+                    (ULONG)DwmDesktopInstance->hRootNode,
+                    (ULONG)pData->ClientNode,
+                    insertChild.index,
+                    pData->hWnd);
+        }
+    }
+
+    /*
+     * Breadcrumb (rate limited): if everything disappears, this tells us whether
+     * we're rebuilding to zero children due to visibility state.
+     */
+    static ULONG s_rebuildPrint = 0;
+    if ((++s_rebuildPrint % 60) == 1 || idx == 0)
+    {
+        DPRINT1("uDwmRebuildRootChildren: root=0x%lx inserted=%u visible=%u total=%u\n",
+                (ULONG)DwmDesktopInstance->hRootNode, idx, cVisible, cTotal);
+    }
+
+    g_RwmRebuildChildren = FALSE;
+}
+
 static HRESULT uDwmWindowNode_SetBounds(PRWM_WINDOWDATA_VISTA_SP1 pData)
 {
     if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode || !pData->hWnd)
@@ -131,23 +297,42 @@ static HRESULT uDwmWindowNode_SetBounds(PRWM_WINDOWDATA_VISTA_SP1 pData)
     RECT rcClient = {};
     RECT rcContent = {};
 
-    if (!GetWindowRect(pData->hWnd, &rcWindow))
-        return HRESULT_FROM_WIN32(GetLastError());
+    /*
+     * Root safety:
+     * When the render-target root is the DesktopWindow clone, never allow an empty/odd
+     * DesktopWindow rect to clip the entire subtree (classic "everything appears briefly then vanishes").
+     */
+    if (DwmDesktopInstance->RootIsDesktopClone &&
+        pData->hWnd == GetDesktopWindow() &&
+        (HMIL_RESOURCE)pData->ClientNode == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
+    {
+        rcWindow.left = 0;
+        rcWindow.top = 0;
+        rcWindow.right = GetSystemMetrics(SM_CXSCREEN);
+        rcWindow.bottom = GetSystemMetrics(SM_CYSCREEN);
+        rcClient = rcWindow;
+        rcContent = rcWindow;
+    }
+    else
+    {
+        if (!GetWindowRect(pData->hWnd, &rcWindow))
+            return HRESULT_FROM_WIN32(GetLastError());
 
-    if (!GetClientRect(pData->hWnd, &rcClient))
-        return HRESULT_FROM_WIN32(GetLastError());
+        if (!GetClientRect(pData->hWnd, &rcClient))
+            return HRESULT_FROM_WIN32(GetLastError());
 
-    POINT pt = { rcClient.left, rcClient.top };
-    (void)ClientToScreen(pData->hWnd, &pt);
-    const LONG cx = rcClient.right - rcClient.left;
-    const LONG cy = rcClient.bottom - rcClient.top;
-    rcClient.left = pt.x;
-    rcClient.top = pt.y;
-    rcClient.right = pt.x + cx;
-    rcClient.bottom = pt.y + cy;
+        POINT pt = { rcClient.left, rcClient.top };
+        (void)ClientToScreen(pData->hWnd, &pt);
+        const LONG cx = rcClient.right - rcClient.left;
+        const LONG cy = rcClient.bottom - rcClient.top;
+        rcClient.left = pt.x;
+        rcClient.top = pt.y;
+        rcClient.right = pt.x + cx;
+        rcClient.bottom = pt.y + cy;
 
-    /* Until we implement real GetContentRect semantics, treat content==client. */
-    rcContent = rcClient;
+        /* Until we implement real GetContentRect semantics, treat content==client. */
+        rcContent = rcClient;
+    }
 
     pData->WindowRect = rcWindow;
     pData->ClientMarginsRect = rcClient;
@@ -235,6 +420,82 @@ static HRESULT uDwmTryAttachClientSurface(PRWM_WINDOWDATA_VISTA_SP1 pData)
         return FAILED(hrSurf) ? hrSurf : S_FALSE;
 
     return uDwmWindowNode_SetSpriteImage(pData, hSurface);
+}
+
+static HRESULT uDwmUpdateWindowTransform(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
+{
+    if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
+        return E_UNEXPECTED;
+
+    /*
+     * Reference (Vista dwmredir CMilWindowContext::RefreshTransform):
+     * compute an (x,y) offset and apply it via:
+     * - CreateTranslateTransform(x,y) -> hTransform (TYPE_TRANSLATETRANSFORM=68, cmd 163)
+     * - Visual_SetTransform(m_hWindowRootNode, hTransform) (cmd 35)
+     *
+     * We don't yet have the full CMilWindowContext content-rect model; approximate
+     * using WindowRect relative to the DesktopWindow origin.
+     */
+    RECT rcDesk = {};
+    const HWND hDesk = GetDesktopWindow();
+    if (hDesk)
+        (void)GetWindowRect(hDesk, &rcDesk);
+
+    const double xOffset = (double)((LONG)pData->WindowRect.left - (LONG)rcDesk.left);
+    const double yOffset = (double)((LONG)pData->WindowRect.top - (LONG)rcDesk.top);
+
+    /* Cache to avoid churning transform resources. */
+    if (pData->hWindowTransform && pData->OffsetX == xOffset && pData->OffsetY == yOffset)
+        return S_OK;
+
+    HMIL_RESOURCE hNew = 0;
+    HRESULT hr = S_OK;
+
+    if (xOffset != 0.0 || yOffset != 0.0)
+    {
+        hr = MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                 (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_TRANSLATETRANSFORM,
+                                                 &hNew);
+        if (FAILED(hr) || !hNew)
+            return FAILED(hr) ? hr : E_FAIL;
+
+        MILCMD_TRANSLATETRANSFORM_VSP1 cmd = {};
+        cmd.Type = (MILCMD)RWM_MILCMD_VSP1_TRANSLATETRANSFORM;
+        cmd.Handle = hNew;
+        cmd.X = xOffset;
+        cmd.Y = yOffset;
+        cmd.Unknown0 = 0;
+        cmd.Unknown1 = 0;
+
+        hr = MilResource_SendCommand(&cmd, sizeof(cmd), DwmDesktopInstance->GlobalChannel);
+        if (FAILED(hr))
+        {
+            (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, hNew, NULL);
+            return hr;
+        }
+    }
+
+    MILCMD_VISUAL_SETTRANSFORM_VSP1 set = {};
+    set.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_SETTRANSFORM;
+    set.Handle = (HMIL_RESOURCE)pData->ClientNode;
+    set.hTransform = (HMIL_RESOURCE)hNew;
+    hr = MilResource_SendCommand(&set, sizeof(set), DwmDesktopInstance->GlobalChannel);
+
+    if (SUCCEEDED(hr))
+    {
+        if (pData->hWindowTransform)
+            (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hWindowTransform, NULL);
+
+        pData->hWindowTransform = hNew;
+        pData->OffsetX = xOffset;
+        pData->OffsetY = yOffset;
+    }
+    else if (hNew)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, hNew, NULL);
+    }
+
+    return hr;
 }
 
 static HRESULT uDwmEnsureWindowVisual(PRWM_WINDOWDATA_VISTA_SP1 pData)
@@ -329,6 +590,7 @@ static HRESULT uDwmEnsureWindowVisual(PRWM_WINDOWDATA_VISTA_SP1 pData)
                     wd->Flags &= ~RWM_WD_VISUAL_INSERTED;
             }
         }
+        uDwmMarkRebuildNeeded();
 
         DPRINT1("uDwmEnsureWindowVisual: switched root to DesktopWindow node=0x%lx (old root=0x%lx)\n",
                 (ULONG)DwmDesktopInstance->hRootNode, (ULONG)oldRoot);
@@ -347,50 +609,13 @@ static HRESULT uDwmEnsureWindowVisual(PRWM_WINDOWDATA_VISTA_SP1 pData)
      * on these graph nodes. Treat the ClientNode as the child to parent directly.
      */
 
-    /* Insert client WindowNode into root WindowNode once. */
-    if (uDwmGetDesiredVisible(pData) &&
-        !(pData->Flags & RWM_WD_VISUAL_INSERTED) &&
-        DwmDesktopInstance->hRootNode &&
-        pData->ClientNode)
-    {
-        /* If this node is the desktop root, don't parent it into itself. */
-        if ((HMIL_RESOURCE)pData->ClientNode == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
-            return S_OK;
-
-        static BOOLEAN s_loggedFirstInsert = FALSE;
-
-        MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
-        insertChild.Type =
-#if UDWM_TARGET_VISTA_SP1_MILCORE
-            (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
-#else
-            MilCmdVisualInsertChildAt;
-#endif
-        insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-        insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-        /* Must be <= current child count on the root visual. */
-        insertChild.index = uDwmGetInsertedChildCount();
-        hr = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-        if (FAILED(hr))
-            DPRINT1("uDwmEnsureWindowVisual: InsertChildAt failed hr=0x%08lx\n", hr);
-        if (SUCCEEDED(hr))
-        {
-            pData->Flags |= RWM_WD_VISUAL_INSERTED;
-            if (!s_loggedFirstInsert)
-            {
-                s_loggedFirstInsert = TRUE;
-                DPRINT1("uDwmEnsureWindowVisual: first child inserted root=0x%lx child=0x%lx idx=%u\n",
-                        (ULONG)DwmDesktopInstance->hRootNode,
-                        (ULONG)pData->ClientNode,
-                        insertChild.index);
-            }
-        }
-    }
+    /* Parenting into the root is handled in uDwmRebuildRootChildren() during UpdateScene. */
 
     if (pData->ClientNode)
     {
         (void)uDwmWindowNode_SetBounds(pData);
         (void)uDwmWindowNode_SetAlphaMargins(pData);
+        (void)uDwmUpdateWindowTransform(pData);
         if (pData->hSprite)
             (void)uDwmWindowNode_UpdateSpriteHandle(pData, pData->hSprite);
 
@@ -454,6 +679,7 @@ uDwmCreateWindow(CompositedWindow* DwmWindowInterface)
 
     /* Track this window internally so UpdateScene can walk it. */
     InsertTailList(&g_RwmWindowListHead, &pData->ListEntry);
+    uDwmMarkRebuildNeeded();
     /* Create per-window visual and hook up content. */
     (void)uDwmEnsureWindowVisual(pData);
     g_RwmWindowCount++;
@@ -483,6 +709,7 @@ HRESULT WINAPI uDwmDestroyWindow(CompositedWindow* DwmWindowInterface)
         if (g_RwmWindowCount)
             g_RwmWindowCount--;
     }
+    uDwmMarkRebuildNeeded();
 
     if ((pData->Flags & RWM_WD_VISUAL_INSERTED) && DwmDesktopInstance->hRootNode && pData->ClientNode)
     {
@@ -557,54 +784,30 @@ HRESULT WINAPI uDwmShowHide(CompositedWindow* DwmWindowInterface)
     PRWM_WINDOWDATA_VISTA_SP1 pData = (PRWM_WINDOWDATA_VISTA_SP1)DwmWindowInterface->GetClientData();
     if (pData && pData->Signature == RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
     {
-        const BOOLEAN visible = DwmWindowInterface->IsVisible();
+        /*
+         * Reference behavior: ShowHide reflects actual HWND visibility.
+         * Our CompositedWindow::IsVisible() implementation may be stubbed early-on,
+         * which would incorrectly hide everything (classic "shows briefly then disappears").
+         *
+         * Prefer user32's IsWindowVisible on the HWND when available.
+         */
+        BOOLEAN visibleIface = DwmWindowInterface->IsVisible();
+        BOOLEAN visibleHwnd = visibleIface;
+        if (pData->hWnd)
+            visibleHwnd = IsWindowVisible(pData->hWnd) ? TRUE : FALSE;
+        const BOOLEAN visibleStyle = uDwmComputeVisibleFromHwnd(pData->hWnd);
+
+        static ULONG s_visLog = 0;
+        if ((++s_visLog % 120) == 1 && pData->hWnd)
+        {
+            DPRINT1("uDwmShowHide: hwnd=0x%p iface=%u win32=%u style=%u\n",
+                    pData->hWnd, (ULONG)visibleIface, (ULONG)visibleHwnd, (ULONG)visibleStyle);
+        }
+
+        const BOOLEAN visible = visibleStyle;
         uDwmSetDesiredVisible(pData, visible);
         (void)uDwmEnsureWindowVisual(pData);
-
-        if (!visible && (pData->Flags & RWM_WD_VISUAL_INSERTED) &&
-            DwmDesktopInstance->hRootNode && pData->ClientNode)
-        {
-            MILCMD_VISUAL_REMOVECHILD removeChild = {};
-            removeChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_REMOVECHILD;
-            removeChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-            removeChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-            HRESULT hrRm = MilResource_SendCommand(&removeChild, sizeof(removeChild), DwmDesktopInstance->GlobalChannel);
-            if (FAILED(hrRm))
-            {
-                DPRINT1("uDwmShowHide: RemoveChild failed hr=0x%08lx root=0x%lx child=0x%lx\n",
-                        hrRm, (ULONG)DwmDesktopInstance->hRootNode, (ULONG)pData->ClientNode);
-            }
-            else
-            {
-                pData->Flags &= ~RWM_WD_VISUAL_INSERTED;
-            }
-        }
-        else if (visible && !(pData->Flags & RWM_WD_VISUAL_INSERTED) &&
-                 DwmDesktopInstance->hRootNode && pData->ClientNode)
-        {
-            MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
-            insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
-            insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-            insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-            insertChild.index = uDwmGetInsertedIndexForWindow(pData);
-            HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-            if (FAILED(hrIns))
-            {
-                /* Fallback: append, in case our index math got out of sync. */
-                insertChild.index = uDwmGetInsertedChildCount();
-                hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-            }
-
-            if (FAILED(hrIns))
-            {
-                DPRINT1("uDwmShowHide: InsertChildAt failed hr=0x%08lx root=0x%lx child=0x%lx idx=%u\n",
-                        hrIns, (ULONG)DwmDesktopInstance->hRootNode, (ULONG)pData->ClientNode, insertChild.index);
-            }
-            else
-            {
-                pData->Flags |= RWM_WD_VISUAL_INSERTED;
-            }
-        }
+        uDwmMarkRebuildNeeded();
     }
     LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
     return S_OK;
@@ -656,48 +859,7 @@ HRESULT WINAPI uDwmZOrder(CompositedWindow* DwmWindowInterface, CompositedWindow
         {
             InsertTailList(&g_RwmWindowListHead, &pData->ListEntry);
         }
-
-        /* If currently parented, remove and reinsert at the new index. */
-        if ((pData->Flags & RWM_WD_VISUAL_INSERTED) && DwmDesktopInstance->hRootNode && pData->ClientNode)
-        {
-            MILCMD_VISUAL_REMOVECHILD removeChild = {};
-            removeChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_REMOVECHILD;
-            removeChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-            removeChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-            HRESULT hrRm = MilResource_SendCommand(&removeChild, sizeof(removeChild), DwmDesktopInstance->GlobalChannel);
-            if (FAILED(hrRm))
-            {
-                DPRINT1("uDwmZOrder: RemoveChild failed hr=0x%08lx root=0x%lx child=0x%lx\n",
-                        hrRm, (ULONG)DwmDesktopInstance->hRootNode, (ULONG)pData->ClientNode);
-                /* Don't clear the flag if we didn't actually remove it. */
-            }
-            else
-            {
-                pData->Flags &= ~RWM_WD_VISUAL_INSERTED;
-            }
-
-            MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
-            insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
-            insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-            insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-            insertChild.index = uDwmGetInsertedIndexForWindow(pData);
-            HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-            if (FAILED(hrIns))
-            {
-                insertChild.index = uDwmGetInsertedChildCount();
-                hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-            }
-
-            if (FAILED(hrIns))
-            {
-                DPRINT1("uDwmZOrder: InsertChildAt failed hr=0x%08lx root=0x%lx child=0x%lx idx=%u\n",
-                        hrIns, (ULONG)DwmDesktopInstance->hRootNode, (ULONG)pData->ClientNode, insertChild.index);
-            }
-            else
-            {
-                pData->Flags |= RWM_WD_VISUAL_INSERTED;
-            }
-        }
+        uDwmMarkRebuildNeeded();
     }
     LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
     return S_OK;
@@ -907,6 +1069,9 @@ HRESULT WINAPI uDwmUpdateScene()
             (void)uDwmEnsureWindowVisual(pData);
         }
     }
+
+    /* Apply visibility + z-order changes in one deterministic rebuild pass. */
+    uDwmRebuildRootChildren();
 
     /*
      * Do not emit arbitrary test commands here.
