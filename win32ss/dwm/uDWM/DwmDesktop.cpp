@@ -145,65 +145,17 @@ static HRESULT uDwmEnsureDesktopTargetAndRoot(MIL_CHANNEL hChannel)
             }
         }
 
-        /* Fallback: create an empty root WindowNode if we couldn't get the desktop clone. */
-        if (!DwmDesktopInstance->hRootNode)
-        {
-            hr = MilResource_CreateOrAddRefOnChannel(hChannel,
-                                                     (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_WINDOWNODE,
-                                                     &DwmDesktopInstance->hRootNode);
-            if (FAILED(hr) || !DwmDesktopInstance->hRootNode)
-                return FAILED(hr) ? hr : E_FAIL;
-
-            /* Mirror DuceHelper::WindowNode_Create: cmd.Type=54, sizeof=0x1C. */
-            MILCMD_WINDOWNODE_CREATE_VSP1 nodeCreate = {};
-            nodeCreate.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_CREATE;
-            nodeCreate.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-            nodeCreate.Sprite = 0;
-            nodeCreate.Unknown0 = 0;
-            nodeCreate.Hwnd = 1;
-            nodeCreate.Unknown1 = 0;
-            nodeCreate.CachingMode = 0;
-
-            hr = MilResource_SendCommand(&nodeCreate, sizeof(nodeCreate), hChannel);
-            if (FAILED(hr))
-            {
-                DPRINT1("uDwmEnsureDesktopTargetAndRoot: WindowNode_Create failed hr=0x%08lx root=0x%lx\n",
-                        hr, (ULONG)DwmDesktopInstance->hRootNode);
-                return hr;
-            }
-
-            DPRINT1("uDwmEnsureDesktopTargetAndRoot: created fallback root windownode=0x%lx\n",
-                    (ULONG)DwmDesktopInstance->hRootNode);
-        }
+        /*
+         * No fallback root.
+         *
+         * Vista SP1 binds the desktop target root to the DesktopWindow context
+         * node created/owned by dwmredir. If it isn't available yet, we delay
+         * SetRoot until it shows up (WindowList will later switch root when it
+         * sees the DesktopWindow's ClientNodeClone).
+         */
     }
 
-    /*
-     * Critical: give the root a non-empty bounds rect.
-     * Without bounds, milcore can clip the entire subtree to empty, resulting
-     * in a permanent black screen even if children are inserted.
-     */
-    {
-        RECT rcDesktop = {};
-        const HWND hDesktopWnd = GetDesktopWindow();
-        if (hDesktopWnd)
-            (void)GetWindowRect(hDesktopWnd, &rcDesktop);
-
-        if ((rcDesktop.right - rcDesktop.left) <= 0 || (rcDesktop.bottom - rcDesktop.top) <= 0)
-        {
-            rcDesktop.left = 0;
-            rcDesktop.top = 0;
-            rcDesktop.right = GetSystemMetrics(SM_CXSCREEN);
-            rcDesktop.bottom = GetSystemMetrics(SM_CYSCREEN);
-        }
-
-        MILCMD_WINDOWNODE_SETBOUNDS_VSP1 bounds = {};
-        bounds.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETBOUNDS;
-        bounds.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-        bounds.WindowRect = rcDesktop;
-        bounds.ClientRect = rcDesktop;
-        bounds.ContentRect = rcDesktop;
-        (void)MilResource_SendCommand(&bounds, sizeof(bounds), hChannel);
-    }
+    /* If we don't have a root yet, skip SetRoot and let WindowList attach it later. */
 
     if (!DwmDesktopInstance->hDesktopTarget)
     {
@@ -240,6 +192,9 @@ static HRESULT uDwmEnsureDesktopTargetAndRoot(MIL_CHANNEL hChannel)
         if (FAILED(hr))
             return hr;
     }
+
+    if (!DwmDesktopInstance->hRootNode)
+        return S_FALSE;
 
     /* Bind root visual to the desktop target (Vista cmd.Type = 77). */
     MILCMD_TARGET_SETROOT setRoot = {};

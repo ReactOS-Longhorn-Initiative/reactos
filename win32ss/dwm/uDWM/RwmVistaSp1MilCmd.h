@@ -26,6 +26,8 @@
 #define RWM_MILCMD_VSP1_VISUAL_SETALPHA          (37u)
 #define RWM_MILCMD_VSP1_VISUAL_SETRENDEROPTIONS  (38u)
 #define RWM_MILCMD_VSP1_VISUAL_SETCONTENT        (39u)
+/* Not directly observed yet; inferred from command ordering in WGX headers. */
+#define RWM_MILCMD_VSP1_VISUAL_REMOVEALLCHILDREN (41u)
 #define RWM_MILCMD_VSP1_VISUAL_REMOVECHILD       (42u)
 #define RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT     (43u)
 
@@ -52,6 +54,26 @@
 #define RWM_MILRT_VSP1_TRANSLATETRANSFORM        (68u)
 /* milcore resource factory: case 39 constructs CMilVisual (not currently used). */
 #define RWM_MILRT_VSP1_VISUAL                    (39u)
+
+/*
+ * Vista SP1 uDWM resource type IDs (from DwmReversing\\Vista\\uDWM.dll.c):
+ * - TYPE_RENDERDATA:        44
+ * - TYPE_SOLIDCOLORBRUSH:   81
+ *
+ * These differ from newer WPF headers.
+ */
+#define RWM_MILRT_VSP1_RENDERDATA                (44u)
+#define RWM_MILRT_VSP1_SOLIDCOLORBRUSH           (81u)
+
+/*
+ * Vista SP1 command IDs used by uDWM render-data path (from DwmReversing\\Vista\\uDWM.dll.c):
+ * - RenderData update:          cmd.Type = 29, sizeof=0x0c, extra = cmd.cbData
+ * - SolidColorBrush update:     cmd.Type = 174, sizeof=0x30
+ * - RenderData draw-rectangle:  instruction type = 111 (inside RenderData stream)
+ */
+#define RWM_MILCMD_VSP1_RENDERDATA               (29u)
+#define RWM_MILCMD_VSP1_SOLIDCOLORBRUSH          (174u)
+#define RWM_MILDRAW_VSP1_RECTANGLE               (111u)
 
 /*
  * Desktop render target creation / root binding (Vista SP1 dwmredir):

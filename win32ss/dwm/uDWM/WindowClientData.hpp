@@ -33,12 +33,16 @@ typedef struct _RWM_WINDOWDATA_VISTA_SP1
     HMIL_RESOURCE hWindowVisual;   /* Per-window TYPE_VISUAL resource */
     HMIL_RESOURCE hWindowTransform;/* Per-window TYPE_TRANSLATETRANSFORM */
     HMIL_RESOURCE hClipGeometry;   /* Per-window TYPE_PATHGEOMETRY for sprite clipping */
+    HMIL_RESOURCE hNcVisual;       /* Per-window NC root visual (child of hWindowVisual) */
+    HMIL_RESOURCE hNcRenderData;   /* RenderData bound to hNcVisual */
+    HMIL_RESOURCE hNcCaptionBrush; /* SolidColorBrush for caption area */
+    HMIL_RESOURCE hNcBorderBrush;  /* SolidColorBrush for border */
     DOUBLE OffsetX;                /* Cached translation X */
     DOUBLE OffsetY;                /* Cached translation Y */
     UINT32 Flags;                  /* RWM_WD_* */
 
 #if !defined(_WIN64)
-    BYTE Reserved[0xB3C - (4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 16 + 8 + 4 + 4 + 8 + 8 + 4)];
+    BYTE Reserved[0xB3C - (4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 16 + 8 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4)];
 #endif
 } RWM_WINDOWDATA_VISTA_SP1, *PRWM_WINDOWDATA_VISTA_SP1;
 #pragma pack(pop)
@@ -48,6 +52,8 @@ typedef struct _RWM_WINDOWDATA_VISTA_SP1
 #define RWM_WD_DESIRED_VISIBLE             (0x00000002u)
 #define RWM_WD_HAS_DESIRED_VISIBLE         (0x00000004u)
 #define RWM_WD_LOGGED_CLIENTNODE           (0x00000008u)
+#define RWM_WD_FRAME_CHILD_INSERTED        (0x00000010u)
+#define RWM_WD_NC_VISUAL_INSERTED          (0x00000020u)
 
 class WindowClientData
 {
