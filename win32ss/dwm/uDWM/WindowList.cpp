@@ -190,6 +190,114 @@ static __forceinline BOOLEAN uDwmComputeVisibleFromHwnd(_In_opt_ HWND hWnd)
     return vis;
 }
 
+static __forceinline BOOLEAN uDwmIsTopmostWindow(_In_opt_ HWND hWnd)
+{
+    if (!hWnd || !IsWindow(hWnd))
+        return FALSE;
+
+    /* Shell tray should behave topmost for our purposes. */
+    WCHAR cls[64] = {0};
+    if (GetClassNameW(hWnd, cls, ARRAYSIZE(cls)) > 0)
+    {
+        if (_wcsicmp(cls, L"Shell_TrayWnd") == 0)
+            return TRUE;
+    }
+
+    SetLastError(0);
+    const LONG_PTR exStyle = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
+    const DWORD gle = GetLastError();
+    if (exStyle == 0 && gle != 0)
+        return FALSE; /* unknown -> not topmost */
+    return (exStyle & WS_EX_TOPMOST) ? TRUE : FALSE;
+}
+
+static VOID uDwmLogWindowBrief(_In_ const char* tag, _In_opt_ HWND hWnd)
+{
+    if (!hWnd || !IsWindow(hWnd))
+        return;
+
+    WCHAR cls[64] = {0};
+    WCHAR text[96] = {0};
+    (void)GetClassNameW(hWnd, cls, ARRAYSIZE(cls));
+    (void)GetWindowTextW(hWnd, text, ARRAYSIZE(text));
+
+    /* Only spam for key shell windows (tray/taskmgr). */
+    if (_wcsicmp(cls, L"Shell_TrayWnd") != 0 &&
+        _wcsicmp(cls, L"TaskManagerWindow") != 0)
+        return;
+
+    DWORD pid = 0;
+    (void)GetWindowThreadProcessId(hWnd, &pid);
+    SetLastError(0);
+    const LONG_PTR style = GetWindowLongPtrW(hWnd, GWL_STYLE);
+    const DWORD gleStyle = GetLastError();
+    SetLastError(0);
+    const LONG_PTR exStyle = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
+    const DWORD gleEx = GetLastError();
+
+    DPRINT1("%s: %s hwnd=0x%p cls=%S text=%S pid=%lu vis=%u top=%u style=0x%Ix%s ex=0x%Ix%s\n",
+            tag,
+            "uDWM",
+            hWnd,
+            cls,
+            text,
+            (ULONG)pid,
+            (ULONG)(IsWindowVisible(hWnd) ? 1 : 0),
+            (ULONG)(uDwmIsTopmostWindow(hWnd) ? 1 : 0),
+            (ULONG_PTR)style,
+            (style == 0 && gleStyle != 0) ? "(!)" : "",
+            (ULONG_PTR)exStyle,
+            (exStyle == 0 && gleEx != 0) ? "(!)" : "");
+}
+
+static __forceinline PRWM_WINDOWDATA_VISTA_SP1 uDwmFindWindowDataByHwnd(_In_opt_ HWND hWnd)
+{
+    if (!g_RwmWindowListInitialized || !hWnd)
+        return NULL;
+
+    for (PLIST_ENTRY e = g_RwmWindowListHead.Flink; e != &g_RwmWindowListHead; e = e->Flink)
+    {
+        PRWM_WINDOWDATA_VISTA_SP1 pData = CONTAINING_RECORD(e, RWM_WINDOWDATA_VISTA_SP1, ListEntry);
+        if (pData && pData->Signature == RWM_WINDOWDATA_VISTA_SP1_SIGNATURE && pData->hWnd == hWnd)
+            return pData;
+    }
+    return NULL;
+}
+
+static HRESULT uDwmInsertChildAtRoot(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData, _Inout_ UINT* pIndex)
+{
+    if (!pData || !pIndex || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !DwmDesktopInstance->hRootNode)
+        return E_UNEXPECTED;
+
+    if (!pData->ClientNode)
+        return E_INVALIDARG;
+    if ((HMIL_RESOURCE)pData->ClientNode == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
+        return S_FALSE;
+
+    MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
+    insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
+    insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
+    insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
+    insertChild.index = *pIndex;
+
+    HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
+    if (SUCCEEDED(hrIns))
+    {
+        pData->Flags |= RWM_WD_VISUAL_INSERTED;
+        (*pIndex)++;
+    }
+    else
+    {
+        DPRINT1("uDwmRebuildRootChildren: InsertChildAt failed hr=0x%08lx root=0x%lx child=0x%lx idx=%u hwnd=0x%p\n",
+                hrIns,
+                (ULONG)DwmDesktopInstance->hRootNode,
+                (ULONG)pData->ClientNode,
+                insertChild.index,
+                pData->hWnd);
+    }
+    return hrIns;
+}
+
 /*
  * Reference behavior (Vista uDWM): Z-order and show/hide are modeled on a higher-level
  * VisualCollection and become MIL commands during RenderRecursive().
@@ -233,45 +341,80 @@ static VOID uDwmRebuildRootChildren(VOID)
         }
     }
 
-    /* Pass 2: refresh visibility + insert visible windows in current list order. */
+    /*
+     * Pass 2: refresh visibility + insert visible windows.
+     *
+     * Vista reference:
+     * - `CWindowList::ZOrder` maintains an internal list and applies `ZOrderAfter` to the root visual's
+     *   VisualCollection (see `DwmReversing\\Vista\\uDWM.dll.c`, `CWindowList::ZOrder`).
+     *
+     * Our uDWM talks to milcore directly (InsertChildAt/RemoveChild), which makes incremental reorder fragile
+     * early-on. For correctness, rebuild the root's children in *actual Win32 z-order* so that topmost/bands
+     * are honored deterministically (this matches what Vista ultimately composes from).
+     */
     UINT idx = 0;
+
+    /* Refresh desired visibility for all tracked windows up-front. */
     for (PLIST_ENTRY e = g_RwmWindowListHead.Flink; e != &g_RwmWindowListHead; e = e->Flink)
     {
         PRWM_WINDOWDATA_VISTA_SP1 pData = CONTAINING_RECORD(e, RWM_WINDOWDATA_VISTA_SP1, ListEntry);
         if (!pData || pData->Signature != RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
             continue;
-
         if (pData->hWnd)
+        {
             uDwmSetDesiredVisible(pData, uDwmComputeVisibleFromHwnd(pData->hWnd));
+            uDwmLogWindowBrief("rebuild", pData->hWnd);
+        }
+    }
 
+    /* Insert tracked windows in actual Win32 z-order (bottom -> top). */
+    UINT cZ = 0;
+    for (HWND w = GetTopWindow(NULL); w; w = GetWindow(w, GW_HWNDNEXT))
+        cZ++;
+
+    if (cZ)
+    {
+        HWND* z = (HWND*)HeapAlloc(GetProcessHeap(), 0, sizeof(HWND) * cZ);
+        if (z)
+        {
+            UINT k = 0;
+            for (HWND w = GetTopWindow(NULL); w && k < cZ; w = GetWindow(w, GW_HWNDNEXT))
+                z[k++] = w;
+
+            while (k)
+            {
+                HWND w = z[--k]; /* bottom -> top */
+                PRWM_WINDOWDATA_VISTA_SP1 pData = uDwmFindWindowDataByHwnd(w);
+                if (!pData)
+                    continue;
+                if (!uDwmGetDesiredVisible(pData))
+                    continue;
+                if (!pData->ClientNode)
+                    continue;
+                if (pData->Flags & RWM_WD_VISUAL_INSERTED)
+                    continue;
+
+                cVisible++;
+                (void)uDwmInsertChildAtRoot(pData, &idx);
+            }
+
+            HeapFree(GetProcessHeap(), 0, z);
+        }
+    }
+
+    /* Fallback: insert any remaining visible tracked windows not present in z-order enumeration. */
+    for (PLIST_ENTRY e = g_RwmWindowListHead.Flink; e != &g_RwmWindowListHead; e = e->Flink)
+    {
+        PRWM_WINDOWDATA_VISTA_SP1 pData = CONTAINING_RECORD(e, RWM_WINDOWDATA_VISTA_SP1, ListEntry);
+        if (!pData || pData->Signature != RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
+            continue;
         if (!uDwmGetDesiredVisible(pData) || !pData->ClientNode)
             continue;
-        if ((HMIL_RESOURCE)pData->ClientNode == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
+        if (pData->Flags & RWM_WD_VISUAL_INSERTED)
             continue;
 
         cVisible++;
-
-        MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
-        insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
-        insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-        insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-        insertChild.index = idx;
-
-        HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-        if (SUCCEEDED(hrIns))
-        {
-            pData->Flags |= RWM_WD_VISUAL_INSERTED;
-            idx++;
-        }
-        else
-        {
-            DPRINT1("uDwmRebuildRootChildren: InsertChildAt failed hr=0x%08lx root=0x%lx child=0x%lx idx=%u hwnd=0x%p\n",
-                    hrIns,
-                    (ULONG)DwmDesktopInstance->hRootNode,
-                    (ULONG)pData->ClientNode,
-                    insertChild.index,
-                    pData->hWnd);
-        }
+        (void)uDwmInsertChildAtRoot(pData, &idx);
     }
 
     /*
@@ -659,6 +802,7 @@ uDwmCreateWindow(CompositedWindow* DwmWindowInterface)
     pData->Signature = RWM_WINDOWDATA_VISTA_SP1_SIGNATURE;
     pData->Window = DwmWindowInterface;
     pData->hWnd = DwmWindowInterface->GetWindowHandle();
+    uDwmLogWindowBrief("create", pData->hWnd);
     pData->hSprite = DwmWindowInterface->GetSpriteHandle();
     /* Default visible until ShowHide tells us otherwise. */
 
@@ -697,6 +841,7 @@ HRESULT WINAPI uDwmDestroyWindow(CompositedWindow* DwmWindowInterface)
     EnterCriticalSection(&DwmDesktopInstance->CsDwmInstance);
 
     PRWM_WINDOWDATA_VISTA_SP1 pData = (PRWM_WINDOWDATA_VISTA_SP1)DwmWindowInterface->GetClientData();
+    uDwmLogWindowBrief("destroy", pData->hWnd);
     if (!pData || pData->Signature != RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
     {
         LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
@@ -784,6 +929,7 @@ HRESULT WINAPI uDwmShowHide(CompositedWindow* DwmWindowInterface)
     PRWM_WINDOWDATA_VISTA_SP1 pData = (PRWM_WINDOWDATA_VISTA_SP1)DwmWindowInterface->GetClientData();
     if (pData && pData->Signature == RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
     {
+        uDwmLogWindowBrief("showhide", pData->hWnd);
         /*
          * Reference behavior: ShowHide reflects actual HWND visibility.
          * Our CompositedWindow::IsVisible() implementation may be stubbed early-on,
