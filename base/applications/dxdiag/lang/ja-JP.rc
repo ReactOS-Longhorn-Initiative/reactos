@@ -237,7 +237,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "移動している白い正方形が見えましたか?"
     IDS_DDFULLSCREEN_DESCRIPTION "このテストでは、DirectDraw を使って全画面表示モードで描画します。移動している白い矩形が描画されます。続行しますか?"
     IDS_DDFULLSCREEN_RESULT "全画面表示モードで移動している白い矩形が見えましたか?"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u ビット) (%uHz)"
     IDS_OPTION_NO "いいえ"
     IDS_D3DTEST_DESCRIPTION "Direct3D インタフェーステストを開始しようとしています。続行しますか?"
