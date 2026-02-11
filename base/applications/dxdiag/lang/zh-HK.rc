@@ -245,7 +245,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "您看到移動中的白色矩形嗎？"
     IDS_DDFULLSCREEN_DESCRIPTION "這個測試將使用 DirectDraw 在全螢幕模式繪圖。您應會看到正在移動的白色矩形。要繼續嗎？"
     IDS_DDFULLSCREEN_RESULT "您在全螢幕模式中看到移動中的白色矩形嗎？"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u bit)(%uHz)"
     IDS_OPTION_NO "否"
     IDS_D3DTEST_DESCRIPTION "即將啟動 Direct3D 界面測試。要繼續嗎？"

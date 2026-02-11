@@ -240,7 +240,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Você viu um retângulo branco se movendo?"
     IDS_DDFULLSCREEN_DESCRIPTION "Este teste usará o DirectDraw para desenhar no modo de tela inteira. Deve ser desenhado um retângulo branco em movimento. Você deseja continuar?"
     IDS_DDFULLSCREEN_RESULT "Você viu um retângulo branco se movendo no modo de tela inteira?"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u bit)(%uHz)"
     IDS_OPTION_NO "Não"
     IDS_D3DTEST_DESCRIPTION "Isso iniciará o teste de interface do Direct3D. Você deseja continuar?"

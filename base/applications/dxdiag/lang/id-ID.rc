@@ -244,7 +244,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Apakah anda melihat persegi putih bergerak?"
     IDS_DDFULLSCREEN_DESCRIPTION "Tes ini akan menggunakan DirectDraw untuk menggambar di modus layar penuh. Persegi putih bergerak seharusnya akan muncul. Apakah anda ingin melanjutkan?"
     IDS_DDFULLSCREEN_RESULT "Apakah anda melihat persegi putih bergerak di modus layar penuh?"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u bit)(%uHz)"
     IDS_OPTION_NO "Tidak"
     IDS_D3DTEST_DESCRIPTION "Ini akan memulai tes antarmuka Direct3D. Apakah anda ingin melanjutkan?"

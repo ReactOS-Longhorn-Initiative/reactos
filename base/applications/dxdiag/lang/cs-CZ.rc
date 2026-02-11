@@ -242,7 +242,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Byl vidět bílý pohybující se obdélník?"
     IDS_DDFULLSCREEN_DESCRIPTION "Tento test použije DirectDraw k vykreslování do celoobrazovkového módu. Měl by být vykreslen bílý pohybující se obdélník. Pokračovat?"
     IDS_DDFULLSCREEN_RESULT "Viděli jste bílý pohybující se obdélník v celoobrazovkovém módu?"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u bit)(%uHz)"
     IDS_OPTION_NO "Ne"
     IDS_D3DTEST_DESCRIPTION "Spustí se test rozhraní Direct3D. Pokračovat?"

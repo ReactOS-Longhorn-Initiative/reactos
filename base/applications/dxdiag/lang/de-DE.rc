@@ -237,7 +237,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Haben Sie das bewegte weiße Rechteck gesehen?"
     IDS_DDFULLSCREEN_DESCRIPTION "Dieser Test wird DirectDraw benutzen, um im Vollbildmodus zu zeichnen. Ein bewegtes weißes Rechteck sollte zu sehen sein. Fortfahren?"
     IDS_DDFULLSCREEN_RESULT "Haben Sie das bewegte weiße Rechteck im Vollbildmodus gesehen?"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u bit)(%uHz)"
     IDS_OPTION_NO "Nein"
     IDS_D3DTEST_DESCRIPTION "Dies wird den Direct3D-Interfacetest starten. Fortfahren?"
