@@ -63,17 +63,17 @@ KGUARDED_MUTEX MmPageFileCreationLock;
 ULONG MmNumberOfPagingFiles;
 
 /* Number of pages that are available for swapping */
-PFN_COUNT MiFreeSwapPages;
+PFN_NUMBER MiFreeSwapPages;
 
 /* Number of pages that have been allocated for swapping */
-PFN_COUNT MiUsedSwapPages;
+PFN_NUMBER MiUsedSwapPages;
 
 BOOLEAN MmZeroPageFile;
 
 /*
  * Number of pages that have been reserved for swapping but not yet allocated
  */
-static PFN_COUNT MiReservedSwapPages;
+static PFN_NUMBER MiReservedSwapPages;
 
 /*
  * Ratio between reserved and available swap pages, e.g. setting this to five
