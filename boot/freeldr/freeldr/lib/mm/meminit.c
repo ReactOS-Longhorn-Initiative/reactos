@@ -101,7 +101,7 @@ DbgDumpMemoryMap(
     DbgPrint("Dumping Memory map:\n");
     for (i = 0; List[i].PageCount != 0; i++)
     {
-        DbgPrint("%02d %08x - %08x: %s\n",
+        DbgPrint("%02d %08llx - %08llx: %s\n",
                  i,
                  List[i].BasePage * PAGE_SIZE,
                  (List[i].BasePage + List[i].PageCount) * PAGE_SIZE,
@@ -351,7 +351,7 @@ BOOLEAN MmInitializeMemoryManager(VOID)
     TRACE("System Memory Map (Base Address, Length, Type):\n");
     while ((MemoryDescriptor = ArcGetMemoryDescriptor(MemoryDescriptor)) != NULL)
     {
-        TRACE("%x\t %x\t %s\n",
+        TRACE("%llx\t %llx\t %s\n",
             MemoryDescriptor->BasePage * MM_PAGE_SIZE,
             MemoryDescriptor->PageCount * MM_PAGE_SIZE,
             MmGetSystemMemoryMapTypeString(MemoryDescriptor->MemoryType));
