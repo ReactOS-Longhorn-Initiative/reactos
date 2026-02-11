@@ -11,9 +11,9 @@ extern "C" {
 struct _EPROCESS;
 
 extern PMMSUPPORT MmKernelAddressSpace;
-extern PFN_COUNT MiFreeSwapPages;
-extern PFN_COUNT MiUsedSwapPages;
-extern PFN_COUNT MmNumberOfPhysicalPages;
+extern PFN_NUMBER MiFreeSwapPages;
+extern PFN_NUMBER MiUsedSwapPages;
+extern PFN_NUMBER MmNumberOfPhysicalPages;
 extern UCHAR MmDisablePagingExecutive;
 extern PFN_NUMBER MmLowestPhysicalPage;
 extern PFN_NUMBER MmHighestPhysicalPage;

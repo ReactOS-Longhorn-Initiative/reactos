@@ -210,7 +210,7 @@ PPHYSICAL_MEMORY_DESCRIPTOR MmPhysicalMemoryBlock;
 // This is where we keep track of the most basic physical layout markers
 //
 PFN_NUMBER MmHighestPhysicalPage, MmLowestPhysicalPage = -1;
-PFN_COUNT MmNumberOfPhysicalPages;
+PFN_NUMBER MmNumberOfPhysicalPages;
 
 //
 // The total number of pages mapped by the boot loader, which include the kernel
@@ -1805,6 +1805,7 @@ MiBuildPagedPool(VOID)
     // Get the size in pages and make sure paged pool is at least 32MB.
     //
     Size = MmSizeOfPagedPoolInBytes;
+
     if (Size < MI_MIN_INIT_PAGED_POOLSIZE) Size = MI_MIN_INIT_PAGED_POOLSIZE;
     NumberOfPages = BYTES_TO_PAGES(Size);
 
