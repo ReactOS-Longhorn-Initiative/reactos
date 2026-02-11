@@ -246,7 +246,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "您是否看到移动的白方块？"
     IDS_DDFULLSCREEN_DESCRIPTION "此测试将使用 DirectDraw 在全屏模式绘图。您应该会看到移动的白方块。是否继续？"
     IDS_DDFULLSCREEN_RESULT "您是否在全屏模式中看到移动的白色矩形？"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d（%u bit）（%uHz）"
     IDS_OPTION_NO "否"
     IDS_D3DTEST_DESCRIPTION "这将启动 Direct3D 表面测试。是否继续？"

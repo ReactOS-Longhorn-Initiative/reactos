@@ -246,7 +246,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Czy było widać poruszający się biały kwadrat?"
     IDS_DDFULLSCREEN_DESCRIPTION "Ten test wykorzysta DirectDraw do rysowania w trybie pełnoekranowym. Narysowany zostanie poruszający się biały kwadrat. Kontynuować?"
     IDS_DDFULLSCREEN_RESULT "Czy było widać poruszający się biały kwadrat, w trybie pełnoekranowym?"
-    IDS_FORMAT_ADAPTER_MEM "%u MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u bit)(%uHz)"
     IDS_OPTION_NO "Nie"
     IDS_D3DTEST_DESCRIPTION "Uruchomiony zostanie test interfejsu Direct3D. Kontynuować?"

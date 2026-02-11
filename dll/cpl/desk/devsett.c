@@ -435,17 +435,25 @@ pCDevSettings_InitializeExtInterface(PCDevSettings This)
                                           TRUE);
     if (hKeyDev != NULL)
     {
-        DWORD dwType, dwMemSize = 0;
-        DWORD dwSize = sizeof(dwMemSize);
+        ULONG64 dwMemSize = 0;
+        DWORD dwType, dwSize = sizeof(dwMemSize);
 
-        if (RegQueryValueEx(hKeyDev,
+        if ((RegQueryValueEx(hKeyDev,
+                            TEXT("HardwareInformation.qwMemorySize"),
+                            NULL,
+                            &dwType,
+                            (PBYTE)&dwMemSize,
+                            &dwSize) == ERROR_SUCCESS &&
+            (dwType == REG_BINARY || dwType == REG_QWORD) &&
+            dwSize == sizeof(DWORD64)) ||
+            (RegQueryValueEx(hKeyDev,
                             TEXT("HardwareInformation.MemorySize"),
                             NULL,
                             &dwType,
                             (PBYTE)&dwMemSize,
                             &dwSize) == ERROR_SUCCESS &&
             (dwType == REG_BINARY || dwType == REG_DWORD) &&
-            dwSize == sizeof(dwMemSize))
+            dwSize == sizeof(DWORD)))
         {
             dwMemSize /= 1024;
 
