@@ -237,7 +237,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Вы видели двигающийся белый квадратик?"
     IDS_DDFULLSCREEN_DESCRIPTION "В этом тесте будет проверена возможность рисования DirectDraw в полноэкранном режиме. Должен быть виден двигающийся белый квадратик. Продолжить?"
     IDS_DDFULLSCREEN_RESULT "Вы видели белый двигающийся квадратик в полноэкранном режиме?"
-    IDS_FORMAT_ADAPTER_MEM "%u Мб"
+    IDS_FORMAT_ADAPTER_MEM "%I64u Мб"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u бит)(%u Гц)"
     IDS_OPTION_NO "Нет"
     IDS_D3DTEST_DESCRIPTION "Будет произведена проверка Direct3D на этом устройстве. Продолжить?"

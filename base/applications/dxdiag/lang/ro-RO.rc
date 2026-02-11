@@ -245,7 +245,7 @@ BEGIN
     IDS_DDOFFSCREEN_RESULT "Ați văzut dreptunghi alb în mișcare?"
     IDS_DDFULLSCREEN_DESCRIPTION "Acest test va folosi DirectDraw pentru a desena în modul ecran complet. Ar trebui desenat un dreptunghi alb în mișcare. Doriți să continuați?"
     IDS_DDFULLSCREEN_RESULT "Ați văzut dreptunghi alb în mișcare în modul ecran complet?"
-    IDS_FORMAT_ADAPTER_MEM "%u (de) MB"
+    IDS_FORMAT_ADAPTER_MEM "%I64u (de) MB"
     IDS_FORMAT_ADAPTER_MODE "%d x %d (%u (de) biți)(%uHz)"
     IDS_OPTION_NO "Nu"
     IDS_D3DTEST_DESCRIPTION "Acesta va porni testarea interfeței Direct3D. Doriți să continuați?"

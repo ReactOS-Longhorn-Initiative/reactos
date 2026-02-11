@@ -211,7 +211,7 @@ InitializeDialog(HWND hwndDlg, PDISPLAY_DEVICEW pDispDevice)
     WCHAR szFormat[30];
     HKEY hKey;
     HWND hDlgCtrls[5];
-    DWORD dwMemory;
+    ULONG64 ullMemory;
     DEVMODEW DevMode;
     IDirect3D9 * ppObj = NULL;
     D3DADAPTER_IDENTIFIER9 Identifier;
@@ -261,18 +261,14 @@ InitializeDialog(HWND hwndDlg, PDISPLAY_DEVICEW pDispDevice)
         SendDlgItemMessageW(hwndDlg, IDC_STATIC_ADAPTER_DAC, WM_SETTEXT, 0, (LPARAM)szText);
     }
 
-    if (GetRegValue(hKey, NULL, L"HardwareInformation.MemorySize", REG_BINARY, (LPWSTR)&dwMemory, sizeof(dwMemory)))
+    if ((GetRegValue(hKey, NULL, L"HardwareInformation.qwMemorySize", REG_BINARY, (PVOID)&ullMemory, sizeof(ullMemory))) ||
+        (GetRegValue(hKey, NULL, L"HardwareInformation.MemorySize", REG_BINARY, (PVOID)&ullMemory, sizeof(ullMemory))))
     {
         /* set chip memory size */
-        if (dwMemory > (1048576))
-        {
-            /* buggy ATI driver requires that */
-            dwMemory /= 1048576;
-        }
         szFormat[0] = L'\0';
         if (LoadStringW(hInst, IDS_FORMAT_ADAPTER_MEM, szFormat, sizeof(szFormat)/sizeof(WCHAR)))
             szFormat[(sizeof(szFormat)/sizeof(WCHAR))-1] = L'\0';
-        wsprintfW(szText, szFormat, dwMemory);
+        wsprintfW(szText, szFormat, ullMemory/1048576);
         SendDlgItemMessageW(hwndDlg, IDC_STATIC_ADAPTER_MEM, WM_SETTEXT, 0, (LPARAM)szText);
     }
 
