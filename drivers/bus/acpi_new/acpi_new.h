@@ -14,6 +14,7 @@ typedef enum _ACPI_NEW_DEVTYPE
 {
     AcpiNewDeviceFdo,
     AcpiNewDevicePdo,
+    AcpiNewDeviceControl,
 } ACPI_NEW_DEVTYPE;
 
 typedef struct _ACPI_NEW_COMMON_EXTENSION
@@ -79,6 +80,11 @@ typedef struct _ACPI_NEW_FDO_EXTENSION
     BOOLEAN Removed;
 } ACPI_NEW_FDO_EXTENSION, *PACPI_NEW_FDO_EXTENSION;
 
+typedef struct _ACPI_NEW_CONTROL_EXTENSION
+{
+    ACPI_NEW_COMMON_EXTENSION Common;
+} ACPI_NEW_CONTROL_EXTENSION, *PACPI_NEW_CONTROL_EXTENSION;
+
 static __forceinline BOOLEAN AcpiNewIsFdo(_In_ PDEVICE_OBJECT DeviceObject)
 {
     PACPI_NEW_COMMON_EXTENSION common = (PACPI_NEW_COMMON_EXTENSION)DeviceObject->DeviceExtension;
@@ -91,12 +97,27 @@ static __forceinline BOOLEAN AcpiNewIsPdo(_In_ PDEVICE_OBJECT DeviceObject)
     return common && (common->Type == AcpiNewDevicePdo);
 }
 
+static __forceinline BOOLEAN AcpiNewIsControl(_In_ PDEVICE_OBJECT DeviceObject)
+{
+    PACPI_NEW_COMMON_EXTENSION common = (PACPI_NEW_COMMON_EXTENSION)DeviceObject->DeviceExtension;
+    return common && (common->Type == AcpiNewDeviceControl);
+}
+
 // driver.c
 DRIVER_INITIALIZE DriverEntry;
 
 // adddev.c
 DRIVER_ADD_DEVICE AcpiNewAddDevice;
 DRIVER_UNLOAD AcpiNewUnload;
+
+// control.c
+NTSTATUS AcpiNewCreateControlDevice(_In_ PDRIVER_OBJECT DriverObject);
+VOID AcpiNewDeleteControlDevice(VOID);
+NTSTATUS AcpiNewControlDeviceControl(
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _In_ PIRP Irp,
+    _In_ PIO_STACK_LOCATION IrpSp
+);
 
 // dispatch.c
 DRIVER_DISPATCH AcpiNewDispatchPower;
@@ -129,6 +150,7 @@ VOID AcpiNewEnumerateNamespace(_In_ PACPI_NEW_FDO_EXTENSION FdoExt);
 
 // uacpi_init.c
 NTSTATUS AcpiNewStartUacpiAndEnumerate(_In_ PACPI_NEW_FDO_EXTENSION FdoExt);
+extern volatile BOOLEAN AcpiNewUacpiStarted;
 
 // notify.c
 uacpi_status AcpiNewNotifyHandler(

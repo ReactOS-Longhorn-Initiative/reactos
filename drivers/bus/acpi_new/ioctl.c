@@ -482,6 +482,14 @@ AcpiNewDispatchDeviceControl(
         return status;
     }
 
+    if (AcpiNewIsControl(DeviceObject))
+    {
+        status = AcpiNewControlDeviceControl(DeviceObject, Irp, irpSp);
+        Irp->IoStatus.Status = status;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+        return status;
+    }
+
     if (!AcpiNewIsPdo(DeviceObject))
     {
         status = STATUS_INVALID_DEVICE_REQUEST;

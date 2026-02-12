@@ -20,5 +20,5 @@ DriverEntry(
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = AcpiNewDispatchDeviceControl;
     DriverObject->MajorFunction[IRP_MJ_SYSTEM_CONTROL] = AcpiNewDispatchDefault;
 
-    return STATUS_SUCCESS;
+    return AcpiNewCreateControlDevice(DriverObject);
 }
