@@ -46,6 +46,15 @@ typedef struct _ACPI_NEW_PDO_EXTENSION
     UNICODE_STRING LidInterface;
     BOOLEAN LidInterfaceEnabled;
 
+    UNICODE_STRING ThermalZoneInterface;
+    BOOLEAN ThermalZoneInterfaceEnabled;
+
+    UNICODE_STRING FanInterface;
+    BOOLEAN FanInterfaceEnabled;
+
+    UNICODE_STRING ProcessorInterface;
+    BOOLEAN ProcessorInterfaceEnabled;
+
     BOOLEAN Present;
 } ACPI_NEW_PDO_EXTENSION, *PACPI_NEW_PDO_EXTENSION;
 

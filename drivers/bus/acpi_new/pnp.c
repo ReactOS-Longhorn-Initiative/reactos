@@ -55,6 +55,39 @@ AcpiNewHandlePdoPnp(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
                     pdoExt->LidInterfaceEnabled = TRUE;
                 }
             }
+
+            if (!pdoExt->ThermalZoneInterfaceEnabled &&
+                (wcsstr(pdoExt->HardwareIds, L"ThermalZone") != NULL))
+            {
+                st = IoRegisterDeviceInterface(DeviceObject, &GUID_DEVICE_THERMAL_ZONE, NULL, &pdoExt->ThermalZoneInterface);
+                if (NT_SUCCESS(st))
+                {
+                    (void)IoSetDeviceInterfaceState(&pdoExt->ThermalZoneInterface, TRUE);
+                    pdoExt->ThermalZoneInterfaceEnabled = TRUE;
+                }
+            }
+
+            if (!pdoExt->FanInterfaceEnabled &&
+                (wcsstr(pdoExt->HardwareIds, L"PNP0C0B") != NULL))
+            {
+                st = IoRegisterDeviceInterface(DeviceObject, &GUID_DEVICE_FAN, NULL, &pdoExt->FanInterface);
+                if (NT_SUCCESS(st))
+                {
+                    (void)IoSetDeviceInterfaceState(&pdoExt->FanInterface, TRUE);
+                    pdoExt->FanInterfaceEnabled = TRUE;
+                }
+            }
+
+            if (!pdoExt->ProcessorInterfaceEnabled &&
+                (wcsstr(pdoExt->HardwareIds, L"Processor") != NULL))
+            {
+                st = IoRegisterDeviceInterface(DeviceObject, &GUID_DEVICE_PROCESSOR, NULL, &pdoExt->ProcessorInterface);
+                if (NT_SUCCESS(st))
+                {
+                    (void)IoSetDeviceInterfaceState(&pdoExt->ProcessorInterface, TRUE);
+                    pdoExt->ProcessorInterfaceEnabled = TRUE;
+                }
+            }
         }
 
         status = STATUS_SUCCESS;
@@ -243,6 +276,30 @@ AcpiNewHandlePdoPnp(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
             RtlFreeUnicodeString(&pdoExt->LidInterface);
             pdoExt->LidInterfaceEnabled = FALSE;
             RtlZeroMemory(&pdoExt->LidInterface, sizeof(pdoExt->LidInterface));
+        }
+
+        if (pdoExt->ThermalZoneInterfaceEnabled)
+        {
+            (void)IoSetDeviceInterfaceState(&pdoExt->ThermalZoneInterface, FALSE);
+            RtlFreeUnicodeString(&pdoExt->ThermalZoneInterface);
+            pdoExt->ThermalZoneInterfaceEnabled = FALSE;
+            RtlZeroMemory(&pdoExt->ThermalZoneInterface, sizeof(pdoExt->ThermalZoneInterface));
+        }
+
+        if (pdoExt->FanInterfaceEnabled)
+        {
+            (void)IoSetDeviceInterfaceState(&pdoExt->FanInterface, FALSE);
+            RtlFreeUnicodeString(&pdoExt->FanInterface);
+            pdoExt->FanInterfaceEnabled = FALSE;
+            RtlZeroMemory(&pdoExt->FanInterface, sizeof(pdoExt->FanInterface));
+        }
+
+        if (pdoExt->ProcessorInterfaceEnabled)
+        {
+            (void)IoSetDeviceInterfaceState(&pdoExt->ProcessorInterface, FALSE);
+            RtlFreeUnicodeString(&pdoExt->ProcessorInterface);
+            pdoExt->ProcessorInterfaceEnabled = FALSE;
+            RtlZeroMemory(&pdoExt->ProcessorInterface, sizeof(pdoExt->ProcessorInterface));
         }
 
         ExAcquireFastMutex(&pdoExt->NotifyLock);
