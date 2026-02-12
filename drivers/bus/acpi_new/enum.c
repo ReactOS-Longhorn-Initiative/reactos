@@ -123,7 +123,9 @@ AcpiNewEnumCallback(
     PACPI_NEW_FDO_EXTENSION fdoExt = (PACPI_NEW_FDO_EXTENSION)User;
     uacpi_namespace_node_info *info = NULL;
     uacpi_status st;
+    uacpi_object_type nodeType;
     uacpi_u32 sta = 0;
+    const uacpi_char *hid = NULL;
     PACPI_NEW_PDO_EXTENSION existing;
 
     UNREFERENCED_PARAMETER(NodeDepth);
@@ -131,21 +133,41 @@ AcpiNewEnumCallback(
     if (uacpi_namespace_node_is_alias(Node))
         return UACPI_ITERATION_DECISION_CONTINUE;
 
-    st = uacpi_eval_sta(Node, &sta);
+    st = uacpi_namespace_node_type(Node, &nodeType);
     if (uacpi_unlikely_error(st))
         return UACPI_ITERATION_DECISION_CONTINUE;
 
-    if ((sta & 0x1) == 0)
+    if (nodeType != UACPI_OBJECT_DEVICE &&
+        nodeType != UACPI_OBJECT_PROCESSOR &&
+        nodeType != UACPI_OBJECT_THERMAL_ZONE)
         return UACPI_ITERATION_DECISION_CONTINUE;
 
-    st = uacpi_get_namespace_node_info(Node, &info);
-    if (uacpi_unlikely_error(st) || !info)
-        return UACPI_ITERATION_DECISION_CONTINUE;
-
-    if (!(info->flags & UACPI_NS_NODE_INFO_HAS_HID) || !info->hid.value)
+    if (nodeType == UACPI_OBJECT_DEVICE)
     {
-        uacpi_free_namespace_node_info(info);
-        return UACPI_ITERATION_DECISION_CONTINUE;
+        st = uacpi_eval_sta(Node, &sta);
+        if (uacpi_unlikely_error(st))
+            return UACPI_ITERATION_DECISION_CONTINUE;
+
+        if ((sta & 0x1) == 0)
+            return UACPI_ITERATION_DECISION_CONTINUE;
+
+        st = uacpi_get_namespace_node_info(Node, &info);
+        if (uacpi_unlikely_error(st) || !info)
+            return UACPI_ITERATION_DECISION_CONTINUE;
+
+        if (!(info->flags & UACPI_NS_NODE_INFO_HAS_HID) || !info->hid.value)
+        {
+            uacpi_free_namespace_node_info(info);
+            return UACPI_ITERATION_DECISION_CONTINUE;
+        }
+
+        hid = info->hid.value;
+    }
+    else
+    {
+        /* Processor/ThermalZone objects generally don't have an _HID. */
+        sta = 0x1;
+        hid = (nodeType == UACPI_OBJECT_PROCESSOR) ? "Processor" : "ThermalZone";
     }
 
     ExAcquireFastMutex(&fdoExt->Mutex);
@@ -159,34 +181,51 @@ AcpiNewEnumCallback(
     else
     {
         ExReleaseFastMutex(&fdoExt->Mutex);
-        (void)AcpiNewCreatePdo(fdoExt->Common.Self->DriverObject, fdoExt, Node, info->hid.value, sta);
+        (void)AcpiNewCreatePdo(fdoExt->Common.Self->DriverObject, fdoExt, Node, hid, sta);
     }
 
-    uacpi_free_namespace_node_info(info);
+    if (info)
+        uacpi_free_namespace_node_info(info);
     return UACPI_ITERATION_DECISION_CONTINUE;
 }
 
 VOID
 AcpiNewEnumerateNamespace(_In_ PACPI_NEW_FDO_EXTENSION FdoExt)
 {
-    uacpi_namespace_node *start;
+    uacpi_namespace_node *sb;
+    uacpi_namespace_node *tz;
+    uacpi_namespace_node *pr;
+    uacpi_namespace_node *starts[3];
     uacpi_status st;
 
-    start = uacpi_namespace_get_predefined(UACPI_PREDEFINED_NAMESPACE_SB);
-    if (!start)
-        start = uacpi_namespace_root();
+    sb = uacpi_namespace_get_predefined(UACPI_PREDEFINED_NAMESPACE_SB);
+    if (!sb)
+        sb = uacpi_namespace_root();
 
-    st = uacpi_namespace_for_each_child(
-        start,
-        AcpiNewEnumCallback,
-        NULL,
-        UACPI_OBJECT_DEVICE_BIT,
-        UACPI_MAX_DEPTH_ANY,
-        FdoExt
-    );
+    tz = uacpi_namespace_get_predefined(UACPI_PREDEFINED_NAMESPACE_TZ);
+    pr = uacpi_namespace_get_predefined(UACPI_PREDEFINED_NAMESPACE_PR);
 
-    if (uacpi_unlikely_error(st))
-        DPRINT1("uacpi_namespace_for_each_child failed: %s\n", uacpi_status_to_string(st));
+    starts[0] = sb;
+    starts[1] = tz;
+    starts[2] = pr;
+
+    for (ULONG i = 0; i < RTL_NUMBER_OF(starts); i++)
+    {
+        if (!starts[i])
+            continue;
+
+        st = uacpi_namespace_for_each_child(
+            starts[i],
+            AcpiNewEnumCallback,
+            NULL,
+            UACPI_OBJECT_DEVICE_BIT | UACPI_OBJECT_PROCESSOR_BIT | UACPI_OBJECT_THERMAL_ZONE_BIT,
+            UACPI_MAX_DEPTH_ANY,
+            FdoExt
+        );
+
+        if (uacpi_unlikely_error(st))
+            DPRINT1("uacpi_namespace_for_each_child failed: %s\n", uacpi_status_to_string(st));
+    }
 }
 
 VOID
