@@ -2,12 +2,232 @@
 #include "acpi_new.h"
 
 #include <uacpi/resources.h>
+#include <uacpi/tables.h>
 
 static PDEVICE_OBJECT gAcpiNewControlDeviceObject;
 static UNICODE_STRING gAcpiNewControlSymlink;
 
 #define IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE \
     CTL_CODE(FILE_DEVICE_ACPI, 0x80, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+/* Private PCI config-space access via MCFG/ECAM (segment-aware). */
+#define IOCTL_ACPI_INTERNAL_PCI_CFG_READ \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x81, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+#define IOCTL_ACPI_INTERNAL_PCI_CFG_WRITE \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x82, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+typedef struct _ACPI_PCI_CFG_READ_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Offset;
+    ULONG Width; /* 1,2,4 */
+} ACPI_PCI_CFG_READ_INPUT, *PACPI_PCI_CFG_READ_INPUT;
+
+typedef struct _ACPI_PCI_CFG_READ_OUTPUT
+{
+    ULONG Width; /* echoed */
+    ULONG Value; /* value in low bits based on Width */
+} ACPI_PCI_CFG_READ_OUTPUT, *PACPI_PCI_CFG_READ_OUTPUT;
+
+typedef struct _ACPI_PCI_CFG_WRITE_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Offset;
+    ULONG Width; /* 1,2,4 */
+    ULONG Value; /* value in low bits based on Width */
+} ACPI_PCI_CFG_WRITE_INPUT, *PACPI_PCI_CFG_WRITE_INPUT;
+
+typedef struct _ACPI_NEW_MCFG_CACHE
+{
+    BOOLEAN Present;
+    ULONG EntryCount;
+    struct acpi_mcfg_allocation *Entries;
+} ACPI_NEW_MCFG_CACHE, *PACPI_NEW_MCFG_CACHE;
+
+static ACPI_NEW_MCFG_CACHE gAcpiNewMcfg;
+static volatile LONG gAcpiNewMcfgInitState; /* 0=uninit, 1=initing, 2=inited */
+
+static
+VOID
+AcpiNewEnsureMcfgCached(VOID)
+{
+    uacpi_table tbl;
+    uacpi_status st;
+
+    if (gAcpiNewMcfgInitState == 2)
+        return;
+
+    if (InterlockedCompareExchange(&gAcpiNewMcfgInitState, 1, 0) != 0)
+    {
+        while (gAcpiNewMcfgInitState == 1)
+            KeStallExecutionProcessor(10);
+        return;
+    }
+
+    RtlZeroMemory(&gAcpiNewMcfg, sizeof(gAcpiNewMcfg));
+
+    st = uacpi_table_find_by_signature(ACPI_MCFG_SIGNATURE, &tbl);
+    if (uacpi_likely_success(st) && tbl.ptr)
+    {
+        const struct acpi_mcfg *mcfg = (const struct acpi_mcfg *)tbl.ptr;
+        if (mcfg->hdr.length >= sizeof(*mcfg))
+        {
+            ULONG bytes = (ULONG)mcfg->hdr.length - (ULONG)sizeof(*mcfg);
+            ULONG count = bytes / sizeof(struct acpi_mcfg_allocation);
+            if (count)
+            {
+                gAcpiNewMcfg.Entries = ExAllocatePoolWithTag(NonPagedPool, count * sizeof(*gAcpiNewMcfg.Entries), 'gAcu');
+                if (gAcpiNewMcfg.Entries)
+                {
+                    RtlCopyMemory(gAcpiNewMcfg.Entries, mcfg->entries, count * sizeof(*gAcpiNewMcfg.Entries));
+                    gAcpiNewMcfg.EntryCount = count;
+                    gAcpiNewMcfg.Present = TRUE;
+                    DPRINT("acpi_new: MCFG cached for PCI config (%lu entries)\n", count);
+                }
+            }
+        }
+        uacpi_table_unref(&tbl);
+    }
+
+    InterlockedExchange(&gAcpiNewMcfgInitState, 2);
+}
+
+static
+BOOLEAN
+AcpiNewFindMcfgAllocation(
+    _In_ ULONG Segment,
+    _In_ ULONG Bus,
+    _Out_ const struct acpi_mcfg_allocation **OutAlloc)
+{
+    if (!OutAlloc)
+        return FALSE;
+
+    *OutAlloc = NULL;
+
+    AcpiNewEnsureMcfgCached();
+
+    if (!gAcpiNewMcfg.Present || !gAcpiNewMcfg.Entries || gAcpiNewMcfg.EntryCount == 0)
+        return FALSE;
+
+    for (ULONG i = 0; i < gAcpiNewMcfg.EntryCount; i++)
+    {
+        const struct acpi_mcfg_allocation *a = &gAcpiNewMcfg.Entries[i];
+        if ((ULONG)a->segment != Segment)
+            continue;
+        if (Bus < a->start_bus || Bus > a->end_bus)
+            continue;
+        *OutAlloc = a;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static
+BOOLEAN
+AcpiNewMmconfigReadWrite(
+    _In_ BOOLEAN Write,
+    _In_ ULONG Segment,
+    _In_ ULONG Bus,
+    _In_ ULONG Device,
+    _In_ ULONG Function,
+    _In_ ULONG Offset,
+    _In_ ULONG Width,
+    _Inout_ PULONG Value)
+{
+    const struct acpi_mcfg_allocation *a;
+    PHYSICAL_ADDRESS phys;
+    ULONG_PTR base;
+    ULONG_PTR aligned;
+    ULONG_PTR off;
+    ULONG_PTR total;
+    PVOID mapped;
+    PUCHAR p;
+
+    if (!Value)
+        return FALSE;
+
+    if (Device > 31 || Function > 7)
+        return FALSE;
+
+    if (!(Width == 1 || Width == 2 || Width == 4))
+        return FALSE;
+
+    if (Offset + Width > 0x1000)
+        return FALSE;
+
+    if (!AcpiNewFindMcfgAllocation(Segment, Bus, &a))
+        return FALSE;
+
+    base = (ULONG_PTR)(a->address +
+                       (((ULONGLONG)Bus - (ULONGLONG)a->start_bus) << 20) +
+                       ((ULONGLONG)Device << 15) +
+                       ((ULONGLONG)Function << 12) +
+                       (ULONGLONG)Offset);
+
+    aligned = base & ~((ULONG_PTR)PAGE_SIZE - 1);
+    off = base - aligned;
+    total = off + Width;
+
+    phys.QuadPart = (LONGLONG)aligned;
+    mapped = MmMapIoSpace(phys, total, MmNonCached);
+    if (!mapped)
+        return FALSE;
+
+    p = (PUCHAR)mapped + off;
+
+    if (!Write)
+    {
+        if (Width == 1)
+        {
+            *Value = READ_REGISTER_UCHAR(p);
+        }
+        else if (Width == 2)
+        {
+            UCHAR b0 = READ_REGISTER_UCHAR(p + 0);
+            UCHAR b1 = READ_REGISTER_UCHAR(p + 1);
+            *Value = (ULONG)(b0 | ((ULONG)b1 << 8));
+        }
+        else
+        {
+            UCHAR b0 = READ_REGISTER_UCHAR(p + 0);
+            UCHAR b1 = READ_REGISTER_UCHAR(p + 1);
+            UCHAR b2 = READ_REGISTER_UCHAR(p + 2);
+            UCHAR b3 = READ_REGISTER_UCHAR(p + 3);
+            *Value = (ULONG)(b0 | ((ULONG)b1 << 8) | ((ULONG)b2 << 16) | ((ULONG)b3 << 24));
+        }
+    }
+    else
+    {
+        ULONG v = *Value;
+        if (Width == 1)
+        {
+            WRITE_REGISTER_UCHAR(p, (UCHAR)(v & 0xFF));
+        }
+        else if (Width == 2)
+        {
+            WRITE_REGISTER_UCHAR(p + 0, (UCHAR)(v & 0xFF));
+            WRITE_REGISTER_UCHAR(p + 1, (UCHAR)((v >> 8) & 0xFF));
+        }
+        else
+        {
+            WRITE_REGISTER_UCHAR(p + 0, (UCHAR)(v & 0xFF));
+            WRITE_REGISTER_UCHAR(p + 1, (UCHAR)((v >> 8) & 0xFF));
+            WRITE_REGISTER_UCHAR(p + 2, (UCHAR)((v >> 16) & 0xFF));
+            WRITE_REGISTER_UCHAR(p + 3, (UCHAR)((v >> 24) & 0xFF));
+        }
+    }
+
+    MmUnmapIoSpace(mapped, total);
+    return TRUE;
+}
 
 typedef struct _ACPI_PCI_IRQ_ROUTE_INPUT
 {
@@ -290,6 +510,93 @@ AcpiNewControlDeviceControl(
                 gIoctlGetPciIrqRouteFailLogged = TRUE;
             }
         }
+        break;
+    }
+
+    case IOCTL_ACPI_INTERNAL_PCI_CFG_READ:
+    {
+        ACPI_PCI_CFG_READ_INPUT *in;
+        ACPI_PCI_CFG_READ_OUTPUT *out;
+        ACPI_PCI_CFG_READ_INPUT inLocal;
+        ULONG v;
+
+        if (IrpSp->Parameters.DeviceIoControl.InputBufferLength < sizeof(*in) ||
+            IrpSp->Parameters.DeviceIoControl.OutputBufferLength < sizeof(*out))
+        {
+            status = STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        {
+            status = STATUS_INVALID_DEVICE_STATE;
+            break;
+        }
+
+        in = (ACPI_PCI_CFG_READ_INPUT *)Irp->AssociatedIrp.SystemBuffer;
+        out = (ACPI_PCI_CFG_READ_OUTPUT *)Irp->AssociatedIrp.SystemBuffer;
+
+        inLocal = *in;
+        RtlZeroMemory(out, sizeof(*out));
+        out->Width = inLocal.Width;
+
+        v = 0xFFFFFFFF;
+        if (!AcpiNewMmconfigReadWrite(FALSE,
+                                      inLocal.Segment,
+                                      inLocal.Bus,
+                                      inLocal.Device,
+                                      inLocal.Function,
+                                      inLocal.Offset,
+                                      inLocal.Width,
+                                      &v))
+        {
+            status = STATUS_NOT_SUPPORTED;
+            break;
+        }
+
+        out->Value = v;
+        Irp->IoStatus.Information = sizeof(*out);
+        status = STATUS_SUCCESS;
+        break;
+    }
+
+    case IOCTL_ACPI_INTERNAL_PCI_CFG_WRITE:
+    {
+        ACPI_PCI_CFG_WRITE_INPUT *in;
+        ACPI_PCI_CFG_WRITE_INPUT inLocal;
+        ULONG v;
+
+        if (IrpSp->Parameters.DeviceIoControl.InputBufferLength < sizeof(*in))
+        {
+            status = STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        {
+            status = STATUS_INVALID_DEVICE_STATE;
+            break;
+        }
+
+        in = (ACPI_PCI_CFG_WRITE_INPUT *)Irp->AssociatedIrp.SystemBuffer;
+        inLocal = *in;
+
+        v = inLocal.Value;
+        if (!AcpiNewMmconfigReadWrite(TRUE,
+                                      inLocal.Segment,
+                                      inLocal.Bus,
+                                      inLocal.Device,
+                                      inLocal.Function,
+                                      inLocal.Offset,
+                                      inLocal.Width,
+                                      &v))
+        {
+            status = STATUS_NOT_SUPPORTED;
+            break;
+        }
+
+        Irp->IoStatus.Information = 0;
+        status = STATUS_SUCCESS;
         break;
     }
 
