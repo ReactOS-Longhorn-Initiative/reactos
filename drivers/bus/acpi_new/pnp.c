@@ -1,6 +1,8 @@
 #include "precomp.h"
 #include "acpi_new.h"
 
+#include <poclass.h>
+
 typedef struct _ACPI_NEW_NOTIFY_ENTRY
 {
     LIST_ENTRY Link;
@@ -24,8 +26,40 @@ AcpiNewHandlePdoPnp(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
     switch (irpSp->MinorFunction)
     {
     case IRP_MN_START_DEVICE:
+    {
+        NTSTATUS st;
+
+        if (pdoExt->HardwareIds)
+        {
+            if (!pdoExt->SysButtonInterfaceEnabled &&
+                (wcsstr(pdoExt->HardwareIds, L"PNP0C0C") != NULL ||
+                 wcsstr(pdoExt->HardwareIds, L"PNP0C0E") != NULL ||
+                 wcsstr(pdoExt->HardwareIds, L"ACPI_FPB") != NULL ||
+                 wcsstr(pdoExt->HardwareIds, L"ACPI_FSB") != NULL))
+            {
+                st = IoRegisterDeviceInterface(DeviceObject, &GUID_DEVICE_SYS_BUTTON, NULL, &pdoExt->SysButtonInterface);
+                if (NT_SUCCESS(st))
+                {
+                    (void)IoSetDeviceInterfaceState(&pdoExt->SysButtonInterface, TRUE);
+                    pdoExt->SysButtonInterfaceEnabled = TRUE;
+                }
+            }
+
+            if (!pdoExt->LidInterfaceEnabled &&
+                (wcsstr(pdoExt->HardwareIds, L"PNP0C0D") != NULL))
+            {
+                st = IoRegisterDeviceInterface(DeviceObject, &GUID_DEVICE_LID, NULL, &pdoExt->LidInterface);
+                if (NT_SUCCESS(st))
+                {
+                    (void)IoSetDeviceInterfaceState(&pdoExt->LidInterface, TRUE);
+                    pdoExt->LidInterfaceEnabled = TRUE;
+                }
+            }
+        }
+
         status = STATUS_SUCCESS;
         break;
+    }
 
     case IRP_MN_QUERY_REMOVE_DEVICE:
     case IRP_MN_CANCEL_REMOVE_DEVICE:
@@ -194,6 +228,23 @@ AcpiNewHandlePdoPnp(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
     if (irpSp->MinorFunction == IRP_MN_REMOVE_DEVICE)
     {
         PLIST_ENTRY entry;
+
+        if (pdoExt->SysButtonInterfaceEnabled)
+        {
+            (void)IoSetDeviceInterfaceState(&pdoExt->SysButtonInterface, FALSE);
+            RtlFreeUnicodeString(&pdoExt->SysButtonInterface);
+            pdoExt->SysButtonInterfaceEnabled = FALSE;
+            RtlZeroMemory(&pdoExt->SysButtonInterface, sizeof(pdoExt->SysButtonInterface));
+        }
+
+        if (pdoExt->LidInterfaceEnabled)
+        {
+            (void)IoSetDeviceInterfaceState(&pdoExt->LidInterface, FALSE);
+            RtlFreeUnicodeString(&pdoExt->LidInterface);
+            pdoExt->LidInterfaceEnabled = FALSE;
+            RtlZeroMemory(&pdoExt->LidInterface, sizeof(pdoExt->LidInterface));
+        }
+
         ExAcquireFastMutex(&pdoExt->NotifyLock);
         while (!IsListEmpty(&pdoExt->NotifyList))
         {

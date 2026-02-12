@@ -40,6 +40,12 @@ typedef struct _ACPI_NEW_PDO_EXTENSION
     FAST_MUTEX NotifyLock;
     LIST_ENTRY NotifyList;
 
+    UNICODE_STRING SysButtonInterface;
+    BOOLEAN SysButtonInterfaceEnabled;
+
+    UNICODE_STRING LidInterface;
+    BOOLEAN LidInterfaceEnabled;
+
     BOOLEAN Present;
 } ACPI_NEW_PDO_EXTENSION, *PACPI_NEW_PDO_EXTENSION;
 
@@ -121,6 +127,16 @@ uacpi_status AcpiNewNotifyHandler(
     _In_ uacpi_namespace_node *node,
     _In_ uacpi_u64 value
 );
+
+// ec.c
+VOID AcpiNewEcInitEarly(VOID);
+
+// button.c
+VOID AcpiNewButtonInit(VOID);
+VOID AcpiNewButtonOnNotify(_In_ PACPI_NEW_PDO_EXTENSION PdoExt, _In_ ULONG NotifyCode);
+NTSTATUS AcpiNewButtonQueryCaps(_In_ PACPI_NEW_PDO_EXTENSION PdoExt, _Out_ PULONG OutCaps);
+NTSTATUS AcpiNewButtonQueueWaitIrp(_In_ PACPI_NEW_PDO_EXTENSION PdoExt, _In_ PIRP Irp);
+NTSTATUS AcpiNewLidQueueWaitIrp(_In_ PACPI_NEW_PDO_EXTENSION PdoExt, _In_ PIRP Irp);
 
 // interface.c
 NTSTATUS AcpiNewPdoQueryInterface(_In_ PACPI_NEW_PDO_EXTENSION PdoExt, _In_ PIRP Irp);

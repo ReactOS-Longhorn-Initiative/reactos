@@ -1,6 +1,8 @@
 #include "precomp.h"
 #include "acpi_new.h"
 
+#include <uacpi/event.h>
+
 typedef struct _ACPI_NEW_NOTIFY_ENTRY
 {
     LIST_ENTRY Link;
@@ -33,6 +35,63 @@ AcpiNewInterfaceDereference(_In_ PVOID Context)
         ObDereferenceObject(DeviceObject);
 }
 
+typedef struct _ACPI_NEW_GPE_CONTEXT
+{
+    ULONG GpeNumber;
+    uacpi_gpe_triggering Trigger;
+    PGPE_SERVICE_ROUTINE ServiceRoutine;
+    PVOID ServiceContext;
+} ACPI_NEW_GPE_CONTEXT, *PACPI_NEW_GPE_CONTEXT;
+
+static
+NTSTATUS
+AcpiNewUacpiStatusToNtStatus(_In_ uacpi_status st)
+{
+    switch (st)
+    {
+    case UACPI_STATUS_OK:
+        return STATUS_SUCCESS;
+    case UACPI_STATUS_OUT_OF_MEMORY:
+        return STATUS_INSUFFICIENT_RESOURCES;
+    case UACPI_STATUS_INVALID_ARGUMENT:
+        return STATUS_INVALID_PARAMETER;
+    case UACPI_STATUS_ALREADY_EXISTS:
+        return STATUS_OBJECT_NAME_COLLISION;
+    case UACPI_STATUS_NOT_FOUND:
+        return STATUS_NOT_FOUND;
+    case UACPI_STATUS_UNIMPLEMENTED:
+        return STATUS_NOT_SUPPORTED;
+    default:
+        return STATUS_UNSUCCESSFUL;
+    }
+}
+
+static
+uacpi_interrupt_ret
+AcpiNewGpeHandler(
+    _In_ uacpi_handle ctx,
+    _In_ uacpi_namespace_node *gpe_device,
+    _In_ uacpi_u16 idx)
+{
+    PACPI_NEW_GPE_CONTEXT gpeCtx = (PACPI_NEW_GPE_CONTEXT)ctx;
+    BOOLEAN handled = FALSE;
+
+    UNREFERENCED_PARAMETER(gpe_device);
+    UNREFERENCED_PARAMETER(idx);
+
+    if (gpeCtx && gpeCtx->ServiceRoutine)
+        handled = gpeCtx->ServiceRoutine((PVOID)gpeCtx, gpeCtx->ServiceContext);
+
+    return (handled ? UACPI_INTERRUPT_HANDLED : UACPI_INTERRUPT_NOT_HANDLED) | UACPI_GPE_REENABLE;
+}
+
+static
+uacpi_gpe_triggering
+AcpiNewModeToTriggering(_In_ KINTERRUPT_MODE Mode)
+{
+    return (Mode == LevelSensitive) ? UACPI_GPE_TRIGGERING_LEVEL : UACPI_GPE_TRIGGERING_EDGE;
+}
+
 static
 NTSTATUS
 NTAPI
@@ -45,15 +104,40 @@ AcpiNewGpeConnectVector(
     _In_ PVOID ServiceContext,
     _Out_ PVOID *ObjectContext)
 {
+    PACPI_NEW_GPE_CONTEXT gpeCtx;
+    uacpi_status st;
+
     UNREFERENCED_PARAMETER(DeviceObject);
-    UNREFERENCED_PARAMETER(GpeNumber);
-    UNREFERENCED_PARAMETER(Mode);
     UNREFERENCED_PARAMETER(Shareable);
-    UNREFERENCED_PARAMETER(ServiceRoutine);
-    UNREFERENCED_PARAMETER(ServiceContext);
+
     if (ObjectContext)
         *ObjectContext = NULL;
-    return STATUS_NOT_SUPPORTED;
+
+    if (!ServiceRoutine || !ObjectContext)
+        return STATUS_INVALID_PARAMETER;
+
+    if (GpeNumber > 0xFFFF)
+        return STATUS_INVALID_PARAMETER;
+
+    gpeCtx = (PACPI_NEW_GPE_CONTEXT)ExAllocatePoolWithTag(NonPagedPool, sizeof(*gpeCtx), 'gAcu');
+    if (!gpeCtx)
+        return STATUS_INSUFFICIENT_RESOURCES;
+
+    RtlZeroMemory(gpeCtx, sizeof(*gpeCtx));
+    gpeCtx->GpeNumber = GpeNumber;
+    gpeCtx->Trigger = AcpiNewModeToTriggering(Mode);
+    gpeCtx->ServiceRoutine = ServiceRoutine;
+    gpeCtx->ServiceContext = ServiceContext;
+
+    st = uacpi_install_gpe_handler(UACPI_NULL, (uacpi_u16)GpeNumber, gpeCtx->Trigger, AcpiNewGpeHandler, (uacpi_handle)gpeCtx);
+    if (uacpi_unlikely_error(st))
+    {
+        ExFreePoolWithTag(gpeCtx, 'gAcu');
+        return AcpiNewUacpiStatusToNtStatus(st);
+    }
+
+    *ObjectContext = (PVOID)gpeCtx;
+    return STATUS_SUCCESS;
 }
 
 static
@@ -62,8 +146,18 @@ NTAPI
 AcpiNewGpeDisconnectVector(
     _In_ PVOID ObjectContext)
 {
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+    PACPI_NEW_GPE_CONTEXT gpeCtx = (PACPI_NEW_GPE_CONTEXT)ObjectContext;
+    uacpi_status st;
+
+    if (!gpeCtx)
+        return STATUS_INVALID_PARAMETER;
+
+    st = uacpi_uninstall_gpe_handler(UACPI_NULL, (uacpi_u16)gpeCtx->GpeNumber, AcpiNewGpeHandler);
+    if (uacpi_unlikely_error(st))
+        return AcpiNewUacpiStatusToNtStatus(st);
+
+    ExFreePoolWithTag(gpeCtx, 'gAcu');
+    return STATUS_SUCCESS;
 }
 
 static
@@ -73,9 +167,16 @@ AcpiNewGpeEnableEvent(
     _In_ PDEVICE_OBJECT DeviceObject,
     _In_ PVOID ObjectContext)
 {
+    PACPI_NEW_GPE_CONTEXT gpeCtx = (PACPI_NEW_GPE_CONTEXT)ObjectContext;
+    uacpi_status st;
+
     UNREFERENCED_PARAMETER(DeviceObject);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+
+    if (!gpeCtx)
+        return STATUS_INVALID_PARAMETER;
+
+    st = uacpi_enable_gpe(UACPI_NULL, (uacpi_u16)gpeCtx->GpeNumber);
+    return AcpiNewUacpiStatusToNtStatus(st);
 }
 
 static
@@ -85,9 +186,16 @@ AcpiNewGpeDisableEvent(
     _In_ PDEVICE_OBJECT DeviceObject,
     _In_ PVOID ObjectContext)
 {
+    PACPI_NEW_GPE_CONTEXT gpeCtx = (PACPI_NEW_GPE_CONTEXT)ObjectContext;
+    uacpi_status st;
+
     UNREFERENCED_PARAMETER(DeviceObject);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+
+    if (!gpeCtx)
+        return STATUS_INVALID_PARAMETER;
+
+    st = uacpi_disable_gpe(UACPI_NULL, (uacpi_u16)gpeCtx->GpeNumber);
+    return AcpiNewUacpiStatusToNtStatus(st);
 }
 
 static
@@ -97,9 +205,16 @@ AcpiNewGpeClearStatus(
     _In_ PDEVICE_OBJECT DeviceObject,
     _In_ PVOID ObjectContext)
 {
+    PACPI_NEW_GPE_CONTEXT gpeCtx = (PACPI_NEW_GPE_CONTEXT)ObjectContext;
+    uacpi_status st;
+
     UNREFERENCED_PARAMETER(DeviceObject);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+
+    if (!gpeCtx)
+        return STATUS_INVALID_PARAMETER;
+
+    st = uacpi_clear_gpe(UACPI_NULL, (uacpi_u16)gpeCtx->GpeNumber);
+    return AcpiNewUacpiStatusToNtStatus(st);
 }
 
 static
@@ -114,15 +229,13 @@ AcpiNewGpeConnectVector2(
     _In_ PVOID ServiceContext,
     _Out_ PVOID *ObjectContext)
 {
-    UNREFERENCED_PARAMETER(Context);
-    UNREFERENCED_PARAMETER(GpeNumber);
-    UNREFERENCED_PARAMETER(Mode);
-    UNREFERENCED_PARAMETER(Shareable);
-    UNREFERENCED_PARAMETER(ServiceRoutine);
-    UNREFERENCED_PARAMETER(ServiceContext);
-    if (ObjectContext)
-        *ObjectContext = NULL;
-    return STATUS_NOT_SUPPORTED;
+    return AcpiNewGpeConnectVector((PDEVICE_OBJECT)Context,
+                                  GpeNumber,
+                                  Mode,
+                                  Shareable,
+                                  ServiceRoutine,
+                                  ServiceContext,
+                                  ObjectContext);
 }
 
 static
@@ -133,8 +246,7 @@ AcpiNewGpeDisconnectVector2(
     _In_ PVOID ObjectContext)
 {
     UNREFERENCED_PARAMETER(Context);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+    return AcpiNewGpeDisconnectVector(ObjectContext);
 }
 
 static
@@ -144,9 +256,7 @@ AcpiNewGpeEnableEvent2(
     _In_ PVOID Context,
     _In_ PVOID ObjectContext)
 {
-    UNREFERENCED_PARAMETER(Context);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+    return AcpiNewGpeEnableEvent((PDEVICE_OBJECT)Context, ObjectContext);
 }
 
 static
@@ -156,9 +266,7 @@ AcpiNewGpeDisableEvent2(
     _In_ PVOID Context,
     _In_ PVOID ObjectContext)
 {
-    UNREFERENCED_PARAMETER(Context);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+    return AcpiNewGpeDisableEvent((PDEVICE_OBJECT)Context, ObjectContext);
 }
 
 static
@@ -168,9 +276,7 @@ AcpiNewGpeClearStatus2(
     _In_ PVOID Context,
     _In_ PVOID ObjectContext)
 {
-    UNREFERENCED_PARAMETER(Context);
-    UNREFERENCED_PARAMETER(ObjectContext);
-    return STATUS_NOT_SUPPORTED;
+    return AcpiNewGpeClearStatus((PDEVICE_OBJECT)Context, ObjectContext);
 }
 
 static

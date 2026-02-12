@@ -42,6 +42,8 @@ AcpiNewDeliverNotify(
     if (!pdoExt)
         return;
 
+    AcpiNewButtonOnNotify(pdoExt, NotifyCode);
+
     ExAcquireFastMutex(&pdoExt->NotifyLock);
     for (entry = pdoExt->NotifyList.Flink; entry != &pdoExt->NotifyList; entry = entry->Flink)
     {

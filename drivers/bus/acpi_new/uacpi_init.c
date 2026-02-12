@@ -22,12 +22,18 @@ AcpiNewStartUacpiAndEnumerate(_In_ PACPI_NEW_FDO_EXTENSION FdoExt)
 
     uacpi_install_default_address_space_handlers();
 
+    /* Install early EC handler before namespace initialization runs _REG/_INI */
+    AcpiNewEcInitEarly();
+
     st = uacpi_namespace_initialize();
     if (uacpi_unlikely_error(st))
     {
         DPRINT1("uacpi_namespace_initialize error: %s\n", uacpi_status_to_string(st));
         return STATUS_UNSUCCESSFUL;
     }
+
+    /* System button fixed events (power/sleep) */
+    AcpiNewButtonInit();
 
     (void)uacpi_install_notify_handler(
         uacpi_namespace_root(),
