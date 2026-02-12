@@ -3,6 +3,10 @@
 //#define NDEBUG
 #include <debug.h>
 
+#include <uacpi/tables.h>
+
+static uacpi_status UacpiInitMcfgCache(VOID);
+
 UINT32
 ACPIInitUACPI(void)
 {
@@ -11,7 +15,239 @@ ACPIInitUACPI(void)
     {
         DPRINT1("uacpi_initialize error: %s\n", uacpi_status_to_string(status));
     }
+
+    /* Best-effort: cache MCFG so uACPI can access PCI config via ECAM when present. */
+    if (uacpi_likely_success(status))
+        (void)UacpiInitMcfgCache();
+
     return status;
+}
+
+typedef struct _UACPI_MCFG_CACHE
+{
+    BOOLEAN Initialized;
+    BOOLEAN Present;
+    ULONG EntryCount;
+    struct acpi_mcfg_allocation *Entries;
+} UACPI_MCFG_CACHE, *PUACPI_MCFG_CACHE;
+
+static UACPI_MCFG_CACHE g_UacpiMcfg;
+static volatile LONG g_UacpiEcamUseCount;
+
+static
+uacpi_status
+UacpiInitMcfgCache(VOID)
+{
+    uacpi_table tbl;
+    uacpi_status st;
+
+    if (g_UacpiMcfg.Initialized)
+        return g_UacpiMcfg.Present ? UACPI_STATUS_OK : UACPI_STATUS_NOT_FOUND;
+
+    g_UacpiMcfg.Initialized = TRUE;
+
+    st = uacpi_table_find_by_signature(ACPI_MCFG_SIGNATURE, &tbl);
+    if (uacpi_unlikely_error(st))
+        return st;
+
+    if (!tbl.ptr)
+    {
+        uacpi_table_unref(&tbl);
+        return UACPI_STATUS_NOT_FOUND;
+    }
+
+    const struct acpi_mcfg *mcfg = (const struct acpi_mcfg *)tbl.ptr;
+    if (mcfg->hdr.length < sizeof(*mcfg))
+    {
+        uacpi_table_unref(&tbl);
+        return UACPI_STATUS_INVALID_ARGUMENT;
+    }
+
+    ULONG bytes = (ULONG)mcfg->hdr.length - (ULONG)sizeof(*mcfg);
+    ULONG count = bytes / sizeof(struct acpi_mcfg_allocation);
+    if (count == 0)
+    {
+        uacpi_table_unref(&tbl);
+        return UACPI_STATUS_NOT_FOUND;
+    }
+
+    g_UacpiMcfg.Entries = ExAllocatePoolWithTag(NonPagedPool, count * sizeof(*g_UacpiMcfg.Entries), 'gAcu');
+    if (!g_UacpiMcfg.Entries)
+    {
+        uacpi_table_unref(&tbl);
+        return UACPI_STATUS_OUT_OF_MEMORY;
+    }
+
+    RtlCopyMemory(g_UacpiMcfg.Entries, mcfg->entries, count * sizeof(*g_UacpiMcfg.Entries));
+    g_UacpiMcfg.EntryCount = count;
+    g_UacpiMcfg.Present = TRUE;
+
+    uacpi_table_unref(&tbl);
+
+    DPRINT("uACPI: MCFG cached (%lu entries)\n", count);
+    return UACPI_STATUS_OK;
+}
+
+static
+BOOLEAN
+UacpiFindMcfgAllocation(
+    _In_ uacpi_u16 Segment,
+    _In_ uacpi_u8 Bus,
+    _Out_ const struct acpi_mcfg_allocation **OutAlloc)
+{
+    if (!OutAlloc)
+        return FALSE;
+
+    if (!g_UacpiMcfg.Initialized)
+        (void)UacpiInitMcfgCache();
+
+    *OutAlloc = NULL;
+
+    if (!g_UacpiMcfg.Present || !g_UacpiMcfg.Entries || g_UacpiMcfg.EntryCount == 0)
+        return FALSE;
+
+    for (ULONG i = 0; i < g_UacpiMcfg.EntryCount; i++)
+    {
+        const struct acpi_mcfg_allocation *a = &g_UacpiMcfg.Entries[i];
+        if (a->segment != Segment)
+            continue;
+        if (Bus < a->start_bus || Bus > a->end_bus)
+            continue;
+
+        *OutAlloc = a;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static
+BOOLEAN
+UacpiTryEcamRead(
+    _In_ const uacpi_pci_address *Address,
+    _In_ uacpi_size Offset,
+    _Out_writes_bytes_(Width) VOID *OutValue,
+    _In_ SIZE_T Width)
+{
+    const struct acpi_mcfg_allocation *a;
+
+    if (!Address || !OutValue)
+        return FALSE;
+
+    if (Width != 1 && Width != 2 && Width != 4)
+        return FALSE;
+
+    /* Config space is 4KB per function. */
+    if (Offset + Width > 0x1000)
+        return FALSE;
+
+    if (!UacpiFindMcfgAllocation((uacpi_u16)Address->segment, (uacpi_u8)Address->bus, &a))
+        return FALSE;
+
+    {
+        LONG n = InterlockedIncrement(&g_UacpiEcamUseCount);
+        if (n <= 32)
+        {
+            DPRINT("uACPI: ECAM read seg=%u bus=%u dev=%u fn=%u off=0x%Ix w=%Iu (MCFG base=0x%I64x)\n",
+                   (ULONG)Address->segment, (ULONG)Address->bus, (ULONG)Address->device, (ULONG)Address->function,
+                   (ULONG_PTR)Offset, Width, (ULONGLONG)a->address);
+        }
+    }
+
+    uacpi_u64 busOff = (uacpi_u64)((uacpi_u32)Address->bus - (uacpi_u32)a->start_bus) << 20;
+    uacpi_u64 devOff = (uacpi_u64)Address->device << 15;
+    uacpi_u64 funOff = (uacpi_u64)Address->function << 12;
+    uacpi_u64 phys = a->address + busOff + devOff + funOff + (uacpi_u64)Offset;
+
+    volatile uacpi_u8 *p = (volatile uacpi_u8 *)uacpi_kernel_map((uacpi_phys_addr)phys, (uacpi_size)Width);
+    if (!p)
+        return FALSE;
+
+    if (Width == 1)
+    {
+        *(uacpi_u8 *)OutValue = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)p);
+    }
+    else if (Width == 2)
+    {
+        uacpi_u8 b0 = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 0));
+        uacpi_u8 b1 = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 1));
+        *(uacpi_u16 *)OutValue = (uacpi_u16)(b0 | ((uacpi_u16)b1 << 8));
+    }
+    else
+    {
+        uacpi_u8 b0 = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 0));
+        uacpi_u8 b1 = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 1));
+        uacpi_u8 b2 = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 2));
+        uacpi_u8 b3 = READ_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 3));
+        *(uacpi_u32 *)OutValue = (uacpi_u32)(b0 | ((uacpi_u32)b1 << 8) | ((uacpi_u32)b2 << 16) | ((uacpi_u32)b3 << 24));
+    }
+
+    uacpi_kernel_unmap((void *)(ULONG_PTR)p, (uacpi_size)Width);
+    return TRUE;
+}
+
+static
+BOOLEAN
+UacpiTryEcamWrite(
+    _In_ const uacpi_pci_address *Address,
+    _In_ uacpi_size Offset,
+    _In_reads_bytes_(Width) const VOID *InValue,
+    _In_ SIZE_T Width)
+{
+    const struct acpi_mcfg_allocation *a;
+
+    if (!Address || !InValue)
+        return FALSE;
+
+    if (Width != 1 && Width != 2 && Width != 4)
+        return FALSE;
+
+    if (Offset + Width > 0x1000)
+        return FALSE;
+
+    if (!UacpiFindMcfgAllocation((uacpi_u16)Address->segment, (uacpi_u8)Address->bus, &a))
+        return FALSE;
+
+    {
+        LONG n = InterlockedIncrement(&g_UacpiEcamUseCount);
+        if (n <= 32)
+        {
+            DPRINT("uACPI: ECAM write seg=%u bus=%u dev=%u fn=%u off=0x%Ix w=%Iu (MCFG base=0x%I64x)\n",
+                   (ULONG)Address->segment, (ULONG)Address->bus, (ULONG)Address->device, (ULONG)Address->function,
+                   (ULONG_PTR)Offset, Width, (ULONGLONG)a->address);
+        }
+    }
+
+    uacpi_u64 busOff = (uacpi_u64)((uacpi_u32)Address->bus - (uacpi_u32)a->start_bus) << 20;
+    uacpi_u64 devOff = (uacpi_u64)Address->device << 15;
+    uacpi_u64 funOff = (uacpi_u64)Address->function << 12;
+    uacpi_u64 phys = a->address + busOff + devOff + funOff + (uacpi_u64)Offset;
+
+    volatile uacpi_u8 *p = (volatile uacpi_u8 *)uacpi_kernel_map((uacpi_phys_addr)phys, (uacpi_size)Width);
+    if (!p)
+        return FALSE;
+
+    if (Width == 1)
+    {
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)p, *(const uacpi_u8 *)InValue);
+    }
+    else if (Width == 2)
+    {
+        uacpi_u16 v = *(const uacpi_u16 *)InValue;
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 0), (uacpi_u8)(v & 0xFF));
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 1), (uacpi_u8)((v >> 8) & 0xFF));
+    }
+    else
+    {
+        uacpi_u32 v = *(const uacpi_u32 *)InValue;
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 0), (uacpi_u8)(v & 0xFF));
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 1), (uacpi_u8)((v >> 8) & 0xFF));
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 2), (uacpi_u8)((v >> 16) & 0xFF));
+        WRITE_REGISTER_UCHAR((PUCHAR)(ULONG_PTR)(p + 3), (uacpi_u8)((v >> 24) & 0xFF));
+    }
+
+    uacpi_kernel_unmap((void *)(ULONG_PTR)p, (uacpi_size)Width);
+    return TRUE;
 }
 
 #ifndef UACPI_FORMATTED_LOGGING
@@ -697,8 +933,11 @@ uacpi_kernel_pci_device_open(
     if (!out_handle)
         return UACPI_STATUS_INVALID_ARGUMENT;
 
-    if (address.segment != 0)
-        return UACPI_STATUS_UNIMPLEMENTED;
+    /*
+     * ReactOS currently only supports segment 0 via Hal*BusData accessors.
+     * However, failing AML method execution is often worse than treating the
+     * device as absent (PCI config reads returning all-ones).
+     */
 
     Handle = ExAllocatePoolWithTag(NonPagedPool, sizeof(*Handle), 'pAcu');
     if (!Handle)
@@ -729,9 +968,26 @@ uacpi_kernel_pci_read8(uacpi_handle device, uacpi_size offset, uacpi_u8 *Value)
     ULONG ReadLength;
     if (!H || !Value)
         return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (UacpiTryEcamRead(&H->Address, offset, Value, sizeof(*Value)))
+        return UACPI_STATUS_OK;
+
+    if (H->Address.segment != 0)
+    {
+        *Value = 0xFF;
+        return UACPI_STATUS_OK;
+    }
+
     ReadLength = HalGetBusDataByOffset(PCIConfiguration, H->Address.bus, H->Slot.u.AsULONG, Value, (ULONG)offset, sizeof(*Value));
     if (ReadLength != sizeof(*Value))
-        return UACPI_STATUS_NOT_FOUND;
+    {
+        /*
+         * PCI config cycles for non-existent devices/functions return all-ones.
+         * Returning NOT_FOUND would abort AML methods that probe via PCI_Config
+         * operation regions (e.g. _STA).
+         */
+        *Value = 0xFF;
+    }
     return UACPI_STATUS_OK;
 }
 
@@ -742,9 +998,21 @@ uacpi_kernel_pci_read16(uacpi_handle device, uacpi_size offset, uacpi_u16 *value
     ULONG ReadLength;
     if (!H || !value)
         return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (UacpiTryEcamRead(&H->Address, offset, value, sizeof(*value)))
+        return UACPI_STATUS_OK;
+
+    if (H->Address.segment != 0)
+    {
+        *value = 0xFFFF;
+        return UACPI_STATUS_OK;
+    }
+
     ReadLength = HalGetBusDataByOffset(PCIConfiguration, H->Address.bus, H->Slot.u.AsULONG, value, (ULONG)offset, sizeof(*value));
     if (ReadLength != sizeof(*value))
-        return UACPI_STATUS_NOT_FOUND;
+    {
+        *value = 0xFFFF;
+    }
     return UACPI_STATUS_OK;
 }
 
@@ -755,9 +1023,21 @@ uacpi_kernel_pci_read32(uacpi_handle device, uacpi_size offset, uacpi_u32 *value
     ULONG ReadLength;
     if (!H || !value)
         return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (UacpiTryEcamRead(&H->Address, offset, value, sizeof(*value)))
+        return UACPI_STATUS_OK;
+
+    if (H->Address.segment != 0)
+    {
+        *value = 0xFFFFFFFF;
+        return UACPI_STATUS_OK;
+    }
+
     ReadLength = HalGetBusDataByOffset(PCIConfiguration, H->Address.bus, H->Slot.u.AsULONG, value, (ULONG)offset, sizeof(*value));
     if (ReadLength != sizeof(*value))
-        return UACPI_STATUS_NOT_FOUND;
+    {
+        *value = 0xFFFFFFFF;
+    }
     return UACPI_STATUS_OK;
 }
 
@@ -768,9 +1048,14 @@ uacpi_kernel_pci_write8(uacpi_handle device, uacpi_size offset, uacpi_u8 value)
     ULONG Written;
     if (!H)
         return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (UacpiTryEcamWrite(&H->Address, offset, &value, sizeof(value)))
+        return UACPI_STATUS_OK;
+
+    if (H->Address.segment != 0)
+        return UACPI_STATUS_OK;
+
     Written = HalSetBusDataByOffset(PCIConfiguration, H->Address.bus, H->Slot.u.AsULONG, &value, (ULONG)offset, sizeof(value));
-    if (Written != sizeof(value))
-        return UACPI_STATUS_NOT_FOUND;
     return UACPI_STATUS_OK;
 }
 
@@ -781,9 +1066,14 @@ uacpi_kernel_pci_write16(uacpi_handle device, uacpi_size offset, uacpi_u16 value
     ULONG Written;
     if (!H)
         return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (UacpiTryEcamWrite(&H->Address, offset, &value, sizeof(value)))
+        return UACPI_STATUS_OK;
+
+    if (H->Address.segment != 0)
+        return UACPI_STATUS_OK;
+
     Written = HalSetBusDataByOffset(PCIConfiguration, H->Address.bus, H->Slot.u.AsULONG, &value, (ULONG)offset, sizeof(value));
-    if (Written != sizeof(value))
-        return UACPI_STATUS_NOT_FOUND;
     return UACPI_STATUS_OK;
 }
 
@@ -794,9 +1084,14 @@ uacpi_kernel_pci_write32(uacpi_handle device, uacpi_size offset, uacpi_u32 value
     ULONG Written;
     if (!H)
         return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (UacpiTryEcamWrite(&H->Address, offset, &value, sizeof(value)))
+        return UACPI_STATUS_OK;
+
+    if (H->Address.segment != 0)
+        return UACPI_STATUS_OK;
+
     Written = HalSetBusDataByOffset(PCIConfiguration, H->Address.bus, H->Slot.u.AsULONG, &value, (ULONG)offset, sizeof(value));
-    if (Written != sizeof(value))
-        return UACPI_STATUS_NOT_FOUND;
     return UACPI_STATUS_OK;
 }
 
