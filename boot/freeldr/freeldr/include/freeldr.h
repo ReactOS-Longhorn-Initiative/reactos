@@ -156,7 +156,7 @@ EditOperatingSystemEntry(
     _Inout_ OperatingSystemItem* OperatingSystem);
 #endif
 
-VOID RunLoader(VOID);
+DECLSPEC_NORETURN VOID RunLoader(VOID);
 VOID FrLdrCheckCpuCompatibility(VOID);
 
 #endif  /* __FREELDR_H */

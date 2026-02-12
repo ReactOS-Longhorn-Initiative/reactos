@@ -355,7 +355,9 @@ MainBootMenuKeyPressFilter(
     }
 }
 
-VOID RunLoader(VOID)
+DECLSPEC_NORETURN
+VOID
+RunLoader(VOID)
 {
     OperatingSystemItem* OperatingSystemList;
     PCSTR* OperatingSystemDisplayNames;
@@ -378,14 +380,14 @@ VOID RunLoader(VOID)
     if (!IniFileInitialize())
     {
         UiMessageBoxCritical("Error initializing .ini file.");
-        return;
+        goto Reboot;
     }
     LoadSettings(NULL);
 #if 0
     if (FALSE)
     {
         UiMessageBoxCritical("Could not load global FreeLoader settings.");
-        return;
+        goto Reboot;
     }
 #endif
 
@@ -396,7 +398,7 @@ VOID RunLoader(VOID)
     if (!UiInitialize(TRUE))
     {
         UiMessageBoxCritical("Unable to initialize UI.");
-        return;
+        goto Reboot;
     }
 
     OperatingSystemList = InitOperatingSystemList(&OperatingSystemCount,
@@ -463,5 +465,5 @@ VOID RunLoader(VOID)
 Reboot:
     UiUnInitialize("Rebooting...");
     IniCleanup();
-    return;
+    Reboot();
 }
