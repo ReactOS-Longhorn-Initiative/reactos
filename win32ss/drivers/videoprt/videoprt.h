@@ -95,6 +95,10 @@ typedef struct _VIDEO_PORT_DEVICE_EXTENSTION
    ULONG InterruptVector;
    ULONG InterruptLevel;
    BOOLEAN InterruptShared;
+   /* System interrupt data (filled by IntVideoPortSetupInterrupt) */
+   ULONG SystemInterruptVector;
+   KIRQL SystemInterruptIrql;
+   KINTERRUPT_MODE SystemInterruptMode;
    INTERFACE_TYPE AdapterInterfaceType;
    ULONG SystemIoBusNumber;
    ULONG SystemIoSlotNumber;

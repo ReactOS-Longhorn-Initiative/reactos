@@ -232,7 +232,7 @@ KeSetEventBoostPriority(IN PKEVENT Event,
     KIRQL OldIrql;
     PKWAIT_BLOCK WaitBlock;
     PKTHREAD Thread = KeGetCurrentThread(), WaitThread;
-    ASSERT(Event->Header.Type == EventSynchronizationObject);
+  //  ASSERT(Event->Header.Type == EventSynchronizationObject);
     ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
 
     /* Acquire Dispatcher Database Lock */

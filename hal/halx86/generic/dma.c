@@ -760,7 +760,12 @@ HalGetAdapter(IN PDEVICE_DESCRIPTION DeviceDescription,
     /*
      * Calculate the number of map registers.
      *
-     * - For EISA and PCI scatter/gather no map registers are needed.
+     * Historically, bus-master PCI/EISA scatter/gather devices did not require
+     * map registers. However, 32-bit DMA devices cannot address physical memory
+     * above 4 GB. On such systems, we must enable map registers (bounce
+     * buffering) unless the device explicitly supports 64-bit DMA.
+     *
+     * - For EISA and PCI scatter/gather with 64-bit DMA no map registers are needed.
      * - For ISA slave scatter/gather one map register is needed.
      * - For all other cases the number of map registers depends on
      *   DeviceDescription->MaximumLength.
@@ -768,7 +773,9 @@ HalGetAdapter(IN PDEVICE_DESCRIPTION DeviceDescription,
     MaximumLength = DeviceDescription->MaximumLength & MAXLONG;
     if ((DeviceDescription->ScatterGather) &&
         ((DeviceDescription->InterfaceType == Eisa) ||
-         (DeviceDescription->InterfaceType == PCIBus)))
+         (DeviceDescription->InterfaceType == PCIBus)) &&
+        (DeviceDescription->Master) &&
+        (DeviceDescription->Dma64BitAddresses))
     {
         MapRegisters = 0;
     }
@@ -1314,8 +1321,6 @@ HalpScatterGatherAdapterControl(IN PDEVICE_OBJECT DeviceObject,
 
         Mdl = Mdl->Next;
     }
-
-	ExFreePoolWithTag(ScatterGather, TAG_DMA);
 
     /* If this is our buffer, release it */
     if (!AdapterControlContext->UsingUserBuffer)
