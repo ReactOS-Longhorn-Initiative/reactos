@@ -1724,7 +1724,7 @@ static uacpi_iteration_decision do_aml_resource_to_native(
                 if (!(value & (1 << i)))
                     continue;
 
-                dst[j++] = i;
+                dst[j++] = (uacpi_u8)i;
             }
 
             uacpi_memcpy(NATIVE_OFFSET(resource, insn->arg2), &j, 1);
@@ -1809,11 +1809,17 @@ static uacpi_iteration_decision do_aml_resource_to_native(
             dst_string = PTR_AT(resource_end, accumulator);
             uacpi_memcpy(dst_string, src_string, length);
 
+            if (length > 0xFFFF) {
+                uacpi_error("resource source string too long\n");
+                ctx->st = UACPI_STATUS_AML_INVALID_RESOURCE;
+                return UACPI_ITERATION_DECISION_BREAK;
+            }
+
             if (insn->code == UACPI_RESOURCE_CONVERT_OPCODE_RESOURCE_LABEL) {
-                dst_name.label->length = length;
+                dst_name.label->length = (uacpi_u16)length;
                 dst_name.label->string = dst_string;
             } else {
-                dst_name.source->length = length;
+                dst_name.source->length = (uacpi_u16)length;
                 dst_name.source->string = dst_string;
             }
 
