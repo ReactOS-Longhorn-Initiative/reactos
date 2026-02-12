@@ -1135,8 +1135,14 @@ PdoQueryResourceRequirements(
                                                               &route);
             if (NT_SUCCESS(RouteStatus))
             {
-                Descriptor->ShareDisposition = route.Sharing ? CmResourceShareShared : CmResourceShareDeviceExclusive;
-                Descriptor->Flags = route.Triggering ? CM_RESOURCE_INTERRUPT_LATCHED : CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+                /*
+                 * PCI INTx is level-sensitive and shareable.
+                 * Some firmware reports link resources as edge/exclusive, which breaks
+                 * interrupt delivery for PCI devices (notably USB controllers).
+                 * Use ACPI only to select the routed GSI; keep Windows-like INTx semantics.
+                 */
+                Descriptor->ShareDisposition = CmResourceShareShared;
+                Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
                 Descriptor->u.Interrupt.MinimumVector = route.Gsi;
                 Descriptor->u.Interrupt.MaximumVector = route.Gsi;
             }
@@ -1450,8 +1456,9 @@ PdoQueryResources(
                                                               &route);
             if (NT_SUCCESS(RouteStatus))
             {
-                Descriptor->ShareDisposition = route.Sharing ? CmResourceShareShared : CmResourceShareDeviceExclusive;
-                Descriptor->Flags = route.Triggering ? CM_RESOURCE_INTERRUPT_LATCHED : CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+                /* See comment in PdoQueryResourceRequirements(): INTx should be shared + level-sensitive. */
+                Descriptor->ShareDisposition = CmResourceShareShared;
+                Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
                 Descriptor->u.Interrupt.Level = route.Gsi;
                 Descriptor->u.Interrupt.Vector = route.Gsi;
             }

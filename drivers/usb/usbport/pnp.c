@@ -804,7 +804,7 @@ USBPORT_StartDevice(IN PDEVICE_OBJECT FdoDevice,
         goto ExitWithError;
     }
 
-    FdoExtension->Flags &= ~USBPORT_FLAG_INT_CONNECTED;
+    FdoExtension->Flags |= USBPORT_FLAG_INT_CONNECTED;
 
     if (Packet->MiniPortExtensionSize)
     {
@@ -1011,8 +1011,10 @@ USBPORT_ParseResources(IN PDEVICE_OBJECT FdoDevice,
             UsbPortResources->ShareVector = InterruptDescriptor->ShareDisposition ==
                                             CmResourceShareShared;
 
-            UsbPortResources->InterruptMode = InterruptDescriptor->Flags ==
-                                              CM_RESOURCE_INTERRUPT_LATCHED;
+            UsbPortResources->InterruptMode =
+                ((InterruptDescriptor->Flags & CM_RESOURCE_INTERRUPT_LEVEL_LATCHED_BITS) == CM_RESOURCE_INTERRUPT_LATCHED) ?
+                Latched :
+                LevelSensitive;
         }
     }
     else
