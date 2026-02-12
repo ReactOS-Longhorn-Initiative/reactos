@@ -407,6 +407,9 @@ Bus_DestroyPdo (
         PdoData->HardwareIDs = NULL;
     }
 
+    /* Best-effort cleanup of any notification registrations */
+    AcpiInterfaceCleanupPdoNotifications(PdoData);
+
     DPRINT("\tDeleting PDO: 0x%p\n", Device);
     IoDeleteDevice (Device);
     return STATUS_SUCCESS;
@@ -463,6 +466,10 @@ Bus_InitializePdo (
     pdoData->Common.Self =  Pdo;
 
     pdoData->ParentFdo = FdoData->Common.Self;
+
+    InitializeListHead(&pdoData->NotifyList);
+    ExInitializeFastMutex(&pdoData->NotifyLock);
+    pdoData->NotifyHandlerInstalled = FALSE;
 
 
     INITIALIZE_PNP_STATE(pdoData->Common);

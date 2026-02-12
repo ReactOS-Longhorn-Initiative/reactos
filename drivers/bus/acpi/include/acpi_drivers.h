@@ -124,6 +124,7 @@ void acpi_button_exit (void);
 #ifdef CONFIG_ACPI_EC
 
 int acpi_ec_ecdt_probe (void);
+int acpi_ec_early_init (void);
 int acpi_ec_init (void);
 void acpi_ec_exit (void);
 
@@ -233,6 +234,9 @@ void acpi_power_exit (void);
 #define ACPI_PROCESSOR_LIMIT_DECREMENT	0x02
 
 int acpi_processor_set_thermal_limit(ACPI_HANDLE handle, int type);
+
+int acpi_processor_init(void);
+void acpi_processor_exit(void);
 
 
 /* --------------------------------------------------------------------------

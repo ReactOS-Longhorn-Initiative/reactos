@@ -2963,7 +2963,7 @@ typedef NTSTATUS
   BOOLEAN,
   PGPE_SERVICE_ROUTINE,
   PVOID,
-  PVOID);
+  PVOID *);
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_

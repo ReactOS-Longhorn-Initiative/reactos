@@ -18,6 +18,22 @@ UNICODE_STRING ProcessorHardwareIds = {0, 0, NULL};
 LPWSTR ProcessorIdString = NULL;
 LPWSTR ProcessorNameString = NULL;
 
+/*
+ * Optional ACPI-side performance hack.
+ * When set to 1, the embedded ACPI Processor driver will attempt a one-shot
+ * switch to the highest P-state (P0) on systems exposing legacy ACPI _PCT/_PSS
+ * register programming.
+ */
+ULONG AcpiForceMaxPerf = 0;
+
+static
+VOID
+AcpiReadDwordParameter(
+    _In_ PUNICODE_STRING RegistryPath,
+    _In_ PCWSTR ValueName,
+    _Inout_ PULONG Value,
+    _In_ ULONG DefaultValue);
+
 
 CODE_SEG("PAGE")
 NTSTATUS
@@ -455,6 +471,52 @@ AcpiRegQueryValue(IN HANDLE KeyHandle,
 
 static
 CODE_SEG("INIT")
+VOID
+AcpiReadDwordParameter(
+    _In_ PUNICODE_STRING RegistryPath,
+    _In_ PCWSTR ValueName,
+    _Inout_ PULONG Value,
+    _In_ ULONG DefaultValue)
+{
+    UNICODE_STRING ParametersPath;
+    HANDLE KeyHandle = NULL;
+    ULONG Type = 0;
+    ULONG Data = 0;
+    ULONG DataLength = sizeof(Data);
+    NTSTATUS Status;
+
+    *Value = DefaultValue;
+
+    if (!RegistryPath || !RegistryPath->Buffer)
+        return;
+
+    ParametersPath.Length = 0;
+    ParametersPath.MaximumLength = RegistryPath->Length + sizeof(L"\\Parameters");
+    ParametersPath.Buffer = ExAllocatePoolWithTag(PagedPool, ParametersPath.MaximumLength, 'RpcA');
+    if (!ParametersPath.Buffer)
+        return;
+
+    RtlCopyMemory(ParametersPath.Buffer, RegistryPath->Buffer, RegistryPath->Length);
+    ParametersPath.Length = RegistryPath->Length;
+    RtlCopyMemory((PUCHAR)ParametersPath.Buffer + ParametersPath.Length, L"\\Parameters", sizeof(L"\\Parameters"));
+
+    Status = AcpiRegOpenKey(NULL, ParametersPath.Buffer, KEY_READ, &KeyHandle);
+    if (NT_SUCCESS(Status))
+    {
+        Status = AcpiRegQueryValue(KeyHandle, (LPWSTR)ValueName, &Type, &Data, &DataLength);
+        if (NT_SUCCESS(Status) && (Type == REG_DWORD) && (DataLength >= sizeof(Data)))
+        {
+            *Value = Data;
+        }
+
+        ZwClose(KeyHandle);
+    }
+
+    ExFreePoolWithTag(ParametersPath.Buffer, 'RpcA');
+}
+
+static
+CODE_SEG("INIT")
 NTSTATUS
 GetProcessorInformation(VOID)
 {
@@ -698,6 +760,8 @@ DriverEntry (
 {
     NTSTATUS Status;
     DPRINT("Driver Entry \n");
+
+    AcpiReadDwordParameter(RegistryPath, L"ForceMaxPerf", &AcpiForceMaxPerf, 0);
 
     Status = GetProcessorInformation();
     if (!NT_SUCCESS(Status))
