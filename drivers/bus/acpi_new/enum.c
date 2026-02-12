@@ -103,6 +103,77 @@ AcpiNewCreatePdo(
             uacpi_free_id_string(uid);
     }
 
+    /*
+     * Some object types (notably Processor() and ThermalZone()) commonly lack _UID.
+     * If we don't provide a stable instance ID, PnP can treat multiple objects as
+     * the same instance and bugcheck on duplicates.
+     */
+    if (!pdoExt->InstanceId)
+    {
+        const uacpi_char *absPath = uacpi_namespace_node_generate_absolute_path(Node);
+        if (absPath)
+        {
+            ANSI_STRING ansi;
+            UNICODE_STRING uni;
+            SIZE_T uniChars;
+            SIZE_T outChars;
+            SIZE_T i;
+
+            RtlInitAnsiString(&ansi, absPath);
+            if (NT_SUCCESS(RtlAnsiStringToUnicodeString(&uni, &ansi, TRUE)))
+            {
+                /* Sanitize to something that won't contain path separators. */
+                uniChars = (uni.Length / sizeof(WCHAR));
+                outChars = 0;
+
+                for (i = 0; i < uniChars; i++)
+                {
+                    WCHAR ch;
+                    ch = uni.Buffer[i];
+                    if (ch == L'\\')
+                        continue;
+                    outChars++;
+                }
+
+                if (outChars != 0)
+                {
+                    PWSTR tmp = (PWSTR)ExAllocatePoolWithTag(PagedPool, (outChars + 1) * sizeof(WCHAR), 'dAcu');
+                    if (tmp)
+                    {
+                        SIZE_T j;
+                        j = 0;
+
+                        for (i = 0; i < uniChars; i++)
+                        {
+                            WCHAR ch;
+                            ch = uni.Buffer[i];
+                            if (ch == L'\\')
+                                continue;
+
+                            if ((ch >= L'0' && ch <= L'9') ||
+                                (ch >= L'A' && ch <= L'Z') ||
+                                (ch >= L'a' && ch <= L'z') ||
+                                (ch == L'_'))
+                            {
+                                tmp[j++] = ch;
+                            }
+                            else
+                            {
+                                tmp[j++] = L'_';
+                            }
+                        }
+                        tmp[j] = UNICODE_NULL;
+                        pdoExt->InstanceId = tmp;
+                    }
+                }
+
+                RtlFreeUnicodeString(&uni);
+            }
+
+            uacpi_free_absolute_path(absPath);
+        }
+    }
+
     pdo->Flags |= DO_POWER_PAGABLE;
     pdo->Flags &= ~DO_DEVICE_INITIALIZING;
 
