@@ -24,6 +24,129 @@
 #define PCI_ADDRESS_MEMORY_ADDRESS_MASK_64     0xfffffffffffffff0ull
 #define PCI_ADDRESS_IO_ADDRESS_MASK_64         0xfffffffffffffffcull
 
+/* Private ACPI IRQ routing query (served by drivers/bus/acpi_new) */
+#define IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x80, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+typedef struct _ACPI_PCI_IRQ_ROUTE_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Pin; /* 1..4 */
+} ACPI_PCI_IRQ_ROUTE_INPUT, *PACPI_PCI_IRQ_ROUTE_INPUT;
+
+typedef struct _ACPI_PCI_IRQ_ROUTE_OUTPUT
+{
+    ULONG Gsi;
+    ULONG Triggering; /* 0=Level, 1=Edge */
+    ULONG Polarity;   /* 0=High, 1=Low */
+    ULONG Sharing;    /* 0=Exclusive, 1=Shared */
+} ACPI_PCI_IRQ_ROUTE_OUTPUT, *PACPI_PCI_IRQ_ROUTE_OUTPUT;
+
+static
+NTSTATUS
+PciQueryAcpiPciIrqRoute(
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Pin,
+    _Out_ PACPI_PCI_IRQ_ROUTE_OUTPUT Out)
+{
+    static BOOLEAN gAcpiRouteLoggedOk;
+    static BOOLEAN gAcpiRouteLoggedFail;
+    UNICODE_STRING devName;
+    PFILE_OBJECT fileObject = NULL;
+    PDEVICE_OBJECT deviceObject = NULL;
+    KEVENT event;
+    IO_STATUS_BLOCK iosb;
+    PIRP irp;
+    ACPI_PCI_IRQ_ROUTE_INPUT in;
+    NTSTATUS status;
+
+    if (!Out)
+        return STATUS_INVALID_PARAMETER;
+
+    if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        return STATUS_INVALID_DEVICE_STATE;
+
+    if (Pin < 1 || Pin > 4)
+        return STATUS_INVALID_PARAMETER;
+
+    RtlInitUnicodeString(&devName, L"\\Device\\ACPI");
+    status = IoGetDeviceObjectPointer(&devName,
+                                      FILE_READ_DATA | FILE_WRITE_DATA,
+                                      &fileObject,
+                                      &deviceObject);
+    if (!NT_SUCCESS(status))
+        return status;
+
+    RtlZeroMemory(&in, sizeof(in));
+    in.Segment = 0;
+    in.Bus = Bus;
+    in.Device = Slot.u.bits.DeviceNumber;
+    in.Function = Slot.u.bits.FunctionNumber;
+    in.Pin = Pin;
+
+    KeInitializeEvent(&event, NotificationEvent, FALSE);
+    RtlZeroMemory(&iosb, sizeof(iosb));
+
+    irp = IoBuildDeviceIoControlRequest(IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE,
+                                        deviceObject,
+                                        &in,
+                                        sizeof(in),
+                                        Out,
+                                        sizeof(*Out),
+                                        FALSE,
+                                        &event,
+                                        &iosb);
+    if (!irp)
+    {
+        ObDereferenceObject(fileObject);
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    status = IoCallDriver(deviceObject, irp);
+    if (status == STATUS_PENDING)
+    {
+        (void)KeWaitForSingleObject(&event, Executive, KernelMode, FALSE, NULL);
+        status = iosb.Status;
+    }
+
+    if (NT_SUCCESS(status))
+    {
+        if (!gAcpiRouteLoggedOk)
+        {
+            DPRINT1("PCI: ACPI _PRT route OK (first): bus=%lu dev=%lu fun=%lu pin=%lu -> GSI=%lu trig=%lu pol=%lu share=%lu\n",
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin,
+                    Out->Gsi,
+                    Out->Triggering,
+                    Out->Polarity,
+                    Out->Sharing);
+            gAcpiRouteLoggedOk = TRUE;
+        }
+    }
+    else
+    {
+        if (!gAcpiRouteLoggedFail)
+        {
+            DPRINT1("PCI: ACPI _PRT route failed (first): status=0x%08lx (bus=%lu dev=%lu fun=%lu pin=%lu)\n",
+                    status,
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin);
+            gAcpiRouteLoggedFail = TRUE;
+        }
+    }
+
+    ObDereferenceObject(fileObject);
+    return status;
+}
+
 /*** PRIVATE *****************************************************************/
 
 static NTSTATUS
@@ -584,13 +707,32 @@ PdoQueryResourceRequirements(
 
         if (PciConfig.u.type0.InterruptPin != 0)
         {
+            ACPI_PCI_IRQ_ROUTE_OUTPUT route;
+            NTSTATUS RouteStatus;
+
             Descriptor->Option = 0; /* Required */
             Descriptor->Type = CmResourceTypeInterrupt;
             Descriptor->ShareDisposition = CmResourceShareShared;
             Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
 
-            Descriptor->u.Interrupt.MinimumVector = 0;
-            Descriptor->u.Interrupt.MaximumVector = 0xFF;
+            RtlZeroMemory(&route, sizeof(route));
+            RouteStatus = PciQueryAcpiPciIrqRoute(DeviceExtension->PciDevice->BusNumber,
+                                                  DeviceExtension->PciDevice->SlotNumber,
+                                                  PciConfig.u.type0.InterruptPin,
+                                                  &route);
+            if (NT_SUCCESS(RouteStatus))
+            {
+                Descriptor->ShareDisposition = route.Sharing ? CmResourceShareShared : CmResourceShareDeviceExclusive;
+                Descriptor->Flags = route.Triggering ? CM_RESOURCE_INTERRUPT_LATCHED : CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+                Descriptor->u.Interrupt.MinimumVector = route.Gsi;
+                Descriptor->u.Interrupt.MaximumVector = route.Gsi;
+            }
+
+            if (!NT_SUCCESS(RouteStatus))
+            {
+                Descriptor->u.Interrupt.MinimumVector = 0;
+                Descriptor->u.Interrupt.MaximumVector = 0xFF;
+            }
         }
     }
     else if (PCI_CONFIGURATION_TYPE(&PciConfig) == PCI_BRIDGE_TYPE)
@@ -756,9 +898,11 @@ PdoQueryResources(
                 ResCount++;
         }
 
-        if ((PciConfig.u.type0.InterruptPin != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0xFF))
+        /*
+         * Don't rely on InterruptLine being pre-programmed by firmware.
+         * If InterruptPin is present, we may be able to route it via ACPI _PRT.
+         */
+        if (PciConfig.u.type0.InterruptPin != 0)
             ResCount++;
     }
     else if (PCI_CONFIGURATION_TYPE(&PciConfig) == PCI_BRIDGE_TYPE)
@@ -867,16 +1011,40 @@ PdoQueryResources(
         }
 
         /* Add interrupt resource */
-        if ((PciConfig.u.type0.InterruptPin != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0xFF))
+        if (PciConfig.u.type0.InterruptPin != 0)
         {
+            ACPI_PCI_IRQ_ROUTE_OUTPUT route;
+            NTSTATUS RouteStatus;
+
             Descriptor->Type = CmResourceTypeInterrupt;
             Descriptor->ShareDisposition = CmResourceShareShared;
             Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
-            Descriptor->u.Interrupt.Level = PciConfig.u.type0.InterruptLine;
-            Descriptor->u.Interrupt.Vector = PciConfig.u.type0.InterruptLine;
+
+            RtlZeroMemory(&route, sizeof(route));
+            RouteStatus = PciQueryAcpiPciIrqRoute(DeviceExtension->PciDevice->BusNumber,
+                                                  DeviceExtension->PciDevice->SlotNumber,
+                                                  PciConfig.u.type0.InterruptPin,
+                                                  &route);
+            if (NT_SUCCESS(RouteStatus))
+            {
+                Descriptor->ShareDisposition = route.Sharing ? CmResourceShareShared : CmResourceShareDeviceExclusive;
+                Descriptor->Flags = route.Triggering ? CM_RESOURCE_INTERRUPT_LATCHED : CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+                Descriptor->u.Interrupt.Level = route.Gsi;
+                Descriptor->u.Interrupt.Vector = route.Gsi;
+            }
+            else if ((PciConfig.u.type0.InterruptLine != 0) && (PciConfig.u.type0.InterruptLine != 0xFF))
+            {
+                Descriptor->u.Interrupt.Level = PciConfig.u.type0.InterruptLine;
+                Descriptor->u.Interrupt.Vector = PciConfig.u.type0.InterruptLine;
+            }
+            else
+            {
+                /* No route and bogus InterruptLine -> skip descriptor */
+                PartialList->Count--;
+                goto SkipInterruptDescriptor;
+            }
             Descriptor->u.Interrupt.Affinity = 0xFFFFFFFF;
+        SkipInterruptDescriptor:;
         }
 
         /* Allow bus master mode */

@@ -141,6 +141,9 @@ AcpiNewQueryPciIrqRoute(
     _In_ const ACPI_PCI_IRQ_ROUTE_INPUT *In,
     _Out_ ACPI_PCI_IRQ_ROUTE_OUTPUT *Out)
 {
+    static BOOLEAN gPrtNoTableLogged;
+    static BOOLEAN gPrtRouteNotFoundLogged;
+    static BOOLEAN gPrtLinkResolveFailedLogged;
     static const uacpi_char *const hids[] = { "PNP0A08", "PNP0A03", UACPI_NULL };
     ACPI_NEW_PCI_BUS_LOOKUP lookup;
     uacpi_pci_routing_table *table = NULL;
@@ -173,8 +176,12 @@ AcpiNewQueryPciIrqRoute(
     st = uacpi_get_pci_routing_table(lookup.Node, &table);
     if (uacpi_unlikely_error(st) || !table)
     {
-        DPRINT1("acpi_new: _PRT query failed: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu (no table)\n",
-                In->Segment, In->Bus, In->Device, In->Function, In->Pin);
+        if (!gPrtNoTableLogged)
+        {
+            DPRINT1("acpi_new: _PRT query failed: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu (no table)\n",
+                    In->Segment, In->Bus, In->Device, In->Function, In->Pin);
+            gPrtNoTableLogged = TRUE;
+        }
         return STATUS_NOT_FOUND;
     }
 
@@ -213,8 +220,12 @@ AcpiNewQueryPciIrqRoute(
             status = AcpiNewResolvePciLinkGsi(e->source, e->index, Out);
             if (!NT_SUCCESS(status))
             {
-                DPRINT1("acpi_new: _PRT link resolve failed: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu status=0x%08lx\n",
-                        In->Segment, In->Bus, In->Device, In->Function, In->Pin, status);
+                if (!gPrtLinkResolveFailedLogged)
+                {
+                    DPRINT1("acpi_new: _PRT link resolve failed: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu status=0x%08lx\n",
+                            In->Segment, In->Bus, In->Device, In->Function, In->Pin, status);
+                    gPrtLinkResolveFailedLogged = TRUE;
+                }
             }
             uacpi_free_pci_routing_table(table);
             return status;
@@ -222,8 +233,12 @@ AcpiNewQueryPciIrqRoute(
     }
 
     uacpi_free_pci_routing_table(table);
-    DPRINT1("acpi_new: _PRT route not found: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu\n",
-            In->Segment, In->Bus, In->Device, In->Function, In->Pin);
+    if (!gPrtRouteNotFoundLogged)
+    {
+        DPRINT1("acpi_new: _PRT route not found: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu\n",
+                In->Segment, In->Bus, In->Device, In->Function, In->Pin);
+        gPrtRouteNotFoundLogged = TRUE;
+    }
     return STATUS_NOT_FOUND;
 }
 
@@ -245,6 +260,8 @@ AcpiNewControlDeviceControl(
     {
         ACPI_PCI_IRQ_ROUTE_INPUT *in;
         ACPI_PCI_IRQ_ROUTE_OUTPUT *out;
+        ACPI_PCI_IRQ_ROUTE_INPUT inLocal;
+        static BOOLEAN gIoctlGetPciIrqRouteFailLogged;
 
         if (IrpSp->Parameters.DeviceIoControl.InputBufferLength < sizeof(*in) ||
             IrpSp->Parameters.DeviceIoControl.OutputBufferLength < sizeof(*out))
@@ -256,11 +273,23 @@ AcpiNewControlDeviceControl(
         in = (ACPI_PCI_IRQ_ROUTE_INPUT *)Irp->AssociatedIrp.SystemBuffer;
         out = (ACPI_PCI_IRQ_ROUTE_OUTPUT *)Irp->AssociatedIrp.SystemBuffer;
 
-        status = AcpiNewQueryPciIrqRoute(in, out);
+        /*
+         * METHOD_BUFFERED uses a single SystemBuffer for input and output.
+         * AcpiNewQueryPciIrqRoute() zeroes the output, which would otherwise
+         * clobber the input if we passed the same pointer for both.
+         */
+        inLocal = *in;
+        status = AcpiNewQueryPciIrqRoute(&inLocal, out);
         if (NT_SUCCESS(status))
             Irp->IoStatus.Information = sizeof(*out);
         else
-            DPRINT1("acpi_new: IOCTL_GET_PCI_IRQ_ROUTE failed: status=0x%08lx\n", status);
+        {
+            if (!gIoctlGetPciIrqRouteFailLogged)
+            {
+                DPRINT1("acpi_new: IOCTL_GET_PCI_IRQ_ROUTE failed: status=0x%08lx\n", status);
+                gIoctlGetPciIrqRouteFailLogged = TRUE;
+            }
+        }
         break;
     }
 
