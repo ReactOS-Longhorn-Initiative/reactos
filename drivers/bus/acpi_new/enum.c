@@ -2,6 +2,103 @@
 #include "acpi_new.h"
 
 static
+PWSTR
+AcpiNewBuildInstanceIdFromAbsPath(
+    _In_ uacpi_namespace_node *Node)
+{
+    const uacpi_char *absPath;
+    ANSI_STRING ansi;
+    UNICODE_STRING uni;
+    SIZE_T uniChars;
+    SIZE_T outChars;
+    SIZE_T i;
+    PWSTR tmp;
+
+    absPath = uacpi_namespace_node_generate_absolute_path(Node);
+    if (!absPath)
+        return NULL;
+
+    RtlInitAnsiString(&ansi, absPath);
+    if (!NT_SUCCESS(RtlAnsiStringToUnicodeString(&uni, &ansi, TRUE)))
+    {
+        uacpi_free_absolute_path(absPath);
+        return NULL;
+    }
+
+    /* Sanitize to something that won't contain path separators. */
+    uniChars = (uni.Length / sizeof(WCHAR));
+    outChars = 0;
+
+    for (i = 0; i < uniChars; i++)
+    {
+        if (uni.Buffer[i] == L'\\')
+            continue;
+        outChars++;
+    }
+
+    tmp = NULL;
+    if (outChars != 0)
+    {
+        tmp = (PWSTR)ExAllocatePoolWithTag(PagedPool, (outChars + 1) * sizeof(WCHAR), 'dAcu');
+        if (tmp)
+        {
+            SIZE_T j;
+            j = 0;
+
+            for (i = 0; i < uniChars; i++)
+            {
+                WCHAR ch;
+                ch = uni.Buffer[i];
+                if (ch == L'\\')
+                    continue;
+
+                if ((ch >= L'0' && ch <= L'9') ||
+                    (ch >= L'A' && ch <= L'Z') ||
+                    (ch >= L'a' && ch <= L'z') ||
+                    (ch == L'_'))
+                {
+                    tmp[j++] = ch;
+                }
+                else
+                {
+                    tmp[j++] = L'_';
+                }
+            }
+            tmp[j] = UNICODE_NULL;
+        }
+    }
+
+    RtlFreeUnicodeString(&uni);
+    uacpi_free_absolute_path(absPath);
+    return tmp;
+}
+
+static
+BOOLEAN
+AcpiNewIdsCollideLocked(
+    _In_ PACPI_NEW_FDO_EXTENSION FdoExt,
+    _In_z_ PCWSTR DeviceId,
+    _In_z_ PCWSTR InstanceId)
+{
+    PLIST_ENTRY entry;
+
+    for (entry = FdoExt->PdoList.Flink; entry != &FdoExt->PdoList; entry = entry->Flink)
+    {
+        PACPI_NEW_PDO_EXTENSION pdoExt = CONTAINING_RECORD(entry, ACPI_NEW_PDO_EXTENSION, Link);
+        if (!pdoExt->DeviceId || !pdoExt->InstanceId)
+            continue;
+
+        if (_wcsicmp(pdoExt->DeviceId, DeviceId) == 0 &&
+            _wcsicmp(pdoExt->InstanceId, InstanceId) == 0)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static
 PACPI_NEW_PDO_EXTENSION
 AcpiNewFindPdoByNodeLocked(
     _In_ PACPI_NEW_FDO_EXTENSION FdoExt,
@@ -103,75 +200,74 @@ AcpiNewCreatePdo(
             uacpi_free_id_string(uid);
     }
 
-    /*
-     * Some object types (notably Processor() and ThermalZone()) commonly lack _UID.
-     * If we don't provide a stable instance ID, PnP can treat multiple objects as
-     * the same instance and bugcheck on duplicates.
-     */
-    if (!pdoExt->InstanceId)
+    /* Always build a stable abs-path-based candidate for collision resolution. */
     {
-        const uacpi_char *absPath = uacpi_namespace_node_generate_absolute_path(Node);
-        if (absPath)
+        PWSTR pathInstanceId;
+        pathInstanceId = AcpiNewBuildInstanceIdFromAbsPath(Node);
+
+        /*
+         * Some object types (notably Processor() and ThermalZone()) commonly lack _UID.
+         * If we don't provide a stable instance ID, PnP can treat multiple objects as
+         * the same instance and bugcheck on duplicates.
+         */
+        if (!pdoExt->InstanceId)
         {
-            ANSI_STRING ansi;
-            UNICODE_STRING uni;
-            SIZE_T uniChars;
-            SIZE_T outChars;
-            SIZE_T i;
-
-            RtlInitAnsiString(&ansi, absPath);
-            if (NT_SUCCESS(RtlAnsiStringToUnicodeString(&uni, &ansi, TRUE)))
-            {
-                /* Sanitize to something that won't contain path separators. */
-                uniChars = (uni.Length / sizeof(WCHAR));
-                outChars = 0;
-
-                for (i = 0; i < uniChars; i++)
-                {
-                    WCHAR ch;
-                    ch = uni.Buffer[i];
-                    if (ch == L'\\')
-                        continue;
-                    outChars++;
-                }
-
-                if (outChars != 0)
-                {
-                    PWSTR tmp = (PWSTR)ExAllocatePoolWithTag(PagedPool, (outChars + 1) * sizeof(WCHAR), 'dAcu');
-                    if (tmp)
-                    {
-                        SIZE_T j;
-                        j = 0;
-
-                        for (i = 0; i < uniChars; i++)
-                        {
-                            WCHAR ch;
-                            ch = uni.Buffer[i];
-                            if (ch == L'\\')
-                                continue;
-
-                            if ((ch >= L'0' && ch <= L'9') ||
-                                (ch >= L'A' && ch <= L'Z') ||
-                                (ch >= L'a' && ch <= L'z') ||
-                                (ch == L'_'))
-                            {
-                                tmp[j++] = ch;
-                            }
-                            else
-                            {
-                                tmp[j++] = L'_';
-                            }
-                        }
-                        tmp[j] = UNICODE_NULL;
-                        pdoExt->InstanceId = tmp;
-                    }
-                }
-
-                RtlFreeUnicodeString(&uni);
-            }
-
-            uacpi_free_absolute_path(absPath);
+            pdoExt->InstanceId = pathInstanceId;
+            pathInstanceId = NULL;
         }
+
+        /*
+         * Be defensive: firmware sometimes reuses _UID values (or returns empty).
+         * Ensure DeviceId + InstanceId is unique among our PDOs.
+         */
+        if (pdoExt->DeviceId && pdoExt->InstanceId)
+        {
+            ULONG suffix = 1;
+
+            ExAcquireFastMutex(&FdoExt->Mutex);
+            while (AcpiNewIdsCollideLocked(FdoExt, pdoExt->DeviceId, pdoExt->InstanceId))
+            {
+                ExReleaseFastMutex(&FdoExt->Mutex);
+
+                /* First fallback: use abs-path-based instance id if available. */
+                if (pathInstanceId)
+                {
+                    ExFreePoolWithTag(pdoExt->InstanceId, 'dAcu');
+                    pdoExt->InstanceId = pathInstanceId;
+                    pathInstanceId = NULL;
+                }
+                else
+                {
+                    /* Last resort: append a numeric suffix to make it unique. */
+                    WCHAR suffixBuf[32];
+                    SIZE_T baseLen;
+                    SIZE_T suffixLen;
+                    PWSTR newId;
+
+                    baseLen = wcslen(pdoExt->InstanceId);
+                    (void)swprintf(suffixBuf, L"_%lu", suffix++);
+                    suffixLen = wcslen(suffixBuf);
+
+                    newId = (PWSTR)ExAllocatePoolWithTag(PagedPool, (baseLen + suffixLen + 1) * sizeof(WCHAR), 'dAcu');
+                    if (!newId)
+                    {
+                        /* Give up and keep the colliding ID; better than leaking. */
+                        break;
+                    }
+
+                    wcscpy(newId, pdoExt->InstanceId);
+                    wcscat(newId, suffixBuf);
+                    ExFreePoolWithTag(pdoExt->InstanceId, 'dAcu');
+                    pdoExt->InstanceId = newId;
+                }
+
+                ExAcquireFastMutex(&FdoExt->Mutex);
+            }
+            ExReleaseFastMutex(&FdoExt->Mutex);
+        }
+
+        if (pathInstanceId)
+            ExFreePoolWithTag(pathInstanceId, 'dAcu');
     }
 
     pdo->Flags |= DO_POWER_PAGABLE;
