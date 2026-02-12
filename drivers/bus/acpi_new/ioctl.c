@@ -2,6 +2,7 @@
 #include "acpi_new.h"
 
 #include <acpiioct.h>
+#include <poclass.h>
 #include <limits.h>
 
 #define ACPI_OBJECT_NAME_LENGTH (4 + 1)
@@ -493,6 +494,142 @@ AcpiNewDispatchDeviceControl(
     {
     case IOCTL_ACPI_EVAL_METHOD:
         status = AcpiNewPdoEvalMethod((PACPI_NEW_PDO_EXTENSION)DeviceObject->DeviceExtension, Irp, irpSp);
+        break;
+
+    case IOCTL_QUERY_LID:
+    {
+        PACPI_NEW_PDO_EXTENSION pdoExt = (PACPI_NEW_PDO_EXTENSION)DeviceObject->DeviceExtension;
+        uacpi_u64 lid = 0;
+        uacpi_status st;
+
+        if (!pdoExt || !pdoExt->Node)
+        {
+            status = STATUS_INVALID_DEVICE_STATE;
+            break;
+        }
+
+        if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        {
+            status = STATUS_INVALID_DEVICE_STATE;
+            break;
+        }
+
+        if (irpSp->Parameters.DeviceIoControl.OutputBufferLength < sizeof(BOOLEAN))
+        {
+            status = STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        st = uacpi_eval_simple_integer(pdoExt->Node, "_LID", &lid);
+        if (uacpi_unlikely_error(st))
+        {
+            status = AcpiNewUacpiStatusToNtStatus(st);
+            break;
+        }
+
+        if (irpSp->Parameters.DeviceIoControl.OutputBufferLength >= sizeof(ULONG))
+        {
+            ULONG out = (lid ? 1u : 0u);
+            RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &out, sizeof(out));
+            Irp->IoStatus.Information = sizeof(out);
+        }
+        else
+        {
+            BOOLEAN out = (lid ? TRUE : FALSE);
+            RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &out, sizeof(out));
+            Irp->IoStatus.Information = sizeof(out);
+        }
+
+        status = STATUS_SUCCESS;
+        break;
+    }
+
+    case IOCTL_NOTIFY_SWITCH_EVENT:
+    {
+        PACPI_NEW_PDO_EXTENSION pdoExt = (PACPI_NEW_PDO_EXTENSION)DeviceObject->DeviceExtension;
+        uacpi_u64 lid = 0;
+        uacpi_status st;
+        ULONG current = 0;
+
+        if (!pdoExt || !pdoExt->Node)
+        {
+            status = STATUS_INVALID_DEVICE_STATE;
+            break;
+        }
+
+        if (!pdoExt->HardwareIds || wcsstr(pdoExt->HardwareIds, L"PNP0C0D") == NULL)
+        {
+            status = STATUS_NOT_SUPPORTED;
+            break;
+        }
+
+        if (!AcpiVerifyOutBuffer(irpSp, sizeof(ULONG)))
+        {
+            status = STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        {
+            status = STATUS_INVALID_DEVICE_STATE;
+            break;
+        }
+
+        st = uacpi_eval_simple_integer(pdoExt->Node, "_LID", &lid);
+        if (uacpi_unlikely_error(st))
+        {
+            status = AcpiNewUacpiStatusToNtStatus(st);
+            break;
+        }
+
+        current = (lid ? 1u : 0u);
+
+        if (AcpiVerifyInBuffer(irpSp, sizeof(ULONG)))
+        {
+            ULONG last = *(ULONG *)Irp->AssociatedIrp.SystemBuffer;
+            if (last != current)
+            {
+                RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &current, sizeof(current));
+                Irp->IoStatus.Information = sizeof(current);
+                status = STATUS_SUCCESS;
+                break;
+            }
+        }
+
+        status = AcpiNewLidQueueWaitIrp(pdoExt, Irp);
+        if (status == STATUS_PENDING)
+            return status;
+        break;
+    }
+
+    case IOCTL_GET_SYS_BUTTON_CAPS:
+    {
+        ULONG caps = 0;
+        if (!AcpiVerifyOutBuffer(irpSp, sizeof(ULONG)))
+        {
+            status = STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        status = AcpiNewButtonQueryCaps((PACPI_NEW_PDO_EXTENSION)DeviceObject->DeviceExtension, &caps);
+        if (NT_SUCCESS(status))
+        {
+            RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &caps, sizeof(caps));
+            Irp->IoStatus.Information = sizeof(caps);
+        }
+        break;
+    }
+
+    case IOCTL_GET_SYS_BUTTON_EVENT:
+        if (!AcpiVerifyOutBuffer(irpSp, sizeof(ULONG)))
+        {
+            status = STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        status = AcpiNewButtonQueueWaitIrp((PACPI_NEW_PDO_EXTENSION)DeviceObject->DeviceExtension, Irp);
+        if (status == STATUS_PENDING)
+            return status;
         break;
 
 #if (NTDDI_VERSION >= NTDDI_VISTA)
