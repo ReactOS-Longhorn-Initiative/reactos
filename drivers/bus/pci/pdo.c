@@ -46,6 +46,58 @@ typedef struct _ACPI_PCI_IRQ_ROUTE_OUTPUT
 } ACPI_PCI_IRQ_ROUTE_OUTPUT, *PACPI_PCI_IRQ_ROUTE_OUTPUT;
 
 static
+BOOLEAN
+PciFindPciParentBridge(
+    _In_ ULONG ChildBus,
+    _Out_ PULONG ParentBus,
+    _Out_ PPCI_SLOT_NUMBER ParentSlot)
+{
+    PFDO_DEVICE_EXTENSION FdoDeviceExtension;
+    PPCI_DEVICE PciDevice;
+    PLIST_ENTRY CurrentBus, CurrentEntry;
+    KIRQL OldIrql;
+    BOOLEAN Found = FALSE;
+
+    if (!ParentBus || !ParentSlot)
+        return FALSE;
+
+    if (!DriverExtension)
+        return FALSE;
+
+    KeAcquireSpinLock(&DriverExtension->BusListLock, &OldIrql);
+    CurrentBus = DriverExtension->BusListHead.Flink;
+    while (!Found && CurrentBus != &DriverExtension->BusListHead)
+    {
+        FdoDeviceExtension = CONTAINING_RECORD(CurrentBus, FDO_DEVICE_EXTENSION, ListEntry);
+
+        KeAcquireSpinLockAtDpcLevel(&FdoDeviceExtension->DeviceListLock);
+        CurrentEntry = FdoDeviceExtension->DeviceListHead.Flink;
+        while (!Found && CurrentEntry != &FdoDeviceExtension->DeviceListHead)
+        {
+            PciDevice = CONTAINING_RECORD(CurrentEntry, PCI_DEVICE, ListEntry);
+
+            if (PciDevice->PciConfig.VendorID != PCI_INVALID_VENDORID &&
+                (PciDevice->PciConfig.BaseClass == PCI_CLASS_BRIDGE_DEV) &&
+                (PciDevice->PciConfig.SubClass == PCI_SUBCLASS_BR_PCI_TO_PCI) &&
+                (PciDevice->PciConfig.u.type1.SecondaryBus == (UCHAR)ChildBus))
+            {
+                *ParentBus = PciDevice->BusNumber;
+                *ParentSlot = PciDevice->SlotNumber;
+                Found = TRUE;
+            }
+
+            CurrentEntry = CurrentEntry->Flink;
+        }
+        KeReleaseSpinLockFromDpcLevel(&FdoDeviceExtension->DeviceListLock);
+
+        CurrentBus = CurrentBus->Flink;
+    }
+    KeReleaseSpinLock(&DriverExtension->BusListLock, OldIrql);
+
+    return Found;
+}
+
+static
 NTSTATUS
 PciQueryAcpiPciIrqRoute(
     _In_ ULONG Bus,
@@ -145,6 +197,76 @@ PciQueryAcpiPciIrqRoute(
 
     ObDereferenceObject(fileObject);
     return status;
+}
+
+static
+NTSTATUS
+PciQueryAcpiPciIrqRouteSwizzleToRoot(
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Pin,
+    _Out_ PACPI_PCI_IRQ_ROUTE_OUTPUT Out)
+{
+    static BOOLEAN gSwizzleNoParentLogged;
+    ULONG currentBus = Bus;
+    PCI_SLOT_NUMBER currentSlot = Slot;
+    ULONG currentPin = Pin;
+    ULONG originalBus = Bus;
+    PCI_SLOT_NUMBER originalSlot = Slot;
+    ULONG originalPin = Pin;
+    ULONG hopCount = 0;
+
+    if (!Out)
+        return STATUS_INVALID_PARAMETER;
+
+    /* Walk upstream bridges and apply standard PCI INTx swizzling */
+    while (currentBus != 0)
+    {
+        ULONG parentBus;
+        PCI_SLOT_NUMBER parentSlot;
+        ULONG swizzleDev;
+
+        if (hopCount++ > 32)
+            break;
+
+        if (!PciFindPciParentBridge(currentBus, &parentBus, &parentSlot))
+        {
+            if (!gSwizzleNoParentLogged)
+            {
+                DPRINT1("PCI: ACPI _PRT swizzle: no parent bridge for bus %lu (dev=%lu fun=%lu pin=%lu)\n",
+                        originalBus,
+                        originalSlot.u.bits.DeviceNumber,
+                        originalSlot.u.bits.FunctionNumber,
+                        originalPin);
+                gSwizzleNoParentLogged = TRUE;
+            }
+            break;
+        }
+
+        swizzleDev = currentSlot.u.bits.DeviceNumber;
+        currentPin = ((currentPin - 1 + swizzleDev) % 4) + 1;
+
+        if (parentBus == currentBus)
+            break;
+
+        currentBus = parentBus;
+        currentSlot = parentSlot;
+    }
+
+    if (originalBus != currentBus || originalPin != currentPin)
+    {
+        DPRINT1("PCI: ACPI _PRT swizzle: bus %lu dev %lu fun %lu pin %lu -> bus %lu dev %lu fun %lu pin %lu\n",
+                originalBus,
+                originalSlot.u.bits.DeviceNumber,
+                originalSlot.u.bits.FunctionNumber,
+                originalPin,
+                currentBus,
+                currentSlot.u.bits.DeviceNumber,
+                currentSlot.u.bits.FunctionNumber,
+                currentPin);
+    }
+
+    return PciQueryAcpiPciIrqRoute(currentBus, currentSlot, currentPin, Out);
 }
 
 /*** PRIVATE *****************************************************************/
@@ -716,10 +838,10 @@ PdoQueryResourceRequirements(
             Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
 
             RtlZeroMemory(&route, sizeof(route));
-            RouteStatus = PciQueryAcpiPciIrqRoute(DeviceExtension->PciDevice->BusNumber,
-                                                  DeviceExtension->PciDevice->SlotNumber,
-                                                  PciConfig.u.type0.InterruptPin,
-                                                  &route);
+            RouteStatus = PciQueryAcpiPciIrqRouteSwizzleToRoot(DeviceExtension->PciDevice->BusNumber,
+                                                              DeviceExtension->PciDevice->SlotNumber,
+                                                              PciConfig.u.type0.InterruptPin,
+                                                              &route);
             if (NT_SUCCESS(RouteStatus))
             {
                 Descriptor->ShareDisposition = route.Sharing ? CmResourceShareShared : CmResourceShareDeviceExclusive;
@@ -1021,10 +1143,10 @@ PdoQueryResources(
             Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
 
             RtlZeroMemory(&route, sizeof(route));
-            RouteStatus = PciQueryAcpiPciIrqRoute(DeviceExtension->PciDevice->BusNumber,
-                                                  DeviceExtension->PciDevice->SlotNumber,
-                                                  PciConfig.u.type0.InterruptPin,
-                                                  &route);
+            RouteStatus = PciQueryAcpiPciIrqRouteSwizzleToRoot(DeviceExtension->PciDevice->BusNumber,
+                                                              DeviceExtension->PciDevice->SlotNumber,
+                                                              PciConfig.u.type0.InterruptPin,
+                                                              &route);
             if (NT_SUCCESS(RouteStatus))
             {
                 Descriptor->ShareDisposition = route.Sharing ? CmResourceShareShared : CmResourceShareDeviceExclusive;
