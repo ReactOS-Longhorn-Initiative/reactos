@@ -187,6 +187,8 @@ add_dependencies(acpica bugcodes xdk)
 list(APPEND ACPI_SOURCE
     busmgr/bus.c
     busmgr/button.c
+    busmgr/ec.c
+    busmgr/processor.c
     busmgr/power.c
     busmgr/utils.c
     busmgr/system.c
@@ -204,6 +206,10 @@ add_library(acpi MODULE
     acpi.rc)
 
 set_module_type(acpi kernelmodedriver)
+target_compile_definitions(acpi PRIVATE CONFIG_ACPI_EC CONFIG_ACPI_PROCESSOR)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(acpi PRIVATE -Wno-error)
+endif()
 target_link_libraries(acpi wdmguid acpica memcmp strtol ${PSEH_LIB})
 add_importlibs(acpi ntoskrnl hal)
 add_pch(acpi precomp.h ACPI_SOURCE)

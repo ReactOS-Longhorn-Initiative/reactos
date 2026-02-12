@@ -8,6 +8,13 @@ extern UNICODE_STRING ProcessorHardwareIds;
 extern LPWSTR ProcessorIdString;
 extern LPWSTR ProcessorNameString;
 
+typedef struct _ACPI_NOTIFY_ENTRY
+{
+    LIST_ENTRY Link;
+    PDEVICE_NOTIFY_CALLBACK Callback;
+    PVOID CallbackContext;
+} ACPI_NOTIFY_ENTRY, *PACPI_NOTIFY_ENTRY;
+
 typedef enum _DEVICE_PNP_STATE {
 
     NotStarted = 0,         // Not started yet
@@ -48,7 +55,16 @@ typedef struct _PDO_DEVICE_DATA
     ULONG       InterfaceRefCount;
     UNICODE_STRING InterfaceName;
 
+    /* ACPI device notification callbacks registered via ACPI_INTERFACE_STANDARD */
+    LIST_ENTRY  NotifyList;
+    FAST_MUTEX  NotifyLock;
+    BOOLEAN     NotifyHandlerInstalled;
+
 } PDO_DEVICE_DATA, *PPDO_DEVICE_DATA;
+
+VOID
+AcpiInterfaceCleanupPdoNotifications(
+    _Inout_ PPDO_DEVICE_DATA PdoData);
 
 //
 // The device extension of the bus itself.  From whence the PDO's are born.
