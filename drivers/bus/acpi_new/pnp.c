@@ -211,7 +211,14 @@ AcpiNewHandlePdoPnp(_In_ PDEVICE_OBJECT DeviceObject, _In_ PIRP Irp)
 
         case BusQueryInstanceID:
             if (pdoExt->InstanceId)
+            {
                 result = AcpiNewDupUnicodeString(pdoExt->InstanceId, wcslen(pdoExt->InstanceId));
+            }
+            else
+            {
+                /* No instance ID available; let PnP decide how to identify this instance. */
+                status = STATUS_NOT_SUPPORTED;
+            }
             break;
 
         default:
