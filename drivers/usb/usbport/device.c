@@ -1090,14 +1090,16 @@ USBPORT_CreateDevice(IN OUT PUSB_DEVICE_HANDLE *pUsbdDeviceHandle,
     PipeHandle->EndpointDescriptor.bLength = sizeof(PipeHandle->EndpointDescriptor);
     PipeHandle->EndpointDescriptor.bDescriptorType = USB_ENDPOINT_DESCRIPTOR_TYPE;
 
-    if (DeviceHandle->DeviceSpeed == UsbLowSpeed)
-    {
-        PipeHandle->EndpointDescriptor.wMaxPacketSize = 8;
-    }
-    else
-    {
+    /*
+     * For full-/low-speed devices, EP0 max packet size is not known yet.
+     * Start with a conservative 8-byte MPS and fetch only the descriptor
+     * header (through bMaxPacketSize0). USBPORT_InitializeDevice() will
+     * SetAddress and reopen EP0 using the discovered bMaxPacketSize0.
+     */
+    if (DeviceHandle->DeviceSpeed == UsbHighSpeed)
         PipeHandle->EndpointDescriptor.wMaxPacketSize = USB_DEFAULT_MAX_PACKET;
-    }
+    else
+        PipeHandle->EndpointDescriptor.wMaxPacketSize = 8;
 
     InitializeListHead(&DeviceHandle->PipeHandleList);
     InitializeListHead(&DeviceHandle->TtList);
@@ -1136,10 +1138,13 @@ USBPORT_CreateDevice(IN OUT PUSB_DEVICE_HANDLE *pUsbdDeviceHandle,
     RtlZeroMemory(DeviceDescriptor, USB_DEFAULT_MAX_PACKET);
     RtlZeroMemory(&SetupPacket, sizeof(USB_DEFAULT_PIPE_SETUP_PACKET));
 
+    DescriptorMinSize = RTL_SIZEOF_THROUGH_FIELD(USB_DEVICE_DESCRIPTOR,
+                                                 bMaxPacketSize0);
+
     SetupPacket.bmRequestType.Dir = BMREQUEST_DEVICE_TO_HOST;
     SetupPacket.bRequest = USB_REQUEST_GET_DESCRIPTOR;
     SetupPacket.wValue.HiByte = USB_DEVICE_DESCRIPTOR_TYPE;
-    SetupPacket.wLength = USB_DEFAULT_MAX_PACKET;
+    SetupPacket.wLength = (USHORT)DescriptorMinSize;
 
     TransferedLen = 0;
 
@@ -1147,7 +1152,7 @@ USBPORT_CreateDevice(IN OUT PUSB_DEVICE_HANDLE *pUsbdDeviceHandle,
                                      FdoDevice,
                                      &SetupPacket,
                                      DeviceDescriptor,
-                                     USB_DEFAULT_MAX_PACKET,
+                                     DescriptorMinSize,
                                      &TransferedLen,
                                      NULL);
 
@@ -1157,18 +1162,13 @@ USBPORT_CreateDevice(IN OUT PUSB_DEVICE_HANDLE *pUsbdDeviceHandle,
 
     ExFreePoolWithTag(DeviceDescriptor, USB_PORT_TAG);
 
-    DescriptorMinSize = RTL_SIZEOF_THROUGH_FIELD(USB_DEVICE_DESCRIPTOR,
-                                                 bMaxPacketSize0);
-
-    if ((TransferedLen == DescriptorMinSize) && !NT_SUCCESS(Status))
-    {
+    /* Some controllers/devices may report a failing status but still return the header. */
+    if (!NT_SUCCESS(Status) && (TransferedLen >= DescriptorMinSize))
         Status = STATUS_SUCCESS;
-    }
 
     if (NT_SUCCESS(Status) && (TransferedLen >= DescriptorMinSize))
     {
-        if ((DeviceHandle->DeviceDescriptor.bLength >= sizeof(USB_DEVICE_DESCRIPTOR)) &&
-            (DeviceHandle->DeviceDescriptor.bDescriptorType == USB_DEVICE_DESCRIPTOR_TYPE))
+        if (DeviceHandle->DeviceDescriptor.bDescriptorType == USB_DEVICE_DESCRIPTOR_TYPE)
         {
             MaxPacketSize = DeviceHandle->DeviceDescriptor.bMaxPacketSize0;
 
@@ -1190,6 +1190,19 @@ USBPORT_CreateDevice(IN OUT PUSB_DEVICE_HANDLE *pUsbdDeviceHandle,
             }
         }
     }
+
+        DPRINT1("USBPORT_CreateDevice: devdesc hdr: bLength=%u bDescType=%u bMaxPacketSize0=%u (raw %02x %02x %02x %02x %02x %02x %02x %02x)\n",
+            DeviceHandle->DeviceDescriptor.bLength,
+            DeviceHandle->DeviceDescriptor.bDescriptorType,
+            DeviceHandle->DeviceDescriptor.bMaxPacketSize0,
+            (UCHAR)DeviceHandle->DeviceDescriptor.bLength,
+            (UCHAR)DeviceHandle->DeviceDescriptor.bDescriptorType,
+            ((PUCHAR)&DeviceHandle->DeviceDescriptor)[2],
+            ((PUCHAR)&DeviceHandle->DeviceDescriptor)[3],
+            ((PUCHAR)&DeviceHandle->DeviceDescriptor)[4],
+            ((PUCHAR)&DeviceHandle->DeviceDescriptor)[5],
+            ((PUCHAR)&DeviceHandle->DeviceDescriptor)[6],
+            ((PUCHAR)&DeviceHandle->DeviceDescriptor)[7]);
 
     DPRINT1("USBPORT_CreateDevice: ERROR!!! TransferedLen - %x, Status - %lx\n",
             TransferedLen,
