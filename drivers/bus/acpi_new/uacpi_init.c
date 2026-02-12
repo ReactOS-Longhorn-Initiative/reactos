@@ -1,6 +1,8 @@
 #include "precomp.h"
 #include "acpi_new.h"
 
+volatile BOOLEAN AcpiNewUacpiStarted = FALSE;
+
 NTSTATUS
 AcpiNewStartUacpiAndEnumerate(_In_ PACPI_NEW_FDO_EXTENSION FdoExt)
 {
@@ -20,6 +22,13 @@ AcpiNewStartUacpiAndEnumerate(_In_ PACPI_NEW_FDO_EXTENSION FdoExt)
         return STATUS_UNSUCCESSFUL;
     }
 
+    /* APIC-focused: prefer IOAPIC interrupt model for _PRT/link devices.
+     * Must be done after namespace load (uACPI requires a higher init level).
+     */
+    st = uacpi_set_interrupt_model(UACPI_INTERRUPT_MODEL_IOAPIC);
+    if (uacpi_unlikely_error(st))
+        DPRINT1("uacpi_set_interrupt_model(IOAPIC) failed: %s\n", uacpi_status_to_string(st));
+
     uacpi_install_default_address_space_handlers();
 
     /* Install early EC handler before namespace initialization runs _REG/_INI */
@@ -31,6 +40,8 @@ AcpiNewStartUacpiAndEnumerate(_In_ PACPI_NEW_FDO_EXTENSION FdoExt)
         DPRINT1("uacpi_namespace_initialize error: %s\n", uacpi_status_to_string(st));
         return STATUS_UNSUCCESSFUL;
     }
+
+    AcpiNewUacpiStarted = TRUE;
 
     /* System button fixed events (power/sleep) */
     AcpiNewButtonInit();

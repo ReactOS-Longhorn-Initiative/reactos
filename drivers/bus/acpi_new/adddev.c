@@ -47,4 +47,5 @@ NTAPI
 AcpiNewUnload(_In_ PDRIVER_OBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
+    AcpiNewDeleteControlDevice();
 }

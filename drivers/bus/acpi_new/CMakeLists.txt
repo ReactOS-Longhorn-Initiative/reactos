@@ -33,6 +33,7 @@ add_pch(uacpi uacpi/include/uacpi/acpi.h "${UACPI_SOURCE}")
 list(APPEND ACPI_SOURCE
      adddev.c
      button.c
+     control.c
      dispatch.c
      driver.c
      ec.c
