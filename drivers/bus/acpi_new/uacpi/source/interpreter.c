@@ -1747,9 +1747,9 @@ static uacpi_status handle_create_field(struct execution_context *ctx)
                 uacpi_u32
             );
 
-            field->bit_offset_within_first_byte = bit_offset;
-            field->bit_offset_within_first_byte =
-                bit_offset & ((field->access_width_bytes * 8) - 1);
+            field->bit_offset_within_first_byte = (uacpi_u8)(
+                bit_offset & ((field->access_width_bytes * 8) - 1)
+            );
 
             switch (op_ctx->op->code) {
             case UACPI_AML_OP_FieldOp:
@@ -5129,7 +5129,9 @@ static uacpi_status prepare_method_call(
     if (type == METHOD_CALL_NATIVE) {
         uacpi_u8 arg_count;
 
-        arg_count = args ? args->count : 0;
+        arg_count = args ? (uacpi_u8)args->count : 0;
+        if (args && args->count > 255)
+            arg_count = 255;
         if (uacpi_unlikely(arg_count != method->args)) {
             uacpi_error(
                 "invalid number of arguments %zu to call %.4s, expected %d\n",
@@ -5310,9 +5312,15 @@ static uacpi_status exec_op(struct execution_context *ctx)
             op_ctx->pc--;
             return UACPI_STATUS_OK;
 
-        case UACPI_PARSE_OP_TRACKED_PKGLEN:
-            op_ctx->tracked_pkg_idx = item_array_size(&op_ctx->items);
+        case UACPI_PARSE_OP_TRACKED_PKGLEN: {
+            uacpi_size items_sz = item_array_size(&op_ctx->items);
+            if (uacpi_unlikely(items_sz > 255)) {
+                ret = UACPI_STATUS_OUT_OF_MEMORY;
+                break;
+            }
+            op_ctx->tracked_pkg_idx = (uacpi_u8)items_sz;
             UACPI_FALLTHROUGH;
+        }
         case UACPI_PARSE_OP_PKGLEN:
             ret = parse_package_length(frame, &item->pkg);
             break;
