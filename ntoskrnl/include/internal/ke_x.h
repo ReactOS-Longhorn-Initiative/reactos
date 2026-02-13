@@ -1366,6 +1366,7 @@ KxQueueReadyThread(IN PKTHREAD Thread,
 {
     BOOLEAN Preempted;
     KPRIORITY Priority;
+    /* (no SMP wake hint here; see scheduler for proper balancing) */
 
     /* Sanity checks */
     ASSERT(Prcb == KeGetCurrentPrcb());
@@ -1388,7 +1389,6 @@ KxQueueReadyThread(IN PKTHREAD Thread,
         /* Save current priority and if someone had pre-empted it */
         Priority = Thread->Priority;
         Preempted = Thread->Preempted;
-
         /* We're not pre-empting now, and set the wait time */
         Thread->Preempted = FALSE;
         Thread->WaitTime = KeTickCount.LowPart;
