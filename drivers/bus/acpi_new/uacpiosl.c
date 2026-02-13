@@ -383,6 +383,16 @@ UacpiChecksum8(_In_reads_bytes_(Length) const UCHAR *Buffer, _In_ ULONG Length)
     return (Sum == 0);
 }
 
+static
+UCHAR
+UacpiComputeChecksumByte(_In_reads_bytes_(Length) const UCHAR *Buffer, _In_ ULONG Length)
+{
+    UCHAR Sum = 0;
+    for (ULONG i = 0; i < Length; i++)
+        Sum = (UCHAR)(Sum + Buffer[i]);
+    return (UCHAR)(0 - Sum);
+}
+
 #include <pshpack1.h>
 typedef struct _UACPI_RSDP_10
 {
@@ -424,6 +434,274 @@ UacpiLooksLikeRsdp(_In_reads_bytes_(sizeof(UACPI_RSDP_20)) const VOID *Ptr)
     }
 
     return TRUE;
+}
+
+typedef struct _UACPI_ACPI_BIOS_MULTI_NODE
+{
+    PHYSICAL_ADDRESS RsdtAddress;
+    ULONGLONG Count;
+    UCHAR Payload[1];
+} UACPI_ACPI_BIOS_MULTI_NODE, *PUACPI_ACPI_BIOS_MULTI_NODE;
+
+static
+NTSTATUS
+UacpiQueryAcpiRootFromRegistry(_Out_ PHYSICAL_ADDRESS *OutRootTable)
+{
+    static const WCHAR RootPath[] = L"\\Registry\\Machine\\HARDWARE\\DESCRIPTION\\System\\MultiFunctionAdapter";
+    static const WCHAR IdentifierName[] = L"Identifier";
+    static const WCHAR ConfigDataName[] = L"Configuration Data";
+    static const WCHAR AcpiBiosId[] = L"ACPI BIOS";
+
+    HANDLE KeyHandle = NULL;
+    HANDLE SubKeyHandle = NULL;
+    PKEY_FULL_INFORMATION FullInfo = NULL;
+    PKEY_BASIC_INFORMATION KeyInfo = NULL;
+    PKEY_VALUE_PARTIAL_INFORMATION ValueInfo = NULL;
+    NTSTATUS Status;
+    ULONG Bytes;
+
+    if (!OutRootTable)
+        return STATUS_INVALID_PARAMETER;
+
+    OutRootTable->QuadPart = 0;
+
+    UNICODE_STRING RootUs;
+    RtlInitUnicodeString(&RootUs, RootPath);
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    InitializeObjectAttributes(&ObjectAttributes, &RootUs, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    Status = ZwOpenKey(&KeyHandle, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &ObjectAttributes);
+    if (!NT_SUCCESS(Status))
+        return Status;
+
+    Bytes = 0;
+    Status = ZwQueryKey(KeyHandle, KeyFullInformation, NULL, 0, &Bytes);
+    if (Status != STATUS_BUFFER_TOO_SMALL && Status != STATUS_BUFFER_OVERFLOW)
+        goto Exit;
+
+    FullInfo = ExAllocatePoolWithTag(PagedPool, Bytes, 'rAcu');
+    if (!FullInfo)
+    {
+        Status = STATUS_INSUFFICIENT_RESOURCES;
+        goto Exit;
+    }
+
+    Status = ZwQueryKey(KeyHandle, KeyFullInformation, FullInfo, Bytes, &Bytes);
+    if (!NT_SUCCESS(Status))
+        goto Exit;
+
+    /* Allocate enough to hold the longest subkey name (+ terminator) */
+    Bytes = FullInfo->MaxNameLen + sizeof(WCHAR);
+    KeyInfo = ExAllocatePoolWithTag(PagedPool, Bytes, 'rAcu');
+    if (!KeyInfo)
+    {
+        Status = STATUS_INSUFFICIENT_RESOURCES;
+        goto Exit;
+    }
+
+    /* Buffer for Identifier (REG_SZ) */
+    ValueInfo = ExAllocatePoolWithTag(PagedPool,
+                                      sizeof(KEY_VALUE_PARTIAL_INFORMATION) + sizeof(AcpiBiosId),
+                                      'rAcu');
+    if (!ValueInfo)
+    {
+        Status = STATUS_INSUFFICIENT_RESOURCES;
+        goto Exit;
+    }
+
+    for (ULONG i = 0;; i++)
+    {
+        ULONG NameBytes;
+        Status = ZwEnumerateKey(KeyHandle, i, KeyBasicInformation, KeyInfo, Bytes, &NameBytes);
+        if (Status == STATUS_NO_MORE_ENTRIES)
+            break;
+        if (!NT_SUCCESS(Status))
+            goto Exit;
+
+        /* Null-terminate the key name (kernel doesn't do it) */
+        KeyInfo->Name[KeyInfo->NameLength / sizeof(WCHAR)] = UNICODE_NULL;
+
+        UNICODE_STRING SubName;
+        SubName.Buffer = KeyInfo->Name;
+        SubName.Length = (USHORT)KeyInfo->NameLength;
+        SubName.MaximumLength = (USHORT)(KeyInfo->NameLength + sizeof(WCHAR));
+
+        InitializeObjectAttributes(&ObjectAttributes, &SubName, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, KeyHandle, NULL);
+        Status = ZwOpenKey(&SubKeyHandle, KEY_QUERY_VALUE, &ObjectAttributes);
+        if (!NT_SUCCESS(Status))
+            continue;
+
+        UNICODE_STRING ValueUs;
+        RtlInitUnicodeString(&ValueUs, IdentifierName);
+        ULONG ValueBytes = 0;
+        Status = ZwQueryValueKey(SubKeyHandle,
+                                 &ValueUs,
+                                 KeyValuePartialInformation,
+                                 ValueInfo,
+                                 sizeof(KEY_VALUE_PARTIAL_INFORMATION) + sizeof(AcpiBiosId),
+                                 &ValueBytes);
+        if (NT_SUCCESS(Status) && ValueInfo->Type == REG_SZ)
+        {
+            if (wcsncmp((PWCHAR)ValueInfo->Data, AcpiBiosId, (sizeof(AcpiBiosId) / sizeof(WCHAR)) - 1) == 0)
+            {
+                /* Found the ACPI BIOS node; query Configuration Data */
+                RtlInitUnicodeString(&ValueUs, ConfigDataName);
+
+                /* Query size first */
+                ZwClose(SubKeyHandle);
+                SubKeyHandle = NULL;
+
+                InitializeObjectAttributes(&ObjectAttributes, &SubName, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, KeyHandle, NULL);
+                Status = ZwOpenKey(&SubKeyHandle, KEY_QUERY_VALUE, &ObjectAttributes);
+                if (!NT_SUCCESS(Status))
+                    goto Exit;
+
+                ValueBytes = 0;
+                Status = ZwQueryValueKey(SubKeyHandle,
+                                         &ValueUs,
+                                         KeyValuePartialInformation,
+                                         NULL,
+                                         0,
+                                         &ValueBytes);
+                if (Status != STATUS_BUFFER_TOO_SMALL && Status != STATUS_BUFFER_OVERFLOW)
+                    goto Exit;
+
+                PKEY_VALUE_PARTIAL_INFORMATION ConfigInfo = ExAllocatePoolWithTag(PagedPool, ValueBytes, 'rAcu');
+                if (!ConfigInfo)
+                {
+                    Status = STATUS_INSUFFICIENT_RESOURCES;
+                    goto Exit;
+                }
+
+                Status = ZwQueryValueKey(SubKeyHandle,
+                                         &ValueUs,
+                                         KeyValuePartialInformation,
+                                         ConfigInfo,
+                                         ValueBytes,
+                                         &ValueBytes);
+                if (!NT_SUCCESS(Status))
+                {
+                    ExFreePoolWithTag(ConfigInfo, 'rAcu');
+                    goto Exit;
+                }
+
+                if (ConfigInfo->Type != REG_FULL_RESOURCE_DESCRIPTOR || ConfigInfo->DataLength < sizeof(CM_FULL_RESOURCE_DESCRIPTOR))
+                {
+                    ExFreePoolWithTag(ConfigInfo, 'rAcu');
+                    Status = STATUS_OBJECT_TYPE_MISMATCH;
+                    goto Exit;
+                }
+
+                PCM_FULL_RESOURCE_DESCRIPTOR Full = (PCM_FULL_RESOURCE_DESCRIPTOR)ConfigInfo->Data;
+                if (Full->PartialResourceList.Count < 1)
+                {
+                    ExFreePoolWithTag(ConfigInfo, 'rAcu');
+                    Status = STATUS_DATA_ERROR;
+                    goto Exit;
+                }
+
+                /* Device-specific data starts right after the CM_FULL_RESOURCE_DESCRIPTOR (which contains 1 descriptor). */
+                PUACPI_ACPI_BIOS_MULTI_NODE Node = (PUACPI_ACPI_BIOS_MULTI_NODE)(Full + 1);
+                *OutRootTable = Node->RsdtAddress;
+                ExFreePoolWithTag(ConfigInfo, 'rAcu');
+                Status = STATUS_SUCCESS;
+                goto Exit;
+            }
+        }
+
+        ZwClose(SubKeyHandle);
+        SubKeyHandle = NULL;
+    }
+
+    Status = STATUS_NOT_FOUND;
+
+Exit:
+    if (SubKeyHandle) ZwClose(SubKeyHandle);
+    if (ValueInfo) ExFreePoolWithTag(ValueInfo, 'rAcu');
+    if (KeyInfo) ExFreePoolWithTag(KeyInfo, 'rAcu');
+    if (FullInfo) ExFreePoolWithTag(FullInfo, 'rAcu');
+    if (KeyHandle) ZwClose(KeyHandle);
+    return Status;
+}
+
+static PVOID g_UacpiSyntheticRsdp;
+static uacpi_phys_addr g_UacpiSyntheticRsdpPhys;
+
+static
+uacpi_status
+UacpiGetOrBuildSyntheticRsdpFromRoot(_In_ PHYSICAL_ADDRESS RootTable, _Out_ uacpi_phys_addr *OutRsdpPhys)
+{
+    if (!OutRsdpPhys)
+        return UACPI_STATUS_INVALID_ARGUMENT;
+
+    if (g_UacpiSyntheticRsdp)
+    {
+        *OutRsdpPhys = g_UacpiSyntheticRsdpPhys;
+        return UACPI_STATUS_OK;
+    }
+
+    /* Determine whether RootTable points to an XSDT or RSDT */
+    UCHAR *Hdr = (UCHAR *)uacpi_kernel_map((uacpi_phys_addr)RootTable.QuadPart, 4);
+    if (!Hdr)
+        return UACPI_STATUS_MAPPING_FAILED;
+
+    BOOLEAN IsXsdt = (memcmp(Hdr, "XSDT", 4) == 0);
+    BOOLEAN IsRsdt = (memcmp(Hdr, "RSDT", 4) == 0);
+    uacpi_kernel_unmap(Hdr, 4);
+
+    if (!IsXsdt && !IsRsdt)
+        return UACPI_STATUS_INVALID_ARGUMENT;
+
+    PHYSICAL_ADDRESS Low;
+    PHYSICAL_ADDRESS High;
+    PHYSICAL_ADDRESS Boundary;
+    Low.QuadPart = 0;
+    High.QuadPart = ~0ULL;
+    Boundary.QuadPart = 0;
+
+    /* Allocate a page of physically contiguous memory for a synthetic RSDP */
+    PVOID Buf = MmAllocateContiguousMemorySpecifyCache(PAGE_SIZE, Low, High, Boundary, MmCached);
+    if (!Buf)
+        return UACPI_STATUS_OUT_OF_MEMORY;
+
+    RtlZeroMemory(Buf, PAGE_SIZE);
+
+    UACPI_RSDP_20 *Rsdp = (UACPI_RSDP_20 *)Buf;
+    RtlCopyMemory(Rsdp->FirstPart.Signature, "RSD PTR ", 8);
+    RtlCopyMemory(Rsdp->FirstPart.OemId, "ReactO", 6);
+    Rsdp->FirstPart.Revision = 2;
+
+    if (IsXsdt)
+    {
+        Rsdp->XsdtAddress = (ULONGLONG)RootTable.QuadPart;
+        Rsdp->FirstPart.RsdtAddress = 0;
+    }
+    else
+    {
+        Rsdp->XsdtAddress = 0;
+        Rsdp->FirstPart.RsdtAddress = (ULONG)(RootTable.QuadPart & 0xFFFFFFFFULL);
+    }
+
+    Rsdp->Length = sizeof(UACPI_RSDP_20);
+
+    /* Compute checksums */
+    Rsdp->FirstPart.Checksum = 0;
+    Rsdp->ExtendedChecksum = 0;
+    Rsdp->FirstPart.Checksum = UacpiComputeChecksumByte((const UCHAR *)Rsdp, sizeof(UACPI_RSDP_10));
+    Rsdp->ExtendedChecksum = UacpiComputeChecksumByte((const UCHAR *)Rsdp, Rsdp->Length);
+
+    /* Validate it looks like a proper RSDP */
+    if (!UacpiLooksLikeRsdp(Rsdp))
+    {
+        MmFreeContiguousMemory(Buf);
+        return UACPI_STATUS_INTERNAL_ERROR;
+    }
+
+    PHYSICAL_ADDRESS Phys = MmGetPhysicalAddress(Buf);
+    g_UacpiSyntheticRsdp = Buf;
+    g_UacpiSyntheticRsdpPhys = (uacpi_phys_addr)Phys.QuadPart;
+    *OutRsdpPhys = g_UacpiSyntheticRsdpPhys;
+    return UACPI_STATUS_OK;
 }
 
 uacpi_u64
@@ -771,6 +1049,18 @@ uacpi_kernel_get_rsdp(uacpi_phys_addr *out_rdsp_address)
         return UACPI_STATUS_INVALID_ARGUMENT;
 
     *out_rdsp_address = 0;
+
+    /* Preferred path: read loader-provided ACPI root table from registry and synthesize an RSDP.
+     * This works for UEFI boots where the real RSDP may not be discoverable in EBDA/BIOS memory.
+     */
+    PHYSICAL_ADDRESS RootTable;
+    NTSTATUS RegSt = UacpiQueryAcpiRootFromRegistry(&RootTable);
+    if (NT_SUCCESS(RegSt) && RootTable.QuadPart)
+    {
+        uacpi_status St = UacpiGetOrBuildSyntheticRsdpFromRoot(RootTable, out_rdsp_address);
+        if (uacpi_likely_success(St))
+            return St;
+    }
 
     /* Read EBDA segment pointer from BDA at 0x40E */
     UCHAR *Bda = (UCHAR *)uacpi_kernel_map(0x400, 0x200);

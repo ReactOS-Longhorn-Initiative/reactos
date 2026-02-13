@@ -39,15 +39,49 @@ FindAcpiBios(VOID)
 {
     UINTN i;
     RSDP_DESCRIPTOR* rsdp = NULL;
-    EFI_GUID acpi2_guid = EFI_ACPI_20_TABLE_GUID;
+    EFI_GUID acpi20_guid = EFI_ACPI_20_TABLE_GUID;
+    EFI_GUID acpi10_guid = ACPI_10_TABLE_GUID;
 
+    /* Prefer the UEFI ACPI 2.0+ entry (EFI_ACPI_TABLE_GUID) */
     for (i = 0; i < GlobalSystemTable->NumberOfTableEntries; i++)
     {
         if (!memcmp(&GlobalSystemTable->ConfigurationTable[i].VendorGuid,
-                    &acpi2_guid, sizeof(acpi2_guid)))
+                    &acpi20_guid, sizeof(acpi20_guid)))
         {
             rsdp = (RSDP_DESCRIPTOR*)GlobalSystemTable->ConfigurationTable[i].VendorTable;
             break;
+        }
+    }
+
+    /* Fall back to the UEFI ACPI 1.0 entry (ACPI_TABLE_GUID) */
+    if (!rsdp)
+    {
+        for (i = 0; i < GlobalSystemTable->NumberOfTableEntries; i++)
+        {
+            if (!memcmp(&GlobalSystemTable->ConfigurationTable[i].VendorGuid,
+                        &acpi10_guid, sizeof(acpi10_guid)))
+            {
+                rsdp = (RSDP_DESCRIPTOR*)GlobalSystemTable->ConfigurationTable[i].VendorTable;
+                break;
+            }
+        }
+    }
+
+    /* If the firmware didn't publish it in the UEFI config table, try legacy scan. */
+    if (!rsdp)
+    {
+        PUCHAR Ptr;
+
+        Ptr = (PUCHAR)0xE0000;
+        while ((ULONG_PTR)Ptr < 0x100000)
+        {
+            if (!memcmp(Ptr, "RSD PTR ", 8))
+            {
+                rsdp = (RSDP_DESCRIPTOR*)Ptr;
+                break;
+            }
+
+            Ptr = (PUCHAR)((ULONG_PTR)Ptr + 0x10);
         }
     }
 
