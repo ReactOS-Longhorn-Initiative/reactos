@@ -31,9 +31,71 @@ PKTHREAD
 FASTCALL
 KiIdleSchedule(IN PKPRCB Prcb)
 {
-    /* FIXME: TODO */
-    ASSERTMSG("SMP: Not yet implemented\n", FALSE);
+#ifdef CONFIG_SMP
+    KAFFINITY RemainingSet, SetMember;
+    ULONG Processor;
+    PKPRCB TargetPrcb;
+    PKTHREAD Thread;
+
+    ASSERT(KeGetCurrentIrql() >= DISPATCH_LEVEL);
+
+    /* Nothing to do if we're the only processor */
+    RemainingSet = KeActiveProcessors & ~Prcb->SetMember;
+    if (!RemainingSet) return NULL;
+
+    /*
+     * Basic SMP load balancing for idle processors: steal a ready thread from
+     * another processor's ready queues.
+     *
+     * Without this, runnable work can remain queued on a busy processor while
+     * other processors spin/halt in the idle thread, causing "stuck in idle"
+     * behavior and severe SMP underutilization.
+     */
+    while (RemainingSet)
+    {
+        NT_VERIFY(BitScanForwardAffinity(&Processor, RemainingSet) != FALSE);
+        SetMember = AFFINITY_MASK(Processor);
+        RemainingSet &= ~SetMember;
+
+        TargetPrcb = KiProcessorBlock[Processor];
+        if (!TargetPrcb) continue;
+
+        /* Quick check without taking the lock */
+        if (!TargetPrcb->ReadySummary) continue;
+
+        KiAcquirePrcbLock(TargetPrcb);
+        if (TargetPrcb->ReadySummary)
+        {
+            Thread = KiSelectReadyThread(0, TargetPrcb);
+            if (Thread)
+            {
+                /*
+                 * Only steal if this processor is allowed by affinity.
+                 * If not, put it back and keep scanning.
+                 */
+                if (Thread->Affinity & Prcb->SetMember)
+                {
+                    Thread->NextProcessor = Prcb->Number;
+                    KiReleasePrcbLock(TargetPrcb);
+                    return Thread;
+                }
+
+                /* Put the thread back on the same ready queue */
+                Thread->State = Ready;
+                Thread->NextProcessor = TargetPrcb->Number;
+                InsertHeadList(&TargetPrcb->DispatcherReadyListHead[Thread->Priority],
+                               &Thread->WaitListEntry);
+                TargetPrcb->ReadySummary |= PRIORITY_MASK(Thread->Priority);
+            }
+        }
+        KiReleasePrcbLock(TargetPrcb);
+    }
+
     return NULL;
+#else
+    UNREFERENCED_PARAMETER(Prcb);
+    return NULL;
+#endif
 }
 
 VOID
@@ -117,16 +179,70 @@ KiSelectNextProcessor(
     _In_ PKTHREAD Thread)
 {
     KAFFINITY PreferredSet, IdleSet;
+    ULONG CurrentProcessor;
     ULONG Processor;
 
-    /* Start with the affinity */
+    /*
+     * Start with the affinity.
+     *
+     * Important for scalability: prefer "soft affinity" to the last processor
+     * the thread ran on (Thread->NextProcessor) when possible. Without this,
+     * any presence of idle CPUs causes frequent migrations (and IPIs) on SMP,
+     * which can severely degrade performance as CPU count increases (common
+     * under virtualization).
+     *
+     * However, do not apply this to brand-new threads which have not yet run;
+     * those should still be allowed to spread to idle CPUs for parallelism.
+     */
     PreferredSet = Thread->Affinity;
 
-    /* If we have matching idle processors, use them */
+    /*
+     * Prefer any idle processor (i.e. "not doing anything") first.
+     * This matches the typical expectation for maximizing throughput.
+     */
+    CurrentProcessor = KeGetCurrentProcessorNumber();
     IdleSet = PreferredSet & KiIdleSummary;
     if (IdleSet != 0)
     {
-        PreferredSet = IdleSet;
+        /* If current CPU is idle and allowed, keep locality */
+        if ((CurrentProcessor < KeNumberProcessors) &&
+            (IdleSet & AFFINITY_MASK(CurrentProcessor)))
+        {
+            return CurrentProcessor;
+        }
+
+        /* Prefer the ideal processor if it is idle */
+        if (IdleSet & AFFINITY_MASK(Thread->IdealProcessor))
+        {
+            return Thread->IdealProcessor;
+        }
+
+        /* Prefer the last processor if it is idle (but only for threads that ran) */
+        if ((Thread->ContextSwitches != 0) &&
+            (Thread->NextProcessor < KeNumberProcessors) &&
+            (IdleSet & AFFINITY_MASK(Thread->NextProcessor)))
+        {
+            return Thread->NextProcessor;
+        }
+
+        /* Otherwise pick the first idle processor in the allowed set */
+        NT_VERIFY(BitScanForwardAffinity(&Processor, IdleSet) != FALSE);
+        ASSERT(Processor < KeNumberProcessors);
+        return Processor;
+    }
+
+    /* No idle CPU available: fall back to locality / soft affinity */
+    if ((CurrentProcessor < KeNumberProcessors) &&
+        (PreferredSet & AFFINITY_MASK(CurrentProcessor)))
+    {
+        return CurrentProcessor;
+    }
+
+    if ((Thread->ContextSwitches != 0) &&
+        (Thread->NextProcessor < KeNumberProcessors) &&
+        (PreferredSet & AFFINITY_MASK(Thread->NextProcessor)))
+    {
+        return Thread->NextProcessor;
     }
 
     /* Check if we can use the ideal processor */
