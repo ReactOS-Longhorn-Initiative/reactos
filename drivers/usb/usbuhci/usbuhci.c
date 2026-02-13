@@ -2425,13 +2425,22 @@ UhciCheckController(IN PVOID uhciExtension)
 {
     PUHCI_EXTENSION UhciExtension = uhciExtension;
 
-    if (!UhciHardwarePresent(UhciExtension) ||
-        UhciExtension->HcScheduleError >= UHCI_MAX_HC_SCHEDULE_ERRORS)
+    if (!UhciHardwarePresent(UhciExtension))
     {
-       DPRINT1("UhciCheckController: INVALIDATE_CONTROLLER_SURPRISE_REMOVE !!!\n");
+        DPRINT1("UhciCheckController: controller not present -> SURPRISE_REMOVE\n");
+        RegPacket.UsbPortInvalidateController(UhciExtension,
+                                              USBPORT_INVALIDATE_CONTROLLER_SURPRISE_REMOVE);
+        return;
+    }
 
-       RegPacket.UsbPortInvalidateController(UhciExtension,
-                                             USBPORT_INVALIDATE_CONTROLLER_SURPRISE_REMOVE);
+    if (UhciExtension->HcScheduleError >= UHCI_MAX_HC_SCHEDULE_ERRORS)
+    {
+        DPRINT1("UhciCheckController: schedule errors=%lu (max=%lu) -> RESET\n",
+                UhciExtension->HcScheduleError,
+                (ULONG)UHCI_MAX_HC_SCHEDULE_ERRORS);
+
+        RegPacket.UsbPortInvalidateController(UhciExtension,
+                                              USBPORT_INVALIDATE_CONTROLLER_RESET);
     }
 }
 

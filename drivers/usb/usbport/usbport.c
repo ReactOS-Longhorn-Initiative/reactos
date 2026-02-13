@@ -630,12 +630,142 @@ USBPORT_SoftInterrupt(IN PDEVICE_OBJECT FdoDevice)
                &FdoExtension->SoftInterruptDpc);
 }
 
+typedef struct _USBPORT_INVALIDATE_WORK_ITEM
+{
+    WORK_QUEUE_ITEM WqItem;
+    PDEVICE_OBJECT FdoDevice;
+    ULONG Type;
+} USBPORT_INVALIDATE_WORK_ITEM, *PUSBPORT_INVALIDATE_WORK_ITEM;
+
+static
+VOID
+NTAPI
+USBPORT_InvalidateControllerWorker(IN PVOID Context)
+{
+    PUSBPORT_INVALIDATE_WORK_ITEM Item = (PUSBPORT_INVALIDATE_WORK_ITEM)Context;
+    PDEVICE_OBJECT LocalFdoDevice;
+    PUSBPORT_DEVICE_EXTENSION LocalFdoExtension;
+    PUSBPORT_REGISTRATION_PACKET LocalPacket;
+    KIRQL OldIrql;
+    ULONG InvalidateType;
+    ULONG MiniportStatus;
+    PLIST_ENTRY Entry;
+    PUSBPORT_DEVICE_HANDLE DeviceHandle;
+
+    LocalFdoDevice = Item->FdoDevice;
+    InvalidateType = Item->Type;
+    ExFreePoolWithTag(Item, USB_PORT_TAG);
+
+    LocalFdoExtension = LocalFdoDevice->DeviceExtension;
+    LocalPacket = &LocalFdoExtension->MiniPortInterface->Packet;
+
+    if (InvalidateType == USBPORT_INVALIDATE_CONTROLLER_SURPRISE_REMOVE)
+    {
+        DPRINT1("USBPORT_InvalidateControllerWorker: SURPRISE_REMOVE: stopping controller and flushing transfers\n");
+
+        /* Stop periodic work ASAP */
+        LocalFdoExtension->TimerFlags &= ~USBPORT_TMFLAG_TIMER_QUEUED;
+        KeCancelTimer(&LocalFdoExtension->TimerObject);
+
+        /* Mark controller failed so we stop accepting new work */
+        LocalFdoExtension->CommonExtension.PnpStateFlags |= USBPORT_PNP_STATE_FAILED;
+
+        /* Best-effort: disable interrupts and stop controller */
+        if (LocalFdoExtension->Flags & USBPORT_FLAG_INTERRUPT_ENABLED)
+        {
+            USBPORT_MiniportInterrupts(LocalFdoDevice, FALSE);
+        }
+
+        LocalPacket->StopController(LocalFdoExtension->MiniPortExt, 1);
+
+        /* Mark all device handles as removed to force DEVICE_GONE completions */
+        KeAcquireSpinLock(&LocalFdoExtension->DeviceHandleSpinLock, &OldIrql);
+        Entry = LocalFdoExtension->DeviceHandleList.Flink;
+        while (Entry && Entry != &LocalFdoExtension->DeviceHandleList)
+        {
+            DeviceHandle = CONTAINING_RECORD(Entry,
+                                             USBPORT_DEVICE_HANDLE,
+                                             DeviceHandleLink);
+            DeviceHandle->Flags |= DEVICE_HANDLE_FLAG_REMOVED;
+            Entry = Entry->Flink;
+        }
+        KeReleaseSpinLock(&LocalFdoExtension->DeviceHandleSpinLock, OldIrql);
+
+        /* Complete/cancel pending work */
+        USBPORT_NukeAllEndpoints(LocalFdoDevice);
+        USBPORT_FlushController(LocalFdoDevice);
+        USBPORT_BadRequestFlush(LocalFdoDevice);
+
+        /* Disconnect interrupt line */
+        if (LocalFdoExtension->Flags & USBPORT_FLAG_INT_CONNECTED)
+        {
+            IoDisconnectInterrupt(LocalFdoExtension->InterruptObject);
+            LocalFdoExtension->Flags &= ~USBPORT_FLAG_INT_CONNECTED;
+        }
+
+        /* Keep SURPRISE_REMOVED + INVALIDATE_QUEUED latched; it gates TimerDpc/ISR paths and prevents storms */
+    }
+    else if (InvalidateType == USBPORT_INVALIDATE_CONTROLLER_RESET)
+    {
+        DPRINT1("USBPORT_InvalidateControllerWorker: RESET: restarting controller and flushing transfers\n");
+
+        if (LocalFdoExtension->Flags & USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED)
+            goto Exit;
+
+        /* Stop talking to the controller */
+        if (LocalFdoExtension->Flags & USBPORT_FLAG_INTERRUPT_ENABLED)
+            USBPORT_MiniportInterrupts(LocalFdoDevice, FALSE);
+
+        LocalPacket->StopController(LocalFdoExtension->MiniPortExt, 1);
+
+        /* Make sure outstanding transfers are completed */
+        USBPORT_NukeAllEndpoints(LocalFdoDevice);
+        USBPORT_FlushController(LocalFdoDevice);
+        USBPORT_BadRequestFlush(LocalFdoDevice);
+
+        /* Restart miniport */
+        if (LocalPacket->MiniPortExtensionSize)
+            RtlZeroMemory(LocalFdoExtension->MiniPortExt, LocalPacket->MiniPortExtensionSize);
+
+        if (LocalPacket->MiniPortResourcesSize && LocalFdoExtension->UsbPortResources.StartVA)
+        {
+            RtlZeroMemory((PVOID)LocalFdoExtension->UsbPortResources.StartVA,
+                          LocalPacket->MiniPortResourcesSize);
+        }
+
+        LocalFdoExtension->UsbPortResources.IsChirpHandled = TRUE;
+        MiniportStatus = LocalPacket->StartController(LocalFdoExtension->MiniPortExt,
+                                                      &LocalFdoExtension->UsbPortResources);
+        LocalFdoExtension->UsbPortResources.IsChirpHandled = FALSE;
+
+        if (!MiniportStatus)
+        {
+            USBPORT_MiniportInterrupts(LocalFdoDevice, TRUE);
+        }
+        else
+        {
+            DPRINT1("USBPORT_InvalidateControllerWorker: RESET: StartController failed, status=%lx\n",
+                    MiniportStatus);
+            LocalFdoExtension->CommonExtension.PnpStateFlags |= USBPORT_PNP_STATE_FAILED;
+        }
+    }
+
+Exit:
+    /* Allow future invalidations (if any). For SURPRISE_REMOVE, keep INVALIDATE_QUEUED latched. */
+    if (InvalidateType != USBPORT_INVALIDATE_CONTROLLER_SURPRISE_REMOVE)
+    {
+        InterlockedAnd((PLONG)&LocalFdoExtension->Flags, ~USBPORT_FLAG_INVALIDATE_QUEUED);
+    }
+    InterlockedAnd((PLONG)&LocalFdoExtension->Flags, ~USBPORT_FLAG_CONTROLLER_RESETTING);
+}
+
 VOID
 NTAPI
 USBPORT_InvalidateControllerHandler(IN PDEVICE_OBJECT FdoDevice,
                                     IN ULONG Type)
 {
     PUSBPORT_DEVICE_EXTENSION FdoExtension;
+    LONG OldFlags;
 
     DPRINT_CORE("USBPORT_InvalidateControllerHandler: Invalidate Type - %x\n",
                 Type);
@@ -645,11 +775,78 @@ USBPORT_InvalidateControllerHandler(IN PDEVICE_OBJECT FdoDevice,
     switch (Type)
     {
         case USBPORT_INVALIDATE_CONTROLLER_RESET:
-            DPRINT1("USBPORT_InvalidateControllerHandler: INVALIDATE_CONTROLLER_RESET UNIMPLEMENTED. FIXME.\n");
+            if (FdoExtension->Flags & USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED)
+            {
+                DPRINT_CORE("USBPORT_InvalidateControllerHandler: RESET ignored (surprise removed)\n");
+                break;
+            }
+
+            /* Gate timer/periodic work and do the heavy reset at PASSIVE_LEVEL */
+            InterlockedOr((PLONG)&FdoExtension->Flags, USBPORT_FLAG_CONTROLLER_RESETTING);
+
+            OldFlags = InterlockedOr((PLONG)&FdoExtension->Flags, USBPORT_FLAG_INVALIDATE_QUEUED);
+            if (OldFlags & USBPORT_FLAG_INVALIDATE_QUEUED)
+                break;
+
+            {
+                PUSBPORT_INVALIDATE_WORK_ITEM Item;
+                Item = ExAllocatePoolWithTag(NonPagedPool, sizeof(*Item), USB_PORT_TAG);
+                if (!Item)
+                {
+                    DPRINT1("USBPORT_InvalidateControllerHandler: RESET: failed to allocate work item\n");
+                    InterlockedAnd((PLONG)&FdoExtension->Flags, ~USBPORT_FLAG_INVALIDATE_QUEUED);
+                    break;
+                }
+
+                RtlZeroMemory(Item, sizeof(*Item));
+                Item->WqItem.List.Flink = NULL;
+                Item->WqItem.WorkerRoutine = USBPORT_InvalidateControllerWorker;
+                Item->WqItem.Parameter = Item;
+                Item->FdoDevice = FdoDevice;
+                Item->Type = Type;
+
+                ExQueueWorkItem(&Item->WqItem, CriticalWorkQueue);
+            }
             break;
 
         case USBPORT_INVALIDATE_CONTROLLER_SURPRISE_REMOVE:
-            DPRINT1("USBPORT_InvalidateControllerHandler: INVALIDATE_CONTROLLER_SURPRISE_REMOVE UNIMPLEMENTED. FIXME.\n");
+            if (FdoExtension->Flags & USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED)
+            {
+                /* Already latched */
+                break;
+            }
+
+            /* Mark as removed and do teardown at PASSIVE_LEVEL */
+            InterlockedOr((PLONG)&FdoExtension->Flags, USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED);
+            FdoExtension->CommonExtension.PnpStateFlags |= USBPORT_PNP_STATE_FAILED;
+
+            /* Stop periodic controller work immediately (worker will also cancel) */
+            FdoExtension->TimerFlags &= ~USBPORT_TMFLAG_TIMER_QUEUED;
+            KeCancelTimer(&FdoExtension->TimerObject);
+
+            OldFlags = InterlockedOr((PLONG)&FdoExtension->Flags, USBPORT_FLAG_INVALIDATE_QUEUED);
+            if (OldFlags & USBPORT_FLAG_INVALIDATE_QUEUED)
+                break;
+
+            {
+                PUSBPORT_INVALIDATE_WORK_ITEM Item;
+                Item = ExAllocatePoolWithTag(NonPagedPool, sizeof(*Item), USB_PORT_TAG);
+                if (!Item)
+                {
+                    DPRINT1("USBPORT_InvalidateControllerHandler: SURPRISE_REMOVE: failed to allocate work item\n");
+                    InterlockedAnd((PLONG)&FdoExtension->Flags, ~USBPORT_FLAG_INVALIDATE_QUEUED);
+                    break;
+                }
+
+                RtlZeroMemory(Item, sizeof(*Item));
+                Item->WqItem.List.Flink = NULL;
+                Item->WqItem.WorkerRoutine = USBPORT_InvalidateControllerWorker;
+                Item->WqItem.Parameter = Item;
+                Item->FdoDevice = FdoDevice;
+                Item->Type = Type;
+
+                ExQueueWorkItem(&Item->WqItem, CriticalWorkQueue);
+            }
             break;
 
         case USBPORT_INVALIDATE_CONTROLLER_SOFT_INTERRUPT:
@@ -1618,6 +1815,13 @@ USBPORT_TimerDpc(IN PRKDPC Dpc,
                  FdoExtension->Flags,
                  TimerFlags);
 
+    /* If controller is invalidated, stop periodic controller work and just flush queues */
+    if (FdoExtension->Flags & USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED)
+    {
+        USBPORT_BadRequestFlush(FdoDevice);
+        goto Exit;
+    }
+
     if (FdoExtension->Flags & USBPORT_FLAG_HC_SUSPEND &&
         FdoExtension->Flags & USBPORT_FLAG_HC_WAKE_SUPPORT &&
         !(TimerFlags & USBPORT_TMFLAG_HC_RESUME))
@@ -1639,7 +1843,11 @@ USBPORT_TimerDpc(IN PRKDPC Dpc,
 
     if (!(FdoExtension->Flags & USBPORT_FLAG_HC_SUSPEND))
     {
-        Packet->CheckController(FdoExtension->MiniPortExt);
+        if (!(FdoExtension->Flags & (USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED |
+                                     USBPORT_FLAG_CONTROLLER_RESETTING)))
+        {
+            Packet->CheckController(FdoExtension->MiniPortExt);
+        }
     }
 
     KeReleaseSpinLock(&FdoExtension->MiniportSpinLock, OldIrql);
@@ -1692,7 +1900,8 @@ Exit:
 
     KeReleaseSpinLock(&FdoExtension->TimerFlagsSpinLock, TimerOldIrql);
 
-    if (TimerFlags & USBPORT_TMFLAG_TIMER_QUEUED)
+    if ((TimerFlags & USBPORT_TMFLAG_TIMER_QUEUED) &&
+        !(FdoExtension->Flags & USBPORT_FLAG_CONTROLLER_SURPRISE_REMOVED))
     {
         DueTime.QuadPart -= FdoExtension->TimerValue * 10000 +
                             (KeQueryTimeIncrement() - 1);

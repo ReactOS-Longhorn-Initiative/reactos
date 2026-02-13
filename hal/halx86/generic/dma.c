@@ -793,13 +793,17 @@ HalGetAdapter(IN PDEVICE_DESCRIPTION DeviceDescription,
         MapRegisters = BYTES_TO_PAGES(MaximumLength) + 1;
         if (MapRegisters > 16) MapRegisters = 16;
 
-        if (!HalpEisaDma) 
-        {
-            if (MapRegisters > ((HalpMasterAdapter.InitialMapRegistersBufferLength / PAGE_SIZE) / 2))
-            {
-                MapRegisters = (HalpMasterAdapter.InitialMapRegistersBufferLength / PAGE_SIZE) / 2;
-            }
-        }
+        /*
+         * Do not artificially cap the per-channel map register request based on
+         * the size of the *initial* map register buffer.
+         *
+         * The master adapter can grow its map register pool on demand
+         * (see HalpGrowMapBuffers + the queued allocation path in
+         * HalAllocateAdapterChannel). Capping here to half the initial pool
+         * makes perfectly valid transfers fail with STATUS_INSUFFICIENT_RESOURCES
+         * even though the pool is growable (e.g. 64KB transfer -> 16 map regs,
+         * initial pool is 16 pages but old code capped to 8).
+         */
     }
 
     /*
