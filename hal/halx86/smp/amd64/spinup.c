@@ -97,6 +97,9 @@ HalStartNextProcessor(
 
     if (HalpStartedProcessorCount == HalpApicInfoTable.ProcessorCount)
         return FALSE;
+    /* Max CPU count artifical limit */
+    if (HalpStartedProcessorCount >= 4)
+        return FALSE;
 
     /* Clean up low stub from any previous data */
     RtlZeroMemory(HalpLowStub, HALP_LOW_STUB_SIZE_IN_PAGES * PAGE_SIZE);
