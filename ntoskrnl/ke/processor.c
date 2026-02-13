@@ -19,6 +19,17 @@ KAFFINITY KeActiveProcessors = 0;
 CCHAR KeNumberProcessors = 0;
 
 #ifdef CONFIG_SMP
+/*
+ * Lightweight SMP instrumentation (disabled by default).
+ * Enable with "SMPSTATS" in the kernel command line.
+ */
+BOOLEAN KiSmpStatsEnabled = FALSE;
+volatile LONGLONG KiIpiApcSendCount = 0;
+volatile LONGLONG KiIpiDpcSendCount = 0;
+volatile LONGLONG KiIpiFreezeSendCount = 0;
+#endif
+
+#ifdef CONFIG_SMP
 
 /* Theoretical maximum number of processors that can be handled.
  * Set once at run-time. Returned by KeQueryMaximumProcessorCount(). */

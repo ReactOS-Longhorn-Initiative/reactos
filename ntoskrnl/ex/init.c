@@ -16,6 +16,10 @@
 #define NDEBUG
 #include <debug.h>
 
+#ifdef CONFIG_SMP
+extern BOOLEAN KiSmpStatsEnabled;
+#endif
+
 /* This is the size that we can expect from the win 2003 loader */
 #define LOADER_PARAMETER_EXTENSION_MIN_SIZE \
     RTL_SIZEOF_THROUGH_FIELD(LOADER_PARAMETER_EXTENSION, AcpiTableSize)
@@ -1595,6 +1599,10 @@ Phase1InitializationDiscard(IN PVOID Context)
          * as existing the maximum number of processors that can be handled */
         if (strstr(CommandLine, "MAXPROC"))
             KeMaximumProcessors = MAXIMUM_PROCESSORS;
+
+        /* Enable lightweight SMP instrumentation */
+        if (strstr(CommandLine, "SMPSTATS"))
+            KiSmpStatsEnabled = TRUE;
     }
 
     /* Start Application Processors */

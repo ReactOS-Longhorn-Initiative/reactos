@@ -11,6 +11,13 @@
 #define NDEBUG
 #include <debug.h>
 
+#ifdef CONFIG_SMP
+extern BOOLEAN KiSmpStatsEnabled;
+extern volatile LONGLONG KiIpiApcSendCount;
+extern volatile LONGLONG KiIpiDpcSendCount;
+extern volatile LONGLONG KiIpiFreezeSendCount;
+#endif
+
 /* GLOBALS ***/
 
 KSPIN_LOCK KiIpiSpinLock;
@@ -211,6 +218,15 @@ KiIpiSend(
     _In_ KAFFINITY TargetSet,
     _In_ ULONG IpiRequest)
 {
+#ifdef CONFIG_SMP
+    if (KiSmpStatsEnabled)
+    {
+        if (IpiRequest == IPI_APC) InterlockedIncrement64(&KiIpiApcSendCount);
+        else if (IpiRequest == IPI_DPC) InterlockedIncrement64(&KiIpiDpcSendCount);
+        else if (IpiRequest == IPI_FREEZE) InterlockedIncrement64(&KiIpiFreezeSendCount);
+    }
+#endif
+
     /* Check if we can send the IPI directly */
     if (IpiRequest == IPI_APC)
     {

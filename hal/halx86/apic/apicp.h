@@ -116,7 +116,15 @@ typedef enum _APIC_REGISTER
 #define MSR_APIC_BASE 0x0000001B
 #define IOAPIC_PHYS_BASE 0xFEC00000
 #define APIC_CLOCK_INDEX 8
-#define ApicLogicalId(Cpu) ((UCHAR)(1<< Cpu))
+/*
+ * Flat logical mode uses an 8-bit bitmap. Older code assumed <= 8 CPUs and
+ * used (1 << Cpu), which becomes undefined/zero for Cpu >= 8.
+ *
+ * We mask the CPU index to keep a non-zero logical ID even on larger systems.
+ * On systems with > 8 CPUs, the APIC HAL should avoid relying on flat logical
+ * routing (see physical routing fallback in apic.c).
+ */
+#define ApicLogicalId(Cpu) ((UCHAR)(1u << ((Cpu) & 7)))
 
 /* The following definitions are based on AMD documentation.
    They differ slightly in Intel documentation. */
