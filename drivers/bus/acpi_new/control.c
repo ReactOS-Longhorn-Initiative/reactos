@@ -257,13 +257,23 @@ AcpiNewResolvePciLinkGsi(
     uacpi_status st;
     uacpi_resource *res;
     uacpi_size offset;
+    static BOOLEAN gLinkGetResourcesFailLogged;
+    static BOOLEAN gLinkNoIrqLogged;
 
     if (!Out)
         return STATUS_INVALID_PARAMETER;
 
     st = uacpi_get_current_resources(Link, &resources);
     if (uacpi_unlikely_error(st) || !resources || !resources->entries)
+    {
+        if (!gLinkGetResourcesFailLogged)
+        {
+            DPRINT1("acpi_new: _PRT link get resources failed: st=%s idx=%lu\n",
+                    uacpi_status_to_string(st), SourceIndex);
+            gLinkGetResourcesFailLogged = TRUE;
+        }
         return STATUS_UNSUCCESSFUL;
+    }
 
     res = resources->entries;
     offset = 0;
@@ -275,7 +285,7 @@ AcpiNewResolvePciLinkGsi(
             uacpi_resource_extended_irq *irq = &res->extended_irq;
             ULONG idx = SourceIndex;
             if (irq->num_irqs == 0)
-                break;
+                goto NextResource;
 
             if (idx >= irq->num_irqs)
                 idx = 0;
@@ -294,7 +304,7 @@ AcpiNewResolvePciLinkGsi(
             uacpi_resource_irq *irq = &res->irq;
             ULONG idx = SourceIndex;
             if (irq->num_irqs == 0)
-                break;
+                goto NextResource;
 
             if (idx >= irq->num_irqs)
                 idx = 0;
@@ -309,11 +319,19 @@ AcpiNewResolvePciLinkGsi(
             return STATUS_SUCCESS;
         }
 
+NextResource:
+        if (res->length == 0)
+            break;
         offset += res->length;
         res = UACPI_NEXT_RESOURCE(res);
     }
 
     uacpi_free_resources(resources);
+    if (!gLinkNoIrqLogged)
+    {
+        DPRINT1("acpi_new: _PRT link has no IRQ resources (idx=%lu)\n", SourceIndex);
+        gLinkNoIrqLogged = TRUE;
+    }
     return STATUS_NOT_FOUND;
 }
 
@@ -323,6 +341,18 @@ typedef struct _ACPI_NEW_PCI_BUS_LOOKUP
     ULONG Bus;
     uacpi_namespace_node *Node;
 } ACPI_NEW_PCI_BUS_LOOKUP, *PACPI_NEW_PCI_BUS_LOOKUP;
+
+typedef struct _ACPI_NEW_PCI_IRQ_ROUTE_CTX
+{
+    const ACPI_PCI_IRQ_ROUTE_INPUT *In;
+    ACPI_PCI_IRQ_ROUTE_OUTPUT *Out;
+    uacpi_namespace_node *BestNode;
+    NTSTATUS Status;
+    BOOLEAN FoundRoute;
+    ULONG Candidates;
+    BOOLEAN LogCandidates;
+    ULONG LoggedCandidates;
+} ACPI_NEW_PCI_IRQ_ROUTE_CTX, *PACPI_NEW_PCI_IRQ_ROUTE_CTX;
 
 static uacpi_iteration_decision
 AcpiNewFindPciBusCb(void *user, uacpi_namespace_node *node, uacpi_u32 depth)
@@ -355,6 +385,110 @@ AcpiNewFindPciBusCb(void *user, uacpi_namespace_node *node, uacpi_u32 depth)
     return UACPI_ITERATION_DECISION_BREAK;
 }
 
+static uacpi_iteration_decision
+AcpiNewFindPciIrqRouteNodeCb(void *user, uacpi_namespace_node *node, uacpi_u32 depth)
+{
+    PACPI_NEW_PCI_IRQ_ROUTE_CTX ctx = (PACPI_NEW_PCI_IRQ_ROUTE_CTX)user;
+    uacpi_u64 seg = 0, bbn = 0;
+    uacpi_status st;
+    uacpi_pci_routing_table *table = NULL;
+    ULONG reqPin;
+    ULONG i;
+
+    UNREFERENCED_PARAMETER(depth);
+
+    if (!ctx || !ctx->In || !ctx->Out)
+        return UACPI_ITERATION_DECISION_CONTINUE;
+
+    if (ctx->FoundRoute)
+        return UACPI_ITERATION_DECISION_BREAK;
+
+    st = uacpi_eval_simple_integer(node, "_SEG", &seg);
+    if (uacpi_unlikely_error(st))
+        seg = 0;
+
+    st = uacpi_eval_simple_integer(node, "_BBN", &bbn);
+    if (uacpi_unlikely_error(st))
+        bbn = 0;
+
+    if ((ULONG)seg != ctx->In->Segment || (ULONG)bbn != ctx->In->Bus)
+        return UACPI_ITERATION_DECISION_CONTINUE;
+
+    ctx->Candidates++;
+    ctx->BestNode = node;
+
+    st = uacpi_get_pci_routing_table(node, &table);
+    if (uacpi_unlikely_error(st) || !table)
+    {
+        if (ctx->LogCandidates && ctx->LoggedCandidates < 8)
+        {
+            const uacpi_char *abs = uacpi_namespace_node_generate_absolute_path(node);
+            DPRINT1("acpi_new: _PRT candidate[%lu] %s: get_pci_routing_table=%s\n",
+                    ctx->LoggedCandidates,
+                    abs ? abs : "<oom>",
+                    uacpi_status_to_string(st));
+            if (abs)
+                uacpi_free_absolute_path(abs);
+            ctx->LoggedCandidates++;
+        }
+        return UACPI_ITERATION_DECISION_CONTINUE;
+    }
+    else if (ctx->LogCandidates && ctx->LoggedCandidates < 8)
+    {
+        const uacpi_char *abs = uacpi_namespace_node_generate_absolute_path(node);
+        DPRINT1("acpi_new: _PRT candidate[%lu] %s: entries=%lu\n",
+                ctx->LoggedCandidates,
+                abs ? abs : "<oom>",
+                (ULONG)table->num_entries);
+        if (abs)
+            uacpi_free_absolute_path(abs);
+        ctx->LoggedCandidates++;
+    }
+
+    /* uACPI uses 0..3 pin encoding for INTA..INTD */
+    reqPin = ctx->In->Pin - 1;
+
+    for (i = 0; i < (ULONG)table->num_entries; i++)
+    {
+        const uacpi_pci_routing_table_entry *e = &table->entries[i];
+        ULONG eDev = (e->address >> 16) & 0xFFFF;
+        ULONG eFun = (e->address & 0xFFFF);
+
+        if (e->pin != reqPin)
+            continue;
+        if (eDev != ctx->In->Device)
+            continue;
+        if (!(eFun == ctx->In->Function || eFun == 0xFFFF || ((ctx->In->Function != 0) && (eFun == 0))))
+            continue;
+
+        if (!e->source)
+        {
+            ctx->Out->Gsi = e->index;
+            ctx->Out->Triggering = UACPI_TRIGGERING_LEVEL;
+            ctx->Out->Polarity = UACPI_POLARITY_ACTIVE_LOW;
+            ctx->Out->Sharing = UACPI_SHARED;
+            ctx->Status = STATUS_SUCCESS;
+            ctx->FoundRoute = TRUE;
+            break;
+        }
+        else
+        {
+            NTSTATUS status;
+            status = AcpiNewResolvePciLinkGsi(e->source, e->index, ctx->Out);
+            ctx->Status = status;
+            ctx->FoundRoute = NT_SUCCESS(status);
+            break;
+        }
+    }
+
+    uacpi_free_pci_routing_table(table);
+
+    if (ctx->FoundRoute)
+        return UACPI_ITERATION_DECISION_BREAK;
+
+    return UACPI_ITERATION_DECISION_CONTINUE;
+}
+
 static
 NTSTATUS
 AcpiNewQueryPciIrqRoute(
@@ -364,12 +498,18 @@ AcpiNewQueryPciIrqRoute(
     static BOOLEAN gPrtNoTableLogged;
     static BOOLEAN gPrtRouteNotFoundLogged;
     static BOOLEAN gPrtLinkResolveFailedLogged;
+    static BOOLEAN gPrtBusNodeNotFoundLogged;
+    static BOOLEAN gPrtGetTableFailLogged;
+    static BOOLEAN gPrtMultiNodeLogged;
+    static BOOLEAN gPrtMultiNodeCandidatesLogged;
     static const uacpi_char *const hids[] = { "PNP0A08", "PNP0A03", UACPI_NULL };
     ACPI_NEW_PCI_BUS_LOOKUP lookup;
+    ACPI_NEW_PCI_IRQ_ROUTE_CTX ctx;
     uacpi_pci_routing_table *table = NULL;
     uacpi_status st;
     ULONG i;
     ULONG reqPin;
+    ULONG entryCount = 0;
 
     if (!In || !Out)
         return STATUS_INVALID_PARAMETER;
@@ -385,17 +525,59 @@ AcpiNewQueryPciIrqRoute(
 
     RtlZeroMemory(Out, sizeof(*Out));
 
+    /*
+     * First try to find a route by probing all matching PNP0A0{8,3} nodes.
+     * Some firmware exposes multiple nodes with the same _SEG/_BBN, and only
+     * one contains the relevant _PRT for the devices we query.
+     */
+    RtlZeroMemory(&ctx, sizeof(ctx));
+    ctx.In = In;
+    ctx.Out = Out;
+    ctx.BestNode = NULL;
+    ctx.Status = STATUS_NOT_FOUND;
+    ctx.FoundRoute = FALSE;
+    ctx.Candidates = 0;
+    ctx.LogCandidates = !gPrtMultiNodeCandidatesLogged;
+    ctx.LoggedCandidates = 0;
+
+    st = uacpi_find_devices_at(uacpi_namespace_root(), hids, AcpiNewFindPciIrqRouteNodeCb, &ctx);
+    if (ctx.Candidates > 1 && !gPrtMultiNodeLogged)
+    {
+        DPRINT1("acpi_new: multiple PNP0A0x nodes for seg=%lu bus=%lu (candidates=%lu)\n",
+                In->Segment, In->Bus, ctx.Candidates);
+        gPrtMultiNodeLogged = TRUE;
+    }
+    if (ctx.Candidates > 1)
+        gPrtMultiNodeCandidatesLogged = TRUE;
+    if (ctx.FoundRoute)
+        return ctx.Status;
+
+    /* Fall back to the historical single-node selection for diagnostics. */
     lookup.Segment = In->Segment;
     lookup.Bus = In->Bus;
     lookup.Node = NULL;
 
     st = uacpi_find_devices_at(uacpi_namespace_root(), hids, AcpiNewFindPciBusCb, &lookup);
     if (uacpi_unlikely_error(st) || !lookup.Node)
+    {
+        if (!gPrtBusNodeNotFoundLogged)
+        {
+            DPRINT1("acpi_new: _PRT bus node not found: seg=%lu bus=%lu (find=%s)\n",
+                    In->Segment, In->Bus, uacpi_status_to_string(st));
+            gPrtBusNodeNotFoundLogged = TRUE;
+        }
         return STATUS_NOT_FOUND;
+    }
 
     st = uacpi_get_pci_routing_table(lookup.Node, &table);
     if (uacpi_unlikely_error(st) || !table)
     {
+        if (!gPrtGetTableFailLogged)
+        {
+            DPRINT1("acpi_new: _PRT get table failed: seg=%lu bus=%lu st=%s\n",
+                    In->Segment, In->Bus, uacpi_status_to_string(st));
+            gPrtGetTableFailLogged = TRUE;
+        }
         if (!gPrtNoTableLogged)
         {
             DPRINT1("acpi_new: _PRT query failed: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu (no table)\n",
@@ -405,8 +587,19 @@ AcpiNewQueryPciIrqRoute(
         return STATUS_NOT_FOUND;
     }
 
+    entryCount = (ULONG)table->num_entries;
+
     /* uACPI uses 0..3 pin encoding for INTA..INTD */
     reqPin = In->Pin - 1;
+
+    /*
+     * Some firmware encodes _PRT entries with Function=0 even when routing applies
+     * to all functions of a device. Prefer exact/wildcard matches, but allow a
+     * conservative fallback to Function=0 if nothing else matches.
+     */
+    const uacpi_pci_routing_table_entry *fallbackFun0 = NULL;
+    BOOLEAN sawDevPin = FALSE;
+    static BOOLEAN gPrtDumpedFirstTable;
 
     for (i = 0; i < (ULONG)table->num_entries; i++)
     {
@@ -420,8 +613,15 @@ AcpiNewQueryPciIrqRoute(
         if (eDev != In->Device)
             continue;
 
+        sawDevPin = TRUE;
+
         if (!(eFun == In->Function || eFun == 0xFFFF))
+        {
+            /* Candidate fallback: only if firmware uses Function=0. */
+            if (!fallbackFun0 && (In->Function != 0) && (eFun == 0))
+                fallbackFun0 = e;
             continue;
+        }
 
         /* Direct GSI */
         if (!e->source)
@@ -452,11 +652,67 @@ AcpiNewQueryPciIrqRoute(
         }
     }
 
+    /* Retry with a conservative Function=0 fallback if present */
+    if (fallbackFun0)
+    {
+        const uacpi_pci_routing_table_entry *e = fallbackFun0;
+
+        /* Direct GSI */
+        if (!e->source)
+        {
+            Out->Gsi = e->index;
+            Out->Triggering = UACPI_TRIGGERING_LEVEL;
+            Out->Polarity = UACPI_POLARITY_ACTIVE_LOW;
+            Out->Sharing = UACPI_SHARED;
+            uacpi_free_pci_routing_table(table);
+            return STATUS_SUCCESS;
+        }
+
+        /* Link device */
+        {
+            NTSTATUS status;
+            status = AcpiNewResolvePciLinkGsi(e->source, e->index, Out);
+            if (!NT_SUCCESS(status))
+            {
+                if (!gPrtLinkResolveFailedLogged)
+                {
+                    DPRINT1("acpi_new: _PRT link resolve failed: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu status=0x%08lx\n",
+                            In->Segment, In->Bus, In->Device, In->Function, In->Pin, status);
+                    gPrtLinkResolveFailedLogged = TRUE;
+                }
+            }
+            uacpi_free_pci_routing_table(table);
+            return status;
+        }
+    }
+
+    /* If we didn't even see a matching device+pin, dump the table once to diagnose firmware encoding. */
+    if (!sawDevPin && !gPrtDumpedFirstTable)
+    {
+        ULONG n = entryCount;
+        if (n > 16)
+            n = 16;
+
+        DPRINT1("acpi_new: _PRT dump (first %lu/%lu entries) for seg=%lu bus=%lu request dev=%lu fun=%lu pin=%lu:\n",
+                n, entryCount, In->Segment, In->Bus, In->Device, In->Function, In->Pin);
+
+        for (i = 0; i < n; i++)
+        {
+            const uacpi_pci_routing_table_entry *e = &table->entries[i];
+            ULONG eDev = (e->address >> 16) & 0xFFFF;
+            ULONG eFun = (e->address & 0xFFFF);
+            DPRINT1("acpi_new:  _PRT[%lu]: addr=0x%08lx dev=%lu fun=%lu pin=%lu src=%p idx=%lu\n",
+                    i, (ULONG)e->address, eDev, eFun, (ULONG)e->pin, e->source, (ULONG)e->index);
+        }
+
+        gPrtDumpedFirstTable = TRUE;
+    }
+
     uacpi_free_pci_routing_table(table);
     if (!gPrtRouteNotFoundLogged)
     {
-        DPRINT1("acpi_new: _PRT route not found: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu\n",
-                In->Segment, In->Bus, In->Device, In->Function, In->Pin);
+        DPRINT1("acpi_new: _PRT route not found: seg=%lu bus=%lu dev=%lu fun=%lu pin=%lu (entries=%lu devpin=%u)\n",
+                In->Segment, In->Bus, In->Device, In->Function, In->Pin, entryCount, (UINT32)sawDevPin);
         gPrtRouteNotFoundLogged = TRUE;
     }
     return STATUS_NOT_FOUND;

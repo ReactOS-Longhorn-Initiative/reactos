@@ -1122,11 +1122,8 @@ PdoQueryResourceRequirements(
         {
             ACPI_PCI_IRQ_ROUTE_OUTPUT route;
             NTSTATUS RouteStatus;
-
-            Descriptor->Option = 0; /* Required */
-            Descriptor->Type = CmResourceTypeInterrupt;
-            Descriptor->ShareDisposition = CmResourceShareShared;
-            Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+            ULONG Vector;
+            BOOLEAN HaveVector = FALSE;
 
             RtlZeroMemory(&route, sizeof(route));
             RouteStatus = PciQueryAcpiPciIrqRouteSwizzleToRoot(DeviceExtension->PciDevice->BusNumber,
@@ -1135,6 +1132,47 @@ PdoQueryResourceRequirements(
                                                               &route);
             if (NT_SUCCESS(RouteStatus))
             {
+                Vector = route.Gsi;
+                HaveVector = TRUE;
+            }
+            else if ((PciConfig.u.type0.InterruptLine != 0) && (PciConfig.u.type0.InterruptLine != 0xFF))
+            {
+                /* Legacy INTx line as a last-resort fallback. */
+                Vector = PciConfig.u.type0.InterruptLine;
+                HaveVector = TRUE;
+            }
+            else
+            {
+                /* No valid routing information. Do NOT advertise 0..0xFF; PnP may assign IRQ 0. */
+                HaveVector = FALSE;
+            }
+
+            if (!HaveVector)
+            {
+                /* Drop the interrupt requirement descriptor (keep list allocation as-is). */
+                ResourceList->List[0].Count--;
+
+                /* Log useful context for debugging xHCI/USB early-boot issues. */
+                if ((PciConfig.BaseClass == PCI_CLASS_SERIAL_BUS_CTLR) &&
+                    (PciConfig.SubClass == 0x03 /* USB */))
+                {
+                    DPRINT1("PCI: no usable INTx route for USB controller (bus=%lu dev=%lu fun=%lu pin=%lu intline=0x%x status=0x%08lx progif=0x%x)\n",
+                            DeviceExtension->PciDevice->BusNumber,
+                            DeviceExtension->PciDevice->SlotNumber.u.bits.DeviceNumber,
+                            DeviceExtension->PciDevice->SlotNumber.u.bits.FunctionNumber,
+                            PciConfig.u.type0.InterruptPin,
+                            PciConfig.u.type0.InterruptLine,
+                            RouteStatus,
+                            PciConfig.ProgIf);
+                }
+            }
+            else
+            {
+                Descriptor->Option = 0; /* Required */
+                Descriptor->Type = CmResourceTypeInterrupt;
+                Descriptor->ShareDisposition = CmResourceShareShared;
+                Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+
                 /*
                  * PCI INTx is level-sensitive and shareable.
                  * Some firmware reports link resources as edge/exclusive, which breaks
@@ -1143,14 +1181,9 @@ PdoQueryResourceRequirements(
                  */
                 Descriptor->ShareDisposition = CmResourceShareShared;
                 Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
-                Descriptor->u.Interrupt.MinimumVector = route.Gsi;
-                Descriptor->u.Interrupt.MaximumVector = route.Gsi;
-            }
-
-            if (!NT_SUCCESS(RouteStatus))
-            {
-                Descriptor->u.Interrupt.MinimumVector = 0;
-                Descriptor->u.Interrupt.MaximumVector = 0xFF;
+                Descriptor->u.Interrupt.MinimumVector = Vector;
+                Descriptor->u.Interrupt.MaximumVector = Vector;
+                Descriptor++;
             }
         }
     }
