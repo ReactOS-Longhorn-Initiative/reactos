@@ -15,6 +15,7 @@
 
 #include <hal.h>
 #include "apicp.h"
+#include <smp.h>
 #include <intrin.h>
 #define NDEBUG
 #include <debug.h>
@@ -30,6 +31,61 @@ UCHAR HalpVectorToIndex[256];
 static UCHAR HalpBspApicId;
 static BOOLEAN HalpBspApicIdInitialized;
 static BOOLEAN HalpLocalApicMapped;
+
+/* Round-robin seed for physical IRQ routing on > 8 CPU systems */
+static volatile LONG HalpPhysicalIrqRoutingSeed;
+static
+FORCEINLINE
+BOOLEAN
+HalpShouldUsePhysicalIrqRouting(VOID)
+{
+    /* Flat logical mode only supports 8 destination bits */
+    return ((KeQueryActiveProcessors() & ~0xFF) != 0);
+}
+
+static
+UCHAR
+HalpPickPhysicalDestinationApicId(VOID)
+{
+    KAFFINITY Affinity, RemainingSet;
+    ULONG Cpu, Count, Choice;
+    UCHAR ApicId;
+
+    /* Pick from active processors and the default interrupt affinity */
+    Affinity = KeQueryActiveProcessors();
+    Affinity &= HalpDefaultInterruptAffinity;
+    if (Affinity == 0) Affinity = KeQueryActiveProcessors();
+    if (Affinity == 0) return HalpBspApicId;
+
+    /* Count set bits */
+    RemainingSet = Affinity;
+    Count = 0;
+    while (RemainingSet)
+    {
+        NT_VERIFY(BitScanForwardAffinity(&Cpu, RemainingSet) != FALSE);
+        RemainingSet &= ~AFFINITY_MASK(Cpu);
+        Count++;
+    }
+    if (Count == 0) return HalpBspApicId;
+
+    Choice = (ULONG)InterlockedIncrement(&HalpPhysicalIrqRoutingSeed) % Count;
+
+    /* Select the Nth processor */
+    RemainingSet = Affinity;
+    while (RemainingSet)
+    {
+        NT_VERIFY(BitScanForwardAffinity(&Cpu, RemainingSet) != FALSE);
+        RemainingSet &= ~AFFINITY_MASK(Cpu);
+
+        if (Choice-- == 0)
+        {
+            ApicId = HalpProcessorIdentity[Cpu].LapicId;
+            return ApicId ? ApicId : HalpBspApicId;
+        }
+    }
+
+    return HalpBspApicId;
+}
 
 static
 FORCEINLINE
@@ -444,15 +500,29 @@ HalpAllocateSystemInterrupt(
 
     /* Setup a redirection entry */
     ReDirReg.Vector = Vector;
-    ReDirReg.MessageType = APIC_MT_LowestPriority;
-    ReDirReg.DestinationMode = APIC_DM_Logical;
+    if (HalpShouldUsePhysicalIrqRouting())
+    {
+        /*
+         * Flat logical mode only supports 8 destination bits.
+         * On larger systems, route IOAPIC interrupts in physical mode to a
+         * specific APIC ID (best-effort round-robin at enable time).
+         */
+        ReDirReg.MessageType = APIC_MT_Fixed;
+        ReDirReg.DestinationMode = APIC_DM_Physical;
+        ReDirReg.Destination = HalpPickPhysicalDestinationApicId();
+    }
+    else
+    {
+        ReDirReg.MessageType = APIC_MT_LowestPriority;
+        ReDirReg.DestinationMode = APIC_DM_Logical;
+        ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
+    }
     ReDirReg.DeliveryStatus = 0;
     ReDirReg.Polarity = 0;
     ReDirReg.RemoteIRR = 0;
     ReDirReg.TriggerMode = APIC_TGM_Edge;
     ReDirReg.Mask = 1;
     ReDirReg.Reserved = 0;
-    ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
 
     /* Initialize entry */
     ApicWriteIORedirectionEntry(Irq, ReDirReg);
@@ -785,10 +855,20 @@ HalEnableSystemInterrupt(
     }
     else
     {
-        /* xAPIC flat logical mode: distribute across CPUs */
-        ReDirReg.MessageType = APIC_MT_LowestPriority;
-        ReDirReg.DestinationMode = APIC_DM_Logical;
-        ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
+        if (HalpShouldUsePhysicalIrqRouting())
+        {
+            /* Physical routing fallback for > 8 CPUs */
+            ReDirReg.MessageType = APIC_MT_Fixed;
+            ReDirReg.DestinationMode = APIC_DM_Physical;
+            ReDirReg.Destination = HalpPickPhysicalDestinationApicId();
+        }
+        else
+        {
+            /* xAPIC flat logical mode: distribute across CPUs */
+            ReDirReg.MessageType = APIC_MT_LowestPriority;
+            ReDirReg.DestinationMode = APIC_DM_Logical;
+            ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
+        }
     }
     ReDirReg.TriggerMode = (InterruptMode == LevelSensitive) ?
         APIC_TGM_Level : APIC_TGM_Edge;

@@ -12,6 +12,13 @@
 #define NDEBUG
 #include <debug.h>
 
+#ifdef CONFIG_SMP
+extern BOOLEAN KiSmpStatsEnabled;
+extern volatile LONGLONG KiIpiApcSendCount;
+extern volatile LONGLONG KiIpiDpcSendCount;
+extern volatile LONGLONG KiIpiFreezeSendCount;
+#endif
+
 /* GLOBALS ********************************************************************/
 
 LONG KiTickOffset;
@@ -127,6 +134,35 @@ KeUpdateSystemTime(IN PKTRAP_FRAME TrapFrame,
 
         /* Update processor/thread runtime */
         KeUpdateRunTime(TrapFrame, Irql);
+
+#ifdef CONFIG_SMP
+        /*
+         * Lightweight SMP stats: print once in a while from the BSP.
+         * Enable with "SMPSTATS" in the kernel command line.
+         */
+        if (KiSmpStatsEnabled && (KeGetCurrentProcessorNumber() == 0))
+        {
+            static ULONG LastTick;
+            static LONGLONG LastApc, LastDpc, LastFreeze;
+            ULONG Tick = KeTickCount.LowPart;
+            if ((Tick - LastTick) >= 64) /* ~1s at 15.6ms tick */
+            {
+                LONGLONG Apc = KiIpiApcSendCount;
+                LONGLONG Dpc = KiIpiDpcSendCount;
+                LONGLONG Freeze = KiIpiFreezeSendCount;
+
+                DPRINT1("SMPSTATS: ipi/apc=%I64d (+%I64d) ipi/dpc=%I64d (+%I64d) ipi/freeze=%I64d (+%I64d)\n",
+                        Apc, Apc - LastApc,
+                        Dpc, Dpc - LastDpc,
+                        Freeze, Freeze - LastFreeze);
+
+                LastTick = Tick;
+                LastApc = Apc;
+                LastDpc = Dpc;
+                LastFreeze = Freeze;
+            }
+        }
+#endif
     }
     else
     {

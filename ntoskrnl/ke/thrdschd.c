@@ -181,6 +181,7 @@ KiSelectNextProcessor(
     KAFFINITY PreferredSet, IdleSet;
     ULONG CurrentProcessor;
     ULONG Processor;
+    PKPRCB CurrentPrcb;
 
     /*
      * Start with the affinity.
@@ -194,13 +195,32 @@ KiSelectNextProcessor(
      * However, do not apply this to brand-new threads which have not yet run;
      * those should still be allowed to spread to idle CPUs for parallelism.
      */
-    PreferredSet = Thread->Affinity;
+    PreferredSet = Thread->Affinity & KeActiveProcessors;
 
     /*
      * Prefer any idle processor (i.e. "not doing anything") first.
      * This matches the typical expectation for maximizing throughput.
      */
     CurrentProcessor = KeGetCurrentProcessorNumber();
+    CurrentPrcb = KeGetCurrentPrcb();
+
+    /*
+     * Avoid migration ping-pong:
+     * If the current CPU is already running non-idle work and has no ready
+     * backlog (so the newly-readied thread can be dispatched immediately),
+     * keep it local even if other CPUs are idle. This improves single-thread
+     * heavy workloads where frequent waits/unwaits would otherwise bounce the
+     * thread across idle CPUs, causing excessive IPIs/cache misses.
+     */
+    if ((CurrentProcessor < KeNumberProcessors) &&
+        (PreferredSet & AFFINITY_MASK(CurrentProcessor)) &&
+        (CurrentPrcb->CurrentThread != CurrentPrcb->IdleThread) &&
+        (CurrentPrcb->NextThread == NULL) &&
+        (CurrentPrcb->ReadySummary == 0))
+    {
+        return CurrentProcessor;
+    }
+
     IdleSet = PreferredSet & KiIdleSummary;
     if (IdleSet != 0)
     {
