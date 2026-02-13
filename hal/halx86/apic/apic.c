@@ -15,6 +15,7 @@
 
 #include <hal.h>
 #include "apicp.h"
+#include <intrin.h>
 #define NDEBUG
 #include <debug.h>
 
@@ -26,6 +27,77 @@
 
 ULONG ApicVersion;
 UCHAR HalpVectorToIndex[256];
+static UCHAR HalpBspApicId;
+static BOOLEAN HalpBspApicIdInitialized;
+static BOOLEAN HalpLocalApicMapped;
+
+static
+FORCEINLINE
+UCHAR
+HalpGetIoApicLogicalDestinationMask(VOID)
+{
+    /*
+     * Flat logical mode: I/O APIC destination field is an 8-bit bitmap.
+     * This HAL programs each CPU's LDR as (1 << Cpu) << 24, so CPUs 0-7 map to bits 0-7.
+     */
+    KAFFINITY Affinity = HalpDefaultInterruptAffinity;
+    UCHAR Mask = 0;
+    ULONG Cpu;
+
+    if (Affinity == 0)
+        Affinity = 1;
+
+    for (Cpu = 0; Cpu < 8; Cpu++)
+    {
+        if (Affinity & ((KAFFINITY)1 << Cpu))
+            Mask |= (UCHAR)(1u << Cpu);
+    }
+
+    if (Mask == 0)
+        Mask = 1;
+
+    return Mask;
+}
+
+static
+VOID
+NTAPI
+HalpEnsureLocalApicMapped(_In_ ULONG Cpu)
+{
+    APIC_BASE_ADDRESS_REGISTER BaseRegister;
+    PHARDWARE_PTE Pte;
+    ULONG64 LapicPhysBase;
+
+    if (HalpLocalApicMapped)
+        return;
+
+    /* Force xAPIC (MMIO) mode and ensure the APIC is enabled */
+    BaseRegister.LongLong = __readmsr(MSR_APIC_BASE);
+    BaseRegister.X2ApicEnable = 0;
+    BaseRegister.Enable = 1;
+    BaseRegister.BootStrapCPUCore = (Cpu == 0);
+    __writemsr(MSR_APIC_BASE, BaseRegister.LongLong);
+
+    /* Map LAPIC MMIO page to the physical base from IA32_APIC_BASE */
+    LapicPhysBase = BaseRegister.BaseAddress << PAGE_SHIFT;
+    Pte = HalAddressToPte(APIC_BASE);
+    Pte->PageFrameNumber = LapicPhysBase / PAGE_SIZE;
+    Pte->Valid = 1;
+    Pte->Write = 1;
+    Pte->Owner = 1;
+    Pte->CacheDisable = 1;
+    Pte->Global = 1;
+    _ReadWriteBarrier();
+    __invlpg((PVOID)APIC_BASE);
+
+    if (!HalpBspApicIdInitialized)
+    {
+        HalpBspApicId = (UCHAR)(ApicRead(APIC_ID) >> 24);
+        HalpBspApicIdInitialized = TRUE;
+    }
+
+    HalpLocalApicMapped = TRUE;
+}
 
 #ifndef _M_AMD64
 const UCHAR
@@ -291,15 +363,19 @@ VOID
 NTAPI
 ApicInitializeLocalApic(ULONG Cpu)
 {
-    APIC_BASE_ADDRESS_REGISTER BaseRegister;
     APIC_SPURIOUS_INERRUPT_REGISTER SpIntRegister;
     LVT_REGISTER LvtEntry;
+    /* Ensure xAPIC mode and MMIO mapping before any APIC register access */
+    HalpEnsureLocalApicMapped(Cpu);
 
-    /* Enable the APIC if it wasn't yet */
-    BaseRegister.LongLong = __readmsr(MSR_APIC_BASE);
-    BaseRegister.Enable = 1;
-    BaseRegister.BootStrapCPUCore = (Cpu == 0);
-    __writemsr(MSR_APIC_BASE, BaseRegister.LongLong);
+    /* Set the mode to flat (max 8 CPUs supported!) */
+    ApicWrite(APIC_DFR, APIC_DF_Flat);
+
+    /* Set logical apic ID */
+    ApicWrite(APIC_LDR, ApicLogicalId(Cpu) << 24);
+
+    /* Read the version and save it globally */
+    if (Cpu == 0) ApicVersion = ApicRead(APIC_VER);
 
     /* Set spurious vector and SoftwareEnable to 1 */
     SpIntRegister.Long = ApicRead(APIC_SIVR);
@@ -307,15 +383,6 @@ ApicInitializeLocalApic(ULONG Cpu)
     SpIntRegister.SoftwareEnable = 1;
     SpIntRegister.FocusCPUCoreChecking = 0;
     ApicWrite(APIC_SIVR, SpIntRegister.Long);
-
-    /* Read the version and save it globally */
-    if (Cpu == 0) ApicVersion = ApicRead(APIC_VER);
-
-    /* Set the mode to flat (max 8 CPUs supported!) */
-    ApicWrite(APIC_DFR, APIC_DF_Flat);
-
-    /* Set logical apic ID */
-    ApicWrite(APIC_LDR, ApicLogicalId(Cpu) << 24);
 
     /* Set the spurious ISR */
     KeRegisterInterruptHandler(APIC_SPURIOUS_VECTOR, ApicSpuriousService);
@@ -385,7 +452,7 @@ HalpAllocateSystemInterrupt(
     ReDirReg.TriggerMode = APIC_TGM_Edge;
     ReDirReg.Mask = 1;
     ReDirReg.Reserved = 0;
-    ReDirReg.Destination = ApicRead(APIC_ID) >> 24;
+    ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
 
     /* Initialize entry */
     ApicWriteIORedirectionEntry(Irq, ReDirReg);
@@ -464,6 +531,9 @@ ApicInitializeIOApic(VOID)
     UCHAR Index;
     ULONG Vector;
 
+    /* Ensure xAPIC mode and LAPIC MMIO mapping before reading APIC registers */
+    HalpEnsureLocalApicMapped(0);
+
     /* Map the I/O Apic page */
     Pte = HalAddressToPte(IOAPIC_BASE);
     Pte->PageFrameNumber = IOAPIC_PHYS_BASE / PAGE_SIZE;
@@ -473,18 +543,19 @@ ApicInitializeIOApic(VOID)
     Pte->CacheDisable = 1;
     Pte->Global = 1;
     _ReadWriteBarrier();
+    __invlpg((PVOID)IOAPIC_BASE);
 
     /* Setup a redirection entry */
     ReDirReg.Vector = APIC_FREE_VECTOR;
-    ReDirReg.MessageType = APIC_MT_Fixed;
-    ReDirReg.DestinationMode = APIC_DM_Physical;
+    ReDirReg.MessageType = APIC_MT_LowestPriority;
+    ReDirReg.DestinationMode = APIC_DM_Logical;
     ReDirReg.DeliveryStatus = 0;
     ReDirReg.Polarity = 0;
     ReDirReg.RemoteIRR = 0;
     ReDirReg.TriggerMode = APIC_TGM_Edge;
     ReDirReg.Mask = 1;
     ReDirReg.Reserved = 0;
-    ReDirReg.Destination = ApicRead(APIC_ID) >> 24;
+    ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
 
     /* Loop all table entries */
     for (Index = 0; Index < APIC_MAX_IRQ; Index++)
@@ -505,7 +576,7 @@ ApicInitializeIOApic(VOID)
     ReDirReg.DestinationMode = APIC_DM_Physical;
     ReDirReg.TriggerMode = APIC_TGM_Level;
     ReDirReg.Mask = 1;
-    ReDirReg.Destination = ApicRead(APIC_ID) >> 24;
+    ReDirReg.Destination = HalpBspApicId;
     ApicWriteIORedirectionEntry(APIC_CLOCK_INDEX, ReDirReg);
 }
 
@@ -521,6 +592,9 @@ HalpInitializePICs(IN BOOLEAN EnableInterrupts)
 
     /* Initialize and mask the PIC */
     HalpInitializeLegacyPICs();
+
+    /* Ensure xAPIC MMIO mapping exists before initializing the I/O APIC */
+    HalpEnsureLocalApicMapped(0);
 
     /* Initialize the I/O APIC */
     ApicInitializeIOApic();
@@ -702,9 +776,20 @@ HalEnableSystemInterrupt(
 
     /* Set up the redirection entry */
     ReDirReg.Vector = Vector;
-    ReDirReg.MessageType = APIC_MT_Fixed;
-    ReDirReg.DestinationMode = APIC_DM_Physical;
-    ReDirReg.Destination = 0;
+    if (Vector == APIC_CLOCK_VECTOR)
+    {
+        /* RTC periodic IRQ must be pinned (it broadcasts IPIs and updates time) */
+        ReDirReg.MessageType = APIC_MT_Fixed;
+        ReDirReg.DestinationMode = APIC_DM_Physical;
+        ReDirReg.Destination = HalpBspApicId;
+    }
+    else
+    {
+        /* xAPIC flat logical mode: distribute across CPUs */
+        ReDirReg.MessageType = APIC_MT_LowestPriority;
+        ReDirReg.DestinationMode = APIC_DM_Logical;
+        ReDirReg.Destination = HalpGetIoApicLogicalDestinationMask();
+    }
     ReDirReg.TriggerMode = (InterruptMode == LevelSensitive) ?
         APIC_TGM_Level : APIC_TGM_Edge;
     ReDirReg.Polarity = (InterruptMode == LevelSensitive) ? 1 : 0;
