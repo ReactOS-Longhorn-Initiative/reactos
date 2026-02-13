@@ -812,14 +812,20 @@ KeInsertQueueDpc(IN PKDPC Dpc,
                 {
                     /*
                      * Check if the DPC is of high importance or above the
-                     * maximum depth. If it is, then make sure that the CPU
-                     * isn't idle, or that it's sleeping.
+                     * maximum depth. If it is, request an IPI so the target
+                     * processor will service its DPC queue promptly.
+                     *
+                     * Note: Older logic attempted to avoid sending an IPI
+                     * when the target processor was idle (KiIdleSummary),
+                     * implicitly relying on broadcast clock IPIs to wake idle
+                     * CPUs and drain their DPC queues. This coupling scales
+                     * poorly as CPU count increases (especially under
+                     * virtualization). Always requesting the IPI here makes
+                     * DPC delivery independent from clock broadcast.
                      */
                     if (((Dpc->Importance == HighImportance) ||
                         (DpcData->DpcQueueDepth >=
-                         Prcb->MaximumDpcQueueDepth)) &&
-                        (!(AFFINITY_MASK(Cpu) & KiIdleSummary) ||
-                         (Prcb->Sleeping)))
+                         Prcb->MaximumDpcQueueDepth)))
                     {
                         /* Set interrupt requested */
                         Prcb->DpcInterruptRequested = TRUE;

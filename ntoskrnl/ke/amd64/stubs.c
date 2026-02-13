@@ -114,9 +114,6 @@ KiIdleLoop(VOID)
         ASSERT(KeGetCurrentThread()->SwapBusy == FALSE);
 
         /* Start of the idle loop: disable interrupts */
-        _enable();
-        YieldProcessor();
-        YieldProcessor();
         _disable();
 
         /* Check for pending timers, pending DPCs, or pending ready threads */
@@ -219,6 +216,47 @@ KiIdleLoop(VOID)
         }
         else
         {
+            /*
+             * SMP idle balancing:
+             * Only attempt to steal work once per transition into the idle
+             * scheduling path. If we try to steal on every idle loop iteration,
+             * then on systems where the clock/IPI wakes idle CPUs frequently
+             * (common under virtualization), we can get an O(NCPU^2) scanning
+             * storm that destroys performance.
+             */
+#ifdef CONFIG_SMP
+            if ((Prcb->IdleSchedule) &&
+                (Prcb->ReadySummary == 0) &&
+                (Prcb->DeferredReadyListHead.Next == NULL))
+            {
+                PKTHREAD StolenThread;
+
+                /* Clear the flag so we don't keep scanning while staying idle */
+                Prcb->IdleSchedule = FALSE;
+
+                StolenThread = KiIdleSchedule(Prcb);
+                if (StolenThread)
+                {
+                    /* Queue it locally as the next thread to run */
+                    KiAcquirePrcbLock(Prcb);
+                    if (!Prcb->NextThread)
+                    {
+                        StolenThread->State = Standby;
+                        Prcb->NextThread = StolenThread;
+                    }
+                    else
+                    {
+                        /* Someone else scheduled; keep it ready on this CPU */
+                        StolenThread->State = Ready;
+                        InsertTailList(&Prcb->DispatcherReadyListHead[StolenThread->Priority],
+                                       &StolenThread->WaitListEntry);
+                        Prcb->ReadySummary |= PRIORITY_MASK(StolenThread->Priority);
+                    }
+                    KiReleasePrcbLock(Prcb);
+                }
+            }
+#endif
+
             Prcb->IdleHalt = 1;
 
             /* Lower IRQL to passive */
