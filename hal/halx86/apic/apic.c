@@ -24,6 +24,8 @@
 #define APIC_LAZY_IRQL
 #endif
 
+extern PPROCESSOR_IDENTITY HalpProcessorIdentity;
+
 /* GLOBALS ********************************************************************/
 
 ULONG ApicVersion;
