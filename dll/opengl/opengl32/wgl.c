@@ -634,10 +634,8 @@ BOOL WINAPI wglMakeCurrent(HDC hdc, HGLRC hglrc)
         if(InterlockedCompareExchange(&ctx->thread_id, thread_id, 0) != 0)
         {
             /* Already current for a thread. Maybe it's us ? */
-            release_dc_data(dc_data);
             if(ctx->thread_id != thread_id)
-                SetLastError(ERROR_BUSY);
-            return (ctx->thread_id == thread_id);
+                WARN("Current thread ID is %d, but new context belongs to %d!\n", thread_id, ctx->thread_id);
         }
 
         if(old_ctx)
