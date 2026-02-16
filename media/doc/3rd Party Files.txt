@@ -150,12 +150,6 @@ Used Version: git commit 8fb512a
 License: MS-PL (https://spdx.org/licenses/MS-PL.html)
 URL: https://github.com/microsoft/Windows-driver-samples/tree/master/storage/sfloppy
 
-Title: Universal ATA driver for Windows
-Path: drivers/storage/ide/uniata
-Used Version: 0.47b
-License: BSD-like
-URL: https://alter.org.ua/soft/win/uni_ata/
-
 Title: Miniport driver for the Buslogic BT 958 SCSI Controller
 Path: drivers/storage/port/buslogic
 Used Version: 1.2.0.4 (2005-08-17)
