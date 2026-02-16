@@ -148,8 +148,8 @@ CSR_API(SrvGetThreadConsoleDesktop)
                                      &GetThreadConsoleDesktopRequest->ConsoleDesktop);
     if (!NT_SUCCESS(Status))
     {
-        DPRINT1("GetThreadConsoleDesktop(%lu) failed with Status 0x%08x\n",
-                GetThreadConsoleDesktopRequest->ThreadId, Status);
+        //DPRINT1("GetThreadConsoleDesktop(%lu) failed with Status 0x%08x\n",
+                //GetThreadConsoleDesktopRequest->ThreadId, Status);
     }
 
     /* Windows-compatibility: Always return success since User32 relies on this! */
