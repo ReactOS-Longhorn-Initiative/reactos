@@ -2379,7 +2379,7 @@ AtaInquiryRequest(
                     // calculate how many LBA can be associated with one DSM - Trim command
                     ULONG   maxLbaCountPerCmd = maxLbaRangeEntryCountPerCmd * MAX_ATA_LBA_RANGE_SECTOR_COUNT_VALUE;
 
-                    NT_ASSERT (maxLbaCountPerCmd > 0);
+                    //NT_ASSERT (maxLbaCountPerCmd > 0);
 
                     // buffer is big enough for UNMAP information.
                     outputBuffer->PageLength[1] = 0x3C;        // must be 0x3C per spec

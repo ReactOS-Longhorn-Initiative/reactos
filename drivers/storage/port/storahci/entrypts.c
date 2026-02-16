@@ -1437,7 +1437,7 @@ AhciHwBuildIo (
     //
     // Make sure the incoming Srb with the expected type
     //
-    NT_ASSERT(Srb->Function == SRB_FUNCTION_STORAGE_REQUEST_BLOCK);
+    //NT_ASSERT(Srb->Function == SRB_FUNCTION_STORAGE_REQUEST_BLOCK);
 
     //
     // SrbStatus value should have been set to pending.

@@ -322,9 +322,136 @@ typedef struct _SCSI_PASS_THROUGH_DIRECT32_EX
     PVOID DeviceObject;
   } DUMP_POINTERS,*PDUMP_POINTERS;
 
+/*
+ * Data structure and definitions related to IOCTL_SCSI_MINIPORT_FIRMWARE
+ */
+
+#define FIRMWARE_FUNCTION_GET_INFO                          0x01
+#define FIRMWARE_FUNCTION_DOWNLOAD                          0x02
+#define FIRMWARE_FUNCTION_ACTIVATE                          0x03
+
+#define FIRMWARE_STATUS_SUCCESS                             0x0
+#define FIRMWARE_STATUS_ERROR                               0x1
+#define FIRMWARE_STATUS_ILLEGAL_REQUEST                     0x2
+#define FIRMWARE_STATUS_INVALID_PARAMETER                   0x3
+#define FIRMWARE_STATUS_INPUT_BUFFER_TOO_BIG                0x4
+#define FIRMWARE_STATUS_OUTPUT_BUFFER_TOO_SMALL             0x5
+#define FIRMWARE_STATUS_INVALID_SLOT                        0x6
+#define FIRMWARE_STATUS_INVALID_IMAGE                       0x7
+#define FIRMWARE_STATUS_CONTROLLER_ERROR                    0x10
+#define FIRMWARE_STATUS_POWER_CYCLE_REQUIRED                0x20
+#define FIRMWARE_STATUS_DEVICE_ERROR                        0x40
+#define FIRMWARE_STATUS_INTERFACE_CRC_ERROR		    0x80
+#define FIRMWARE_STATUS_UNCORRECTABLE_DATA_ERROR            0x81
+#define FIRMWARE_STATUS_MEDIA_CHANGE                        0x82
+#define FIRMWARE_STATUS_ID_NOT_FOUND                        0x83
+#define FIRMWARE_STATUS_MEDIA_CHANGE_REQUEST                0x84
+#define FIRMWARE_STATUS_COMMAND_ABORT                       0x85
+#define FIRMWARE_STATUS_END_OF_MEDIA                        0x86
+#define FIRMWARE_STATUS_ILLEGAL_LENGTH                      0x87
+
+#define FIRMWARE_REQUEST_BLOCK_STRUCTURE_VERSION            0x1
+
+typedef struct _FIRMWARE_REQUEST_BLOCK {
+    ULONG   Version;
+    ULONG   Size;
+    ULONG   Function;
+    ULONG   Flags;
+    ULONG   DataBufferOffset;
+    ULONG   DataBufferLength;
+} FIRMWARE_REQUEST_BLOCK, *PFIRMWARE_REQUEST_BLOCK;
+
+#define FIRMWARE_REQUEST_FLAG_CONTROLLER                    0x00000001
+#define FIRMWARE_REQUEST_FLAG_SWITCH_TO_EXISTING_FIRMWARE   0x80000000
+
+#define STORAGE_FIRMWARE_INFO_STRUCTURE_VERSION         0x1
+#define STORAGE_FIRMWARE_INFO_STRUCTURE_VERSION_V2      0x2
+
+#define STORAGE_FIRMWARE_INFO_INVALID_SLOT              0xFF
+
+typedef struct _STORAGE_FIRMWARE_SLOT_INFO {
+    UCHAR   SlotNumber;
+    BOOLEAN ReadOnly;
+    UCHAR   Reserved[6];
+    union {
+        UCHAR     Info[8];
+        ULONGLONG AsUlonglong;
+    } Revision;
+} STORAGE_FIRMWARE_SLOT_INFO, *PSTORAGE_FIRMWARE_SLOT_INFO;
+
+#define STORAGE_FIRMWARE_SLOT_INFO_V2_REVISION_LENGTH   16
+
+typedef struct _STORAGE_FIRMWARE_SLOT_INFO_V2 {
+    UCHAR   SlotNumber;
+    BOOLEAN ReadOnly;
+    UCHAR   Reserved[6];
+    UCHAR   Revision[STORAGE_FIRMWARE_SLOT_INFO_V2_REVISION_LENGTH];
+} STORAGE_FIRMWARE_SLOT_INFO_V2, *PSTORAGE_FIRMWARE_SLOT_INFO_V2;
+
+typedef struct _STORAGE_FIRMWARE_INFO {
+    ULONG   Version;
+    ULONG   Size;
+    BOOLEAN UpgradeSupport;
+    UCHAR   SlotCount;
+    UCHAR   ActiveSlot;
+    UCHAR   PendingActivateSlot;
+    ULONG   Reserved;
+    STORAGE_FIRMWARE_SLOT_INFO Slot[0];
+} STORAGE_FIRMWARE_INFO, *PSTORAGE_FIRMWARE_INFO;
+
+typedef struct _STORAGE_FIRMWARE_INFO_V2 {
+    ULONG   Version;
+    ULONG   Size;
+    BOOLEAN UpgradeSupport;
+    UCHAR   SlotCount;
+    UCHAR   ActiveSlot;
+    UCHAR   PendingActivateSlot;
+    BOOLEAN FirmwareShared;
+    UCHAR   Reserved[3];
+    ULONG   ImagePayloadAlignment;
+    ULONG   ImagePayloadMaxSize;
+    STORAGE_FIRMWARE_SLOT_INFO_V2 Slot[0];
+} STORAGE_FIRMWARE_INFO_V2, *PSTORAGE_FIRMWARE_INFO_V2;
+
+#define STORAGE_FIRMWARE_DOWNLOAD_STRUCTURE_VERSION         0x1
+#define STORAGE_FIRMWARE_DOWNLOAD_STRUCTURE_VERSION_V2      0x2
+
+typedef struct _STORAGE_FIRMWARE_DOWNLOAD {
+    ULONG       Version;
+    ULONG       Size;
+    ULONGLONG   Offset;
+    ULONGLONG   BufferSize;
+    UCHAR       ImageBuffer[0];
+} STORAGE_FIRMWARE_DOWNLOAD, *PSTORAGE_FIRMWARE_DOWNLOAD;
+
+typedef struct _STORAGE_FIRMWARE_DOWNLOAD_V2 {
+    ULONG       Version;
+    ULONG       Size;
+    ULONGLONG   Offset;
+    ULONGLONG   BufferSize;
+    UCHAR       Slot;
+    UCHAR       Reserved[7];
+    UCHAR       ImageBuffer[0];
+} STORAGE_FIRMWARE_DOWNLOAD_V2, *PSTORAGE_FIRMWARE_DOWNLOAD_V2;
+
+#define STORAGE_FIRMWARE_ACTIVATE_STRUCTURE_VERSION         0x1
+
+typedef struct _STORAGE_FIRMWARE_ACTIVATE {
+    ULONG   Version;
+    ULONG   Size;
+    UCHAR   SlotToActivate;
+    UCHAR   Reserved0[3];
+} STORAGE_FIRMWARE_ACTIVATE, *PSTORAGE_FIRMWARE_ACTIVATE;
+
 #define SCSI_IOCTL_DATA_OUT 0
 #define SCSI_IOCTL_DATA_IN 1
 #define SCSI_IOCTL_DATA_UNSPECIFIED 2
+
+#define IOCTL_SCSI_MINIPORT_NVCACHE           ((FILE_DEVICE_SCSI << 16) + 0x0600)
+#define IOCTL_SCSI_MINIPORT_HYBRID            ((FILE_DEVICE_SCSI << 16) + 0x0620)
+#define IOCTL_SCSI_MINIPORT_DSM               ((FILE_DEVICE_SCSI << 16) + 0x0720)
+#define IOCTL_SCSI_MINIPORT_DSM_GENERAL       ((FILE_DEVICE_SCSI << 16) + 0x0721)
+#define IOCTL_SCSI_MINIPORT_FIRMWARE          ((FILE_DEVICE_SCSI << 16) + 0x0780)
 
 #ifdef __cplusplus
 }

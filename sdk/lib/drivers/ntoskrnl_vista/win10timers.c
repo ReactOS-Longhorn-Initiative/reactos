@@ -6,6 +6,30 @@
 #ifdef _NTOSKRNL_
 
 #define TAG_TIMER2 'RTIM'
+typedef struct _EX_TIMER *PEX_TIMER;
+typedef PVOID PEXT_CANCEL_PARAMETERS;
+
+typedef
+VOID
+NTAPI
+EXT_DELETE_CALLBACK(
+  _In_opt_ PVOID Context);
+
+typedef EXT_DELETE_CALLBACK *PEXT_DELETE_CALLBACK;
+typedef struct _EXT_DELETE_PARAMETERS
+{
+  ULONG Version;
+  ULONG Reserved;
+  PEXT_DELETE_CALLBACK DeleteCallback;
+  PVOID DeleteContext;
+} EXT_DELETE_PARAMETERS, *PEXT_DELETE_PARAMETERS;
+
+typedef struct _EXT_SET_PARAMETERS_V0
+{
+  ULONG Version;
+  ULONG Reserved;
+  LONGLONG NoWakeTolerance;
+} EXT_SET_PARAMETERS, *PEXT_SET_PARAMETERS;
 
 typedef
 VOID
@@ -13,6 +37,8 @@ NTAPI
 EXT_CALLBACK(
   _In_ PEX_TIMER Timer,
   _In_opt_ PVOID Context);
+
+typedef EXT_CALLBACK *PEXT_CALLBACK;
 
 /* EX_TIMER == _KTIMER2 ?? LOL */
 PEX_TIMER
