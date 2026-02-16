@@ -10852,7 +10852,7 @@ StorPortLogSystemEvent(
                                     LogDetails,
                                     MaximumSize);
 }
-#if 0
+
 ULONG
 FORCEINLINE
 StorPortSetUnitAttributes(
@@ -10865,6 +10865,63 @@ StorPortSetUnitAttributes(
                                     HwDeviceExtension,
                                     Address,
                                     Attributes);
+}
+
+FORCEINLINE ULONG
+StorPortInitializeTimer(_In_ PVOID HwDeviceExtension,
+					  _Out_ PVOID *TimerHandle)
+{
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+    return StorPortExtendedFunction(ExtFunctionInitializeTimer,
+                                    HwDeviceExtension,
+                                    TimerHandle);
+#else
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(TimerHandle);
+#endif
+}
+
+ULONG
+FORCEINLINE
+StorPortRequestTimer(_In_ PVOID HwDeviceExtension,
+                        _In_ PVOID TimerHandle,
+                        _In_ PHW_TIMER_EX TimerCallback,
+                        _In_ OPTIONAL PVOID CallbackContext,
+                        _In_ ULONGLONG TimerValue,
+                        _In_ ULONGLONG TolerableDelay)
+{
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+    return StorPortExtendedFunction(ExtFunctionRequestTimer,
+                                    HwDeviceExtension,
+                                    TimerHandle,
+                                    TimerCallback,
+                                    CallbackContext,
+                                    TimerValue,
+                                    TolerableDelay);
+#else
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(TimerHandle);
+    UNREFERENCED_PARAMETER(TimerCallback);
+    UNREFERENCED_PARAMETER(CallbackContext);
+    UNREFERENCED_PARAMETER(TimerValue);
+    UNREFERENCED_PARAMETER(TolerableDelay);
+#endif
+}
+
+
+ULONG
+FORCEINLINE
+StorPortFreeTimer(_In_ PVOID HwDeviceExtension,
+				    _In_ PVOID TimerHandle)
+{
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+    return StorPortExtendedFunction(ExtFunctionFreeTimer,
+                                    HwDeviceExtension,
+                                    TimerHandle);
+#else
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(TimerHandle);
+#endif
 }
 
 ULONG
@@ -10904,7 +10961,7 @@ StorPortStateChangeDetected(
 
     return Status;
 }
-#endif
+
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Success_(return == STOR_STATUS_SUCCESS)

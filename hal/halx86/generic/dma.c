@@ -1485,7 +1485,6 @@ HalBuildScatterGatherList(
     PSCATTER_GATHER_ELEMENT Element;
     PSCATTER_GATHER_LIST ScatterGatherList;
     PSCATTER_GATHER_CONTEXT ScatterGatherContext;
-    PSCATTER_GATHER_LIST ScatterGatherList;
     BOOLEAN UsingUserBuffer;
     BOOLEAN IsSlaveDma;
 
@@ -1626,7 +1625,7 @@ HalBuildScatterGatherList(
     else
     {
         __debugbreak();
-        return STATUS_UNSUCCESSfUL;
+        return STATUS_UNSUCCESSFUL;
     }
 
     return STATUS_SUCCESS;

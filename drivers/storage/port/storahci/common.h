@@ -905,93 +905,6 @@ typedef struct _GP_LOG_TEMPERATURE_STATISTICS {
 #pragma pack(pop, gplog_temperature_statistics_log)
 
 
-#define STORAGE_FIRMWARE_INFO_STRUCTURE_VERSION         0x1
-#define STORAGE_FIRMWARE_INFO_STRUCTURE_VERSION_V2      0x2
-
-#define STORAGE_FIRMWARE_INFO_INVALID_SLOT              0xFF
-
-typedef struct _FIRMWARE_REQUEST_BLOCK {
-    ULONG   Version;            // FIRMWARE_REQUEST_BLOCK_STRUCTURE_VERSION
-    ULONG   Size;               // Size of the data structure.
-    ULONG   Function;           // Function code
-    ULONG   Flags;
-
-    ULONG   DataBufferOffset;   // the offset is from the beginning of buffer. e.g. from beginning of SRB_IO_CONTROL. The value should be multiple of sizeof(PVOID); Value 0 means that there is no data buffer.
-    ULONG   DataBufferLength;   // length of the buffer
-} FIRMWARE_REQUEST_BLOCK, *PFIRMWARE_REQUEST_BLOCK;
-
-typedef struct _STORAGE_FIRMWARE_SLOT_INFO {
-
-    UCHAR   SlotNumber;
-    BOOLEAN ReadOnly;
-    UCHAR   Reserved[6];
-
-    union {
-        UCHAR     Info[8];
-        ULONGLONG AsUlonglong;
-    } Revision;
-
-} STORAGE_FIRMWARE_SLOT_INFO, *PSTORAGE_FIRMWARE_SLOT_INFO;
-
-#define STORAGE_FIRMWARE_SLOT_INFO_V2_REVISION_LENGTH   16
-
-typedef struct _STORAGE_FIRMWARE_SLOT_INFO_V2 {
-
-    UCHAR   SlotNumber;
-    BOOLEAN ReadOnly;
-    UCHAR   Reserved[6];
-
-    UCHAR   Revision[STORAGE_FIRMWARE_SLOT_INFO_V2_REVISION_LENGTH];
-
-} STORAGE_FIRMWARE_SLOT_INFO_V2, *PSTORAGE_FIRMWARE_SLOT_INFO_V2;
-
-
-
-
-
-
-
-
-
-typedef struct _STORAGE_FIRMWARE_INFO {
-
-    ULONG   Version;        // STORAGE_FIRMWARE_INFO_STRUCTURE_VERSION
-    ULONG   Size;           // sizeof(STORAGE_FIRMWARE_INFO)
-
-    BOOLEAN UpgradeSupport;
-    UCHAR   SlotCount;
-    UCHAR   ActiveSlot;
-    UCHAR   PendingActivateSlot;
-
-    ULONG   Reserved;
-
-    STORAGE_FIRMWARE_SLOT_INFO Slot[0];
-
-} STORAGE_FIRMWARE_INFO, *PSTORAGE_FIRMWARE_INFO;
-
-typedef struct _STORAGE_FIRMWARE_INFO_V2 {
-
-    ULONG   Version;        // STORAGE_FIRMWARE_INFO_STRUCTURE_VERSION_V2
-    ULONG   Size;           // sizeof(STORAGE_FIRMWARE_INFO_V2)
-
-    BOOLEAN UpgradeSupport;
-    UCHAR   SlotCount;
-    UCHAR   ActiveSlot;
-    UCHAR   PendingActivateSlot;
-
-    BOOLEAN FirmwareShared;         // The firmware applies to both device and adapter. For example: PCIe SSD.
-    UCHAR   Reserved[3];
-
-    ULONG   ImagePayloadAlignment;  // Number of bytes. Max: PAGE_SIZE. The transfer size should be multiple of this unit size. Some protocol requires at least sector size. 0 means the value is not valid.
-    ULONG   ImagePayloadMaxSize;    // for a single command.
-
-    STORAGE_FIRMWARE_SLOT_INFO_V2 Slot[0];
-
-} STORAGE_FIRMWARE_INFO_V2, *PSTORAGE_FIRMWARE_INFO_V2;
-
-
-
-
 
 typedef enum _STORAGE_PROTOCOL_TYPE {
     ProtocolTypeUnknown = 0x00,
@@ -2368,22 +2281,6 @@ Returns:
 #endif
 }
 
-ULONG
-FORCEINLINE
-StorPortSetUnitAttributes(
-    _In_ PVOID HwDeviceExtension,
-    _In_ PSTOR_ADDRESS Address,
-    _In_ STOR_UNIT_ATTRIBUTES Attributes
-    )
-{
-    return StorPortExtendedFunction(ExtFunctionSetUnitAttributes,
-                                    HwDeviceExtension,
-                                    Address,
-                                    Attributes);
-}
-
-
-
 
 VOID
 FORCEINLINE
@@ -2654,34 +2551,6 @@ StorPortSetUnitAttributes(
     );
 
 /* SUSSY WUSSSY BAKAS */
-
-
-typedef struct _GP_LOG_NCQ_COMMAND_ERROR {
-    UCHAR   NcqTag          : 5;
-    UCHAR   Reserved0       : 1;
-    UCHAR   UNL             : 1;        // error: IDLE IMMEDIATE with UNLOAD
-    UCHAR   NonQueuedCmd    : 1;
-
-    UCHAR   Reserved1;
-    UCHAR   Status;
-    UCHAR   Error;
-    UCHAR   LBA7_0;
-    UCHAR   LBA15_8;
-    UCHAR   LBA23_16;
-    UCHAR   Device;
-    UCHAR   LBA31_24;
-    UCHAR   LBA39_32;
-    UCHAR   LBA47_40;
-    UCHAR   Reserved2;
-    UCHAR   Count7_0;
-    UCHAR   Count15_8;
-    UCHAR   SenseKey;
-    UCHAR   ASC;
-    UCHAR   ASCQ;
-    UCHAR   Reserved3[239];
-    UCHAR   Vendor[255];
-    UCHAR   Checksum;
-} GP_LOG_NCQ_COMMAND_ERROR, *PGP_LOG_NCQ_COMMAND_ERROR;
 
 typedef enum _AHCI_ETW_EVENT_IDS {
     AhciEtwEventSystemPowerHint = 0,

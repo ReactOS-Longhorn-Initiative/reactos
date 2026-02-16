@@ -27,6 +27,24 @@ KeQueryActiveProcessorCount(OUT PKAFFINITY ActiveProcessors OPTIONAL)
 }
 
 NTKRNLVISTAAPI
+ULONG
+NTAPI
+KeQueryActiveProcessorCountEx(
+  _In_ USHORT GroupNumber)
+{
+    return 0;
+}
+
+NTKRNLVISTAAPI
+ULONG
+NTAPI
+KeQueryMaximumProcessorCountEx(
+  _In_ USHORT GroupNumber)
+{
+    return 1;
+}
+
+NTKRNLVISTAAPI
 USHORT
 NTAPI
 KeQueryHighestNodeNumber()

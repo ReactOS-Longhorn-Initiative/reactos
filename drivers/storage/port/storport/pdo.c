@@ -214,7 +214,7 @@ PortPdoAfterBuildingScatterGatherList(
     while (0);
 
     /* Restore IRQL */
-    KfLowerIrql(OldIrql);
+    KeLowerIrql(OldIrql);
 }
 
 
@@ -332,7 +332,7 @@ PortPdoIssueRequest(
                                  RequestReference->WriteToDevice);
         
         /* Restore IRQL */
-        KfLowerIrql(OldIrql);
+        KeLowerIrql(OldIrql);
     } else {
         /* Otherwise just start the IO with a NULL scatter gather list */
         PortPdoAfterBuildingScatterGatherList(FdoExtension->Device,
