@@ -210,6 +210,7 @@
 @ stdcall -version=0x502 EnableTrace(long long long ptr double) ntdll.EtwEnableTrace
 @ stdcall -version=0x600+ EnableTrace(long long long ptr double) EtwEnableTrace
 @ stdcall -version=0x600+ EnableTraceEx(ptr ptr int64 long long int64 int64 long ptr)
+@ stdcall -stub -version=0x600+ EnableTraceEx2(int64 ptr long long int64 int64 long ptr)
 @ stdcall EncryptFileA(str)
 @ stdcall EncryptFileW(wstr)
 @ stub EncryptedFileKeyInfo
