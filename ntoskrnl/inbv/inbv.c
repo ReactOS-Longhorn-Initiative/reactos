@@ -383,7 +383,7 @@ InbvDrawText(
         /* We clear the previous message */
         VidSolidColorFill(10, 10, SCREEN_WIDTH - 1, 30, BV_COLOR_BLACK);
         /* We display the string at the specific location */
-        VidDisplayStringXY((PUCHAR)String, 10, 10, TRUE);
+        VidDisplayStringXY((PCSTR)String, 10, 10, TRUE);
     }
     InbvReleaseLock();
     return TRUE;
