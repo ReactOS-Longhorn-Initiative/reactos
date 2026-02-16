@@ -25,7 +25,7 @@
 
 #ifndef __REACTOS__
 #if !defined(ENOSPC)
-#define ENOSPC 1
+#define ENOSPC 28
 #endif
 #endif
 
