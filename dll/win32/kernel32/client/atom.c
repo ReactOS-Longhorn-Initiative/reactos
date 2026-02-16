@@ -431,6 +431,16 @@ InternalGetAtomName(BOOLEAN Local,
  */
 ATOM
 WINAPI
+GlobalAddAtomA(LPCSTR lpString)
+{
+    return InternalAddAtom(FALSE, FALSE, lpString);
+}
+
+/*
+ * @implemented
+ */
+ATOM
+WINAPI
 GlobalAddAtomW(LPCWSTR lpString)
 {
     return InternalAddAtom(FALSE, TRUE, (LPSTR)lpString);
@@ -444,6 +454,16 @@ WINAPI
 GlobalDeleteAtom(ATOM nAtom)
 {
     return InternalDeleteAtom(FALSE, nAtom);
+}
+
+/*
+ * @implemented
+ */
+ATOM
+WINAPI
+GlobalFindAtomA(LPCSTR lpString)
+{
+    return InternalFindAtom(FALSE, FALSE, lpString);
 }
 
 /*

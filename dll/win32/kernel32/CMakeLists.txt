@@ -17,7 +17,6 @@ list(APPEND SOURCE
     client/actctx.c
     client/appcache.c
     client/atom.c
-    client/atomansi.c
     client/compname.c
     client/debugger.c
     client/dosdev.c
@@ -30,17 +29,13 @@ list(APPEND SOURCE
     client/job.c
     client/loader.c
     client/path.c
-    client/pathansi.c
     client/perfcnt.c
     client/power.c
     client/proc.c
-    client/procansi.c
     client/resntfy.c
     client/session.c
     client/synch.c
-    client/synchansi.c
     client/sysinfo.c
-    client/sysinfoansi.c
     client/time.c
     client/timerqueue.c
     client/toolhelp.c
@@ -48,7 +43,6 @@ list(APPEND SOURCE
     client/thread.c
     client/vdm.c
     client/version.c
-    client/versionansi.c
     client/virtmem.c
     client/console/alias.c
     client/console/console.c
@@ -58,15 +52,12 @@ list(APPEND SOURCE
     client/file/backup.c
     client/file/cnotify.c
     client/file/copy.c
-    client/file/copyansi.c
     client/file/create.c
     client/file/delete.c
     client/file/deviceio.c
     client/file/dir.c
-    client/file/diransi.c
     client/file/disk.c
     client/file/fileinfo.c
-    client/file/fileinfoansi.c
     client/file/filemap.c
     client/file/filename.c
     client/file/find.c
@@ -76,14 +67,11 @@ list(APPEND SOURCE
     client/file/lock.c
     client/file/mailslot.c
     client/file/move.c
-    client/file/moveansi.c
     client/file/mntpoint.c
-    client/file/mntpointansi.c
     client/file/npipe.c
     client/file/rw.c
     client/file/tape.c
     client/file/volume.c
-    client/file/volumeansi.c
     wine/actctx.c
     wine/comm.c
     wine/lzexpand.c
@@ -98,9 +86,7 @@ list(APPEND SOURCE
     winnls/string/format_msg.c
     winnls/string/japanese.c
     winnls/string/locale.c
-    winnls/string/localeansi.c
     winnls/string/lcformat.c
-    winnls/string/lcformatansi.c
     winnls/string/lstring.c
     winnls/string/nls.c
     winnls/string/sortkey.c
