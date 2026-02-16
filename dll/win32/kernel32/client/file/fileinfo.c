@@ -394,6 +394,22 @@ GetFileSizeEx(
  * @implemented
  */
 DWORD WINAPI
+GetCompressedFileSizeA(LPCSTR lpFileName,
+		       LPDWORD lpFileSizeHigh)
+{
+   PWCHAR FileNameW;
+
+   if (!(FileNameW = FilenameA2W(lpFileName, FALSE)))
+      return INVALID_FILE_SIZE;
+
+   return GetCompressedFileSizeW(FileNameW, lpFileSizeHigh);
+}
+
+
+/*
+ * @implemented
+ */
+DWORD WINAPI
 GetCompressedFileSizeW(LPCWSTR lpFileName,
 		       LPDWORD lpFileSizeHigh)
 {

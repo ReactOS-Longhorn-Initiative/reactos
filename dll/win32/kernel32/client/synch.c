@@ -343,11 +343,35 @@ CreateWaitableTimerW(IN LPSECURITY_ATTRIBUTES lpTimerAttributes OPTIONAL,
  */
 HANDLE
 WINAPI
+CreateWaitableTimerA(IN LPSECURITY_ATTRIBUTES lpTimerAttributes OPTIONAL,
+                     IN BOOL bManualReset,
+                     IN LPCSTR lpTimerName OPTIONAL)
+{
+    ConvertWin32AnsiObjectApiToUnicodeApi(WaitableTimer, lpTimerName, lpTimerAttributes, bManualReset);
+}
+
+/*
+ * @implemented
+ */
+HANDLE
+WINAPI
 OpenWaitableTimerW(IN DWORD dwDesiredAccess,
                    IN BOOL bInheritHandle,
                    IN LPCWSTR lpTimerName)
 {
     OpenNtObjectFromWin32Api(Timer, dwDesiredAccess, bInheritHandle, lpTimerName);
+}
+
+/*
+ * @implemented
+ */
+HANDLE
+WINAPI
+OpenWaitableTimerA(IN DWORD dwDesiredAccess,
+                   IN BOOL bInheritHandle,
+                   IN LPCSTR lpTimerName)
+{
+    ConvertOpenWin32AnsiObjectApiToUnicodeApi(WaitableTimer, dwDesiredAccess, bInheritHandle, lpTimerName);
 }
 
 /*
@@ -395,6 +419,20 @@ CancelWaitableTimer(IN HANDLE hTimer)
     /* If we got here, then we failed */
     BaseSetLastNTError(Status);
     return FALSE;
+}
+
+/*
+ * @implemented
+ */
+HANDLE
+WINAPI
+DECLSPEC_HOTPATCH
+CreateSemaphoreA(IN LPSECURITY_ATTRIBUTES lpSemaphoreAttributes  OPTIONAL,
+                 IN LONG lInitialCount,
+                 IN LONG lMaximumCount,
+                 IN LPCSTR lpName  OPTIONAL)
+{
+    ConvertWin32AnsiObjectApiToUnicodeApi(Semaphore, lpName, lpSemaphoreAttributes, lInitialCount, lMaximumCount);
 }
 
 /*
@@ -475,6 +513,19 @@ CreateSemaphoreExA(IN LPSECURITY_ATTRIBUTES lpSemaphoreAttributes OPTIONAL,
 HANDLE
 WINAPI
 DECLSPEC_HOTPATCH
+OpenSemaphoreA(IN DWORD dwDesiredAccess,
+               IN BOOL bInheritHandle,
+               IN LPCSTR lpName)
+{
+    ConvertOpenWin32AnsiObjectApiToUnicodeApi(Semaphore, dwDesiredAccess, bInheritHandle, lpName);
+}
+
+/*
+ * @implemented
+ */
+HANDLE
+WINAPI
+DECLSPEC_HOTPATCH
 OpenSemaphoreW(IN DWORD dwDesiredAccess,
                IN BOOL bInheritHandle,
                IN LPCWSTR lpName)
@@ -530,6 +581,19 @@ CreateMutexW(IN LPSECURITY_ATTRIBUTES lpMutexAttributes  OPTIONAL,
                                lpMutexAttributes,
                                lpName,
                                bInitialOwner);
+}
+
+/*
+ * @implemented
+ */
+HANDLE
+WINAPI
+DECLSPEC_HOTPATCH
+OpenMutexA(IN DWORD dwDesiredAccess,
+           IN BOOL bInheritHandle,
+           IN LPCSTR lpName)
+{
+    ConvertOpenWin32AnsiObjectApiToUnicodeApi(Mutex, dwDesiredAccess, bInheritHandle, lpName);
 }
 
 /*
