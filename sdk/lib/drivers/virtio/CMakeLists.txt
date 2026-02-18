@@ -1,4 +1,6 @@
 
+add_subdirectory(WDF)
+
 list(APPEND SOURCE
     VirtIOPCICommon.c
     VirtIOPCILegacy.c
