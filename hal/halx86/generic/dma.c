@@ -108,7 +108,6 @@ HalCalculateScatterGatherListSize(
     IN PMDL Mdl OPTIONAL,
     IN PVOID CurrentVa,
     IN ULONG Length,
-    OUT PBOOLEAN IsSlaveDma,
     OUT PULONG ScatterGatherListSize,
     OUT PULONG pNumberOfMapRegisters);
 
@@ -1368,7 +1367,6 @@ HalCalculateScatterGatherListSize(IN PADAPTER_OBJECT AdapterObject,
 								  IN PMDL Mdl OPTIONAL,
 								  IN PVOID CurrentVa,
 								  IN ULONG Length,
-                                  OUT PBOOLEAN IsSlaveDma,
 								  OUT PULONG ScatterGatherListSize,
 								  OUT OPTIONAL PULONG pNumberOfMapRegisters)
 {
@@ -1418,11 +1416,6 @@ HalCalculateScatterGatherListSize(IN PADAPTER_OBJECT AdapterObject,
     
         if (SgSize < sizeof(SCATTER_GATHER_CONTEXT)) 
             SgSize = sizeof(SCATTER_GATHER_CONTEXT);
-        *IsSlaveDma = TRUE;
-    }
-    else
-    {
-        *IsSlaveDma = FALSE;
     }
 
     *ScatterGatherListSize = SgSize;
@@ -1486,7 +1479,6 @@ HalBuildScatterGatherList(
     PSCATTER_GATHER_LIST ScatterGatherList;
     PSCATTER_GATHER_CONTEXT ScatterGatherContext;
     BOOLEAN UsingUserBuffer;
-    BOOLEAN IsSlaveDma;
 
     if (!Mdl) return STATUS_INVALID_PARAMETER;
 
@@ -1494,7 +1486,6 @@ HalBuildScatterGatherList(
                                                Mdl,
                                                CurrentVa,
                                                Length,
-                                               &IsSlaveDma,
                                                &SgSize,
                                                &NumberOfMapRegisters);
     if (!NT_SUCCESS(Status)) return Status;
@@ -1588,7 +1579,7 @@ HalBuildScatterGatherList(
             ScatterGatherList,
             Context);
     }
-    else if (IsSlaveDma)
+    else
     {
         /* For Slave DMA, see the buffer as a Scatter Gather Context */
         ScatterGatherContext = (PSCATTER_GATHER_CONTEXT)ScatterGatherBuffer;
@@ -1621,11 +1612,6 @@ HalBuildScatterGatherList(
                 ExFreePoolWithTag(ScatterGatherBuffer, TAG_DMA);
             return Status;
         }
-    }
-    else
-    {
-        __debugbreak();
-        return STATUS_UNSUCCESSFUL;
     }
 
     return STATUS_SUCCESS;
