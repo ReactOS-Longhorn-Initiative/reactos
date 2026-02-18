@@ -717,23 +717,23 @@ PortFdoScanBus(
     NTSTATUS Status;
     ULONG LunCount = 0;
 
-    DPRINT("PortFdoScanBus(%p)\n", DeviceExtension);
+    DPRINT1("PortFdoScanBus(%p)\n", DeviceExtension);
 
-    DPRINT("NumberOfBuses: %lu\n", DeviceExtension->Miniport.PortConfig.NumberOfBuses);
-    DPRINT("MaximumNumberOfTargets: %lu\n", DeviceExtension->Miniport.PortConfig.MaximumNumberOfTargets);
-    DPRINT("MaximumNumberOfLogicalUnits: %lu\n", DeviceExtension->Miniport.PortConfig.MaximumNumberOfLogicalUnits);
+    DPRINT1("NumberOfBuses: %lu\n", DeviceExtension->Miniport.PortConfig.NumberOfBuses);
+    DPRINT1("MaximumNumberOfTargets: %lu\n", DeviceExtension->Miniport.PortConfig.MaximumNumberOfTargets);
+    DPRINT1("MaximumNumberOfLogicalUnits: %lu\n", DeviceExtension->Miniport.PortConfig.MaximumNumberOfLogicalUnits);
 
     /* Scan all buses */
     for (Bus = 0; Bus < DeviceExtension->Miniport.PortConfig.NumberOfBuses; Bus++)
     {
-        DPRINT("Scanning bus %ld\n", Bus);
+        DPRINT1("Scanning bus %ld\n", Bus);
 
         /* Scan all targets */
         for (Target = 0; Target < DeviceExtension->Miniport.PortConfig.MaximumNumberOfTargets; Target++)
         {
-            DPRINT("  Scanning target %ld:%ld\n", Bus, Target);
+            DPRINT1("  Scanning target %ld:%ld\n", Bus, Target);
 
-            DPRINT("    Scanning logical unit %ld:%ld:%ld\n", Bus, Target, 0);
+            DPRINT1("    Scanning logical unit %ld:%ld:%ld\n", Bus, Target, 0);
             Status = PortCreatePdo(DeviceExtension, Bus, Target, 0, &PdoExtension);
             if (NT_SUCCESS(Status))
             {
@@ -742,17 +742,17 @@ PortFdoScanBus(
             
                 /* Scan LUN 0 */
                 Status = PortSendInquiry(PdoExtension);
-                DPRINT("PortSendInquiry returned 0x%08lx\n", Status);
+                DPRINT1("PortSendInquiry returned 0x%08lx\n", Status);
                 if (!NT_SUCCESS(Status))
                 {
                     PortDeletePdo(PdoExtension);
                 }
                 else
                 {
-                    DPRINT("VendorId: %.8s\n", PdoExtension->InquiryBuffer->VendorId);
-                    DPRINT("ProductId: %.16s\n", PdoExtension->InquiryBuffer->ProductId);
-                    DPRINT("ProductRevisionLevel: %.4s\n", PdoExtension->InquiryBuffer->ProductRevisionLevel);
-                    DPRINT("VendorSpecific: %.20s\n", PdoExtension->InquiryBuffer->VendorSpecific);
+                    DPRINT1("VendorId: %.8s\n", PdoExtension->InquiryBuffer->VendorId);
+                    DPRINT1("ProductId: %.16s\n", PdoExtension->InquiryBuffer->ProductId);
+                    DPRINT1("ProductRevisionLevel: %.4s\n", PdoExtension->InquiryBuffer->ProductRevisionLevel);
+                    DPRINT1("VendorSpecific: %.20s\n", PdoExtension->InquiryBuffer->VendorSpecific);
                 }
             }
 
@@ -1091,6 +1091,10 @@ PortFdoPnp(
                             Stack->Parameters.QueryDeviceRelations.Type);
                     return ForwardIrpAndForget(DeviceExtension->LowerDevice, Irp);
             }
+            break;
+
+        case IRP_MN_QUERY_CAPABILITIES: /* 0x19 */
+            DPRINT1("IRP_MJ_PNP / IRP_MN_QUERY_CAPABILITIES\n");
             break;
 
         case IRP_MN_FILTER_RESOURCE_REQUIREMENTS: /* 0x0d */

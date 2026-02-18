@@ -2498,21 +2498,6 @@ StorPortGetRequestInfo (
                                     RequestInfo);
 }
 
-ULONG
-FORCEINLINE
-StorPortQueryPerformanceCounter(
-    _In_ PVOID HwDeviceExtension,
-    _Out_opt_  PLARGE_INTEGER PerformanceFrequency,
-    _Out_ PLARGE_INTEGER PerformanceCounter
-    )
-{
-    return StorPortExtendedFunction(ExtFunctionQueryPerformanceCounter,
-                                    HwDeviceExtension,
-                                    PerformanceFrequency,
-                                    PerformanceCounter);
-}
-
-
 ULONG StorPortStateChangeDetected(
   PVOID            HwDeviceExtension,
   ULONG            ChangedEntity,

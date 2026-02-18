@@ -1992,7 +1992,7 @@ StorPortSetDeviceQueueDepth(
     PdoExtension = FdoFindLun(FdoExtension, PathId, TargetId, Lun);
 
     /* 254 is pre-Windows-8 per LUN queue limit */
-    if (PdoExtension == NULL || Depth > 254)
+    if (PdoExtension == NULL /*|| Depth > 254*/)
     {
         return FALSE;
     }
@@ -2001,9 +2001,9 @@ StorPortSetDeviceQueueDepth(
     PdoExtension->OutstandingRequestMax = Depth;
     KeReleaseInStackQueuedSpinLock(&LockHandle);
 
-    DPRINT("Set Path %d Target %d Lun %d Queue depth to %d\n", PathId, TargetId, Lun, Depth);
+    DPRINT1("Set Path %d Target %d Lun %d Queue depth to %d\n", PathId, TargetId, Lun, Depth);
 
-    return FALSE;
+    return TRUE;
 }
 
 
@@ -2024,7 +2024,7 @@ StorPortStallExecution(
  * @unimplemented
  */
 STORPORT_API
-VOID
+BOOLEAN
 NTAPI
 StorPortSynchronizeAccess(
     _In_ PVOID HwDeviceExtension,
@@ -2033,6 +2033,7 @@ StorPortSynchronizeAccess(
 {
     DPRINT1("StorPortSynchronizeAccess()\n");
     UNIMPLEMENTED;
+    return FALSE;
 }
 
 

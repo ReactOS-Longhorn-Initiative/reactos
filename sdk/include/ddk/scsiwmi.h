@@ -25,7 +25,11 @@
 #ifndef _SCSIWMI_
 #define _SCSIWMI_
 
-#include "srb.h"
+#if defined(_NTDDK_)
+#define SCSIPORT_API
+#else
+#define SCSIPORT_API DECLSPEC_IMPORT
+#endif
 
 #ifdef __cplusplus
 extern "C" {

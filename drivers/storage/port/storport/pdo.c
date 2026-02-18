@@ -602,6 +602,10 @@ CopyField(
                 Index++;
                 break;
             }
+            else if (Index == 0)
+            {
+                break;
+            }
 
             Index--;
         }
@@ -1372,6 +1376,7 @@ PortPdoPnp(
     {
         case IRP_MN_START_DEVICE:
         {
+            DPRINT1("IRP_MN_START_DEVICE\n");
             // RegistryInitLunKey(lunExt);
             Status = STATUS_SUCCESS;
             break;
@@ -1382,22 +1387,25 @@ PortPdoPnp(
         case IRP_MN_QUERY_STOP_DEVICE:
         case IRP_MN_SURPRISE_REMOVAL:
         {
+            DPRINT1("IRP_MN_%d\n", Stack->MinorFunction);
             Status = STATUS_SUCCESS;
             break;
         }
         case IRP_MN_QUERY_DEVICE_RELATIONS:
         {
+            DPRINT1("IRP_MN_QUERY_DEVICE_RELATIONS\n");
             Status = PdoHandleDeviceRelations(DeviceObject, Irp);
             break;
         }
         case IRP_MN_QUERY_DEVICE_TEXT:
         {
+            DPRINT1("IRP_MN_QUERY_DEVICE_TEXT\n");
             Status = PdoHandleQueryDeviceText(DeviceObject, Irp);
             break;
         }
         case IRP_MN_QUERY_ID:
         {
-            DPRINT("IRP_MN_QUERY_ID IdType %s\n",
+            DPRINT1("IRP_MN_QUERY_ID IdType %s\n",
                 DbgGetDeviceIDString(Stack->Parameters.QueryId.IdType));
 
            if (Stack->Parameters.QueryId.IdType == BusQueryDeviceID)
@@ -1426,6 +1434,7 @@ PortPdoPnp(
         default:
         {
             // do nothing
+            DPRINT1("Unknown IRP_MN 0x%x\n", Stack->MinorFunction);
             Status = Irp->IoStatus.Status;
         }
     }
@@ -1436,6 +1445,7 @@ PortPdoPnp(
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
     }
 
+    DPRINT1("PortPdoPnp status %d\n", Status);
     return Status;
 }
 

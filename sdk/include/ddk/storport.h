@@ -3310,6 +3310,7 @@ typedef struct _PERFORMANCE_DESCRIPTOR {
 #define SCSIOP_ERASE16                  0x93 // tape
 #define SCSIOP_ZBC_OUT                  0x94 // Close Zone, Finish Zone, Open Zone, Reset Write Pointer, etc.
 #define SCSIOP_ZBC_IN                   0x95 // Report Zones, etc.
+#define SCSIOP_READ_DATA_BUFF16         0x9B
 #define SCSIOP_READ_CAPACITY16          0x9E
 #define SCSIOP_GET_LBA_STATUS           0x9E
 #define SCSIOP_GET_PHYSICAL_ELEMENT_STATUS 0x9E
@@ -9734,7 +9735,7 @@ typedef struct _HW_INITIALIZATION_DATA {
   // If miniport is virtual, HwFindAdapter shall be of type
   // PVIRTUAL_HW_FIND_ADAPTER.
   //
-  PVOID                       HwFindAdapter;
+  /*PVOID*/ PHW_FIND_ADAPTER                       HwFindAdapter;
   PHW_RESET_BUS               HwResetBus;
   PHW_DMA_STARTED             HwDmaStarted;
   PHW_ADAPTER_STATE           HwAdapterState;
@@ -9826,6 +9827,11 @@ typedef struct _HW_INITIALIZATION_DATA {
 #define DUMP_MINIPORT_VERSION_1         0x0100
 #define DUMP_MINIPORT_VERSION           0x0200
 #define DUMP_MINIPORT_NAME_LENGTH       15
+
+#define MINIPORT_REG_SZ         1
+#define MINIPORT_REG_BINARY     3
+#define MINIPORT_REG_DWORD      4
+#define MINIPORT_REG_MULTI_SZ   7
 
 typedef struct _MINIPORT_MAPPINGS {
 
@@ -10420,7 +10426,7 @@ StorPortStallExecution(
     _In_ ULONG Delay);
 
 STORPORT_API
-VOID
+BOOLEAN
 NTAPI
 StorPortSynchronizeAccess(
     _In_ PVOID HwDeviceExtension,
@@ -10867,7 +10873,26 @@ StorPortSetUnitAttributes(
                                     Attributes);
 }
 
-FORCEINLINE ULONG
+ULONG
+FORCEINLINE
+StorPortQueryPerformanceCounter(_In_ PVOID HwDeviceExtension,
+                                _Out_ OPTIONAL PLARGE_INTEGER Frequency,
+                                _Out_ PLARGE_INTEGER PerformanceCounter)
+{
+#if (NTDDI_VERSION >= NTDDI_WIN8)
+    return StorPortExtendedFunction(ExtFunctionQueryPerformanceCounter,
+                                    HwDeviceExtension,
+                                    Frequency,
+                                    PerformanceCounter);
+#else
+    UNREFERENCED_PARAMETER(HwDeviceExtension);
+    UNREFERENCED_PARAMETER(Frequency);
+    UNREFERENCED_PARAMETER(PerformanceCounter);
+#endif
+}
+
+ULONG
+FORCEINLINE
 StorPortInitializeTimer(_In_ PVOID HwDeviceExtension,
 					  _Out_ PVOID *TimerHandle)
 {
