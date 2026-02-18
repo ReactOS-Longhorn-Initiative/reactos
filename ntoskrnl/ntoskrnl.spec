@@ -1610,6 +1610,7 @@
 @ cdecl qsort()
 @ cdecl rand()
 @ varargs sprintf(ptr str)
+@ varargs -version=0x600+ sprintf_s(ptr long str)
 @ cdecl srand()
 @ cdecl strcat()
 @ cdecl strchr()
