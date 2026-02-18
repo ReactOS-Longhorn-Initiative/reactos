@@ -92,6 +92,12 @@ HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\USB#Class_03","Cla
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\GENERIC_HID_DEVICE","Service",0x00000000,"hidusb"
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\GENERIC_HID_DEVICE","ClassGUID",0x00000000,"{745a17a0-74d3-11d0-b6fe-00a0c90f57da}"
 
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\VIOINPUT#REV_01","Service",0x00000000,"viohidkmdf"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\VIOINPUT#REV_01","ClassGUID",0x00000000,"{745a17a0-74d3-11d0-b6fe-00a0c90f57da}"
+
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1052","Service",0x00000000,"vioinput"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1052","ClassGUID",0x00000000,"{745a17a0-74d3-11d0-b6fe-00a0c90f57da}"
+
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\HID_DEVICE_SYSTEM_KEYBOARD","Service",0x00000000,"kbdhid"
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\HID_DEVICE_SYSTEM_KEYBOARD","ClassGUID",0x00000000,"{4D36E96B-E325-11CE-BFC1-08002BE10318}"
 
@@ -139,6 +145,12 @@ HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\*PNP0F03","ClassGU
 
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\ROOT#SWENUM","Service",0x00000000,"swenum"
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\ROOT#SWENUM","ClassGUID",0x00000000,"{4d36e97d-e325-11ce-bfc1-08002be10318}"
+
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1004","Service",0x00000000,"vioscsi"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1004","ClassGUID",0x00000000,"{4D36E97B-E325-11CE-BFC1-08002BE10318}"
+
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1048","Service",0x00000000,"vioscsi"
+HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1048","ClassGUID",0x00000000,"{4D36E97B-E325-11CE-BFC1-08002BE10318}"
 
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1001","Service",0x00000000,"viostor"
 HKLM,"SYSTEM\CurrentControlSet\Control\CriticalDeviceDatabase\PCI#VEN_1AF4&DEV_1001","ClassGUID",0x00000000,"{4D36E97B-E325-11CE-BFC1-08002BE10318}"
@@ -1806,6 +1818,20 @@ HKLM,"SYSTEM\CurrentControlSet\Services\hidusb","ImagePath",0x00020000,"system32
 HKLM,"SYSTEM\CurrentControlSet\Services\hidusb","Start",0x00010001,0x00000003
 HKLM,"SYSTEM\CurrentControlSet\Services\hidusb","Type",0x00010001,0x00000001
 
+; Pass-through HID to KMDF Filter Driver
+HKLM,"SYSTEM\CurrentControlSet\Services\viohidkmdf","ErrorControl",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\viohidkmdf","Group",0x00000000,"Extended Base"
+HKLM,"SYSTEM\CurrentControlSet\Services\viohidkmdf","ImagePath",0x00020000,"system32\drivers\viohidkmdf.sys"
+HKLM,"SYSTEM\CurrentControlSet\Services\viohidkmdf","Start",0x00010001,0x00000003
+HKLM,"SYSTEM\CurrentControlSet\Services\viohidkmdf","Type",0x00010001,0x00000001
+
+; VirtIO Input controller driver
+HKLM,"SYSTEM\CurrentControlSet\Services\vioinput","ErrorControl",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\vioinput","Group",0x00000000,"Extended Base"
+HKLM,"SYSTEM\CurrentControlSet\Services\vioinput","ImagePath",0x00020000,"system32\drivers\vioinput.sys"
+HKLM,"SYSTEM\CurrentControlSet\Services\vioinput","Start",0x00010001,0x00000003
+HKLM,"SYSTEM\CurrentControlSet\Services\vioinput","Type",0x00010001,0x00000001
+
 ; HID keyboard driver
 HKLM,"SYSTEM\CurrentControlSet\Services\kbdhid","ErrorControl",0x00010001,0x00000001
 HKLM,"SYSTEM\CurrentControlSet\Services\kbdhid","Group",0x00000000,"Keyboard Port"
@@ -1861,6 +1887,13 @@ HKLM,"SYSTEM\CurrentControlSet\Services\usbccgp","Group",0x00000000,"Boot Bus Ex
 HKLM,"SYSTEM\CurrentControlSet\Services\usbccgp","ImagePath",0x00020000,"system32\drivers\usbccgp.sys"
 HKLM,"SYSTEM\CurrentControlSet\Services\usbccgp","Start",0x00010001,0x00000000
 HKLM,"SYSTEM\CurrentControlSet\Services\usbccgp","Type",0x00010001,0x00000001
+
+; vioscsi driver
+HKLM,"SYSTEM\CurrentControlSet\Services\vioscsi","ErrorControl",0x00010001,0x00000001
+HKLM,"SYSTEM\CurrentControlSet\Services\vioscsi","Group",0x00000000,"SCSI miniport"
+HKLM,"SYSTEM\CurrentControlSet\Services\vioscsi","ImagePath",0x00020000,"system32\drivers\vioscsi.sys"
+HKLM,"SYSTEM\CurrentControlSet\Services\vioscsi","Start",0x00010001,0x00000000
+HKLM,"SYSTEM\CurrentControlSet\Services\vioscsi","Type",0x00010001,0x00000001
 
 ; viostor driver
 HKLM,"SYSTEM\CurrentControlSet\Services\viostor","ErrorControl",0x00010001,0x00000001
