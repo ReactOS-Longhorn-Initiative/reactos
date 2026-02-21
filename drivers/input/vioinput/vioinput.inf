@@ -35,7 +35,7 @@ PnpLockdown = 1
 ;HKR,,Icon,,-5
 
 [DestinationDirs]
-DefaultDestDir = INX_PLATFORM_DRIVERS_DIR
+DefaultDestDir = 12
 
 [SourceDisksFiles]
 vioinput.sys  = 1,,
@@ -99,14 +99,14 @@ AddService = viohidkmdf, 0x00000002, viohidkmdf_Service_Inst
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %INX_PLATFORM_DRIVERS_DIR%\viohidkmdf.sys
+ServiceBinary  = %12%\viohidkmdf.sys
 
 [VirtioInput_Service_Inst]
 DisplayName    = %VirtioInput.ServiceDesc%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %INX_PLATFORM_DRIVERS_DIR%\vioinput.sys
+ServiceBinary  = %12%\vioinput.sys
 AddReg         = Dmar.AddReg
 
 [Dmar.AddReg]
