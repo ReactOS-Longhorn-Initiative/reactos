@@ -66,6 +66,20 @@
 #define RWM_MILRT_VSP1_SOLIDCOLORBRUSH           (81u)
 
 /*
+ * Geometry resources used by Vista uDWM for glass/blur:
+ * - TYPE_RECTANGLEGEOMETRY: 75
+ * - Update rectangle geometry: cmd.Type = 169, sizeof=0x48
+ */
+#define RWM_MILRT_VSP1_RECTANGLEGEOMETRY         (75u)
+#define RWM_MILCMD_VSP1_RECTANGLEGEOMETRY        (169u)
+
+/*
+ * ColorResource update (Vista uDWM / DesktopManager::SetColorizationColorResource):
+ * - cmd.Type = 19, sizeof=0x18, payload: 4 floats (scRGB)
+ */
+#define RWM_MILCMD_VSP1_COLORRESOURCE            (19u)
+
+/*
  * Vista SP1 command IDs used by uDWM render-data path (from DwmReversing\\Vista\\uDWM.dll.c):
  * - RenderData update:          cmd.Type = 29, sizeof=0x0c, extra = cmd.cbData
  * - SolidColorBrush update:     cmd.Type = 174, sizeof=0x30
@@ -114,8 +128,26 @@
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETBOUNDS     (58u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_UPDATESPRITE  (60u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETSPRITEIMAGE (62u)
+/*
+ * WindowNode_UpdateProperties (Vista SP1 dwmredir DuceHelper::WindowNode_UpdateProperties):
+ * - After SetSpriteImage(62), Vista sends two 0x0C commands:
+ *   - cmd.Type = 63: sets the DX surface handle for the WindowNode (may be 0)
+ *   - cmd.Type = 65: sets the DX clip handle for the WindowNode (may be 0)
+ */
+#define RWM_MILCMD_VSP1_WINDOWNODE_SETDXSURFACE   (63u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETSPRITECLIP (64u)
+#define RWM_MILCMD_VSP1_WINDOWNODE_SETDXCLIP      (65u)
+/* WindowNode source modifications (Vista RefreshNodeProperties): cmd.Type = 66, size 0x2C. */
+#define RWM_MILCMD_VSP1_WINDOWNODE_SETSOURCEMODS  (66u)
 #define RWM_MILCMD_VSP1_WINDOWNODE_SETALPHAMARGINS (67u)
+
+/*
+ * Window redirection surface margin updates (Vista SP1 dwmredir DuceHelper):
+ * - WindowRedirection_GdiSpriteBitmap_UpdateMargins: cmd.Type = 91, size 0x18
+ * - WindowRedirection_FlipChain_UpdateMargins:       cmd.Type = 97, size 0x18
+ */
+#define RWM_MILCMD_VSP1_WNREDIR_GDISPRITE_UPDATEMARGINS (91u)
+#define RWM_MILCMD_VSP1_WNREDIR_FLIPCHAIN_UPDATEMARGINS (97u)
 
 /*
  * WindowNode create (Vista SP1 dwmredir DuceHelper::WindowNode_Create):

@@ -1,6 +1,8 @@
 #include "uDWM.h"
 #include <debug.h>
 #include "RwmVistaSp1MilCmd.h"
+#include <uxtheme.h>
+#include <math.h>
 extern DwmDesktop* DwmDesktopInstance;
 
 static LIST_ENTRY g_RwmWindowListHead;
@@ -8,6 +10,264 @@ static BOOLEAN g_RwmWindowListInitialized = FALSE;
 static UINT g_RwmWindowCount = 0;
 static ULONG g_uDwmUpdateSceneCount = 0;
 static BOOLEAN g_RwmRebuildChildren = TRUE;
+
+/* Vista DWMWindow theme parts/states (from Vista SP1 uDWM). */
+#define DWMWP_TOPFRAME      (57)
+#define DWMTFS_ACTIVE       (1)
+#define DWMTFS_INACTIVE     (2)
+#define DWMTFS_MAXACTIVE    (3)
+#define DWMTFS_MAXINACTIVE  (4)
+
+/*
+ * IMPORTANT:
+ * Do not rely on ReactOS' `vssym32.h` for these values; keep the Vista-validated
+ * numeric IDs from the reference code.
+ */
+#define UDWM_TMT_SIZINGMARGINS       (3601)
+#define UDWM_TMT_CAPTIONBARHEIGHT    (1205)
+#define UDWM_TMT_ROUNDCORNERWIDTH    (2404)
+#define UDWM_TMT_ROUNDCORNERHEIGHT   (2405)
+#define UDWM_TMT_COLORIZATIONCOLOR   (2431)
+#define UDWM_TMT_COLORIZATIONOPACITY (2432)
+
+static HTHEME g_hDwmTheme = NULL;
+
+static __forceinline HTHEME uDwmGetDwmWindowTheme(VOID)
+{
+    if (!g_hDwmTheme)
+    {
+        /* Vista reference uses hwnd=0. */
+        g_hDwmTheme = OpenThemeData(NULL, L"DWMWindow");
+    }
+    return g_hDwmTheme;
+}
+
+static __forceinline int uDwmGetTopFrameThemeState(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
+{
+    if (!pData || !pData->hWnd || !pData->Window)
+        return DWMTFS_ACTIVE;
+
+    const BOOL maximized = IsZoomed(pData->hWnd) ? TRUE : FALSE;
+    const BOOL active = pData->Window->IsForeground() ? TRUE : FALSE;
+    if (maximized)
+        return active ? DWMTFS_MAXACTIVE : DWMTFS_MAXINACTIVE;
+    return active ? DWMTFS_ACTIVE : DWMTFS_INACTIVE;
+}
+
+typedef struct _UDWM_THEME_METRICS
+{
+    MARGINS Frame;              /* sizing margins (frame thickness) */
+    int CaptionHeight;          /* caption height */
+    int CornerRadius;           /* approximate radius in px */
+    float ColorizationOpacity;  /* 0..1 */
+} UDWM_THEME_METRICS;
+
+static VOID uDwmQueryThemeMetrics(_In_opt_ PRWM_WINDOWDATA_VISTA_SP1 pData, _Out_ UDWM_THEME_METRICS* pOut)
+{
+    if (!pOut)
+        return;
+    RtlZeroMemory(pOut, sizeof(*pOut));
+
+    /* Sensible defaults if theme APIs fail. */
+    pOut->Frame.cxLeftWidth = GetSystemMetrics(SM_CXSIZEFRAME);
+    pOut->Frame.cxRightWidth = GetSystemMetrics(SM_CXSIZEFRAME);
+    pOut->Frame.cyTopHeight = GetSystemMetrics(SM_CYSIZEFRAME);
+    pOut->Frame.cyBottomHeight = GetSystemMetrics(SM_CYSIZEFRAME);
+    pOut->CaptionHeight = GetSystemMetrics(SM_CYCAPTION);
+    pOut->CornerRadius = 6;
+    pOut->ColorizationOpacity = 1.0f;
+
+    HTHEME hTheme = uDwmGetDwmWindowTheme();
+    if (!hTheme)
+        return;
+
+    /* Frame sizing margins: Vista uses TMT_SIZINGMARGINS (3601). */
+    MARGINS mar = {};
+    if (SUCCEEDED(GetThemeMargins(hTheme, NULL, DWMWP_TOPFRAME, 0, UDWM_TMT_SIZINGMARGINS, NULL, &mar)))
+        pOut->Frame = mar;
+
+    /* Caption height: theme-global size property. */
+    int cap = 0;
+    if (SUCCEEDED(GetThemeInt(hTheme, 0, 0, UDWM_TMT_CAPTIONBARHEIGHT, &cap)) && cap > 0)
+        pOut->CaptionHeight = cap;
+
+    /* Corner radius: approximate from round-corner ellipse size. */
+    const int st = uDwmGetTopFrameThemeState(pData);
+    int rw = 0, rh = 0;
+    if (SUCCEEDED(GetThemeInt(hTheme, DWMWP_TOPFRAME, st, UDWM_TMT_ROUNDCORNERWIDTH, &rw)) &&
+        SUCCEEDED(GetThemeInt(hTheme, DWMWP_TOPFRAME, st, UDWM_TMT_ROUNDCORNERHEIGHT, &rh)))
+    {
+        int r = rw;
+        if (rh > 0 && rh < r) r = rh;
+        if (r > 0)
+            pOut->CornerRadius = r / 2;
+    }
+
+    /* Colorization opacity: store as int percent in the theme (2432). */
+    int op = 0;
+    if (SUCCEEDED(GetThemeInt(hTheme, DWMWP_TOPFRAME, st, UDWM_TMT_COLORIZATIONOPACITY, &op)))
+    {
+        if (op < 0) op = 0;
+        if (op > 100) op = 100;
+        pOut->ColorizationOpacity = (float)op / 100.0f;
+    }
+}
+
+static __forceinline float uDwmSrgbToScrgb(_In_ float c)
+{
+    if (c <= 0.0f) return 0.0f;
+    if (c >= 1.0f) return 1.0f;
+    if (c <= 0.04045f)
+        return c / 12.92f;
+    return (float)pow((c + 0.055f) / 1.055f, 2.4f);
+}
+
+static VOID uDwmGetEffectiveClientMargins(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData, _Out_ MARGINS* pMargins)
+{
+    if (!pMargins)
+        return;
+
+    /*
+     * IMPORTANT:
+     * CompositedWindow::GetClientMargins / GetClientGlassMargins are *client-area* insets
+     * (e.g. DwmExtendFrameIntoClientArea), used to compute ContentRect within ClientRect.
+     *
+     * Do NOT mix theme frame/caption metrics into these margins; that double-counts
+     * non-client and makes the composed content drift (overlap/gaps vs glass).
+     */
+    MARGINS m = {};
+    if (pData && pData->Window)
+        pData->Window->GetClientMargins(&m);
+
+    /* Use the window-provided client margins (Vista UpdateSurfaceOffsets uses this). */
+    *pMargins = m;
+
+    /* Clamp negatives (Vista uses 0x7fffffff for "extend"; we clamp to avoid poisoning milcore). */
+    if (pMargins->cxLeftWidth < 0) pMargins->cxLeftWidth = 0;
+    if (pMargins->cxRightWidth < 0) pMargins->cxRightWidth = 0;
+    if (pMargins->cyTopHeight < 0) pMargins->cyTopHeight = 0;
+    if (pMargins->cyBottomHeight < 0) pMargins->cyBottomHeight = 0;
+}
+
+static VOID uDwmComputeNonClientMarginsFromRects(_In_ const RECT* prcWindowScreen,
+                                                _In_ const RECT* prcClientScreen,
+                                                _Out_ MARGINS* pMargins)
+{
+    if (!pMargins)
+        return;
+    RtlZeroMemory(pMargins, sizeof(*pMargins));
+    if (!prcWindowScreen || !prcClientScreen)
+        return;
+
+    LONG l = prcClientScreen->left - prcWindowScreen->left;
+    LONG t = prcClientScreen->top - prcWindowScreen->top;
+    LONG r = prcWindowScreen->right - prcClientScreen->right;
+    LONG b = prcWindowScreen->bottom - prcClientScreen->bottom;
+
+    if (l < 0) l = 0;
+    if (t < 0) t = 0;
+    if (r < 0) r = 0;
+    if (b < 0) b = 0;
+
+    pMargins->cxLeftWidth = l;
+    pMargins->cyTopHeight = t;
+    pMargins->cxRightWidth = r;
+    pMargins->cyBottomHeight = b;
+}
+
+static HRESULT uDwmUpdateNcColorizationResource(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
+{
+    if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->hNcColorization)
+        return E_UNEXPECTED;
+
+    DWORD dwColor = 0;
+    DWORD dwOpaqueBlend = 0;
+
+    HKEY hKey = NULL;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM", 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+    {
+        DWORD cb = sizeof(DWORD);
+        (void)RegQueryValueExW(hKey, L"ColorizationColor", 0, NULL, (LPBYTE)&dwColor, &cb);
+        cb = sizeof(DWORD);
+        (void)RegQueryValueExW(hKey, L"ColorizationOpaqueBlend", 0, NULL, (LPBYTE)&dwOpaqueBlend, &cb);
+        RegCloseKey(hKey);
+    }
+
+    /* Theme base color as fallback / blend base. */
+    DWORD dwBase = 0xFF000000u;
+    HTHEME hTheme = uDwmGetDwmWindowTheme();
+    if (hTheme)
+    {
+        int base = 0;
+        if (SUCCEEDED(GetThemeInt(hTheme, 0, 0, UDWM_TMT_COLORIZATIONCOLOR, &base)))
+            dwBase = (DWORD)base;
+    }
+
+    /* If registry is missing, fall back entirely to theme base. */
+    if (dwColor == 0)
+        dwColor = dwBase;
+
+    /* Normalize sRGB colors from 0xAARRGGBB. */
+    const float baseB = (float)((dwBase >> 0) & 0xFF) / 255.0f;
+    const float baseG = (float)((dwBase >> 8) & 0xFF) / 255.0f;
+    const float baseR = (float)((dwBase >> 16) & 0xFF) / 255.0f;
+    const float baseA = (float)((dwBase >> 24) & 0xFF) / 255.0f;
+
+    const float srcB0 = (float)((dwColor >> 0) & 0xFF) / 255.0f;
+    const float srcG0 = (float)((dwColor >> 8) & 0xFF) / 255.0f;
+    const float srcR0 = (float)((dwColor >> 16) & 0xFF) / 255.0f;
+    float srcA = (float)((dwColor >> 24) & 0xFF) / 255.0f;
+    if (dwOpaqueBlend)
+        srcA = 1.0f;
+
+    UDWM_THEME_METRICS tm = {};
+    uDwmQueryThemeMetrics(pData, &tm);
+    const float opacity = tm.ColorizationOpacity;
+
+    const float blendA = srcA * opacity;
+
+    /* Premultiplied "over" blend, then unpremultiply (matches Vista intent). */
+    const float baseRp = baseR * baseA;
+    const float baseGp = baseG * baseA;
+    const float baseBp = baseB * baseA;
+    const float srcRp = srcR0 * blendA;
+    const float srcGp = srcG0 * blendA;
+    const float srcBp = srcB0 * blendA;
+
+    const float outA = (1.0f - blendA) * baseA + blendA;
+    float outR = (1.0f - blendA) * baseRp + srcRp;
+    float outG = (1.0f - blendA) * baseGp + srcGp;
+    float outB = (1.0f - blendA) * baseBp + srcBp;
+
+    if (outA > 0.00001f)
+    {
+        outR /= outA;
+        outG /= outA;
+        outB /= outA;
+    }
+    else
+    {
+        outR = outG = outB = 0.0f;
+    }
+
+    typedef struct _MILCMD_COLORRESOURCE_VSP1_LOCAL
+    {
+        MILCMD Type;          /* 19 */
+        HMIL_RESOURCE Handle; /* ColorResource */
+        float Color[4];       /* scRGB: {r,g,b,a} */
+    } MILCMD_COLORRESOURCE_VSP1_LOCAL;
+    static_assert(sizeof(MILCMD_COLORRESOURCE_VSP1_LOCAL) == 0x18, "Unexpected ColorResource cmd size");
+
+    MILCMD_COLORRESOURCE_VSP1_LOCAL cr = {};
+    cr.Type = (MILCMD)RWM_MILCMD_VSP1_COLORRESOURCE;
+    cr.Handle = (HMIL_RESOURCE)pData->hNcColorization;
+    cr.Color[0] = uDwmSrgbToScrgb(outR);
+    cr.Color[1] = uDwmSrgbToScrgb(outG);
+    cr.Color[2] = uDwmSrgbToScrgb(outB);
+    cr.Color[3] = outA;
+
+    return MilResource_SendCommand(&cr, sizeof(cr), DwmDesktopInstance->GlobalChannel);
+}
 
 #pragma pack(push, 4)
 typedef struct _MILCMD_WINDOWNODE_SETBOUNDS_VSP1
@@ -60,6 +320,18 @@ typedef struct _MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1
 } MILCMD_WINDOWNODE_SETSPRITEIMAGE_VSP1;
 
 /*
+ * Vista SP1 WindowNode UpdateProperties follow-ups (dwmredir DuceHelper::WindowNode_UpdateProperties):
+ * - cmd.Type = 63, sizeof=0x0C: set DX surface handle (may be 0)
+ * - cmd.Type = 65, sizeof=0x0C: set DX clip handle (may be 0)
+ */
+typedef struct _MILCMD_WINDOWNODE_SETDXSURFACE_VSP1
+{
+    MILCMD Type;          /* 63 */
+    HMIL_RESOURCE Handle; /* WindowNode handle */
+    HMIL_RESOURCE hDxSurface;
+} MILCMD_WINDOWNODE_SETDXSURFACE_VSP1;
+
+/*
  * Vista SP1 WindowNode sprite clip command (dwmredir DuceHelper::WindowNode_SetSpriteClip):
  * - cmd.Type = 64, sizeof=0x10
  * Layout (from dwmredir.dll.c):
@@ -72,6 +344,27 @@ typedef struct _MILCMD_WINDOWNODE_SETSPRITECLIP_VSP1
     UINT32 Flags;             /* dwmredir passes !m_fUsingWindowRgn */
     HMIL_RESOURCE hClip;      /* geometry handle (PATHGEOMETRY) or 0 */
 } MILCMD_WINDOWNODE_SETSPRITECLIP_VSP1;
+
+typedef struct _MILCMD_WINDOWNODE_SETDXCLIP_VSP1
+{
+    MILCMD Type;          /* 65 */
+    HMIL_RESOURCE Handle; /* WindowNode handle */
+    HMIL_RESOURCE hDxClip;
+} MILCMD_WINDOWNODE_SETDXCLIP_VSP1;
+
+/*
+ * Vista SP1 RefreshNodeProperties ends with cmd.Type=66, sizeof=0x2C.
+ * It incorporates "source modifications" (flags + scRGB color) from the window context.
+ */
+typedef struct _MILCMD_WINDOWNODE_SETSOURCEMODS_VSP1
+{
+    MILCMD Type;              /* 66 */
+    HMIL_RESOURCE Handle;     /* WindowNode handle */
+    UINT32 SourceFlags;       /* MIL_SOURCE_FLAGS bitmask */
+    float ModColor[4];        /* scRGB from GetSourceModifications() */
+    float Color[4];           /* Vista copies RGB then forces A=1.0 */
+} MILCMD_WINDOWNODE_SETSOURCEMODS_VSP1;
+static_assert(sizeof(MILCMD_WINDOWNODE_SETSOURCEMODS_VSP1) == 0x2C, "Unexpected SetSourceMods cmd size");
 
 typedef struct _MILCMD_PATHGEOMETRY_VSP1
 {
@@ -103,6 +396,34 @@ typedef struct _MILCMD_SOLIDCOLORBRUSH_VSP1
     HMIL_RESOURCE hColorAnimations;
 } MILCMD_SOLIDCOLORBRUSH_VSP1;
 
+/* Vista SP1 ColorResource update (DesktopManager::SetColorizationColorResource), cmd.Type = 19, sizeof=0x18. */
+typedef struct _MILCMD_COLORRESOURCE_VSP1
+{
+    MILCMD Type;          /* 19 */
+    HMIL_RESOURCE Handle; /* ColorResource */
+    float Color[4];       /* scRGB: {r,g,b,a} */
+} MILCMD_COLORRESOURCE_VSP1;
+
+/*
+ * Vista SP1 RectangleGeometry update (ResourceHelper::CreateRectangleGeometry),
+ * cmd.Type = 169, sizeof=0x48.
+ */
+typedef struct _MILCMD_RECTANGLEGEOMETRY_VSP1
+{
+    MILCMD Type;          /* 169 */
+    HMIL_RESOURCE Handle; /* RectangleGeometry */
+    double RadiusX;
+    double RadiusY;
+    double X;
+    double Y;
+    double Width;
+    double Height;
+    HMIL_RESOURCE Unknown0;
+    HMIL_RESOURCE Unknown1;
+    HMIL_RESOURCE Unknown2;
+    HMIL_RESOURCE Unknown3;
+} MILCMD_RECTANGLEGEOMETRY_VSP1;
+
 /* RenderData "draw rectangle" instruction payload (matches Vista's 111 instruction). */
 typedef struct _RWM_RENDATA_DRAWRECT_VSP1
 {
@@ -115,6 +436,25 @@ typedef struct _RWM_RENDATA_DRAWRECT_VSP1
     UINT32 hBrush;
     UINT32 hPen;
 } RWM_RENDATA_DRAWRECT_VSP1;
+
+/*
+ * Vista uDWM CDrawGlassInstruction render-data instruction.
+ * From DwmReversing\\Vista\\uDWM.dll.c: cbInstruction = 44, Type = 105.
+ */
+typedef struct _RWM_RENDATA_DRAWGLASS_VSP1
+{
+    UINT32 cbInstruction; /* 44 */
+    UINT32 Type;          /* 105 */
+    UINT32 hGeomTop;
+    UINT32 hGeomLeft;
+    UINT32 hGeomRight;
+    UINT32 hGeomBottom;
+    float f0;
+    float f1;
+    float f2;
+    float f3;
+    UINT32 hColorization;
+} RWM_RENDATA_DRAWGLASS_VSP1;
 
 /*
  * Vista SP1 translate transform command as used by dwmredir:
@@ -141,10 +481,19 @@ typedef struct _MILCMD_VISUAL_SETTRANSFORM_VSP1
     HMIL_RESOURCE Handle;     /* visual/window node */
     HMIL_RESOURCE hTransform; /* transform handle or 0 */
 } MILCMD_VISUAL_SETTRANSFORM_VSP1;
+
+/* Vista SP1 Visual_SetClip command (DuceHelper::Visual_SetClip), cmd.Type = 36, sizeof=0x0C. */
+typedef struct _MILCMD_VISUAL_SETCLIP_VSP1
+{
+    MILCMD Type;              /* 36 */
+    HMIL_RESOURCE Handle;     /* visual/window node */
+    HMIL_RESOURCE hClip;      /* geometry handle or 0 */
+} MILCMD_VISUAL_SETCLIP_VSP1;
 #pragma pack(pop)
 
 /* Forward decls for helpers used before their definition. */
 static __forceinline VOID uDwmMarkRebuildNeeded(VOID);
+static HRESULT uDwmCreateOrUpdateGeometryFromHrgn(_In_ HRGN hrgn, _Inout_ HMIL_RESOURCE* phGeometry);
 
 static __forceinline VOID uDwmInitializeWindowTracking(VOID)
 {
@@ -277,14 +626,30 @@ static VOID uDwmLogWindowBrief(_In_ const char* tag, _In_opt_ HWND hWnd)
         return;
 
     WCHAR cls[64] = {0};
-    WCHAR text[96] = {0};
     (void)GetClassNameW(hWnd, cls, ARRAYSIZE(cls));
-    (void)GetWindowTextW(hWnd, text, ARRAYSIZE(text));
 
     /* Only spam for key shell windows (tray/taskmgr). */
     if (_wcsicmp(cls, L"Shell_TrayWnd") != 0 &&
         _wcsicmp(cls, L"TaskManagerWindow") != 0)
         return;
+
+    /*
+     * IMPORTANT:
+     * Do NOT call GetWindowTextW here; it can block by sending WM_GETTEXT to a
+     * potentially hung foreign-thread window, stalling the entire compositor.
+     */
+    WCHAR text[96] = {0};
+    DWORD_PTR smto = 0;
+    if (!SendMessageTimeoutW(hWnd,
+                             WM_GETTEXT,
+                             (WPARAM)ARRAYSIZE(text),
+                             (LPARAM)text,
+                             SMTO_ABORTIFHUNG | SMTO_BLOCK,
+                             50,
+                             &smto))
+    {
+        text[0] = 0;
+    }
 
     DWORD pid = 0;
     (void)GetWindowThreadProcessId(hWnd, &pid);
@@ -339,45 +704,6 @@ static __forceinline HMIL_RESOURCE uDwmGetRootChildHandle(_In_ const RWM_WINDOWD
     return (HMIL_RESOURCE)pData->ClientNode;
 }
 
-static HRESULT uDwmEnsureWindowFrameVisual(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
-{
-    if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
-        return E_UNEXPECTED;
-
-    HRESULT hr = S_OK;
-
-    if (!pData->hWindowVisual)
-    {
-        HMIL_RESOURCE hVis = 0;
-        hr = MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
-                                                 (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_VISUAL,
-                                                 &hVis);
-        if (FAILED(hr) || !hVis)
-            return FAILED(hr) ? hr : E_FAIL;
-
-        pData->hWindowVisual = hVis;
-        pData->Flags &= ~RWM_WD_FRAME_CHILD_INSERTED;
-    }
-
-    if (!(pData->Flags & RWM_WD_FRAME_CHILD_INSERTED))
-    {
-        MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
-        insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
-        insertChild.Handle = (HMIL_RESOURCE)pData->hWindowVisual;
-        insertChild.hChild = (HMIL_RESOURCE)pData->ClientNode;
-        insertChild.index = 0;
-
-        hr = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-        if (SUCCEEDED(hr))
-            pData->Flags |= RWM_WD_FRAME_CHILD_INSERTED;
-        else
-            DPRINT1("uDwmEnsureWindowFrameVisual: InsertChildAt failed hr=0x%08lx frame=0x%lx child=0x%lx hwnd=0x%p\n",
-                    hr, (ULONG)pData->hWindowVisual, (ULONG)pData->ClientNode, pData->hWnd);
-    }
-
-    return hr;
-}
-
 static HRESULT uDwmEnsureNcSubtree(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
 {
     if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
@@ -395,7 +721,28 @@ static HRESULT uDwmEnsureNcSubtree(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
             return FAILED(hr) ? hr : E_FAIL;
         pData->hNcVisual = hVis;
         pData->Flags &= ~RWM_WD_NC_VISUAL_INSERTED;
-        uDwmMarkRebuildNeeded();
+    }
+
+    /*
+     * Vista-like layering:
+     * Attach the NC visual as a child of the WindowNode so it draws on top of the
+     * redirected surface, while still using WindowNode's local coordinate space.
+     */
+    if (!(pData->Flags & RWM_WD_NC_VISUAL_INSERTED))
+    {
+        MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
+        insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
+        insertChild.Handle = (HMIL_RESOURCE)pData->ClientNode;
+        insertChild.hChild = (HMIL_RESOURCE)pData->hNcVisual;
+        /* Use a conservative index; Vista manages ordering via a richer subtree. */
+        insertChild.index = 0;
+
+        HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
+        if (SUCCEEDED(hrIns))
+            pData->Flags |= RWM_WD_NC_VISUAL_INSERTED;
+        else
+            DPRINT1("uDwmEnsureNcSubtree: InsertChildAt failed hr=0x%08lx node=0x%lx nc=0x%lx hwnd=0x%p\n",
+                    hrIns, (ULONG)pData->ClientNode, (ULONG)pData->hNcVisual, pData->hWnd);
     }
 
     if (!pData->hNcRenderData)
@@ -458,10 +805,37 @@ static HRESULT uDwmEnsureNcSubtree(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
         (void)MilResource_SendCommand(&br, sizeof(br), DwmDesktopInstance->GlobalChannel);
     }
 
+    /* Ensure glass geometry resources (Vista: HRGN->Geometry => PathGeometry) and colorization resource exist. */
+    if (!pData->hNcGlassGeomTop)
+        (void)MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                  (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_PATHGEOMETRY,
+                                                  &pData->hNcGlassGeomTop);
+    if (!pData->hNcGlassGeomLeft)
+        (void)MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                  (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_PATHGEOMETRY,
+                                                  &pData->hNcGlassGeomLeft);
+    if (!pData->hNcGlassGeomRight)
+        (void)MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                  (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_PATHGEOMETRY,
+                                                  &pData->hNcGlassGeomRight);
+    if (!pData->hNcGlassGeomBottom)
+        (void)MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                  (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_PATHGEOMETRY,
+                                                  &pData->hNcGlassGeomBottom);
+    if (!pData->hNcColorization)
+        (void)MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
+                                                  (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_COLORRESOURCE,
+                                                  &pData->hNcColorization);
+
+    if (pData->hNcColorization)
+    {
+        (void)uDwmUpdateNcColorizationResource(pData);
+    }
+
     return S_OK;
 }
 
-static HRESULT uDwmUpdateNcFrameRenderData(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
+static HRESULT uDwmUpdateNcGlassRenderData(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
 {
     if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel)
         return E_UNEXPECTED;
@@ -473,65 +847,84 @@ static HRESULT uDwmUpdateNcFrameRenderData(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
     if (w <= 0 || h <= 0)
         return S_FALSE;
 
-    /* Decide whether to draw a caption at all. */
-    LONG_PTR style = 0;
-    if (pData->hWnd)
-        style = GetWindowLongPtrW(pData->hWnd, GWL_STYLE);
+    if (!pData->hNcGlassGeomTop || !pData->hNcColorization)
+        return S_FALSE;
 
-    const BOOL hasCaption = (style & WS_CAPTION) ? TRUE : FALSE;
-    const int border = (style & (WS_BORDER | WS_DLGFRAME | WS_THICKFRAME | WS_CAPTION)) ? 1 : 0;
     /*
-     * Vista Aero behavior: there is typically a small "glass" strip between the
-     * caption and the client content (content rect is inset downward slightly).
-     *
-     * Make our example titlebar occupy that strip too so it visibly "uses" the
-     * space while the window content is pushed down.
+     * Vista: DrawGlass geometry is built in SCREEN space, matching WindowNode_SetBounds.
+     * Use cached screen rects from WindowNode_SetBounds for consistency.
      */
-    const int glassInset = hasCaption ? 4 : 0;
-    const int captionH = hasCaption ? (26 + glassInset) : 0;
+    const RECT rcWindow = pData->WindowRect;
+    const RECT rcClient = pData->ClientMarginsRect;
+    const RECT rcContent = pData->ContentRectLocal;
 
-    UINT rectCount = 0;
-    if (captionH > 0)
-        rectCount++;
-    if (border > 0)
-        rectCount += 4;
-
-    if (!rectCount)
-        return S_OK;
-
-    const UINT32 cbInstr = sizeof(RWM_RENDATA_DRAWRECT_VSP1);
-    const UINT32 cbData = rectCount * cbInstr;
-
-    BYTE* buf = (BYTE*)HeapAlloc(GetProcessHeap(), 0, cbData);
-    if (!buf)
-        return E_OUTOFMEMORY;
-
-    UINT off = 0;
-    auto emitRect = [&](double x, double y, double ww, double hh, UINT32 hBrush)
+    auto updateBandGeomFromHrgn = [&](HMIL_RESOURCE* phGeom, HRGN hrgnBand, HRGN hrgnOuter) -> HRESULT
     {
-        RWM_RENDATA_DRAWRECT_VSP1 r = {};
-        r.cbInstruction = cbInstr;
-        r.Type = RWM_MILDRAW_VSP1_RECTANGLE;
-        r.X = x;
-        r.Y = y;
-        r.Width = ww;
-        r.Height = hh;
-        r.hBrush = hBrush;
-        r.hPen = 0;
-        memcpy(buf + off, &r, sizeof(r));
-        off += sizeof(r);
+        if (!phGeom || !*phGeom || !hrgnBand)
+            return E_INVALIDARG;
+
+        if (hrgnOuter)
+            (void)CombineRgn(hrgnBand, hrgnBand, hrgnOuter, RGN_AND);
+
+        return uDwmCreateOrUpdateGeometryFromHrgn(hrgnBand, phGeom);
     };
 
-    if (captionH > 0 && pData->hNcCaptionBrush)
-        emitRect(0.0, 0.0, (double)w, (double)captionH, (UINT32)pData->hNcCaptionBrush);
+    /*
+     * Match Vista's intent:
+     * - Border bands are defined by the CLIENT rect boundary (non-client outside client).
+     * - The TOP band can extend down to ContentRect.top so the "glass strip" between
+     *   caption and content is included (Aero look).
+     */
+    const LONG topBandBottom = (rcContent.top > rcClient.top) ? rcContent.top : rcClient.top;
+    const RECT rcTop = { rcWindow.left, rcWindow.top, rcWindow.right, topBandBottom };
+    const RECT rcLeft = { rcWindow.left, rcWindow.top, rcClient.left, rcWindow.bottom };
+    const RECT rcRight = { rcClient.right, rcWindow.top, rcWindow.right, rcWindow.bottom };
+    const RECT rcBottom = { rcWindow.left, rcClient.bottom, rcWindow.right, rcWindow.bottom };
 
-    if (border > 0 && pData->hNcBorderBrush)
+    const BOOL maximized = (pData->hWnd && IsZoomed(pData->hWnd)) ? TRUE : FALSE;
+    UDWM_THEME_METRICS tm = {};
+    uDwmQueryThemeMetrics(pData, &tm);
+    const int radius = maximized ? 0 : tm.CornerRadius;
+    HRGN hrgnOuter = (radius > 0) ? CreateRoundRectRgn(rcWindow.left, rcWindow.top, rcWindow.right, rcWindow.bottom, radius, radius)
+                                  : CreateRectRgn(rcWindow.left, rcWindow.top, rcWindow.right, rcWindow.bottom);
+    HRGN hrgnTop = CreateRectRgn(rcTop.left, rcTop.top, rcTop.right, rcTop.bottom);
+    HRGN hrgnLeft = CreateRectRgn(rcLeft.left, rcLeft.top, rcLeft.right, rcLeft.bottom);
+    HRGN hrgnRight = CreateRectRgn(rcRight.left, rcRight.top, rcRight.right, rcRight.bottom);
+    HRGN hrgnBottom = CreateRectRgn(rcBottom.left, rcBottom.top, rcBottom.right, rcBottom.bottom);
+
+    if (hrgnOuter && hrgnTop && hrgnLeft && hrgnRight && hrgnBottom)
     {
-        emitRect(0.0, 0.0, (double)w, (double)border, (UINT32)pData->hNcBorderBrush);                    /* top */
-        emitRect(0.0, (double)(h - border), (double)w, (double)border, (UINT32)pData->hNcBorderBrush);   /* bottom */
-        emitRect(0.0, 0.0, (double)border, (double)h, (UINT32)pData->hNcBorderBrush);                    /* left */
-        emitRect((double)(w - border), 0.0, (double)border, (double)h, (UINT32)pData->hNcBorderBrush);   /* right */
+        (void)updateBandGeomFromHrgn(&pData->hNcGlassGeomTop, hrgnTop, hrgnOuter);
+        (void)updateBandGeomFromHrgn(&pData->hNcGlassGeomLeft, hrgnLeft, hrgnOuter);
+        (void)updateBandGeomFromHrgn(&pData->hNcGlassGeomRight, hrgnRight, hrgnOuter);
+        (void)updateBandGeomFromHrgn(&pData->hNcGlassGeomBottom, hrgnBottom, hrgnOuter);
     }
+
+    if (hrgnTop) DeleteObject(hrgnTop);
+    if (hrgnLeft) DeleteObject(hrgnLeft);
+    if (hrgnRight) DeleteObject(hrgnRight);
+    if (hrgnBottom) DeleteObject(hrgnBottom);
+    if (hrgnOuter) DeleteObject(hrgnOuter);
+
+    /*
+     * Do NOT clip the glass visual to only the top band.
+     * Vista's DrawGlass instruction is parameterized by 4 geometries (top/left/right/bottom).
+     * Clipping here breaks left/right/bottom glass rendering and makes the frame look wrong.
+     */
+
+    const UINT32 cbData = sizeof(RWM_RENDATA_DRAWGLASS_VSP1);
+    RWM_RENDATA_DRAWGLASS_VSP1 instr = {};
+    instr.cbInstruction = sizeof(RWM_RENDATA_DRAWGLASS_VSP1);
+    instr.Type = 105;
+    instr.hGeomTop = (UINT32)pData->hNcGlassGeomTop;
+    instr.hGeomLeft = (UINT32)pData->hNcGlassGeomLeft;
+    instr.hGeomRight = (UINT32)pData->hNcGlassGeomRight;
+    instr.hGeomBottom = (UINT32)pData->hNcGlassGeomBottom;
+    instr.f0 = 0.0f;
+    instr.f1 = 0.0f;
+    instr.f2 = 0.0f;
+    instr.f3 = 0.0f;
+    instr.hColorization = (UINT32)pData->hNcColorization;
 
     MILCMD_RENDERDATA_VSP1 cmd = {};
     cmd.Type = (MILCMD)RWM_MILCMD_VSP1_RENDERDATA;
@@ -541,16 +934,15 @@ static HRESULT uDwmUpdateNcFrameRenderData(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
     HRESULT hr = MilChannel_BeginCommand(DwmDesktopInstance->GlobalChannel, &cmd, sizeof(cmd), cbData);
     if (SUCCEEDED(hr))
     {
-        hr = MilChannel_AppendCommandData(DwmDesktopInstance->GlobalChannel, buf, cbData);
+        hr = MilChannel_AppendCommandData(DwmDesktopInstance->GlobalChannel, &instr, cbData);
         (void)MilChannel_EndCommand(DwmDesktopInstance->GlobalChannel);
     }
     else
     {
-        DPRINT1("uDwmUpdateNcFrameRenderData: BeginCommand failed hr=0x%08lx cbData=%u hwnd=0x%p\n",
+        DPRINT1("uDwmUpdateNcGlassRenderData: BeginCommand failed hr=0x%08lx cbData=%u hwnd=0x%p\n",
                 hr, cbData, pData->hWnd);
     }
 
-    HeapFree(GetProcessHeap(), 0, buf);
     return hr;
 }
 
@@ -598,41 +990,6 @@ static __forceinline BOOLEAN uDwmNeedsExampleTitlebar(_In_ const RWM_WINDOWDATA_
 
     const LONG_PTR style = GetWindowLongPtrW(pData->hWnd, GWL_STYLE);
     return ((style & WS_CAPTION) != 0) ? TRUE : FALSE;
-}
-
-static HRESULT uDwmInsertNcAtRoot(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData, _Inout_ UINT* pIndex)
-{
-    if (!pData || !pIndex || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !DwmDesktopInstance->hRootNode)
-        return E_UNEXPECTED;
-    if (!pData->hNcVisual)
-        return S_FALSE;
-    if (pData->Flags & RWM_WD_NC_VISUAL_INSERTED)
-        return S_FALSE;
-    if ((HMIL_RESOURCE)pData->hNcVisual == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
-        return S_FALSE;
-
-    MILCMD_VISUAL_INSERTCHILDAT insertChild = {};
-    insertChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_INSERTCHILDAT;
-    insertChild.Handle = (HMIL_RESOURCE)DwmDesktopInstance->hRootNode;
-    insertChild.hChild = (HMIL_RESOURCE)pData->hNcVisual;
-    insertChild.index = *pIndex;
-
-    HRESULT hrIns = MilResource_SendCommand(&insertChild, sizeof(insertChild), DwmDesktopInstance->GlobalChannel);
-    if (SUCCEEDED(hrIns))
-    {
-        pData->Flags |= RWM_WD_NC_VISUAL_INSERTED;
-        (*pIndex)++;
-    }
-    else
-    {
-        DPRINT1("uDwmRebuildRootChildren: Insert NC failed hr=0x%08lx root=0x%lx nc=0x%lx idx=%u hwnd=0x%p\n",
-                hrIns,
-                (ULONG)DwmDesktopInstance->hRootNode,
-                (ULONG)pData->hNcVisual,
-                insertChild.index,
-                pData->hWnd);
-    }
-    return hrIns;
 }
 
 /*
@@ -685,8 +1042,8 @@ static VOID uDwmRebuildRootChildren(VOID)
         PRWM_WINDOWDATA_VISTA_SP1 pData = CONTAINING_RECORD(e, RWM_WINDOWDATA_VISTA_SP1, ListEntry);
         if (!pData || pData->Signature != RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
             continue;
+        /* Root child collection was cleared. */
         pData->Flags &= ~RWM_WD_VISUAL_INSERTED;
-        pData->Flags &= ~RWM_WD_NC_VISUAL_INSERTED;
     }
 
     /*
@@ -744,7 +1101,6 @@ static VOID uDwmRebuildRootChildren(VOID)
 
                 cVisible++;
                 (void)uDwmInsertChildAtRoot(pData, &idx);
-                (void)uDwmInsertNcAtRoot(pData, &idx);
             }
 
             HeapFree(GetProcessHeap(), 0, z);
@@ -764,7 +1120,6 @@ static VOID uDwmRebuildRootChildren(VOID)
 
         cVisible++;
         (void)uDwmInsertChildAtRoot(pData, &idx);
-        (void)uDwmInsertNcAtRoot(pData, &idx);
     }
 
     /*
@@ -787,9 +1142,8 @@ static HRESULT uDwmWindowNode_SetBounds(PRWM_WINDOWDATA_VISTA_SP1 pData)
         return E_UNEXPECTED;
 
     RECT rcWindowScreen = {};
-    RECT rcWindowLocal = {};
-    RECT rcClientLocal = {};
-    RECT rcContentLocal = {};
+    RECT rcClientScreen = {};
+    RECT rcContentScreen = {};
 
     /*
      * Root safety:
@@ -800,15 +1154,22 @@ static HRESULT uDwmWindowNode_SetBounds(PRWM_WINDOWDATA_VISTA_SP1 pData)
         pData->hWnd == GetDesktopWindow() &&
         (HMIL_RESOURCE)pData->ClientNode == (HMIL_RESOURCE)DwmDesktopInstance->hRootNode)
     {
-        rcWindowScreen.left = 0;
-        rcWindowScreen.top = 0;
-        rcWindowScreen.right = GetSystemMetrics(SM_CXSCREEN);
-        rcWindowScreen.bottom = GetSystemMetrics(SM_CYSCREEN);
+        /*
+         * Vista uses desktop/virtual-screen coordinates for the desktop root.
+         * Use virtual screen origin + size, not just primary monitor 0..CX/CY.
+         */
+        const LONG vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        const LONG vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        const LONG vw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        const LONG vh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-        /* Local bounds for the desktop node. */
-        rcWindowLocal = rcWindowScreen;
-        rcClientLocal = rcWindowScreen;
-        rcContentLocal = rcWindowScreen;
+        rcWindowScreen.left = vx;
+        rcWindowScreen.top = vy;
+        rcWindowScreen.right = vx + ((vw > 0) ? vw : 0);
+        rcWindowScreen.bottom = vy + ((vh > 0) ? vh : 0);
+
+        rcClientScreen = rcWindowScreen;
+        rcContentScreen = rcWindowScreen;
     }
     else
     {
@@ -820,64 +1181,54 @@ static HRESULT uDwmWindowNode_SetBounds(PRWM_WINDOWDATA_VISTA_SP1 pData)
             return HRESULT_FROM_WIN32(GetLastError());
 
         /*
-         * IMPORTANT:
-         * WindowNode bounds are expressed in the node's local coordinate space.
-         * Positioning in the desktop tree is achieved via Visual_SetTransform
-         * on the WindowNode (dwmredir does this on Vista).
+         * Vista dwmredir:
+         * - WindowRect / ClientRect / ContentRect are all in SCREEN coordinates
+         * - Top-level WindowNodes typically use identity transforms
          */
-        const LONG w = rcWindowScreen.right - rcWindowScreen.left;
-        const LONG h = rcWindowScreen.bottom - rcWindowScreen.top;
-        rcWindowLocal.left = 0;
-        rcWindowLocal.top = 0;
-        rcWindowLocal.right = (w > 0) ? w : 0;
-        rcWindowLocal.bottom = (h > 0) ? h : 0;
+        POINT ptTL = { 0, 0 };
+        POINT ptBR = { rcClientWin.right, rcClientWin.bottom };
+        (void)ClientToScreen(pData->hWnd, &ptTL);
+        (void)ClientToScreen(pData->hWnd, &ptBR);
 
-        POINT pt = { 0, 0 };
-        (void)ClientToScreen(pData->hWnd, &pt);
-        const LONG cx = rcClientWin.right - rcClientWin.left;
-        const LONG cy = rcClientWin.bottom - rcClientWin.top;
-        const LONG ox = pt.x - rcWindowScreen.left;
-        const LONG oy = pt.y - rcWindowScreen.top;
-
-        rcClientLocal.left = ox;
-        rcClientLocal.top = oy;
-        rcClientLocal.right = ox + ((cx > 0) ? cx : 0);
-        rcClientLocal.bottom = oy + ((cy > 0) ? cy : 0);
+        rcClientScreen.left = ptTL.x;
+        rcClientScreen.top = ptTL.y;
+        rcClientScreen.right = ptBR.x;
+        rcClientScreen.bottom = ptBR.y;
 
         /*
          * Vista's CMilWindowContext::GetContentRect():
-         * it starts from the client rect and applies the per-window client margins.
-         * (dwmredir calls GetClientMargins and insets by {left,right,top,bottom}.)
+         * it starts from the client rect and applies per-window content insets.
          */
-        rcContentLocal = rcClientLocal;
+        rcContentScreen = rcClientScreen;
         if (pData->Window)
         {
             MARGINS m = {};
-            pData->Window->GetClientMargins(&m);
+            uDwmGetEffectiveClientMargins(pData, &m);
 
-            rcContentLocal.left += m.cxLeftWidth;
-            rcContentLocal.right -= m.cxRightWidth;
-            rcContentLocal.top += m.cyTopHeight;
-            rcContentLocal.bottom -= m.cyBottomHeight;
+            rcContentScreen.left += m.cxLeftWidth;
+            rcContentScreen.right -= m.cxRightWidth;
+            rcContentScreen.top += m.cyTopHeight;
+            rcContentScreen.bottom -= m.cyBottomHeight;
 
             /* Clamp to non-inverted rect. */
-            if (rcContentLocal.right < rcContentLocal.left)
-                rcContentLocal.right = rcContentLocal.left;
-            if (rcContentLocal.bottom < rcContentLocal.top)
-                rcContentLocal.bottom = rcContentLocal.top;
+            if (rcContentScreen.right < rcContentScreen.left)
+                rcContentScreen.right = rcContentScreen.left;
+            if (rcContentScreen.bottom < rcContentScreen.top)
+                rcContentScreen.bottom = rcContentScreen.top;
         }
     }
 
-    /* Cache screen rect for transform computations. */
+    /* Cache rects (screen-space, Vista-like). */
     pData->WindowRect = rcWindowScreen;
-    pData->ClientMarginsRect = rcClientLocal;
+    pData->ClientMarginsRect = rcClientScreen;
+    pData->ContentRectLocal = rcContentScreen;
 
     MILCMD_WINDOWNODE_SETBOUNDS_VSP1 cmd = {};
     cmd.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETBOUNDS;
     cmd.Handle = (HMIL_RESOURCE)pData->ClientNode;
-    cmd.WindowRect = rcWindowLocal;
-    cmd.ClientRect = rcClientLocal;
-    cmd.ContentRect = rcContentLocal;
+    cmd.WindowRect = rcWindowScreen;
+    cmd.ClientRect = rcClientScreen;
+    cmd.ContentRect = rcContentScreen;
 
     HRESULT hr = MilResource_SendCommand(&cmd, sizeof(cmd), DwmDesktopInstance->GlobalChannel);
     if (FAILED(hr))
@@ -907,8 +1258,42 @@ static HRESULT uDwmWindowNode_SetAlphaMargins(PRWM_WINDOWDATA_VISTA_SP1 pData)
     if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode || !pData->Window)
         return E_UNEXPECTED;
 
+    /*
+     * Vista's alpha inset comes from window context state (not theme frame metrics).
+     * We approximate with the window-provided client margins (same as ContentRect insets),
+     * which keeps sprite/content alignment stable.
+     */
     MARGINS m = {};
-    pData->Window->GetClientMargins(&m);
+    uDwmGetEffectiveClientMargins(pData, &m);
+    /* Sanitize: avoid negative/oversized margins poisoning milcore. */
+    const LONG w = pData->WindowRect.right - pData->WindowRect.left;
+    const LONG h = pData->WindowRect.bottom - pData->WindowRect.top;
+    if (m.cxLeftWidth < 0) m.cxLeftWidth = 0;
+    if (m.cxRightWidth < 0) m.cxRightWidth = 0;
+    if (m.cyTopHeight < 0) m.cyTopHeight = 0;
+    if (m.cyBottomHeight < 0) m.cyBottomHeight = 0;
+    if (w > 0)
+    {
+        if (m.cxLeftWidth > w) m.cxLeftWidth = w;
+        if (m.cxRightWidth > w) m.cxRightWidth = w;
+        if (m.cxLeftWidth + m.cxRightWidth > w)
+        {
+            const LONG half = w / 2;
+            if (m.cxLeftWidth > half) m.cxLeftWidth = half;
+            if (m.cxRightWidth > w - m.cxLeftWidth) m.cxRightWidth = w - m.cxLeftWidth;
+        }
+    }
+    if (h > 0)
+    {
+        if (m.cyTopHeight > h) m.cyTopHeight = h;
+        if (m.cyBottomHeight > h) m.cyBottomHeight = h;
+        if (m.cyTopHeight + m.cyBottomHeight > h)
+        {
+            const LONG half = h / 2;
+            if (m.cyTopHeight > half) m.cyTopHeight = half;
+            if (m.cyBottomHeight > h - m.cyTopHeight) m.cyBottomHeight = h - m.cyTopHeight;
+        }
+    }
 
     MILCMD_WINDOWNODE_SETALPHAMARGINS_VSP1 cmd = {};
     cmd.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETALPHAMARGINS;
@@ -944,17 +1329,201 @@ static HRESULT uDwmWindowNode_SetSpriteImage(PRWM_WINDOWDATA_VISTA_SP1 pData, UI
     return hr;
 }
 
+static HRESULT uDwmWindowNode_UpdateProperties(PRWM_WINDOWDATA_VISTA_SP1 pData, UINT32 hRedirectionSurface)
+{
+    if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
+        return E_UNEXPECTED;
+
+    /*
+     * Vista DuceHelper::WindowNode_UpdateProperties:
+     * - WindowNode_SetSpriteImage(pChannel, hWindowNode, hRedirectionSurface)
+     * - cmd 63: set DX surface handle (a4)
+     * - cmd 65: set DX clip handle (a5)
+     */
+    HRESULT hr = uDwmWindowNode_SetSpriteImage(pData, hRedirectionSurface);
+    if (FAILED(hr))
+        return hr;
+
+    /*
+     * On real Vista SP1, the IDwmWindow we receive is the dwmredir window context.
+     * It *does* have distinct DX surface + DX clip handles, but they are not exposed
+     * through the public-ish IDwmWindow/CompositedWindow vtable in our header.
+     *
+     * We are explicitly testing uDWM against Vista SP1's dwmredir+milcore, so read the
+     * known fields directly (from DwmReversing\\Vista\\dwmredir.dll.c):
+     *  - *((DWORD*)this + 32) = m_hDxSurface
+     *  - *((DWORD*)this + 60) = m_hLastValidDxSurface (preferred when present)
+     *  - *((DWORD*)this + 44) = m_hDxClip
+     *
+     * Guard with SEH so we don't crash if the object isn't the expected type.
+     */
+    UINT32 hDxSurface = 0;
+    UINT32 hDxClip = 0;
+    if (pData->Window && pData->Window->HasDXContent())
+    {
+        __try
+        {
+            /*
+             * Vista dwmredir object layout nuance:
+             * The IDwmWindow interface is an embedded base subobject at +8 bytes inside
+             * CMilWindowContext (see dwmredir.dll.c: calls use (char*)this + 8, and vptr at this+2).
+             * Our CompositedWindow* points at that embedded base, so subtract 8 to get the real
+             * CMilWindowContext base before applying the field indices from the reference.
+             */
+            const BYTE* pBase = ((const BYTE*)pData->Window) - 8;
+            const UINT32* p = (const UINT32*)pBase;
+            const UINT32 dx = p[32];    /* m_hDxSurface */
+            const UINT32 last = p[60];  /* m_hLastValidDxSurface */
+            const UINT32 clip = p[44];  /* m_hDxClip */
+            hDxSurface = last ? last : dx;
+            hDxClip = clip;
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            hDxSurface = 0;
+            hDxClip = 0;
+        }
+
+        /* Fallback: if dwmredir doesn't expose the DX handle (unexpected), reuse redirection surface. */
+        if (!hDxSurface)
+            hDxSurface = hRedirectionSurface;
+    }
+
+    MILCMD_WINDOWNODE_SETDXSURFACE_VSP1 dxs = {};
+    dxs.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETDXSURFACE;
+    dxs.Handle = (HMIL_RESOURCE)pData->ClientNode;
+    dxs.hDxSurface = (HMIL_RESOURCE)hDxSurface;
+    (void)MilResource_SendCommand(&dxs, sizeof(dxs), DwmDesktopInstance->GlobalChannel);
+
+    MILCMD_WINDOWNODE_SETDXCLIP_VSP1 dxc = {};
+    dxc.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETDXCLIP;
+    dxc.Handle = (HMIL_RESOURCE)pData->ClientNode;
+    dxc.hDxClip = (HMIL_RESOURCE)hDxClip;
+    (void)MilResource_SendCommand(&dxc, sizeof(dxc), DwmDesktopInstance->GlobalChannel);
+
+    /*
+     * Vista RefreshNodeProperties ends with cmd 66 (size 0x2C) which encodes "source
+     * modifications" (flags + scRGB). The IDwmWindow method is at vtable slot 26 (offset 104)
+     * with signature: GetSourceModifications(DWORD* pFlags, float* pScRgb4).
+     *
+     * Our local CompositedWindow.hpp signature doesn't match Vista; call via vtable.
+     */
+    if (pData->Window)
+    {
+        typedef int(__thiscall* PFN_GETSOURCEMODS)(void* self, DWORD* pFlags, float* pScRgb4);
+        PFN_GETSOURCEMODS pfn = NULL;
+
+        __try
+        {
+            void** vtbl = *(void***)pData->Window;
+            pfn = (PFN_GETSOURCEMODS)vtbl[26];
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            pfn = NULL;
+        }
+
+        if (pfn)
+        {
+            DWORD flags = 0;
+            float sc[4] = { 0, 0, 0, 0 };
+            __try
+            {
+                (void)pfn((void*)pData->Window, &flags, sc);
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+                flags = 0;
+                sc[0] = sc[1] = sc[2] = sc[3] = 0.0f;
+            }
+
+            MILCMD_WINDOWNODE_SETSOURCEMODS_VSP1 sm = {};
+            sm.Type = (MILCMD)RWM_MILCMD_VSP1_WINDOWNODE_SETSOURCEMODS;
+            sm.Handle = (HMIL_RESOURCE)pData->ClientNode;
+            sm.SourceFlags = (UINT32)flags;
+            sm.ModColor[0] = sc[0];
+            sm.ModColor[1] = sc[1];
+            sm.ModColor[2] = sc[2];
+            sm.ModColor[3] = sc[3];
+            sm.Color[0] = sc[0];
+            sm.Color[1] = sc[1];
+            sm.Color[2] = sc[2];
+            sm.Color[3] = 1.0f; /* Vista forces alpha to 1.0 here */
+            (void)MilResource_SendCommand(&sm, sizeof(sm), DwmDesktopInstance->GlobalChannel);
+        }
+    }
+
+    return S_OK;
+}
+
 static HRESULT uDwmTryAttachClientSurface(PRWM_WINDOWDATA_VISTA_SP1 pData)
 {
     if (!pData || !pData->Window || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
         return E_UNEXPECTED;
+
+    /* dwmredir uses UpdateSurfaceOffsets() to keep surface margins in sync with NC/client. */
+    typedef struct _MILCMD_WNREDIR_UPDATEMARGINS_VSP1
+    {
+        MILCMD Type;
+        HMIL_RESOURCE Handle;
+        MARGINS Margins;
+    } MILCMD_WNREDIR_UPDATEMARGINS_VSP1;
+    static_assert(sizeof(MILCMD_WNREDIR_UPDATEMARGINS_VSP1) == 0x18, "Unexpected UpdateMargins cmd size");
 
     UINT32 hSurface = 0;
     HRESULT hrSurf = pData->Window->GetGDISurface(DwmDesktopInstance->GlobalChannel, &hSurface);
     if (FAILED(hrSurf) || !hSurface)
         return FAILED(hrSurf) ? hrSurf : S_FALSE;
 
-    return uDwmWindowNode_SetSpriteImage(pData, hSurface);
+    /* Best-effort: update redirection surface margins to match current client margins. */
+    if (pData->Window)
+    {
+        /*
+         * Vista UpdateSurfaceOffsets passes CMilWindowContext::GetClientMargins() to
+         * WindowRedirection_*_UpdateMargins. These are client-area content insets.
+         */
+        MARGINS m = {};
+        uDwmGetEffectiveClientMargins(pData, &m);
+        /* Sanitize for UpdateMargins; Vista expects non-negative and reasonable values. */
+        const LONG w = pData->WindowRect.right - pData->WindowRect.left;
+        const LONG h = pData->WindowRect.bottom - pData->WindowRect.top;
+        if (m.cxLeftWidth < 0) m.cxLeftWidth = 0;
+        if (m.cxRightWidth < 0) m.cxRightWidth = 0;
+        if (m.cyTopHeight < 0) m.cyTopHeight = 0;
+        if (m.cyBottomHeight < 0) m.cyBottomHeight = 0;
+        if (w > 0)
+        {
+            if (m.cxLeftWidth > w) m.cxLeftWidth = w;
+            if (m.cxRightWidth > w) m.cxRightWidth = w;
+            if (m.cxLeftWidth + m.cxRightWidth > w)
+            {
+                const LONG half = w / 2;
+                if (m.cxLeftWidth > half) m.cxLeftWidth = half;
+                if (m.cxRightWidth > w - m.cxLeftWidth) m.cxRightWidth = w - m.cxLeftWidth;
+            }
+        }
+        if (h > 0)
+        {
+            if (m.cyTopHeight > h) m.cyTopHeight = h;
+            if (m.cyBottomHeight > h) m.cyBottomHeight = h;
+            if (m.cyTopHeight + m.cyBottomHeight > h)
+            {
+                const LONG half = h / 2;
+                if (m.cyTopHeight > half) m.cyTopHeight = half;
+                if (m.cyBottomHeight > h - m.cyTopHeight) m.cyBottomHeight = h - m.cyTopHeight;
+            }
+        }
+
+        MILCMD_WNREDIR_UPDATEMARGINS_VSP1 um = {};
+        um.Type = (MILCMD)(pData->Window->HasDXContent()
+                               ? RWM_MILCMD_VSP1_WNREDIR_FLIPCHAIN_UPDATEMARGINS
+                               : RWM_MILCMD_VSP1_WNREDIR_GDISPRITE_UPDATEMARGINS);
+        um.Handle = (HMIL_RESOURCE)hSurface;
+        um.Margins = m;
+        (void)MilResource_SendCommand(&um, sizeof(um), DwmDesktopInstance->GlobalChannel);
+    }
+
+    return uDwmWindowNode_UpdateProperties(pData, hSurface);
 }
 
 static HRESULT uDwmUpdateWindowTransform(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
@@ -963,81 +1532,23 @@ static HRESULT uDwmUpdateWindowTransform(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
         return E_UNEXPECTED;
 
     /*
-     * Reference (Vista dwmredir CMilWindowContext::RefreshTransform):
-     * compute an (x,y) offset and apply it via:
-     * - CreateTranslateTransform(x,y) -> hTransform (TYPE_TRANSLATETRANSFORM=68, cmd 163)
-     * - Visual_SetTransform(m_hWindowRootNode, hTransform) (cmd 35)
-     *
-     * We don't yet have the full CMilWindowContext content-rect model; approximate
-     * using WindowRect relative to the DesktopWindow origin.
+     * Vista dwmredir:
+     * - Top-level windows: Visual_SetTransform(WindowNode, 0) (identity)
+     * - Transforms are used for linked windows, which we do not model yet.
      */
-    RECT rcDesk = {};
-    const HWND hDesk = GetDesktopWindow();
-    if (hDesk)
-        (void)GetWindowRect(hDesk, &rcDesk);
-
-    const double xOffset = (double)((LONG)pData->WindowRect.left - (LONG)rcDesk.left);
-    const double yOffset = (double)((LONG)pData->WindowRect.top - (LONG)rcDesk.top);
-
-    /* Cache to avoid churning transform resources. */
-    if (pData->hWindowTransform && pData->OffsetX == xOffset && pData->OffsetY == yOffset)
-        return S_OK;
-
-    HMIL_RESOURCE hNew = 0;
-    HRESULT hr = S_OK;
-
-    if (xOffset != 0.0 || yOffset != 0.0)
-    {
-        hr = MilResource_CreateOrAddRefOnChannel(DwmDesktopInstance->GlobalChannel,
-                                                 (MIL_RESOURCE_TYPE)RWM_MILRT_VSP1_TRANSLATETRANSFORM,
-                                                 &hNew);
-        if (FAILED(hr) || !hNew)
-            return FAILED(hr) ? hr : E_FAIL;
-
-        MILCMD_TRANSLATETRANSFORM_VSP1 cmd = {};
-        cmd.Type = (MILCMD)RWM_MILCMD_VSP1_TRANSLATETRANSFORM;
-        cmd.Handle = hNew;
-        cmd.X = xOffset;
-        cmd.Y = yOffset;
-        cmd.Unknown0 = 0;
-        cmd.Unknown1 = 0;
-
-        hr = MilResource_SendCommand(&cmd, sizeof(cmd), DwmDesktopInstance->GlobalChannel);
-        if (FAILED(hr))
-        {
-            (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, hNew, NULL);
-            return hr;
-        }
-    }
-
-    /* Apply the same transform to the content WindowNode and our NC visual (if present). */
     MILCMD_VISUAL_SETTRANSFORM_VSP1 set = {};
     set.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_SETTRANSFORM;
-    set.hTransform = (HMIL_RESOURCE)hNew;
-
     set.Handle = (HMIL_RESOURCE)pData->ClientNode;
-    hr = MilResource_SendCommand(&set, sizeof(set), DwmDesktopInstance->GlobalChannel);
+    set.hTransform = 0;
 
-    if (SUCCEEDED(hr) && pData->hNcVisual)
+    HRESULT hr = MilResource_SendCommand(&set, sizeof(set), DwmDesktopInstance->GlobalChannel);
+    if (SUCCEEDED(hr) && pData->hWindowTransform)
     {
-        set.Handle = (HMIL_RESOURCE)pData->hNcVisual;
-        (void)MilResource_SendCommand(&set, sizeof(set), DwmDesktopInstance->GlobalChannel);
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hWindowTransform, NULL);
+        pData->hWindowTransform = 0;
+        pData->OffsetX = 0.0;
+        pData->OffsetY = 0.0;
     }
-
-    if (SUCCEEDED(hr))
-    {
-        if (pData->hWindowTransform)
-            (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hWindowTransform, NULL);
-
-        pData->hWindowTransform = hNew;
-        pData->OffsetX = xOffset;
-        pData->OffsetY = yOffset;
-    }
-    else if (hNew)
-    {
-        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, hNew, NULL);
-    }
-
     return hr;
 }
 
@@ -1154,6 +1665,33 @@ Cleanup:
     return hr;
 }
 
+static HRESULT uDwmCreateOrUpdateGeometryFromHrgn(_In_ HRGN hrgn, _Inout_ HMIL_RESOURCE* phGeometry)
+{
+    if (!hrgn || !phGeometry)
+        return E_INVALIDARG;
+
+    DWORD cb = GetRegionData(hrgn, 0, NULL);
+    if (!cb)
+        return HRESULT_FROM_WIN32(GetLastError());
+
+    RGNDATA* pDataRgn = (RGNDATA*)HeapAlloc(GetProcessHeap(), 0, cb);
+    if (!pDataRgn)
+        return E_OUTOFMEMORY;
+
+    HRESULT hr = S_OK;
+    if (GetRegionData(hrgn, cb, pDataRgn))
+    {
+        hr = uDwmCreateOrUpdateClipGeometryFromRegionData(pDataRgn, phGeometry);
+    }
+    else
+    {
+        hr = HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    HeapFree(GetProcessHeap(), 0, pDataRgn);
+    return hr;
+}
+
 static HRESULT uDwmUpdateWindowSpriteClip(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
 {
     if (!pData || !DwmDesktopInstance || !DwmDesktopInstance->GlobalChannel || !pData->ClientNode)
@@ -1172,6 +1710,9 @@ static HRESULT uDwmUpdateWindowSpriteClip(_In_ PRWM_WINDOWDATA_VISTA_SP1 pData)
     HRESULT hr = S_OK;
     if (usingWindowRgn)
     {
+        /* GetWindowRgn returns WINDOW-local coords; convert to SCREEN-space like Vista. */
+        (void)OffsetRgn(hrgn, pData->WindowRect.left, pData->WindowRect.top);
+
         DWORD cb = GetRegionData(hrgn, 0, NULL);
         if (cb)
         {
@@ -1310,7 +1851,7 @@ static HRESULT uDwmEnsureWindowVisual(PRWM_WINDOWDATA_VISTA_SP1 pData)
                 if (wd && wd->Signature == RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
                 {
                     wd->Flags &= ~RWM_WD_VISUAL_INSERTED;
-                    wd->Flags &= ~RWM_WD_NC_VISUAL_INSERTED;
+                    /* NC visuals are children of WindowNodes; do not reset per-window child insertion here. */
                 }
             }
         }
@@ -1344,7 +1885,7 @@ static HRESULT uDwmEnsureWindowVisual(PRWM_WINDOWDATA_VISTA_SP1 pData)
         if (uDwmNeedsExampleTitlebar(pData))
         {
             (void)uDwmEnsureNcSubtree(pData);
-            (void)uDwmUpdateNcFrameRenderData(pData);
+            (void)uDwmUpdateNcGlassRenderData(pData);
         }
         if (pData->hSprite)
             (void)uDwmWindowNode_UpdateSpriteHandle(pData, pData->hSprite);
@@ -1459,11 +2000,12 @@ HRESULT WINAPI uDwmDestroyWindow(CompositedWindow* DwmWindowInterface)
         pData->Flags &= ~RWM_WD_VISUAL_INSERTED;
     }
 
-    if ((pData->Flags & RWM_WD_NC_VISUAL_INSERTED) && DwmDesktopInstance->hRootNode && pData->hNcVisual)
+    /* Remove NC glass visual from the WindowNode (best-effort). */
+    if ((pData->Flags & RWM_WD_NC_VISUAL_INSERTED) && pData->ClientNode && pData->hNcVisual)
     {
         MILCMD_VISUAL_REMOVECHILD removeChild = {};
         removeChild.Type = (MILCMD)RWM_MILCMD_VSP1_VISUAL_REMOVECHILD;
-        removeChild.Handle = DwmDesktopInstance->hRootNode;
+        removeChild.Handle = (HMIL_RESOURCE)pData->ClientNode;
         removeChild.hChild = (HMIL_RESOURCE)pData->hNcVisual;
         (void)MilResource_SendCommand(&removeChild, sizeof(removeChild), DwmDesktopInstance->GlobalChannel);
         pData->Flags &= ~RWM_WD_NC_VISUAL_INSERTED;
@@ -1496,11 +2038,35 @@ HRESULT WINAPI uDwmDestroyWindow(CompositedWindow* DwmWindowInterface)
         (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcBorderBrush, NULL);
         pData->hNcBorderBrush = 0;
     }
+    if (pData->hNcGlassGeomTop)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcGlassGeomTop, NULL);
+        pData->hNcGlassGeomTop = 0;
+    }
+    if (pData->hNcGlassGeomLeft)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcGlassGeomLeft, NULL);
+        pData->hNcGlassGeomLeft = 0;
+    }
+    if (pData->hNcGlassGeomRight)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcGlassGeomRight, NULL);
+        pData->hNcGlassGeomRight = 0;
+    }
+    if (pData->hNcGlassGeomBottom)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcGlassGeomBottom, NULL);
+        pData->hNcGlassGeomBottom = 0;
+    }
+    if (pData->hNcColorization)
+    {
+        (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcColorization, NULL);
+        pData->hNcColorization = 0;
+    }
     if (pData->hNcVisual)
     {
         (void)MilResource_ReleaseOnChannel(DwmDesktopInstance->GlobalChannel, pData->hNcVisual, NULL);
         pData->hNcVisual = 0;
-        pData->Flags &= ~RWM_WD_NC_VISUAL_INSERTED;
     }
 
     if (pData->hWindowVisual)
@@ -1620,6 +2186,9 @@ HRESULT WINAPI uDwmMoveSize(CompositedWindow* DwmWindowInterface)
     {
         (void)uDwmEnsureWindowVisual(pData);
         (void)uDwmWindowNode_SetBounds(pData);
+        (void)uDwmTryAttachClientSurface(pData); /* keep surface margins in sync */
+        if (uDwmNeedsExampleTitlebar(pData))
+            (void)uDwmUpdateNcGlassRenderData(pData);
     }
     LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
     return S_OK;
@@ -1683,6 +2252,9 @@ HRESULT WINAPI uDwmClientMarginsChange(CompositedWindow* DwmWindowInterface)
         (void)uDwmEnsureWindowVisual(pData);
         (void)uDwmWindowNode_SetAlphaMargins(pData);
         (void)uDwmWindowNode_SetBounds(pData);
+        (void)uDwmTryAttachClientSurface(pData); /* keep surface margins in sync */
+        if (uDwmNeedsExampleTitlebar(pData))
+            (void)uDwmUpdateNcGlassRenderData(pData);
     }
     LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
     return S_OK;
@@ -1690,7 +2262,19 @@ HRESULT WINAPI uDwmClientMarginsChange(CompositedWindow* DwmWindowInterface)
 
 HRESULT WINAPI uDwmClientGlassChange(CompositedWindow* DwmWindowInterface)
 {
-    return 0;
+    if (!DwmWindowInterface || !DwmDesktopInstance)
+        return E_INVALIDARG;
+
+    EnterCriticalSection(&DwmDesktopInstance->CsDwmInstance);
+    PRWM_WINDOWDATA_VISTA_SP1 pData = (PRWM_WINDOWDATA_VISTA_SP1)DwmWindowInterface->GetClientData();
+    if (pData && pData->Signature == RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
+    {
+        (void)uDwmEnsureWindowVisual(pData);
+        if (uDwmNeedsExampleTitlebar(pData))
+            (void)uDwmUpdateNcGlassRenderData(pData);
+    }
+    LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
+    return S_OK;
 }
 
 HRESULT WINAPI uDwmActivationChange(CompositedWindow* DwmWindowInterface)
@@ -1705,7 +2289,20 @@ HRESULT WINAPI uDwmAlphaChange(CompositedWindow* DwmWindowInterface)
 
 HRESULT WINAPI uDwmBlurBehindChange(CompositedWindow* DwmWindowInterface, DWM_BLURBEHIND * BlurBehind)
 {
-    return 0;
+    UNREFERENCED_PARAMETER(BlurBehind);
+    if (!DwmWindowInterface || !DwmDesktopInstance)
+        return E_INVALIDARG;
+
+    EnterCriticalSection(&DwmDesktopInstance->CsDwmInstance);
+    PRWM_WINDOWDATA_VISTA_SP1 pData = (PRWM_WINDOWDATA_VISTA_SP1)DwmWindowInterface->GetClientData();
+    if (pData && pData->Signature == RWM_WINDOWDATA_VISTA_SP1_SIGNATURE)
+    {
+        (void)uDwmEnsureWindowVisual(pData);
+        if (uDwmNeedsExampleTitlebar(pData))
+            (void)uDwmUpdateNcGlassRenderData(pData);
+    }
+    LeaveCriticalSection(&DwmDesktopInstance->CsDwmInstance);
+    return S_OK;
 }
 
 HRESULT WINAPI uDwmClipChange(CompositedWindow* DwmWindowInterface)

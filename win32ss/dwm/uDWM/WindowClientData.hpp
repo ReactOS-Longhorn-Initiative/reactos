@@ -27,8 +27,9 @@ typedef struct _RWM_WINDOWDATA_VISTA_SP1
         UINT32 ClientNodeClone;        /* Optional clone (if we ever start using it) */
         UINT32 LastSpriteImageSurface; /* Cache: last surface set via SetSpriteImage */
     };
-    RECT WindowRect;               /* Cached window rect (best-effort) */
-    RECT ClientMarginsRect;        /* Cached client margins (best-effort) */
+    RECT WindowRect;               /* Cached WINDOW rect in SCREEN coords (best-effort) */
+    RECT ClientMarginsRect;        /* Cached CLIENT rect in SCREEN coords (best-effort) */
+    RECT ContentRectLocal;         /* Cached CONTENT rect in SCREEN coords (best-effort; name kept for ABI) */
     LIST_ENTRY ListEntry;          /* uDWM internal tracking */
     HMIL_RESOURCE hWindowVisual;   /* Per-window TYPE_VISUAL resource */
     HMIL_RESOURCE hWindowTransform;/* Per-window TYPE_TRANSLATETRANSFORM */
@@ -37,14 +38,25 @@ typedef struct _RWM_WINDOWDATA_VISTA_SP1
     HMIL_RESOURCE hNcRenderData;   /* RenderData bound to hNcVisual */
     HMIL_RESOURCE hNcCaptionBrush; /* SolidColorBrush for caption area */
     HMIL_RESOURCE hNcBorderBrush;  /* SolidColorBrush for border */
+    HMIL_RESOURCE hNcGlassGeomTop;    /* RectangleGeometry: top non-client glass band */
+    HMIL_RESOURCE hNcGlassGeomLeft;   /* RectangleGeometry: left frame band */
+    HMIL_RESOURCE hNcGlassGeomRight;  /* RectangleGeometry: right frame band */
+    HMIL_RESOURCE hNcGlassGeomBottom; /* RectangleGeometry: bottom frame band */
+    HMIL_RESOURCE hNcColorization;    /* ColorResource for glass tint */
     DOUBLE OffsetX;                /* Cached translation X */
     DOUBLE OffsetY;                /* Cached translation Y */
     UINT32 Flags;                  /* RWM_WD_* */
 
 #if !defined(_WIN64)
-    BYTE Reserved[0xB3C - (4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 16 + 8 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 8 + 4)];
+    BYTE Reserved[0xB3C - (4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 16 + 8 +
+                           16 + /* ContentRectLocal */
+                           4 + 4 + 4 + 4 + 4 + 4 + 4 + /* handles: WindowVisual..NcBorderBrush */
+                           4 + 4 + 4 + 4 + 4 +         /* handles: glass geoms + colorization */
+                           8 + 8 + 4)];
 #endif
 } RWM_WINDOWDATA_VISTA_SP1, *PRWM_WINDOWDATA_VISTA_SP1;
+
+static_assert(sizeof(RWM_WINDOWDATA_VISTA_SP1) <= 0xB3C, "RWM_WINDOWDATA_VISTA_SP1 grew beyond Vista-sized payload");
 #pragma pack(pop)
 
 #define RWM_WINDOWDATA_VISTA_SP1_SIGNATURE (0x31574457u) /* '1WDW' */
