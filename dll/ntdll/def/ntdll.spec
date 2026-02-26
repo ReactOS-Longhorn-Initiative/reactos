@@ -1776,7 +1776,6 @@
 @ stdcall -arch=arm __rt_udiv()
 @ stdcall -arch=arm __rt_udiv64()
 @ stdcall -arch=arm __rt_srsh()
-@ stdcall -version=0x601+ RtlQueryUnbiasedInterruptTime(ptr)
 @ stdcall -stub -ret64 RtlGetSystemTimePrecise()
  
 @ stdcall -version=0x602+ -stub RtlAddGrowableFunctionTable(ptr ptr ptr)
