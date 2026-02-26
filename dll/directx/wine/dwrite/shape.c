@@ -28,11 +28,7 @@
 
 #include "dwrite_private.h"
 #include "scripts.h"
-#ifdef __REACTOS__
-#include "wine/winternl.h"
-#else
 #include "winternl.h"
-#endif
 
 #include "wine/debug.h"
 

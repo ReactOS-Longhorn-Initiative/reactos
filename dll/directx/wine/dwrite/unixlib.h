@@ -18,16 +18,10 @@
 
 #include <stdarg.h>
 #include "windef.h"
-#ifdef __REACTOS__
-#include "wine/winternl.h"
-#else
 #include "winternl.h"
-#endif
 #include "dwrite.h"
 #include "dwrite_private.h"
-#ifndef __REACTOS__
 #include "wine/unixlib.h"
-#endif
 
 struct create_font_object_params
 {
@@ -117,7 +111,3 @@ enum font_backend_funcs
 };
 
 #define UNIX_CALL( func, params ) WINE_UNIX_CALL( unix_ ## func, params )
-
-#ifdef __REACTOS__
-#include "unixlib_ros.h"
-#endif

@@ -1,9 +1,8 @@
 
-add_definitions(-D__WINESRC__)
 remove_definitions(-D_WIN32_WINNT=0x502 -D_CRT_NON_CONFORMING_SWPRINTFS)
-add_definitions(-D_WIN32_WINNT=0x600)
+add_definitions(-D_WIN32_WINNT=0x600 -D__WINESRC__)
+include_directories(BEFORE ${REACTOS_SOURCE_DIR}/sdk/include/wine)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/lib/3rdparty/freetype/include)
-include_directories(${REACTOS_SOURCE_DIR}/sdk/include/wine)
 
 spec2def(dwrite.dll dwrite.spec ADD_IMPORTLIB)
 
@@ -16,13 +15,14 @@ list(APPEND SOURCE
     direction.c
     font.c
     format.c
-    freetype_ros.c
+    freetype.c
     gdiinterop.c
     layout.c
     linebreak.c
     main.c
     mirror.c
     opentype.c
+    reactos.c
     scripts.c
     shape.c
     ${CMAKE_CURRENT_BINARY_DIR}/dwrite_stubs.c
