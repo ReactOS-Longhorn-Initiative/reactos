@@ -4236,7 +4236,8 @@ NtUserQueryWindow(HWND hWnd, DWORD Index)
          }
          else
          {
-            Result = (DWORD_PTR)IntGetWndThreadId(pWnd);
+            if (pWnd->head.pti != NULL)
+               Result = (DWORD_PTR)IntGetWndThreadId(pWnd);
          }
          break;
       }
