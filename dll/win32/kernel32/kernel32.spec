@@ -354,7 +354,7 @@
 @ stdcall FlushConsoleInputBuffer(long) kernelbase.FlushConsoleInputBuffer
 @ stdcall FlushFileBuffers(long) kernelbase.FlushFileBuffers
 @ stdcall FlushInstructionCache(long long long) kernelbase.FlushInstructionCache
-@ stub -version=0x600+ FlushProcessWriteBuffers ;ntdll.FlushProcessWriteBuffers
+@ stdcall FlushProcessWriteBuffers() ntdll.NtFlushProcessWriteBuffers
 @ stdcall FlushViewOfFile(ptr long) kernelbase.FlushViewOfFile
 @ stdcall FoldStringA(long str long ptr long) kernelbase.FoldStringA
 @ stdcall FoldStringW(long wstr long ptr long) kernelbase.FoldStringW
