@@ -444,7 +444,7 @@ static bool wined3d_context_vk_create_slab_bo(struct wined3d_context_vk *context
     if ((usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) && limits->minStorageBufferOffsetAlignment)
         alignment = limits->minStorageBufferOffsetAlignment;
 
-    object_size = (size + (alignment - 1)) & ~(alignment - 1);
+    object_size = (size + (alignment - 1)) & (size_t)~(alignment - 1);
     if (object_size < WINED3D_ALLOCATOR_MIN_BLOCK_SIZE / 32)
         object_size = WINED3D_ALLOCATOR_MIN_BLOCK_SIZE / 32;
     key.memory_type = memory_type;

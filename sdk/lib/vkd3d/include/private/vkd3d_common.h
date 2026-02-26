@@ -110,7 +110,7 @@
 
 static inline uint64_t align(uint64_t addr, size_t alignment)
 {
-    return (addr + (alignment - 1)) & ~(alignment - 1);
+    return (addr + (alignment - 1)) & ~((uint64_t)alignment - 1);
 }
 
 #if defined(__GNUC__) || defined(__clang__)
