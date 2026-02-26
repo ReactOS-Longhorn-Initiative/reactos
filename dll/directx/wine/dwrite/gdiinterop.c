@@ -791,11 +791,6 @@ static HRESULT WINAPI gdiinterop_CreateFontFaceFromHdc(IDWriteGdiInterop1 *iface
         return E_INVALIDARG;
 
     /* get selected font id  */
-#ifdef __REACTOS__
-    FIXME("TODO GetFontRealizationInfo and GetFontFileInfo\n");
-    needed = 0;
-    return E_FAIL;
-#else
     info.size = sizeof(info);
     if (!GetFontRealizationInfo(hdc, &info)) {
         WARN("failed to get selected font id\n");
@@ -817,7 +812,6 @@ static HRESULT WINAPI gdiinterop_CreateFontFaceFromHdc(IDWriteGdiInterop1 *iface
         free(fileinfo);
         return E_FAIL;
     }
-#endif
 
     if (*fileinfo->path)
         hr = IDWriteFactory7_CreateFontFileReference(interop->factory, fileinfo->path, &fileinfo->writetime, &file);
@@ -1004,12 +998,6 @@ static HRESULT WINAPI memresourcestream_ReadFileFragment(IDWriteFontFileStream *
     *fragment_context = NULL;
     *fragment_start = NULL;
 
-#ifdef __REACTOS__
-    FIXME("GetFontFileData todo\n");
-    (void)stream;
-    (void)fileinfo;
-    return E_FAIL;
-#else
     if (!GetFontFileInfo(stream->key, 0, &fileinfo, sizeof(fileinfo), NULL))
         return E_INVALIDARG;
 
@@ -1021,7 +1009,6 @@ static HRESULT WINAPI memresourcestream_ReadFileFragment(IDWriteFontFileStream *
 
     if (!GetFontFileData(stream->key, 0, offset, fragment, fragment_size))
         return E_FAIL;
-#endif
 
     *fragment_start = *fragment_context = fragment;
     return S_OK;
@@ -1041,14 +1028,8 @@ static HRESULT WINAPI memresourcestream_GetFileSize(IDWriteFontFileStream *iface
 
     TRACE("%p, %p.\n", iface, size);
 
-#ifdef __REACTOS__
-    FIXME("TODO memresourcestream_GetFileSize");
-    (void)stream;
-    return E_INVALIDARG;
-#else
     if (!GetFontFileInfo(stream->key, 0, &fileinfo, sizeof(fileinfo), NULL))
         return E_INVALIDARG;
-#endif
 
     *size = fileinfo.size.QuadPart;
 
