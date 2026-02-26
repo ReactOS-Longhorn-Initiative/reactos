@@ -746,3 +746,5 @@
     SVC_(GdiDdDDIWaitForSynchronizationObject, 1)
     SVC_(GdiDdDDIOpenAdapterFromLuid, 1)
     SVC_(GdiDdQueryVideoMemoryInfo, 1)
+    SVC_(GdiGetFontFileData, 5)
+    SVC_(GdiGetFontFileInfo, 5)

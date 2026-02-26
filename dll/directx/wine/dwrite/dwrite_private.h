@@ -21,11 +21,7 @@
 
 #include "dwrite_3.h"
 #include "d2d1.h"
-#ifdef __REACTOS__
-#include <wine/winternl.h>
-#else
 #include "winternl.h"
-#endif
 
 #include "wine/debug.h"
 #include "wine/list.h"

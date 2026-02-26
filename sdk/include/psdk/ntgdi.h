@@ -85,6 +85,14 @@ typedef struct tagDOWNLOADDESIGNVECTOR
 /* NtGdiResetDC */
 typedef struct _DRIVER_INFO_2W DRIVER_INFO_2W;
 
+/* NtGdiGetFontFileInfo */
+typedef struct tagFONT_FILE_INFO
+{
+    FILETIME writetime;
+    LARGE_INTEGER size;
+    WCHAR path[1];
+} FONT_FILE_INFO, *PFONT_FILE_INFO;
+
 #if 0
 typedef struct _HLSURF_INFORMATION_PROBE {
     union {
@@ -2045,7 +2053,7 @@ NtGdiGetFontFileData(
     _Out_writes_bytes_(cjBuf) PVOID pvBuf,
     _In_ SIZE_T cjBuf);
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7) || defined(__REACTOS__)
 __kernel_entry
 W32KAPI
 DWORD

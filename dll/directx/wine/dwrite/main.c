@@ -46,12 +46,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD reason, LPVOID reserved)
     case DLL_PROCESS_ATTACH:
         dwrite_module = hinstDLL;
         DisableThreadLibraryCalls( hinstDLL );
-#ifndef __REACTOS__
         if (!__wine_init_unix_call())
             UNIX_CALL(process_attach, NULL);
-#else
-        process_attach(NULL);
-#endif
         init_local_fontfile_loader();
         break;
     case DLL_PROCESS_DETACH:

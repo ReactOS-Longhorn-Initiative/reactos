@@ -183,6 +183,8 @@
 @ stdcall NtGdiGetETM(ptr ptr)
 @ stdcall NtGdiGetEudcTimeStampEx(wstr long long)
 @ stdcall NtGdiGetFontData(ptr long long ptr long)
+@ stdcall NtGdiGetFontFileInfo(long long ptr long ptr)
+@ stdcall NtGdiGetFontFileData(long long ptr ptr long)
 @ stdcall NtGdiGetFontResourceInfoInternalW(wstr long long long ptr ptr long)
 @ stdcall NtGdiGetGlyphIndicesW(ptr wstr long ptr long)
 @ stdcall NtGdiGetGlyphIndicesWInternal(ptr wstr long ptr long long)
