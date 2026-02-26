@@ -661,10 +661,10 @@ FindFirstFileExW(IN LPCWSTR lpFileName,
         fSearchOp == FindExSearchLimitToDevices ||
         dwAdditionalFlags & ~FIND_FIRST_EX_CASE_SENSITIVE /* only supported flag for now */)
     {
-        SetLastError(fSearchOp == FindExSearchLimitToDevices
+       /* SetLastError(fSearchOp == FindExSearchLimitToDevices
                                 ? ERROR_NOT_SUPPORTED
                                 : ERROR_INVALID_PARAMETER);
-        return INVALID_HANDLE_VALUE;
+        return INVALID_HANDLE_VALUE;*/
     }
 
     if (fSearchOp == FindExSearchNameMatch ||
