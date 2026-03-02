@@ -85,7 +85,7 @@ add_idl_reg_scripts(ole32 registry dcom.idl ole32_objidl.idl ole32_oleidl.idl ol
 target_link_libraries(ole32 wine uuid pathcch_static ${PSEH_LIB} oldnames)
 add_delay_importlibs(ole32 oleaut32)
 target_compile_definitions(ole32 PRIVATE STATIC_PATHCCH)
-add_importlibs(ole32 combase coml2 kernel32_vista advapi32 user32 gdi32 rpcrt4 msvcrt kernel32 ntdll)
+add_importlibs(ole32 combase coml2 advapi32 user32 gdi32 rpcrt4 msvcrt kernelbase ntdll)
 add_dependencies(ole32 ole32idl)
 add_pch(ole32 precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET ole32 DESTINATION reactos/system32 FOR all)
