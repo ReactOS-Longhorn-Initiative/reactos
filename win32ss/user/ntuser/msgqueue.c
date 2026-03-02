@@ -142,7 +142,7 @@ UserSetCursor(
                 CursorFrame = ((PACON)NewCursor)->aspcur[0];
             }
             GreSetPointerShape(hdcScreen,
-                               CursorFrame->hbmAlpha ? NULL : NewCursor->hbmMask,
+                               MessageQueue->CursorObject->hbmMask,
                                CursorFrame->hbmAlpha ? NewCursor->hbmAlpha : NewCursor->hbmColor,
                                CursorFrame->xHotspot,
                                CursorFrame->yHotspot,
@@ -672,8 +672,7 @@ co_MsqInsertMouseMessage(MSG* Msg, DWORD flags, ULONG_PTR dwExtraInfo, BOOL Hook
                {
                    /* Call GDI to set the new screen cursor */
                     GreSetPointerShape(hdcScreen,
-                                       MessageQueue->CursorObject->hbmAlpha ?
-                                           NULL : MessageQueue->CursorObject->hbmMask,
+                                       MessageQueue->CursorObject->hbmMask,
                                        MessageQueue->CursorObject->hbmAlpha ?
                                            MessageQueue->CursorObject->hbmAlpha : MessageQueue->CursorObject->hbmColor,
                                        MessageQueue->CursorObject->xHotspot,
