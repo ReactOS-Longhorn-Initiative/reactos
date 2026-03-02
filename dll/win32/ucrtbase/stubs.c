@@ -70,6 +70,18 @@ float log2f(float x)
     return (float)log2((double)x);
 }
 
+double __cdecl trunc(double x)
+{
+    /* Preserve signed zero */
+    if (x == 0.0) return x;
+    return (x < 0.0) ? ceil(x) : floor(x);
+}
+
+float __cdecl truncf(float x)
+{
+    return (float)trunc((double)x);
+}
+
 long int lrint(double x)
 {
     __debugbreak();
