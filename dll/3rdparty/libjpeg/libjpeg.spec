@@ -22,4 +22,3 @@
 @ cdecl jpeg_has_multiple_scans(ptr)
 @ cdecl jpeg_abort(ptr)
 @ cdecl jpeg_destroy(ptr)
-@ cdecl jpeg_mem_src(ptr ptr long)
