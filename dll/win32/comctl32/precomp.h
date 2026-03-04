@@ -1,7 +1,7 @@
 
 #ifndef _WINE_COMCTL32_PRECOMP_H
 #define _WINE_COMCTL32_PRECOMP_H
-
+/*
 #include <wine/config.h>
 
 #include <assert.h>
@@ -10,8 +10,6 @@
 #define COM_NO_WINDOWS_H
 
 #define COBJMACROS
-#define NONAMELESSUNION
-#define NONAMELESSSTRUCT
 #define OEMRESOURCE
 
 #include "comctl32.h"
@@ -24,6 +22,6 @@
 #include <wine/debug.h>
 #include <wine/heap.h>
 #include <wine/list.h>
-#include <wine/unicode.h>
+#include <wine/unicode.h>*/
 
 #endif  /* !_WINE_COMCTL32_PRECOMP_H */
