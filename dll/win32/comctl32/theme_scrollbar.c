@@ -53,6 +53,8 @@ static enum SCROLL_HITTEST tracking_hot_part = SCROLL_NOWHERE;
 
 WINE_DEFAULT_DEBUG_CHANNEL(theme_scroll);
 
+extern LRESULT THEMING_CallOriginalClass (HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 static void calc_thumb_dimensions(unsigned int size, SCROLLINFO *si, unsigned int *thumbpos, unsigned int *thumbsize)
 {
     if (size <= SCROLL_MIN_RECT)
