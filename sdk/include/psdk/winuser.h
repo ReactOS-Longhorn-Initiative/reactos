@@ -715,6 +715,9 @@ extern "C" {
 #define IDI_EXCLAMATION MAKEINTRESOURCE(32515)
 #define IDI_ASTERISK MAKEINTRESOURCE(32516)
 #define IDI_WINLOGO MAKEINTRESOURCE(32517)
+#if(WINVER >= 0x0600) || defined(__REACTOS__)
+#define IDI_SHIELD MAKEINTRESOURCE(32518)
+#endif /* WINVER >= 0x0600 */
 #else
 #define IDI_APPLICATION 32512
 #define IDI_HAND 32513
@@ -722,7 +725,7 @@ extern "C" {
 #define IDI_EXCLAMATION 32515
 #define IDI_ASTERISK 32516
 #define IDI_WINLOGO 32517
-#if(WINVER >= 0x0600)
+#if(WINVER >= 0x0600) || defined(__REACTOS__)
 #define IDI_SHIELD  32518
 #endif /* WINVER >= 0x0600 */
 #endif
@@ -5085,7 +5088,7 @@ BOOL WINAPI GetMonitorInfoW(_In_ HMONITOR, _Inout_ LPMONITORINFO);
 #define USER_DEFAULT_SCREEN_DPI 96
 #endif /* _WIN32_WINNT >= _WIN32_WINNT_VISTA */
 
-#if (_WIN32_WINNT >= 0x0605) /* Windows 10 pre-Threshold */
+#if (_WIN32_WINNT >= 0x0605) || defined (__REACTOS__) /* Windows 10 pre-Threshold */
 UINT WINAPI GetDpiForSystem(VOID);
 UINT WINAPI GetDpiForWindow(_In_ HWND hwnd);
 #endif /* _WIN32_WINNT >= 0x0605 */

@@ -26,6 +26,7 @@
  */
 
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include "windef.h"
 #include "winbase.h"
@@ -37,7 +38,6 @@
 #include "uxtheme.h"
 #include "vssym32.h"
 #include "wine/debug.h"
-#include "wine/heap.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(progress);
 
@@ -53,6 +53,7 @@ typedef struct
     COLORREF  ColorBar;     /* Bar color */
     COLORREF  ColorBk;      /* Background color */
     HFONT     Font;         /* Handle to font (not unused) */
+    UINT      State;        /* State of progress bar */
 } PROGRESS_INFO;
 
 /* Control configuration constants */
@@ -147,6 +148,7 @@ typedef struct tagProgressDrawInfo
     int ledW, ledGap;
     HTHEME theme;
     RECT bgRect;
+    UINT state;
 } ProgressDrawInfo;
 
 typedef void (*ProgressDrawProc)(const ProgressDrawInfo* di, int start, int end);
@@ -243,7 +245,11 @@ static void draw_theme_bar_H (const ProgressDrawInfo* di, int start, int end)
     r.top = di->rect.top;
     r.bottom = di->rect.bottom;
     r.right = di->rect.left + end;
+#ifdef __REACTOS__
     DrawThemeBackground (di->theme, di->hdc, PP_CHUNK, 0, &r, NULL);
+#else
+    DrawThemeBackground (di->theme, di->hdc, PP_FILL, di->state, &r, NULL);
+#endif
 }
 
 /* draw themed vertical bar from 'start' to 'end' */
@@ -254,7 +260,11 @@ static void draw_theme_bar_V (const ProgressDrawInfo* di, int start, int end)
     r.right = di->rect.right;
     r.bottom = di->rect.bottom - start;
     r.top = di->rect.bottom - end;
+#ifdef __REACTOS__
     DrawThemeBackground (di->theme, di->hdc, PP_CHUNKVERT, 0, &r, NULL);
+#else
+    DrawThemeBackground (di->theme, di->hdc, PP_FILLVERT, di->state, &r, NULL);
+#endif
 }
 
 /* draw themed horizontal background from 'start' to 'end' */
@@ -310,6 +320,7 @@ static LRESULT PROGRESS_Draw (PROGRESS_INFO *infoPtr, HDC hdc)
     TRACE("(infoPtr=%p, hdc=%p)\n", infoPtr, hdc);
 
     pdi.hdc = hdc;
+    pdi.state = infoPtr->State;
     pdi.theme = GetWindowTheme (infoPtr->Self);
 
     /* get the required bar brush */
@@ -522,6 +533,20 @@ static UINT PROGRESS_SetPos (PROGRESS_INFO *infoPtr, INT pos)
     }
 }
 
+static UINT PROGRESS_SetState (HWND hwnd, PROGRESS_INFO *infoPtr, UINT state)
+{
+    UINT prev_state = infoPtr->State;
+
+    if (state == PBST_NORMAL || state == PBST_PAUSED || state == PBST_ERROR)
+        infoPtr->State = state;
+    else
+        return 0;
+
+    if (state != prev_state)
+        InvalidateRect(hwnd, NULL, TRUE);
+    return prev_state;
+}
+
 /***********************************************************************
  *           ProgressWindowProc
  */
@@ -529,10 +554,10 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
                                          WPARAM wParam, LPARAM lParam)
 {
     PROGRESS_INFO *infoPtr;
-    static const WCHAR themeClass[] = {'P','r','o','g','r','e','s','s',0};
+    static const WCHAR themeClass[] = L"Progress";
     HTHEME theme;
 
-    TRACE("hwnd=%p msg=%04x wparam=%lx lParam=%lx\n", hwnd, message, wParam, lParam);
+    TRACE("hwnd %p, msg %04x, wparam %Ix, lParam %Ix\n", hwnd, message, wParam, lParam);
 
     infoPtr = (PROGRESS_INFO *)GetWindowLongPtrW(hwnd, 0);
 
@@ -554,7 +579,7 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
 	    SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 
         /* allocate memory for info struct */
-        infoPtr = heap_alloc_zero (sizeof(*infoPtr));
+        infoPtr = Alloc(sizeof(*infoPtr));
         if (!infoPtr) return -1;
         SetWindowLongPtrW (hwnd, 0, (DWORD_PTR)infoPtr);
 
@@ -569,6 +594,7 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
         infoPtr->ColorBar = CLR_DEFAULT;
         infoPtr->ColorBk = CLR_DEFAULT;
         infoPtr->Font = 0;
+        infoPtr->State = PBST_NORMAL;
 
         TRACE("Progress Ctrl creation, hwnd=%p\n", hwnd);
         return 0;
@@ -576,7 +602,7 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
 
     case WM_DESTROY:
         TRACE("Progress Ctrl destruction, hwnd=%p\n", hwnd);
-        heap_free (infoPtr);
+        Free (infoPtr);
         SetWindowLongPtrW(hwnd, 0, 0);
         theme = GetWindowTheme (hwnd);
         CloseThemeData (theme);
@@ -615,7 +641,7 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
             dwExStyle |= WS_EX_STATICEDGE;
         SetWindowLongW (hwnd, GWL_EXSTYLE, dwExStyle);
         
-        InvalidateRect (hwnd, NULL, FALSE);
+        InvalidateRect (hwnd, NULL, TRUE);
         return 0;
     }
 
@@ -711,12 +737,10 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
 	return infoPtr->ColorBk;
 
     case PBM_SETSTATE:
-        if(wParam != PBST_NORMAL)
-            FIXME("state %04lx not yet handled\n", wParam);
-        return PBST_NORMAL;
+        return PROGRESS_SetState(hwnd, infoPtr, wParam);
 
     case PBM_GETSTATE:
-        return PBST_NORMAL;
+        return infoPtr->State;
 
     case PBM_SETMARQUEE:
 	if(wParam != 0)
@@ -734,7 +758,7 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
 
     default:
         if ((message >= WM_USER) && (message < WM_APP) && !COMCTL32_IsReflectedMessage(message))
-	    ERR("unknown msg %04x wp=%04lx lp=%08lx\n", message, wParam, lParam );
+            ERR("unknown msg %04x, wp %Ix, lp %Ix\n", message, wParam, lParam );
         return DefWindowProcW( hwnd, message, wParam, lParam );
     }
 }

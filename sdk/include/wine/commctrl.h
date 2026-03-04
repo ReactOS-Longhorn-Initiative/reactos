@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #undef DPA_GetPtr
-LPVOID WINAPI DPA_GetPtr(HDPA, INT);
+LPVOID WINAPI DPA_GetPtr(HDPA, INT_PTR);
 
 #undef FlatSB_SetScrollProp
 BOOL  WINAPI FlatSB_SetScrollProp(HWND, UINT, INT, BOOL);

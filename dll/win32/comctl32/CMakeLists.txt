@@ -18,7 +18,6 @@ list(APPEND SOURCE
     button.c
     combo.c
     comboex.c
-    comctl32undoc.c
     commctrl.c
     datetime.c
     dpa.c
@@ -38,6 +37,7 @@ list(APPEND SOURCE
     pager.c
     progress.c
     propsheet.c
+    reactos.c
     rebar.c
     smoothscroll.c
     static.c
@@ -62,7 +62,7 @@ list(APPEND PCH_SKIP_SOURCE
 add_library(comctl32 MODULE
     ${SOURCE}
     ${PCH_SKIP_SOURCE}
-    rsrc.rc
+    comctl32.rc
     ${CMAKE_CURRENT_BINARY_DIR}/comctl32.def)
 
 if(MSVC)
@@ -75,7 +75,7 @@ endif()
 set_module_type(comctl32 win32dll UNICODE)
 target_link_libraries(comctl32 uuid wine ${PSEH_LIB} oldnames)
 add_delay_importlibs(comctl32 winmm uxtheme)
-add_importlibs(comctl32 user32 gdi32 advapi32 usp10 imm32 msvcrt kernel32 ntdll)
+add_importlibs(comctl32 user32 gdi32 advapi32 usp10 imm32 msvcrt kernelbase ntdll)
 add_pch(comctl32 precomp.h "${PCH_SKIP_SOURCE}")
 add_cd_file(TARGET comctl32 DESTINATION reactos/system32 FOR all)
 
