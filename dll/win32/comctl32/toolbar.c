@@ -145,6 +145,7 @@ typedef struct
     INT      iListGap;        /* default gap between text and image for toolbar with list style */
     HFONT    hDefaultFont;
     HFONT    hFont;           /* text font */
+    HTHEME   hTheme;          /* theme */
     HIMAGELIST himlInt;       /* image list created internally */
     PIMLENTRY *himlDef;       /* default image list array */
     INT       cimlDef;        /* default image list array count */
@@ -158,7 +159,7 @@ typedef struct
     BOOL     bAnchor;         /* anchor highlight enabled */
     BOOL     bDoRedraw;       /* Redraw status */
     BOOL     bDragOutSent;    /* has TBN_DRAGOUT notification been sent for this drag? */
-    BOOL     bUnicode;        /* Notifications are ASCII (FALSE) or Unicode (TRUE)? */
+    BOOL     bUnicode;        /* Notifications are ANSI (FALSE) or Unicode (TRUE)? */
     BOOL     bCaptured;       /* mouse captured? */
     DWORD      dwStyle;       /* regular toolbar style */
     DWORD      dwExStyle;     /* extended toolbar style */
@@ -206,7 +207,6 @@ typedef enum
 #define ARROW_HEIGHT       3
 #define INSERTMARK_WIDTH   2
 
-/* default padding inside a button */
 #define DEFPAD_CX 7
 #define DEFPAD_CY 6
 
@@ -247,7 +247,7 @@ typedef enum
 #define GETHOTIMAGELIST(infoPtr, id) TOOLBAR_GetImageList(infoPtr->himlHot, infoPtr->cimlHot, id)
 #define GETDISIMAGELIST(infoPtr, id) TOOLBAR_GetImageList(infoPtr->himlDis, infoPtr->cimlDis, id)
 
-static const WCHAR themeClass[] = { 'T','o','o','l','b','a','r',0 };
+static const WCHAR themeClass[] = L"Toolbar";
 
 static BOOL TOOLBAR_GetButtonInfo(const TOOLBAR_INFO *infoPtr, NMTOOLBARW *nmtb);
 static BOOL TOOLBAR_IsButtonRemovable(const TOOLBAR_INFO *infoPtr, int iItem, const CUSTOMBUTTON *btnInfo);
@@ -320,36 +320,29 @@ TOOLBAR_DumpTBButton(const TBBUTTON *tbb, BOOL fUnicode)
 static void
 TOOLBAR_DumpButton(const TOOLBAR_INFO *infoPtr, const TBUTTON_INFO *bP, INT btn_num)
 {
-    if (TRACE_ON(toolbar)){
-        TRACE("button %d id %d, bitmap=%d, state=%02x, style=%02x, data=%08lx, stringid=0x%08lx\n",
-              btn_num, bP->idCommand, GETIBITMAP(infoPtr, bP->iBitmap), 
-              bP->fsState, bP->fsStyle, bP->dwData, bP->iString);
-	TRACE("string %s\n", debugstr_w(TOOLBAR_GetText(infoPtr,bP)));
-        TRACE("button %d id %d, hot=%s, row=%d, rect=(%s)\n",
-              btn_num, bP->idCommand, (bP->bHot) ? "TRUE":"FALSE", bP->nRow,
-              wine_dbgstr_rect(&bP->rect));
-    }
+    TRACE("button %d id %d, bitmap=%d, state=%02x, style=%02x, data=%Ix, stringid=%Ix\n",
+            btn_num, bP->idCommand, GETIBITMAP(infoPtr, bP->iBitmap), bP->fsState, bP->fsStyle, bP->dwData, bP->iString);
+    TRACE("string %s\n", debugstr_w(TOOLBAR_GetText(infoPtr,bP)));
+    TRACE("button %d id %d, hot=%s, row=%d, rect=(%s)\n", btn_num, bP->idCommand, (bP->bHot) ? "TRUE":"FALSE", bP->nRow,
+            wine_dbgstr_rect(&bP->rect));
 }
 
 
 static void
 TOOLBAR_DumpToolbar(const TOOLBAR_INFO *iP, INT line)
 {
-    if (TRACE_ON(toolbar)) {
-	INT i;
+    INT i;
 
-	TRACE("toolbar %p at line %d, exStyle=%08x, buttons=%d, bitmaps=%d, strings=%d, style=%08x\n",
-	      iP->hwndSelf, line,
-	      iP->dwExStyle, iP->nNumButtons, iP->nNumBitmaps,
-	      iP->nNumStrings, iP->dwStyle);
-	TRACE("toolbar %p at line %d, himlInt=%p, himlDef=%p, himlHot=%p, himlDis=%p, redrawable=%s\n",
-	      iP->hwndSelf, line,
-	      iP->himlInt, iP->himlDef, iP->himlHot, iP->himlDis,
-	      (iP->bDoRedraw) ? "TRUE" : "FALSE");
- 	for(i=0; i<iP->nNumButtons; i++) {
-            TOOLBAR_DumpButton(iP, &iP->buttons[i], i);
-	}
-    }
+    if (!TRACE_ON(toolbar))
+        return;
+
+    TRACE("toolbar %p at line %d, exStyle=%#lx, buttons=%d, bitmaps=%d, strings=%d, style=%#lx\n",
+            iP->hwndSelf, line, iP->dwExStyle, iP->nNumButtons, iP->nNumBitmaps, iP->nNumStrings, iP->dwStyle);
+    TRACE("toolbar %p at line %d, himlInt=%p, himlDef=%p, himlHot=%p, himlDis=%p, redrawable=%s\n",
+            iP->hwndSelf, line, iP->himlInt, iP->himlDef, iP->himlHot, iP->himlDis, (iP->bDoRedraw) ? "TRUE" : "FALSE");
+
+    for (i = 0; i < iP->nNumButtons; ++i)
+        TOOLBAR_DumpButton(iP, &iP->buttons[i], i);
 }
 
 static inline BOOL
@@ -447,7 +440,7 @@ TOOLBAR_GetBitmapIndex(const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr)
         if (nmgd.dwMask & TBNF_DI_SETITEM)
             btnPtr->iBitmap = nmgd.iImage;
         ret = nmgd.iImage;
-        TRACE("TBN_GETDISPINFO returned bitmap id %d, mask=%08x, nNumBitmaps=%d\n",
+        TRACE("TBN_GETDISPINFO returned bitmap id %d, mask %#lx, nNumBitmaps %d\n",
             ret, nmgd.dwMask, infoPtr->nNumBitmaps);
     }
 
@@ -644,7 +637,6 @@ TOOLBAR_DrawString (const TOOLBAR_INFO *infoPtr, RECT *rcText, LPCWSTR lpText,
     int oldBkMode = 0;
     UINT state = tbcd->nmcd.uItemState;
 #ifdef __REACTOS__
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     DWORD dwDTFlags = TOOLBAR_GetButtonDTFlags(infoPtr, btnPtr);
 #endif
 
@@ -655,7 +647,7 @@ TOOLBAR_DrawString (const TOOLBAR_INFO *infoPtr, RECT *rcText, LPCWSTR lpText,
 
 	hOldFont = SelectObject (hdc, infoPtr->hFont);
 #ifdef __REACTOS__
-    if (theme)
+    if (infoPtr->hTheme)
     {
         DWORD dwDTFlags2 = 0;
         int partId = TP_BUTTON;
@@ -673,7 +665,7 @@ TOOLBAR_DrawString (const TOOLBAR_INFO *infoPtr, RECT *rcText, LPCWSTR lpText,
         else if (state & CDIS_HOT)
             stateId = TS_HOT;
 
-        DrawThemeText(theme, hdc, partId, stateId, lpText, -1, dwDTFlags, dwDTFlags2, rcText);
+        DrawThemeText(infoPtr->hTheme, hdc, partId, stateId, lpText, -1, dwDTFlags, dwDTFlags2, rcText);
         SelectObject (hdc, hOldFont);
         return;
     }
@@ -744,18 +736,45 @@ TOOLBAR_DrawPattern (const RECT *lpRect, const NMTBCUSTOMDRAW *tbcd)
 
 static void TOOLBAR_DrawMasked(HIMAGELIST himl, int index, HDC hdc, INT x, INT y, UINT draw_flags)
 {
+    IMAGELISTDRAWPARAMS draw_params = { 0 };
     INT cx, cy;
     HBITMAP hbmMask, hbmImage;
     HDC hdcMask, hdcImage;
 
     ImageList_GetIconSize(himl, &cx, &cy);
 
+    draw_params.cbSize = sizeof(draw_params);
+    draw_params.himl = himl;
+    draw_params.i = index;
+    draw_params.hdcDst = hdc;
+    draw_params.x = x;
+    draw_params.y = y;
+    draw_params.cx = cx;
+    draw_params.cy = cy;
+    draw_params.rgbBk = CLR_NONE;
+    draw_params.rgbFg = CLR_NONE;
+    draw_params.fStyle = draw_flags;
+    draw_params.fState = ILS_NORMAL;
+
+    /* 32bpp image with alpha channel is converted to grayscale */
+    if (imagelist_has_alpha(himl, index))
+    {
+        draw_params.fState = ILS_SATURATE;
+        ImageList_DrawIndirect(&draw_params);
+        return;
+    }
+
     /* Create src image */
     hdcImage = CreateCompatibleDC(hdc);
     hbmImage = CreateCompatibleBitmap(hdc, cx, cy);
     SelectObject(hdcImage, hbmImage);
-    ImageList_DrawEx(himl, index, hdcImage, 0, 0, cx, cy,
-                     RGB(0xff, 0xff, 0xff), RGB(0,0,0), draw_flags);
+
+    draw_params.x = 0;
+    draw_params.y = 0;
+    draw_params.rgbBk = RGB(0xff, 0xff, 0xff);
+    draw_params.rgbFg = RGB(0,0,0);
+    draw_params.hdcDst = hdcImage;
+    ImageList_DrawIndirect(&draw_params);
 
     /* Create Mask */
     hdcMask = CreateCompatibleDC(0);
@@ -763,8 +782,9 @@ static void TOOLBAR_DrawMasked(HIMAGELIST himl, int index, HDC hdc, INT x, INT y
     SelectObject(hdcMask, hbmMask);
 
     /* Remove the background and all white pixels */
-    ImageList_DrawEx(himl, index, hdcMask, 0, 0, cx, cy,
-                     RGB(0xff, 0xff, 0xff), RGB(0,0,0), ILD_MASK);
+    draw_params.fStyle = ILD_MASK;
+    draw_params.hdcDst = hdcMask;
+    ImageList_DrawIndirect(&draw_params);
     SetBkColor(hdcImage, RGB(0xff, 0xff, 0xff));
     BitBlt(hdcMask, 0, 0, cx, cy, hdcImage, 0, 0, NOTSRCERASE);
 
@@ -805,14 +825,10 @@ TOOLBAR_DrawImage(const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, INT left, I
                   const NMTBCUSTOMDRAW *tbcd, DWORD dwItemCDFlag)
 {
     HIMAGELIST himl = NULL;
-    BOOL draw_masked = FALSE, draw_desaturated = FALSE;
+    BOOL draw_masked = FALSE;
     INT index;
     INT offset = 0;
     UINT draw_flags = ILD_TRANSPARENT;
-#ifdef __REACTOS__
-    IMAGEINFO info = {0};
-    BITMAP bm = {0};
-#endif
 
     if (tbcd->nmcd.uItemState & (CDIS_DISABLED | CDIS_INDETERMINATE))
     {
@@ -821,26 +837,12 @@ TOOLBAR_DrawImage(const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, INT left, I
         {
             himl = TOOLBAR_GetImageListForDrawing(infoPtr, btnPtr, IMAGE_LIST_DEFAULT, &index);
 
-#ifdef __REACTOS__
-            ImageList_GetImageInfo(himl, index, &info);
-            GetObjectW(info.hbmImage, sizeof(bm), &bm);
-
-            if (bm.bmBitsPixel == 32)
-            {
-                draw_desaturated = TRUE;
-            }
-            else
-            {
-                draw_masked = TRUE;
-            }
-#else
             draw_masked = TRUE;
-#endif
         }
     }
     else if (tbcd->nmcd.uItemState & CDIS_CHECKED ||
       ((tbcd->nmcd.uItemState & CDIS_HOT) 
-      && ((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf))))
+      && ((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme)))
     {
         /* if hot, attempt to draw with hot image list, if fails, 
            use default image list */
@@ -866,34 +868,9 @@ TOOLBAR_DrawImage(const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, INT left, I
       index, himl, left, top, offset);
 
     if (draw_masked)
-    {
-        /* code path for drawing flat disabled icons without alpha channel */
         TOOLBAR_DrawMasked (himl, index, tbcd->nmcd.hdc, left + offset, top + offset, draw_flags);
-    }
-    else if (draw_desaturated)
-    {
-        /* code path for drawing disabled, alpha-blended (32bpp) icons */
-        IMAGELISTDRAWPARAMS imldp = {0};
-
-        imldp.cbSize = sizeof(imldp);
-        imldp.himl   = himl;
-        imldp.i      = index;
-        imldp.hdcDst = tbcd->nmcd.hdc,
-        imldp.x      = offset + left;
-        imldp.y      = offset + top;
-        imldp.rgbBk  = CLR_NONE;
-        imldp.rgbFg  = CLR_DEFAULT;
-        imldp.fStyle = ILD_TRANSPARENT;
-        imldp.fState = ILS_ALPHA | ILS_SATURATE;
-        imldp.Frame  = 192;
-
-        ImageList_DrawIndirect (&imldp);
-    }
     else
-    {
-        /* code path for drawing standard icons as-is */
         ImageList_Draw (himl, index, tbcd->nmcd.hdc, left + offset, top + offset, draw_flags);
-    }
 }
 
 /* draws a blank frame for a toolbar button */
@@ -985,7 +962,7 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
     INT oldBkMode;
     DWORD dwItemCustDraw;
     DWORD dwItemCDFlag;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
+    HTHEME theme = infoPtr->hTheme;
 
     rc = btnPtr->rect;
     rcArrow = rc;
@@ -1064,11 +1041,10 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
     rcBitmap.top += infoPtr->themeMargins.cyTopHeight;
 #endif
 
-    TRACE("iBitmap=%d, start=(%d,%d) w=%d, h=%d\n",
-      btnPtr->iBitmap, rcBitmap.left, rcBitmap.top,
+    TRACE("iBitmap=%d, start=(%ld,%ld) w=%d, h=%d\n", btnPtr->iBitmap, rcBitmap.left, rcBitmap.top,
       infoPtr->nBitmapWidth, infoPtr->nBitmapHeight);
     TRACE("Text=%s\n", debugstr_w(lpText));
-    TRACE("iListGap=%d, padding = { %d, %d }\n", infoPtr->iListGap, infoPtr->szPadding.cx, infoPtr->szPadding.cy);
+    TRACE("iListGap=%d, padding = { %ld, %ld }\n", infoPtr->iListGap, infoPtr->szPadding.cx, infoPtr->szPadding.cy);
 
     /* calculate text position */
     if (lpText)
@@ -1138,12 +1114,11 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
         (btnPtr->fsState & (TBSTATE_PRESSED | TBSTATE_CHECKED)))
         OffsetRect(&rcText, 1, 1);
 
-    if (!(tbcd.nmcd.uItemState & CDIS_HOT) && 
+    if (!(tbcd.nmcd.uItemState & CDIS_HOT) &&
         ((tbcd.nmcd.uItemState & CDIS_CHECKED) || (tbcd.nmcd.uItemState & CDIS_INDETERMINATE)))
         TOOLBAR_DrawPattern (&rc, &tbcd);
 
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && (tbcd.nmcd.uItemState & CDIS_HOT))
+    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || theme) && (tbcd.nmcd.uItemState & CDIS_HOT))
     {
         if ( dwItemCDFlag & TBCDRF_HILITEHOTTRACK )
         {
@@ -1163,26 +1138,28 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
     if (theme)
 #endif
     {
-        int partId = drawSepDropDownArrow ? TP_SPLITBUTTON : TP_BUTTON;
-        int stateId = TS_NORMAL;
-        
-        if (tbcd.nmcd.uItemState & CDIS_DISABLED)
-            stateId = TS_DISABLED;
-        else if (tbcd.nmcd.uItemState & CDIS_SELECTED)
-            stateId = TS_PRESSED;
-        else if (tbcd.nmcd.uItemState & CDIS_CHECKED)
+       // if (!(dwItemCDFlag & TBCDRF_NOBACKGROUND))
+        {
+            int partId = drawSepDropDownArrow ? TP_SPLITBUTTON : TP_BUTTON;
+            int stateId = TS_NORMAL;
+
+            if (tbcd.nmcd.uItemState & CDIS_DISABLED)
+                stateId = TS_DISABLED;
+            else if (tbcd.nmcd.uItemState & CDIS_SELECTED)
+                stateId = TS_PRESSED;
+            else if (tbcd.nmcd.uItemState & CDIS_CHECKED)
 #ifdef __REACTOS__
             stateId = (tbcd.nmcd.uItemState & CDIS_HOT) ? TS_HOTCHECKED : TS_CHECKED;
 #else
             stateId = (tbcd.nmcd.uItemState & CDIS_HOT) ? TS_HOTCHECKED : TS_HOT;
 #endif
-        else if ((tbcd.nmcd.uItemState & CDIS_HOT)
-            || (drawSepDropDownArrow && btnPtr->bDropDownPressed))
-            stateId = TS_HOT;
-            
-        DrawThemeBackground (theme, hdc, partId, stateId, &rc, NULL);
-    }
+            else if ((tbcd.nmcd.uItemState & CDIS_HOT)
+                     || (drawSepDropDownArrow && btnPtr->bDropDownPressed))
+                stateId = TS_HOT;
 
+            DrawThemeBackground(theme, hdc, partId, stateId, &rc, NULL);
+        }
+    }
 #ifdef __REACTOS__
     if (!theme)
 #else
@@ -1397,7 +1374,7 @@ TOOLBAR_MeasureString(const TOOLBAR_INFO *infoPtr, const TBUTTON_INFO *btnPtr,
 	}
     }
 
-    TRACE("string size %d x %d!\n", lpSize->cx, lpSize->cy);
+    TRACE("string size %ld x %ld.\n", lpSize->cx, lpSize->cy);
 }
 
 /***********************************************************************
@@ -1447,7 +1424,7 @@ TOOLBAR_CalcStrings (const TOOLBAR_INFO *infoPtr, LPSIZE lpSize)
     SelectObject (hdc, hOldFont);
     ReleaseDC (infoPtr->hwndSelf, hdc);
 
-    TRACE("max string size %d x %d\n", lpSize->cx, lpSize->cy);
+    TRACE("max string size %ld x %ld\n", lpSize->cx, lpSize->cy);
 }
 
 /***********************************************************************
@@ -2517,7 +2494,7 @@ static LRESULT TOOLBAR_Cust_AvailDragListNotification(const CUSTDLG_INFO *custIn
     return 0;
 }
 
-extern UINT uDragListMessage DECLSPEC_HIDDEN;
+extern UINT uDragListMessage;
 
 /***********************************************************************
  * TOOLBAR_CustomizeDialogProc
@@ -2604,7 +2581,7 @@ TOOLBAR_CustomizeDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if (!TOOLBAR_GetButtonInfo(infoPtr, &nmtb))
 			break;
 
-		    TRACE("WM_INITDIALOG style: %x iItem(%d) idCommand(%d) iString(%ld) %s\n",
+		    TRACE("WM_INITDIALOG style: %x iItem(%d) idCommand(%d) iString(%Id) %s\n",
                         nmtb.tbButton.fsStyle, i, 
                         nmtb.tbButton.idCommand,
                         nmtb.tbButton.iString,
@@ -3031,7 +3008,7 @@ TOOLBAR_AddBitmap (TOOLBAR_INFO *infoPtr, INT count, const TBADDBITMAP *lpAddBmp
 	        info.nID = IDB_HIST_LARGE;
 	        break;
 	    default:
-                WARN("unknown bitmap id, %ld\n", lpAddBmp->nID);
+                WARN("unknown bitmap id, %Id\n", lpAddBmp->nID);
 	        return -1;
 	}
 
@@ -3117,7 +3094,7 @@ TOOLBAR_AddStringW (TOOLBAR_INFO *infoPtr, HINSTANCE hInstance, LPARAM lParam)
     BOOL fFirstString = (infoPtr->nNumStrings == 0);
     INT nIndex = infoPtr->nNumStrings;
 
-    TRACE("%p, %lx\n", hInstance, lParam);
+    TRACE("%p, %Ix\n", hInstance, lParam);
 
     if (IS_INTRESOURCE(lParam)) {
 	WCHAR szString[MAX_RESOURCE_STRING_LENGTH];
@@ -3199,7 +3176,7 @@ TOOLBAR_AddStringA (TOOLBAR_INFO *infoPtr, HINSTANCE hInstance, LPARAM lParam)
     INT nIndex;
     INT len;
 
-    TRACE("%p, %lx\n", hInstance, lParam);
+    TRACE("%p, %Ix\n", hInstance, lParam);
 
     if (IS_INTRESOURCE(lParam))  /* load from resources */
         return TOOLBAR_AddStringW(infoPtr, hInstance, lParam);
@@ -3230,7 +3207,7 @@ TOOLBAR_AddStringA (TOOLBAR_INFO *infoPtr, HINSTANCE hInstance, LPARAM lParam)
 static LRESULT
 TOOLBAR_AutoSize (TOOLBAR_INFO *infoPtr)
 {
-    TRACE("auto sizing, style=%#x\n", infoPtr->dwStyle);
+    TRACE("auto sizing, style=%#lx\n", infoPtr->dwStyle);
     TRACE("nRows: %d, infoPtr->nButtonHeight: %d\n", infoPtr->nRows, infoPtr->nButtonHeight);
 
 #ifdef __REACTOS__ /* workaround CORE-16169 part 2 of 2 */
@@ -3243,7 +3220,7 @@ TOOLBAR_AutoSize (TOOLBAR_INFO *infoPtr)
 
     if (!(infoPtr->dwStyle & CCS_NORESIZE))
     {
-        RECT window_rect, parent_rect;
+        RECT window_rect, client_rect, parent_rect, border;
         UINT uPosFlags = SWP_NOZORDER | SWP_NOACTIVATE;
         HWND parent;
         INT  x, y, cx, cy;
@@ -3252,6 +3229,13 @@ TOOLBAR_AutoSize (TOOLBAR_INFO *infoPtr)
 
         if (!parent || !infoPtr->bDoRedraw)
             return 0;
+
+        GetWindowRect(infoPtr->hwndSelf, &window_rect);
+        GetClientRect(infoPtr->hwndSelf, &client_rect);
+        border = window_rect;
+        MapWindowPoints(0, infoPtr->hwndSelf, (POINT *)&border, 2);
+        border.right -= border.left + client_rect.right - client_rect.left;
+        border.bottom -= border.top + client_rect.bottom - client_rect.top;
 
         GetClientRect(parent, &parent_rect);
 
@@ -3263,27 +3247,22 @@ TOOLBAR_AutoSize (TOOLBAR_INFO *infoPtr)
 
         if ((infoPtr->dwStyle & CCS_BOTTOM) == CCS_NOMOVEY)
         {
-            GetWindowRect(infoPtr->hwndSelf, &window_rect);
             MapWindowPoints( 0, parent, (POINT *)&window_rect, 2 );
             y = window_rect.top;
         }
         if ((infoPtr->dwStyle & CCS_BOTTOM) == CCS_BOTTOM)
-        {
-            GetWindowRect(infoPtr->hwndSelf, &window_rect);
             y = parent_rect.bottom - ( window_rect.bottom - window_rect.top);
-        }
 
         if (infoPtr->dwStyle & CCS_NOPARENTALIGN)
             uPosFlags |= SWP_NOMOVE;
-    
-        if (!(infoPtr->dwStyle & CCS_NODIVIDER))
-            cy += GetSystemMetrics(SM_CYEDGE);
 
-        if (infoPtr->dwStyle & WS_BORDER)
-        {
-            cx += 2 * GetSystemMetrics(SM_CXBORDER);
-            cy += 2 * GetSystemMetrics(SM_CYBORDER);
-        }
+        if (!(infoPtr->dwStyle & CCS_NOMOVEY) && !(infoPtr->dwStyle & CCS_NODIVIDER))
+            y += GetSystemMetrics(SM_CYEDGE);
+
+        x += border.left;
+        y += border.top;
+        cx += border.right;
+        cy += border.bottom;
 
         SetWindowPos(infoPtr->hwndSelf, NULL, x, y, cx, cy, uPosFlags);
     }
@@ -3347,7 +3326,7 @@ TOOLBAR_CheckButton (TOOLBAR_INFO *infoPtr, INT Id, LPARAM lParam)
 
     nIndex = TOOLBAR_GetButtonIndex (infoPtr, Id, FALSE);
 
-    TRACE("hwnd=%p, btn index=%d, lParam=0x%08lx\n", infoPtr->hwndSelf, nIndex, lParam);
+    TRACE("hwnd %p, btn index %d, lParam %Ix\n", infoPtr->hwndSelf, nIndex, lParam);
 
     if (nIndex == -1)
 	return FALSE;
@@ -3479,7 +3458,7 @@ TOOLBAR_EnableButton (TOOLBAR_INFO *infoPtr, INT Id, LPARAM lParam)
 
     nIndex = TOOLBAR_GetButtonIndex (infoPtr, Id, FALSE);
 
-    TRACE("hwnd=%p, btn id=%d, lParam=0x%08lx\n", infoPtr->hwndSelf, Id, lParam);
+    TRACE("hwnd %p, btn id %d, lParam %Ix\n", infoPtr->hwndSelf, Id, lParam);
 
     if (nIndex == -1)
 	return FALSE;
@@ -3651,7 +3630,7 @@ TOOLBAR_GetButtonText (const TOOLBAR_INFO *infoPtr, INT Id, LPWSTR lpStr, BOOL i
 static LRESULT
 TOOLBAR_GetDisabledImageList (const TOOLBAR_INFO *infoPtr, WPARAM wParam)
 {
-    TRACE("hwnd=%p, wParam=%ld\n", infoPtr->hwndSelf, wParam);
+    TRACE("hwnd %p, wParam %Id\n", infoPtr->hwndSelf, wParam);
     /* UNDOCUMENTED: wParam is actually the ID of the image list to return */
     return (LRESULT)GETDISIMAGELIST(infoPtr, wParam);
 }
@@ -3669,7 +3648,7 @@ TOOLBAR_GetExtendedStyle (const TOOLBAR_INFO *infoPtr)
 static LRESULT
 TOOLBAR_GetHotImageList (const TOOLBAR_INFO *infoPtr, WPARAM wParam)
 {
-    TRACE("hwnd=%p, wParam=%ld\n", infoPtr->hwndSelf, wParam);
+    TRACE("hwnd %p, wParam %Id\n", infoPtr->hwndSelf, wParam);
     /* UNDOCUMENTED: wParam is actually the ID of the image list to return */
     return (LRESULT)GETHOTIMAGELIST(infoPtr, wParam);
 }
@@ -3678,7 +3657,7 @@ TOOLBAR_GetHotImageList (const TOOLBAR_INFO *infoPtr, WPARAM wParam)
 static LRESULT
 TOOLBAR_GetHotItem (const TOOLBAR_INFO *infoPtr)
 {
-    if (!((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)))
+    if (!((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme))
 	return -1;
 
     if (infoPtr->nHotItem < 0)
@@ -3691,7 +3670,7 @@ TOOLBAR_GetHotItem (const TOOLBAR_INFO *infoPtr)
 static LRESULT
 TOOLBAR_GetDefImageList (const TOOLBAR_INFO *infoPtr, WPARAM wParam)
 {
-    TRACE("hwnd=%p, wParam=%ld\n", infoPtr->hwndSelf, wParam);
+    TRACE("hwnd %p, wParam %Id\n", infoPtr->hwndSelf, wParam);
     /* UNDOCUMENTED: wParam is actually the ID of the image list to return */
     return (LRESULT) GETDEFIMAGELIST(infoPtr, wParam);
 }
@@ -3749,9 +3728,8 @@ TOOLBAR_GetMaxSize (const TOOLBAR_INFO *infoPtr, LPSIZE lpSize)
     lpSize->cx = infoPtr->rcBound.right - infoPtr->rcBound.left;
     lpSize->cy = infoPtr->rcBound.bottom - infoPtr->rcBound.top;
 
-    TRACE("maximum size %d x %d\n",
-	   infoPtr->rcBound.right - infoPtr->rcBound.left,
-	   infoPtr->rcBound.bottom - infoPtr->rcBound.top);
+    TRACE("maximum size %ld x %ld\n", infoPtr->rcBound.right - infoPtr->rcBound.left,
+            infoPtr->rcBound.bottom - infoPtr->rcBound.top);
 
     return TRUE;
 }
@@ -4056,7 +4034,7 @@ TOOLBAR_LoadImages (TOOLBAR_INFO *infoPtr, WPARAM wParam, HINSTANCE hInstance)
     tbab.hInst = hInstance;
     tbab.nID = wParam;
 
-    TRACE("hwnd = %p, hInst = %p, nID = %lu\n", infoPtr->hwndSelf, tbab.hInst, tbab.nID);
+    TRACE("hwnd = %p, hInst = %p, nID = %Iu\n", infoPtr->hwndSelf, tbab.hInst, tbab.nID);
 
     return TOOLBAR_AddBitmap(infoPtr, 0, &tbab);
 }
@@ -4236,7 +4214,7 @@ TOOLBAR_ReplaceBitmap (TOOLBAR_INFO *infoPtr, const TBREPLACEBITMAP *lpReplace)
     int nOldBitmaps, nNewBitmaps = 0;
     HIMAGELIST himlDef = 0;
 
-    TRACE("hInstOld %p nIDOld %lx hInstNew %p nIDNew %lx nButtons %x\n",
+    TRACE("hInstOld %p nIDOld %Ix hInstNew %p nIDNew %Ix nButtons %x\n",
           lpReplace->hInstOld, lpReplace->nIDOld, lpReplace->hInstNew, lpReplace->nIDNew,
           lpReplace->nButtons);
 
@@ -4248,7 +4226,7 @@ TOOLBAR_ReplaceBitmap (TOOLBAR_INFO *infoPtr, const TBREPLACEBITMAP *lpReplace)
     else if (lpReplace->hInstOld != 0 && lpReplace->hInstOld != lpReplace->hInstNew)
         FIXME("resources not in the current module not implemented\n");
 
-    TRACE("To be replaced hInstOld %p nIDOld %lx\n", lpReplace->hInstOld, lpReplace->nIDOld);
+    TRACE("To be replaced hInstOld %p nIDOld %Ix\n", lpReplace->hInstOld, lpReplace->nIDOld);
     for (i = 0; i < infoPtr->nNumBitmapInfos; i++) {
         TBITMAP_INFO *tbi = &infoPtr->bitmaps[i];
         TRACE("tbimapinfo %d hInstOld %p nIDOld %x\n", i, tbi->hInst, tbi->nID);
@@ -4267,7 +4245,7 @@ TOOLBAR_ReplaceBitmap (TOOLBAR_INFO *infoPtr, const TBREPLACEBITMAP *lpReplace)
 
     if (nOldButtons == 0)
     {
-        WARN("No hinst/bitmap found! hInst %p nID %lx\n", lpReplace->hInstOld, lpReplace->nIDOld);
+        WARN("No hinst/bitmap found! hInst %p nID %Ix\n", lpReplace->hInstOld, lpReplace->nIDOld);
         return FALSE;
     }
     
@@ -4581,10 +4559,10 @@ TOOLBAR_SetBitmapSize (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     short width = (short)LOWORD(lParam);
     short height = (short)HIWORD(lParam);
 
-    TRACE("hwnd=%p, wParam=%ld, size %d x %d\n", infoPtr->hwndSelf, wParam, width, height);
+    TRACE("hwnd %p, wParam %Id, size %d x %d\n", infoPtr->hwndSelf, wParam, width, height);
 
     if (wParam != 0)
-        FIXME("wParam is %ld. Perhaps image list index?\n", wParam);
+        FIXME("wParam is %Id. Perhaps image list index?\n", wParam);
 
     /* 0 width or height is changed to 1 */
     if (width == 0)
@@ -4679,7 +4657,7 @@ TOOLBAR_SetButtonSize (TOOLBAR_INFO *infoPtr, LPARAM lParam)
 
     if ((cx < 0) || (cy < 0))
     {
-        ERR("invalid parameter 0x%08x\n", (DWORD)lParam);
+        ERR("invalid parameter %#Ix\n", lParam);
         return FALSE;
     }
 
@@ -4791,7 +4769,7 @@ TOOLBAR_SetDrawTextFlags (TOOLBAR_INFO *infoPtr, DWORD mask, DWORD flags)
 {
     DWORD old_flags;
 
-    TRACE("hwnd = %p, mask = 0x%08x, flags = 0x%08x\n", infoPtr->hwndSelf, mask, flags);
+    TRACE("hwnd = %p, mask = %#lx, flags %#lx\n", infoPtr->hwndSelf, mask, flags);
 
     old_flags = infoPtr->dwDTFlags;
     infoPtr->dwDTFlags = (old_flags & ~mask) | (flags & mask);
@@ -4810,7 +4788,7 @@ TOOLBAR_SetExtendedStyle (TOOLBAR_INFO *infoPtr, DWORD mask, DWORD style)
 {
     DWORD old_style = infoPtr->dwExStyle;
 
-    TRACE("mask=0x%08x, style=0x%08x\n", mask, style);
+    TRACE("mask %#lx, style %#lx\n", mask, style);
 
     if (mask)
 	infoPtr->dwExStyle = (old_style & ~mask) | (style & mask);
@@ -4818,8 +4796,7 @@ TOOLBAR_SetExtendedStyle (TOOLBAR_INFO *infoPtr, DWORD mask, DWORD style)
 	infoPtr->dwExStyle = style;
 
     if (infoPtr->dwExStyle & ~TBSTYLE_EX_ALL)
-	FIXME("Unknown Toolbar Extended Style 0x%08x. Please report.\n",
-	      (infoPtr->dwExStyle & ~TBSTYLE_EX_ALL));
+        FIXME("Unknown Toolbar Extended Style %#lx. Please report.\n", (infoPtr->dwExStyle & ~TBSTYLE_EX_ALL));
 
     if ((old_style ^ infoPtr->dwExStyle) & TBSTYLE_EX_MIXEDBUTTONS)
         TOOLBAR_CalcToolbar(infoPtr);
@@ -4999,11 +4976,11 @@ TOOLBAR_SetIndent (TOOLBAR_INFO *infoPtr, INT nIndent)
 static LRESULT
 TOOLBAR_SetInsertMark (TOOLBAR_INFO *infoPtr, const TBINSERTMARK *lptbim)
 {
-    TRACE("hwnd = %p, lptbim = { %d, 0x%08x}\n", infoPtr->hwndSelf, lptbim->iButton, lptbim->dwFlags);
+    TRACE("hwnd = %p, lptbim = { %d, %#lx}\n", infoPtr->hwndSelf, lptbim->iButton, lptbim->dwFlags);
 
     if ((lptbim->dwFlags & ~TBIMHT_AFTER) != 0)
     {
-        FIXME("Unrecognized flag(s): 0x%08x\n", (lptbim->dwFlags & ~TBIMHT_AFTER));
+        FIXME("Unrecognized flag(s): %#lx\n", (lptbim->dwFlags & ~TBIMHT_AFTER));
         return 0;
     }
 
@@ -5101,8 +5078,7 @@ TOOLBAR_SetPadding (TOOLBAR_INFO *infoPtr, LPARAM lParam)
     oldPad = MAKELONG(infoPtr->szPadding.cx, infoPtr->szPadding.cy);
     infoPtr->szPadding.cx = min(LOWORD((DWORD)lParam), GetSystemMetrics(SM_CXEDGE));
     infoPtr->szPadding.cy = min(HIWORD((DWORD)lParam), GetSystemMetrics(SM_CYEDGE));
-    TRACE("cx=%d, cy=%d\n",
-	  infoPtr->szPadding.cx, infoPtr->szPadding.cy);
+    TRACE("cx %ld, cy %ld\n", infoPtr->szPadding.cx, infoPtr->szPadding.cy);
     return (LRESULT) oldPad;
 }
 
@@ -5284,7 +5260,7 @@ TOOLBAR_SetStyle (TOOLBAR_INFO *infoPtr, DWORD style)
 {
     DWORD dwOldStyle = infoPtr->dwStyle;
 
-    TRACE("new style 0x%08x\n", style);
+    TRACE("new style %#lx\n", style);
 
     if (style & TBSTYLE_LIST)
         infoPtr->dwDTFlags = DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS;
@@ -5354,7 +5330,7 @@ TOOLBAR_GetColorScheme (const TOOLBAR_INFO *infoPtr, LPCOLORSCHEME lParam)
 static LRESULT
 TOOLBAR_SetColorScheme (TOOLBAR_INFO *infoPtr, const COLORSCHEME *lParam)
 {
-    TRACE("new colors Hl=%x Shd=%x, old colors Hl=%x Shd=%x\n",
+    TRACE("new colors Hl=%#lx Shd=%#lx, old colors Hl=%#lx Shd=%#lx\n",
 	  lParam->clrBtnHighlight, lParam->clrBtnShadow,
 	  infoPtr->clrBtnHighlight, infoPtr->clrBtnShadow);
 
@@ -5443,7 +5419,7 @@ TOOLBAR_GetStringW (const TOOLBAR_INFO *infoPtr, WPARAM wParam, LPWSTR str)
 static LRESULT TOOLBAR_SetBoundingSize(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     SIZE * pSize = (SIZE*)lParam;
-    FIXME("hwnd=%p, wParam=0x%08lx, size.cx=%d, size.cy=%d stub\n", hwnd, wParam, pSize->cx, pSize->cy);
+    FIXME("hwnd=%p, wParam=%Ix, size.cx=%ld, size.cy=%ld stub\n", hwnd, wParam, pSize->cx, pSize->cy);
     return 0;
 }
 
@@ -5455,8 +5431,7 @@ TOOLBAR_SetHotItem2 (TOOLBAR_INFO *infoPtr, INT nHotItem, LPARAM lParam)
 {
     INT nOldHotItem = infoPtr->nHotItem;
 
-    TRACE("old item=%d, new item=%d, flags=%08x\n",
-	  nOldHotItem, nHotItem, (DWORD)lParam);
+    TRACE("old item %d, new item %d, flags %Ix\n", nOldHotItem, nHotItem, lParam);
 
     if (nHotItem < 0 || nHotItem > infoPtr->nNumButtons)
         nHotItem = -1;
@@ -5507,8 +5482,7 @@ TOOLBAR_GetIdealSize (const TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
      *   lParam    pointer to SIZE structure
      *
      */
-    TRACE("wParam %ld, lParam 0x%08lx -> 0x%08x 0x%08x\n",
-	  wParam, lParam, lpsize->cx, lpsize->cy);
+    TRACE("wParam %Id, lParam %Ix -> %lx, %lx\n", wParam, lParam, lpsize->cx, lpsize->cy);
 
     switch(wParam) {
     case 0:
@@ -5533,17 +5507,16 @@ TOOLBAR_GetIdealSize (const TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 	lpsize->cy = infoPtr->rcBound.bottom - infoPtr->rcBound.top;
 	break;
     default:
-	FIXME("Unknown wParam %ld\n", wParam);
+	FIXME("Unknown wParam %Id\n", wParam);
 	return 0;
     }
-    TRACE("set to -> 0x%08x 0x%08x\n",
-	  lpsize->cx, lpsize->cy);
+    TRACE("set to -> %lu, %lu\n", lpsize->cx, lpsize->cy);
     return 1;
 }
 
 static LRESULT TOOLBAR_Unkwn464(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
-    FIXME("hwnd=%p wParam %08lx lParam %08lx\n", hwnd, wParam, lParam);
+    FIXME("hwnd %p, wParam %Ix, lParam %Ix\n", hwnd, wParam, lParam);
 
     InvalidateRect(hwnd, NULL, TRUE);
     return 1;
@@ -5556,7 +5529,7 @@ TOOLBAR_Create (HWND hwnd, const CREATESTRUCTW *lpcs)
     TOOLBAR_INFO *infoPtr = (TOOLBAR_INFO *)GetWindowLongPtrW(hwnd, 0);
     LOGFONTW logFont;
 
-    TRACE("hwnd = %p, style=0x%08x\n", hwnd, lpcs->style);
+    TRACE("hwnd = %p, style = %#lx\n", hwnd, lpcs->style);
 
     infoPtr->dwStyle = GetWindowLongW(hwnd, GWL_STYLE);
     GetClientRect(hwnd, &infoPtr->client_rect);
@@ -5568,13 +5541,11 @@ TOOLBAR_Create (HWND hwnd, const CREATESTRUCTW *lpcs)
     infoPtr->hFont = infoPtr->hDefaultFont = CreateFontIndirectW (&logFont);
 
 #ifdef __REACTOS__
-    {
-        HTHEME theme = OpenThemeData (hwnd, themeClass);
-        if (theme)
-            GetThemeMargins(theme, NULL, TP_BUTTON, TS_NORMAL, TMT_CONTENTMARGINS, NULL, &infoPtr->themeMargins);
-    }
+    infoPtr->hTheme = OpenThemeDataForDpi (infoPtr->hwndSelf, themeClass, GetDpiForWindow (hwnd));
+    if (infoPtr->hTheme)
+        GetThemeMargins(infoPtr->hTheme, NULL, TP_BUTTON, TS_NORMAL, TMT_CONTENTMARGINS, NULL, &infoPtr->themeMargins);
 #else
-    OpenThemeData (hwnd, themeClass);
+    infoPtr->hTheme = OpenThemeDataForDpi (NULL, themeClass, GetDpiForWindow (hwnd));
 #endif
 
     TOOLBAR_CheckStyle (infoPtr);
@@ -5619,8 +5590,8 @@ TOOLBAR_Destroy (TOOLBAR_INFO *infoPtr)
 
     /* delete default font */
     DeleteObject (infoPtr->hDefaultFont);
-        
-    CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
+
+    CloseThemeData (infoPtr->hTheme);
 
     /* free toolbar info data */
     SetWindowLongPtrW (infoPtr->hwndSelf, 0, 0);
@@ -5636,7 +5607,6 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     NMTBCUSTOMDRAW tbcd;
     INT ret = FALSE;
     DWORD ntfret;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     DWORD dwEraseCustDraw = 0;
 
     /* the app has told us not to redraw the toolbar */
@@ -5658,7 +5628,7 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 	    case CDRF_SKIPDEFAULT:
 		return TRUE;
 	    default:
-		FIXME("[%p] response %d not handled to NM_CUSTOMDRAW (CDDS_PREERASE)\n",
+		FIXME("[%p] response %ld not handled to NM_CUSTOMDRAW (CDDS_PREERASE)\n",
 		      infoPtr->hwndSelf, ntfret);
 	    }
     }
@@ -5666,7 +5636,7 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     /* If the toolbar is "transparent" then pass the WM_ERASEBKGND up
      * to my parent for processing.
      */
-    if (theme || (infoPtr->dwStyle & TBSTYLE_TRANSPARENT)) {
+    if (infoPtr->hTheme || (infoPtr->dwStyle & TBSTYLE_TRANSPARENT)) {
 	POINT pt, ptorig;
 	HDC hdc = (HDC)wParam;
 	HWND parent;
@@ -5695,7 +5665,7 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 	    case CDRF_SKIPDEFAULT:
 		return TRUE;
 	    default:
-		FIXME("[%p] response %d not handled to NM_CUSTOMDRAW (CDDS_POSTERASE)\n",
+		FIXME("[%p] response %ld not handled to NM_CUSTOMDRAW (CDDS_POSTERASE)\n",
 		      infoPtr->hwndSelf, ntfret);
 	    }
     }
@@ -5872,7 +5842,7 @@ TOOLBAR_LButtonDown (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
                 nmtb.iItem = btnPtr->idCommand;
                 nmtb.rcButton = btnPtr->rect;
                 res = TOOLBAR_SendNotify ((NMHDR *) &nmtb, infoPtr, TBN_DROPDOWN);
-                TRACE("TBN_DROPDOWN responded with %ld\n", res);
+                TRACE("TBN_DROPDOWN responded with %Id\n", res);
 
                 if (res != TBDDRET_TREATPRESSED)
                 {
@@ -6222,7 +6192,7 @@ TOOLBAR_MouseMove (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     if ((infoPtr->dwStyle & TBSTYLE_TOOLTIPS) && (infoPtr->hwndToolTip == NULL))
         TOOLBAR_TooltipCreateControl(infoPtr);
     
-    if ((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) {
+    if ((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme) {
         /* fill in the TRACKMOUSEEVENT struct */
         trackinfo.cbSize = sizeof(TRACKMOUSEEVENT);
         trackinfo.dwFlags = TME_QUERY;
@@ -6250,8 +6220,7 @@ TOOLBAR_MouseMove (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 
     nHit = TOOLBAR_InternalHitTest (infoPtr, &pt, &button);
 
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && (!infoPtr->bAnchor || button))
+    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || infoPtr->hTheme) && (!infoPtr->bAnchor || button))
         TOOLBAR_SetHotItemEx(infoPtr, button ? nHit : TOOLBAR_NOWHERE, HICF_MOUSE);
 
     if (infoPtr->nOldHit != nHit)
@@ -6382,8 +6351,7 @@ TOOLBAR_NCCreate (HWND hwnd, WPARAM wParam, const CREATESTRUCTW *lpcs)
      *    (Guy Albertelli   9/2001)
      *
      */
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && !(lpcs->style & TBSTYLE_TRANSPARENT))
+    if ((infoPtr->dwStyle & TBSTYLE_FLAT) && !(lpcs->style & TBSTYLE_TRANSPARENT))
 	styleadd |= TBSTYLE_TRANSPARENT;
     if (!(lpcs->style & (CCS_TOP | CCS_NOMOVEY))) {
 	styleadd |= CCS_TOP;   /* default to top */
@@ -6663,7 +6631,7 @@ TOOLBAR_NotifyFormat(const TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 {
     LRESULT format;
 
-    TRACE("wParam = 0x%lx, lParam = 0x%08lx\n", wParam, lParam);
+    TRACE("wParam %Ix, lParam %Ix\n", wParam, lParam);
 
     if (lParam == NF_QUERY)
         return NFR_UNICODE;
@@ -6672,8 +6640,7 @@ TOOLBAR_NotifyFormat(const TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 	format = SendMessageW(infoPtr->hwndNotify,
 			 WM_NOTIFYFORMAT, (WPARAM)infoPtr->hwndSelf, NF_QUERY);
 	if ((format != NFR_ANSI) && (format != NFR_UNICODE)) {
-	    ERR("wrong response to WM_NOTIFYFORMAT (%ld), assuming ANSI\n",
-		format);
+	    ERR("wrong response to WM_NOTIFYFORMAT (%Id), assuming ANSI\n", format);
 	    format = NFR_ANSI;
 	}
 	return format;
@@ -6827,38 +6794,30 @@ TOOLBAR_SysColorChange (void)
     return 0;
 }
 
-#ifdef __REACTOS__
 /* update theme after a WM_THEMECHANGED message */
 static LRESULT theme_changed (TOOLBAR_INFO *infoPtr)
 {
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-    CloseThemeData (theme);
-    OpenThemeData (infoPtr->hwndSelf, themeClass);
-    theme = GetWindowTheme (infoPtr->hwndSelf);
-    if (theme)
-        GetThemeMargins(theme, NULL, TP_BUTTON, TS_NORMAL, TMT_CONTENTMARGINS, NULL, &infoPtr->themeMargins);
+    CloseThemeData (infoPtr->hTheme);
+#ifdef __REACTOS__
+    // window handle is required for theming to apply correctly for taskbar
+    infoPtr->hTheme = OpenThemeDataForDpi(infoPtr->hwndSelf, themeClass, GetDpiForWindow (infoPtr->hwndSelf));
+    if (infoPtr->hTheme)
+        GetThemeMargins(infoPtr->hTheme, NULL, TP_BUTTON, TS_NORMAL, TMT_CONTENTMARGINS, NULL, &infoPtr->themeMargins);
     else
         memset(&infoPtr->themeMargins, 0 ,sizeof(infoPtr->themeMargins));
-
-    return 0;
-}
 #else
-static LRESULT theme_changed (HWND hwnd)
-{
-    HTHEME theme = GetWindowTheme (hwnd);
-    CloseThemeData (theme);
-    OpenThemeData (hwnd, themeClass);
+    infoPtr->hTheme = OpenThemeDataForDpi (NULL, themeClass, GetDpiForWindow (infoPtr->hwndSelf));
+#endif
+    InvalidateRect (infoPtr->hwndSelf, NULL, TRUE);
     return 0;
 }
-#endif
 
 static LRESULT WINAPI
 ToolbarWindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     TOOLBAR_INFO *infoPtr = (TOOLBAR_INFO *)GetWindowLongPtrW(hwnd, 0);
 
-    TRACE("hwnd=%p msg=%x wparam=%lx lparam=%lx\n",
-	  hwnd, uMsg, /* SPY_GetMsgName(uMsg), */ wParam, lParam);
+    TRACE("hwnd %p, msg %x, wparam %Ix, lparam %Ix\n", hwnd, uMsg, wParam, lParam);
 
     if (!infoPtr && (uMsg != WM_NCCREATE))
 	return DefWindowProcW( hwnd, uMsg, wParam, lParam );
@@ -7249,11 +7208,7 @@ ToolbarWindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSCOLORCHANGE:
 	    return TOOLBAR_SysColorChange ();
     case WM_THEMECHANGED:
-#ifdef __REACTOS__
-            return theme_changed (infoPtr);
-#else
-            return theme_changed (hwnd);
-#endif
+        return theme_changed (infoPtr);
 
 /*	case WM_WININICHANGE: */
 
@@ -7270,8 +7225,7 @@ ToolbarWindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	default:
 	    if ((uMsg >= WM_USER) && (uMsg < WM_APP) && !COMCTL32_IsReflectedMessage(uMsg))
-		ERR("unknown msg %04x wp=%08lx lp=%08lx\n",
-		     uMsg, wParam, lParam);
+		ERR("unknown msg %04x, wp %Ix, lp %Ix\n", uMsg, wParam, lParam);
 	    return DefWindowProcW (hwnd, uMsg, wParam, lParam);
     }
 }
