@@ -261,6 +261,14 @@ typedef struct _FDO_DEVICE_EXTENSION
     /* Request "flow control" */
     FDO_IO_FLOW_CONTROL FlowControl;
 
+    /*
+     * Periodic timer used to age out FlowControl pause timeouts.
+     * This is separate from the miniport RequestTimerCall timer.
+     */
+    KTIMER FlowControlTimer;
+    KDPC FlowControlTimerDpc;
+    LONG FlowControlTimerArmed;
+
     /* This maximum number is set in port configuration */
     ULONG OutstandingRequestMax;
 

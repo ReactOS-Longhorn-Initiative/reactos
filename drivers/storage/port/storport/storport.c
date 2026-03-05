@@ -22,6 +22,73 @@
 ULONG PortNumber = 0;
 
 
+static
+VOID
+NTAPI
+FlowControlTimerDpcRoutine(
+    _In_ PKDPC Dpc,
+    _In_ PVOID DeferredContext,
+    _In_ PVOID SystemArgument1,
+    _In_ PVOID SystemArgument2)
+{
+    PFDO_DEVICE_EXTENSION FdoExtension = (PFDO_DEVICE_EXTENSION)DeferredContext;
+    KLOCK_QUEUE_HANDLE FlowLockHandle;
+    KLOCK_QUEUE_HANDLE PdoListLockHandle;
+    PLIST_ENTRY Entry;
+    BOOLEAN AnyPaused = FALSE;
+
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    if (FdoExtension == NULL)
+        return;
+
+    KeAcquireInStackQueuedSpinLock(&FdoExtension->FlowControl.Lock, &FlowLockHandle);
+
+    if (FdoExtension->FlowControl.IsPaused)
+    {
+        if (FdoExtension->FlowControl.RemainingPauseTime > 0)
+            --FdoExtension->FlowControl.RemainingPauseTime;
+
+        if (FdoExtension->FlowControl.RemainingPauseTime == 0)
+            FdoExtension->FlowControl.IsPaused = FALSE;
+        else
+            AnyPaused = TRUE;
+    }
+
+    KeAcquireInStackQueuedSpinLock(&FdoExtension->PdoListLock, &PdoListLockHandle);
+    Entry = FdoExtension->PdoListHead.Flink;
+    while (Entry != &FdoExtension->PdoListHead)
+    {
+        PPDO_DEVICE_EXTENSION PdoExtension = CONTAINING_RECORD(Entry, PDO_DEVICE_EXTENSION, PdoListEntry);
+        PPDO_IO_FLOW_CONTROL FlowControl = &PdoExtension->FlowControl;
+
+        if (FlowControl->IsPaused)
+        {
+            if (FlowControl->RemainingPauseTime > 0)
+                --FlowControl->RemainingPauseTime;
+
+            if (FlowControl->RemainingPauseTime == 0)
+                FlowControl->IsPaused = FALSE;
+            else
+                AnyPaused = TRUE;
+        }
+
+        Entry = Entry->Flink;
+    }
+    KeReleaseInStackQueuedSpinLock(&PdoListLockHandle);
+
+    if (!AnyPaused)
+    {
+        KeCancelTimer(&FdoExtension->FlowControlTimer);
+        InterlockedExchange(&FdoExtension->FlowControlTimerArmed, 0);
+    }
+
+    KeReleaseInStackQueuedSpinLock(&FlowLockHandle);
+}
+
+
 /* FUNCTIONS ******************************************************************/
 
 static
@@ -484,6 +551,13 @@ PortAddDevice(
     KeInitializeTimer(&DeviceExtension->Timer);
     KeInitializeDpc(&DeviceExtension->TimerDpc, SimpleTimerCallbackDpcRoutine, DeviceExtension);
 
+    /* Initialize flow-control pause timer (periodic, armed on demand) */
+    KeInitializeTimer(&DeviceExtension->FlowControlTimer);
+    KeInitializeDpc(&DeviceExtension->FlowControlTimerDpc,
+                    FlowControlTimerDpcRoutine,
+                    DeviceExtension);
+    DeviceExtension->FlowControlTimerArmed = 0;
+
     /* Initialize FDO Device DPC for delayed completion */
     KeInitializeDpc(&Fdo->Dpc, PortCompletionDpc, DeviceExtension);
 
@@ -871,21 +945,29 @@ StorPortDeviceBusy(
     PFDO_DEVICE_EXTENSION FdoExtension;
     PPDO_DEVICE_EXTENSION PdoExtension;
     KLOCK_QUEUE_HANDLE LockHandle;
+    ULONG Remaining;
     
-    DPRINT1("StorPortDeviceBusy(%p %d %d %d %d)\n",
-            HwDeviceExtension, PathId, TargetId, Lun, RequestsToComplete);
-    __debugbreak();
+    DPRINT("StorPortDeviceBusy(%p %d %d %d %lu)\n",
+           HwDeviceExtension, PathId, TargetId, Lun, RequestsToComplete);
     
     FdoExtension = StorpGetMiniportFdo(HwDeviceExtension);
+    if (FdoExtension == NULL)
+        return FALSE;
     PdoExtension = FdoFindLun(FdoExtension, PathId, TargetId, Lun);
+    if (PdoExtension == NULL)
+        return FALSE;
 
     KeAcquireInStackQueuedSpinLock(&FdoExtension->FlowControl.Lock, &LockHandle);
-    NT_ASSERT(!PdoExtension->FlowControl.IsBusy);
     PdoExtension->FlowControl.IsBusy = TRUE;
-    PdoExtension->FlowControl.RemainingBusyRequests = RequestsToComplete;
+
+    Remaining = RequestsToComplete;
+    if (Remaining == 0)
+        Remaining = max(1ul, PdoExtension->FlowControl.OutstandingRequestCount);
+    PdoExtension->FlowControl.RemainingBusyRequests = Remaining;
+
     KeReleaseInStackQueuedSpinLock(&LockHandle);
 
-    return FALSE;
+    return TRUE;
 }
 
 
@@ -906,19 +988,22 @@ StorPortDeviceReady(
     PPDO_DEVICE_EXTENSION PdoExtension;
     KLOCK_QUEUE_HANDLE LockHandle;
     
-    DPRINT1("StorPortDeviceReady(%p %d %d %d %d)\n",
-            HwDeviceExtension, PathId, TargetId, Lun);
-    __debugbreak();
+    DPRINT("StorPortDeviceReady(%p %d %d %d)\n",
+           HwDeviceExtension, PathId, TargetId, Lun);
     
     FdoExtension = StorpGetMiniportFdo(HwDeviceExtension);
+    if (FdoExtension == NULL)
+        return FALSE;
     PdoExtension = FdoFindLun(FdoExtension, PathId, TargetId, Lun);
+    if (PdoExtension == NULL)
+        return FALSE;
 
     KeAcquireInStackQueuedSpinLock(&FdoExtension->FlowControl.Lock, &LockHandle);
-    NT_ASSERT(!PdoExtension->FlowControl.IsBusy);
     PdoExtension->FlowControl.IsBusy = FALSE;
+    PdoExtension->FlowControl.RemainingBusyRequests = 0;
     KeReleaseInStackQueuedSpinLock(&LockHandle);
 
-    return FALSE;
+    return TRUE;
 }
 
 
@@ -933,7 +1018,7 @@ StorPortExtendedFunction(
     ...)
 {
     va_list va;
-    ULONG Status = STATUS_NOT_IMPLEMENTED;
+    ULONG Status = STOR_STATUS_NOT_IMPLEMENTED;
     PMINIPORT_DEVICE_EXTENSION MiniportExtension = NULL;
     PFDO_DEVICE_EXTENSION DeviceExtension = NULL;
     ULONG AllocatePoolSize;
@@ -941,8 +1026,7 @@ StorPortExtendedFunction(
     PVOID* AllocatedPoolPointer;
     PVOID PoolPointer;
 
-    DPRINT1("StorPortExtendedFunction(%d %p ...)\n",
-            FunctionCode, HwDeviceExtension);
+    /* Hot path: avoid log spam. */
 
     va_start(va, HwDeviceExtension);
 
@@ -1089,10 +1173,36 @@ StorPortExtendedFunction(
             break;
         }
 
+        /*
+         * Miniport ETW event helpers (Vista+).
+         * ReactOS does not currently provide Storport ETW plumbing here.
+         * Treat these as best-effort no-ops to avoid log spam and allow
+         * miniports that call them unconditionally to function.
+         */
+        case ExtFunctionMiniportEtwEvent2:
+        case ExtFunctionMiniportEtwEvent4:
+        case ExtFunctionMiniportEtwEvent8:
+        case ExtFunctionMiniportChannelEtwEvent2:
+        case ExtFunctionMiniportChannelEtwEvent4:
+        case ExtFunctionMiniportChannelEtwEvent8:
+        {
+            Status = STOR_STATUS_SUCCESS;
+            break;
+        }
+
         default:
         {
-            UNIMPLEMENTED;
-            // __debugbreak();
+            static volatile ULONG LastUnimplementedCode = MAXULONG;
+
+            if ((ULONG)FunctionCode != LastUnimplementedCode)
+            {
+                LastUnimplementedCode = (ULONG)FunctionCode;
+                DPRINT1("WARNING: StorPortExtendedFunction(%lu) is not implemented\n",
+                        (ULONG)FunctionCode);
+            }
+
+            Status = STOR_STATUS_NOT_IMPLEMENTED;
+            break;
         }
     }
 
@@ -1795,9 +1905,44 @@ StorPortPause(
     _In_ PVOID HwDeviceExtension,
     _In_ ULONG TimeOut)
 {
-    DPRINT1("StorPortPause()\n");
-    UNIMPLEMENTED;
-    return FALSE;
+    PFDO_DEVICE_EXTENSION FdoExtension;
+    KLOCK_QUEUE_HANDLE LockHandle;
+    LARGE_INTEGER DueTime;
+
+    DPRINT("StorPortPause(%p %lu)\n", HwDeviceExtension, TimeOut);
+
+    FdoExtension = StorpGetMiniportFdo(HwDeviceExtension);
+    if (FdoExtension == NULL)
+        return FALSE;
+
+    KeAcquireInStackQueuedSpinLock(&FdoExtension->FlowControl.Lock, &LockHandle);
+
+    if (TimeOut == 0)
+    {
+        FdoExtension->FlowControl.IsPaused = FALSE;
+        FdoExtension->FlowControl.RemainingPauseTime = 0;
+    }
+    else
+    {
+        FdoExtension->FlowControl.IsPaused = TRUE;
+        FdoExtension->FlowControl.RemainingPauseTime = max(FdoExtension->FlowControl.RemainingPauseTime, TimeOut);
+    }
+
+    KeReleaseInStackQueuedSpinLock(&LockHandle);
+
+    if (TimeOut != 0)
+    {
+        if (InterlockedCompareExchange(&FdoExtension->FlowControlTimerArmed, 1, 0) == 0)
+        {
+            DueTime.QuadPart = -(LONGLONG)10000000; /* 1 second in 100ns units */
+            KeSetTimerEx(&FdoExtension->FlowControlTimer,
+                         DueTime,
+                         1000,
+                         &FdoExtension->FlowControlTimerDpc);
+        }
+    }
+
+    return TRUE;
 }
 
 
@@ -1814,9 +1959,49 @@ StorPortPauseDevice(
     _In_ UCHAR Lun,
     _In_ ULONG TimeOut)
 {
-    DPRINT1("StorPortPauseDevice()\n");
-    UNIMPLEMENTED;
-    return FALSE;
+    PFDO_DEVICE_EXTENSION FdoExtension;
+    PPDO_DEVICE_EXTENSION PdoExtension;
+    KLOCK_QUEUE_HANDLE LockHandle;
+    LARGE_INTEGER DueTime;
+
+    DPRINT("StorPortPauseDevice(%p %u %u %u %lu)\n",
+           HwDeviceExtension, PathId, TargetId, Lun, TimeOut);
+
+    FdoExtension = StorpGetMiniportFdo(HwDeviceExtension);
+    if (FdoExtension == NULL)
+        return FALSE;
+    PdoExtension = FdoFindLun(FdoExtension, PathId, TargetId, Lun);
+    if (PdoExtension == NULL)
+        return FALSE;
+
+    KeAcquireInStackQueuedSpinLock(&FdoExtension->FlowControl.Lock, &LockHandle);
+
+    if (TimeOut == 0)
+    {
+        PdoExtension->FlowControl.IsPaused = FALSE;
+        PdoExtension->FlowControl.RemainingPauseTime = 0;
+    }
+    else
+    {
+        PdoExtension->FlowControl.IsPaused = TRUE;
+        PdoExtension->FlowControl.RemainingPauseTime = max(PdoExtension->FlowControl.RemainingPauseTime, TimeOut);
+    }
+
+    KeReleaseInStackQueuedSpinLock(&LockHandle);
+
+    if (TimeOut != 0)
+    {
+        if (InterlockedCompareExchange(&FdoExtension->FlowControlTimerArmed, 1, 0) == 0)
+        {
+            DueTime.QuadPart = -(LONGLONG)10000000; /* 1 second */
+            KeSetTimerEx(&FdoExtension->FlowControlTimer,
+                         DueTime,
+                         1000,
+                         &FdoExtension->FlowControlTimerDpc);
+        }
+    }
+
+    return TRUE;
 }
 
 
@@ -1832,8 +2017,6 @@ NTAPI
 StorPortQuerySystemTime(
     _Out_ PLARGE_INTEGER CurrentTime)
 {
-    DPRINT1("StorPortQuerySystemTime(%p)\n", CurrentTime);
-
     KeQuerySystemTime(CurrentTime);
 }
 #endif /* defined(_M_AMD64) */
