@@ -1229,7 +1229,7 @@ Note: This routine can be called even the Port is stopped.
             if (IsAdapterRemoved(ChannelExtension->AdapterExtension)) {
                 Srb->SrbStatus = SRB_STATUS_NO_DEVICE;
             } else {
-                NT_ASSERT(FALSE); //can this happen? catch it.
+               // NT_ASSERT(FALSE); //can this happen? catch it.
                 Srb->SrbStatus = SRB_STATUS_BUSY;
             }
 

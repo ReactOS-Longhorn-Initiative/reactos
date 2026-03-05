@@ -1368,7 +1368,7 @@ PortPdoPnp(
     NTSTATUS Status;
     PIO_STACK_LOCATION Stack;
 
-    DPRINT1("PortPdoPnp(%p %p)\n", DeviceObject, Irp);
+    DPRINT("PortPdoPnp(%p %p)\n", DeviceObject, Irp);
 
     Stack = IoGetCurrentIrpStackLocation(Irp);
 
@@ -1445,7 +1445,7 @@ PortPdoPnp(
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
     }
 
-    DPRINT1("PortPdoPnp status %d\n", Status);
+    DPRINT("PortPdoPnp status %d\n", Status);
     return Status;
 }
 
