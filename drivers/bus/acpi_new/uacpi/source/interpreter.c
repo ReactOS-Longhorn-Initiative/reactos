@@ -1747,9 +1747,9 @@ static uacpi_status handle_create_field(struct execution_context *ctx)
                 uacpi_u32
             );
 
-            field->bit_offset_within_first_byte = bit_offset;
-            field->bit_offset_within_first_byte =
-                bit_offset & ((field->access_width_bytes * 8) - 1);
+            field->bit_offset_within_first_byte = (uacpi_u8)(
+                bit_offset & ((field->access_width_bytes * 8) - 1)
+            );
 
             switch (op_ctx->op->code) {
             case UACPI_AML_OP_FieldOp:
@@ -5129,7 +5129,7 @@ static uacpi_status prepare_method_call(
     if (type == METHOD_CALL_NATIVE) {
         uacpi_u8 arg_count;
 
-        arg_count = args ? args->count : 0;
+        arg_count = args ? (uacpi_u8)args->count : 0;
         if (uacpi_unlikely(arg_count != method->args)) {
             uacpi_error(
                 "invalid number of arguments %zu to call %.4s, expected %d\n",

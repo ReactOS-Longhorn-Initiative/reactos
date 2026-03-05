@@ -737,7 +737,7 @@ static uacpi_status gas_validate(
         return UACPI_STATUS_UNIMPLEMENTED;
     }
 
-    *bit_width = total_width;
+    *bit_width = (uacpi_u8)total_width;
     return UACPI_STATUS_OK;
 }
 

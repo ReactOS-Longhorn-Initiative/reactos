@@ -110,11 +110,58 @@ FdoEnumerateDevices(
             RtlZeroMemory(&PciConfig,
                           sizeof(PCI_COMMON_CONFIG));
 
-            Size = HalGetBusData(PCIConfiguration,
-                                 DeviceExtension->BusNumber,
-                                 SlotNumber.u.AsULONG,
-                                 &PciConfig,
-                                 PCI_COMMON_HDR_LENGTH);
+            {
+                ULONG Header0;
+                USHORT VendorId;
+
+                Header0 = 0xFFFFFFFF;
+                Size = PciReadWriteConfigBuffer(FALSE,
+                                                0,
+                                                DeviceExtension->BusNumber,
+                                                SlotNumber,
+                                                &Header0,
+                                                0,
+                                                sizeof(Header0));
+                if (Size != sizeof(Header0))
+                {
+                    Size = HalGetBusDataByOffset(PCIConfiguration,
+                                                 DeviceExtension->BusNumber,
+                                                 SlotNumber.u.AsULONG,
+                                                 &Header0,
+                                                 0,
+                                                 sizeof(Header0));
+                }
+
+                VendorId = (USHORT)(Header0 & 0xFFFF);
+                if (Size != sizeof(Header0) || VendorId == PCI_INVALID_VENDORID || VendorId == 0)
+                {
+                    if (FunctionNumber == 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            /* Read full common header now that VendorID is present */
+            Size = PciReadWriteConfigBuffer(FALSE,
+                                            0,
+                                            DeviceExtension->BusNumber,
+                                            SlotNumber,
+                                            &PciConfig,
+                                            0,
+                                            PCI_COMMON_HDR_LENGTH);
+            if (Size != PCI_COMMON_HDR_LENGTH)
+            {
+                Size = HalGetBusData(PCIConfiguration,
+                                     DeviceExtension->BusNumber,
+                                     SlotNumber.u.AsULONG,
+                                     &PciConfig,
+                                     PCI_COMMON_HDR_LENGTH);
+            }
             DPRINT("Size %lu\n", Size);
             if (Size != PCI_COMMON_HDR_LENGTH ||
                 PciConfig.VendorID == PCI_INVALID_VENDORID ||

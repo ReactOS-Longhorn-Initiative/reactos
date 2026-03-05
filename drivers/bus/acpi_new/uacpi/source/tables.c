@@ -1182,7 +1182,7 @@ static void fadt_ensure_correct_revision(struct acpi_fadt *fadt)
             "FADT revision (%zu) is likely greater than the last "
             "supported, reducing to %zu\n", current_rev, rev
         );
-        fadt->hdr.revision = rev;
+        fadt->hdr.revision = (uacpi_u8)rev;
         return;
     }
 
@@ -1194,17 +1194,17 @@ static void fadt_ensure_correct_revision(struct acpi_fadt *fadt)
             "assuming version %zu\n", fadt->hdr.length, current_rev,
             rev
         );
-        fadt->hdr.revision = rev;
+        fadt->hdr.revision = (uacpi_u8)rev;
     }
 }
 
 static void gas_init_system_io(
-    struct acpi_gas *gas, uacpi_u64 address, uacpi_u8 byte_size
+    struct acpi_gas *gas, uacpi_u64 address, uacpi_size byte_size
 )
 {
     gas->address = address;
     gas->address_space_id = UACPI_ADDRESS_SPACE_SYSTEM_IO;
-    gas->register_bit_width = UACPI_MIN(255, byte_size * 8);
+    gas->register_bit_width = (uacpi_u8)UACPI_MIN((uacpi_size)255, byte_size * 8);
     gas->register_bit_offset = 0;
     gas->access_size = 0;
 }

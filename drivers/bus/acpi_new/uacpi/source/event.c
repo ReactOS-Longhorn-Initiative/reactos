@@ -1049,7 +1049,7 @@ static uacpi_status create_gpe_block(
          * Each register has two sub registers: status & enable, 8 bits each.
          * Each bit corresponds to one event that we initialize below.
          */
-        reg->base_idx = base_idx + (i * EVENTS_PER_GPE_REGISTER);
+        reg->base_idx = (uacpi_u16)((uacpi_u32)base_idx + (uacpi_u32)i * EVENTS_PER_GPE_REGISTER);
 
 
         tmp_gas.address = address + i;
@@ -1063,7 +1063,7 @@ static uacpi_status create_gpe_block(
             goto error_out;
 
         for (j = 0; j < EVENTS_PER_GPE_REGISTER; ++j, ++event) {
-            event->idx = reg->base_idx + j;
+            event->idx = (uacpi_u16)(reg->base_idx + (uacpi_u32)j);
             event->reg = reg;
         }
 

@@ -31,8 +31,22 @@ add_library(uacpi ${UACPI_SOURCE})
 add_pch(uacpi uacpi/include/uacpi/acpi.h "${UACPI_SOURCE}")
 
 list(APPEND ACPI_SOURCE
-     uacpiosl.c
-     main.c)
+     adddev.c
+     button.c
+     control.c
+     dispatch.c
+     driver.c
+     ec.c
+     enum.c
+     interface.c
+     ids.c
+     ioctl.c
+     notify.c
+     pnp.c
+     resources.c
+     uacpi_init.c
+     util.c
+     uacpiosl.c)
 
 add_library(acpi MODULE
             ${ACPI_SOURCE}

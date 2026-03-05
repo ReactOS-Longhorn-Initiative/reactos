@@ -12,6 +12,278 @@
 #define NDEBUG
 #include <debug.h>
 
+typedef struct _ACPI_PCI_IRQ_ROUTE_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Pin; /* 1..4 */
+} ACPI_PCI_IRQ_ROUTE_INPUT, *PACPI_PCI_IRQ_ROUTE_INPUT;
+
+typedef struct _ACPI_PCI_IRQ_ROUTE_OUTPUT
+{
+    ULONG Gsi;
+    ULONG Triggering; /* 0=Level, 1=Edge */
+    ULONG Polarity;   /* 0=High, 1=Low */
+    ULONG Sharing;    /* 0=Exclusive, 1=Shared */
+} ACPI_PCI_IRQ_ROUTE_OUTPUT, *PACPI_PCI_IRQ_ROUTE_OUTPUT;
+
+#ifndef _MINIHAL_
+/* Private ACPI IRQ routing query (served by drivers/bus/acpi_new) */
+#define IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x80, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+static
+NTSTATUS
+HalpAcpiQueryPciIrqRoute(
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Pin,
+    _Out_ PACPI_PCI_IRQ_ROUTE_OUTPUT Out)
+{
+    static BOOLEAN gAcpiRouteIoctlLoggedOk;
+    static BOOLEAN gAcpiRouteIoctlLoggedFail;
+    static BOOLEAN gAcpiRouteIoctlLoggedOpenFail;
+    UNICODE_STRING devName;
+    PFILE_OBJECT fileObject = NULL;
+    PDEVICE_OBJECT deviceObject = NULL;
+    KEVENT event;
+    IO_STATUS_BLOCK iosb;
+    PIRP irp;
+    ACPI_PCI_IRQ_ROUTE_INPUT in;
+    NTSTATUS status;
+
+    if (!Out)
+        return STATUS_INVALID_PARAMETER;
+
+    if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        return STATUS_INVALID_DEVICE_STATE;
+
+    if (Pin < 1 || Pin > 4)
+        return STATUS_INVALID_PARAMETER;
+
+    RtlInitUnicodeString(&devName, L"\\Device\\ACPI");
+    status = IoGetDeviceObjectPointer(&devName,
+                                      FILE_READ_DATA | FILE_WRITE_DATA,
+                                      &fileObject,
+                                      &deviceObject);
+    if (!NT_SUCCESS(status))
+    {
+        if (!gAcpiRouteIoctlLoggedOpenFail)
+        {
+            DPRINT1("HAL: ACPI _PRT IOCTL open failed: status=0x%08lx (bus=%lu dev=%lu fun=%lu pin=%lu)\n",
+                    status,
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin);
+            gAcpiRouteIoctlLoggedOpenFail = TRUE;
+        }
+        return status;
+    }
+
+    RtlZeroMemory(&in, sizeof(in));
+    in.Segment = 0;
+    in.Bus = Bus;
+    in.Device = Slot.u.bits.DeviceNumber;
+    in.Function = Slot.u.bits.FunctionNumber;
+    in.Pin = Pin;
+
+    KeInitializeEvent(&event, NotificationEvent, FALSE);
+    RtlZeroMemory(&iosb, sizeof(iosb));
+
+    irp = IoBuildDeviceIoControlRequest(IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE,
+                                        deviceObject,
+                                        &in,
+                                        sizeof(in),
+                                        Out,
+                                        sizeof(*Out),
+                                        FALSE,
+                                        &event,
+                                        &iosb);
+    if (!irp)
+    {
+        ObDereferenceObject(fileObject);
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    status = IoCallDriver(deviceObject, irp);
+    if (status == STATUS_PENDING)
+    {
+        (void)KeWaitForSingleObject(&event, Executive, KernelMode, FALSE, NULL);
+        status = iosb.Status;
+    }
+
+    if (NT_SUCCESS(status))
+    {
+        if (!gAcpiRouteIoctlLoggedOk)
+        {
+            DPRINT1("HAL: ACPI _PRT IOCTL OK (first): bus=%lu dev=%lu fun=%lu pin=%lu -> GSI=%lu trig=%lu pol=%lu share=%lu\n",
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin,
+                    Out->Gsi,
+                    Out->Triggering,
+                    Out->Polarity,
+                    Out->Sharing);
+            gAcpiRouteIoctlLoggedOk = TRUE;
+        }
+    }
+    else
+    {
+        if (!gAcpiRouteIoctlLoggedFail)
+        {
+            DPRINT1("HAL: ACPI _PRT IOCTL failed (first): status=0x%08lx (bus=%lu dev=%lu fun=%lu pin=%lu)\n",
+                    status,
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin);
+            gAcpiRouteIoctlLoggedFail = TRUE;
+        }
+    }
+
+    ObDereferenceObject(fileObject);
+    return status;
+}
+
+static
+BOOLEAN
+HalpFindPciParentBridge(
+    _In_ ULONG ChildBus,
+    _Out_ PULONG ParentBus,
+    _Out_ PPCI_SLOT_NUMBER ParentSlot)
+{
+    ULONG bus;
+    ULONG device;
+    ULONG function;
+    PCI_SLOT_NUMBER slot;
+    PCI_COMMON_HEADER hdr;
+
+    if (!ParentBus || !ParentSlot)
+        return FALSE;
+
+    if (!HalpPCIConfigInitialized)
+        return FALSE;
+
+    for (bus = HalpMinPciBus; bus <= HalpMaxPciBus; bus++)
+    {
+        for (device = 0; device < PCI_MAX_DEVICES; device++)
+        {
+            BOOLEAN multi;
+
+            slot.u.AsULONG = 0;
+            slot.u.bits.DeviceNumber = device;
+            slot.u.bits.FunctionNumber = 0;
+
+            RtlZeroMemory(&hdr, sizeof(hdr));
+            HalGetBusData(PCIConfiguration,
+                          bus,
+                          slot.u.AsULONG,
+                          &hdr,
+                          PCI_COMMON_HDR_LENGTH);
+
+            if (hdr.VendorID == PCI_INVALID_VENDORID)
+                continue;
+
+            multi = (hdr.HeaderType & PCI_MULTIFUNCTION) != 0;
+
+            for (function = 0; function < PCI_MAX_FUNCTION; function++)
+            {
+                if (!multi && function != 0)
+                    break;
+
+                slot.u.bits.FunctionNumber = function;
+
+                RtlZeroMemory(&hdr, sizeof(hdr));
+                HalGetBusData(PCIConfiguration,
+                              bus,
+                              slot.u.AsULONG,
+                              &hdr,
+                              PCI_COMMON_HDR_LENGTH);
+                if (hdr.VendorID == PCI_INVALID_VENDORID)
+                    continue;
+
+                if ((hdr.BaseClass != PCI_CLASS_BRIDGE_DEV) ||
+                    (hdr.SubClass != PCI_SUBCLASS_BR_PCI_TO_PCI))
+                {
+                    continue;
+                }
+
+                if (hdr.u.type1.SecondaryBus != (UCHAR)ChildBus)
+                    continue;
+
+                /* Found the bridge that routes to ChildBus */
+                *ParentBus = bus;
+                *ParentSlot = slot;
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+static
+NTSTATUS
+HalpAcpiQueryPciIrqRouteSwizzleToRoot(
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Pin,
+    _Out_ PACPI_PCI_IRQ_ROUTE_OUTPUT Out)
+{
+    ULONG currentBus = Bus;
+    PCI_SLOT_NUMBER currentSlot = Slot;
+    ULONG currentPin = Pin;
+    ULONG originalBus = Bus;
+    ULONG originalPin = Pin;
+
+    if (!Out)
+        return STATUS_INVALID_PARAMETER;
+
+    /* Walk upstream bridges and apply standard PCI INTx swizzling */
+    while (currentBus != 0)
+    {
+        ULONG parentBus;
+        PCI_SLOT_NUMBER parentSlot;
+        ULONG swizzleDev;
+
+        if (!HalpFindPciParentBridge(currentBus, &parentBus, &parentSlot))
+        {
+            DPRINT1("HAL: ACPI _PRT: no parent bridge for bus %lu (dev=%lu fun=%lu pin=%lu)\n",
+                    originalBus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    originalPin);
+            break;
+        }
+
+        swizzleDev = currentSlot.u.bits.DeviceNumber;
+        currentPin = ((currentPin - 1 + swizzleDev) % 4) + 1;
+
+        currentBus = parentBus;
+        currentSlot = parentSlot;
+    }
+
+    if (originalBus != currentBus || originalPin != currentPin)
+    {
+        DPRINT1("HAL: ACPI _PRT swizzle: bus %lu dev %lu fun %lu pin %lu -> bus %lu dev %lu fun %lu pin %lu\n",
+                originalBus,
+                Slot.u.bits.DeviceNumber,
+                Slot.u.bits.FunctionNumber,
+                originalPin,
+                currentBus,
+                currentSlot.u.bits.DeviceNumber,
+                currentSlot.u.bits.FunctionNumber,
+                currentPin);
+    }
+
+    return HalpAcpiQueryPciIrqRoute(currentBus, currentSlot, currentPin, Out);
+}
+#endif /* !_MINIHAL_ */
+
 /* GLOBALS *******************************************************************/
 
 extern BOOLEAN HalpPciLockSettings;
@@ -705,6 +977,7 @@ HalpGetISAFixedPCIIrq(IN PBUS_HANDLER BusHandler,
                       OUT PSUPPORTED_RANGE *Range)
 {
     PCI_COMMON_HEADER PciData;
+    ACPI_PCI_IRQ_ROUTE_OUTPUT route;
 
     /* Read PCI configuration data */
     HalGetBusData(PCIConfiguration,
@@ -727,7 +1000,19 @@ HalpGetISAFixedPCIIrq(IN PBUS_HANDLER BusHandler,
     /* If the PCI device has no IRQ, nothing to do */
     if (!PciData.u.type0.InterruptPin) return STATUS_SUCCESS;
 
-    /* FIXME: The PCI IRQ Routing Miniport should be called */
+    /* Prefer ACPI _PRT routing via the ACPI control device */
+    RtlZeroMemory(&route, sizeof(route));
+#ifndef _MINIHAL_
+    if (NT_SUCCESS(HalpAcpiQueryPciIrqRouteSwizzleToRoot(BusHandler->BusNumber,
+                                                        PciSlot,
+                                                        PciData.u.type0.InterruptPin,
+                                                        &route)))
+    {
+        (*Range)->Base = route.Gsi;
+        (*Range)->Limit = route.Gsi;
+        return STATUS_SUCCESS;
+    }
+#endif
 
     /* Also if the INT# seems bogus, nothing to do either */
     if ((PciData.u.type0.InterruptLine == 0) ||
@@ -804,6 +1089,9 @@ HalpAssignPCISlotResources(IN PBUS_HANDLER BusHandler,
                            IN ULONG Slot,
                            IN OUT PCM_RESOURCE_LIST *AllocatedResources)
 {
+    static BOOLEAN gPciSlotAssignWarned;
+    static BOOLEAN gPciRouteLogged;
+    static BOOLEAN gPciFallbackLogged;
     PCI_COMMON_CONFIG PciConfig;
     SIZE_T Address;
     ULONG ResourceCount;
@@ -813,7 +1101,15 @@ HalpAssignPCISlotResources(IN PBUS_HANDLER BusHandler,
     PCM_PARTIAL_RESOURCE_DESCRIPTOR Descriptor;
     PCI_SLOT_NUMBER SlotNumber;
     ULONG WriteBuffer;
-    DPRINT1("WARNING: PCI Slot Resource Assignment is FOOBAR\n");
+    ACPI_PCI_IRQ_ROUTE_OUTPUT route;
+    ULONG irqVector;
+    BOOLEAN haveRoute;
+
+    if (!gPciSlotAssignWarned)
+    {
+        DPRINT1("WARNING: PCI Slot Resource Assignment is FOOBAR\n");
+        gPciSlotAssignWarned = TRUE;
+    }
 
     /* FIXME: Should handle 64-bit addresses */
 
@@ -853,10 +1149,58 @@ HalpAssignPCISlotResources(IN PBUS_HANDLER BusHandler,
     }
 
     /* Interrupt resource */
-    if (0 != PciConfig.u.type0.InterruptPin &&
-        0 != PciConfig.u.type0.InterruptLine &&
-        0xFF != PciConfig.u.type0.InterruptLine)
-        ResourceCount++;
+    irqVector = PciConfig.u.type0.InterruptLine;
+    RtlZeroMemory(&route, sizeof(route));
+    haveRoute = FALSE;
+    if (0 != PciConfig.u.type0.InterruptPin)
+    {
+#ifndef _MINIHAL_
+        if (NT_SUCCESS(HalpAcpiQueryPciIrqRouteSwizzleToRoot(BusHandler->BusNumber,
+                                                            SlotNumber,
+                                                            PciConfig.u.type0.InterruptPin,
+                                                            &route)))
+        {
+            irqVector = route.Gsi;
+            haveRoute = TRUE;
+
+            if (!gPciRouteLogged || BusHandler->BusNumber != 0)
+            {
+                DPRINT1("HAL: PCI int routed via ACPI _PRT: bus=%lu dev=%lu fun=%lu pin=%lu -> GSI=%lu trig=%lu pol=%lu share=%lu\n",
+                        BusHandler->BusNumber,
+                        SlotNumber.u.bits.DeviceNumber,
+                        SlotNumber.u.bits.FunctionNumber,
+                        PciConfig.u.type0.InterruptPin,
+                        route.Gsi,
+                        route.Triggering,
+                        route.Polarity,
+                        route.Sharing);
+                gPciRouteLogged = TRUE;
+            }
+        }
+#endif
+
+        if (!haveRoute)
+        {
+            /* Reasonable PCI defaults in absence of ACPI routing info */
+            route.Triggering = 0; /* Level */
+            route.Polarity = 1;   /* Active low */
+            route.Sharing = 1;    /* Shared */
+
+            if (!gPciFallbackLogged || BusHandler->BusNumber != 0)
+            {
+                DPRINT1("HAL: PCI int fallback (no ACPI _PRT): bus=%lu dev=%lu fun=%lu pin=%lu using InterruptLine=%lu\n",
+                        BusHandler->BusNumber,
+                        SlotNumber.u.bits.DeviceNumber,
+                        SlotNumber.u.bits.FunctionNumber,
+                        PciConfig.u.type0.InterruptPin,
+                        irqVector);
+                gPciFallbackLogged = TRUE;
+            }
+        }
+
+        if (0 != irqVector && 0xFF != irqVector)
+            ResourceCount++;
+    }
 
     /* Allocate output buffer and initialize */
     *AllocatedResources = ExAllocatePoolWithTag(
@@ -909,14 +1253,19 @@ HalpAssignPCISlotResources(IN PBUS_HANDLER BusHandler,
     }
 
     if (0 != PciConfig.u.type0.InterruptPin &&
-        0 != PciConfig.u.type0.InterruptLine &&
-        0xFF != PciConfig.u.type0.InterruptLine)
+        0 != irqVector &&
+        0xFF != irqVector)
     {
         Descriptor->Type = CmResourceTypeInterrupt;
-        Descriptor->ShareDisposition = CmResourceShareShared;          /* FIXME Just a guess */
-        Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;     /* FIXME Just a guess */
-        Descriptor->u.Interrupt.Level = PciConfig.u.type0.InterruptLine;
-        Descriptor->u.Interrupt.Vector = PciConfig.u.type0.InterruptLine;
+        /* PCI INTx is shareable in practice; don't propagate firmware oddities as
+         * exclusive shares, because it triggers false "Resource conflict: IRQ".
+         */
+        Descriptor->ShareDisposition = CmResourceShareShared;
+
+        Descriptor->Flags = (route.Triggering ? CM_RESOURCE_INTERRUPT_LATCHED : CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE);
+
+        Descriptor->u.Interrupt.Level = irqVector;
+        Descriptor->u.Interrupt.Vector = irqVector;
         Descriptor->u.Interrupt.Affinity = 0xFFFFFFFF;
 
         Descriptor++;

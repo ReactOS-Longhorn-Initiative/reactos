@@ -21,8 +21,494 @@
 #define DBGPRINT(...)
 #endif
 
+static __forceinline NTSTATUS
+PciGetIosbStatus(_In_ const IO_STATUS_BLOCK* IoStatusBlock)
+{
+    NTSTATUS Status;
+    RtlCopyMemory(&Status, IoStatusBlock, sizeof(Status));
+    return Status;
+}
+
+static __forceinline VOID
+PciSetIosbStatus(_Out_ IO_STATUS_BLOCK* IoStatusBlock, _In_ NTSTATUS Status)
+{
+    RtlCopyMemory(IoStatusBlock, &Status, sizeof(Status));
+}
+
+#define PCI_IOSB_STATUS(_iosb) PciGetIosbStatus(&(_iosb))
+#define PCI_IRP_GET_STATUS(_irp) PciGetIosbStatus(&(_irp)->IoStatus)
+#define PCI_IRP_SET_STATUS(_irp, _st) PciSetIosbStatus(&(_irp)->IoStatus, (_st))
+
 #define PCI_ADDRESS_MEMORY_ADDRESS_MASK_64     0xfffffffffffffff0ull
 #define PCI_ADDRESS_IO_ADDRESS_MASK_64         0xfffffffffffffffcull
+
+/* Private ACPI IRQ routing query (served by drivers/bus/acpi_new) */
+#define IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x80, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+/* Private ACPI PCI config-space access via MCFG/ECAM (served by drivers/bus/acpi_new). */
+#define IOCTL_ACPI_INTERNAL_PCI_CFG_READ \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x81, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+#define IOCTL_ACPI_INTERNAL_PCI_CFG_WRITE \
+    CTL_CODE(FILE_DEVICE_ACPI, 0x82, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+typedef struct _ACPI_PCI_CFG_READ_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Offset;
+    ULONG Width; /* 1,2,4 */
+} ACPI_PCI_CFG_READ_INPUT, *PACPI_PCI_CFG_READ_INPUT;
+
+typedef struct _ACPI_PCI_CFG_READ_OUTPUT
+{
+    ULONG Width;
+    ULONG Value;
+} ACPI_PCI_CFG_READ_OUTPUT, *PACPI_PCI_CFG_READ_OUTPUT;
+
+typedef struct _ACPI_PCI_CFG_WRITE_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Offset;
+    ULONG Width; /* 1,2,4 */
+    ULONG Value;
+} ACPI_PCI_CFG_WRITE_INPUT, *PACPI_PCI_CFG_WRITE_INPUT;
+
+static
+NTSTATUS
+PciAcpiCfgIoctlReadWrite(
+    _In_ BOOLEAN Write,
+    _In_ ULONG Segment,
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Offset,
+    _In_ ULONG Width,
+    _Inout_ PULONG Value)
+{
+    UNICODE_STRING devName;
+    PFILE_OBJECT fileObject = NULL;
+    PDEVICE_OBJECT deviceObject = NULL;
+    KEVENT event;
+    IO_STATUS_BLOCK iosb;
+    PIRP irp;
+    NTSTATUS status;
+
+    if (!Value)
+        return STATUS_INVALID_PARAMETER;
+
+    if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        return STATUS_INVALID_DEVICE_STATE;
+
+    if (!(Width == 1 || Width == 2 || Width == 4))
+        return STATUS_INVALID_PARAMETER;
+
+    RtlInitUnicodeString(&devName, L"\\Device\\ACPI");
+    status = IoGetDeviceObjectPointer(&devName,
+                                      FILE_READ_DATA | FILE_WRITE_DATA,
+                                      &fileObject,
+                                      &deviceObject);
+    if (!NT_SUCCESS(status))
+        return status;
+
+    KeInitializeEvent(&event, NotificationEvent, FALSE);
+    RtlZeroMemory(&iosb, sizeof(iosb));
+
+    if (!Write)
+    {
+        ACPI_PCI_CFG_READ_INPUT in;
+        ACPI_PCI_CFG_READ_OUTPUT out;
+
+        RtlZeroMemory(&in, sizeof(in));
+        in.Segment = Segment;
+        in.Bus = Bus;
+        in.Device = Slot.u.bits.DeviceNumber;
+        in.Function = Slot.u.bits.FunctionNumber;
+        in.Offset = Offset;
+        in.Width = Width;
+
+        RtlZeroMemory(&out, sizeof(out));
+
+        irp = IoBuildDeviceIoControlRequest(IOCTL_ACPI_INTERNAL_PCI_CFG_READ,
+                                            deviceObject,
+                                            &in,
+                                            sizeof(in),
+                                            &out,
+                                            sizeof(out),
+                                            FALSE,
+                                            &event,
+                                            &iosb);
+        if (!irp)
+        {
+            ObDereferenceObject(fileObject);
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+
+        status = IoCallDriver(deviceObject, irp);
+        if (status == STATUS_PENDING)
+        {
+            (void)KeWaitForSingleObject(&event, Executive, KernelMode, FALSE, NULL);
+            status = PCI_IOSB_STATUS(iosb);
+        }
+
+        if (NT_SUCCESS(status))
+            *Value = out.Value;
+    }
+    else
+    {
+        ACPI_PCI_CFG_WRITE_INPUT in;
+
+        RtlZeroMemory(&in, sizeof(in));
+        in.Segment = Segment;
+        in.Bus = Bus;
+        in.Device = Slot.u.bits.DeviceNumber;
+        in.Function = Slot.u.bits.FunctionNumber;
+        in.Offset = Offset;
+        in.Width = Width;
+        in.Value = *Value;
+
+        irp = IoBuildDeviceIoControlRequest(IOCTL_ACPI_INTERNAL_PCI_CFG_WRITE,
+                                            deviceObject,
+                                            &in,
+                                            sizeof(in),
+                                            NULL,
+                                            0,
+                                            FALSE,
+                                            &event,
+                                            &iosb);
+        if (!irp)
+        {
+            ObDereferenceObject(fileObject);
+            return STATUS_INSUFFICIENT_RESOURCES;
+        }
+
+        status = IoCallDriver(deviceObject, irp);
+        if (status == STATUS_PENDING)
+        {
+            (void)KeWaitForSingleObject(&event, Executive, KernelMode, FALSE, NULL);
+            status = PCI_IOSB_STATUS(iosb);
+        }
+    }
+
+    ObDereferenceObject(fileObject);
+    return status;
+}
+
+ULONG
+PciReadWriteConfigBuffer(
+    _In_ BOOLEAN Write,
+    _In_ ULONG Segment,
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _Inout_updates_bytes_(Length) PVOID Buffer,
+    _In_ ULONG Offset,
+    _In_ ULONG Length)
+{
+    PUCHAR b = (PUCHAR)Buffer;
+    ULONG done = 0;
+
+    while (done < Length)
+    {
+        ULONG curOff = Offset + done;
+        ULONG remaining = Length - done;
+        ULONG width;
+        ULONG v;
+        NTSTATUS st;
+
+        if (remaining >= 4 && (curOff & 3) == 0)
+            width = 4;
+        else if (remaining >= 2 && (curOff & 1) == 0)
+            width = 2;
+        else
+            width = 1;
+
+        if (!Write)
+        {
+            v = 0xFFFFFFFF;
+            st = PciAcpiCfgIoctlReadWrite(FALSE, Segment, Bus, Slot, curOff, width, &v);
+            if (!NT_SUCCESS(st))
+                return 0;
+
+            if (width == 1)
+                b[done] = (UCHAR)(v & 0xFF);
+            else if (width == 2)
+            {
+                b[done + 0] = (UCHAR)(v & 0xFF);
+                b[done + 1] = (UCHAR)((v >> 8) & 0xFF);
+            }
+            else
+            {
+                b[done + 0] = (UCHAR)(v & 0xFF);
+                b[done + 1] = (UCHAR)((v >> 8) & 0xFF);
+                b[done + 2] = (UCHAR)((v >> 16) & 0xFF);
+                b[done + 3] = (UCHAR)((v >> 24) & 0xFF);
+            }
+        }
+        else
+        {
+            if (width == 1)
+                v = b[done];
+            else if (width == 2)
+                v = (ULONG)(b[done + 0] | ((ULONG)b[done + 1] << 8));
+            else
+                v = (ULONG)(b[done + 0] | ((ULONG)b[done + 1] << 8) | ((ULONG)b[done + 2] << 16) | ((ULONG)b[done + 3] << 24));
+
+            st = PciAcpiCfgIoctlReadWrite(TRUE, Segment, Bus, Slot, curOff, width, &v);
+            if (!NT_SUCCESS(st))
+                return 0;
+        }
+
+        done += width;
+    }
+
+    return done;
+}
+
+typedef struct _ACPI_PCI_IRQ_ROUTE_INPUT
+{
+    ULONG Segment;
+    ULONG Bus;
+    ULONG Device;
+    ULONG Function;
+    ULONG Pin; /* 1..4 */
+} ACPI_PCI_IRQ_ROUTE_INPUT, *PACPI_PCI_IRQ_ROUTE_INPUT;
+
+typedef struct _ACPI_PCI_IRQ_ROUTE_OUTPUT
+{
+    ULONG Gsi;
+    ULONG Triggering; /* 0=Level, 1=Edge */
+    ULONG Polarity;   /* 0=High, 1=Low */
+    ULONG Sharing;    /* 0=Exclusive, 1=Shared */
+} ACPI_PCI_IRQ_ROUTE_OUTPUT, *PACPI_PCI_IRQ_ROUTE_OUTPUT;
+
+static
+BOOLEAN
+PciFindPciParentBridge(
+    _In_ ULONG ChildBus,
+    _Out_ PULONG ParentBus,
+    _Out_ PPCI_SLOT_NUMBER ParentSlot)
+{
+    PFDO_DEVICE_EXTENSION FdoDeviceExtension;
+    PPCI_DEVICE PciDevice;
+    PLIST_ENTRY CurrentBus, CurrentEntry;
+    KIRQL OldIrql;
+    BOOLEAN Found = FALSE;
+
+    if (!ParentBus || !ParentSlot)
+        return FALSE;
+
+    if (!DriverExtension)
+        return FALSE;
+
+    KeAcquireSpinLock(&DriverExtension->BusListLock, &OldIrql);
+    CurrentBus = DriverExtension->BusListHead.Flink;
+    while (!Found && CurrentBus != &DriverExtension->BusListHead)
+    {
+        FdoDeviceExtension = CONTAINING_RECORD(CurrentBus, FDO_DEVICE_EXTENSION, ListEntry);
+
+        KeAcquireSpinLockAtDpcLevel(&FdoDeviceExtension->DeviceListLock);
+        CurrentEntry = FdoDeviceExtension->DeviceListHead.Flink;
+        while (!Found && CurrentEntry != &FdoDeviceExtension->DeviceListHead)
+        {
+            PciDevice = CONTAINING_RECORD(CurrentEntry, PCI_DEVICE, ListEntry);
+
+            if (PciDevice->PciConfig.VendorID != PCI_INVALID_VENDORID &&
+                (PciDevice->PciConfig.BaseClass == PCI_CLASS_BRIDGE_DEV) &&
+                (PciDevice->PciConfig.SubClass == PCI_SUBCLASS_BR_PCI_TO_PCI) &&
+                (PciDevice->PciConfig.u.type1.SecondaryBus == (UCHAR)ChildBus))
+            {
+                *ParentBus = PciDevice->BusNumber;
+                *ParentSlot = PciDevice->SlotNumber;
+                Found = TRUE;
+            }
+
+            CurrentEntry = CurrentEntry->Flink;
+        }
+        KeReleaseSpinLockFromDpcLevel(&FdoDeviceExtension->DeviceListLock);
+
+        CurrentBus = CurrentBus->Flink;
+    }
+    KeReleaseSpinLock(&DriverExtension->BusListLock, OldIrql);
+
+    return Found;
+}
+
+static
+NTSTATUS
+PciQueryAcpiPciIrqRoute(
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Pin,
+    _Out_ PACPI_PCI_IRQ_ROUTE_OUTPUT Out)
+{
+    static BOOLEAN gAcpiRouteLoggedOk;
+    static BOOLEAN gAcpiRouteLoggedFail;
+    UNICODE_STRING devName;
+    PFILE_OBJECT fileObject = NULL;
+    PDEVICE_OBJECT deviceObject = NULL;
+    KEVENT event;
+    IO_STATUS_BLOCK iosb;
+    PIRP irp;
+    ACPI_PCI_IRQ_ROUTE_INPUT in;
+    NTSTATUS status;
+
+    if (!Out)
+        return STATUS_INVALID_PARAMETER;
+
+    if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+        return STATUS_INVALID_DEVICE_STATE;
+
+    if (Pin < 1 || Pin > 4)
+        return STATUS_INVALID_PARAMETER;
+
+    RtlInitUnicodeString(&devName, L"\\Device\\ACPI");
+    status = IoGetDeviceObjectPointer(&devName,
+                                      FILE_READ_DATA | FILE_WRITE_DATA,
+                                      &fileObject,
+                                      &deviceObject);
+    if (!NT_SUCCESS(status))
+        return status;
+
+    RtlZeroMemory(&in, sizeof(in));
+    in.Segment = 0;
+    in.Bus = Bus;
+    in.Device = Slot.u.bits.DeviceNumber;
+    in.Function = Slot.u.bits.FunctionNumber;
+    in.Pin = Pin;
+
+    KeInitializeEvent(&event, NotificationEvent, FALSE);
+    RtlZeroMemory(&iosb, sizeof(iosb));
+
+    irp = IoBuildDeviceIoControlRequest(IOCTL_ACPI_INTERNAL_GET_PCI_IRQ_ROUTE,
+                                        deviceObject,
+                                        &in,
+                                        sizeof(in),
+                                        Out,
+                                        sizeof(*Out),
+                                        FALSE,
+                                        &event,
+                                        &iosb);
+    if (!irp)
+    {
+        ObDereferenceObject(fileObject);
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    status = IoCallDriver(deviceObject, irp);
+    if (status == STATUS_PENDING)
+    {
+        (void)KeWaitForSingleObject(&event, Executive, KernelMode, FALSE, NULL);
+            status = PCI_IOSB_STATUS(iosb);
+    }
+
+    if (NT_SUCCESS(status))
+    {
+        if (!gAcpiRouteLoggedOk)
+        {
+            DPRINT1("PCI: ACPI _PRT route OK (first): bus=%lu dev=%lu fun=%lu pin=%lu -> GSI=%lu trig=%lu pol=%lu share=%lu\n",
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin,
+                    Out->Gsi,
+                    Out->Triggering,
+                    Out->Polarity,
+                    Out->Sharing);
+            gAcpiRouteLoggedOk = TRUE;
+        }
+    }
+    else
+    {
+        if (!gAcpiRouteLoggedFail)
+        {
+            DPRINT1("PCI: ACPI _PRT route failed (first): status=0x%08lx (bus=%lu dev=%lu fun=%lu pin=%lu)\n",
+                    status,
+                    Bus,
+                    Slot.u.bits.DeviceNumber,
+                    Slot.u.bits.FunctionNumber,
+                    Pin);
+            gAcpiRouteLoggedFail = TRUE;
+        }
+    }
+
+    ObDereferenceObject(fileObject);
+    return status;
+}
+
+static
+NTSTATUS
+PciQueryAcpiPciIrqRouteSwizzleToRoot(
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _In_ ULONG Pin,
+    _Out_ PACPI_PCI_IRQ_ROUTE_OUTPUT Out)
+{
+    static BOOLEAN gSwizzleNoParentLogged;
+    ULONG currentBus = Bus;
+    PCI_SLOT_NUMBER currentSlot = Slot;
+    ULONG currentPin = Pin;
+    ULONG originalBus = Bus;
+    PCI_SLOT_NUMBER originalSlot = Slot;
+    ULONG originalPin = Pin;
+    ULONG hopCount = 0;
+
+    if (!Out)
+        return STATUS_INVALID_PARAMETER;
+
+    /* Walk upstream bridges and apply standard PCI INTx swizzling */
+    while (currentBus != 0)
+    {
+        ULONG parentBus;
+        PCI_SLOT_NUMBER parentSlot;
+        ULONG swizzleDev;
+
+        if (hopCount++ > 32)
+            break;
+
+        if (!PciFindPciParentBridge(currentBus, &parentBus, &parentSlot))
+        {
+            if (!gSwizzleNoParentLogged)
+            {
+                DPRINT1("PCI: ACPI _PRT swizzle: no parent bridge for bus %lu (dev=%lu fun=%lu pin=%lu)\n",
+                        originalBus,
+                        originalSlot.u.bits.DeviceNumber,
+                        originalSlot.u.bits.FunctionNumber,
+                        originalPin);
+                gSwizzleNoParentLogged = TRUE;
+            }
+            break;
+        }
+
+        swizzleDev = currentSlot.u.bits.DeviceNumber;
+        currentPin = ((currentPin - 1 + swizzleDev) % 4) + 1;
+
+        if (parentBus == currentBus)
+            break;
+
+        currentBus = parentBus;
+        currentSlot = parentSlot;
+    }
+
+    if (originalBus != currentBus || originalPin != currentPin)
+    {
+        DPRINT1("PCI: ACPI _PRT swizzle: bus %lu dev %lu fun %lu pin %lu -> bus %lu dev %lu fun %lu pin %lu\n",
+                originalBus,
+                originalSlot.u.bits.DeviceNumber,
+                originalSlot.u.bits.FunctionNumber,
+                originalPin,
+                currentBus,
+                currentSlot.u.bits.DeviceNumber,
+                currentSlot.u.bits.FunctionNumber,
+                currentPin);
+    }
+
+    return PciQueryAcpiPciIrqRoute(currentBus, currentSlot, currentPin, Out);
+}
 
 /*** PRIVATE *****************************************************************/
 
@@ -204,12 +690,22 @@ PdoReadPciBar(PPDO_DEVICE_EXTENSION DeviceExtension,
     ULONG AllOnes;
 
     /* Read the original value */
-    Size = HalGetBusDataByOffset(PCIConfiguration,
-                                 DeviceExtension->PciDevice->BusNumber,
-                                 DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                 OriginalValue,
-                                 Offset,
-                                 sizeof(ULONG));
+    Size = PciReadWriteConfigBuffer(FALSE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    OriginalValue,
+                                    Offset,
+                                    sizeof(ULONG));
+    if (Size != sizeof(ULONG))
+    {
+        Size = HalGetBusDataByOffset(PCIConfiguration,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                     OriginalValue,
+                                     Offset,
+                                     sizeof(ULONG));
+    }
     if (Size != sizeof(ULONG))
     {
         DPRINT1("Wrong size %lu\n", Size);
@@ -218,12 +714,22 @@ PdoReadPciBar(PPDO_DEVICE_EXTENSION DeviceExtension,
 
     /* Write all ones to determine which bits are held to zero */
     AllOnes = MAXULONG;
-    Size = HalSetBusDataByOffset(PCIConfiguration,
-                                 DeviceExtension->PciDevice->BusNumber,
-                                 DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                 &AllOnes,
-                                 Offset,
-                                 sizeof(ULONG));
+    Size = PciReadWriteConfigBuffer(TRUE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    &AllOnes,
+                                    Offset,
+                                    sizeof(ULONG));
+    if (Size != sizeof(ULONG))
+    {
+        Size = HalSetBusDataByOffset(PCIConfiguration,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                     &AllOnes,
+                                     Offset,
+                                     sizeof(ULONG));
+    }
     if (Size != sizeof(ULONG))
     {
         DPRINT1("Wrong size %lu\n", Size);
@@ -231,12 +737,22 @@ PdoReadPciBar(PPDO_DEVICE_EXTENSION DeviceExtension,
     }
 
     /* Get the range length */
-    Size = HalGetBusDataByOffset(PCIConfiguration,
-                                 DeviceExtension->PciDevice->BusNumber,
-                                 DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                 NewValue,
-                                 Offset,
-                                 sizeof(ULONG));
+    Size = PciReadWriteConfigBuffer(FALSE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    NewValue,
+                                    Offset,
+                                    sizeof(ULONG));
+    if (Size != sizeof(ULONG))
+    {
+        Size = HalGetBusDataByOffset(PCIConfiguration,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                     NewValue,
+                                     Offset,
+                                     sizeof(ULONG));
+    }
     if (Size != sizeof(ULONG))
     {
         DPRINT1("Wrong size %lu\n", Size);
@@ -244,12 +760,22 @@ PdoReadPciBar(PPDO_DEVICE_EXTENSION DeviceExtension,
     }
 
     /* Restore original value */
-    Size = HalSetBusDataByOffset(PCIConfiguration,
-                                 DeviceExtension->PciDevice->BusNumber,
-                                 DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                 OriginalValue,
-                                 Offset,
-                                 sizeof(ULONG));
+    Size = PciReadWriteConfigBuffer(TRUE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    OriginalValue,
+                                    Offset,
+                                    sizeof(ULONG));
+    if (Size != sizeof(ULONG))
+    {
+        Size = HalSetBusDataByOffset(PCIConfiguration,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                     OriginalValue,
+                                     Offset,
+                                     sizeof(ULONG));
+    }
     if (Size != sizeof(ULONG))
     {
         DPRINT1("Wrong size %lu\n", Size);
@@ -398,11 +924,21 @@ PdoQueryResourceRequirements(
     DeviceExtension = (PPDO_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
     /* Get PCI configuration space */
-    Size= HalGetBusData(PCIConfiguration,
-                        DeviceExtension->PciDevice->BusNumber,
-                        DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                        &PciConfig,
-                        PCI_COMMON_HDR_LENGTH);
+    Size = PciReadWriteConfigBuffer(FALSE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    &PciConfig,
+                                    0,
+                                    PCI_COMMON_HDR_LENGTH);
+    if (Size != PCI_COMMON_HDR_LENGTH)
+    {
+        Size = HalGetBusData(PCIConfiguration,
+                             DeviceExtension->PciDevice->BusNumber,
+                             DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                             &PciConfig,
+                             PCI_COMMON_HDR_LENGTH);
+    }
     DPRINT("Size %lu\n", Size);
     if (Size < PCI_COMMON_HDR_LENGTH)
     {
@@ -584,13 +1120,38 @@ PdoQueryResourceRequirements(
 
         if (PciConfig.u.type0.InterruptPin != 0)
         {
+            ACPI_PCI_IRQ_ROUTE_OUTPUT route;
+            NTSTATUS RouteStatus;
+
             Descriptor->Option = 0; /* Required */
             Descriptor->Type = CmResourceTypeInterrupt;
             Descriptor->ShareDisposition = CmResourceShareShared;
             Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
 
-            Descriptor->u.Interrupt.MinimumVector = 0;
-            Descriptor->u.Interrupt.MaximumVector = 0xFF;
+            RtlZeroMemory(&route, sizeof(route));
+            RouteStatus = PciQueryAcpiPciIrqRouteSwizzleToRoot(DeviceExtension->PciDevice->BusNumber,
+                                                              DeviceExtension->PciDevice->SlotNumber,
+                                                              PciConfig.u.type0.InterruptPin,
+                                                              &route);
+            if (NT_SUCCESS(RouteStatus))
+            {
+                /*
+                 * PCI INTx is level-sensitive and shareable.
+                 * Some firmware reports link resources as edge/exclusive, which breaks
+                 * interrupt delivery for PCI devices (notably USB controllers).
+                 * Use ACPI only to select the routed GSI; keep Windows-like INTx semantics.
+                 */
+                Descriptor->ShareDisposition = CmResourceShareShared;
+                Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+                Descriptor->u.Interrupt.MinimumVector = route.Gsi;
+                Descriptor->u.Interrupt.MaximumVector = route.Gsi;
+            }
+
+            if (!NT_SUCCESS(RouteStatus))
+            {
+                Descriptor->u.Interrupt.MinimumVector = 0;
+                Descriptor->u.Interrupt.MaximumVector = 0xFF;
+            }
         }
     }
     else if (PCI_CONFIGURATION_TYPE(&PciConfig) == PCI_BRIDGE_TYPE)
@@ -723,11 +1284,21 @@ PdoQueryResources(
     DeviceExtension = (PPDO_DEVICE_EXTENSION)DeviceObject->DeviceExtension;
 
     /* Get PCI configuration space */
-    Size= HalGetBusData(PCIConfiguration,
-                        DeviceExtension->PciDevice->BusNumber,
-                        DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                        &PciConfig,
-                        PCI_COMMON_HDR_LENGTH);
+    Size = PciReadWriteConfigBuffer(FALSE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    &PciConfig,
+                                    0,
+                                    PCI_COMMON_HDR_LENGTH);
+    if (Size != PCI_COMMON_HDR_LENGTH)
+    {
+        Size = HalGetBusData(PCIConfiguration,
+                             DeviceExtension->PciDevice->BusNumber,
+                             DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                             &PciConfig,
+                             PCI_COMMON_HDR_LENGTH);
+    }
     DPRINT("Size %lu\n", Size);
     if (Size < PCI_COMMON_HDR_LENGTH)
     {
@@ -756,9 +1327,11 @@ PdoQueryResources(
                 ResCount++;
         }
 
-        if ((PciConfig.u.type0.InterruptPin != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0xFF))
+        /*
+         * Don't rely on InterruptLine being pre-programmed by firmware.
+         * If InterruptPin is present, we may be able to route it via ACPI _PRT.
+         */
+        if (PciConfig.u.type0.InterruptPin != 0)
             ResCount++;
     }
     else if (PCI_CONFIGURATION_TYPE(&PciConfig) == PCI_BRIDGE_TYPE)
@@ -867,16 +1440,41 @@ PdoQueryResources(
         }
 
         /* Add interrupt resource */
-        if ((PciConfig.u.type0.InterruptPin != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0) &&
-            (PciConfig.u.type0.InterruptLine != 0xFF))
+        if (PciConfig.u.type0.InterruptPin != 0)
         {
+            ACPI_PCI_IRQ_ROUTE_OUTPUT route;
+            NTSTATUS RouteStatus;
+
             Descriptor->Type = CmResourceTypeInterrupt;
             Descriptor->ShareDisposition = CmResourceShareShared;
             Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
-            Descriptor->u.Interrupt.Level = PciConfig.u.type0.InterruptLine;
-            Descriptor->u.Interrupt.Vector = PciConfig.u.type0.InterruptLine;
+
+            RtlZeroMemory(&route, sizeof(route));
+            RouteStatus = PciQueryAcpiPciIrqRouteSwizzleToRoot(DeviceExtension->PciDevice->BusNumber,
+                                                              DeviceExtension->PciDevice->SlotNumber,
+                                                              PciConfig.u.type0.InterruptPin,
+                                                              &route);
+            if (NT_SUCCESS(RouteStatus))
+            {
+                /* See comment in PdoQueryResourceRequirements(): INTx should be shared + level-sensitive. */
+                Descriptor->ShareDisposition = CmResourceShareShared;
+                Descriptor->Flags = CM_RESOURCE_INTERRUPT_LEVEL_SENSITIVE;
+                Descriptor->u.Interrupt.Level = route.Gsi;
+                Descriptor->u.Interrupt.Vector = route.Gsi;
+            }
+            else if ((PciConfig.u.type0.InterruptLine != 0) && (PciConfig.u.type0.InterruptLine != 0xFF))
+            {
+                Descriptor->u.Interrupt.Level = PciConfig.u.type0.InterruptLine;
+                Descriptor->u.Interrupt.Vector = PciConfig.u.type0.InterruptLine;
+            }
+            else
+            {
+                /* No route and bogus InterruptLine -> skip descriptor */
+                PartialList->Count--;
+                goto SkipInterruptDescriptor;
+            }
             Descriptor->u.Interrupt.Affinity = 0xFFFFFFFF;
+        SkipInterruptDescriptor:;
         }
 
         /* Allow bus master mode */
@@ -1045,12 +1643,22 @@ InterfaceBusSetBusData(
     DeviceExtension = (PPDO_DEVICE_EXTENSION)((PDEVICE_OBJECT)Context)->DeviceExtension;
 
     /* Get PCI configuration space */
-    Size = HalSetBusDataByOffset(PCIConfiguration,
-                                 DeviceExtension->PciDevice->BusNumber,
-                                 DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                 Buffer,
-                                 Offset,
-                                 Length);
+    Size = PciReadWriteConfigBuffer(TRUE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    Buffer,
+                                    Offset,
+                                    Length);
+    if (Size != Length)
+    {
+        Size = HalSetBusDataByOffset(PCIConfiguration,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                     Buffer,
+                                     Offset,
+                                     Length);
+    }
     return Size;
 }
 
@@ -1081,12 +1689,22 @@ InterfaceBusGetBusData(
     DeviceExtension = (PPDO_DEVICE_EXTENSION)((PDEVICE_OBJECT)Context)->DeviceExtension;
 
     /* Get PCI configuration space */
-    Size = HalGetBusDataByOffset(PCIConfiguration,
-                                 DeviceExtension->PciDevice->BusNumber,
-                                 DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                 Buffer,
-                                 Offset,
-                                 Length);
+    Size = PciReadWriteConfigBuffer(FALSE,
+                                    0,
+                                    DeviceExtension->PciDevice->BusNumber,
+                                    DeviceExtension->PciDevice->SlotNumber,
+                                    Buffer,
+                                    Offset,
+                                    Length);
+    if (Size != Length)
+    {
+        Size = HalGetBusDataByOffset(PCIConfiguration,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                     Buffer,
+                                     Offset,
+                                     Length);
+    }
     return Size;
 }
 
@@ -1354,12 +1972,21 @@ PdoStartDevice(
                         DeviceExtension->PciDevice->BusNumber);
 
                 Irq = (UCHAR)RawPartialDesc->u.Interrupt.Vector;
-                HalSetBusDataByOffset(PCIConfiguration,
-                                      DeviceExtension->PciDevice->BusNumber,
-                                      DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                                      &Irq,
-                                      0x3c /* PCI_INTERRUPT_LINE */,
-                                      sizeof(UCHAR));
+                if (PciReadWriteConfigBuffer(TRUE,
+                                             0,
+                                             DeviceExtension->PciDevice->BusNumber,
+                                             DeviceExtension->PciDevice->SlotNumber,
+                                             &Irq,
+                                             0x3c /* PCI_INTERRUPT_LINE */,
+                                             sizeof(UCHAR)) != sizeof(UCHAR))
+                {
+                    HalSetBusDataByOffset(PCIConfiguration,
+                                          DeviceExtension->PciDevice->BusNumber,
+                                          DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                          &Irq,
+                                          0x3c /* PCI_INTERRUPT_LINE */,
+                                          sizeof(UCHAR));
+                }
             }
         }
     }
@@ -1394,12 +2021,21 @@ PdoStartDevice(
         /* OR with the previous value */
         Command |= DeviceExtension->PciDevice->PciConfig.Command;
 
-        HalSetBusDataByOffset(PCIConfiguration,
-                              DeviceExtension->PciDevice->BusNumber,
-                              DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
-                              &Command,
-                              FIELD_OFFSET(PCI_COMMON_CONFIG, Command),
-                              sizeof(USHORT));
+        if (PciReadWriteConfigBuffer(TRUE,
+                                     0,
+                                     DeviceExtension->PciDevice->BusNumber,
+                                     DeviceExtension->PciDevice->SlotNumber,
+                                     &Command,
+                                     FIELD_OFFSET(PCI_COMMON_CONFIG, Command),
+                                     sizeof(USHORT)) != sizeof(USHORT))
+        {
+            HalSetBusDataByOffset(PCIConfiguration,
+                                  DeviceExtension->PciDevice->BusNumber,
+                                  DeviceExtension->PciDevice->SlotNumber.u.AsULONG,
+                                  &Command,
+                                  FIELD_OFFSET(PCI_COMMON_CONFIG, Command),
+                                  sizeof(USHORT));
+        }
     }
     else
     {
@@ -1477,7 +2113,7 @@ PdoQueryDeviceRelations(
 
     /* We only support TargetDeviceRelation for child PDOs */
     if (IrpSp->Parameters.QueryDeviceRelations.Type != TargetDeviceRelation)
-        return Irp->IoStatus.Status;
+        return PCI_IRP_GET_STATUS(Irp);
 
     /* We can do this because we only return 1 PDO for TargetDeviceRelation */
     DeviceRelations = ExAllocatePoolWithTag(PagedPool, sizeof(*DeviceRelations), TAG_PCI);
@@ -1516,7 +2152,7 @@ PdoPnpControl(
 
     DPRINT("Called\n");
 
-    Status = Irp->IoStatus.Status;
+    Status = PCI_IRP_GET_STATUS(Irp);
 
     IrpSp = IoGetCurrentIrpStackLocation(Irp);
 
@@ -1602,7 +2238,7 @@ PdoPnpControl(
         case IRP_MN_FILTER_RESOURCE_REQUIREMENTS:
             DPRINT("IRP_MN_FILTER_RESOURCE_REQUIREMENTS received\n");
             /* Nothing to do */
-            Irp->IoStatus.Status = Status;
+            PCI_IRP_SET_STATUS(Irp, Status);
             break;
 
         default:
@@ -1612,7 +2248,7 @@ PdoPnpControl(
 
     if (Status != STATUS_PENDING)
     {
-        Irp->IoStatus.Status = Status;
+        PCI_IRP_SET_STATUS(Irp, Status);
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
     }
 
@@ -1635,7 +2271,7 @@ PdoPowerControl(
  */
 {
     PIO_STACK_LOCATION IrpSp;
-    NTSTATUS Status = Irp->IoStatus.Status;
+    NTSTATUS Status = PCI_IRP_GET_STATUS(Irp);
 
     DPRINT("Called\n");
 
@@ -1650,7 +2286,7 @@ PdoPowerControl(
     }
 
     PoStartNextPowerIrp(Irp);
-    Irp->IoStatus.Status = Status;
+    PCI_IRP_SET_STATUS(Irp, Status);
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
     DPRINT("Leaving. Status 0x%X\n", Status);
