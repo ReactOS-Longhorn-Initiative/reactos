@@ -874,6 +874,7 @@ HalEnableSystemInterrupt(
     }
     ReDirReg.TriggerMode = (InterruptMode == LevelSensitive) ?
         APIC_TGM_Level : APIC_TGM_Edge;
+    ReDirReg.Polarity = (InterruptMode == LevelSensitive) ? 1 : 0;
     ReDirReg.Mask = FALSE;
 
     /* Write back the entry */

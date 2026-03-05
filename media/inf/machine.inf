@@ -49,6 +49,9 @@ HKR, , Icon,           0, "-27"
 %*PNP0C0E.DeviceDesc% = NO_DRV,*PNP0C0E
 %*PNP0C0F.DeviceDesc% = NO_DRV,*PNP0C0F
 %*PNP0C15.DeviceDesc% = NO_DRV,*PNP0C15
+%*Processor.DeviceDesc% = NO_DRV,*Processor
+%*ACPI_FPB.DeviceDesc% = NO_DRV,*ACPI_FPB
+%*ACPI_FSB.DeviceDesc% = NO_DRV,*ACPI_FSB
 
 %SWENUM.DeviceDesc%   = SWENUM_Inst, ROOT\SWENUM
 %ACPI\FixedButton.DeviceDesc% = NO_DRV,ACPI\FixedButton
@@ -195,6 +198,9 @@ GenericMfg = "(Generic system devices)"
 *PNP0C0E.DeviceDesc = "ACPI sleep button device"
 *PNP0C0F.DeviceDesc = "PCI interrupt link device"
 *PNP0C15.DeviceDesc = "Docking Station"
+*Processor.DeviceDesc = "ACPI processor"
+*ACPI_FPB.DeviceDesc = "ACPI fixed feature power button"
+*ACPI_FSB.DeviceDesc = "ACPI fixed feature sleep button"
 
 SWENUM.DeviceDesc  = "Plug & Play Software Bus Enumerator"
 ACPI\FixedButton.DeviceDesc = "ACPI fixed feature button"

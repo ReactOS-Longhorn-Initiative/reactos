@@ -7,6 +7,16 @@
 
 #define TAG_PCI '0ICP'
 
+ULONG
+PciReadWriteConfigBuffer(
+    _In_ BOOLEAN Write,
+    _In_ ULONG Segment,
+    _In_ ULONG Bus,
+    _In_ PCI_SLOT_NUMBER Slot,
+    _Inout_updates_bytes_(Length) PVOID Buffer,
+    _In_ ULONG Offset,
+    _In_ ULONG Length);
+
 typedef struct _PCI_DEVICE
 {
     // Entry on device list
