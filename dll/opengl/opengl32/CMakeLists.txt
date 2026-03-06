@@ -9,10 +9,6 @@ add_definitions(
     -D_GLAPI_NO_EXPORTS # prevent _glapi_* from being declared __declspec(dllimport)
 )
 
-if(OPENGL32_USE_TLS)
-    add_definitions(-DOPENGL32_USE_TLS)
-endif()
-
 list(APPEND SOURCE
     apistubs.c
     dllmain.c

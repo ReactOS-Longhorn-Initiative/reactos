@@ -94,11 +94,6 @@ get_dc_data(HDC hdc)
     return get_dc_data_ex(hdc, 0, 0, NULL);
 }
 
-void release_dc_data(struct wgl_dc_data* dc_data)
-{
-    (void)dc_data;
-}
-
 struct wgl_context* get_context(HGLRC hglrc)
 {
     struct wgl_context* context = (struct wgl_context*)hglrc;
@@ -138,7 +133,6 @@ HGLRC CreateAnyContext(HDC hdc, PINT iLayerPlane)
     if(!dc_data->pixelformat)
     {
         ERR("Pixel format not set!\n");
-        release_dc_data(dc_data);
         SetLastError(ERROR_INVALID_PIXEL_FORMAT);
         return NULL;
     }
@@ -148,7 +142,6 @@ HGLRC CreateAnyContext(HDC hdc, PINT iLayerPlane)
         if(iLayerPlane && (*iLayerPlane != 0))
         {
             /* Not supported in SW implementation  */
-            release_dc_data(dc_data);
             SetLastError(ERROR_INVALID_PIXEL_FORMAT);
             return NULL;
         }
@@ -165,7 +158,6 @@ HGLRC CreateAnyContext(HDC hdc, PINT iLayerPlane)
     if(!dhglrc)
     {
         ERR("Failed!\n");
-        release_dc_data(dc_data);
         SetLastError(ERROR_INVALID_PIXEL_FORMAT);
         return NULL;
     }
@@ -178,7 +170,6 @@ HGLRC CreateAnyContext(HDC hdc, PINT iLayerPlane)
             sw_DeleteContext(dhglrc);
         else
             dc_data->icd_data->DrvDeleteContext(dhglrc);
-        release_dc_data(dc_data);
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return NULL;
     }
@@ -193,7 +184,6 @@ HGLRC CreateAnyContext(HDC hdc, PINT iLayerPlane)
     InsertTailList(&ContextListHead, &context->ListEntry);
 
     TRACE("Success!\n");
-    release_dc_data(dc_data);
     return (HGLRC)context;
 }
 
@@ -212,12 +202,10 @@ INT WINAPI wglDescribePixelFormat(HDC hdc, INT format, UINT size, PIXELFORMATDES
 
     if(!descr)
     {
-        release_dc_data(dc_data);
         return ret;
     }
     if((format <= 0) || (format > ret) || (size < sizeof(*descr)))
     {
-        release_dc_data(dc_data);
         SetLastError(ERROR_INVALID_PARAMETER);
         return 0;
     }
@@ -244,7 +232,6 @@ INT WINAPI wglDescribePixelFormat(HDC hdc, INT format, UINT size, PIXELFORMATDES
         }
     }
 
-    release_dc_data(dc_data);
     return ret;
 }
 
@@ -578,7 +565,6 @@ INT WINAPI wglGetPixelFormat(HDC hdc)
     }
 
     ret = dc_data->pixelformat;
-    release_dc_data(dc_data);
     return ret;
 }
 
@@ -625,7 +611,6 @@ BOOL WINAPI wglMakeCurrent(HDC hdc, HGLRC hglrc)
         {
             /* That's bad, man */
             ERR("HGLRC %p and HDC %p are not compatible.\n", hglrc, hdc);
-            release_dc_data(dc_data);
             SetLastError(ERROR_INVALID_HANDLE);
             return FALSE;
         }

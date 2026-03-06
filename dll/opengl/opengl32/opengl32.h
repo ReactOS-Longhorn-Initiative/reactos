@@ -17,10 +17,6 @@
 #include <winddi.h>
 #include <GL/gl.h>
 
-#ifndef OPENGL32_USE_TLS
-#include <pstypes.h>
-#endif
-
 #define NTOS_MODE_USER
 #include <rtlfuncs.h>
 
