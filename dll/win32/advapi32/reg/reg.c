@@ -1822,6 +1822,44 @@ RegDeleteTreeA(IN HKEY hKey,
     return Ret;
 }
 
+/******************************************************************************
+ * RegLoadAppKeyA (kernelbase.@)
+ *
+ */
+LSTATUS RegLoadAppKeyA(IN LPCSTR lpFile,
+                       OUT PHKEY  phkResult,
+                       IN REGSAM samDesired,
+                       IN DWORD  dwOptions,
+                       IN DWORD  Reserved)
+{
+    FIXME("%s %p %lu %lu %lu: stub\n", wine_dbgstr_a(lpFile), phkResult, samDesired, dwOptions, Reserved);
+
+    if (!lpFile || Reserved)
+        return ERROR_INVALID_PARAMETER;
+
+    *phkResult = (HKEY)(SIZE_T)0xdeadbeef;
+    return ERROR_SUCCESS;
+}
+
+/******************************************************************************
+ * RegLoadAppKeyA (kernelbase.@)
+ *
+ */
+LSTATUS RegLoadAppKeyW(IN LPCWSTR lpFile,
+                       OUT PHKEY  phkResult,
+                       IN REGSAM samDesired,
+                       IN DWORD  dwOptions,
+                       IN DWORD  Reserved)
+{
+    FIXME("%s %p %lu %lu %lu: stub\n", wine_dbgstr_w(lpFile), phkResult, samDesired, dwOptions, Reserved);
+
+    if (!lpFile || Reserved)
+        return ERROR_INVALID_PARAMETER;
+
+    *phkResult = (HKEY)(SIZE_T)0xdeadbeef;
+    return ERROR_SUCCESS;
+}
+
 #ifndef _ADVAPI32_VISTA_
 
 /************************************************************************
