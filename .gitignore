@@ -5,6 +5,9 @@ modules/bootcd_extras
 modules/livecd_extras
 modules/3rdparty
 modules/[Aa][Hh][Kk]_[Tt]ests
+modules/x86
+modules/x64
+DarkFiresReactOSModules
 .cache
 .cproject
 .DS_Store
