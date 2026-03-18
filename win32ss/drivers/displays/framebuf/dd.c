@@ -21,9 +21,81 @@
 /* Here we put in all 2d api for directdraw and redirect some of them to GDI api */
 
 #include "framebuf.h"
+#include <debug.h>
+static ULONG
+DdGetBytesPerPixel(PDD_SURFACE_LOCAL pSurface, PPDEV ppdev)
+{
+    ULONG bpp = 0;
+
+    if (pSurface && pSurface->lpGbl)
+        bpp = pSurface->lpGbl->ddpfSurface.dwRGBBitCount;
+
+    if (bpp == 0 && ppdev)
+        bpp = ppdev->BitsPerPixel;
+
+    return bpp / 8;
+}
+
+static PBYTE
+DdGetSurfaceBase(PPDEV ppdev, PDD_SURFACE_LOCAL pSurface)
+{
+    FLATPTR offset;
+
+    if (!ppdev || !pSurface || !pSurface->lpGbl)
+        return NULL;
+
+    offset = pSurface->lpGbl->fpVidMem;
+    if ((pSurface->ddsCaps.dwCaps & DDSCAPS_PRIMARYSURFACE) && offset == 0)
+        return (PBYTE)ppdev->ScreenPtr;
+
+    return (PBYTE)ppdev->ScreenPtr + offset;
+}
+
+static void
+DdFillLine(PBYTE pLine, ULONG width, ULONG bytesPerPixel, DWORD color)
+{
+    ULONG x;
+
+    switch (bytesPerPixel)
+    {
+        case 1:
+            memset(pLine, (BYTE)color, width);
+            break;
+        case 2:
+        {
+            USHORT value = (USHORT)color;
+            USHORT *dst = (USHORT *)pLine;
+            for (x = 0; x < width; x++)
+                dst[x] = value;
+            break;
+        }
+        case 3:
+        {
+            BYTE r = (BYTE)(color & 0xFF);
+            BYTE g = (BYTE)((color >> 8) & 0xFF);
+            BYTE b = (BYTE)((color >> 16) & 0xFF);
+            for (x = 0; x < width; x++)
+            {
+                pLine[x * 3 + 0] = r;
+                pLine[x * 3 + 1] = g;
+                pLine[x * 3 + 2] = b;
+            }
+            break;
+        }
+        case 4:
+        {
+            ULONG *dst = (ULONG *)pLine;
+            for (x = 0; x < width; x++)
+                dst[x] = color;
+            break;
+        }
+        default:
+            break;
+    }
+}
 
 DWORD CALLBACK
-DdCanCreateSurface(LPDDHAL_CANCREATESURFACEDATA pccsd)
+DdCanCreateSurface(PDD_CANCREATESURFACEDATA pccsd)
 {
 
 	 /* We do not support 3d buffer so we fail here */
@@ -110,5 +182,178 @@ DdCreateSurface(PDD_CREATESURFACEDATA pcsd)
 
 
 	pcsd->ddRVal = DD_OK;
+    return DDHAL_DRIVER_HANDLED;
+}
+
+DWORD CALLBACK
+DdLock(PDD_LOCKDATA pld)
+{
+    PPDEV ppdev;
+    PBYTE base;
+    ULONG bytesPerPixel;
+    LONG pitch;
+    LONG left = 0;
+    LONG top = 0;
+
+    if (!pld || !pld->lpDD || !pld->lpDDSurface || !pld->lpDDSurface->lpGbl)
+    {
+        if (pld)
+            pld->ddRVal = DDERR_INVALIDPARAMS;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    ppdev = (PPDEV)pld->lpDD->dhpdev;
+    base = DdGetSurfaceBase(ppdev, pld->lpDDSurface);
+    if (!base)
+    {
+        pld->ddRVal = DDERR_GENERIC;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    pitch = pld->lpDDSurface->lpGbl->lPitch;
+    bytesPerPixel = DdGetBytesPerPixel(pld->lpDDSurface, ppdev);
+    if (bytesPerPixel == 0)
+    {
+        pld->ddRVal = DDERR_INVALIDPIXELFORMAT;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    if (pld->bHasRect)
+    {
+        left = pld->rArea.left;
+        top = pld->rArea.top;
+    }
+
+    pld->lpSurfData = base + (top * pitch) + (left * bytesPerPixel);
+    pld->ddRVal = DD_OK;
+    return DDHAL_DRIVER_HANDLED;
+}
+
+DWORD CALLBACK
+DdUnlock(PDD_UNLOCKDATA pud)
+{
+    if (!pud)
+        return DDHAL_DRIVER_NOTHANDLED;
+
+    pud->ddRVal = DD_OK;
+    return DDHAL_DRIVER_HANDLED;
+}
+
+DWORD CALLBACK
+DdSetColorKey(PDD_SETCOLORKEYDATA psck)
+{
+    if (!psck)
+        return DDHAL_DRIVER_NOTHANDLED;
+
+    psck->ddRVal = DD_OK;
+    return DDHAL_DRIVER_HANDLED;
+}
+
+DWORD CALLBACK
+DdDestroySurface(PDD_DESTROYSURFACEDATA pdsd)
+{
+    if (!pdsd)
+        return DDHAL_DRIVER_NOTHANDLED;
+
+    pdsd->ddRVal = DD_OK;
+    return DDHAL_DRIVER_HANDLED;
+}
+
+DWORD CALLBACK
+DdBlt(PDD_BLTDATA pbd)
+{
+    PPDEV ppdev;
+    PBYTE destBase;
+    PBYTE srcBase;
+    ULONG bytesPerPixel;
+    LONG destPitch;
+    LONG srcPitch;
+    LONG width;
+    LONG height;
+    DWORD flags;
+
+    if (!pbd || !pbd->lpDDDestSurface || !pbd->lpDDDestSurface->lpGbl)
+        return DDHAL_DRIVER_NOTHANDLED;
+
+    ppdev = (PPDEV)pbd->lpDD->dhpdev;
+    destBase = DdGetSurfaceBase(ppdev, pbd->lpDDDestSurface);
+    if (!destBase)
+    {
+        pbd->ddRVal = DDERR_GENERIC;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    bytesPerPixel = DdGetBytesPerPixel(pbd->lpDDDestSurface, ppdev);
+    destPitch = pbd->lpDDDestSurface->lpGbl->lPitch;
+    width = pbd->rDest.right - pbd->rDest.left;
+    height = pbd->rDest.bottom - pbd->rDest.top;
+
+    if (width <= 0 || height <= 0 || bytesPerPixel == 0)
+    {
+        pbd->ddRVal = DDERR_INVALIDPARAMS;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    flags = pbd->dwFlags & ~DDBLT_WAIT;
+    if (flags == DDBLT_COLORFILL)
+    {
+        LONG y;
+        PBYTE line = destBase + (pbd->rDest.top * destPitch) +
+                     (pbd->rDest.left * bytesPerPixel);
+
+        for (y = 0; y < height; y++)
+        {
+            DdFillLine(line, width, bytesPerPixel, pbd->bltFX.dwFillColor);
+            line += destPitch;
+        }
+
+        pbd->ddRVal = DD_OK;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    if (flags != 0 || !pbd->lpDDSrcSurface || !pbd->lpDDSrcSurface->lpGbl)
+        return DDHAL_DRIVER_NOTHANDLED;
+
+    srcBase = DdGetSurfaceBase(ppdev, pbd->lpDDSrcSurface);
+    if (!srcBase)
+    {
+        pbd->ddRVal = DDERR_GENERIC;
+        return DDHAL_DRIVER_HANDLED;
+    }
+
+    srcPitch = pbd->lpDDSrcSurface->lpGbl->lPitch;
+    if (width != (pbd->rSrc.right - pbd->rSrc.left) ||
+        height != (pbd->rSrc.bottom - pbd->rSrc.top))
+    {
+        return DDHAL_DRIVER_NOTHANDLED;
+    }
+
+    {
+        LONG y;
+        PBYTE dstLine = destBase + (pbd->rDest.top * destPitch) +
+                        (pbd->rDest.left * bytesPerPixel);
+        PBYTE srcLine = srcBase + (pbd->rSrc.top * srcPitch) +
+                        (pbd->rSrc.left * bytesPerPixel);
+        ULONG rowBytes = (ULONG)width * bytesPerPixel;
+
+        for (y = 0; y < height; y++)
+        {
+            memmove(dstLine, srcLine, rowBytes);
+            dstLine += destPitch;
+            srcLine += srcPitch;
+        }
+    }
+
+    pbd->ddRVal = DD_OK;
+    return DDHAL_DRIVER_HANDLED;
+}
+
+DWORD CALLBACK
+DdFlip(PDD_FLIPDATA pfd)
+{
+    if (!pfd || !pfd->lpSurfCurr || !pfd->lpSurfTarg)
+        return DDHAL_DRIVER_NOTHANDLED;
+
+    pfd->ddRVal = DD_OK;
     return DDHAL_DRIVER_HANDLED;
 }
