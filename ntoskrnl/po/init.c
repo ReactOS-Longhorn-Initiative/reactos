@@ -187,14 +187,28 @@ PopInitBattery(VOID)
 /**
  * @brief
  * Initializes the Power Framework (PoFx) mechanism.
+ *
+ * @remarks
+ * The Power Framework (PoFx) provides fine-grained, per-component power
+ * management for device drivers. It works in conjunction with Platform
+ * Extension Plug-ins (PEPs) to allow hardware-specific power optimizations.
+ * This initialization sets up the global device and plugin registries that
+ * PoFxRegisterDevice and PEP registration routines rely on.
  */
 static
 VOID
 PopInitPoFxManager(VOID)
 {
-    /* FIXME */
     PAGED_CODE();
-    UNIMPLEMENTED;
+
+    /* Initialize the global list of PoFx-registered devices and its lock */
+    InitializeListHead(&PopFxDeviceList);
+    KeInitializeSpinLock(&PopFxDeviceLock);
+
+    /* Initialize the global list of Platform Extension Plug-ins and its lock */
+    InitializeListHead(&PopFxPluginList);
+    KeInitializeSpinLock(&PopFxPluginLock);
+
     return;
 }
 
@@ -273,16 +287,47 @@ PopCreatePowerRequestObjectType(VOID)
 
 /**
  * @brief
- * Initializes the thermal request mechanism.
+ * Initializes the thermal request mechanism by creating the ThermalRequest
+ * kernel object type. This object type is subsequently used by
+ * PoCreateThermalRequest to allocate per-device cooling extension objects,
+ * which are managed through the Object Manager like power request objects.
+ *
+ * @return
+ * Returns STATUS_SUCCESS if the ThermalRequest object type was created
+ * successfully. Otherwise a failure NTSTATUS code is returned.
  */
 CODE_SEG("INIT")
 NTSTATUS
 NTAPI
 PopCreateThermalRequestObjectType(VOID)
 {
-    /* FIXME */
+    NTSTATUS Status;
+    UNICODE_STRING Name;
+    OBJECT_TYPE_INITIALIZER ObjectTypeInitializer;
+
     PAGED_CODE();
-    UNIMPLEMENTED;
+
+    /* Initialize the ThermalRequest object type data */
+    RtlZeroMemory(&ObjectTypeInitializer, sizeof(ObjectTypeInitializer));
+    RtlInitUnicodeString(&Name, L"ThermalRequest");
+    ObjectTypeInitializer.Length = sizeof(ObjectTypeInitializer);
+    ObjectTypeInitializer.InvalidAttributes = OBJ_OPENLINK;
+    ObjectTypeInitializer.SecurityRequired = TRUE;
+    ObjectTypeInitializer.DefaultPagedPoolCharge = sizeof(POP_COOLING_EXTENSION);
+    ObjectTypeInitializer.PoolType = PagedPool;
+    ObjectTypeInitializer.ValidAccessMask = STANDARD_RIGHTS_ALL;
+    ObjectTypeInitializer.UseDefaultObject = TRUE;
+    ObjectTypeInitializer.CloseProcedure = PopCloseThermalRequestObject;
+    ObjectTypeInitializer.DeleteProcedure = NULL;
+
+    /* Register the ThermalRequest object type with the Object Manager */
+    Status = ObCreateObjectType(&Name, &ObjectTypeInitializer, NULL, &PoThermalRequestObjectType);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("Failed to create the thermal request object type (Status 0x%lx)\n", Status);
+        return Status;
+    }
+
     return STATUS_SUCCESS;
 }
 
@@ -418,7 +463,14 @@ PopInitSystemPhase0(VOID)
 
     /* Initialize the list of devices that woke the system */
     InitializeListHead(&PopWakeSourceDevicesList);
-    PopSystemFullWake = 0; // FIXME: Set a proper wake mode for the system
+    /*
+     * Initialize the full-wake mode flag for the system. At power-on, the system
+     * has not yet determined whether it is performing a full-wake (e.g. from S3/S4)
+     * or a cold boot, so the initial value is 0 (no special wake mode in force).
+     * This value is later updated when the system wakes from a sleep or hibernation
+     * state via the wake source management infrastructure.
+     */
+    PopSystemFullWake = 0;
 
     /*
      * Assign the default shutdown power states upon the initialization of the

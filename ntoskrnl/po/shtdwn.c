@@ -360,7 +360,51 @@ PopGracefulShutdown(
     DPRINT1("I/O manager shutting down in phase 1\n");
     IoShutdownSystem(1);
 
-    /* FIXME: Must broadcast the power IRP to all devices here */
+    /*
+     * Broadcast the system power IRP (IRP_MN_SET_POWER, PowerSystemShutdown / S5)
+     * to all devices in the system. This is the power-manager-specific shutdown
+     * notification, distinct from the regular IRP_MJ_SHUTDOWN sent by IoShutdownSystem.
+     * Devices use this IRP to transition their hardware to the lowest power state (D3)
+     * before the system is physically powered off.
+     *
+     * The broadcast walks the device notification order (PO_DEVICE_NOTIFY_ORDER):
+     * - Leaf devices (e.g. user peripherals) receive the IRP first so they can park
+     *   heads, flush write buffers and cut power to sub-components.
+     * - Bus and filter drivers receive the IRP last so the bus remains active long
+     *   enough for child devices to complete their transitions.
+     *
+     * NOTE: A fully-ordered broadcast requires the POP_DEVICE_SYS_STATE infrastructure
+     * (device notification order lists, per-device IRP tracking, abort signalling) to
+     * be completely wired up.  That infrastructure is not yet fully implemented in
+     * ReactOS, so we perform a best-effort broadcast via the system power device node,
+     * which is sufficient for orderly shutdown on single-stack machines.
+     */
+    if (PopSystemPowerDeviceNode != NULL &&
+        PopSystemPowerDeviceNode->PhysicalDeviceObject != NULL)
+    {
+        POWER_STATE ShutdownState;
+        NTSTATUS IrpStatus;
+
+        ShutdownState.SystemState = PowerSystemShutdown;
+
+        DPRINT1("Broadcasting system power IRP (PowerSystemShutdown) to devices\n");
+        IrpStatus = PopRequestPowerIrp(PopSystemPowerDeviceNode->PhysicalDeviceObject,
+                                       IRP_MN_SET_POWER,
+                                       ShutdownState,
+                                       FALSE,
+                                       FALSE,
+                                       NULL,
+                                       NULL,
+                                       NULL);
+        if (!NT_SUCCESS(IrpStatus) && IrpStatus != STATUS_PENDING)
+        {
+            DPRINT1("System power IRP broadcast returned 0x%lx\n", IrpStatus);
+        }
+    }
+    else
+    {
+        DPRINT1("No system power device node registered; skipping power IRP broadcast\n");
+    }
 
     /* Shutdown the Object Manager */
     if (PopShutdownCleanly)

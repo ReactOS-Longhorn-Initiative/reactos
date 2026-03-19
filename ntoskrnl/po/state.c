@@ -25,31 +25,63 @@ POWER_STATE_HANDLER PopDefaultPowerStateHandlers[PowerStateMaximum] = {0};
 /**
  * @brief
  * Restores the system from the idle state into active state by resetting
- * the system idle counter.
+ * the system idle counter. Notifies Win32k of a full-wake system event
+ * so that the subsystem can bring the system out of its idle sleep.
+ *
+ * @remarks
+ * This function is called whenever a new power request that requires the
+ * system to stay awake is created (ES_SYSTEM_REQUIRED), or when the Power
+ * Manager decides the system must not idle any further.
  */
 static
 VOID
 PopSystemRequired(VOID)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    return;
+    WIN32_POWEREVENT_PARAMETERS Params;
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+
+    /*
+     * Notify Win32k that the system has been fully woken up (PsW32FullWake).
+     * Win32k uses this event to restore the system to an active display state
+     * and to signal any subsystems that the machine is no longer idle.
+     *
+     * The Code field carries no meaningful data for this particular event.
+     */
+    Params.EventNumber = PsW32FullWake;
+    Params.Code = 0;
+    PopDispatchPowerEvent(&Params);
 }
 
 /**
  * @brief
  * Restores the display from the idle state by invoking a power callout
  * to Win32k to make the display busy. The display idle counter is reset.
- * If the display was diming, Win32k passes this request further down
- * to Videoprt to un-dim the display and whatever is needed.
+ * If the display was dimming, Win32k passes this request further down
+ * to Videoprt to un-dim the display and restore it to its normal state.
+ *
+ * @remarks
+ * This function is called whenever a power request that requires the display
+ * to stay on is created (ES_DISPLAY_REQUIRED).
  */
 static
 VOID
 PopDisplayRequired(VOID)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    return;
+    WIN32_POWEREVENT_PARAMETERS Params;
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+
+    /*
+     * Signal Win32k that the display must be brought back on (PsW32DisplayState).
+     * Win32k will pass this down to the display driver and video port if the
+     * display was dimmed or powered off.
+     *
+     * The Code field is 1 to indicate the display should be active (on).
+     */
+    Params.EventNumber = PsW32DisplayState;
+    Params.Code = 1;
+    PopDispatchPowerEvent(&Params);
 }
 
 /**
@@ -57,14 +89,35 @@ PopDisplayRequired(VOID)
  * Marks the system as having a user that interacts with the machine physically.
  * This is usually invoked when waking up from sleep or from staying idle for too long.
  * This function invokes a power callout to Win32k to indicate the presence of a user.
+ *
+ * @remarks
+ * This function is called whenever a power request that indicates user presence
+ * is created (ES_USER_PRESENT), or the system detects physical user activity such
+ * as mouse or keyboard input.
  */
 static
 VOID
 PopUserPresent(VOID)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    return;
+    WIN32_POWEREVENT_PARAMETERS Params;
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+
+    /*
+     * Notify Win32k that a user is physically present at the machine (PsW32FullWake).
+     * Win32k uses this event to wake up the display, reset idle timers, and alert
+     * any session that a user has become active at the console.
+     *
+     * We also dispatch a display-state event (PsW32DisplayState, Code 1) first
+     * so the display comes back on before user-presence processing takes place.
+     */
+    Params.EventNumber = PsW32DisplayState;
+    Params.Code = 1;
+    PopDispatchPowerEvent(&Params);
+
+    Params.EventNumber = PsW32FullWake;
+    Params.Code = 0;
+    PopDispatchPowerEvent(&Params);
 }
 
 /**

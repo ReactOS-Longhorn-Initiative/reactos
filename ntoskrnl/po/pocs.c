@@ -40,6 +40,8 @@ PopPerformButtonAction(
     _In_ PPOP_CONTROL_SWITCH ControlSwitch,
     _In_ ULONG Event)
 {
+    WIN32_POWEREVENT_PARAMETERS Params;
+
     /* Performing a power action from an unknown switch type is a serious bug */
     ASSERT(ControlSwitch->SwitchType != SwitchNone);
 
@@ -62,33 +64,129 @@ PopPerformButtonAction(
              */
             ControlSwitch->Switch.Lid.Opened = !ControlSwitch->Switch.Lid.Opened;
 
-            /* FIXME: Do more lid related stuff (alert callbacks, etc.) */
-            UNIMPLEMENTED;
+            /*
+             * Notify all registered power setting callbacks that the lid state
+             * has changed. Drivers and user-mode components (e.g. battery monitors,
+             * screen savers) use this notification to adapt their behavior when the
+             * lid is closed (e.g. dim the display, prepare for sleep) or opened
+             * (e.g. restore the display, resume activity).
+             */
             PopNotifyPowerSettingChange(&GUID_LIDSWITCH_STATE_CHANGE);
+
+            if (ControlSwitch->Switch.Lid.Opened)
+            {
+                /*
+                 * Lid was just opened. Alert Win32k that the display should come
+                 * back on and that a user may be present at the machine.
+                 */
+                Params.EventNumber = PsW32DisplayState;
+                Params.Code = 1;
+                PopDispatchPowerEvent(&Params);
+
+                Params.EventNumber = PsW32FullWake;
+                Params.Code = 0;
+                PopDispatchPowerEvent(&Params);
+
+                /*
+                 * Issue a PowerActionNone transition to the LidOpenWake state so
+                 * Winlogon receives notice that the lid has been opened and can
+                 * unlock the interactive session. The POWER_ACTION_LOCK_CONSOLE flag
+                 * is intentionally NOT set, which is what causes the session unlock.
+                 * When a full power action policy for lid-open wake (LidOpenWake) is
+                 * implemented, the appropriate sleep state should be exited here.
+                 */
+                NtInitiatePowerAction(PowerActionNone,
+                                      PopDefaultPowerPolicy->LidOpenWake,
+                                      0,
+                                      FALSE);
+            }
+            else
+            {
+                /*
+                 * Lid was just closed. Evaluate the currently active power policy
+                 * for the lid close event. The action is read from LidClose.Action
+                 * (e.g. PowerActionNone, PowerActionSleep, PowerActionHibernate)
+                 * and dispatched via NtInitiatePowerAction together with the
+                 * minimum sleep state and any policy-specific flags.
+                 */
+                if (PopDefaultPowerPolicy->LidClose.Action != PowerActionNone)
+                {
+                    DPRINT("PopPerformButtonAction: Lid closed, initiating action %d\n",
+                           PopDefaultPowerPolicy->LidClose.Action);
+
+                    NtInitiatePowerAction(PopDefaultPowerPolicy->LidClose.Action,
+                                         PopDefaultPowerPolicy->MinSleep,
+                                         PopDefaultPowerPolicy->LidClose.Flags,
+                                         FALSE);
+                }
+                else
+                {
+                    DPRINT("PopPerformButtonAction: Lid closed, no action configured\n");
+                }
+            }
         }
         else
         {
-            /* A different button key (or just the power button) woke the system */
-            /* FIXME: Do stuff here (reset all the switch triggers, alert the presence of a user to Win32k, etc) */
-            UNIMPLEMENTED;
+            /*
+             * A non-lid switch (such as the power button or sleep button) has been
+             * used to wake the system from sleep. Reset all active switch triggers
+             * and alert Win32k of the full-wake event so the display and subsystems
+             * are restored.
+             */
+            ControlSwitch->Switch.Button.Triggered = FALSE;
+
+            Params.EventNumber = PsW32FullWake;
+            Params.Code = 0;
+            PopDispatchPowerEvent(&Params);
+
+            DPRINT("PopPerformButtonAction: System woken by non-lid button\n");
         }
     }
 
-    /* The power button was pressed, handle it to appropriate switch */
+    /* The power button was pressed, perform the configured power action */
     if (Event == SYS_BUTTON_POWER &&
         ControlSwitch->SwitchType == SwitchButtonPower)
     {
-        /* FIXME: See the big NOTE below */
+        /* Mark the power button as having been triggered */
         ControlSwitch->Switch.Button.Triggered = TRUE;
-        ZwShutdownSystem(ShutdownNoReboot);
+
+        /*
+         * Evaluate the currently active power policy for the power button.
+         * PopDefaultPowerPolicy->PowerButton.Action holds the action to take
+         * (e.g. PowerActionShutdownOff, PowerActionSleep, PowerActionHibernate).
+         * Forward the policy action and minimum sleep state to NtInitiatePowerAction
+         * so the Power Action Manager drives the proper shutdown/sleep sequence.
+         */
+        DPRINT("PopPerformButtonAction: Power button pressed, action %d\n",
+               PopDefaultPowerPolicy->PowerButton.Action);
+
+        NtInitiatePowerAction(PopDefaultPowerPolicy->PowerButton.Action,
+                              PopDefaultPowerPolicy->MinSleep,
+                              PopDefaultPowerPolicy->PowerButton.Flags,
+                              FALSE);
     }
 
-    /*
-     * NOTE to myself: The function's implementation needs to be completed once
-     * I am ready to write code for power actions support (in act.c) that is
-     * responsible to issue power actions due to requests by PO itself or outside
-     * requestors (e.g. from NtInitiatePowerAction).
-     */
+    /* Handle the sleep button press */
+    if (Event == SYS_BUTTON_SLEEP &&
+        ControlSwitch->SwitchType == SwitchButtonSleep)
+    {
+        /* Mark the sleep button as having been triggered */
+        ControlSwitch->Switch.Button.Triggered = TRUE;
+
+        /*
+         * The sleep button triggers the sleep action from the active power
+         * policy. PopDefaultPowerPolicy->SleepButton.Action holds the desired
+         * action (e.g. PowerActionSleep or PowerActionHibernate).
+         * Forward the policy action and minimum sleep state to NtInitiatePowerAction.
+         */
+        DPRINT("PopPerformButtonAction: Sleep button pressed, action %d\n",
+               PopDefaultPowerPolicy->SleepButton.Action);
+
+        NtInitiatePowerAction(PopDefaultPowerPolicy->SleepButton.Action,
+                              PopDefaultPowerPolicy->MinSleep,
+                              PopDefaultPowerPolicy->SleepButton.Flags,
+                              FALSE);
+    }
 }
 
 /**

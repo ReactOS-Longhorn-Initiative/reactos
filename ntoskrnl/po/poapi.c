@@ -1354,7 +1354,7 @@ PoClearPowerRequest(
  * @param[out] ThermalRequest
  * A pointer to a thermal request object, returned to the caller.
  * The caller is responsible to delete the said object once it's
- * no longer needed.
+ * no longer needed by calling PoDeleteThermalRequest.
  *
  * @param[in] TargetDeviceObject
  * A pointer to the target device object of which it has to
@@ -1376,6 +1376,13 @@ PoClearPowerRequest(
  * Returns STATUS_SUCCESS if the thermal request object has been
  * created successfully, otherwise a failure NSTATUS code is
  * returned.
+ *
+ * @remarks
+ * Internally, a thermal request is backed by a POP_COOLING_EXTENSION
+ * kernel object which holds the thermal cooling interface pointers and
+ * its current engagement state. The cooling extension is also linked
+ * into the Device Object Power Extension (DOPE) of the target device
+ * so that the Power Manager can locate it when thermal zone events fire.
  */
 NTSTATUS
 NTAPI
@@ -1386,9 +1393,77 @@ PoCreateThermalRequest(
     _In_ PCOUNTED_REASON_CONTEXT Context,
     _In_ ULONG Flags)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    return STATUS_NOT_IMPLEMENTED;
+    NTSTATUS Status;
+    PPOP_COOLING_EXTENSION CoolingExtension;
+    PDEVICE_OBJECT_POWER_EXTENSION TargetDope;
+
+    PAGED_CODE();
+
+    UNREFERENCED_PARAMETER(Context);
+    UNREFERENCED_PARAMETER(Flags);
+
+    /* Validate mandatory parameters */
+    if (!ThermalRequest || !TargetDeviceObject || !PolicyDeviceObject)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Assume failure */
+    *ThermalRequest = NULL;
+
+    /* Allocate a cooling extension kernel object through the Object Manager */
+    Status = ObCreateObject(KernelMode,
+                            PoThermalRequestObjectType,
+                            NULL,
+                            KernelMode,
+                            NULL,
+                            sizeof(POP_COOLING_EXTENSION),
+                            0,
+                            0,
+                            (PVOID *)&CoolingExtension);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("Failed to allocate a thermal request cooling extension (Status 0x%lx)\n", Status);
+        return Status;
+    }
+
+    /* Initialize all fields of the cooling extension */
+    RtlZeroMemory(CoolingExtension, sizeof(POP_COOLING_EXTENSION));
+    InitializeListHead(&CoolingExtension->Link);
+    InitializeListHead(&CoolingExtension->RequestListHead);
+    CoolingExtension->DeviceObject = PolicyDeviceObject;
+    CoolingExtension->Enabled = TRUE;
+
+    /*
+     * By default, no active cooling is engaged and the passive throttle limit
+     * is set to 100% (no throttling imposed yet). These will be updated later
+     * when the caller invokes PoSetThermalActiveCooling or PoSetThermalPassiveCooling.
+     */
+    CoolingExtension->ActiveEngaged = FALSE;
+    CoolingExtension->ThrottleLimit = 100;
+
+    /*
+     * Associate this cooling extension with the DOPE of the target device.
+     * The Power Manager uses the DOPE link to locate the cooling extension
+     * during thermal zone events and IRP dispatch.
+     */
+    TargetDope = PopGetDope(TargetDeviceObject);
+    if (TargetDope != NULL)
+    {
+        TargetDope->CoolingExtension = CoolingExtension;
+    }
+    else
+    {
+        DPRINT1("Failed to get or allocate a DOPE for target DO (0x%p), thermal association skipped\n",
+                TargetDeviceObject);
+    }
+
+    /* Return the allocated thermal request to the caller */
+    *ThermalRequest = CoolingExtension;
+    DPRINT("Created thermal request (0x%p) for PPO DO (0x%p) against target DO (0x%p)\n",
+           CoolingExtension, PolicyDeviceObject, TargetDeviceObject);
+
+    return STATUS_SUCCESS;
 }
 
 /**
@@ -1398,15 +1473,30 @@ PoCreateThermalRequest(
  *
  * @param[in,out] ThermalRequest
  * A pointer to a thermal request object to be deleted.
+ *
+ * @remarks
+ * This function releases the Object Manager reference on the thermal
+ * request (cooling extension) object. When the last reference is
+ * dropped the close procedure PopCloseThermalRequestObject is invoked,
+ * which disengages cooling and deregisters any PnP notification entry
+ * held by the object.
  */
 VOID
 NTAPI
 PoDeleteThermalRequest(
     _Inout_ PVOID ThermalRequest)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    NOTHING;
+    PAGED_CODE();
+
+    /* Passing a NULL thermal request is illegal */
+    ASSERT(ThermalRequest != NULL);
+
+    /*
+     * Invoke the close procedure on this object so that it can go away.
+     * The object has exactly one reference created at PoCreateThermalRequest time,
+     * so dereferencing it here will immediately trigger PopCloseThermalRequestObject.
+     */
+    ObDereferenceObject(ThermalRequest);
 }
 
 /**
@@ -1416,11 +1506,26 @@ PoDeleteThermalRequest(
  *
  * @param[in,out] ThermalRequest
  * A pointer to a thermal request object of which passive cooling
- * constaint is to be updated.
+ * constraint is to be updated.
  *
  * @param[in] Throttle
  * The new passive cooling throttle limit level to be set for this
- * thermal request.
+ * thermal request. This value ranges from 0 to 100, where 100
+ * indicates no throttling and 0 indicates maximum throttling.
+ *
+ * @return
+ * Returns STATUS_SUCCESS if the throttle limit was set successfully.
+ * STATUS_INVALID_PARAMETER is returned if ThermalRequest is NULL or
+ * the cooling extension has been disabled. STATUS_NOT_SUPPORTED is
+ * returned if the cooling extension's interface does not provide a
+ * passive cooling routine.
+ *
+ * @remarks
+ * This function calls the PassiveCooling interface routine of the
+ * cooling extension if one is installed, informing the target device's
+ * cooling driver of the new throttle limit. The Power Manager sets
+ * this limit in response to thermal zone temperature crossing a
+ * passive cooling trip point.
  */
 NTSTATUS
 NTAPI
@@ -1428,10 +1533,46 @@ PoSetThermalPassiveCooling(
   _Inout_ PVOID ThermalRequest,
   _In_ UCHAR Throttle)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    UNREFERENCED_PARAMETER(ThermalRequest);
-    return STATUS_NOT_IMPLEMENTED;
+    PPOP_COOLING_EXTENSION CoolingExtension;
+
+    PAGED_CODE();
+
+    /* A NULL thermal request is a fatal error */
+    if (ThermalRequest == NULL)
+    {
+        DPRINT1("PoSetThermalPassiveCooling: NULL thermal request supplied\n");
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    CoolingExtension = (PPOP_COOLING_EXTENSION)ThermalRequest;
+
+    /* Do not operate on a disabled (deleted) cooling extension */
+    if (!CoolingExtension->Enabled)
+    {
+        DPRINT1("PoSetThermalPassiveCooling: cooling extension (0x%p) is disabled\n",
+                CoolingExtension);
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Persist the new throttle limit in the cooling extension */
+    CoolingExtension->ThrottleLimit = Throttle;
+
+    /*
+     * If a passive cooling interface routine is installed, delegate to it
+     * so the device's ACPI/thermal driver can apply the hardware throttle.
+     */
+    if (CoolingExtension->Interface.PassiveCooling == NULL)
+    {
+        DPRINT("PoSetThermalPassiveCooling: no passive cooling interface on extension (0x%p)\n",
+               CoolingExtension);
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    CoolingExtension->Interface.PassiveCooling(CoolingExtension->Interface.Context, Throttle);
+    DPRINT("PoSetThermalPassiveCooling: throttle set to %u%% on extension (0x%p)\n",
+           Throttle, CoolingExtension);
+
+    return STATUS_SUCCESS;
 }
 
 /**
@@ -1444,8 +1585,22 @@ PoSetThermalPassiveCooling(
  * is to be enforced or disabled.
  *
  * @param[in] Engaged
- * If set to TRUE, the active cooling will be engaged. Set it to
- * FALSE otherwise.
+ * If set to TRUE, the active cooling will be engaged (e.g. a fan is
+ * turned on). Set it to FALSE to disengage active cooling.
+ *
+ * @return
+ * Returns STATUS_SUCCESS if the active cooling engagement was updated.
+ * STATUS_INVALID_PARAMETER is returned if ThermalRequest is NULL or
+ * the cooling extension has been disabled. STATUS_NOT_SUPPORTED is
+ * returned if the cooling extension's interface does not provide an
+ * active cooling routine.
+ *
+ * @remarks
+ * This function calls the ActiveCooling interface routine of the
+ * cooling extension, informing the target device's thermal driver
+ * (typically the ACPI fan device driver) to start or stop active
+ * cooling. The Power Manager invokes this when a thermal zone crosses
+ * an active cooling trip point.
  */
 NTSTATUS
 NTAPI
@@ -1453,10 +1608,46 @@ PoSetThermalActiveCooling(
   _Inout_ PVOID ThermalRequest,
   _In_ BOOLEAN Engaged)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    UNREFERENCED_PARAMETER(ThermalRequest);
-    return STATUS_NOT_IMPLEMENTED;
+    PPOP_COOLING_EXTENSION CoolingExtension;
+
+    PAGED_CODE();
+
+    /* A NULL thermal request is a fatal error */
+    if (ThermalRequest == NULL)
+    {
+        DPRINT1("PoSetThermalActiveCooling: NULL thermal request supplied\n");
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    CoolingExtension = (PPOP_COOLING_EXTENSION)ThermalRequest;
+
+    /* Do not operate on a disabled (deleted) cooling extension */
+    if (!CoolingExtension->Enabled)
+    {
+        DPRINT1("PoSetThermalActiveCooling: cooling extension (0x%p) is disabled\n",
+                CoolingExtension);
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Persist the engagement state in the cooling extension */
+    CoolingExtension->ActiveEngaged = Engaged;
+
+    /*
+     * If an active cooling interface routine is installed, delegate to it
+     * so the device's fan driver can physically engage or disengage cooling.
+     */
+    if (CoolingExtension->Interface.ActiveCooling == NULL)
+    {
+        DPRINT("PoSetThermalActiveCooling: no active cooling interface on extension (0x%p)\n",
+               CoolingExtension);
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    CoolingExtension->Interface.ActiveCooling(CoolingExtension->Interface.Context, Engaged);
+    DPRINT("PoSetThermalActiveCooling: active cooling %s on extension (0x%p)\n",
+           Engaged ? "engaged" : "disengaged", CoolingExtension);
+
+    return STATUS_SUCCESS;
 }
 
 /**
@@ -1465,18 +1656,29 @@ PoSetThermalActiveCooling(
  * thermal cooling interface.
  *
  * @param[in] ThermalRequest
- * A pointer to a thermal request object that is to be determined
+ * A pointer to a thermal request object that is to be queried for
  * its cooling capability.
  *
  * @param[in] Type
  * The type of the cooling mechanism interface to check against.
  * The following types are:
  *
- * PoThermalRequestPassive -- The following thermal request supports
- *                            the passive cooling interface.
+ * PoThermalRequestPassive -- Query whether the thermal request supports
+ *                            the passive cooling interface (throttling).
  *
- * PoThermalRequestActive -- The following thermal request supports
- *                           the active cooling interface.
+ * PoThermalRequestActive  -- Query whether the thermal request supports
+ *                            the active cooling interface (e.g. fan control).
+ *
+ * @return
+ * Returns TRUE if the thermal request supports the queried cooling type.
+ * Returns FALSE if the type is not supported or ThermalRequest is NULL.
+ *
+ * @remarks
+ * Support is determined by checking whether the corresponding interface
+ * function pointer (PassiveCooling or ActiveCooling) in the cooling
+ * extension's THERMAL_COOLING_INTERFACE is non-NULL. The interface
+ * pointers are filled in by the ACPI/thermal driver when it installs
+ * its cooling interface via IRP_MN_QUERY_INTERFACE.
  */
 BOOLEAN
 NTAPI
@@ -1484,10 +1686,42 @@ PoGetThermalRequestSupport(
   _In_ PVOID ThermalRequest,
   _In_ PO_THERMAL_REQUEST_TYPE Type)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    UNREFERENCED_PARAMETER(ThermalRequest);
-    return FALSE;
+    PPOP_COOLING_EXTENSION CoolingExtension;
+
+    PAGED_CODE();
+
+    /* A NULL thermal request or a disabled extension supports nothing */
+    if (ThermalRequest == NULL)
+    {
+        return FALSE;
+    }
+
+    CoolingExtension = (PPOP_COOLING_EXTENSION)ThermalRequest;
+    if (!CoolingExtension->Enabled)
+    {
+        return FALSE;
+    }
+
+    switch (Type)
+    {
+        case PoThermalRequestPassive:
+            /*
+             * The thermal request supports passive cooling if a PassiveCooling
+             * interface routine has been installed in the cooling extension.
+             */
+            return (CoolingExtension->Interface.PassiveCooling != NULL);
+
+        case PoThermalRequestActive:
+            /*
+             * The thermal request supports active cooling if an ActiveCooling
+             * interface routine has been installed in the cooling extension.
+             */
+            return (CoolingExtension->Interface.ActiveCooling != NULL);
+
+        default:
+            DPRINT1("PoGetThermalRequestSupport: unknown thermal request type %d\n", Type);
+            return FALSE;
+    }
 }
 
 /* EOF */

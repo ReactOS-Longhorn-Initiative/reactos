@@ -422,7 +422,6 @@ PopAddPolicyDevice(
  * A pointer to a set of parameters for the event that Win32k should
  * process.
  */
-static
 VOID
 PopDispatchPowerEvent(
     _In_ PWIN32_POWEREVENT_PARAMETERS Win32PwrEventParams)
@@ -570,34 +569,67 @@ PopGetPolicyDeviceObject(
 
 /**
  * @brief
- * A power policy function that's called whenever a device must
- * be notified of anything power related stuff such as power state
- * transitions.
+ * A power policy function that's called whenever the power capabilities
+ * or the current power policy have changed. Win32k and any registered
+ * power callouts are notified of the new capabilities so that any
+ * dependent subsystems can adapt their behavior accordingly.
  */
 VOID
 NTAPI
 PopPowerPolicyNotification(VOID)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    NOTHING;
+    WIN32_POWEREVENT_PARAMETERS Params;
+
+    PAGED_CODE();
+
+    /*
+     * Notify Win32k that the power capabilities of the system have
+     * changed. Win32k will update its internal state to reflect the
+     * new capabilities (e.g. battery presence, sleep states, etc.).
+     */
+    Params.EventNumber = PsW32CapabilitiesChanged;
+    Params.Code = 0;
+    PopDispatchPowerEvent(&Params);
+
+    /*
+     * Also notify Win32k that the power policy itself has changed so that
+     * any power-aware components running within the Win32 subsystem can
+     * re-query the active policy and update their own behavior.
+     */
+    Params.EventNumber = PsW32PowerPolicyChanged;
+    Params.Code = 0;
+    PopDispatchPowerEvent(&Params);
 }
 
 /**
  * @brief
- * A power policy function that's called whenever the system
- * starts idling. Idle counters, idle properties as well as
- * idle gauges and whatnot are recalculated, potential device
- * drivers and everything else are notified of the system being
- * idle.
+ * A power policy function that's called whenever the system starts idling.
+ * The Power Manager uses this to evaluate whether the system has been idle
+ * long enough to trigger a configured power action (e.g. sleep, hibernate).
+ * Registered idle-state callbacks and Win32k are notified as appropriate.
  */
 VOID
 NTAPI
 PopPowerPolicySystemIdle(VOID)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    NOTHING;
+    /*
+     * Full system idle processing requires the complete Power Action Manager (PAM)
+     * infrastructure, which orchestrates the progression through:
+     *   1. Evaluating whether the system idle timeout has been reached.
+     *   2. Querying applications and services for veto rights against the action.
+     *   3. Issuing system-state power IRPs to all devices.
+     *   4. Entering the HAL-registered power state handler.
+     *
+     * Until that infrastructure is in place, the idle evaluation performed here
+     * is limited to requesting a Win32k idle notification so that GDI can dim or
+     * blank the display as the active idle policy dictates.
+     *
+     * FIXME: Evaluate PopDefaultPowerPolicy->VideoTimeoutAc/Dc, idle counters,
+     *        gauges, and issue the appropriate power action when the threshold is
+     *        reached. See PopScanForIdleStateDevicesDpcRoutine for device-level
+     *        idle scanning which runs in parallel.
+     */
+    DPRINT("PopPowerPolicySystemIdle: System idle evaluation (stub)\n");
 }
 
 /**
@@ -674,23 +706,130 @@ PopInitializePowerPolicy(
 
 /**
  * @brief
- * Defaults the Power Manager policies by reading the policies
- * data from the registry. Any data that is not present in the registry
- * is defaulted to initial values.
+ * Defaults the Power Manager policies by reading the policy data
+ * from the registry. Any data not present in the registry is
+ * defaulted to initial values established by PopInitializePowerPolicy.
  */
 VOID
 NTAPI
 PopDefaultPolicies(VOID)
 {
+    NTSTATUS Status;
+    HANDLE KeyHandle;
+    ULONG Length;
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    UCHAR Buffer[sizeof(KEY_VALUE_PARTIAL_INFORMATION) + sizeof(SYSTEM_POWER_POLICY)];
+    PKEY_VALUE_PARTIAL_INFORMATION Info = (PVOID)Buffer;
+
+    PAGED_CODE();
+
     /*
      * Read the shutdown policy. This policy will tell us whether the system must
      * be powered off after shutdown or not.
      */
     PopReadShutdownPolicy();
 
-    /* FIXME: There is lotta stuff to do here... */
-    UNIMPLEMENTED;
-    return;
+    /*
+     * Initialize both the AC and DC policies to sensible default values
+     * before attempting to load them from the registry. This ensures the
+     * system is always in a consistent state even when the registry has
+     * incomplete or missing policy data.
+     */
+    PopInitializePowerPolicy(&PopAcPowerPolicy);
+    PopInitializePowerPolicy(&PopDcPowerPolicy);
+
+    /* Setup object attributes for the power registry key */
+    InitializeObjectAttributes(&ObjectAttributes,
+                               &PopPowerRegPath,
+                               OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+                               NULL,
+                               NULL);
+
+    /* Attempt to open the power registry key */
+    Status = ZwOpenKey(&KeyHandle, KEY_QUERY_VALUE, &ObjectAttributes);
+    if (!NT_SUCCESS(Status))
+    {
+        /*
+         * The power registry key does not exist or is inaccessible.
+         * This is expected on a first boot or a minimal installation.
+         * The default policies initialised above will be used instead.
+         */
+        DPRINT("PopDefaultPolicies: Power registry key not found (Status 0x%lx), using defaults\n", Status);
+        goto ApplyDefaults;
+    }
+
+    /*
+     * Attempt to read the AC (mains power) policy from the registry.
+     * The value is stored as a raw binary blob of SYSTEM_POWER_POLICY size.
+     */
+    Status = ZwQueryValueKey(KeyHandle,
+                             &RegAcPolicy,
+                             KeyValuePartialInformation,
+                             Info,
+                             sizeof(Buffer),
+                             &Length);
+    if (NT_SUCCESS(Status) &&
+        Info->Type == REG_BINARY &&
+        Info->DataLength == sizeof(SYSTEM_POWER_POLICY))
+    {
+        /* Validate the revision field before accepting the stored AC policy */
+        PSYSTEM_POWER_POLICY StoredAcPolicy = (PSYSTEM_POWER_POLICY)Info->Data;
+        if (StoredAcPolicy->Revision == POP_SYSTEM_POWER_POLICY_REVISION_V1)
+        {
+            RtlCopyMemory(&PopAcPowerPolicy, StoredAcPolicy, sizeof(SYSTEM_POWER_POLICY));
+            DPRINT("PopDefaultPolicies: AC power policy loaded from registry\n");
+        }
+        else
+        {
+            DPRINT1("PopDefaultPolicies: AC policy revision mismatch (%lu), using default\n",
+                    StoredAcPolicy->Revision);
+        }
+    }
+    else
+    {
+        DPRINT("PopDefaultPolicies: AC policy not found or invalid (Status 0x%lx), using default\n", Status);
+    }
+
+    /*
+     * Attempt to read the DC (battery power) policy from the registry.
+     */
+    Status = ZwQueryValueKey(KeyHandle,
+                             &RegDcPolicy,
+                             KeyValuePartialInformation,
+                             Info,
+                             sizeof(Buffer),
+                             &Length);
+    if (NT_SUCCESS(Status) &&
+        Info->Type == REG_BINARY &&
+        Info->DataLength == sizeof(SYSTEM_POWER_POLICY))
+    {
+        PSYSTEM_POWER_POLICY StoredDcPolicy = (PSYSTEM_POWER_POLICY)Info->Data;
+        if (StoredDcPolicy->Revision == POP_SYSTEM_POWER_POLICY_REVISION_V1)
+        {
+            RtlCopyMemory(&PopDcPowerPolicy, StoredDcPolicy, sizeof(SYSTEM_POWER_POLICY));
+            DPRINT("PopDefaultPolicies: DC power policy loaded from registry\n");
+        }
+        else
+        {
+            DPRINT1("PopDefaultPolicies: DC policy revision mismatch (%lu), using default\n",
+                    StoredDcPolicy->Revision);
+        }
+    }
+    else
+    {
+        DPRINT("PopDefaultPolicies: DC policy not found or invalid (Status 0x%lx), using default\n", Status);
+    }
+
+    ZwClose(KeyHandle);
+
+ApplyDefaults:
+    /*
+     * The default power policy is the AC policy. If the system is running on
+     * battery power (DC), PopIsSystemDrainingAcSource will switch this over
+     * to the DC policy once composite battery information is available.
+     */
+    PopDefaultPowerPolicy = &PopAcPowerPolicy;
+    DPRINT("PopDefaultPolicies: Default power policy set to AC\n");
 }
 
 /**

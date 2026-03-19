@@ -35,6 +35,12 @@
 #endif
 
 //
+// PoFx activation/idle flags (PoFxActivateComponent / PoFxIdleComponent)
+//
+#define PO_FX_FLAG_BLOCKING     0x1  // Operation is synchronous (caller blocks until done)
+#define PO_FX_FLAG_ASYNC_ONLY   0x2  // Operation is asynchronous (returns immediately)
+
+//
 // PoFx component flags
 //
 typedef union _POP_FX_COMPONENT_FLAGS

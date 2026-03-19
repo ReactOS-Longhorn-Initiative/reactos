@@ -143,6 +143,15 @@
 #define TAG_PO_POWER_SETTING_CALLBACK             'cSoP'
 #define TAG_PO_POWER_SETTING_NOTIFY_BLOCK         'bNsP'
 #define TAG_PO_POWER_SETTING_NOTIFY_ENTRY         'eNsP'
+#define TAG_PO_TRIGGER_WAIT                       'tWoP'
+#define TAG_PO_HIBER                              'rHoP'
+#define TAG_PO_COOLING_EXTENSION                  'xCoP'
+#define TAG_PO_FX_DEVICE                          'xFoP'
+#define TAG_PO_FX_COMPONENT                       'cFoP'
+#define TAG_PO_FX_PLUGIN                          'lPoP'
+#define TAG_PO_FX_WORK_ORDER                      'oWoP'
+#define TAG_PO_THERMAL_REQUEST                    'qRoP'
+#define TAG_PO_THERMAL_COOLING_INTERFACE          'iCoP'
 
 /* Process Manager Tags */
 #define TAG_CIDOBJECT           'ODIC'

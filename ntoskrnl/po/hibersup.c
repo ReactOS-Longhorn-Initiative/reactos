@@ -73,9 +73,59 @@ PoSetHiberRange(
     _In_ ULONG Length,
     _In_ ULONG PageTag)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    NOTHING;
+    PPOP_HIBER_CONTEXT Context;
+
+    /*
+     * If the caller passed a NULL hibernation context this means the
+     * caller wants the global Power Manager action context to be used
+     * instead.
+     */
+    if (!HiberContext)
+    {
+        Context = PopAction.HiberContext;
+
+        /*
+         * The global action context has no hibernation context if the system
+         * is not undergoing hibernation at the moment.
+         */
+        if (!Context)
+        {
+            return;
+        }
+    }
+    else
+    {
+        Context = (PPOP_HIBER_CONTEXT)HiberContext;
+    }
+
+    /*
+     * If the hibernation context has already failed, do not attempt
+     * to modify it any further.
+     */
+    if (!NT_SUCCESS(Context->Status))
+    {
+        return;
+    }
+
+    /*
+     * Hibernation range marking is not yet implemented in ReactOS.
+     * Full hibernation file I/O, page collection, and range map management
+     * require the complete memory manager hibernation infrastructure.
+     * This function serves as the registration point that HAL and drivers
+     * use to tell the Power Manager which memory ranges must be included
+     * in the hibernation image.
+     *
+     * When the hibernation infrastructure is complete, this function will:
+     *   1. Look up the range map within the hibernation context
+     *   2. Clamp the length to page boundaries
+     *   3. Depending on the Flags, mark pages as preserved (PO_MEM_PRESERVE),
+     *      cloned (PO_MEM_CLONE / PO_MEM_CL_OR_NCHK), discarded (PO_MEM_DISCARD),
+     *      or boot-phase special (PO_MEM_BOOT_PHASE). Physical-page addresses
+     *      (PO_MEM_PAGE_ADDRESS) are handled separately from virtual ones.
+     *   4. Tag the range with PageTag for diagnostic/debugging purposes.
+     */
+    DPRINT("PoSetHiberRange: Context 0x%p, Flags 0x%lx, StartPage 0x%p, Length 0x%lx, Tag 0x%lx\n",
+           Context, Flags, StartPage, Length, PageTag);
 }
 
 /* EOF */

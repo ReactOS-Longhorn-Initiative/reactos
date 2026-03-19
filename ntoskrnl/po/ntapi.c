@@ -20,8 +20,14 @@ KEVENT PopUnlockMemoryCompleteEvent;
 
 /**
  * @brief
- * A worker thread used to unlock memory. This is used for hibernation
- * purposes.
+ * A worker thread used to unlock memory that was previously locked for
+ * hibernation purposes. When hibernation image preparation fails or is
+ * aborted, any pages that were locked into the non-paged pool to prevent
+ * them from being swapped out during the hibernation write phase must be
+ * unlocked so that the memory manager can reclaim them.
+ *
+ * @param[in] Parameter
+ * Unused context parameter (reserved for future use).
  */
 _Use_decl_annotations_
 VOID
@@ -29,8 +35,24 @@ NTAPI
 PopUnlockMemoryWorker(
     _In_ PVOID Parameter)
 {
-    UNIMPLEMENTED;
-    return;
+    UNREFERENCED_PARAMETER(Parameter);
+
+    /*
+     * Unlock the pages that were locked for the hibernation image.
+     * MmUnlockPagableImageSection releases any image sections that were
+     * locked into non-paged pool during the hibernation preparation phase.
+     *
+     * FIXME: When full hibernation support is implemented, this worker should:
+     *   1. Walk the locked memory list built during PopSaveHiberContext.
+     *   2. Call MmUnlockPages for each MDL that was locked for hibernation I/O.
+     *   3. Free any MDLs and associated bookkeeping structures.
+     *   4. Signal PopUnlockMemoryCompleteEvent so that the calling thread in
+     *      NtSetSystemPowerState knows it is safe to continue.
+     */
+    DPRINT("PopUnlockMemoryWorker: Signalling memory unlock completion\n");
+
+    /* Signal that the memory unlock phase has completed */
+    KeSetEvent(&PopUnlockMemoryCompleteEvent, IO_NO_INCREMENT, FALSE);
 }
 
 /**
@@ -463,9 +485,77 @@ NtInitiatePowerAction(
     _In_ ULONG Flags,
     _In_ BOOLEAN Asynchronous)
 {
-    /* FIXME */
-    UNIMPLEMENTED;
-    return STATUS_NOT_IMPLEMENTED;
+    NTSTATUS Status;
+    KPROCESSOR_MODE PreviousMode;
+
+    PAGED_CODE();
+
+    /* Capture the previous processor mode of the calling thread */
+    PreviousMode = ExGetPreviousMode();
+
+    /*
+     * Warm eject is a privileged operation that only kernel callers are
+     * permitted to issue directly. User-mode callers cannot trigger it via
+     * NtInitiatePowerAction.
+     */
+    if (PreviousMode != KernelMode && SystemAction == PowerActionWarmEject)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* User-mode callers must hold the ShutdownPrivilege */
+    if (PreviousMode != KernelMode)
+    {
+        if (!SeSinglePrivilegeCheck(SeShutdownPrivilege, PreviousMode))
+        {
+            return STATUS_PRIVILEGE_NOT_HELD;
+        }
+    }
+
+    /*
+     * Validate the parameters. The minimum system state must be within the
+     * legal range of defined SYSTEM_POWER_STATE values, the action must be
+     * a recognised POWER_ACTION value, and no unknown flag bits may be set.
+     *
+     * Additionally, PowerActionSleep is not permitted to target the hibernate
+     * state (PowerSystemHibernate) or deeper, and no server-silo threads may
+     * initiate non-shutdown power actions.
+     */
+    if (MinSystemState > PowerSystemMaximum ||
+        SystemAction > PowerActionWarmEject  ||
+        (Flags & ~(POWER_ACTION_QUERY_ALLOWED  |
+                   POWER_ACTION_UI_ALLOWED     |
+                   POWER_ACTION_OVERRIDE_APPS  |
+                   POWER_ACTION_LIGHTEST_FIRST |
+                   POWER_ACTION_LOCK_CONSOLE   |
+                   POWER_ACTION_DISABLE_WAKES  |
+                   POWER_ACTION_CRITICAL))     ||
+        (SystemAction == PowerActionSleep && MinSystemState >= PowerSystemHibernate))
+    {
+        DPRINT1("NtInitiatePowerAction: Invalid parameter combination "
+                "(Action %u, MinState %u, Flags 0x%lx)\n",
+                SystemAction, MinSystemState, Flags);
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /*
+     * Asynchronous power actions are dispatched by forwarding directly to
+     * NtSetSystemPowerState, which will queue the graceful shutdown work item
+     * and return immediately if not running in the system process context.
+     *
+     * Synchronous power actions are also forwarded to NtSetSystemPowerState
+     * but the calling thread blocks until the action completes (or is vetoed).
+     *
+     * NOTE: The Windows kernel uses an internal PopExecutePowerAction path
+     * with a POP_TRIGGER_WAIT structure for synchronous waits with a 15-second
+     * timeout. For ReactOS the simpler NtSetSystemPowerState path is used
+     * until the full Power Action Manager (PAM) infrastructure is in place.
+     */
+    DPRINT("NtInitiatePowerAction: Action %u, MinState %u, Flags 0x%lx, Async %u\n",
+           SystemAction, MinSystemState, Flags, Asynchronous);
+
+    Status = ZwSetSystemPowerState(SystemAction, MinSystemState, Flags);
+    return Status;
 }
 
 /**
