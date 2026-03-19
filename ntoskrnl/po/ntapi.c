@@ -140,16 +140,16 @@ PopIsCallerPrivileged(
 static const INFORMATION_CLASS_INFO PoPowerInformationClass[] =
 {
     /* SystemPowerPolicyAc */
-    IQS_NONE,
+    IQS_SAME(SYSTEM_POWER_POLICY, ULONG, ICIF_QUERY | ICIF_SET),
 
     /* SystemPowerPolicyDc */
-    IQS_NONE,
+    IQS_SAME(SYSTEM_POWER_POLICY, ULONG, ICIF_QUERY | ICIF_SET),
 
     /* VerifySystemPolicyAc */
-    IQS_NONE,
+    IQS_SAME(SYSTEM_POWER_POLICY, ULONG, ICIF_SET),
 
     /* VerifySystemPolicyDc */
-    IQS_NONE,
+    IQS_SAME(SYSTEM_POWER_POLICY, ULONG, ICIF_SET),
 
     /* SystemPowerCapabilities */
     IQS_SAME(SYSTEM_POWER_CAPABILITIES, ULONG, ICIF_QUERY),
@@ -167,7 +167,7 @@ static const INFORMATION_CLASS_INFO PoPowerInformationClass[] =
     IQS_SAME(SYSTEM_POWER_POLICY, ULONG, ICIF_QUERY),
 
     /* AdministratorPowerPolicy */
-    IQS_NONE,
+    IQS_SAME(ADMINISTRATOR_POWER_POLICY, ULONG, ICIF_QUERY | ICIF_SET),
 
     /* SystemReserveHiberFile */
     IQS_NONE,
@@ -703,6 +703,213 @@ NtPowerInformation(
 
     switch (PowerInformationLevel)
     {
+        case SystemPowerPolicyAc:
+        case SystemPowerPolicyDc:
+        {
+            PSYSTEM_POWER_POLICY TargetPolicy;
+            PSYSTEM_POWER_POLICY PolicyBuffer;
+            BOOLEAN IsAc = (PowerInformationLevel == SystemPowerPolicyAc);
+
+            TargetPolicy = IsAc ? &PopAcPowerPolicy : &PopDcPowerPolicy;
+
+            if (InputBuffer)
+            {
+                /*
+                 * The caller is setting a new AC or DC power policy. Validate
+                 * the revision and then overwrite the existing policy.
+                 */
+                PolicyBuffer = (PSYSTEM_POWER_POLICY)LocalBuffer;
+                if (PolicyBuffer->Revision != POP_SYSTEM_POWER_POLICY_REVISION_V1)
+                {
+                    DPRINT1("SystemPowerPolicyAc/Dc: Invalid policy revision %lu\n",
+                            PolicyBuffer->Revision);
+                    Status = STATUS_INVALID_PARAMETER;
+                    goto Quit;
+                }
+
+                _SEH2_TRY
+                {
+                    RtlCopyMemory(TargetPolicy, PolicyBuffer, sizeof(SYSTEM_POWER_POLICY));
+                    Status = STATUS_SUCCESS;
+                }
+                _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+                {
+                    Status = _SEH2_GetExceptionCode();
+                }
+                _SEH2_END;
+
+                if (!NT_SUCCESS(Status))
+                {
+                    goto Quit;
+                }
+
+                /*
+                 * Notify Win32k and power setting callbacks of the policy change.
+                 * PopPowerPolicyNotification broadcasts PsW32CapabilitiesChanged
+                 * and PsW32PowerPolicyChanged so that all subsystems re-read the
+                 * active policy and update their behaviour (e.g. display timeouts,
+                 * idle timers).
+                 */
+                PopPowerPolicyNotification();
+
+                /*
+                 * Schedule the system-idle worker so that display and idle
+                 * timeouts from the newly applied policy are immediately honoured.
+                 */
+                PopRequestPolicyWorker(PolicyWorkerSystemIdle);
+                PopCheckForPendingWorkers();
+            }
+            else
+            {
+                /* The caller is querying the current AC or DC power policy */
+                if (OutputBufferLength < sizeof(SYSTEM_POWER_POLICY))
+                {
+                    DPRINT1("SystemPowerPolicyAc/Dc: OutputBufferLength too small (%lu)\n",
+                            OutputBufferLength);
+                    Status = STATUS_BUFFER_TOO_SMALL;
+                    goto Quit;
+                }
+
+                _SEH2_TRY
+                {
+                    RtlCopyMemory(OutputBuffer, TargetPolicy, sizeof(SYSTEM_POWER_POLICY));
+                    Status = STATUS_SUCCESS;
+                }
+                _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+                {
+                    Status = _SEH2_GetExceptionCode();
+                }
+                _SEH2_END;
+            }
+            break;
+        }
+
+        case VerifySystemPolicyAc:
+        case VerifySystemPolicyDc:
+        {
+            PSYSTEM_POWER_POLICY TargetPolicy;
+            PSYSTEM_POWER_POLICY PolicyBuffer;
+            BOOLEAN IsAc = (PowerInformationLevel == VerifySystemPolicyAc);
+
+            /*
+             * These are Set-only information levels. The caller submits a
+             * SYSTEM_POWER_POLICY that the Power Manager validates and
+             * potentially clamps to the system's capabilities. On success
+             * the validated policy is written back to the AC or DC store so
+             * that the caller can read it back via SystemPowerPolicyAc/Dc.
+             */
+            if (!InputBuffer || !LocalBuffer)
+            {
+                DPRINT1("VerifySystemPolicyAc/Dc: InputBuffer is required\n");
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            PolicyBuffer = (PSYSTEM_POWER_POLICY)LocalBuffer;
+            TargetPolicy = IsAc ? &PopAcPowerPolicy : &PopDcPowerPolicy;
+
+            /* Only revision 1 is supported */
+            if (PolicyBuffer->Revision != POP_SYSTEM_POWER_POLICY_REVISION_V1)
+            {
+                DPRINT1("VerifySystemPolicyAc/Dc: Invalid policy revision %lu\n",
+                        PolicyBuffer->Revision);
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            /*
+             * Clamp MinSleep/MaxSleep to valid system sleep states. Windows
+             * enforces PowerSystemSleeping1 as the minimum and
+             * PowerSystemHibernate as the maximum. If the policy requests
+             * a state the hardware does not support, it is silently promoted
+             * to the next supported state via PopCapabilities.SystemS*.
+             */
+            if (PolicyBuffer->MinSleep < PowerSystemSleeping1)
+            {
+                PolicyBuffer->MinSleep = PowerSystemSleeping1;
+            }
+            if (PolicyBuffer->MaxSleep < PolicyBuffer->MinSleep ||
+                PolicyBuffer->MaxSleep > PowerSystemHibernate)
+            {
+                PolicyBuffer->MaxSleep = PowerSystemHibernate;
+            }
+
+            /* Persist the validated policy */
+            _SEH2_TRY
+            {
+                RtlCopyMemory(TargetPolicy, PolicyBuffer, sizeof(SYSTEM_POWER_POLICY));
+                Status = STATUS_SUCCESS;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+            break;
+        }
+
+        case AdministratorPowerPolicy:
+        {
+            PADMINISTRATOR_POWER_POLICY AdminPolicyBuffer;
+
+            if (InputBuffer)
+            {
+                /*
+                 * The caller is updating the administrative power policy overrides.
+                 * These override per-user policy settings (e.g. minimum/maximum
+                 * sleep states, video and spindown timeout ranges) to enforce
+                 * enterprise power management policy.
+                 */
+                if (InputBufferLength < sizeof(ADMINISTRATOR_POWER_POLICY))
+                {
+                    DPRINT1("AdministratorPowerPolicy: InputBufferLength too small (%lu)\n",
+                            InputBufferLength);
+                    Status = STATUS_BUFFER_TOO_SMALL;
+                    goto Quit;
+                }
+
+                AdminPolicyBuffer = (PADMINISTRATOR_POWER_POLICY)LocalBuffer;
+
+                _SEH2_TRY
+                {
+                    RtlCopyMemory(&PopAdminPowerPolicy,
+                                  AdminPolicyBuffer,
+                                  sizeof(ADMINISTRATOR_POWER_POLICY));
+                    Status = STATUS_SUCCESS;
+                }
+                _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+                {
+                    Status = _SEH2_GetExceptionCode();
+                }
+                _SEH2_END;
+            }
+            else
+            {
+                /* The caller is querying the current administrative power policy */
+                if (OutputBufferLength < sizeof(ADMINISTRATOR_POWER_POLICY))
+                {
+                    DPRINT1("AdministratorPowerPolicy: OutputBufferLength too small (%lu)\n",
+                            OutputBufferLength);
+                    Status = STATUS_BUFFER_TOO_SMALL;
+                    goto Quit;
+                }
+
+                _SEH2_TRY
+                {
+                    RtlCopyMemory(OutputBuffer,
+                                  &PopAdminPowerPolicy,
+                                  sizeof(ADMINISTRATOR_POWER_POLICY));
+                    Status = STATUS_SUCCESS;
+                }
+                _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+                {
+                    Status = _SEH2_GetExceptionCode();
+                }
+                _SEH2_END;
+            }
+            break;
+        }
+
         case SystemPowerCapabilities:
         {
             PowerCapabilities = (PSYSTEM_POWER_CAPABILITIES)OutputBuffer;
@@ -924,7 +1131,7 @@ NtPowerInformation(
             {
                 RtlCopyMemory(CurrentPolicy,
                               PopDefaultPowerPolicy,
-                              sizeof(SYSTEM_POWER_CAPABILITIES));
+                              sizeof(SYSTEM_POWER_POLICY));
 
                 Status = STATUS_SUCCESS;
             }
@@ -1390,8 +1597,13 @@ NTAPI
 NtRequestDeviceWakeup(
     _In_ HANDLE DeviceHandle)
 {
-    /* The following function is not implemented in Windows */
-    UNIMPLEMENTED;
+    /*
+     * This function was designed to allow a device to request a system wakeup
+     * but was never implemented in any version of Windows. The proper mechanism
+     * for device wakeup is through IRP_MN_WAIT_WAKE power IRPs dispatched via
+     * PoRequestPowerIrp. Drivers that previously called this function should
+     * use the Power IRP infrastructure instead.
+     */
     UNREFERENCED_PARAMETER(DeviceHandle);
     return STATUS_NOT_IMPLEMENTED;
 }
@@ -1409,8 +1621,11 @@ NTAPI
 NtCancelDeviceWakeupRequest(
     _In_ HANDLE DeviceHandle)
 {
-    /* The following function is not implemented in Windows */
-    UNIMPLEMENTED;
+    /*
+     * This function was designed as the counterpart to NtRequestDeviceWakeup
+     * but was never implemented in any version of Windows. See the remarks
+     * in NtRequestDeviceWakeup for the proper wakeup mechanism.
+     */
     UNREFERENCED_PARAMETER(DeviceHandle);
     return STATUS_NOT_IMPLEMENTED;
 }

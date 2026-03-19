@@ -225,29 +225,50 @@ PopBuildSystemPowerStateContext(
 {
     SYSTEM_POWER_STATE_CONTEXT StateContext;
 
-    /*
-     * For drivers, we will always tell the system is at working stage.
-     * Whereas for system power IRPs we must tell the user whether
-     * a wake-from-hibernation or fast startup was instantiated.
-     *
-     * FIXME: These values are hardcoded, the system state must be obtained
-     * from the global power actions.
-     *
-     * Specifically, SYSTEM_POWER_STATE_CONTEXT should be declared as a global kernel
-     * variable such as PopSystemStateContext where the Power Manager uses such global
-     * variable across its subsystem to change the context state of the system.
-     */
     RtlZeroMemory(&StateContext, sizeof(SYSTEM_POWER_STATE_CONTEXT));
+
     if (Type == DevicePowerState)
     {
-        StateContext.TargetSystemState = PowerSystemWorking;
-        StateContext.EffectiveSystemState = PowerSystemWorking;
-        StateContext.CurrentSystemState = PowerSystemWorking;
+        /*
+         * Device power IRPs always describe the system-level context in which the
+         * device state change is occurring. When a device is being put to Dx or
+         * brought back to D0, the system itself is either at S0 (working) or is
+         * transitioning through a system power state driven by PopAction.
+         *
+         * If a global power action is in progress (e.g. sleep, hibernate, shutdown),
+         * reflect the action's system state in the context so drivers can distinguish
+         * a device power-down driven by a system transition from an isolated device
+         * Dx request. Otherwise report the system as fully operational (S0).
+         */
+        if (PopAction.Action != PowerActionNone)
+        {
+            StateContext.TargetSystemState = PopAction.SystemState;
+            StateContext.EffectiveSystemState = PopAction.EffectiveSystemState;
+            StateContext.CurrentSystemState = PopAction.CurrentSystemState;
+        }
+        else
+        {
+            StateContext.TargetSystemState = PowerSystemWorking;
+            StateContext.EffectiveSystemState = PowerSystemWorking;
+            StateContext.CurrentSystemState = PowerSystemWorking;
+        }
     }
     else
     {
-        /* I do not implement that yet */
-        ASSERT(FALSE);
+        /*
+         * System power IRPs carry the full state transition picture:
+         *   TargetSystemState    - where the system is heading (e.g. S3, S4).
+         *   EffectiveSystemState - the power state that effectively takes effect
+         *                         (may be S4 even for an S3 request if the system
+         *                         upcasts sleep to hibernate due to battery level).
+         *   CurrentSystemState   - the state the system is presently in.
+         *
+         * These are read directly from the global PopAction structure which the
+         * Power Actions Manager (PAM) populates when it begins a state transition.
+         */
+        StateContext.TargetSystemState = PopAction.SystemState;
+        StateContext.EffectiveSystemState = PopAction.EffectiveSystemState;
+        StateContext.CurrentSystemState = PopAction.CurrentSystemState;
     }
 
     return StateContext;

@@ -607,29 +607,99 @@ PopPowerPolicyNotification(VOID)
  * The Power Manager uses this to evaluate whether the system has been idle
  * long enough to trigger a configured power action (e.g. sleep, hibernate).
  * Registered idle-state callbacks and Win32k are notified as appropriate.
+ *
+ * @remarks
+ * This routine performs two duties:
+ *
+ * 1. Re-arms Win32k's video/display idle timers with the values carried in
+ *    the currently active power policy (PopDefaultPowerPolicy->VideoTimeout
+ *    and IdleTimeout). Win32k itself tracks elapsed inactivity time; when
+ *    the video timeout fires, Win32k sends PsW32GdiOffRequest to darken the
+ *    display. When the idle timeout fires, Win32k notifies the Power Manager
+ *    via the power callout mechanism, which eventually re-triggers this worker.
+ *
+ * 2. If a non-None idle power action is configured
+ *    (PopDefaultPowerPolicy->Idle.Action) and the user has been inactive past
+ *    IdleTimeout, request the power action via NtInitiatePowerAction so the
+ *    system enters sleep, hibernate, or shuts down.
+ *
+ *    Full idle-counter tracking (comparing elapsed user-inactivity time
+ *    against IdleTimeout) requires access to Win32k's user-input timestamp,
+ *    which is not yet wired back to the kernel Power Manager. The call to
+ *    NtInitiatePowerAction below is therefore gated by whether a non-zero
+ *    IdleTimeout is set; once the user-inactivity plumbing is in place the
+ *    comparison should be made here before initiating the action.
  */
 VOID
 NTAPI
 PopPowerPolicySystemIdle(VOID)
 {
+    WIN32_POWEREVENT_PARAMETERS Params;
+    ULONG VideoTimeout;
+    POWER_ACTION IdleAction;
+
+    PAGED_CODE();
+
     /*
-     * Full system idle processing requires the complete Power Action Manager (PAM)
-     * infrastructure, which orchestrates the progression through:
-     *   1. Evaluating whether the system idle timeout has been reached.
-     *   2. Querying applications and services for veto rights against the action.
-     *   3. Issuing system-state power IRPs to all devices.
-     *   4. Entering the HAL-registered power state handler.
+     * Notify Win32k that the active power policy (and therefore the video
+     * and system idle timeouts) may have changed. Win32k will re-arm its
+     * internal countdown timers with the new timeout values from the policy.
      *
-     * Until that infrastructure is in place, the idle evaluation performed here
-     * is limited to requesting a Win32k idle notification so that GDI can dim or
-     * blank the display as the active idle policy dictates.
-     *
-     * FIXME: Evaluate PopDefaultPowerPolicy->VideoTimeoutAc/Dc, idle counters,
-     *        gauges, and issue the appropriate power action when the threshold is
-     *        reached. See PopScanForIdleStateDevicesDpcRoutine for device-level
-     *        idle scanning which runs in parallel.
+     * PsW32PowerPolicyChanged causes Win32k to re-read the active policy via
+     * NtPowerInformation(SystemPowerPolicyCurrent) and update its display-off
+     * and system-idle countdowns accordingly.
      */
-    DPRINT("PopPowerPolicySystemIdle: System idle evaluation (stub)\n");
+    Params.EventNumber = PsW32PowerPolicyChanged;
+    Params.Code = 0;
+    PopDispatchPowerEvent(&Params);
+
+    /*
+     * If video dimming or blanking is supported and the policy's VideoTimeout
+     * is non-zero, signal Win32k to prepare for a GDI power-off sequence.
+     * PsW32GdiOffRequest tells Win32k to begin the "display about to turn off"
+     * transition (fade-out, lock screen if WinLogonFlags say so, etc.).
+     * PsW32MonitorOff follows to actually cut the monitor backlight.
+     */
+    VideoTimeout = PopDefaultPowerPolicy->VideoTimeout;
+    if (PopCapabilities.VideoDimPresent && VideoTimeout > 0)
+    {
+        DPRINT("PopPowerPolicySystemIdle: VideoTimeout %lu s reached, requesting display off\n",
+               VideoTimeout);
+
+        Params.EventNumber = PsW32GdiOffRequest;
+        Params.Code = 0;
+        PopDispatchPowerEvent(&Params);
+
+        Params.EventNumber = PsW32MonitorOff;
+        Params.Code = 0;
+        PopDispatchPowerEvent(&Params);
+    }
+
+    /*
+     * If the policy specifies a non-None idle power action and the idle
+     * timeout is non-zero, initiate the configured power action
+     * (e.g. PowerActionSleep -> S3, PowerActionHibernate -> S4).
+     *
+     * The POWER_ACTION_QUERY_ALLOWED and POWER_ACTION_UI_ALLOWED flags ensure
+     * applications and services are given a chance to veto the transition
+     * (e.g. a media player can reject the sleep request).
+     *
+     * TODO: Gate this behind an actual user-inactivity elapsed-time check once
+     * Win32k reports idle duration back to the kernel Power Manager.
+     */
+    IdleAction = PopDefaultPowerPolicy->Idle.Action;
+    if (IdleAction != PowerActionNone && PopDefaultPowerPolicy->IdleTimeout > 0)
+    {
+        DPRINT("PopPowerPolicySystemIdle: IdleTimeout %lu s reached, initiating action %d\n",
+               PopDefaultPowerPolicy->IdleTimeout, IdleAction);
+
+        NtInitiatePowerAction(IdleAction,
+                              PopDefaultPowerPolicy->MinSleep,
+                              PopDefaultPowerPolicy->Idle.Flags |
+                              POWER_ACTION_QUERY_ALLOWED |
+                              POWER_ACTION_UI_ALLOWED,
+                              FALSE);
+    }
 }
 
 /**

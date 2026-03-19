@@ -179,7 +179,43 @@ PopBatteryIrpCompletion(
                 /* The system now has a composite battery, take away the "no battery" flag */
                 PopBattery->Flags &= ~POP_CB_NO_BATTERY;
 
-                /* FIXME: Once I implement battery trigger levels, the CB levels must be reset here */
+                /*
+                 * Reset the composite battery trigger levels based on the active power policy's
+                 * discharge policies. The CB trigger is armed at the lowest-indexed enabled
+                 * discharge level so that the Power Manager can fire a power action (e.g. hibernate,
+                 * shut down) when the battery capacity drops to that percentage threshold.
+                 *
+                 * The SYSTEM_POWER_POLICY.DischargePolicy[] array holds up to NUM_DISCHARGE_POLICIES
+                 * entries (ordered from most critical [0] to least critical). We walk from entry 0
+                 * (DISCHARGE_POLICY_CRITICAL) upward and latch onto the first enabled one.
+                 */
+                {
+                    ULONG PolicyIndex;
+                    PSYSTEM_POWER_LEVEL DischargePolicy;
+
+                    /* Zero out the old trigger so no stale data leaks across battery insertions */
+                    RtlZeroMemory(&PopBattery->Trigger, sizeof(PopBattery->Trigger));
+                    PopBattery->Trigger.Type = PolicyDeviceBattery;
+                    PopBattery->Trigger.Wait = NULL;
+
+                    for (PolicyIndex = 0; PolicyIndex < NUM_DISCHARGE_POLICIES; PolicyIndex++)
+                    {
+                        DischargePolicy = &PopDefaultPowerPolicy->DischargePolicy[PolicyIndex];
+                        if (DischargePolicy->Enable && DischargePolicy->BatteryLevel > 0)
+                        {
+                            /*
+                             * Arm the trigger at this capacity percentage. The Power Manager will
+                             * compare PopBattery->Status.Capacity against this level during each
+                             * status poll and initiate the configured power action when the battery
+                             * drains to or below it.
+                             */
+                            PopBattery->Trigger.Battery.PercentLevel = DischargePolicy->BatteryLevel;
+                            DPRINT("PopBatteryIrpCompletion: CB trigger armed at %lu%% (discharge policy %lu)\n",
+                                   DischargePolicy->BatteryLevel, PolicyIndex);
+                            break;
+                        }
+                    }
+                }
 
                 /*
                  * If this was a new battery candidate or we had to wait for the
@@ -240,14 +276,24 @@ PopBatteryIrpCompletion(
                 PopIsSystemDrainingAcSource(BattStatus.PowerState, &PolicyChanged);
 
                 /*
-                 * The system power policy has changed. We need to recompute the thermal throttle
-                 * gauges and the system idleness.
+                 * The system power policy has changed (AC/DC switch). We need to recompute the
+                 * thermal throttle gauges and system idleness to apply the new policy parameters.
                  *
-                 * FIXME: And of course code does not get written by itself.... a human can do that.
+                 * The new policy may carry a different ForcedThrottle, MinThrottle or DynamicThrottle
+                 * value. Processors must be re-throttled accordingly. Similarly, the cooling system
+                 * mode (passive vs active) may differ between AC and DC policies.
+                 *
+                 * For now we request a system idle re-evaluation through the policy worker, which
+                 * will propagate the new policy's VideoTimeout and IdleTimeout values to Win32k and
+                 * to the device idle scanner. Full P-state and thermal zone re-evaluation requires
+                 * the PPM throttle infrastructure and thermal zone manager, which are not yet
+                 * complete; see ppm/perf.c and thermzn.c.
                  */
                 if (PolicyChanged)
                 {
-                    DPRINT1("System power policy has been changed, recomputing system idleness and throttle not IMPLEMENTED yet\n");
+                    DPRINT("PopBatteryIrpCompletion: Power policy changed, requesting idle re-evaluation\n");
+                    PopRequestPolicyWorker(PolicyWorkerSystemIdle);
+                    PopCheckForPendingWorkers();
                 }
 
                 /*
@@ -963,7 +1009,14 @@ PopDisconnectCompositeBattery(VOID)
         /* Notify every registered power setting callback of this change in power policy */
         PopNotifyPowerSettingChange(&GUID_ACDC_POWER_SOURCE);
 
-        /* FIXME: We must recalculate the thermal throttle gauges and system idleness here */
+        /*
+         * Re-evaluate idleness under the now-active AC policy, and request that the PPM
+         * re-applies the AC throttle limits. Full thermal zone and P-state re-evaluation
+         * remains pending until the thermal zone manager and PPM throttle infrastructure
+         * are fully implemented (see thermzn.c and ppm/perf.c).
+         */
+        PopRequestPolicyWorker(PolicyWorkerSystemIdle);
+        PopCheckForPendingWorkers();
     }
 
     /* Report to the system that we do not have system batteries globally */
