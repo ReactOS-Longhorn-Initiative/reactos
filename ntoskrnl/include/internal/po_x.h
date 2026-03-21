@@ -219,6 +219,14 @@ PopApplyThermalZoneState(
     PopCoolingSystemMode |= TzState;
 }
 
+FORCEINLINE
+VOID
+PopClearThermalZoneBits(
+    _In_ ULONG TzStateMask)
+{
+    PopCoolingSystemMode &= ~TzStateMask;
+}
+
 //
 // Sets the default global policy for the system
 //

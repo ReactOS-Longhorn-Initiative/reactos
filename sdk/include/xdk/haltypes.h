@@ -30,7 +30,7 @@ typedef enum _HAL_QUERY_INFORMATION_CLASS {
   HalProfileSourceInformation,
   HalInformationClassUnused1,
   HalPowerInformation,
-  HalProcessorSpeedInformation,
+  HalQueryProcessorSpeedInformation,
   HalCallbackInformation,
   HalMapRegisterInformation,
   HalMcaLogInformation,
@@ -68,7 +68,8 @@ typedef enum _HAL_SET_INFORMATION_CLASS {
   HalGenerateCmcInterrupt,
   HalProfileSourceTimerHandler,
   HalEnlightenment,
-  HalProfileDpgoSourceInterruptHandler
+  HalProfileDpgoSourceInterruptHandler,
+  HalProcessorSpeedInformation
 } HAL_SET_INFORMATION_CLASS, *PHAL_SET_INFORMATION_CLASS;
 
 typedef NTSTATUS

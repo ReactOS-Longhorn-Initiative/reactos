@@ -3,6 +3,7 @@ list(APPEND SOURCE
     amdppm.c
     acpi.c
     cpuid.c
+    perfhand.c
     amdppm.h)
 
 add_library(amdppm MODULE ${SOURCE} amdppm.rc)

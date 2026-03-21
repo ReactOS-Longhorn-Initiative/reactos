@@ -134,10 +134,24 @@ PpmDispRegisterPerfStates(
     PPPM_PERF_STATES_EX PerfStatesEx;
     PPROCESSOR_POWER_STATE PowerState;
 
-    PAGED_CODE();
-
+    /*
+     * NULL clears the PROCESSOR_PERF_STATES pointer for the *current*
+     * processor (used when unloading amdppm on that CPU via KeIpiGenericCall).
+     * This path must not use PAGED_CODE — the broadcast runs at high IRQL.
+     */
     if (!PerfStates)
-        return STATUS_INVALID_PARAMETER;
+    {
+        Prcb = KeGetCurrentPrcb();
+        PowerState = &Prcb->PowerState;
+        PowerState->IdleHandlers = NULL;
+        PowerState->ProcessorMaxThrottle = 100;
+        PowerState->ProcessorMinThrottle = 0;
+        if (PowerState->CurrentThrottle > 100)
+            PowerState->CurrentThrottle = 100;
+        return STATUS_SUCCESS;
+    }
+
+    PAGED_CODE();
 
     PerfStatesEx = (PPPM_PERF_STATES_EX)PerfStates;
 

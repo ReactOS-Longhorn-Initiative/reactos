@@ -21,6 +21,7 @@
 /* ---- includes ------------------------------------------------------------- */
 
 #include <ntddk.h>
+#include <ndk/processorperfstates.h>
 #include <wdf.h>
 #include <initguid.h>
 #include <ntpoapi.h>
@@ -345,81 +346,6 @@ typedef struct _PROCESSOR_IDLE_STATES_EX
 } PROCESSOR_IDLE_STATES_EX, *PPROCESSOR_IDLE_STATES_EX;
 
 /*
- * PROCESSOR_PERF_INFO
- *
- * Per-processor identity record inside PROCESSOR_PERF_STATES.
- */
-typedef struct _PROCESSOR_PERF_INFO
-{
-    ULONG   InitialApicId;   /* APIC ID from CPUID leaf 1 EBX[31:24]          */
-    ULONG   ProcessorIndex;  /* Logical processor index                       */
-} PROCESSOR_PERF_INFO, *PPROCESSOR_PERF_INFO;
-
-/*
- * PROCESSOR_PERF_STATES
- *
- * Describes the full P-state configuration for a logical processor (or a
- * group of processors that share a performance domain).
- *
- * Version, Type, and the function pointers are the fields the kernel
- * scheduler uses; the remaining fields are informational.  On ReactOS the
- * kernel dispatch stubs store the pointer for future use.
- *
- * Simplified from the Windows 10 internal structure; function pointers
- * that ReactOS has not yet implemented are included as PVOID placeholders
- * to preserve the binary layout.
- */
-#define PROCESSOR_PERF_STATES_VERSION   1
-
-/* Type field values */
-#define PPM_PERF_STATE_TYPE_ACPI_IO     0   /* Legacy ACPI throttle I/O port  */
-#define PPM_PERF_STATE_TYPE_ACPI_MSR    1   /* AMD/Intel MSR-based P-states   */
-#define PPM_PERF_STATE_TYPE_ACPI_FFH    2   /* Functional Fixed Hardware      */
-
-typedef struct _PROCESSOR_PERF_STATES
-{
-    /* ---- Common header --------------------------------------------------- */
-    ULONG           Version;            /* PROCESSOR_PERF_STATES_VERSION (1)  */
-    USHORT          Type;               /* PPM_PERF_STATE_TYPE_*              */
-    BOOLEAN         HardPlatformCap;    /* TRUE = BIOS caps are in effect     */
-    BOOLEAN         AffinitizeControl;  /* TRUE = all CPUs in domain together */
-    BOOLEAN         EfficientThrottle;  /* TRUE = use efficient throttle      */
-    ULONG           ProcessorCount;     /* Number of processors in domain     */
-    ULONG           NominalFrequency;   /* MHz at 100% perf                   */
-    ULONG           MaxPerfPercent;     /* 0-100 platform-allowed maximum     */
-    ULONG           MinPerfPercent;     /* 0-100 minimum performance          */
-    ULONG           MinThrottlePercent; /* 0-100 minimum throttle level       */
-
-    /* ---- Processor domain ------------------------------------------------ */
-    ULONG           GlobalContext;      /* Driver-private domain context      */
-    KAFFINITY_EX    TargetProcessors;   /* Processors in the P-state domain   */
-
-    /* ---- Driver callbacks (PVOID placeholders) --------------------------- */
-    PVOID           GetFFHThrottleState;     /* Retrieve current FFH state    */
-    PVOID           TimeWindowHandler;       /* Notify: time window change    */
-    PVOID           BoostPolicyHandler;      /* Notify: boost policy change   */
-    PVOID           BoostModeHandler;        /* Notify: boost mode change     */
-    PVOID           EnergyPerfPreferenceHandler;
-    PVOID           AutonomousActivityWindowHandler;
-    PVOID           AutonomousModeHandler;
-    PVOID           StartPolicyUpdate;
-    PVOID           CompletePolicyUpdate;
-    PVOID           ReinitializeHandler;
-    PVOID           PerfSelectionHandler;   /* Select P-state for given load  */
-    PVOID           PerfControlHandler;     /* Write control register         */
-    PVOID           PerfControlReadFeedback;
-    PVOID           PerfControlAcquirePerformance;
-    PVOID           PerfControlCommitPerformance;
-    PVOID           ParkPreference;         /* Core park preference           */
-    PVOID           ParkMask;               /* Core park mask                 */
-    PVOID           PerfCheckComplete;      /* Perf-check epoch complete      */
-
-    /* ---- Per-processor info array ---------------------------------------- */
-    PPROCESSOR_PERF_INFO Processors;       /* Array of ProcessorCount entries */
-
-} PROCESSOR_PERF_STATES, *PPROCESSOR_PERF_STATES;
-
-/*
  * PROCESSOR_CAP
  *
  * Performance capability cap reported to the kernel on D0 entry or on receipt
@@ -532,6 +458,10 @@ typedef struct _FDO_DATA
     /* ---- PoFx handle ---------------------------------------------------- */
     PVOID                   FxHandle;       /* PoFx device handle (POHANDLE)   */
 
+    /* ---- Kernel PPM registration (freed in EvtDeviceReleaseHardware) ------ */
+    PPROCESSOR_PERF_STATES  KernelRegisteredPerfStates;
+    PPROCESSOR_PERF_INFO    KernelRegisteredPerfProcInfo;
+
 } FDO_DATA, *PFDO_DATA;
 
 /*
@@ -562,9 +492,9 @@ typedef struct _AMDPPM_GLOBALS
     ULONG                       ProcessorCount;
 
     /* Global registration callbacks (set in ProcLibGlobalInit) */
-    NTSTATUS (STDCALL *RegisterIdleStates)(PFDO_DATA DevExt);
-    NTSTATUS (STDCALL *RegisterPStates)(PFDO_DATA DevExt);
-    NTSTATUS (STDCALL *RegisterPerfCap)(PFDO_DATA DevExt);
+    NTSTATUS (NTAPI *RegisterIdleStates)(PFDO_DATA DevExt);
+    NTSTATUS (NTAPI *RegisterPStates)(PFDO_DATA DevExt);
+    NTSTATUS (NTAPI *RegisterPerfCap)(PFDO_DATA DevExt);
 
     /* AMD-specific flags */
     ULONG                       PPMOverrideFlags;
@@ -585,16 +515,55 @@ extern AMDPPM_GLOBALS AmdPpmGlobals;
  * Called from ProcLibDeviceStart and EvtDeviceD0Entry.
  */
 NTSTATUS
+NTAPI
 RegisterKernelIdleStates(
     _In_ PFDO_DATA DevExt);
 
 NTSTATUS
+NTAPI
 RegisterKernelPerfStates(
     _In_ PFDO_DATA DevExt);
 
 NTSTATUS
+NTAPI
 RegisterKernelPerfCap(
     _In_ PFDO_DATA DevExt);
+
+VOID
+AmdPpmPerfRegisterProcessorFdo(
+    _In_ PFDO_DATA DevExt);
+
+VOID
+AmdPpmPerfUnregisterProcessorFdo(
+    _In_ PFDO_DATA DevExt);
+
+VOID
+AmdPpmClearKernelPerfStatesRegistration(
+    _In_ ULONG NtProcessorNumber);
+
+ULONG
+FASTCALL
+AmdPpmPerfSelection(
+    _In_ ULONG Context,
+    _In_ ULONG TargetPercent,
+    _In_ ULONG MinPercent,
+    _In_ ULONG MaxPercent,
+    _In_ ULONG Flags,
+    _Out_ PULONG Frequency,
+    _Out_ PULONGLONG Selection);
+
+VOID
+FASTCALL
+AmdPpmPerfControl(
+    _In_ ULONG Context,
+    _In_ ULONGLONG SelectedState,
+    _In_ ULONG MinPercent,
+    _In_ ULONG MaxPercent,
+    _In_ ULONG TolerancePercent,
+    _In_ UCHAR Autonomous,
+    _In_ UCHAR Initiate,
+    _In_ UCHAR Force);
+
 DRIVER_INITIALIZE DriverEntry;
 EVT_WDF_DRIVER_DEVICE_ADD EvtDriverDeviceAdd;
 EVT_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;

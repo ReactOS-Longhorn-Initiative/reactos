@@ -64,7 +64,7 @@ HaliQuerySystemInformation(IN HAL_QUERY_INFORMATION_CLASS InformationClass,
         REPORT_THIS_CASE(HalProfileSourceInformation);
         REPORT_THIS_CASE(HalInformationClassUnused1);
         REPORT_THIS_CASE(HalPowerInformation);
-        REPORT_THIS_CASE(HalProcessorSpeedInformation);
+        REPORT_THIS_CASE(HalQueryProcessorSpeedInformation);
         REPORT_THIS_CASE(HalCallbackInformation);
         REPORT_THIS_CASE(HalMapRegisterInformation);
         REPORT_THIS_CASE(HalMcaLogInformation);
@@ -119,6 +119,27 @@ HaliSetSystemInformation(IN HAL_SET_INFORMATION_CLASS InformationClass,
                          IN ULONG BufferSize,
                          IN OUT PVOID Buffer)
 {
+    if (InformationClass == HalProcessorSpeedInformation)
+    {
+        PHAL_PROCESSOR_SPEED_INFORMATION SpeedInfo = Buffer;
+
+        if (Buffer == NULL || BufferSize < sizeof(HAL_PROCESSOR_SPEED_INFORMATION))
+            return STATUS_INFO_LENGTH_MISMATCH;
+
+        /*
+         * ProcessorSpeed carries the PPM throttle percentage (0–100).
+         * On Windows, frequency changes are driven by the processor driver
+         * (e.g. amdppm) via PROCESSOR_PERF_STATES / PerfControlHandler; the HAL
+         * path does not register third-party callbacks.
+         */
+        if (SpeedInfo->ProcessorSpeed > 100)
+            SpeedInfo->ProcessorSpeed = 100;
+
+        DPRINT("HaliSetSystemInformation: HalProcessorSpeedInformation -> %lu%%\n",
+               SpeedInfo->ProcessorSpeed);
+        return STATUS_SUCCESS;
+    }
+
     UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
 }

@@ -95,6 +95,8 @@ PopInitPolicyManager(VOID)
                                  PopPowerPolicySystemIdle);
     PopRegisterPowerPolicyWorker(PolicyWorkerTimeChange,
                                  PopPowerPolicyTimeChange);
+
+    PopLastUserInputInterruptTime = KeQueryInterruptTime();
 }
 
 /**

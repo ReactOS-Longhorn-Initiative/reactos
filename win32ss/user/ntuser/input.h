@@ -94,6 +94,9 @@ extern DWORD gSystemFS;
 extern UINT gSystemCPCharSet; 
 extern HANDLE ghKeyboardDevice;
 extern PTHREADINFO ptiRawInput;
+
+/* Set at Win32k init: ntos PopRecordUserInputActivity (not a Windows export). */
+extern PVOID g_PopRecordUserInputRoutine;
 extern BYTE gafAsyncKeyState[256 * 2 / 8]; // 2 bits per key
 
 #define GET_KS_BYTE(vk) ((vk) * 2 / 8)

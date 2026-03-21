@@ -5311,7 +5311,7 @@ static uacpi_status exec_op(struct execution_context *ctx)
             return UACPI_STATUS_OK;
 
         case UACPI_PARSE_OP_TRACKED_PKGLEN:
-            op_ctx->tracked_pkg_idx = item_array_size(&op_ctx->items);
+            op_ctx->tracked_pkg_idx = (uacpi_u8)item_array_size(&op_ctx->items);
             UACPI_FALLTHROUGH;
         case UACPI_PARSE_OP_PKGLEN:
             ret = parse_package_length(frame, &item->pkg);

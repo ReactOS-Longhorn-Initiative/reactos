@@ -35,8 +35,9 @@
  *
  * Throttle application (PpmApplyThrottle)
  * ────────────────────────────────────────
- * Calls the HalSetSystemInformation(HalProcessorSpeedInformation) or the
- * driver-registered PerfSetThrottle callback to commit the new frequency.
+ * Commits throttle via legacy PerfSetThrottle, Windows-style
+ * PROCESSOR_PERF_STATES PerfSelectionHandler + PerfControlHandler, or
+ * HalSetSystemInformation(HalProcessorSpeedInformation) as a last resort.
  */
 
 /* INCLUDES *******************************************************************/
@@ -401,22 +402,19 @@ PpmSelectPerfState(
  * Target throttle level in [0, 100].  100 = full speed, 0 = minimum.
  *
  * @remarks
- * Two paths are attempted in order:
+ * Two paths are attempted in order (aligned with Windows behaviour):
  *
  *  1. If the processor driver registered a PerfSetThrottle callback via the
  *     legacy PROCESSOR_STATE_HANDLER2 path (PowerState->PerfSetThrottle ≠ NULL)
  *     that callback is invoked.
  *
- *  2. Otherwise HalSetSystemInformation(HalProcessorSpeedInformation, …) is
- *     called to request a frequency change through the HAL.
+ *  2. If RegisterPerfStates supplied PerfSelectionHandler and
+ *     PerfControlHandler (Windows PROCESSOR_PERF_STATES layout), run
+ *     selection then control on the current processor.
  *
- * If neither path is available the new throttle value is simply stored in
- * PowerState->CurrentThrottle so that policy evaluation remains consistent
- * across subsequent DPC periods.
+ *  3. Otherwise HalSetSystemInformation(HalProcessorSpeedInformation, …).
  *
- * FIXME: The HalSetSystemInformation(HalProcessorSpeedInformation) path is
- *        not yet plumbed in ReactOS.  It will be added when HAL exposes the
- *        necessary interface.
+ * If no path applies, only CurrentThrottle is updated.
  */
 VOID
 NTAPI
@@ -426,6 +424,7 @@ PpmApplyThrottle(
 {
     typedef NTSTATUS (NTAPI *PSET_THROTTLE_FN)(UCHAR Throttle);
     PSET_THROTTLE_FN SetThrottle;
+    PPROCESSOR_PERF_STATES PerfStates;
 
     /* Short-circuit if the throttle level hasn't changed */
     if (PowerState->CurrentThrottle == ThrottlePercent)
@@ -443,17 +442,52 @@ PpmApplyThrottle(
     }
     else
     {
-        /*
-         * FIXME: Call HalSetSystemInformation(HalProcessorSpeedInformation,
-         * sizeof(UCHAR), &ThrottlePercent) once that HAL API is available.
-         *
-         * For now simply record the new level so that the policy engine
-         * remains consistent.
-         */
-        PPMTRACE(PPM_PERF_DEBUG,
-                 "PpmApplyThrottle: CPU %u no throttle callback; "
-                 "recording %u%%\n",
-                 KeGetCurrentProcessorNumber(), ThrottlePercent);
+        PerfStates = (PPROCESSOR_PERF_STATES)PowerState->IdleHandlers;
+        if (PerfStates != NULL &&
+            PerfStates->Version == PROCESSOR_PERF_STATES_VERSION &&
+            PerfStates->PerfControlHandler != NULL &&
+            PerfStates->PerfSelectionHandler != NULL)
+        {
+            ULONG Frequency = 0;
+            ULONGLONG Selection = 0;
+
+            PerfStates->PerfSelectionHandler(
+                PerfStates->GlobalContext,
+                ThrottlePercent,
+                PowerState->ProcessorMinThrottle,
+                PowerState->ProcessorMaxThrottle,
+                0,
+                &Frequency,
+                &Selection);
+
+            PerfStates->PerfControlHandler(
+                PerfStates->GlobalContext,
+                Selection,
+                PowerState->ProcessorMinThrottle,
+                PowerState->ProcessorMaxThrottle,
+                2, /* tolerance % — matches typical Windows default order-of-magnitude */
+                0, /* autonomous */
+                1, /* initiate */
+                0); /* force */
+
+            PPMTRACE(PPM_PERF_DEBUG,
+                     "PpmApplyThrottle: CPU %u PerfStates control sel=%lu freq=%lu\n",
+                     KeGetCurrentProcessorNumber(),
+                     (ULONG)Selection,
+                     Frequency);
+        }
+        else
+        {
+            HAL_PROCESSOR_SPEED_INFORMATION SpeedInfo;
+
+            SpeedInfo.ProcessorSpeed = (ULONG)ThrottlePercent;
+            HalSetSystemInformation(HalProcessorSpeedInformation,
+                                    sizeof(SpeedInfo),
+                                    &SpeedInfo);
+            PPMTRACE(PPM_PERF_DEBUG,
+                     "PpmApplyThrottle: CPU %u HAL throttle %u%%\n",
+                     KeGetCurrentProcessorNumber(), ThrottlePercent);
+        }
     }
 
     PowerState->CurrentThrottle = ThrottlePercent;

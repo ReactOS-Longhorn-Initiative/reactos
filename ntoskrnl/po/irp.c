@@ -1102,10 +1102,20 @@ PopQueuePowerIrp(
         DeviceState = Stack->Parameters.Power.State.DeviceState;
         ASSERT(DeviceState != PowerDeviceUnspecified);
     }
-    else // POP_SYS_CONTEXT_WAKE_REQUEST
+    else if (Stack->Parameters.Power.SystemContext == POP_SYS_CONTEXT_SYSTEM_IRP)
+    {
+        SystemState = Stack->Parameters.Power.State.SystemState;
+        ASSERT(SystemState != PowerSystemUnspecified);
+    }
+    else if (Stack->Parameters.Power.SystemContext == POP_SYS_CONTEXT_WAKE_REQUEST)
     {
         SystemState = Stack->Parameters.WaitWake.PowerState;
         ASSERT(SystemState != PowerSystemUnspecified);
+    }
+    else
+    {
+        ASSERTMSG("Unexpected power IRP SystemContext value\n", FALSE);
+        DeviceState = PowerDeviceUnspecified;
     }
 
     /*
@@ -1167,6 +1177,7 @@ PopQueuePowerIrp(
      */
     StateType = IrpData->PowerStateType;
     if (HasInrushDevice &&
+        IrpData->PowerStateType == DevicePowerState &&
         IrpData->MinorFunction == IRP_MN_SET_POWER &&
         DeviceState == PowerDeviceD0 &&
         PopGetDoePowerState(DevObjExts, FALSE) != PowerDeviceD0)
@@ -1840,6 +1851,96 @@ PopRequestPowerIrp(
      * will dispatch the IRP immediately if it is a wake request or if it was
      * not processing any IRPs before.
      */
+    PopQueuePowerIrp(IrpData);
+    return STATUS_PENDING;
+}
+
+/**
+ * @brief
+ * Allocates and queues a system power IRP (SystemPowerState in the stack)
+ * to the top of the device stack for the given policy device owner PDO.
+ *
+ * @remarks
+ * Device-targeted PopRequestPowerIrp always uses DevicePowerState in the IRP stack.
+ * System sleep/hibernate broadcasts must use SystemPowerState and POP_SYS_CONTEXT_SYSTEM_IRP
+ * so drivers (e.g. ACPI) can distinguish a system transition from a device D-state change.
+ */
+NTSTATUS
+NTAPI
+PopRequestSystemPowerIrp(
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _In_ UCHAR MinorFunction,
+    _In_ POWER_STATE PowerState,
+    _In_ BOOLEAN IsFxDevice,
+    _In_ BOOLEAN NotifyPEP,
+    _In_opt_ PREQUEST_POWER_COMPLETE CompletionFunction,
+    _In_opt_ __drv_aliasesMem PVOID Context,
+    _Outptr_opt_ PIRP *Irp)
+{
+    NTSTATUS Status;
+    PIRP PwrIrp;
+    PPOP_IRP_DATA IrpData;
+    PIO_STACK_LOCATION Stack;
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+
+    if (MinorFunction != IRP_MN_QUERY_POWER && MinorFunction != IRP_MN_SET_POWER)
+    {
+        DPRINT1("PopRequestSystemPowerIrp: invalid minor function (%u)\n", MinorFunction);
+        return STATUS_INVALID_PARAMETER_2;
+    }
+
+    Status = PopAllocatePowerIrp(DeviceObject,
+                                 IsFxDevice,
+                                 MinorFunction,
+                                 PowerState,
+                                 &IrpData);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("PopRequestSystemPowerIrp: allocation failed for DO %p\n", DeviceObject);
+        return Status;
+    }
+
+    IrpData->NotifyPEP = NotifyPEP;
+    IrpData->SystemTransition = TRUE;
+
+    IrpData->Device.CallerCompletion = CompletionFunction;
+    IrpData->Device.CallerContext = Context;
+    IrpData->Device.CallerDevice = DeviceObject;
+
+    PwrIrp = IrpData->Irp;
+    PwrIrp->IoStatus.Status = STATUS_NOT_SUPPORTED;
+    PwrIrp->IoStatus.Information = 0;
+    IoSetNextIrpStackLocation(PwrIrp);
+
+    Stack = IoGetNextIrpStackLocation(PwrIrp);
+    Stack->Parameters.Others.Argument1 = DeviceObject;
+    Stack->Parameters.Others.Argument2 = (PVOID)(ULONG_PTR)MinorFunction;
+    Stack->Parameters.Others.Argument3 = (PVOID)(ULONG_PTR)PowerState.SystemState;
+    Stack->Parameters.Others.Argument4 = Context;
+    Stack->DeviceObject = IrpData->TargetDevice;
+    IoSetNextIrpStackLocation(PwrIrp);
+
+    Stack = IoGetNextIrpStackLocation(PwrIrp);
+    Stack->MajorFunction = IRP_MJ_POWER;
+    Stack->MinorFunction = MinorFunction;
+    IrpData->PowerStateType = SystemPowerState;
+    Stack->Parameters.Power.Type = SystemPowerState;
+    Stack->Parameters.Power.State = PowerState;
+    Stack->Parameters.Power.SystemContext = POP_SYS_CONTEXT_SYSTEM_IRP;
+    Stack->Parameters.Power.ShutdownType = PopTranslateDriverIrpPowerAction(&PopAction, FALSE);
+    Stack->Parameters.Power.SystemPowerStateContext = PopBuildSystemPowerStateContext(SystemPowerState);
+
+    if (Irp != NULL)
+        *Irp = PwrIrp;
+
+    IoSetCompletionRoutine(PwrIrp,
+                           PopRequestPowerIrpCompletion,
+                           CompletionFunction,
+                           TRUE,
+                           TRUE,
+                           TRUE);
+
     PopQueuePowerIrp(IrpData);
     return STATUS_PENDING;
 }

@@ -26,7 +26,77 @@ PSYSTEM_POWER_POLICY PopDefaultPowerPolicy;
 PKWIN32_POWEREVENT_CALLOUT PopEventCallout = NULL;
 POP_POLICY_WORKER PopPolicyWorker[PolicyWorkerMax] = {0};
 
+/* Refcount for thermal-zone + fan policy device connections (under policy lock). */
+static ULONG PopThermalFanPolicyRefCount;
+
 /* PRIVATE FUNCTIONS **********************************************************/
+
+/**
+ * @brief
+ * Thermal zone or fan policy device arrived: mark the cooling system active
+ * (PopCoolingSystemMode) so policy paths that consult it behave like Windows,
+ * then release the extra device reference from PopAddPolicyDevice.
+ */
+static
+VOID
+NTAPI
+PopThermalOrFanPolicyConnectWorker(
+    _In_ PVOID Parameter)
+{
+    PPOP_DEVICE_POLICY_WORKITEM_DATA Data = Parameter;
+
+    PAGED_CODE();
+
+    PopAcquirePowerPolicyLock();
+
+    if (Data->PolicyType == PolicyDeviceThermalZone ||
+        Data->PolicyType == PolicyDeviceFan)
+    {
+        PopThermalFanPolicyRefCount++;
+        if (PopThermalFanPolicyRefCount == 1)
+            PopApplyThermalZoneState(POP_THERMAL_ZONE_IS_ACTIVE);
+    }
+
+    if (Data->PolicyData != NULL)
+        ObDereferenceObject((PDEVICE_OBJECT)Data->PolicyData);
+
+    PopReleasePowerPolicyLock();
+    PopFreePool(Data, TAG_PO_POLICY_DEVICE_WORKITEM_DATA);
+}
+
+/**
+ * @brief
+ * Thermal zone or fan policy device removed: drop refcount and clear the
+ * active cooling flag when the last such device disconnects.
+ */
+static
+VOID
+NTAPI
+PopThermalOrFanPolicyDisconnectWorker(
+    _In_ PVOID Parameter)
+{
+    PPOP_DEVICE_POLICY_WORKITEM_DATA Data = Parameter;
+
+    PAGED_CODE();
+
+    PopAcquirePowerPolicyLock();
+
+    if (Data->PolicyType == PolicyDeviceThermalZone ||
+        Data->PolicyType == PolicyDeviceFan)
+    {
+        if (PopThermalFanPolicyRefCount > 0)
+            PopThermalFanPolicyRefCount--;
+
+        if (PopThermalFanPolicyRefCount == 0)
+            PopClearThermalZoneBits(POP_THERMAL_ZONE_IS_ACTIVE);
+    }
+
+    if (Data->PolicyData != NULL)
+        ObDereferenceObject((PDEVICE_OBJECT)Data->PolicyData);
+
+    PopReleasePowerPolicyLock();
+    PopFreePool(Data, TAG_PO_POLICY_DEVICE_WORKITEM_DATA);
+}
 
 /**
  * @brief
@@ -183,26 +253,18 @@ PopRemovePolicyDevice(
         PolicyData = ControlSwitch;
         PolicyWorkerRoutine = PopControlSwitchHandler;
     }
-    else if (PolicyDeviceType == PolicyDeviceMemory)
-    {
-        DPRINT1("Policy memory device not currently implemented yet\n");
-        ASSERT(FALSE);
-    }
     else if (PolicyDeviceType == PolicyDeviceBattery)
     {
         PopBattery->Flags |= POP_CB_REMOVE_BATTERY;
         PolicyData = NULL;
         PolicyWorkerRoutine = PopCompositeBatteryHandler;
     }
-    else if (PolicyDeviceType == PolicyDeviceThermalZone)
+    else if (PolicyDeviceType == PolicyDeviceThermalZone ||
+             PolicyDeviceType == PolicyDeviceFan)
     {
-        DPRINT1("Policy thermal zone device not currently implemented yet\n");
-        ASSERT(FALSE);
-    }
-    else if (PolicyDeviceType == PolicyDeviceFan)
-    {
-        DPRINT1("Policy fan device not currently implemented yet\n");
-        ASSERT(FALSE);
+        PolicyData = PolicyDeviceObject;
+        PolicyWorkerRoutine = PopThermalOrFanPolicyDisconnectWorker;
+        MustDereference = FALSE;
     }
     else
     {
@@ -351,23 +413,11 @@ PopAddPolicyDevice(
         }
 
         case PolicyDeviceThermalZone:
-        {
-            DPRINT1("Policy thermal zone device not currently implemented yet\n");
-            Status = STATUS_NOT_IMPLEMENTED;
-            break;
-        }
-
-        case PolicyDeviceMemory:
-        {
-            DPRINT1("Policy memory device not currently implemented yet\n");
-            Status = STATUS_NOT_IMPLEMENTED;
-            break;
-        }
-
         case PolicyDeviceFan:
         {
-            DPRINT1("Policy fan device not currently implemented yet\n");
-            Status = STATUS_NOT_IMPLEMENTED;
+            Status = STATUS_SUCCESS;
+            PolicyData = PolicyDeviceObject;
+            PolicyWorkerRoutine = PopThermalOrFanPolicyConnectWorker;
             break;
         }
 
@@ -663,16 +713,22 @@ PopPowerPolicySystemIdle(VOID)
     VideoTimeout = PopDefaultPowerPolicy->VideoTimeout;
     if (PopCapabilities.VideoDimPresent && VideoTimeout > 0)
     {
-        DPRINT("PopPowerPolicySystemIdle: VideoTimeout %lu s reached, requesting display off\n",
-               VideoTimeout);
+        ULONG64 Now = KeQueryInterruptTime();
+        ULONG64 Need100ns = (ULONG64)VideoTimeout * 10000000ULL;
 
-        Params.EventNumber = PsW32GdiOffRequest;
-        Params.Code = 0;
-        PopDispatchPowerEvent(&Params);
+        if (Now - PopLastUserInputInterruptTime >= Need100ns)
+        {
+            DPRINT("PopPowerPolicySystemIdle: VideoTimeout %lu s reached, requesting display off\n",
+                   VideoTimeout);
 
-        Params.EventNumber = PsW32MonitorOff;
-        Params.Code = 0;
-        PopDispatchPowerEvent(&Params);
+            Params.EventNumber = PsW32GdiOffRequest;
+            Params.Code = 0;
+            PopDispatchPowerEvent(&Params);
+
+            Params.EventNumber = PsW32MonitorOff;
+            Params.Code = 0;
+            PopDispatchPowerEvent(&Params);
+        }
     }
 
     /*
@@ -684,12 +740,18 @@ PopPowerPolicySystemIdle(VOID)
      * applications and services are given a chance to veto the transition
      * (e.g. a media player can reject the sleep request).
      *
-     * TODO: Gate this behind an actual user-inactivity elapsed-time check once
-     * Win32k reports idle duration back to the kernel Power Manager.
+     * Gate on elapsed time since last user input (PopRecordUserInputActivity
+     * from Win32k RIT / PopUserPresent) so policy idle does not fire while active.
      */
     IdleAction = PopDefaultPowerPolicy->Idle.Action;
     if (IdleAction != PowerActionNone && PopDefaultPowerPolicy->IdleTimeout > 0)
     {
+        ULONG64 Now = KeQueryInterruptTime();
+        ULONG64 Need100ns = (ULONG64)PopDefaultPowerPolicy->IdleTimeout * 10000000ULL;
+
+        if (Now - PopLastUserInputInterruptTime < Need100ns)
+            return;
+
         DPRINT("PopPowerPolicySystemIdle: IdleTimeout %lu s reached, initiating action %d\n",
                PopDefaultPowerPolicy->IdleTimeout, IdleAction);
 
@@ -1215,6 +1277,20 @@ PopDevicePolicyCallback(
         DPRINT1("The policy notification has a malformed size structure (must be %u, got %u)\n",
                 sizeof(DEVICE_INTERFACE_CHANGE_NOTIFICATION), Notification->Size);
         return STATUS_INVALID_PARAMETER;
+    }
+
+    /*
+     * Windows PopNotifyPolicyDevice: PolicyDeviceMemory is not registered through
+     * PopConnectToPolicyDevice. It takes PopTransitionLock + PopAcquirePolicyLock and
+     * calls PopEnableHiberFile(0) then PopEnableHiberFile(1) if hibernation was enabled,
+     * so the hibernation file can be resized when the ACPI memory device set changes.
+     * ReactOS does not implement PopEnableHiberFile yet; synchronize on the policy lock only.
+     */
+    if (PolicyDeviceType == PolicyDeviceMemory)
+    {
+        PopAcquirePowerPolicyLock();
+        PopReleasePowerPolicyLock();
+        return STATUS_SUCCESS;
     }
 
     /*

@@ -1786,6 +1786,14 @@ typedef struct _WIN32_CALLOUTS_FPNS
     PKWIN32_SESSION_CALLOUT WindowStationDeleteProcedure;
     PKWIN32_SESSION_CALLOUT WindowStationParseProcedure;
     PKWIN32_SESSION_CALLOUT WindowStationOpenProcedure;
+#if defined(__REACTOS__)
+    /*
+     * If non-NULL, PsEstablishWin32Callouts stores the address of
+     * ntoskrnl PopRecordUserInputActivity in *RecordUserInputRoutineSlot
+     * so Win32k can feed the power manager last-input time (no Windows export).
+     */
+    PVOID *RecordUserInputRoutineSlot;
+#endif
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     PKWIN32_WIN32DATACOLLECTION_CALLOUT Win32DataCollectionProcedure;
 #endif

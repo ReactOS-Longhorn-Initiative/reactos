@@ -413,29 +413,12 @@ typedef struct _PPM_PROCESSOR_IDLE_STATE_EX
 } PPM_PROCESSOR_IDLE_STATE_EX, *PPPM_PROCESSOR_IDLE_STATE_EX;
 
 //
-// PPM_PERF_STATES_EX
+// PPM_PERF_STATES_EX — alias for the Windows-layout PROCESSOR_PERF_STATES
+// (ndk/processorperfstates.h).  The pointer is stored in
+// Prcb->PowerState.IdleHandlers until a dedicated PRCB field exists.
 //
-// Kernel-side view of the PROCESSOR_PERF_STATES structure registered by
-// a processor driver via RegisterPerfStates().  Only the fields used by
-// the kernel policy engine are listed; remaining fields are opaque.
-//
-// NOTE: The pointer is stored in Prcb->PowerState.IdleHandlers (a PVOID)
-// as a temporary measure until a dedicated PRCB field is available.
-//
-typedef struct _PPM_PERF_STATES_EX
-{
-    ULONG   Version;            /* Must be 1                                    */
-    USHORT  Type;               /* PPM_PERF_STATE_TYPE_*                        */
-    BOOLEAN HardPlatformCap;    /* TRUE = BIOS performance cap active           */
-    BOOLEAN AffinitizeControl;
-    BOOLEAN EfficientThrottle;
-    ULONG   ProcessorCount;
-    ULONG   NominalFrequency;   /* Nominal MHz (100 % P-state)                  */
-    ULONG   MaxPerfPercent;     /* Platform-allowed max performance (0-100)     */
-    ULONG   MinPerfPercent;     /* Minimum performance level (0-100)            */
-    ULONG   MinThrottlePercent; /* Minimum throttle level (0-100)               */
-    /* ... remaining fields opaque ... */
-} PPM_PERF_STATES_EX, *PPPM_PERF_STATES_EX;
+#include <ndk/processorperfstates.h>
+typedef PROCESSOR_PERF_STATES PPM_PERF_STATES_EX, *PPPM_PERF_STATES_EX;
 
 //
 // PPM_PERF_CAP

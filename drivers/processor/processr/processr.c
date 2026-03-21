@@ -55,6 +55,8 @@ DriverEntry(
 {
     DPRINT("Processr: DriverEntry()\n");
 
+    (VOID)ProcessrInitPpmDispatch();
+
     DriverObject->MajorFunction[IRP_MJ_PNP] = ProcessorPnp;
     DriverObject->MajorFunction[IRP_MJ_POWER] = ProcessorPower;
 

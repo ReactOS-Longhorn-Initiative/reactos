@@ -18,6 +18,10 @@
 WORK_QUEUE_ITEM PopUnlockMemoryWorkItem;
 KEVENT PopUnlockMemoryCompleteEvent;
 
+/* In-memory power settings not stored in SYSTEM_POWER_POLICY (query/set round-trip). */
+static ULONG PopPowerSettingMonitorOn = 1;
+static ULONG PopPowerSettingConsoleDisplayState = 1;
+
 /* PRIVATE FUNCTIONS **********************************************************/
 
 /**
@@ -233,6 +237,18 @@ PopQueryPowerSettingUlong(
         return STATUS_SUCCESS;
     }
 
+    if (PopIsEqualGuid(SettingGuid, &GUID_MONITOR_POWER_ON))
+    {
+        *ValueOut = PopPowerSettingMonitorOn;
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_CONSOLE_DISPLAY_STATE))
+    {
+        *ValueOut = PopPowerSettingConsoleDisplayState;
+        return STATUS_SUCCESS;
+    }
+
     if (PopDefaultPowerPolicy == NULL)
         return STATUS_OBJECT_NAME_NOT_FOUND;
 
@@ -288,6 +304,20 @@ PopApplyPowerSettingUlong(
     {
         PopCoolingSystemMode = Value ? 1UL : 0UL;
         PopNotifyPowerSettingChange(&GUID_SYSTEM_COOLING_POLICY);
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_MONITOR_POWER_ON))
+    {
+        PopPowerSettingMonitorOn = Value ? 1UL : 0UL;
+        PopNotifyPowerSettingChange(&GUID_MONITOR_POWER_ON);
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_CONSOLE_DISPLAY_STATE))
+    {
+        PopPowerSettingConsoleDisplayState = Value;
+        PopNotifyPowerSettingChange(&GUID_CONSOLE_DISPLAY_STATE);
         return STATUS_SUCCESS;
     }
 
@@ -1670,6 +1700,14 @@ NtPowerInformation(
                                                    SetVal->Data,
                                                    SetVal->DataLength);
             }
+            else if (PopIsEqualGuid(&SetVal->Guid, &GUID_MONITOR_POWER_ON) ||
+                     PopIsEqualGuid(&SetVal->Guid, &GUID_CONSOLE_DISPLAY_STATE))
+            {
+                Status = PopApplyPowerSettingUlong(&SetVal->Guid,
+                                                   NULL,
+                                                   SetVal->Data,
+                                                   SetVal->DataLength);
+            }
             else
             {
                 TargetPolicy = PopPolicyStoreForPowerCondition(SetVal->PowerCondition);
@@ -1703,7 +1741,9 @@ NtPowerInformation(
             if (NT_SUCCESS(Status) &&
                 (NotifyPolicy ||
                  PopIsEqualGuid(&SetVal->Guid, &GUID_PROCESSOR_THROTTLE_MAXIMUM) ||
-                 PopIsEqualGuid(&SetVal->Guid, &GUID_SYSTEM_COOLING_POLICY)))
+                 PopIsEqualGuid(&SetVal->Guid, &GUID_SYSTEM_COOLING_POLICY) ||
+                 PopIsEqualGuid(&SetVal->Guid, &GUID_MONITOR_POWER_ON) ||
+                 PopIsEqualGuid(&SetVal->Guid, &GUID_CONSOLE_DISPLAY_STATE)))
             {
                 PopPowerPolicyNotification();
                 PopSyncPpmPolicyFromCurrentPolicy();
@@ -2141,6 +2181,60 @@ NtSetSystemPowerState(
                 /* We are running within the system context, invoke shutdown directly */
                 PopGracefulShutdown(NULL);
             }
+        }
+        else if (PopAction.Action == PowerActionSleep ||
+                 PopAction.Action == PowerActionHibernate)
+        {
+            SYSTEM_POWER_STATE TargetState;
+            POWER_STATE PState;
+            NTSTATUS IrpStatus;
+
+            if (PopAction.Action == PowerActionHibernate)
+            {
+                TargetState = PowerSystemHibernate;
+            }
+            else
+            {
+                if (MinSystemState <= PowerSystemUnspecified ||
+                    MinSystemState >= PowerSystemMaximum)
+                {
+                    Status = STATUS_INVALID_PARAMETER;
+                    break;
+                }
+
+                if (MinSystemState == PowerSystemWorking)
+                    TargetState = PowerSystemSleeping3;
+                else
+                    TargetState = MinSystemState;
+            }
+
+            if (PopSystemPowerDeviceNode == NULL ||
+                PopSystemPowerDeviceNode->PhysicalDeviceObject == NULL)
+            {
+                DPRINT1("No registered system power device node; cannot broadcast sleep IRP\n");
+                Status = STATUS_DEVICE_DOES_NOT_EXIST;
+                break;
+            }
+
+            PopAction.SystemState = TargetState;
+            PopAction.EffectiveSystemState = TargetState;
+            PopAction.CurrentSystemState = PowerSystemWorking;
+            PopAction.NextSystemState = TargetState;
+
+            PState.SystemState = TargetState;
+            IrpStatus = PopRequestSystemPowerIrp(PopSystemPowerDeviceNode->PhysicalDeviceObject,
+                                                 IRP_MN_SET_POWER,
+                                                 PState,
+                                                 FALSE,
+                                                 FALSE,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL);
+            if (!NT_SUCCESS(IrpStatus) && IrpStatus != STATUS_PENDING)
+                Status = IrpStatus;
+            else
+                Status = STATUS_SUCCESS;
+            break;
         }
 
         /* There is A LOOOOOOOT OF STUFF TO IMPLEMENT HERE, consider it a stub at the moment */

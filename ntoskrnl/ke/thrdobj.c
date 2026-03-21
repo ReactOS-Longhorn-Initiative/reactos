@@ -1152,6 +1152,198 @@ KeSetSystemAffinityThread(IN KAFFINITY Affinity)
 /*
  * @implemented
  */
+VOID
+NTAPI
+KeSetSystemGroupAffinityThread(
+    _In_ PGROUP_AFFINITY Affinity,
+    _Out_opt_ PGROUP_AFFINITY PreviousAffinity)
+{
+    KIRQL OldIrql;
+    PKPRCB Prcb;
+    PKTHREAD NextThread, CurrentThread = KeGetCurrentThread();
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+    ASSERT((Affinity->Mask & KeActiveProcessors) != 0);
+
+    OldIrql = KiAcquireDispatcherLock();
+
+    if (PreviousAffinity)
+    {
+        PreviousAffinity->Group = 0;
+        PreviousAffinity->Mask = CurrentThread->Affinity;
+        RtlZeroMemory(PreviousAffinity->Reserved, sizeof(PreviousAffinity->Reserved));
+    }
+
+    if (Affinity->Group != 0)
+    {
+        KiReleaseDispatcherLock(OldIrql);
+        return;
+    }
+
+    CurrentThread->Affinity = Affinity->Mask;
+    CurrentThread->SystemAffinityActive = TRUE;
+
+#ifdef CONFIG_SMP
+    CurrentThread->IdealProcessor =
+        KiFindIdealProcessor(Affinity->Mask, CurrentThread->IdealProcessor);
+#endif
+
+    Prcb = KeGetCurrentPrcb();
+    if (!(Prcb->SetMember & CurrentThread->Affinity))
+    {
+        KiAcquirePrcbLock(Prcb);
+
+        if (!Prcb->NextThread)
+        {
+            NextThread = KiSelectNextThread(Prcb);
+            NextThread->State = Standby;
+            Prcb->NextThread = NextThread;
+        }
+
+        KiReleasePrcbLock(Prcb);
+    }
+
+    KiReleaseDispatcherLock(OldIrql);
+}
+
+/*
+ * @implemented
+ */
+VOID
+NTAPI
+KeRevertToUserGroupAffinityThread(
+    _In_ PGROUP_AFFINITY PreviousAffinity)
+{
+    KIRQL OldIrql;
+    PKPRCB Prcb;
+    PKTHREAD NextThread, CurrentThread = KeGetCurrentThread();
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+    ASSERT(PreviousAffinity != NULL);
+    ASSERT(CurrentThread->SystemAffinityActive != FALSE);
+
+    OldIrql = KiAcquireDispatcherLock();
+
+    CurrentThread->Affinity = PreviousAffinity->Mask;
+    CurrentThread->SystemAffinityActive = FALSE;
+
+#ifdef CONFIG_SMP
+    CurrentThread->IdealProcessor =
+        KiFindIdealProcessor(PreviousAffinity->Mask, CurrentThread->IdealProcessor);
+#endif
+
+    Prcb = KeGetCurrentPrcb();
+    if (!(Prcb->SetMember & CurrentThread->Affinity))
+    {
+        KiAcquirePrcbLock(Prcb);
+
+        if (!Prcb->NextThread)
+        {
+            NextThread = KiSelectNextThread(Prcb);
+            NextThread->State = Standby;
+            Prcb->NextThread = NextThread;
+        }
+
+        KiReleasePrcbLock(Prcb);
+    }
+
+    KiReleaseDispatcherLock(OldIrql);
+}
+
+/*
+ * @implemented
+ */
+KAFFINITY
+NTAPI
+KeSetSystemAffinityThreadEx(
+    _In_ KAFFINITY Affinity)
+{
+    KIRQL OldIrql;
+    KAFFINITY OldAffinity;
+    PKPRCB Prcb;
+    PKTHREAD NextThread, CurrentThread = KeGetCurrentThread();
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+    ASSERT((Affinity & KeActiveProcessors) != 0);
+
+    OldIrql = KiAcquireDispatcherLock();
+
+    OldAffinity = CurrentThread->Affinity;
+
+    CurrentThread->Affinity = Affinity;
+    CurrentThread->SystemAffinityActive = TRUE;
+
+#ifdef CONFIG_SMP
+    CurrentThread->IdealProcessor =
+        KiFindIdealProcessor(Affinity, CurrentThread->IdealProcessor);
+#endif
+
+    Prcb = KeGetCurrentPrcb();
+    if (!(Prcb->SetMember & CurrentThread->Affinity))
+    {
+        KiAcquirePrcbLock(Prcb);
+
+        if (!Prcb->NextThread)
+        {
+            NextThread = KiSelectNextThread(Prcb);
+            NextThread->State = Standby;
+            Prcb->NextThread = NextThread;
+        }
+
+        KiReleasePrcbLock(Prcb);
+    }
+
+    KiReleaseDispatcherLock(OldIrql);
+
+    return OldAffinity;
+}
+
+/*
+ * @implemented
+ */
+VOID
+NTAPI
+KeRevertToUserAffinityThreadEx(
+    _In_ KAFFINITY Affinity)
+{
+    KIRQL OldIrql;
+    PKPRCB Prcb;
+    PKTHREAD NextThread, CurrentThread = KeGetCurrentThread();
+
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+    ASSERT(CurrentThread->SystemAffinityActive != FALSE);
+
+    OldIrql = KiAcquireDispatcherLock();
+
+    CurrentThread->Affinity = Affinity;
+    CurrentThread->SystemAffinityActive = FALSE;
+
+#ifdef CONFIG_SMP
+    CurrentThread->IdealProcessor =
+        KiFindIdealProcessor(Affinity, CurrentThread->IdealProcessor);
+#endif
+
+    Prcb = KeGetCurrentPrcb();
+    if (!(Prcb->SetMember & CurrentThread->Affinity))
+    {
+        KiAcquirePrcbLock(Prcb);
+
+        if (!Prcb->NextThread)
+        {
+            NextThread = KiSelectNextThread(Prcb);
+            NextThread->State = Standby;
+            Prcb->NextThread = NextThread;
+        }
+
+        KiReleasePrcbLock(Prcb);
+    }
+
+    KiReleaseDispatcherLock(OldIrql);
+}
+
+/*
+ * @implemented
+ */
 LONG
 NTAPI
 KeSetBasePriorityThread(IN PKTHREAD Thread,

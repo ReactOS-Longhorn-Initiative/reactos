@@ -249,9 +249,16 @@ ProcessorStartDevice(
     IN PCM_RESOURCE_LIST ResourceList,
     IN PCM_RESOURCE_LIST ResourceListTranslated)
 {
+    PDEVICE_EXTENSION DevExt = DeviceObject->DeviceExtension;
+
     DPRINT("ProcessorStartDevice()\n");
 
+    UNREFERENCED_PARAMETER(ResourceList);
+    UNREFERENCED_PARAMETER(ResourceListTranslated);
+
     ProcessorSetFriendlyName(DeviceObject);
+
+    ProcessrRegisterIntelPerfIfNeeded(DevExt);
 
     return STATUS_SUCCESS;
 }
@@ -299,6 +306,7 @@ ProcessorPnp(
 
         case IRP_MN_REMOVE_DEVICE:
             DPRINT("  IRP_MN_REMOVE_DEVICE received\n");
+            ProcessrUnregisterIntelPerf(DeviceObject->DeviceExtension);
             return ForwardIrpAndForget(DeviceObject, Irp);
 
         case IRP_MN_CANCEL_REMOVE_DEVICE:

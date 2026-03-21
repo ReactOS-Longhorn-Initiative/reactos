@@ -1800,6 +1800,11 @@ PopDispatchPowerEvent(
 
 VOID
 NTAPI
+PopRecordUserInputActivity(
+    VOID);
+
+VOID
+NTAPI
 PopPowerPolicyNotification(
     VOID);
 
@@ -1988,6 +1993,18 @@ PopHasDoOutstandingIrp(
 NTSTATUS
 NTAPI
 PopRequestPowerIrp(
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _In_ UCHAR MinorFunction,
+    _In_ POWER_STATE PowerState,
+    _In_ BOOLEAN IsFxDevice,
+    _In_ BOOLEAN NotifyPEP,
+    _In_opt_ PREQUEST_POWER_COMPLETE CompletionFunction,
+    _In_opt_ __drv_aliasesMem PVOID Context,
+    _Outptr_opt_ PIRP *Irp);
+
+NTSTATUS
+NTAPI
+PopRequestSystemPowerIrp(
     _In_ PDEVICE_OBJECT DeviceObject,
     _In_ UCHAR MinorFunction,
     _In_ POWER_STATE PowerState,
@@ -2251,6 +2268,12 @@ extern SYSTEM_POWER_POLICY PopAcPowerPolicy;
 extern SYSTEM_POWER_POLICY PopDcPowerPolicy;
 extern PSYSTEM_POWER_POLICY PopDefaultPowerPolicy;
 extern PKWIN32_POWEREVENT_CALLOUT PopEventCallout;
+
+/*
+ * Last user input time in KeQueryInterruptTime() units (100 ns), updated from
+ * Win32k (RIT) and Po user-presence paths; used to gate policy idle/video actions.
+ */
+extern volatile ULONG64 PopLastUserInputInterruptTime;
 
 /* Power Manager Shutdown constructs */
 extern BOOLEAN PopShutdownCleanly;

@@ -10,6 +10,8 @@
 #include <win32k.h>
 DBG_DEFAULT_CHANNEL(UserInput);
 
+PVOID g_PopRecordUserInputRoutine = NULL;
+
 /* LastRITEventTickCount update cycle has been adjusted from 60s to 1s since NT6 */
 #if (NTDDI_VERSION < NTDDI_VISTA)
 #define LAST_RIT_EVENT_UPDATE_INTERVAL 60000UL
@@ -41,6 +43,10 @@ IntLastInputTick(BOOL bUpdate)
     if (bUpdate)
     {
         LastInputTick = EngGetTickCount32();
+        if (g_PopRecordUserInputRoutine != NULL)
+        {
+            ((VOID(NTAPI*)(VOID))g_PopRecordUserInputRoutine)();
+        }
         if (gpsi)
         {
             gpsi->dwLastRITEventTickCount = LastInputTick;

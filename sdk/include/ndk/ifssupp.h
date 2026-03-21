@@ -15,13 +15,13 @@ Author:
     Alex Ionescu (alexi@tinykrnl.org) - Updated - 27-Feb-2006
 
 --*/
-#ifndef _NTIFS_
+#if !defined(_NTIFS_INCLUDED_) && !defined(_NTIFS_)
 #ifndef NTOS_MODE_USER
-#define _NTIFS_
+#ifndef __NDK_IFSSUPP_TYPES__
+#define __NDK_IFSSUPP_TYPES__
 
 #define TOKEN_SOURCE_LENGTH               8
 
-#ifndef _NTIFS_
 typedef enum _TOKEN_TYPE
 {
     TokenPrimary = 1,
@@ -53,12 +53,14 @@ typedef struct _RTL_HEAP_PARAMETERS
 typedef PVOID PFS_FILTER_CALLBACKS;
 typedef USHORT SECURITY_DESCRIPTOR_CONTROL, *PSECURITY_DESCRIPTOR_CONTROL;
 
+#ifndef _NTDDK_
 typedef struct _RTL_SPLAY_LINKS
 {
     struct _RTL_SPLAY_LINKS *Parent;
     struct _RTL_SPLAY_LINKS *LeftChild;
     struct _RTL_SPLAY_LINKS *RightChild;
 } RTL_SPLAY_LINKS, *PRTL_SPLAY_LINKS;
+#endif
 
 typedef struct _RTL_GENERIC_TABLE RTL_GENERIC_TABLE, *PRTL_GENERIC_TABLE;
 typedef ULONG TABLE_SEARCH_RESULT;
@@ -150,12 +152,14 @@ typedef struct _ACE_HEADER
     USHORT AceSize;
 } ACE_HEADER, *PACE_HEADER;
 
+#ifndef _NTDDK_
 typedef enum _RTL_GENERIC_COMPARE_RESULTS
 {
     GenericLessThan,
     GenericGreaterThan,
     GenericEqual
 } RTL_GENERIC_COMPARE_RESULTS;
+#endif
 
 typedef struct _SID_IDENTIFIER_AUTHORITY
 {
@@ -282,7 +286,6 @@ typedef struct _TOKEN_DEFAULT_DACL
 #define HEAP_CREATE_ENABLE_TRACING      0x00020000
 #define HEAP_CREATE_ENABLE_EXECUTE      0x00040000
 
-#endif
-
+#endif // __NDK_IFSSUPP_TYPES__
 #endif // !NTOS_MODE_USER
-#endif // _NTIFS_
+#endif // !defined(_NTIFS_INCLUDED_) && !defined(_NTIFS_)

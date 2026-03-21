@@ -42,3 +42,63 @@ KeQueryActiveProcessors(VOID)
 {
     return KeActiveProcessors;
 }
+
+/*
+ * @implemented
+ * Logical processor index in the single-group configuration (matches
+ * KeGetCurrentProcessorNumber on legacy x86/x64).
+ */
+ULONG
+NTAPI
+KeGetCurrentProcessorIndex(VOID)
+{
+    return (ULONG)KeGetCurrentProcessorNumber();
+}
+
+/*
+ * @implemented
+ */
+ULONG
+NTAPI
+KeQueryMaximumProcessorCount(VOID)
+{
+#ifdef CONFIG_SMP
+    return KeMaximumProcessors;
+#else
+    return 1;
+#endif
+}
+
+/*
+ * @implemented
+ * ReactOS uses a single processor group (0). ALL_PROCESSOR_GROUPS returns
+ * the total active logical processor count.
+ */
+ULONG
+NTAPI
+KeQueryActiveProcessorCountEx(
+    _In_ USHORT GroupNumber)
+{
+    if (GroupNumber != 0 && GroupNumber != (USHORT)0xFFFF) /* ALL_PROCESSOR_GROUPS */
+        return 0;
+
+    return (ULONG)KeNumberProcessors;
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
+KeGetProcessorNumberFromIndex(
+    _In_ ULONG ProcIndex,
+    _Out_ PPROCESSOR_NUMBER ProcNumber)
+{
+    if (ProcIndex >= (ULONG)KeNumberProcessors)
+        return STATUS_INVALID_PARAMETER;
+
+    ProcNumber->Group = 0;
+    ProcNumber->Number = (UCHAR)ProcIndex;
+    ProcNumber->Reserved = 0;
+    return STATUS_SUCCESS;
+}

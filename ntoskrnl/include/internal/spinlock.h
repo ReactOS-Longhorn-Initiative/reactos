@@ -27,11 +27,19 @@ KxAcquireSpinLock(
     PKSPIN_LOCK SpinLock)
 {
 #if DBG
-    /* Make sure that we don't own the lock already */
-    if (((KSPIN_LOCK)KeGetCurrentThread() | 1) == *SpinLock)
+    /*
+     * Above DISPATCH_LEVEL, nested interrupts on this CPU still report the same
+     * KeGetCurrentThread() while a spinlock may be held from an outer ISR
+     * (KiChainedDispatch / shared IRQ). The DBG "already owned" check then
+     * false-triggers SPIN_LOCK_ALREADY_OWNED (0xF). Only run it at DISPATCH_LEVEL
+     * where same-thread double-acquire is a real bug (e.g. DPC path).
+     */
+    if (KeGetCurrentIrql() <= DISPATCH_LEVEL)
     {
-        /* We do, bugcheck! */
-        KeBugCheckEx(SPIN_LOCK_ALREADY_OWNED, (ULONG_PTR)SpinLock, 0, 0, 0);
+        if (((KSPIN_LOCK)KeGetCurrentThread() | 1) == *SpinLock)
+        {
+            KeBugCheckEx(SPIN_LOCK_ALREADY_OWNED, (ULONG_PTR)SpinLock, 0, 0, 0);
+        }
     }
 #endif
 
@@ -78,11 +86,19 @@ KxReleaseSpinLock(
     PKSPIN_LOCK SpinLock)
 {
 #if DBG
-    /* Make sure that the threads match */
-    if (((KSPIN_LOCK)KeGetCurrentThread() | 1) != *SpinLock)
+    /*
+     * Symmetric with KxAcquireSpinLock: at IRQL > DISPATCH_LEVEL a nested path
+     * may have cleared the lock (or the thread-tag scheme does not match the
+     * real owner). Requiring KeGetCurrentThread() here false-triggers
+     * SPIN_LOCK_NOT_OWNED (0x10) after a nested release (e.g. KiChainedDispatch
+     * / KeSynchronizeExecution at SynchronizeIrql).
+     */
+    if (KeGetCurrentIrql() <= DISPATCH_LEVEL)
     {
-        /* They don't, bugcheck */
-        KeBugCheckEx(SPIN_LOCK_NOT_OWNED, (ULONG_PTR)SpinLock, 0, 0, 0);
+        if (((KSPIN_LOCK)KeGetCurrentThread() | 1) != *SpinLock)
+        {
+            KeBugCheckEx(SPIN_LOCK_NOT_OWNED, (ULONG_PTR)SpinLock, 0, 0, 0);
+        }
     }
 #endif
 

@@ -208,6 +208,26 @@ AmdIdleInitiateWake(
     return TRUE;
 }
 
+/*
+ * Fill KAFFINITY_EX for a single logical processor (group 0). The DDK does not
+ * always declare KeInitializeAffinityEx / KeAddProcessorAffinityEx for target NTDDI.
+ */
+static VOID
+AmdPpmInitSingleCpuTargetProcessors(
+    _Out_ PKAFFINITY_EX TargetProcessors,
+    _In_ ULONG ProcessorIndex)
+{
+    RtlZeroMemory(TargetProcessors, sizeof(*TargetProcessors));
+#if defined(_M_IX86) || defined(_M_AMD64)
+    if (ProcessorIndex < sizeof(KAFFINITY) * 8)
+    {
+        TargetProcessors->Count = 1;
+        TargetProcessors->Size = 1;
+        TargetProcessors->Bitmap[0] = (ULONG)((ULONG_PTR)1 << ProcessorIndex);
+    }
+#endif
+}
+
 /* REGISTRATION HELPERS ******************************************************/
 
 /*
@@ -221,6 +241,7 @@ AmdIdleInitiateWake(
  * the callbacks to drive deep idle transitions.
  */
 NTSTATUS
+NTAPI
 RegisterKernelIdleStates(
     _In_ PFDO_DATA DevExt)
 {
@@ -251,7 +272,8 @@ RegisterKernelIdleStates(
     /* Header */
     IdleStates->Version              = 1;
     IdleStates->Processor.Group      = 0;
-    IdleStates->Processor.Number     = (UCHAR)KeGetCurrentProcessorNumber();
+    IdleStates->Processor.Number     = (UCHAR)KeGetCurrentProcessorIndex();
+    IdleStates->Processor.Reserved   = 0;
     IdleStates->Context              = DevExt;
     IdleStates->EstimateIdleDuration = FALSE;
     IdleStates->Update               = FALSE;
@@ -326,7 +348,7 @@ RegisterKernelIdleStates(
     }
 
     DPRINT("AmdPpm: RegisterKernelIdleStates: %lu C-state(s) registered for CPU %u\n",
-           NumStates, KeGetCurrentProcessorNumber());
+           NumStates, KeGetCurrentProcessorIndex());
 
     return STATUS_SUCCESS;
 }
@@ -342,6 +364,7 @@ RegisterKernelIdleStates(
  * what the CPUID analysis found in DrvCapabilities.
  */
 NTSTATUS
+NTAPI
 RegisterKernelPerfStates(
     _In_ PFDO_DATA DevExt)
 {
@@ -369,9 +392,16 @@ RegisterKernelPerfStates(
     RtlZeroMemory(PerfStates, sizeof(*PerfStates));
     RtlZeroMemory(ProcInfo,   sizeof(*ProcInfo));
 
-    /* Identify the processor domain (single-CPU domain for now) */
-    ProcInfo->InitialApicId  = DevExt->InitialApicId;
-    ProcInfo->ProcessorIndex = DevExt->NtNumber;
+    if (!NT_SUCCESS(KeGetProcessorNumberFromIndex(DevExt->NtNumber, &ProcInfo->Number)))
+    {
+        ProcInfo->Number.Group    = 0;
+        ProcInfo->Number.Number   = (UCHAR)DevExt->NtNumber;
+        ProcInfo->Number.Reserved = 0;
+    }
+    ProcInfo->PerfContext  = 0;
+    ProcInfo->PlatformCap  = 100;
+    ProcInfo->ThermalCap   = 100;
+    ProcInfo->LimitReasons = 0;
 
     /* Fill in the PROCESSOR_PERF_STATES header */
     PerfStates->Version             = PROCESSOR_PERF_STATES_VERSION;
@@ -380,6 +410,14 @@ RegisterKernelPerfStates(
     PerfStates->MaxPerfPercent      = 100;
     PerfStates->MinPerfPercent      = 0;
     PerfStates->MinThrottlePercent  = 0;
+    PerfStates->FeedbackCounterCount     = 0;
+    PerfStates->MinimumPerfCheckPeriod   = 0;
+    PerfStates->AutonomousMode           = 0;
+    PerfStates->MinimumRelativePerformance  = 0;
+    PerfStates->NominalRelativePerformance  = 0;
+    PerfStates->GlobalContext            = 0;
+    PerfStates->FeedbackCounters         = NULL;
+    PerfStates->CounterContexts          = NULL;
 
     /* Determine the P-state type from capabilities */
     if (DevExt->DrvCapabilities & AMD_CAP_FFH)
@@ -396,7 +434,13 @@ RegisterKernelPerfStates(
     /* Extract the nominal frequency from _PSS entry 0 (highest P-state) */
     if (DevExt->PSS && DevExt->PSS->Count > 0)
     {
+        ULONG Last = DevExt->PSS->Count - 1;
+
         PerfStates->NominalFrequency = DevExt->PSS->States[0].CoreFrequency;
+        PerfStates->NominalRelativePerformance =
+            (ULONGLONG)DevExt->PSS->States[0].CoreFrequency;
+        PerfStates->MinimumRelativePerformance =
+            (ULONGLONG)DevExt->PSS->States[Last].CoreFrequency;
     }
 
     /*
@@ -421,23 +465,31 @@ RegisterKernelPerfStates(
     }
 
     /* Affinity: all processors in this domain (single processor for now) */
-    KeInitializeAffinityEx(&PerfStates->TargetProcessors);
-    KeAddProcessorAffinityEx(&PerfStates->TargetProcessors,
-                              DevExt->NtNumber);
+    AmdPpmInitSingleCpuTargetProcessors(&PerfStates->TargetProcessors,
+                                        DevExt->NtNumber);
+
+    PerfStates->PerfSelectionHandler = AmdPpmPerfSelection;
+    PerfStates->PerfControlHandler   = AmdPpmPerfControl;
+
+    AmdPpmPerfRegisterProcessorFdo(DevExt);
 
     /*
      * Register with the kernel.
-     * The kernel stores the pointer in Prcb->PowerState.PerfStates.
+     * The kernel stores the pointer in Prcb->PowerState.IdleHandlers.
      * The memory must remain valid for the lifetime of this processor device.
      */
     Status = AmdPpmGlobals.PpmDispatchTable.RegisterPerfStates(PerfStates);
     if (!NT_SUCCESS(Status))
     {
         DPRINT1("AmdPpm: RegisterPerfStates dispatch failed: 0x%08lx\n", Status);
+        AmdPpmPerfUnregisterProcessorFdo(DevExt);
         ExFreePoolWithTag(ProcInfo,    TAG_AMDPPM_GENERIC);
         ExFreePoolWithTag(PerfStates,  TAG_AMDPPM_GENERIC);
         return Status;
     }
+
+    DevExt->KernelRegisteredPerfStates     = PerfStates;
+    DevExt->KernelRegisteredPerfProcInfo   = ProcInfo;
 
     DPRINT("AmdPpm: RegisterKernelPerfStates: registered for CPU %lu "
            "(nom=%lu MHz, max=%lu%%)\n",
@@ -459,6 +511,7 @@ RegisterKernelPerfStates(
  *   • Again from EvtDeviceD0Entry on resume if the cap has changed
  */
 NTSTATUS
+NTAPI
 RegisterKernelPerfCap(
     _In_ PFDO_DATA DevExt)
 {
@@ -536,10 +589,90 @@ RegisterKernelPerfCap(
     DPRINT("AmdPpm: RegisterKernelPerfCap: CPU %lu → PlatformCap=%lu%% ThermalCap=%lu%%\n",
            DevExt->NtNumber, Cap.PlatformCap, Cap.ThermalCap);
 
+    if (DevExt->KernelRegisteredPerfProcInfo != NULL)
+    {
+        DevExt->KernelRegisteredPerfProcInfo->PlatformCap  = Cap.PlatformCap;
+        DevExt->KernelRegisteredPerfProcInfo->ThermalCap   = Cap.ThermalCap;
+        DevExt->KernelRegisteredPerfProcInfo->LimitReasons = Cap.LimitReasons;
+    }
+
     return STATUS_SUCCESS;
 }
 
 /* PRIVATE HELPERS ***********************************************************/
+
+/*
+ * AmdPpmQueryProcessorInstanceIndex
+ *
+ * Reads the ACPI processor device instance (BusQueryInstanceID) as a decimal
+ * logical-processor index. Used as NtNumber for PPM registration and affinity.
+ */
+static NTSTATUS
+AmdPpmQueryProcessorInstanceIndex(
+    _In_ PDEVICE_OBJECT DeviceObject,
+    _Out_ PULONG ProcessorIndex)
+{
+    PIO_STACK_LOCATION IrpStack;
+    IO_STATUS_BLOCK IoStatus;
+    PDEVICE_OBJECT TargetObject;
+    KEVENT Event;
+    PIRP Irp;
+    NTSTATUS Status;
+    UNICODE_STRING Us;
+    ULONG Index;
+
+    PAGED_CODE();
+
+    *ProcessorIndex = 0;
+
+    KeInitializeEvent(&Event, NotificationEvent, FALSE);
+
+    TargetObject = IoGetAttachedDeviceReference(DeviceObject);
+
+    Irp = IoBuildSynchronousFsdRequest(IRP_MJ_PNP,
+                                       TargetObject,
+                                       NULL,
+                                       0,
+                                       NULL,
+                                       &Event,
+                                       &IoStatus);
+    if (Irp == NULL)
+    {
+        ObDereferenceObject(TargetObject);
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    Irp->IoStatus.Status = STATUS_NOT_SUPPORTED;
+    IrpStack = IoGetNextIrpStackLocation(Irp);
+    RtlZeroMemory(IrpStack, sizeof(IO_STACK_LOCATION));
+    IrpStack->MajorFunction = IRP_MJ_PNP;
+    IrpStack->MinorFunction = IRP_MN_QUERY_ID;
+    IrpStack->Parameters.QueryId.IdType = BusQueryInstanceID;
+
+    Status = IoCallDriver(TargetObject, Irp);
+    if (Status == STATUS_PENDING)
+    {
+        KeWaitForSingleObject(&Event, Executive, KernelMode, FALSE, NULL);
+        Status = IoStatus.Status;
+    }
+
+    if (!NT_SUCCESS(Status) || IoStatus.Information == 0)
+    {
+        ObDereferenceObject(TargetObject);
+        return Status;
+    }
+
+    RtlInitUnicodeString(&Us, (PWSTR)IoStatus.Information);
+    Status = RtlUnicodeStringToInteger(&Us, 10, &Index);
+    ExFreePool((PVOID)IoStatus.Information);
+    ObDereferenceObject(TargetObject);
+
+    if (!NT_SUCCESS(Status))
+        return Status;
+
+    *ProcessorIndex = Index;
+    return STATUS_SUCCESS;
+}
 
 /*
  * ProcLibDeviceCreate
@@ -562,14 +695,13 @@ ProcLibDeviceCreate(
 }
 
 /*
- * ProcLibDeviceStart
+ * ProcLibDeviceStartImpl
  *
- * Called from EvtDevicePrepareHardware after the WDM device objects are known.
- * Acquires the ACPI interface, enumerates ACPI control methods, and registers
- * the available C/P/T-state capabilities with the kernel power manager.
+ * Body of processor bring-up: ACPI, C/P/T registration. Must run on the
+ * target logical processor (see ProcLibDeviceStart wrapper).
  */
-NTSTATUS
-ProcLibDeviceStart(
+static NTSTATUS
+ProcLibDeviceStartImpl(
     _In_ PFDO_DATA DevExt)
 {
     NTSTATUS Status;
@@ -577,7 +709,7 @@ ProcLibDeviceStart(
 
     PAGED_CODE();
 
-    DPRINT("AmdPpm: ProcLibDeviceStart – CPU NtNumber=%lu\n", DevExt->NtNumber);
+    DPRINT("AmdPpm: ProcLibDeviceStartImpl – CPU NtNumber=%lu\n", DevExt->NtNumber);
 
     /* Acquire the ACPI interface from the PDO stack */
     Status = AcquireAcpiInterfaces(DevExt);
@@ -835,10 +967,47 @@ ProcLibDeviceStart(
         Status = STATUS_SUCCESS;
     }
 
-    DPRINT("AmdPpm: ProcLibDeviceStart complete – enabled=0x%016llx\n",
+    DPRINT("AmdPpm: ProcLibDeviceStartImpl complete – enabled=0x%016llx\n",
            DevExt->PPMEnabled);
 
     return STATUS_SUCCESS;
+}
+
+/*
+ * ProcLibDeviceStart
+ *
+ * Runs ProcLibDeviceStartImpl on the correct CPU so kernel PPM dispatch
+ * (RegisterIdleStates, RegisterPerfStates, RegisterPerfCap) targets this
+ * logical processor's KPRCB.
+ */
+NTSTATUS
+ProcLibDeviceStart(
+    _In_ PFDO_DATA DevExt)
+{
+    NTSTATUS Status;
+    GROUP_AFFINITY Affinity, PrevAffinity;
+    PROCESSOR_NUMBER ProcNum;
+
+    PAGED_CODE();
+
+    if (!NT_SUCCESS(KeGetProcessorNumberFromIndex(DevExt->NtNumber, &ProcNum)))
+    {
+        ProcNum.Group    = 0;
+        ProcNum.Number   = (UCHAR)DevExt->NtNumber;
+        ProcNum.Reserved = 0;
+    }
+
+    RtlZeroMemory(&Affinity, sizeof(Affinity));
+    Affinity.Group = ProcNum.Group;
+    Affinity.Mask  = (KAFFINITY)1 << ProcNum.Number;
+
+    KeSetSystemGroupAffinityThread(&Affinity, &PrevAffinity);
+
+    Status = ProcLibDeviceStartImpl(DevExt);
+
+    KeRevertToUserGroupAffinityThread(&PrevAffinity);
+
+    return Status;
 }
 
 /* WDF CALLBACK IMPLEMENTATIONS **********************************************/
@@ -857,6 +1026,7 @@ EvtDevicePrepareHardware(
     _In_ WDFCMRESLIST ResourcesTranslated)
 {
     PFDO_DATA DevExt;
+    NTSTATUS Status;
 
     PAGED_CODE();
     UNREFERENCED_PARAMETER(ResourcesRaw);
@@ -871,6 +1041,20 @@ EvtDevicePrepareHardware(
     DevExt->Self          = WdfDeviceWdmGetDeviceObject(Device);
     DevExt->Pdo           = WdfDeviceWdmGetPhysicalDevice(Device);
     DevExt->DefaultTarget = WdfDeviceGetIoTarget(Device);
+
+    DevExt->NtNumber = 0;
+    Status = AmdPpmQueryProcessorInstanceIndex(DevExt->Self, &DevExt->NtNumber);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT("AmdPpm: BusQueryInstanceID failed 0x%08lx, using CPU 0\n", Status);
+        DevExt->NtNumber = 0;
+    }
+
+    if (DevExt->NtNumber >= KeQueryMaximumProcessorCount())
+    {
+        DPRINT1("AmdPpm: instance index %lu out of range, clamping\n", DevExt->NtNumber);
+        DevExt->NtNumber = KeQueryMaximumProcessorCount() - 1;
+    }
 
     return ProcLibDeviceStart(DevExt);
 }
@@ -893,6 +1077,22 @@ EvtDeviceReleaseHardware(
     UNREFERENCED_PARAMETER(ResourcesTranslated);
 
     DevExt = AmdPpmGetFdoData(Device);
+
+    AmdPpmPerfUnregisterProcessorFdo(DevExt);
+
+    if (DevExt->KernelRegisteredPerfStates != NULL)
+    {
+        AmdPpmClearKernelPerfStatesRegistration(DevExt->NtNumber);
+        if (DevExt->KernelRegisteredPerfProcInfo != NULL)
+        {
+            ExFreePoolWithTag(DevExt->KernelRegisteredPerfProcInfo,
+                              TAG_AMDPPM_GENERIC);
+            DevExt->KernelRegisteredPerfProcInfo = NULL;
+        }
+        ExFreePoolWithTag(DevExt->KernelRegisteredPerfStates,
+                          TAG_AMDPPM_GENERIC);
+        DevExt->KernelRegisteredPerfStates = NULL;
+    }
 
     /*
      * Drop the object-manager reference on the PDO taken in
@@ -964,6 +1164,9 @@ EvtDeviceD0Entry(
 {
     PFDO_DATA DevExt;
     ULONG NewPpc = 0, NewTpc = 0;
+    BOOLEAN CapDirty = FALSE;
+    GROUP_AFFINITY Affinity, PrevAffinity;
+    PROCESSOR_NUMBER ProcNum;
 
     PAGED_CODE();
 
@@ -987,13 +1190,7 @@ EvtDeviceD0Entry(
                 DPRINT("AmdPpm: PPC changed %lu → %lu on resume\n",
                        DevExt->PPC_Cap, NewPpc);
                 DevExt->PPC_Cap = NewPpc;
-
-                /*
-                 * Notify the kernel of the updated platform performance cap
-                 * so the throttle policy engine applies the new limit.
-                 */
-                if (AmdPpmGlobals.RegisterPerfCap)
-                    AmdPpmGlobals.RegisterPerfCap(DevExt);
+                CapDirty = TRUE;
             }
         }
 
@@ -1005,13 +1202,26 @@ EvtDeviceD0Entry(
                 DPRINT("AmdPpm: TPC changed %lu → %lu on resume\n",
                        DevExt->TPC_Cap, NewTpc);
                 DevExt->TPC_Cap = NewTpc;
-
-                /*
-                 * Notify the kernel of the updated thermal throttle cap.
-                 */
-                if (AmdPpmGlobals.RegisterPerfCap)
-                    AmdPpmGlobals.RegisterPerfCap(DevExt);
+                CapDirty = TRUE;
             }
+        }
+
+        if (CapDirty && AmdPpmGlobals.RegisterPerfCap)
+        {
+            if (!NT_SUCCESS(KeGetProcessorNumberFromIndex(DevExt->NtNumber, &ProcNum)))
+            {
+                ProcNum.Group    = 0;
+                ProcNum.Number   = (UCHAR)DevExt->NtNumber;
+                ProcNum.Reserved = 0;
+            }
+
+            RtlZeroMemory(&Affinity, sizeof(Affinity));
+            Affinity.Group = ProcNum.Group;
+            Affinity.Mask  = (KAFFINITY)1 << ProcNum.Number;
+
+            KeSetSystemGroupAffinityThread(&Affinity, &PrevAffinity);
+            (VOID)AmdPpmGlobals.RegisterPerfCap(DevExt);
+            KeRevertToUserGroupAffinityThread(&PrevAffinity);
         }
     }
 

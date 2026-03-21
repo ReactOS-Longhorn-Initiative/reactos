@@ -73,6 +73,8 @@
 #define MAX_CPU_TRACK   4096
 #define TM8_MAX_PROC_ROWS MAX_CPU_TRACK
 #define TM8_MAX_LOGICAL_CPU 64
+/* Minimum logical width for CPU stats strip (three columns); narrower viewports scroll horizontally. */
+#define TM8_CPU_STATS_MIN_INNER_W 600
 
 /* Must match SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION (class 8). */
 typedef struct _TM8_PROC_PERF_INFO
@@ -228,6 +230,8 @@ static HWND s_hwndCpuSpecLbl;
 static HWND s_hwndCpuSpecVal;
 static HWND s_hwndCpuGraphSub;
 static HWND s_hwndCpuStatsPanel;
+static int s_CpuStatsHScrollPos;
+static int s_CpuStatsContentW;
 static HWND s_hwndMemTitle;
 static HWND s_hwndMemModel;
 static HWND s_hwndMemGraphSub;
@@ -272,6 +276,10 @@ static SIZE_T s_ProcMemMax;
 static int s_ProcSortCol = TM8_PROCSORT_COL_NONE;
 static int s_ProcSortPhase;
 
+/* Pause process-list refresh while dragging the vertical scrollbar; 1s cooldown after. */
+static BOOL s_ProcListVScrollDragging;
+static DWORD s_ProcListResumeDeadline;
+
 typedef struct _TM8_SCRATCH_PROC
 {
     DWORD pid;
@@ -286,6 +294,7 @@ static TM8_SCRATCH_PROC s_ProcScratch[TM8_MAX_PROC_ROWS];
 static void SyncProcEndTaskUi(void);
 static DWORD GetSelectedPid(void);
 static void RefreshProcessList(void);
+static void RefreshProcessListEx(BOOL force);
 
 static BYTE s_CpuHist[CPU_HIST_LEN];
 static int s_CpuHistPos;
@@ -333,8 +342,10 @@ typedef struct _TM8_CPU_STATS_PAINT
     WCHAR threadLbl[48], threadVal[40];
     WCHAR handleLbl[48], handleVal[40];
     WCHAR upLbl[48], upVal[96];
-    WCHAR specLblBuf[768];
-    WCHAR specValBuf[768];
+    WCHAR specMidLblBuf[768];
+    WCHAR specMidValBuf[768];
+    WCHAR specCacheLblBuf[768];
+    WCHAR specCacheValBuf[768];
 } TM8_CPU_STATS_PAINT;
 static TM8_CPU_STATS_PAINT s_CpuStatsPaint;
 
@@ -369,6 +380,8 @@ typedef struct _TM8_MEM_DIMM_INFO
 static TM8_MEM_DIMM_INFO s_MemDimm;
 
 static LRESULT CALLBACK GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK CpuStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+static void Tm8CpuStatsUpdateScrollInfo(HWND hwnd);
 static void DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel);
 static void DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel);
 static void DrawMemoryUsageHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen,
@@ -473,6 +486,8 @@ ApplyPerfTypography(void)
     SendMessageW(s_hwndCpuLiveVal, WM_SETFONT, (WPARAM)s_hFontCpuVal, FALSE);
     SendMessageW(s_hwndCpuSpecLbl, WM_SETFONT, (WPARAM)s_hFontCpuLbl, FALSE);
     SendMessageW(s_hwndCpuSpecVal, WM_SETFONT, (WPARAM)s_hFontCpuVal, FALSE);
+    if (s_hwndCpuStatsPanel)
+        SendMessageW(s_hwndCpuStatsPanel, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
     if (s_hwndStub)
         SendMessageW(s_hwndStub, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
     if (s_hwndEndTask)
@@ -1009,7 +1024,7 @@ FormatULongGrouped(ULONG n, WCHAR *buf, size_t cch)
 static void
 RefreshCpuStatsPanel(void)
 {
-    WCHAR specLbl[768], specVal[768];
+    WCHAR specMidLbl[768], specMidVal[768], cacheLbl[768], cacheVal[768];
     WCHAR spd[48], liveSpd[48], up[48], virtLbl[48], line[180];
     PERFORMANCE_INFORMATION pi;
     SYSTEM_INFO si;
@@ -1024,7 +1039,8 @@ RefreshCpuStatsPanel(void)
     FormatSpeedFromMhz(s_NominalCpuMhz, spd, _countof(spd));
 
     ZeroMemory(ps, sizeof(*ps));
-    specLbl[0] = specVal[0] = 0;
+    specMidLbl[0] = specMidVal[0] = 0;
+    cacheLbl[0] = cacheVal[0] = 0;
 
     LoadStr(IDS_LBL_UTIL, ps->utilLbl, _countof(ps->utilLbl));
     StringCchPrintfW(ps->utilVal, _countof(ps->utilVal), L"%lu%%", (ULONG)s_LastCpuPct);
@@ -1058,33 +1074,33 @@ RefreshCpuStatsPanel(void)
 
     if (spd[0])
     {
-        AppendSpecLbl(specLbl, _countof(specLbl), IDS_LBL_BASE);
-        StringCchCatW(specVal, _countof(specVal), spd);
-        StringCchCatW(specVal, _countof(specVal), L"\r\n");
+        AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_BASE);
+        StringCchCatW(specMidVal, _countof(specMidVal), spd);
+        StringCchCatW(specMidVal, _countof(specMidVal), L"\r\n");
     }
-    AppendSpecLbl(specLbl, _countof(specLbl), IDS_LBL_SOCKETS);
-    StringCchCatW(specVal, _countof(specVal), L"1\r\n");
+    AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_SOCKETS);
+    StringCchCatW(specMidVal, _countof(specMidVal), L"1\r\n");
 
     cores = CountPhysicalCores();
     if (cores > 0)
     {
-        AppendSpecLbl(specLbl, _countof(specLbl), IDS_LBL_CORES);
+        AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_CORES);
         StringCchPrintfW(line, _countof(line), L"%lu\r\n", cores);
-        StringCchCatW(specVal, _countof(specVal), line);
+        StringCchCatW(specMidVal, _countof(specMidVal), line);
     }
 
-    AppendSpecLbl(specLbl, _countof(specLbl), IDS_LBL_LOGICAL);
-    StringCchPrintfW(line, _countof(line), L"%lu\r\n", (ULONG)si.dwNumberOfProcessors);
-    StringCchCatW(specVal, _countof(specVal), line);
+    AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_LOGICAL);
+    StringCchPrintfW(line, _countof(line), L"%lu\r\n", (ULONG)s_NumLogicalCpus);
+    StringCchCatW(specMidVal, _countof(specMidVal), line);
 
 #if ROS_HAVE_CPUID
     LoadStr(CpuVirtHardwarePresent() ? IDS_VIRT_ENABLED : IDS_VIRT_DISABLED, virtLbl, _countof(virtLbl));
 #else
     LoadStr(IDS_VIRT_UNKNOWN, virtLbl, _countof(virtLbl));
 #endif
-    AppendSpecLbl(specLbl, _countof(specLbl), IDS_LBL_VIRT);
-    StringCchCatW(specVal, _countof(specVal), virtLbl);
-    StringCchCatW(specVal, _countof(specVal), L"\r\n");
+    AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_VIRT);
+    StringCchCatW(specMidVal, _countof(specMidVal), virtLbl);
+    StringCchCatW(specMidVal, _countof(specMidVal), L"\r\n");
 
     {
         DWORD l1dKB = 0, l1iKB = 0, l1KB = 0, l2KB = 0, l3KB = 0;
@@ -1097,29 +1113,31 @@ RefreshCpuStatsPanel(void)
             ReadProcessor0CacheValue(L"L1CacheSize", &l1KB);
         if (l1KB != 0)
         {
-            AppendCacheKvLine(specLbl, _countof(specLbl), specVal, _countof(specVal), IDS_LBL_L1, l1KB);
+            AppendCacheKvLine(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), IDS_LBL_L1, l1KB);
             haveL1 = 1;
         }
         if (ReadProcessor0CacheValue(L"L2CacheSize", &l2KB))
         {
-            AppendCacheKvLine(specLbl, _countof(specLbl), specVal, _countof(specVal), IDS_LBL_L2, l2KB);
+            AppendCacheKvLine(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), IDS_LBL_L2, l2KB);
             haveL2 = 1;
         }
         if (ReadProcessor0CacheValue(L"ThirdLevelCacheSize", &l3KB) ||
             ReadProcessor0CacheValue(L"L3CacheSize", &l3KB))
         {
-            AppendCacheKvLine(specLbl, _countof(specLbl), specVal, _countof(specVal), IDS_LBL_L3, l3KB);
+            AppendCacheKvLine(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), IDS_LBL_L3, l3KB);
             haveL3 = 1;
         }
 #if ROS_HAVE_CPUID
         if (!haveL1 || !haveL2 || !haveL3)
-            AppendMissingCachesFromCpuid4(specLbl, _countof(specLbl), specVal, _countof(specVal), haveL1,
+            AppendMissingCachesFromCpuid4(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), haveL1,
                                           haveL2, haveL3);
 #endif
     }
 
-    StringCchCopyW(ps->specLblBuf, _countof(ps->specLblBuf), specLbl);
-    StringCchCopyW(ps->specValBuf, _countof(ps->specValBuf), specVal);
+    StringCchCopyW(ps->specMidLblBuf, _countof(ps->specMidLblBuf), specMidLbl);
+    StringCchCopyW(ps->specMidValBuf, _countof(ps->specMidValBuf), specMidVal);
+    StringCchCopyW(ps->specCacheLblBuf, _countof(ps->specCacheLblBuf), cacheLbl);
+    StringCchCopyW(ps->specCacheValBuf, _countof(ps->specCacheValBuf), cacheVal);
     InvalidateRect(s_hwndCpuStatsPanel, NULL, TRUE);
 }
 
@@ -1430,6 +1448,42 @@ UpdateCurrentCpuMhzSample(void)
     UpdateCurrentCpuMhzFromPowerInfo();
 }
 
+static DWORD
+Tm8CountLogicalCpusFromLpi(void)
+{
+    DWORD bytes = 0;
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION info;
+    DWORD i, nent;
+    DWORD logical = 0;
+
+    if (!GetLogicalProcessorInformation(NULL, &bytes) &&
+        GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+        return 0;
+    info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, bytes);
+    if (!info)
+        return 0;
+    if (!GetLogicalProcessorInformation(info, &bytes))
+    {
+        HeapFree(GetProcessHeap(), 0, info);
+        return 0;
+    }
+    nent = bytes / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+    for (i = 0; i < nent; i++)
+    {
+        if (info[i].Relationship == RelationProcessorCore)
+        {
+            ULONG_PTR mask = info[i].ProcessorMask;
+            while (mask)
+            {
+                logical += (DWORD)(mask & 1);
+                mask >>= 1;
+            }
+        }
+    }
+    HeapFree(GetProcessHeap(), 0, info);
+    return logical;
+}
+
 static void
 CpuGraphGridDims(int n, int *cols, int *rows)
 {
@@ -1481,33 +1535,39 @@ Tm8GetLogicalCpuCount(void)
     TM8_SYSTEM_BASIC_INFORMATION sbi;
     ULONG rl;
     LONG st;
+    DWORD n;
 
     /*
-     * SPI (class 8) buffer size must match SystemBasicInformation.NumberOfProcessors
-     * (winetests ntdll); GetActiveProcessorCount / GetSystemInfo can disagree on some hosts.
+     * Prefer APIs that report logical processors (SMT). SystemBasicInformation.NumberOfProcessors
+     * is a CCHAR and can match physical cores on some hosts (e.g. 16 vs 32 threads).
      */
-    if (s_pNtQSI)
-    {
-        st = s_pNtQSI(TM8_SystemBasicInformation, &sbi, sizeof(sbi), &rl);
-        if (TM8_NT_SUCCESS(st) && rl >= sizeof(sbi))
-        {
-            DWORD n = (DWORD)(BYTE)sbi.NumberOfProcessors;
-            if (n >= 1 && n <= TM8_MAX_LOGICAL_CPU)
-                return n;
-        }
-    }
-
     k32 = GetModuleHandleW(L"kernel32.dll");
     if (k32)
     {
         pfn = (PFN_GetActiveProcessorCount)(void *)GetProcAddress(k32, "GetActiveProcessorCount");
         if (pfn)
         {
-            DWORD n = pfn((WORD)0xffff); /* ALL_PROCESSOR_GROUPS */
+            n = pfn((WORD)0xffff); /* ALL_PROCESSOR_GROUPS */
             if (n >= 1 && n <= TM8_MAX_LOGICAL_CPU)
                 return n;
         }
     }
+
+    n = Tm8CountLogicalCpusFromLpi();
+    if (n >= 1 && n <= TM8_MAX_LOGICAL_CPU)
+        return n;
+
+    if (s_pNtQSI)
+    {
+        st = s_pNtQSI(TM8_SystemBasicInformation, &sbi, sizeof(sbi), &rl);
+        if (TM8_NT_SUCCESS(st) && rl >= sizeof(sbi))
+        {
+            DWORD n2 = (DWORD)(unsigned char)sbi.NumberOfProcessors;
+            if (n2 >= 1 && n2 <= TM8_MAX_LOGICAL_CPU)
+                return n2;
+        }
+    }
+
     {
         SYSTEM_INFO si;
         GetSystemInfo(&si);
@@ -1948,6 +2008,12 @@ ShowPage(int page)
 {
     s_iPage = page;
 
+    if (page != PAGE_CPU && s_hwndCpuStatsPanel && IsWindow(s_hwndCpuStatsPanel))
+    {
+        s_CpuStatsHScrollPos = 0;
+        Tm8CpuStatsUpdateScrollInfo(s_hwndCpuStatsPanel);
+    }
+
     ShowWindow(s_hwndList, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
     if (s_hwndEndTask)
         ShowWindow(s_hwndEndTask, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
@@ -2212,7 +2278,7 @@ Tm8OnProcColumnClick(int col)
         }
     }
     if (s_hwndMain && s_iPage == PAGE_PROCESSES)
-        RefreshProcessList();
+        RefreshProcessListEx(TRUE);
 }
 
 static void
@@ -2239,7 +2305,7 @@ Tm8SyncHeatArraysFromListView(int nScratch)
 }
 
 static void
-RefreshProcessList(void)
+RefreshProcessListEx(BOOL force)
 {
     HANDLE hSnap;
     PROCESSENTRY32W pe;
@@ -2255,6 +2321,16 @@ RefreshProcessList(void)
 
     if (s_iPage != PAGE_PROCESSES)
         return;
+    if (!force)
+    {
+        DWORD now = GetTickCount();
+        if (s_ProcListVScrollDragging)
+            return;
+        if (s_ProcListResumeDeadline != 0 && (LONG)(now - s_ProcListResumeDeadline) < 0)
+            return;
+        if (s_ProcListResumeDeadline != 0 && (LONG)(now - s_ProcListResumeDeadline) >= 0)
+            s_ProcListResumeDeadline = 0;
+    }
 
     GetSystemInfo(&si);
     nCpu = si.dwNumberOfProcessors;
@@ -2371,6 +2447,12 @@ RefreshProcessList(void)
 
     UpdateProcListHeaders();
     SyncProcEndTaskUi();
+}
+
+static void
+RefreshProcessList(void)
+{
+    RefreshProcessListEx(FALSE);
 }
 
 static void
@@ -3039,6 +3121,35 @@ ListViewSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             return 0;
         }
     }
+    if (msg == WM_VSCROLL)
+    {
+        UINT code = LOWORD(wParam);
+        switch (code)
+        {
+        case SB_THUMBTRACK:
+            s_ProcListVScrollDragging = TRUE;
+            s_ProcListResumeDeadline = 0;
+            break;
+        case SB_ENDSCROLL:
+            s_ProcListVScrollDragging = FALSE;
+            s_ProcListResumeDeadline = GetTickCount() + 1000;
+            break;
+        case SB_THUMBPOSITION:
+            s_ProcListVScrollDragging = FALSE;
+            s_ProcListResumeDeadline = GetTickCount() + 1000;
+            break;
+        case SB_LINEUP:
+        case SB_LINEDOWN:
+        case SB_PAGEUP:
+        case SB_PAGEDOWN:
+        case SB_TOP:
+        case SB_BOTTOM:
+            s_ProcListResumeDeadline = GetTickCount() + 1000;
+            break;
+        default:
+            break;
+        }
+    }
     return CallWindowProcW(s_pfnOldListView, hwnd, msg, wParam, lParam);
 }
 
@@ -3075,7 +3186,7 @@ EndSelectedTask(HWND hwnd)
     if (TerminateProcess(hProc, 1))
     {
         CloseHandle(hProc);
-        RefreshProcessList();
+        RefreshProcessListEx(TRUE);
         return;
     }
     CloseHandle(hProc);
@@ -3188,16 +3299,63 @@ Tm8CopyOneLine(const WCHAR **pp, WCHAR *dst, size_t cchDst)
 }
 
 static void
+DrawCpuSpecKvColumn(HDC hdc, const RECT *rcCol, const WCHAR *pl, const WCHAR *pv, int rowSpecH)
+{
+    int y = rcCol->top;
+    WCHAR lineL[128], lineV[256];
+    int guard = 0;
+    int specWcol = rcCol->right - rcCol->left;
+    int valBand;
+
+    if (specWcol < 32 || !pl || !pv)
+        return;
+
+    valBand = (specWcol * 42) / 100;
+    if (valBand < 52)
+        valBand = 52;
+    if (valBand > 120)
+        valBand = 120;
+    if (valBand > specWcol - 10)
+        valBand = (specWcol * 48) / 100;
+    if (valBand < 40)
+        valBand = 40;
+
+    while (*pl && *pv && y + rowSpecH <= rcCol->bottom && guard++ < 48)
+    {
+        RECT rL, rVal;
+
+        Tm8CopyOneLine(&pl, lineL, _countof(lineL));
+        Tm8CopyOneLine(&pv, lineV, _countof(lineV));
+        rL.left = rcCol->left;
+        rL.right = rcCol->right - valBand - 4;
+        rL.top = y;
+        rL.bottom = y + rowSpecH;
+        SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
+        SetTextColor(hdc, RGB(96, 96, 96));
+        DrawTextW(hdc, lineL, -1, &rL, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+        rVal.left = rcCol->right - valBand;
+        rVal.right = rcCol->right;
+        rVal.top = y;
+        rVal.bottom = y + rowSpecH;
+        SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
+        SetTextColor(hdc, RGB(32, 32, 32));
+        DrawTextW(hdc, lineV, -1, &rVal,
+                  DT_RIGHT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+        y += rowSpecH + 1;
+    }
+}
+
+static void
 DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
 {
     int w = rcPanel->right - rcPanel->left;
-    int sepX, y;
+    int sep1, sep2, y;
     HFONT oldF;
     TEXTMETRICW tmLbl, tmMid, tmSpec;
     int gapRow = 6;
     int lblH, midH, rowSpecH;
     int half, tw, c0, c1, c2;
-    RECT rcLeft, rcRight;
+    RECT rcLeft, rcMid, rcCache;
     RECT rU, rS, rL, rV;
 
     if (w < 100 || rcPanel->bottom <= rcPanel->top + 12)
@@ -3206,44 +3364,44 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     FillRect(hdc, rcPanel, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
     /*
-     * Anchor the spec column to the right edge so label/value pairs stay aligned
-     * when the window is resized (percentage-based split made the gap balloon).
+     * Win10/11 CPU stats: three stable columns — live metrics | socket/core/virt | caches.
+     * Equal thirds of inner width so widening the window does not change structure.
      */
     {
         const int padOut = 8;
-        int specW = (w * 32) / 100;
-        int leftMin = 132;
+        const int inset = 6;
+        int L = rcPanel->left + padOut;
+        int R = rcPanel->right - padOut;
+        int W = R - L;
+        int w1, w2;
 
-        if (specW < 168)
-            specW = 168;
-        if (specW > 264)
-            specW = 264;
-        for (;;)
-        {
-            rcRight.right = rcPanel->right - padOut;
-            rcRight.left = rcRight.right - specW;
-            sepX = rcRight.left - 8;
-            rcLeft.left = rcPanel->left + padOut;
-            rcLeft.right = sepX - 6;
-            if (rcLeft.right - rcLeft.left >= leftMin || specW <= 152)
-                break;
-            specW -= 12;
-        }
+        if (W < 60)
+            return;
+        w1 = W / 3;
+        w2 = W / 3;
+        sep1 = L + w1;
+        sep2 = L + w1 + w2;
+
+        rcLeft.left = L + inset;
+        rcLeft.right = sep1 - inset;
+        rcMid.left = sep1 + inset;
+        rcMid.right = sep2 - inset;
+        rcCache.left = sep2 + inset;
+        rcCache.right = R - inset;
+
+        if (rcLeft.right < rcLeft.left + 40)
+            rcLeft.right = rcLeft.left + 40;
+        if (rcMid.right < rcMid.left + 40)
+            rcMid.right = rcMid.left + 40;
+        if (rcCache.right < rcCache.left + 40)
+            rcCache.right = rcCache.left + 40;
     }
     rcLeft.top = rcPanel->top + 6;
     rcLeft.bottom = rcPanel->bottom - 6;
-
-    rcRight.top = rcPanel->top + 6;
-    rcRight.bottom = rcPanel->bottom - 6;
-
-    {
-        HPEN pen = CreatePen(PS_SOLID, 1, RGB(220, 220, 220));
-        HPEN op = (HPEN)SelectObject(hdc, pen);
-        MoveToEx(hdc, sepX, rcPanel->top + 4, NULL);
-        LineTo(hdc, sepX, rcPanel->bottom - 4);
-        SelectObject(hdc, op);
-        DeleteObject(pen);
-    }
+    rcMid.top = rcLeft.top;
+    rcMid.bottom = rcLeft.bottom;
+    rcCache.top = rcLeft.top;
+    rcCache.bottom = rcLeft.bottom;
 
     SetBkMode(hdc, TRANSPARENT);
 
@@ -3372,7 +3530,7 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
 
     SelectObject(hdc, oldF);
 
-    /* Spec column: grey labels, semibold values (Win11 hierarchy), fixed-width value band. */
+    /* Middle + cache columns (same row height as former single spec strip). */
     {
         int specLblH, specValH;
         SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
@@ -3385,43 +3543,207 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
         if (lblH + 2 > rowSpecH)
             rowSpecH = lblH + 2;
     }
-    y = rcRight.top;
+    DrawCpuSpecKvColumn(hdc, &rcMid, s_CpuStatsPaint.specMidLblBuf, s_CpuStatsPaint.specMidValBuf,
+                        rowSpecH);
+    DrawCpuSpecKvColumn(hdc, &rcCache, s_CpuStatsPaint.specCacheLblBuf, s_CpuStatsPaint.specCacheValBuf,
+                        rowSpecH);
+}
+
+static void
+Tm8CpuStatsUpdateScrollInfo(HWND hwnd)
+{
+    RECT rc;
+    SCROLLINFO si;
+    int clientW;
+    int page;
+    BOOL needScroll;
+
+    if (!hwnd || !IsWindow(hwnd))
+        return;
+    GetClientRect(hwnd, &rc);
+    clientW = rc.right - rc.left;
+    if (clientW < 0)
+        clientW = 0;
+
+    s_CpuStatsContentW = TM8_CPU_STATS_MIN_INNER_W;
+    if (s_CpuStatsContentW < clientW)
+        s_CpuStatsContentW = clientW;
+
+    needScroll = (s_CpuStatsContentW > clientW);
+
+    if (!needScroll)
+        s_CpuStatsHScrollPos = 0;
+    else
     {
-        const WCHAR *pl = s_CpuStatsPaint.specLblBuf;
-        const WCHAR *pv = s_CpuStatsPaint.specValBuf;
-        WCHAR lineL[128], lineV[256];
-        int guard = 0;
-        int specWcol = rcRight.right - rcRight.left;
-        int valBand = (specWcol * 42) / 100;
-        if (valBand < 72)
-            valBand = 72;
-        if (valBand > 120)
-            valBand = 120;
-
-        while (*pl && *pv && y + rowSpecH <= rcRight.bottom && guard++ < 48)
-        {
-            RECT rVal;
-
-            Tm8CopyOneLine(&pl, lineL, _countof(lineL));
-            Tm8CopyOneLine(&pv, lineV, _countof(lineV));
-            rL.left = rcRight.left;
-            rL.right = rcRight.right - valBand - 4;
-            rL.top = y;
-            rL.bottom = y + rowSpecH;
-            SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-            SetTextColor(hdc, RGB(96, 96, 96));
-            DrawTextW(hdc, lineL, -1, &rL, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-            rVal.left = rcRight.right - valBand;
-            rVal.right = rcRight.right;
-            rVal.top = y;
-            rVal.bottom = y + rowSpecH;
-            SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-            SetTextColor(hdc, RGB(32, 32, 32));
-            DrawTextW(hdc, lineV, -1, &rVal,
-                      DT_RIGHT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-            y += rowSpecH + 1;
-        }
+        int maxPos = s_CpuStatsContentW - clientW;
+        if (s_CpuStatsHScrollPos > maxPos)
+            s_CpuStatsHScrollPos = maxPos;
+        if (s_CpuStatsHScrollPos < 0)
+            s_CpuStatsHScrollPos = 0;
     }
+
+    page = clientW > 0 ? clientW : 1;
+    ZeroMemory(&si, sizeof(si));
+    si.cbSize = sizeof(si);
+    si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+    si.nMin = 0;
+    si.nMax = (s_CpuStatsContentW > 1) ? (s_CpuStatsContentW - 1) : 0;
+    si.nPage = (UINT)page;
+    si.nPos = s_CpuStatsHScrollPos;
+    SetScrollInfo(hwnd, SB_HORZ, &si, TRUE);
+    ShowScrollBar(hwnd, SB_HORZ, needScroll);
+}
+
+static LRESULT CALLBACK
+CpuStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+    case WM_CREATE:
+        s_CpuStatsHScrollPos = 0;
+        s_CpuStatsContentW = TM8_CPU_STATS_MIN_INNER_W;
+        return 0;
+
+    case WM_SIZE:
+        Tm8CpuStatsUpdateScrollInfo(hwnd);
+        return 0;
+
+    case WM_HSCROLL:
+    {
+        RECT rc;
+        int clientW, maxPos, pos = s_CpuStatsHScrollPos;
+        SCROLLINFO si;
+
+        GetClientRect(hwnd, &rc);
+        clientW = rc.right - rc.left;
+        maxPos = (s_CpuStatsContentW > clientW) ? (s_CpuStatsContentW - clientW) : 0;
+
+        switch (LOWORD(wParam))
+        {
+        case SB_LINELEFT:
+            pos -= 24;
+            break;
+        case SB_LINERIGHT:
+            pos += 24;
+            break;
+        case SB_PAGELEFT:
+            pos -= clientW > 0 ? clientW : 1;
+            break;
+        case SB_PAGERIGHT:
+            pos += clientW > 0 ? clientW : 1;
+            break;
+        case SB_THUMBTRACK:
+            ZeroMemory(&si, sizeof(si));
+            si.cbSize = sizeof(si);
+            si.fMask = SIF_TRACKPOS;
+            if (GetScrollInfo(hwnd, SB_HORZ, &si))
+                pos = si.nTrackPos;
+            break;
+        case SB_THUMBPOSITION:
+            pos = (short)HIWORD(wParam);
+            break;
+        default:
+            return DefWindowProcW(hwnd, msg, wParam, lParam);
+        }
+        if (pos < 0)
+            pos = 0;
+        if (pos > maxPos)
+            pos = maxPos;
+        if (pos != s_CpuStatsHScrollPos)
+        {
+            s_CpuStatsHScrollPos = pos;
+            Tm8CpuStatsUpdateScrollInfo(hwnd);
+            InvalidateRect(hwnd, NULL, TRUE);
+        }
+        return 0;
+    }
+
+    case WM_MOUSEWHEEL:
+        if (GetKeyState(VK_SHIFT) & 0x8000)
+        {
+            int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            RECT rc;
+            int clientW, maxPos, pos = s_CpuStatsHScrollPos;
+            const int step = 48;
+
+            GetClientRect(hwnd, &rc);
+            clientW = rc.right - rc.left;
+            maxPos = (s_CpuStatsContentW > clientW) ? (s_CpuStatsContentW - clientW) : 0;
+            if (delta > 0)
+                pos -= step;
+            else
+                pos += step;
+            if (pos < 0)
+                pos = 0;
+            if (pos > maxPos)
+                pos = maxPos;
+            if (pos != s_CpuStatsHScrollPos)
+            {
+                s_CpuStatsHScrollPos = pos;
+                Tm8CpuStatsUpdateScrollInfo(hwnd);
+                InvalidateRect(hwnd, NULL, TRUE);
+            }
+            return 0;
+        }
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
+
+    case WM_ERASEBKGND:
+        return 1;
+
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc;
+        RECT rcC, rcDraw;
+        int drawW, dcSave;
+
+        hdc = BeginPaint(hwnd, &ps);
+        GetClientRect(hwnd, &rcC);
+        drawW = s_CpuStatsContentW;
+        if (drawW < rcC.right)
+            drawW = rcC.right;
+
+        FillRect(hdc, &rcC, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+        rcDraw.left = 0;
+        rcDraw.top = 0;
+        rcDraw.right = drawW;
+        rcDraw.bottom = rcC.bottom;
+
+        dcSave = SaveDC(hdc);
+        SetViewportOrgEx(hdc, -s_CpuStatsHScrollPos, 0, NULL);
+        DrawCpuPerfStatsPanel(hdc, &rcDraw);
+        RestoreDC(hdc, dcSave);
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
+
+    default:
+        return DefWindowProcW(hwnd, msg, wParam, lParam);
+    }
+}
+
+static BOOL
+Tm8RegisterCpuStatsPanelClass(HINSTANCE hInst)
+{
+    WNDCLASSW wc;
+
+    if (GetClassInfoW(hInst, L"RosTm8CpuStats", &wc))
+        return TRUE;
+    ZeroMemory(&wc, sizeof(wc));
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = CpuStatsPanelProc;
+    wc.cbWndExtra = 0;
+    wc.cbClsExtra = 0;
+    wc.hInstance = hInst;
+    wc.hIcon = NULL;
+    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
+    wc.hbrBackground = NULL;
+    wc.lpszMenuName = NULL;
+    wc.lpszClassName = L"RosTm8CpuStats";
+    if (!RegisterClassW(&wc))
+        return GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
+    return TRUE;
 }
 
 static void
@@ -3626,10 +3948,10 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                          WS_CHILD | SS_OWNERDRAW | SS_NOPREFIX,
                                          0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_CPU_SPEC_VAL,
                                          s_hInst, NULL);
-        s_hwndCpuStatsPanel = CreateWindowW(L"Static", L"",
-                                            WS_CHILD | SS_OWNERDRAW | SS_NOPREFIX,
-                                            0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_CPU_STATS_PANEL,
-                                            s_hInst, NULL);
+        Tm8RegisterCpuStatsPanelClass(s_hInst);
+        s_hwndCpuStatsPanel =
+            CreateWindowW(L"RosTm8CpuStats", L"", WS_CHILD | WS_HSCROLL, 0, 0, 10, 10, hwnd,
+                          (HMENU)(UINT_PTR)IDC_CPU_STATS_PANEL, s_hInst, NULL);
         s_hwndMemTitle = CreateWindowW(L"Static", L"",
                                        WS_CHILD | SS_LEFT | SS_NOPREFIX,
                                        0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_MEM_TITLE,
@@ -3851,11 +4173,6 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_DRAWITEM:
     {
         LPDRAWITEMSTRUCT dis = (LPDRAWITEMSTRUCT)lParam;
-        if (dis->CtlID == IDC_CPU_STATS_PANEL)
-        {
-            DrawCpuPerfStatsPanel(dis->hDC, &dis->rcItem);
-            return TRUE;
-        }
         if (dis->CtlID == IDC_MEM_STATS_PANEL)
         {
             DrawMemPerfStatsPanel(dis->hDC, &dis->rcItem);

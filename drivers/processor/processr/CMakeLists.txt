@@ -1,6 +1,8 @@
 
 list(APPEND SOURCE
     processr.c
+    processr_acpi.c
+    processr_ppm.c
     misc.c
     pnp.c
     processr.h)

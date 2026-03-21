@@ -9,6 +9,7 @@
 
 #include <uacpi/internal/opregion.h>
 #include <uacpi/notify.h>
+#include <uacpi/sleep.h>
 
 typedef enum _ACPI_NEW_DEVTYPE
 {
@@ -78,6 +79,9 @@ typedef struct _ACPI_NEW_FDO_EXTENSION
     WORK_QUEUE_ITEM NotifyWorkItem;
 
     BOOLEAN Removed;
+
+    /* Last uACPI sleep state prepared for hardware entry (S0 = none). */
+    uacpi_sleep_state PendingUacpiSleep;
 } ACPI_NEW_FDO_EXTENSION, *PACPI_NEW_FDO_EXTENSION;
 
 typedef struct _ACPI_NEW_CONTROL_EXTENSION

@@ -19,6 +19,7 @@ LIST_ENTRY PopIdleDetectList;
 ULONG PopIdleScanIntervalInSeconds = 1;
 BOOLEAN PopResumeAutomatic = FALSE;
 POWER_STATE_HANDLER PopDefaultPowerStateHandlers[PowerStateMaximum] = {0};
+volatile ULONG64 PopLastUserInputInterruptTime;
 
 /* PRIVATE FUNCTIONS **********************************************************/
 
@@ -118,6 +119,23 @@ PopUserPresent(VOID)
     Params.EventNumber = PsW32FullWake;
     Params.Code = 0;
     PopDispatchPowerEvent(&Params);
+
+    PopRecordUserInputActivity();
+}
+
+/**
+ * @brief
+ * Updates the kernel last-user-input timestamp used for power policy idle
+ * and display timeouts. Win32k receives the function pointer via
+ * PsEstablishWin32Callouts (ReactOS-only WIN32_CALLOUTS_FPNS slot); there is
+ * no Windows Po* export for this.
+ */
+VOID
+NTAPI
+PopRecordUserInputActivity(VOID)
+{
+    ASSERT_IRQL_LESS_OR_EQUAL(DISPATCH_LEVEL);
+    PopLastUserInputInterruptTime = KeQueryInterruptTime();
 }
 
 /**

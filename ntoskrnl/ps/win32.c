@@ -123,6 +123,10 @@ PsEstablishWin32Callouts(IN PWIN32_CALLOUTS_FPNS CalloutData)
     ExpDesktopObjectClose = CalloutData->DesktopCloseProcedure;
     PopEventCallout = CalloutData->PowerEventCallout;
     KeGdiFlushUserBatch = CalloutData->BatchFlushRoutine;
+#if defined(__REACTOS__)
+    if (CalloutData->RecordUserInputRoutineSlot != NULL)
+        *CalloutData->RecordUserInputRoutineSlot = (PVOID)PopRecordUserInputActivity;
+#endif
 }
 
 /* EOF */

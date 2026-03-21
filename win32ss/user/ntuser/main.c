@@ -1024,6 +1024,9 @@ DriverEntry(
     CalloutData.WindowStationDeleteProcedure = IntWinStaObjectDelete;
     CalloutData.WindowStationParseProcedure = IntWinStaObjectParse;
     // CalloutData.WindowStationOpenProcedure = NULL;
+#if defined(__REACTOS__)
+    CalloutData.RecordUserInputRoutineSlot = &g_PopRecordUserInputRoutine;
+#endif
 
     /* Register our per-process and per-thread structures. */
     PsEstablishWin32Callouts(&CalloutData);
