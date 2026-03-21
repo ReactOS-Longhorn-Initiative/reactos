@@ -665,6 +665,21 @@ PopInitSystemPhase1(VOID)
     PopDefaultPolicies();
     PopReleasePowerPolicyLock();
 
+    /*
+     * Propagate any policy-driven throttle limits (e.g. MinThrottle) from the
+     * newly loaded power policy into the kernel PPM globals so that the
+     * P-state engine uses the correct floor from the first DPC period.
+     */
+    PopSyncPpmPolicyFromCurrentPolicy();
+
+    /*
+     * Complete the late-phase PPM initialisation now that the HAL and all
+     * boot drivers are fully loaded.  This arms the per-processor
+     * performance-monitoring DPC timer (20 ms recurring) that drives
+     * PpmEvaluatePerfPolicy on each logical CPU.
+     */
+    PpmInitialize(FALSE);
+
     /* Initialize the power request object implementation */
     Status = PopCreatePowerRequestObjectType();
     if (!NT_SUCCESS(Status))

@@ -11,6 +11,8 @@
 #define NDEBUG
 #include <debug.h>
 
+#include <internal/ppm.h>
+
 /* GLOBALS ********************************************************************/
 
 WORK_QUEUE_ITEM PopUnlockMemoryWorkItem;
@@ -114,9 +116,19 @@ PopIsCallerPrivileged(
          * classes are not invasive.
          */
         if (Level == VerifySystemPolicyAc ||
-            Level == SystemPowerPolicyDc ||
+            Level == VerifySystemPolicyDc ||
             Level == VerifyProcessorPowerPolicyAc ||
             Level == VerifyProcessorPowerPolicyDc)
+        {
+            return TRUE;
+        }
+
+        /*
+         * Query-like levels that still pass a small input buffer (group index or
+         * setting GUID) must not require shutdown privilege.
+         */
+        if (Level == ProcessorInformationEx ||
+            Level == GetPowerSettingValue)
         {
             return TRUE;
         }
@@ -133,6 +145,167 @@ PopIsCallerPrivileged(
      * the caller has the required privilege, allow him access.
      */
     return TRUE;
+}
+
+/**
+ * @brief
+ * Fills @a ProcessorCount entries with per-logical-processor power data
+ * (same layout as Windows @c PopProcessorInformation for a single group).
+ */
+static
+VOID
+PopFillProcessorPowerInformationArray(
+    _Out_writes_(ProcessorCount) PPROCESSOR_POWER_INFORMATION ProcInfo,
+    _In_ ULONG ProcessorCount)
+{
+    ULONG i;
+
+    for (i = 0; i < ProcessorCount; i++)
+    {
+        PKPRCB Prcb = KiProcessorBlock[i];
+        PPPM_PERF_STATES_EX Perf;
+        PPPM_IDLE_STATES_EX Idle;
+
+        RtlZeroMemory(&ProcInfo[i], sizeof(ProcInfo[i]));
+        ProcInfo[i].Number = i;
+
+        if (Prcb == NULL)
+            continue;
+
+        Perf = (PPPM_PERF_STATES_EX)Prcb->PowerState.IdleHandlers;
+        Idle = (PPPM_IDLE_STATES_EX)Prcb->PowerState.IdleState;
+
+        if (Perf != NULL && Perf->Version == 1 && Perf->NominalFrequency != 0)
+            ProcInfo[i].MaxMhz = Perf->NominalFrequency;
+
+        if (ProcInfo[i].MaxMhz != 0)
+        {
+            ProcInfo[i].CurrentMhz =
+                (ProcInfo[i].MaxMhz * (ULONG)Prcb->PowerState.CurrentThrottle) / 100UL;
+            ProcInfo[i].MhzLimit =
+                (ProcInfo[i].MaxMhz * (ULONG)Prcb->PowerState.ProcessorMaxThrottle) / 100UL;
+        }
+
+        if (Idle != NULL && Idle->Version == 1 && Idle->ProcessorIdleCount > 0)
+            ProcInfo[i].MaxIdleState = Idle->ProcessorIdleCount - 1;
+
+        ProcInfo[i].CurrentIdleState = 0;
+    }
+}
+
+static
+PSYSTEM_POWER_POLICY
+PopPolicyStoreForPowerCondition(_In_ SYSTEM_POWER_CONDITION Condition)
+{
+    switch (Condition)
+    {
+        case PoAc:
+            return &PopAcPowerPolicy;
+        case PoDc:
+        case PoHot:
+            return &PopDcPowerPolicy;
+        default:
+            return NULL;
+    }
+}
+
+static
+NTSTATUS
+PopQueryPowerSettingUlong(
+    _In_ LPCGUID SettingGuid,
+    _Out_ PULONG ValueOut)
+{
+    if (PopIsEqualGuid(SettingGuid, &GUID_PROCESSOR_THROTTLE_MAXIMUM))
+    {
+        *ValueOut = (ULONG)PpmPolicyMaxThrottle;
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_PROCESSOR_THROTTLE_MINIMUM))
+    {
+        *ValueOut = (ULONG)PpmPolicyMinThrottle;
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_SYSTEM_COOLING_POLICY))
+    {
+        *ValueOut = PopCoolingSystemMode;
+        return STATUS_SUCCESS;
+    }
+
+    if (PopDefaultPowerPolicy == NULL)
+        return STATUS_OBJECT_NAME_NOT_FOUND;
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_VIDEO_POWERDOWN_TIMEOUT))
+        *ValueOut = PopDefaultPowerPolicy->VideoTimeout;
+    else if (PopIsEqualGuid(SettingGuid, &GUID_STANDBY_TIMEOUT))
+        *ValueOut = PopDefaultPowerPolicy->IdleTimeout;
+    else if (PopIsEqualGuid(SettingGuid, &GUID_DISK_POWERDOWN_TIMEOUT))
+        *ValueOut = PopDefaultPowerPolicy->SpindownTimeout;
+    else if (PopIsEqualGuid(SettingGuid, &GUID_HIBERNATE_TIMEOUT))
+        *ValueOut = PopDefaultPowerPolicy->DozeS4Timeout;
+    else
+        return STATUS_OBJECT_NAME_NOT_FOUND;
+
+    return STATUS_SUCCESS;
+}
+
+static
+NTSTATUS
+PopApplyPowerSettingUlong(
+    _In_ LPCGUID SettingGuid,
+    _In_opt_ PSYSTEM_POWER_POLICY TargetPolicy,
+    _In_reads_bytes_(DataLength) PVOID Data,
+    _In_ ULONG DataLength)
+{
+    ULONG Value;
+
+    if (DataLength != sizeof(ULONG))
+        return STATUS_INVALID_PARAMETER;
+
+    Value = *(PULONG)Data;
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_PROCESSOR_THROTTLE_MAXIMUM))
+    {
+        if (Value > 100)
+            Value = 100;
+        PpmPolicyMaxThrottle = (UCHAR)Value;
+        PopNotifyPowerSettingChange(&GUID_PROCESSOR_THROTTLE_MAXIMUM);
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_PROCESSOR_THROTTLE_MINIMUM))
+    {
+        if (Value > 100)
+            Value = 100;
+        if (TargetPolicy == NULL)
+            return STATUS_INVALID_PARAMETER;
+        TargetPolicy->MinThrottle = (UCHAR)Value;
+        return STATUS_SUCCESS;
+    }
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_SYSTEM_COOLING_POLICY))
+    {
+        PopCoolingSystemMode = Value ? 1UL : 0UL;
+        PopNotifyPowerSettingChange(&GUID_SYSTEM_COOLING_POLICY);
+        return STATUS_SUCCESS;
+    }
+
+    if (TargetPolicy == NULL)
+        return STATUS_INVALID_PARAMETER;
+
+    if (PopIsEqualGuid(SettingGuid, &GUID_VIDEO_POWERDOWN_TIMEOUT))
+        TargetPolicy->VideoTimeout = Value;
+    else if (PopIsEqualGuid(SettingGuid, &GUID_STANDBY_TIMEOUT))
+        TargetPolicy->IdleTimeout = Value;
+    else if (PopIsEqualGuid(SettingGuid, &GUID_DISK_POWERDOWN_TIMEOUT))
+        TargetPolicy->SpindownTimeout = Value;
+    else if (PopIsEqualGuid(SettingGuid, &GUID_HIBERNATE_TIMEOUT))
+        TargetPolicy->DozeS4Timeout = Value;
+    else
+        return STATUS_OBJECT_NAME_NOT_FOUND;
+
+    return STATUS_SUCCESS;
 }
 
 /* INFORMATION CLASSES ********************************************************/
@@ -161,7 +334,7 @@ static const INFORMATION_CLASS_INFO PoPowerInformationClass[] =
     IQS_SAME(POWER_STATE_HANDLER, ULONG, ICIF_SET),
 
     /* ProcessorStateHandler */
-    IQS_NONE,
+    IQS_SAME(PPM_DRIVER_DISPATCH_TABLE, ULONG, ICIF_QUERY),
 
     /* SystemPowerPolicyCurrent */
     IQS_SAME(SYSTEM_POWER_POLICY, ULONG, ICIF_QUERY),
@@ -172,23 +345,23 @@ static const INFORMATION_CLASS_INFO PoPowerInformationClass[] =
     /* SystemReserveHiberFile */
     IQS_NONE,
 
-    /* ProcessorInformation */
-    IQS_SAME(PROCESSOR_POWER_INFORMATION, ULONG, ICIF_QUERY),
+    /* ProcessorInformation — one struct per logical processor (variable length) */
+    IQS_SAME(PROCESSOR_POWER_INFORMATION, ULONG, ICIF_QUERY | ICIF_QUERY_SIZE_VARIABLE),
 
     /* SystemPowerInformation */
-    IQS_NONE,
+    IQS_SAME(SYSTEM_POWER_INFORMATION, ULONG, ICIF_QUERY),
 
     /* ProcessorStateHandler2 */
     IQS_NONE,
 
     /* LastWakeTime */
-    IQS_NONE,
+    IQS_SAME(ULONG, ULONG, ICIF_QUERY),
 
     /* LastSleepTime */
-    IQS_NONE,
+    IQS_SAME(ULONG, ULONG, ICIF_QUERY),
 
     /* SystemExecutionState */
-    IQS_NONE,
+    IQS_SAME(ULONG, ULONG, ICIF_QUERY),
 
     /* SystemPowerStateNotifyHandler */
     IQS_NONE,
@@ -214,8 +387,8 @@ static const INFORMATION_CLASS_INFO PoPowerInformationClass[] =
     /* SystemPowerLoggingEntry */
     IQS_NONE,
 
-    /* SetPowerSettingValue */
-    IQS_NONE,
+    /* SetPowerSettingValue — SET_POWER_SETTING_VALUE + variable Data[] */
+    IQS_NO_TYPE_LENGTH(ULONG, ICIF_SET | ICIF_SET_SIZE_VARIABLE),
 
     /* NotifyUserPowerSetting */
     IQS_NONE,
@@ -626,6 +799,117 @@ NtPowerInformation(
         return STATUS_PRIVILEGE_NOT_HELD;
     }
 
+    /*
+     * ProcessorInformationEx — input: processor group index (USHORT); output: array of
+     * PROCESSOR_POWER_INFORMATION for that group.  Unlike most query levels, this uses
+     * both buffers, so it is handled before the generic input-vs-output probe split.
+     *
+     * GetPowerSettingValue — input: 16-byte setting GUID; output: ULONG value (Windows
+     * PopGetSettingValue contract for the settings we support).
+     */
+    if (PowerInformationLevel == ProcessorInformationEx ||
+        PowerInformationLevel == GetPowerSettingValue)
+    {
+        if (PowerInformationLevel == ProcessorInformationEx)
+        {
+            USHORT GroupIndex;
+            ULONG ProcessorCount, RequiredLength;
+
+            if (!InputBuffer || InputBufferLength < sizeof(USHORT) ||
+                !OutputBuffer || OutputBufferLength == 0)
+            {
+                return STATUS_INVALID_PARAMETER;
+            }
+
+            _SEH2_TRY
+            {
+                if (PreviousMode != KernelMode)
+                    ProbeForRead(InputBuffer, sizeof(USHORT), sizeof(USHORT));
+                RtlCopyMemory(&GroupIndex, InputBuffer, sizeof(USHORT));
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                return _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            /*
+             * ReactOS does not expose multiple processor groups yet; only group 0 is valid.
+             */
+            if (GroupIndex != 0)
+                return STATUS_INVALID_PARAMETER;
+
+            ProcessorCount = (ULONG)KeNumberProcessors;
+            RequiredLength = sizeof(PROCESSOR_POWER_INFORMATION) * ProcessorCount;
+            if (OutputBufferLength < RequiredLength)
+                return STATUS_BUFFER_TOO_SMALL;
+
+            _SEH2_TRY
+            {
+                if (PreviousMode != KernelMode)
+                    ProbeForWrite(OutputBuffer, RequiredLength, sizeof(ULONG));
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                return _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            PopAcquirePowerPolicyLock();
+            PopFillProcessorPowerInformationArray(
+                (PPROCESSOR_POWER_INFORMATION)OutputBuffer,
+                ProcessorCount);
+            PopReleasePowerPolicyLock();
+            return STATUS_SUCCESS;
+        }
+
+        /* GetPowerSettingValue */
+        {
+            GUID SettingGuid;
+            ULONG Value;
+
+            if (!InputBuffer || InputBufferLength < sizeof(GUID) ||
+                !OutputBuffer || OutputBufferLength < sizeof(ULONG))
+            {
+                return STATUS_INVALID_PARAMETER;
+            }
+
+            _SEH2_TRY
+            {
+                if (PreviousMode != KernelMode)
+                    ProbeForRead(InputBuffer, sizeof(GUID), sizeof(ULONG));
+                RtlCopyMemory(&SettingGuid, InputBuffer, sizeof(GUID));
+
+                ProbeForWrite(OutputBuffer, sizeof(ULONG), sizeof(ULONG));
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                return _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            PopAcquirePowerPolicyLock();
+            Status = PopQueryPowerSettingUlong(&SettingGuid, &Value);
+            PopReleasePowerPolicyLock();
+
+            if (!NT_SUCCESS(Status))
+                return Status;
+
+            _SEH2_TRY
+            {
+                *(PULONG)OutputBuffer = Value;
+                Status = STATUS_SUCCESS;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+
+            return Status;
+        }
+    }
+
     /* Probe the parameters depending on whether the caller queries or sets something */
     if (InputBuffer)
     {
@@ -753,6 +1037,13 @@ NtPowerInformation(
                 PopPowerPolicyNotification();
 
                 /*
+                 * Propagate processor-specific fields (e.g. MinThrottle) from
+                 * the newly installed policy into the kernel PPM engine globals
+                 * and notify any GUID_PROCESSOR_THROTTLE_MINIMUM callbacks.
+                 */
+                PopSyncPpmPolicyFromCurrentPolicy();
+
+                /*
                  * Schedule the system-idle worker so that display and idle
                  * timeouts from the newly applied policy are immediately honoured.
                  */
@@ -845,6 +1136,19 @@ NtPowerInformation(
                 Status = _SEH2_GetExceptionCode();
             }
             _SEH2_END;
+
+            if (NT_SUCCESS(Status))
+            {
+                /*
+                 * Mirror SystemPowerPolicyAc/Dc: validated policy is persisted into
+                 * the AC/DC store; refresh Win32k, push MinThrottle (and related
+                 * notifications) into PPM, and reschedule idle policy work.
+                 */
+                PopPowerPolicyNotification();
+                PopSyncPpmPolicyFromCurrentPolicy();
+                PopRequestPolicyWorker(PolicyWorkerSystemIdle);
+                PopCheckForPendingWorkers();
+            }
             break;
         }
 
@@ -987,6 +1291,135 @@ NtPowerInformation(
             break;
         }
 
+        case ProcessorInformation:
+        {
+            PPROCESSOR_POWER_INFORMATION ProcInfo;
+            ULONG ProcessorCount;
+            ULONG RequiredLength;
+
+            if (InputBuffer)
+            {
+                DPRINT1("InputBuffer provided on ProcessorInformation when it should not be\n");
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            ProcessorCount = (ULONG)KeNumberProcessors;
+            RequiredLength = sizeof(PROCESSOR_POWER_INFORMATION) * ProcessorCount;
+            if (OutputBufferLength < RequiredLength)
+            {
+                DPRINT1("ProcessorInformation: need %lu bytes, got %lu\n",
+                        RequiredLength, OutputBufferLength);
+                Status = STATUS_BUFFER_TOO_SMALL;
+                goto Quit;
+            }
+
+            ProcInfo = (PPROCESSOR_POWER_INFORMATION)OutputBuffer;
+            PopFillProcessorPowerInformationArray(ProcInfo, ProcessorCount);
+
+            Status = STATUS_SUCCESS;
+            break;
+        }
+
+        case SystemPowerInformation:
+        {
+            PSYSTEM_POWER_INFORMATION SysPwrInfo;
+
+            if (InputBuffer)
+            {
+                DPRINT1("InputBuffer provided on SystemPowerInformation when it should not be\n");
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            if (OutputBufferLength < sizeof(SYSTEM_POWER_INFORMATION))
+            {
+                DPRINT1("SystemPowerInformation: OutputBufferLength too small (%lu)\n",
+                        OutputBufferLength);
+                Status = STATUS_BUFFER_TOO_SMALL;
+                goto Quit;
+            }
+
+            SysPwrInfo = (PSYSTEM_POWER_INFORMATION)OutputBuffer;
+            RtlZeroMemory(SysPwrInfo, sizeof(*SysPwrInfo));
+
+            if (PopDefaultPowerPolicy != NULL)
+            {
+                SysPwrInfo->MaxIdlenessAllowed = PopDefaultPowerPolicy->IdleTimeout;
+                SysPwrInfo->TimeRemaining = PopDefaultPowerPolicy->IdleTimeout;
+            }
+
+            SysPwrInfo->CoolingMode = (UCHAR)PopCoolingSystemMode;
+
+            Status = STATUS_SUCCESS;
+            break;
+        }
+
+        case LastWakeTime:
+        case LastSleepTime:
+        {
+            PULONG TimeValue = (PULONG)OutputBuffer;
+
+            if (InputBuffer)
+            {
+                DPRINT1("InputBuffer provided on LastWakeTime/LastSleepTime when it should not be\n");
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            if (OutputBufferLength < sizeof(ULONG))
+            {
+                Status = STATUS_BUFFER_TOO_SMALL;
+                goto Quit;
+            }
+
+            /*
+             * ReactOS does not yet maintain high-resolution wake/sleep timestamps
+             * in the Power Manager; return zero (unknown / not tracked).
+             */
+            _SEH2_TRY
+            {
+                *TimeValue = 0;
+                Status = STATUS_SUCCESS;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+            break;
+        }
+
+        case SystemExecutionState:
+        {
+            PEXECUTION_STATE EsOut = (PEXECUTION_STATE)OutputBuffer;
+
+            if (InputBuffer)
+            {
+                DPRINT1("Setting SystemExecutionState via NtPowerInformation is not supported\n");
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            if (OutputBufferLength < sizeof(EXECUTION_STATE))
+            {
+                Status = STATUS_BUFFER_TOO_SMALL;
+                goto Quit;
+            }
+
+            _SEH2_TRY
+            {
+                *EsOut = PopQueryAggregateLegacyExecutionState();
+                Status = STATUS_SUCCESS;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+            break;
+        }
+
         case PlatformInformation:
         {
             PlatformInfo = (PPOWER_PLATFORM_INFORMATION)OutputBuffer;
@@ -1106,6 +1539,50 @@ NtPowerInformation(
             break;
         }
 
+        case ProcessorStateHandler:
+        {
+            /*
+             * ZwPowerInformation(ProcessorStateHandler, NULL, 0, &Table, sizeof(Table))
+             *
+             * Called by processor drivers (intelppm, amdppm) during initialization to
+             * obtain the kernel's PPM driver dispatch table.  The driver uses the table
+             * to register P-states, C-states, and performance caps with the OS power
+             * manager.
+             *
+             * The kernel does not accept a SET for this level (input buffer is ignored);
+             * only a GET is meaningful.
+             */
+
+            /* No input buffer expected for this query */
+            if (InputBuffer)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            if (OutputBufferLength < sizeof(PPM_DRIVER_DISPATCH_TABLE))
+            {
+                DPRINT1("ProcessorStateHandler: OutputBufferLength %lu < %lu\n",
+                        OutputBufferLength, (ULONG)sizeof(PPM_DRIVER_DISPATCH_TABLE));
+                Status = STATUS_BUFFER_TOO_SMALL;
+                goto Quit;
+            }
+
+            _SEH2_TRY
+            {
+                RtlCopyMemory(OutputBuffer,
+                              &PpmKernelDispatchTable,
+                              sizeof(PPM_DRIVER_DISPATCH_TABLE));
+                Status = STATUS_SUCCESS;
+            }
+            _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+            {
+                Status = _SEH2_GetExceptionCode();
+            }
+            _SEH2_END;
+            break;
+        }
+
         case SystemPowerPolicyCurrent:
         {
             CurrentPolicy = (PSYSTEM_POWER_POLICY)OutputBuffer;
@@ -1140,6 +1617,100 @@ NtPowerInformation(
                 Status = _SEH2_GetExceptionCode();
             }
             _SEH2_END;
+            break;
+        }
+
+        case SetPowerSettingValue:
+        {
+            PSET_POWER_SETTING_VALUE SetVal;
+            ULONG MinimumSize;
+            PSYSTEM_POWER_POLICY TargetPolicy;
+            BOOLEAN NotifyPolicy;
+
+            if (!LocalBuffer || OutputBuffer != NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            SetVal = (PSET_POWER_SETTING_VALUE)LocalBuffer;
+
+            if (SetVal->Version != POWER_SETTING_VALUE_VERSION)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            if (SetVal->PowerCondition >= PoConditionMaximum || SetVal->DataLength == 0)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            MinimumSize = FIELD_OFFSET(SET_POWER_SETTING_VALUE, Data) + SetVal->DataLength;
+            if (InputBufferLength < MinimumSize)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                goto Quit;
+            }
+
+            NotifyPolicy = FALSE;
+
+            if (PopIsEqualGuid(&SetVal->Guid, &GUID_PROCESSOR_THROTTLE_MAXIMUM))
+            {
+                Status = PopApplyPowerSettingUlong(&SetVal->Guid,
+                                                   NULL,
+                                                   SetVal->Data,
+                                                   SetVal->DataLength);
+            }
+            else if (PopIsEqualGuid(&SetVal->Guid, &GUID_SYSTEM_COOLING_POLICY))
+            {
+                Status = PopApplyPowerSettingUlong(&SetVal->Guid,
+                                                   NULL,
+                                                   SetVal->Data,
+                                                   SetVal->DataLength);
+            }
+            else
+            {
+                TargetPolicy = PopPolicyStoreForPowerCondition(SetVal->PowerCondition);
+                if (TargetPolicy == NULL)
+                {
+                    Status = STATUS_INVALID_PARAMETER;
+                    goto Quit;
+                }
+
+                Status = PopApplyPowerSettingUlong(&SetVal->Guid,
+                                                   TargetPolicy,
+                                                   SetVal->Data,
+                                                   SetVal->DataLength);
+
+                if (NT_SUCCESS(Status) &&
+                    PopIsEqualGuid(&SetVal->Guid, &GUID_PROCESSOR_THROTTLE_MINIMUM) &&
+                    PopDefaultPowerPolicy == TargetPolicy)
+                {
+                    NotifyPolicy = TRUE;
+                }
+                else if (NT_SUCCESS(Status) &&
+                         (PopIsEqualGuid(&SetVal->Guid, &GUID_VIDEO_POWERDOWN_TIMEOUT) ||
+                          PopIsEqualGuid(&SetVal->Guid, &GUID_STANDBY_TIMEOUT) ||
+                          PopIsEqualGuid(&SetVal->Guid, &GUID_DISK_POWERDOWN_TIMEOUT) ||
+                          PopIsEqualGuid(&SetVal->Guid, &GUID_HIBERNATE_TIMEOUT)))
+                {
+                    NotifyPolicy = (PopDefaultPowerPolicy == TargetPolicy);
+                }
+            }
+
+            if (NT_SUCCESS(Status) &&
+                (NotifyPolicy ||
+                 PopIsEqualGuid(&SetVal->Guid, &GUID_PROCESSOR_THROTTLE_MAXIMUM) ||
+                 PopIsEqualGuid(&SetVal->Guid, &GUID_SYSTEM_COOLING_POLICY)))
+            {
+                PopPowerPolicyNotification();
+                PopSyncPpmPolicyFromCurrentPolicy();
+                PopRequestPolicyWorker(PolicyWorkerSystemIdle);
+                PopCheckForPendingWorkers();
+            }
+
             break;
         }
 

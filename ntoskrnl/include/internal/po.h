@@ -6,6 +6,8 @@
  *              Copyright 2023 George Bișoc <george.bisoc@reactos.org>
  */
 
+#pragma once
+
 #include <guiddef.h>
 #include <poclass.h>
 
@@ -1823,6 +1825,11 @@ PopDefaultPolicies(
 
 VOID
 NTAPI
+PopSyncPpmPolicyFromCurrentPolicy(
+    VOID);
+
+VOID
+NTAPI
 PopRegisterPowerPolicyWorker(
     _In_ POP_POWER_POLICY_WORKER_TYPES WorkerType,
     _In_ PPOP_POLICY_WORKER_FUNC WorkerFunction);
@@ -2168,6 +2175,11 @@ PopRegisterPowerRequest(
     _In_ EXECUTION_STATE EsFlags,
     _In_opt_ PCOUNTED_REASON_CONTEXT Context,
     _Inout_opt_ PPOP_POWER_REQUEST *PowerRequestHandle);
+
+EXECUTION_STATE
+NTAPI
+PopQueryAggregateLegacyExecutionState(
+    VOID);
 
 VOID
 NTAPI

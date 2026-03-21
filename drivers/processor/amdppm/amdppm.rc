@@ -1,0 +1,13 @@
+/*
+ * PROJECT:        ReactOS AMD Processor Power Management Driver
+ * LICENSE:        GPL-2.0-or-later (https://spdx.org/licenses/GPL-2.0-or-later)
+ * FILE:           drivers/processor/amdppm/amdppm.rc
+ * PURPOSE:        Resource definition file
+ * PROGRAMMERS:    ReactOS Contributors
+ */
+
+#define REACTOS_VERSION_DLL
+#define REACTOS_STR_FILE_DESCRIPTION    "AMD Processor Power Management Driver\0"
+#define REACTOS_STR_INTERNAL_NAME       "amdppm\0"
+#define REACTOS_STR_ORIGINAL_FILENAME   "amdppm.sys\0"
+#include <reactos/version.rc>

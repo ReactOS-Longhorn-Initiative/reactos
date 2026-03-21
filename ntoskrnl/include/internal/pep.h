@@ -5,6 +5,8 @@
  * COPYRIGHT:   Copyright 2023 George Bișoc <george.bisoc@reactos.org>
  */
 
+#pragma once
+
 //
 // Platform Extension Plugin (PEP) handle
 //

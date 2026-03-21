@@ -32,22 +32,22 @@ typedef struct _ACPI_NEW_EC_CONTEXT
 
 static ACPI_NEW_EC_CONTEXT g_Ec;
 
-static __forceinline UCHAR EcReadStatus(_In_ PACPI_NEW_EC_CONTEXT Ec)
+ __forceinline UCHAR EcReadStatus(_In_ PACPI_NEW_EC_CONTEXT Ec)
 {
     return READ_PORT_UCHAR((PUCHAR)(ULONG_PTR)Ec->CmdPort);
 }
 
-static __forceinline UCHAR EcReadData(_In_ PACPI_NEW_EC_CONTEXT Ec)
+ __forceinline UCHAR EcReadData(_In_ PACPI_NEW_EC_CONTEXT Ec)
 {
     return READ_PORT_UCHAR((PUCHAR)(ULONG_PTR)Ec->DataPort);
 }
 
-static __forceinline VOID EcWriteCmd(_In_ PACPI_NEW_EC_CONTEXT Ec, _In_ UCHAR Value)
+ __forceinline VOID EcWriteCmd(_In_ PACPI_NEW_EC_CONTEXT Ec, _In_ UCHAR Value)
 {
     WRITE_PORT_UCHAR((PUCHAR)(ULONG_PTR)Ec->CmdPort, Value);
 }
 
-static __forceinline VOID EcWriteData(_In_ PACPI_NEW_EC_CONTEXT Ec, _In_ UCHAR Value)
+ __forceinline VOID EcWriteData(_In_ PACPI_NEW_EC_CONTEXT Ec, _In_ UCHAR Value)
 {
     WRITE_PORT_UCHAR((PUCHAR)(ULONG_PTR)Ec->DataPort, Value);
 }
@@ -165,7 +165,7 @@ Fail:
     return FALSE;
 }
 
-static __forceinline CHAR AcpiNewHexDigit(_In_ UCHAR N)
+ __forceinline CHAR AcpiNewHexDigit(_In_ UCHAR N)
 {
     N &= 0xF;
     return (N < 10) ? (CHAR)('0' + N) : (CHAR)('A' + (N - 10));

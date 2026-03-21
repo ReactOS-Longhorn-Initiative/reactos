@@ -261,6 +261,8 @@ list(APPEND SOURCE
     ${REACTOS_SOURCE_DIR}/ntoskrnl/po/pofx/fxapi.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/po/pofx/plugin.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/po/ppm/cpustat.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/po/ppm/park.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/po/ppm/dispatch.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/po/ppm/eng.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/po/ppm/idle.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/po/ppm/init.c

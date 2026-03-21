@@ -1185,6 +1185,40 @@ PopRegisterPowerRequest(
 
 /**
  * @brief
+ * Returns a bitmask of legacy execution-state flags (ES_*) that are
+ * currently in effect across all non-terminated legacy power requests.
+ * Used by @c NtPowerInformation(SystemExecutionState).
+ */
+EXECUTION_STATE
+NTAPI
+PopQueryAggregateLegacyExecutionState(VOID)
+{
+    KIRQL OldIrql;
+    PLIST_ENTRY Entry;
+    EXECUTION_STATE Aggregate = 0;
+
+    KeAcquireSpinLock(&PopPowerRequestLock, &OldIrql);
+
+    for (Entry = PopPowerRequestsList.Flink;
+         Entry != &PopPowerRequestsList;
+         Entry = Entry->Flink)
+    {
+        PPOP_POWER_REQUEST Req = CONTAINING_RECORD(Entry, POP_POWER_REQUEST, Link);
+
+        if (Req->Terminate || !Req->Legacy)
+            continue;
+
+        Aggregate |= (Req->LegacyStateFlags &
+                        (ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED |
+                         ES_USER_PRESENT | ES_CONTINUOUS));
+    }
+
+    KeReleaseSpinLock(&PopPowerRequestLock, OldIrql);
+    return Aggregate;
+}
+
+/**
+ * @brief
  * Cleans up the power request object of a thread that is going to be
  * terminated by the kernel soon.
  *

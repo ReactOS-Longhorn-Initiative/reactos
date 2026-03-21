@@ -72,6 +72,14 @@ PopIsSystemDrainingAcSource(
     {
         *Changed = TRUE;
         PopNotifyPowerSettingChange(&GUID_ACDC_POWER_SOURCE);
+
+        /*
+         * The newly active policy may carry a different MinThrottle value
+         * (e.g. a laptop's DC policy often enforces a lower performance
+         * floor than its AC policy).  Push the new floor into the PPM
+         * globals and notify processor power-setting callbacks immediately.
+         */
+        PopSyncPpmPolicyFromCurrentPolicy();
     }
 }
 
@@ -1009,6 +1017,8 @@ PopDisconnectCompositeBattery(VOID)
         /* Notify every registered power setting callback of this change in power policy */
         PopNotifyPowerSettingChange(&GUID_ACDC_POWER_SOURCE);
 
+        PopSyncPpmPolicyFromCurrentPolicy();
+
         /*
          * Re-evaluate idleness under the now-active AC policy, and request that the PPM
          * re-applies the AC throttle limits. Full thermal zone and P-state re-evaluation
@@ -1110,6 +1120,9 @@ PopConnectCompositeBattery(
      * registered for receiving ower policy setting change notifications.
      */
     PopNotifyPowerSettingChange(&GUID_ACDC_POWER_SOURCE);
+
+    PopSyncPpmPolicyFromCurrentPolicy();
+
     return STATUS_SUCCESS;
 }
 

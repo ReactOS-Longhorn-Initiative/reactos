@@ -12,6 +12,8 @@
 #define NDEBUG
 #include <debug.h>
 
+#include <internal/ppm.h>
+
 #ifdef _WIN64
 # define InterlockedOrSetMember(Destination, SetMember) \
     InterlockedOr64((PLONG64)Destination, SetMember);
@@ -85,15 +87,16 @@ KiFindIdealProcessor(
     KAFFINITY NodeMask;
     ULONG Processor;
 
+    /* Only use active, unparked processors */
+    ProcessorSet &= KeActiveProcessors;
+    ProcessorSet = PpmCoreParkingApplySchedulerMask(ProcessorSet);
+
     /* Check if we can use the original ideal processor */
     if (ProcessorSet & AFFINITY_MASK(OriginalIdealProcessor))
     {
         /* We can, so use it */
         return OriginalIdealProcessor;
     }
-
-    /* Only use active processors */
-    ProcessorSet &= KeActiveProcessors;
 
     /* Get the original ideal PRCB */
     OriginalIdealPrcb = KiProcessorBlock[OriginalIdealProcessor];
@@ -121,6 +124,7 @@ KiSelectNextProcessor(
 
     /* Start with the affinity */
     PreferredSet = Thread->Affinity;
+    PreferredSet = PpmCoreParkingApplySchedulerMask(PreferredSet);
 
     /* If we have matching idle processors, use them */
     IdleSet = PreferredSet & KiIdleSummary;

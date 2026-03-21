@@ -1,8 +1,9 @@
 /*
  * PROJECT:     ReactOS Kernel
  * LICENSE:     MIT (https://spdx.org/licenses/MIT)
- * PURPOSE:     Processor Power Management performance handling
+ * PURPOSE:     Processor Power Management – performance state DPC
  * COPYRIGHT:   Copyright 2023 George Bișoc <george.bisoc@reactos.org>
+ *              Copyright 2025 ReactOS Contributors
  */
 
 /* INCLUDES *******************************************************************/
@@ -11,20 +12,22 @@
 #define NDEBUG
 #include <debug.h>
 
-/* PRIVATE FUNCTIONS **********************************************************/
+#include <internal/ppm.h>
 
 /* PUBLIC FUNCTIONS ***********************************************************/
 
 /**
  * @brief
- * DPC routine that fires periodically to sample processor performance state
- * and adjust throttling accordingly.
+ * DPC routine fired periodically on each processor to evaluate the
+ * processor performance (P-state) policy.
  *
  * @param[in] Dpc
- * The DPC object associated with this performance timer.
+ * The DPC object associated with this performance timer (embedded in
+ * Prcb->PowerState.PerfDpc).
  *
  * @param[in] DeferredContext
- * A pointer to the PKPRCB (Processor Control Block) for the target processor.
+ * Pointer to the KPRCB of the target processor.  This is the PRCB on which
+ * the DPC runs (set via KeSetTargetProcessorDpc in PpmInitialize).
  *
  * @param[in] SystemArgument1
  * Unused.
@@ -33,12 +36,22 @@
  * Unused.
  *
  * @remarks
- * A full implementation would evaluate the current processor idle time vs.
- * busy time, look up the appropriate P-state in the processor's performance
- * state table, and request a frequency/voltage transition if needed. This
- * requires HAL/ACPI _PSS support which is not yet available. For now the
- * routine only updates the performance accounting timestamps so that the
- * system does not accumulate stale data.
+ * The DPC runs at DISPATCH_LEVEL on the owning processor.  It:
+ *
+ *  1. Increments the DPC tick counter for diagnostic purposes.
+ *
+ *  2. Records the current interrupt time in PowerState->LastSysTime so that
+ *     the idle path has an up-to-date reference for duration estimation.
+ *
+ *  3. Delegates the actual policy evaluation to PpmEvaluatePerfPolicy
+ *     (policy.c) which computes the busy percentage (cpustat.c) and
+ *     selects the appropriate P-state (eng.c).
+ *
+ *  4. Re-arms the periodic timer for the next sample period.
+ *
+ * The DPC and timer are created and initialised during the late phase of
+ * PpmInitialize().  The timer is armed there with KeSetTimerEx using
+ * PPM_PERF_DPC_PERIOD (200 000 × 100 ns = 20 ms) as the recurrence period.
  */
 VOID
 NTAPI
@@ -48,27 +61,49 @@ PpmPerfIdleDpcRoutine(
     _In_ PVOID SystemArgument1,
     _In_ PVOID SystemArgument2)
 {
-    PKPRCB Prcb = (PKPRCB)DeferredContext;
+    PKPRCB                 Prcb = (PKPRCB)DeferredContext;
+    PPROCESSOR_POWER_STATE PowerState;
 
     UNREFERENCED_PARAMETER(Dpc);
     UNREFERENCED_PARAMETER(SystemArgument1);
     UNREFERENCED_PARAMETER(SystemArgument2);
 
     if (Prcb == NULL)
-    {
         return;
-    }
 
-    /*
-     * Record the current performance timer tick. A complete performance
-     * governor would compare KernelTime, UserTime and IdleTime over successive
-     * samples to determine utilization, then walk the _PSS P-state table and
-     * issue an ACPI _PPC/_PCT write to adjust the processor frequency/voltage.
-     *
-     * FIXME: Implement P-state evaluation and transition once HAL exposes
-     * processor performance controls via HalSetSystemInformation.
-     */
-    Prcb->PowerState.LastSysTime = KeQueryInterruptTime();
+    PowerState = &Prcb->PowerState;
+
+    /* ------------------------------------------------------------------- */
+    /* Step 1: Update diagnostic tick counter                               */
+    /* ------------------------------------------------------------------- */
+    PowerState->PerfTickCount++;
+
+    /* ------------------------------------------------------------------- */
+    /* Step 2: Snapshot the current interrupt time                          */
+    /*                                                                       */
+    /* PpmIdle uses LastSysTime as a reference when estimating the upcoming  */
+    /* idle duration (via _PpmEstimateIdleDuration in idle.c).               */
+    /* ------------------------------------------------------------------- */
+    PowerState->LastSysTime = (ULONG)KeQueryInterruptTime();
+
+    /* ------------------------------------------------------------------- */
+    /* Step 3: Policy evaluation                                             */
+    /*                                                                       */
+    /* PpmEvaluatePerfPolicy samples utilisation, selects the optimal        */
+    /* P-state, applies hysteresis, and calls PpmApplyThrottle if needed.    */
+    /* ------------------------------------------------------------------- */
+    PpmEvaluatePerfPolicy(Prcb);
+
+#if defined(CONFIG_SMP)
+    if (Prcb->Number == 0 && KeNumberProcessors > 1)
+        PpmCoreParkingPeriodicRebalance();
+#endif
+
+    PPMTRACE(PPM_PERF_DEBUG,
+             "PpmPerfIdleDpcRoutine: CPU %u tick=%lu throttle=%u%%\n",
+             Prcb->Number,
+             PowerState->PerfTickCount,
+             PowerState->CurrentThrottle);
 }
 
 /* EOF */

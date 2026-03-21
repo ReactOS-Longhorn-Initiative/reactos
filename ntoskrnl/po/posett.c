@@ -11,12 +11,37 @@
 #define NDEBUG
 #include <debug.h>
 
+#include <internal/ppm.h>
+
 /* GLOBALS ********************************************************************/
 
 LIST_ENTRY PopPowerSettingCallbacksList;
 ULONG PopPowerSettingCallbacksCount;
 PKTHREAD PopPowerSettingOwnerLockThread;
 FAST_MUTEX PopPowerSettingLock;
+
+/*
+ * Note: The system-wide thermal cooling mode global is PopCoolingSystemMode,
+ * which is defined in thermzn.c and declared via po.h.
+ * 0 = passive cooling (throttle processor first before spinning fans).
+ * 1 = active cooling  (spin fans aggressively; used on desktops / AC-power).
+ *
+ * PopSystemCoolingPolicySettingWorker (below) updates PopCoolingSystemMode
+ * when GUID_SYSTEM_COOLING_POLICY changes.
+ */
+
+/* FORWARD DECLARATIONS FOR PROCESSOR POWER SETTING WORKERS ******************/
+
+static VOID NTAPI PopProcessorThrottleMaximumSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorThrottleMinimumSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorPerfIncreaseThresholdSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorPerfDecreaseThresholdSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorPerfIncreaseTimeSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorPerfDecreaseTimeSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorIdleDemoteThresholdSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorIdlePromoteThresholdSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopProcessorCoreParkingSettingWorker(_In_ PVOID StartContext);
+static VOID NTAPI PopSystemCoolingPolicySettingWorker(_In_ PVOID StartContext);
 
 /* POWER SETTINGS DATABASE ****************************************************/
 
@@ -83,32 +108,32 @@ POP_POWER_SETTING_DATABASE PopPowerSettingsDatabase[POP_MAX_POWER_SETTINGS] =
     {&GUID_BATTERY_DISCHARGE_FLAGS_3, NULL},
     {&GUID_PROCESSOR_SETTINGS_SUBGROUP, NULL},
     {&GUID_PROCESSOR_THROTTLE_POLICY, NULL},
-    {&GUID_PROCESSOR_THROTTLE_MAXIMUM, NULL},
-    {&GUID_PROCESSOR_THROTTLE_MINIMUM, NULL},
+    {&GUID_PROCESSOR_THROTTLE_MAXIMUM, PopProcessorThrottleMaximumSettingWorker},
+    {&GUID_PROCESSOR_THROTTLE_MINIMUM, PopProcessorThrottleMinimumSettingWorker},
     {&GUID_PROCESSOR_ALLOW_THROTTLING, NULL},
     {&GUID_PROCESSOR_IDLESTATE_POLICY, NULL},
     {&GUID_PROCESSOR_PERFSTATE_POLICY, NULL},
-    {&GUID_PROCESSOR_PERF_INCREASE_THRESHOLD, NULL},
-    {&GUID_PROCESSOR_PERF_DECREASE_THRESHOLD, NULL},
+    {&GUID_PROCESSOR_PERF_INCREASE_THRESHOLD, PopProcessorPerfIncreaseThresholdSettingWorker},
+    {&GUID_PROCESSOR_PERF_DECREASE_THRESHOLD, PopProcessorPerfDecreaseThresholdSettingWorker},
     {&GUID_PROCESSOR_PERF_INCREASE_POLICY, NULL},
     {&GUID_PROCESSOR_PERF_DECREASE_POLICY, NULL},
-    {&GUID_PROCESSOR_PERF_INCREASE_TIME, NULL},
-    {&GUID_PROCESSOR_PERF_DECREASE_TIME, NULL},
+    {&GUID_PROCESSOR_PERF_INCREASE_TIME, PopProcessorPerfIncreaseTimeSettingWorker},
+    {&GUID_PROCESSOR_PERF_DECREASE_TIME, PopProcessorPerfDecreaseTimeSettingWorker},
     {&GUID_PROCESSOR_PERF_TIME_CHECK, NULL},
     {&GUID_PROCESSOR_PERF_BOOST_POLICY, NULL},
     {&GUID_PROCESSOR_IDLE_ALLOW_SCALING, NULL},
     {&GUID_PROCESSOR_IDLE_DISABLE, NULL},
     {&GUID_PROCESSOR_IDLE_TIME_CHECK, NULL},
-    {&GUID_PROCESSOR_IDLE_DEMOTE_THRESHOLD, NULL},
-    {&GUID_PROCESSOR_IDLE_PROMOTE_THRESHOLD, NULL},
-    {&GUID_PROCESSOR_CORE_PARKING_INCREASE_THRESHOLD, NULL},
-    {&GUID_PROCESSOR_CORE_PARKING_DECREASE_THRESHOLD, NULL},
+    {&GUID_PROCESSOR_IDLE_DEMOTE_THRESHOLD, PopProcessorIdleDemoteThresholdSettingWorker},
+    {&GUID_PROCESSOR_IDLE_PROMOTE_THRESHOLD, PopProcessorIdlePromoteThresholdSettingWorker},
+    {&GUID_PROCESSOR_CORE_PARKING_INCREASE_THRESHOLD, PopProcessorCoreParkingSettingWorker},
+    {&GUID_PROCESSOR_CORE_PARKING_DECREASE_THRESHOLD, PopProcessorCoreParkingSettingWorker},
     {&GUID_PROCESSOR_CORE_PARKING_INCREASE_POLICY, NULL},
     {&GUID_PROCESSOR_CORE_PARKING_DECREASE_POLICY, NULL},
-    {&GUID_PROCESSOR_CORE_PARKING_MAX_CORES, NULL},
-    {&GUID_PROCESSOR_CORE_PARKING_MIN_CORES, NULL},
-    {&GUID_PROCESSOR_CORE_PARKING_INCREASE_TIME, NULL},
-    {&GUID_PROCESSOR_CORE_PARKING_DECREASE_TIME, NULL},
+    {&GUID_PROCESSOR_CORE_PARKING_MAX_CORES, PopProcessorCoreParkingSettingWorker},
+    {&GUID_PROCESSOR_CORE_PARKING_MIN_CORES, PopProcessorCoreParkingSettingWorker},
+    {&GUID_PROCESSOR_CORE_PARKING_INCREASE_TIME, PopProcessorCoreParkingSettingWorker},
+    {&GUID_PROCESSOR_CORE_PARKING_DECREASE_TIME, PopProcessorCoreParkingSettingWorker},
     {&GUID_PROCESSOR_CORE_PARKING_AFFINITY_HISTORY_DECREASE_FACTOR, NULL},
     {&GUID_PROCESSOR_CORE_PARKING_AFFINITY_HISTORY_THRESHOLD, NULL},
     {&GUID_PROCESSOR_CORE_PARKING_AFFINITY_WEIGHTING, NULL},
@@ -119,7 +144,7 @@ POP_POWER_SETTING_DATABASE PopPowerSettingsDatabase[POP_MAX_POWER_SETTINGS] =
     {&GUID_PROCESSOR_PARKING_CORE_OVERRIDE, NULL},
     {&GUID_PROCESSOR_PARKING_PERF_STATE, NULL},
     {&GUID_PROCESSOR_PERF_HISTORY, NULL},
-    {&GUID_SYSTEM_COOLING_POLICY, NULL},
+    {&GUID_SYSTEM_COOLING_POLICY, PopSystemCoolingPolicySettingWorker},
     {&GUID_LOCK_CONSOLE_ON_WAKE, NULL},
     {&GUID_DEVICE_IDLE_POLICY, NULL},
     {&GUID_ACDC_POWER_SOURCE, PopPowerSourceSettingWorker},
@@ -390,6 +415,628 @@ PopBatteryRemainingSettingWorker(
     }
 
     /* Operation done, alert the Power Manager this power setting has finished its job */
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/* PROCESSOR POWER SETTING WORKERS *******************************************/
+
+/*
+ * Helper: iterate over every active logical processor and propagate a
+ * throttle limit change to its per-PRCB power-state block.
+ *
+ * Must be called at PASSIVE_LEVEL.
+ */
+static
+VOID
+PpmApplyThrottleLimitsToAllProcessors(VOID)
+{
+    ULONG ProcessorCount;
+    ULONG ProcessorIndex;
+    PKPRCB Prcb;
+    PPROCESSOR_POWER_STATE PowerState;
+    UCHAR NewMax;
+    UCHAR NewMin;
+
+    ProcessorCount = (ULONG)KeNumberProcessors;
+    NewMax = PpmPolicyMaxThrottle;
+    NewMin = PpmPolicyMinThrottle;
+
+    /* Clamp to avoid a floor above the ceiling */
+    if (NewMin > NewMax)
+        NewMin = NewMax;
+
+    for (ProcessorIndex = 0; ProcessorIndex < ProcessorCount; ProcessorIndex++)
+    {
+        Prcb = KiProcessorBlock[ProcessorIndex];
+        if (Prcb == NULL)
+            continue;
+
+        PowerState = &Prcb->PowerState;
+
+        PowerState->ProcessorMaxThrottle = NewMax;
+        PowerState->ProcessorMinThrottle = NewMin;
+
+        /* If the processor is currently running above the new ceiling,
+         * bring it down immediately so the new limit is effective at once. */
+        if (PowerState->CurrentThrottle > NewMax)
+            PpmApplyThrottle(PowerState, NewMax);
+        else if (PowerState->CurrentThrottle < NewMin)
+            PpmApplyThrottle(PowerState, NewMin);
+    }
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_THROTTLE_MAXIMUM power setting.
+ * Updates the maximum processor throttle (performance ceiling) that the PPM
+ * engine may select when the system is under load.
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorThrottleMaximumSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG ThrottleMax;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_THROTTLE_MAXIMUM) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    /*
+     * Read the maximum throttle from the PPM policy global.
+     * PpmPolicyMaxThrottle is the authoritative ceiling for P-state selection.
+     * It defaults to 100 % and may be capped by RegisterPerfCap callbacks
+     * when a processor driver reports a BIOS or thermal performance limit.
+     *
+     * Note: SYSTEM_POWER_POLICY does not carry a per-GUID throttle-maximum
+     * field; the ForcedThrottle field describes the emergency overclock cap
+     * applied when the system is overheating, not the steady-state ceiling.
+     */
+    ThrottleMax = (ULONG)PpmPolicyMaxThrottle;
+
+    /*
+     * Push the current ceiling to every active processor's PRCB so that
+     * the PPM policy engine picks up the change on the next DPC period.
+     */
+    PpmApplyThrottleLimitsToAllProcessors();
+
+    DPRINT("PopProcessorThrottleMaximumSettingWorker: max=%lu%%\n", ThrottleMax);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &ThrottleMax,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_THROTTLE_MINIMUM power setting.
+ * Updates the minimum processor throttle (performance floor) to prevent the
+ * PPM engine from lowering the frequency below a policy-defined baseline.
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorThrottleMinimumSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG ThrottleMin;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_THROTTLE_MINIMUM) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    /*
+     * SYSTEM_POWER_POLICY.MinThrottle is the minimum throttle percentage
+     * stored in the active policy structure (loaded from registry by
+     * PopDefaultPolicies).  This field maps directly to
+     * GUID_PROCESSOR_THROTTLE_MINIMUM: it is the floor below which the
+     * P-state engine should not lower the processor clock.
+     *
+     * If no policy is active yet use the current PPM global default (0 %).
+     */
+    if (PopDefaultPowerPolicy != NULL)
+        ThrottleMin = (ULONG)PopDefaultPowerPolicy->MinThrottle;
+    else
+        ThrottleMin = (ULONG)PpmPolicyMinThrottle;
+
+    if (ThrottleMin > 100)
+        ThrottleMin = 100;
+
+    /* Update the PPM engine's policy knob */
+    PpmPolicyMinThrottle = (UCHAR)ThrottleMin;
+    PpmApplyThrottleLimitsToAllProcessors();
+
+    DPRINT("PopProcessorThrottleMinimumSettingWorker: min=%lu%%\n", ThrottleMin);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &ThrottleMin,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_PERF_INCREASE_THRESHOLD power
+ * setting.  Updates the busy-percentage level above which the PPM engine
+ * considers promoting to a higher performance state.
+ *
+ * The value is a DWORD in the range [0, 100] representing a percentage.
+ * Default: 60 % (set during driver initialisation in dispatch.c).
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorPerfIncreaseThresholdSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG Threshold;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_PROCESSOR_PERF_INCREASE_THRESHOLD) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    /* Use the current global value; external code may already have updated it */
+    Threshold = PpmPolicyPerfIncreaseThreshold;
+
+    DPRINT("PopProcessorPerfIncreaseThresholdSettingWorker: threshold=%lu%%\n",
+           Threshold);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &Threshold,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_PERF_DECREASE_THRESHOLD power
+ * setting.  Updates the busy-percentage level below which the PPM engine
+ * considers demoting to a lower performance state.
+ *
+ * Default: 40 % (set during driver initialisation in dispatch.c).
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorPerfDecreaseThresholdSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG Threshold;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_PROCESSOR_PERF_DECREASE_THRESHOLD) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    Threshold = PpmPolicyPerfDecreaseThreshold;
+
+    DPRINT("PopProcessorPerfDecreaseThresholdSettingWorker: threshold=%lu%%\n",
+           Threshold);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &Threshold,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_PERF_INCREASE_TIME power setting.
+ * Updates the number of consecutive PPM DPC periods the processor must remain
+ * above the increase threshold before the P-state is promoted.
+ *
+ * The value is a DWORD (number of DPC periods, each 20 ms).
+ * Default: 1 period (fast ramp-up).
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorPerfIncreaseTimeSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG IncreaseTime;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_PROCESSOR_PERF_INCREASE_TIME) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    IncreaseTime = PpmPolicyPerfIncreaseTime;
+
+    DPRINT("PopProcessorPerfIncreaseTimeSettingWorker: periods=%lu\n",
+           IncreaseTime);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &IncreaseTime,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_PERF_DECREASE_TIME power setting.
+ * Updates the number of consecutive PPM DPC periods the processor must remain
+ * below the decrease threshold before the P-state is demoted.
+ *
+ * The value is a DWORD (number of DPC periods, each 20 ms).
+ * Default: 5 periods (slow ramp-down, avoids oscillation on bursty loads).
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorPerfDecreaseTimeSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG DecreaseTime;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_PROCESSOR_PERF_DECREASE_TIME) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    DecreaseTime = PpmPolicyPerfDecreaseTime;
+
+    DPRINT("PopProcessorPerfDecreaseTimeSettingWorker: periods=%lu\n",
+           DecreaseTime);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &DecreaseTime,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_IDLE_DEMOTE_THRESHOLD power
+ * setting.  Updates the idle-time percentage below which the PPM engine
+ * considers moving the processor to a shallower C-state.
+ *
+ * Default: 10 % idle time.
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorIdleDemoteThresholdSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG Threshold;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_PROCESSOR_IDLE_DEMOTE_THRESHOLD) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    Threshold = PpmPolicyIdleDemoteThreshold;
+
+    DPRINT("PopProcessorIdleDemoteThresholdSettingWorker: threshold=%lu%%\n",
+           Threshold);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &Threshold,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_PROCESSOR_IDLE_PROMOTE_THRESHOLD power
+ * setting.  Updates the idle-time percentage above which the PPM engine
+ * considers entering a deeper C-state.
+ *
+ * Default: 20 % idle time.
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorIdlePromoteThresholdSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG Threshold;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_PROCESSOR_IDLE_PROMOTE_THRESHOLD) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    Threshold = PpmPolicyIdlePromoteThreshold;
+
+    DPRINT("PopProcessorIdlePromoteThresholdSettingWorker: threshold=%lu%%\n",
+           Threshold);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &Threshold,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Worker for GUID_PROCESSOR_CORE_PARKING_* scalar settings (min/max cores,
+ * busy thresholds, hysteresis times).  Snapshots the current kernel policy
+ * globals into registered driver callbacks and refreshes the park mask.
+ *
+ * Policy values are applied through @c PpmCoreParkingSetPolicyDword when
+ * user-mode power policy code is wired; defaults live in park.c.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopProcessorCoreParkingSettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG Value = 0;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    if (PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_CORE_PARKING_MAX_CORES))
+        Value = PpmCoreParkingMaxCores;
+    else if (PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_CORE_PARKING_MIN_CORES))
+        Value = PpmCoreParkingMinCores;
+    else if (PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_CORE_PARKING_INCREASE_THRESHOLD))
+        Value = PpmCoreParkingBusyIncreaseThreshold;
+    else if (PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_CORE_PARKING_DECREASE_THRESHOLD))
+        Value = PpmCoreParkingBusyDecreaseThreshold;
+    else if (PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_CORE_PARKING_INCREASE_TIME))
+        Value = PpmCoreParkingIncreaseTime;
+    else if (PopIsEqualGuid(&SettingCallback->SettingGuid, &GUID_PROCESSOR_CORE_PARKING_DECREASE_TIME))
+        Value = PpmCoreParkingDecreaseTime;
+
+    PpmCoreParkingRefreshMask();
+
+    DPRINT("PopProcessorCoreParkingSettingWorker: value=%lu\n", Value);
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &Value,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+    PopAlertCallbackReturned(SettingCallback);
+    PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+/**
+ * @brief
+ * Main worker thread for the GUID_SYSTEM_COOLING_POLICY power setting.
+ * Updates the system-wide thermal cooling mode: passive (0) or active (1).
+ *
+ * Passive cooling throttles the processor; active cooling turns on fans.
+ * The value is reflected in PopCoolingSystemMode which is consulted by the
+ * thermal zone manager (thrmzn.c).
+ *
+ * @param[in] StartContext
+ * Pointer to the registered power setting callback.
+ */
+_Function_class_(KSTART_ROUTINE)
+static
+VOID
+NTAPI
+PopSystemCoolingPolicySettingWorker(
+    _In_ PVOID StartContext)
+{
+    NTSTATUS Status;
+    ULONG CoolingMode;
+    PPOP_POWER_SETTING_CALLBACK SettingCallback = (PPOP_POWER_SETTING_CALLBACK)StartContext;
+
+    PAGED_CODE();
+
+    ASSERT(SettingCallback != NULL);
+    ASSERT(PopIsEqualGuid(&SettingCallback->SettingGuid,
+                          &GUID_SYSTEM_COOLING_POLICY) == TRUE);
+
+    POP_ASSERT_NO_RUNNING_CALLBACK(SettingCallback);
+
+    /*
+     * PopSystemCoolingMode: 0 = passive (throttle CPU), 1 = active (fans).
+     * The thermal zone manager reads this global when deciding whether to
+     * use passive or active cooling.  Snapshot the current value so it is
+     * delivered to the registered callback.
+     */
+    CoolingMode = PopCoolingSystemMode;
+
+    DPRINT("PopSystemCoolingPolicySettingWorker: mode=%lu (%s)\n",
+           CoolingMode, CoolingMode ? "active" : "passive");
+
+    PopPowerSettingClearAttribute(SettingCallback, POP_PSC_GETTING_NOTIFIED);
+    PopPowerSettingApplyAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
+
+    Status = SettingCallback->Callback(&SettingCallback->SettingGuid,
+                                       &CoolingMode,
+                                       sizeof(ULONG),
+                                       SettingCallback->Context);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("The driver's callback of power setting 0x%p has failed (Status 0x%lx)\n",
+                SettingCallback, Status);
+    }
+
     PopPowerSettingClearAttribute(SettingCallback, POP_PSC_ENTERING_CALLBACK);
     PopAlertCallbackReturned(SettingCallback);
     PsTerminateSystemThread(STATUS_SUCCESS);

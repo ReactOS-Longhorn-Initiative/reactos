@@ -85,19 +85,19 @@ typedef struct _ACPI_NEW_CONTROL_EXTENSION
     ACPI_NEW_COMMON_EXTENSION Common;
 } ACPI_NEW_CONTROL_EXTENSION, *PACPI_NEW_CONTROL_EXTENSION;
 
-static __forceinline BOOLEAN AcpiNewIsFdo(_In_ PDEVICE_OBJECT DeviceObject)
+__forceinline BOOLEAN AcpiNewIsFdo(_In_ PDEVICE_OBJECT DeviceObject)
 {
     PACPI_NEW_COMMON_EXTENSION common = (PACPI_NEW_COMMON_EXTENSION)DeviceObject->DeviceExtension;
     return common && (common->Type == AcpiNewDeviceFdo);
 }
 
-static __forceinline BOOLEAN AcpiNewIsPdo(_In_ PDEVICE_OBJECT DeviceObject)
+__forceinline BOOLEAN AcpiNewIsPdo(_In_ PDEVICE_OBJECT DeviceObject)
 {
     PACPI_NEW_COMMON_EXTENSION common = (PACPI_NEW_COMMON_EXTENSION)DeviceObject->DeviceExtension;
     return common && (common->Type == AcpiNewDevicePdo);
 }
 
-static __forceinline BOOLEAN AcpiNewIsControl(_In_ PDEVICE_OBJECT DeviceObject)
+__forceinline BOOLEAN AcpiNewIsControl(_In_ PDEVICE_OBJECT DeviceObject)
 {
     PACPI_NEW_COMMON_EXTENSION common = (PACPI_NEW_COMMON_EXTENSION)DeviceObject->DeviceExtension;
     return common && (common->Type == AcpiNewDeviceControl);

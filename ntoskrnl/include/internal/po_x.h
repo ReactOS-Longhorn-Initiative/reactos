@@ -5,6 +5,8 @@
  * COPYRIGHT:   Copyright 2023 George Bișoc <george.bisoc@reactos.org>
  */
 
+#pragma once
+
 //
 // Ensures the passed IRP is a Power IRP (PoCallDriver & PoHandlePowerIrp)
 //

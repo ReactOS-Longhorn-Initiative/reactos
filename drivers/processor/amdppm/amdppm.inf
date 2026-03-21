@@ -1,0 +1,76 @@
+[Version]
+Signature  = "$Windows NT$"
+;Signature  = "$ReactOS$"
+LayoutFile = layout.inf
+Class      = Processor
+ClassGUID  = {50127DC3-0F36-415e-A6CC-4CB3BE910B65}
+Provider   = %ReactOS%
+DriverVer  = 01/01/2025,1.00
+
+[ControlFlags]
+ExcludeFromSelect = *
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[Manufacturer]
+%AMDMfg% = AMD
+
+;
+; AMD Processor sections
+; These hardware IDs are produced by the ACPI bus driver for
+; AuthenticAMD processors.  Families 10h and later support ACPI
+; power management and are handled by this driver.
+;
+[AMD]
+; Family 10h (Phenom, Athlon 64 X2)
+%AMDPHENProcessor.DeviceDesc% = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86_Family_16
+; Family 11h (Turion X2 Ultra)
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86_Family_17
+; Family 12h (Llano / A-Series)
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86_Family_18
+; Family 14h (Bobcat / C/E-Series)
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86_Family_20
+; Family 15h (Bulldozer / FX, A-Series)
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86_Family_21
+; Family 16h (Jaguar / A-Series low-power)
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86_Family_22
+; Generic AMD x86 fallback (covers newer families as well)
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_x86
+
+;
+; AMD 64-bit variants
+;
+[AMD.NTAMD64]
+%AMDProcessor.DeviceDesc%     = AmdPpm_Inst,ACPI\AuthenticAMD_-_AMD64
+
+;---------------------------- AmdPpm Driver -----------------------------------
+
+[AmdPpm_Inst.NT]
+CopyFiles = AmdPpm_Inst.CopyFiles.NT
+
+[AmdPpm_Inst.CopyFiles.NT]
+amdppm.sys
+
+[AmdPpm_Inst.NT.Services]
+AddService = AmdPPM, 0x00000002, AmdPpm_Service_Inst
+
+[AmdPpm_Service_Inst]
+DisplayName    = %AmdPpm.ServiceDesc%
+ServiceType    = 1
+StartType      = 1
+ErrorControl   = 1
+ServiceBinary  = %12%\amdppm.sys
+LoadOrderGroup = Extended Base
+
+;-------------------------------- STRINGS -----------------------------------
+
+[Strings]
+; Non-localizable
+ReactOS  = "ReactOS Project"
+AMDMfg   = "Advanced Micro Devices"
+
+; Localizable
+AMDProcessor.DeviceDesc    = "AMD Processor"
+AMDPHENProcessor.DeviceDesc = "AMD Phenom / Athlon 64 Processor"
+AmdPpm.ServiceDesc          = "AMD Processor Power Management Driver"

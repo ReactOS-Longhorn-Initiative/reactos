@@ -135,7 +135,10 @@ typedef struct _PROCESSOR_POWER_STATE
     PROCESSOR_PERF_STATE *PerfStates;
     PVOID PerfSetThrottle;
     ULONG LastC3KernelUserTime;
-    ULONG Spare1[1];
+    PVOID PpmIdleDomains;           /* PROCESSOR_IDLE_DOMAINS* from RegisterIdleDomains   */
+    PVOID PpmPlatformIdleStates;    /* Platform idle package states (RegisterPlatformStates)*/
+    PVOID PpmCoordinatedIdleStates; /* Coordinated multi-CPU idle (RegisterCoordinatedStates)*/
+    PVOID PpmPepHandle;             /* Opaque PEP registration from SetProcessorPep       */
 } PROCESSOR_POWER_STATE, *PPROCESSOR_POWER_STATE;
 
 //

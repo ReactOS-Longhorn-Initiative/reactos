@@ -904,6 +904,77 @@ ApplyDefaults:
 
 /**
  * @brief
+ * Propagates processor-relevant fields from the currently active
+ * @c SYSTEM_POWER_POLICY into the kernel PPM policy globals and
+ * notifies any registered power-setting callbacks.
+ *
+ * This function must be called whenever the active power policy changes:
+ *   - After @c PopDefaultPolicies() loads the initial policy from the registry
+ *     during Phase 1 Power Manager initialisation.
+ *   - When the AC/DC power source changes (so the alternate policy's throttle
+ *     floor takes effect immediately).
+ *   - When user-mode calls @c NtPowerInformation to install a new policy.
+ *
+ * @remarks
+ * Callers must ensure @c PopDefaultPowerPolicy is non-NULL before calling.
+ * The function is intentionally lightweight: it copies one byte from the
+ * active policy and triggers a work-item chain only if callbacks are
+ * already registered.  During early boot the notification is effectively
+ * a no-op (no callbacks registered yet), but the global update still
+ * ensures the PPM engine starts with the correct floor.
+ *
+ * Must be called at PASSIVE_LEVEL.
+ */
+VOID
+NTAPI
+PopSyncPpmPolicyFromCurrentPolicy(VOID)
+{
+    PAGED_CODE();
+
+    if (PopDefaultPowerPolicy == NULL)
+    {
+        DPRINT("PopSyncPpmPolicyFromCurrentPolicy: no active policy yet\n");
+        return;
+    }
+
+    /*
+     * SYSTEM_POWER_POLICY.MinThrottle is the minimum throttle percentage
+     * (0 – 100 %) that the processor may be clocked down to under this
+     * scheme.  It is the direct analogue of GUID_PROCESSOR_THROTTLE_MINIMUM
+     * inside a SYSTEM_POWER_POLICY structure.
+     *
+     * Update the PPM global so that the P-state engine observes the new
+     * floor starting from the very next 20 ms DPC period.
+     */
+    PpmPolicyMinThrottle = PopDefaultPowerPolicy->MinThrottle;
+
+    DPRINT("PopSyncPpmPolicyFromCurrentPolicy: MinThrottle=%u%%\n",
+           (ULONG)PpmPolicyMinThrottle);
+
+    PpmResetIdleAccountingAllProcessors();
+
+    /*
+     * Notify any registered GUID_PROCESSOR_THROTTLE_MINIMUM callbacks so
+     * that user-mode power management components and processor drivers can
+     * adjust their own state.  If no callbacks are registered yet (early
+     * boot path) this is a harmless no-op.
+     */
+    PopNotifyPowerSettingChange(&GUID_PROCESSOR_THROTTLE_MINIMUM);
+
+    /*
+     * Also notify the GUID_SYSTEM_COOLING_POLICY callbacks because the
+     * SYSTEM_POWER_POLICY that was just applied may imply a different
+     * thermal cooling mode (e.g. AC = active cooling, DC = passive).
+     *
+     * Note: PopCoolingSystemMode is updated by the thermal zone manager
+     * (thrmzn.c) independently; we trigger the notification here so that
+     * registered drivers see the change in a timely fashion.
+     */
+    PopNotifyPowerSettingChange(&GUID_SYSTEM_COOLING_POLICY);
+}
+
+/**
+ * @brief
  * Registers a power policy worker. The Power Policy Manager
  * calls this worker whenever there are changes to be made
  * in a policy due to certain circumstances or conditions

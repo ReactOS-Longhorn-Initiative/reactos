@@ -49,13 +49,21 @@ PpmInitialize(
     PKPRCB Prcb;
     PPROCESSOR_POWER_STATE PowerState;
     LARGE_INTEGER PerfFrequency;
+    LARGE_INTEGER DpcPeriod;
 
     PAGED_CODE();
 
-    ProcessorCount = KeQueryActiveProcessorCount(NULL);
+    ProcessorCount = (ULONG)KeNumberProcessors;
 
     if (EarlyPhase)
     {
+        /*
+         * Populate the global PPM kernel dispatch table that processor drivers
+         * (intelppm, amdppm) obtain via ZwPowerInformation(ProcessorStateHandler).
+         * This must happen before any processor driver is loaded.
+         */
+        PpmInitDispatchTable();
+
         /*
          * Early phase: configure each processor's power state before any
          * driver or user-mode thread can execute on them.
@@ -103,6 +111,13 @@ PpmInitialize(
          */
         KeQueryPerformanceCounter(&PerfFrequency);
 
+        /*
+         * Negative value → relative timer (fire PPM_PERF_DPC_PERIOD 100-ns
+         * units from now).  KeSetTimerEx accepts the period in milliseconds
+         * as its last argument for the recurring interval.
+         */
+        DpcPeriod.QuadPart = -(LONGLONG)PPM_PERF_DPC_PERIOD;
+
         for (ProcessorIndex = 0; ProcessorIndex < ProcessorCount; ProcessorIndex++)
         {
             Prcb = KiProcessorBlock[ProcessorIndex];
@@ -132,9 +147,22 @@ PpmInitialize(
 
             KeInitializeTimerEx(&PowerState->PerfTimer, SynchronizationTimer);
 
+            /*
+             * Arm the recurring DPC timer.  The timer fires once per
+             * PPM_PERF_DPC_PERIOD_MS (20 ms), which is the standard Windows
+             * performance-sampling interval for the PPM policy engine.
+             *
+             * KeSetTimerEx period parameter is in milliseconds.
+             */
+            KeSetTimerEx(&PowerState->PerfTimer,
+                         DpcPeriod,
+                         PPM_PERF_DPC_PERIOD_MS,
+                         &PowerState->PerfDpc);
+
             PPMTRACE(PPM_INIT_SUBSYSTEM_DEBUG,
-                     "PpmInitialize (late): processor %lu perf DPC/timer initialised\n",
-                     ProcessorIndex);
+                     "PpmInitialize (late): processor %lu perf DPC/timer armed"
+                     " (period=%d ms)\n",
+                     ProcessorIndex, PPM_PERF_DPC_PERIOD_MS);
         }
     }
 
