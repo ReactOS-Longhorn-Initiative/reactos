@@ -59,7 +59,7 @@ typedef struct
 extern	HINSTANCE	hInst;						/* current instance */
 extern	HWND		hMainWnd;					/* Main Window */
 extern	HWND		hStatusWnd;					/* Status Bar Window */
-extern	HWND		hTabWnd;					/* Tab Control Window */
+extern	HWND		hNavList;					/* Win8-style left navigation list */
 extern	int			nMinimumWidth;				/* Minimum width of the dialog (OnSize()'s cx) */
 extern	int			nMinimumHeight;				/* Minimum height of the dialog (OnSize()'s cy) */
 extern	int			nOldWidth;					/* Holds the previous client area width */
@@ -78,6 +78,7 @@ void TaskManager_OnRestoreMainWindow(void);
 void TaskManager_OnMenuSelect(HWND hWnd, UINT nItemID, UINT nFlags, HMENU hSysMenu);
 void TaskManager_OnViewUpdateSpeed(DWORD);
 void TaskManager_OnTabWndSelChange(void);
+void TaskManager_LayoutChildWindows(HWND hWnd);
 BOOL ConfirmMessageBox(HWND hWnd, LPCWSTR Text, LPCWSTR Title, UINT Type);
 VOID ShowWin32Error(DWORD dwError);
 LPTSTR GetLastErrorText(LPTSTR lpszBuf, DWORD dwSize);

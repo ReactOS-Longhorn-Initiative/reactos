@@ -21,7 +21,7 @@ HINSTANCE hInst;                 /* current instance */
 
 HWND hMainWnd;                   /* Main Window */
 HWND hStatusWnd;                 /* Status Bar Window */
-HWND hTabWnd;                    /* Tab Control Window */
+HWND hNavList;                   /* Left navigation (Win8-style) */
 
 HMENU hWindowMenu = NULL;
 
@@ -188,7 +188,6 @@ TaskManagerWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     RECT             rc;
 #endif
     LPRECT           pRC;
-    LPNMHDR          pnmh;
     WINDOWPLACEMENT  wp;
 
     switch (message) {
@@ -201,6 +200,11 @@ TaskManagerWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
             EndDialog(hDlg, LOWORD(wParam));
+            return TRUE;
+        }
+        if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_NAV_LIST)
+        {
+            TaskManager_OnTabWndSelChange();
             return TRUE;
         }
         /* Process menu commands */
@@ -390,26 +394,6 @@ TaskManagerWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-    case WM_NOTIFY:
-        pnmh = (LPNMHDR)lParam;
-        if ((pnmh->hwndFrom == hTabWnd) &&
-            (pnmh->idFrom == IDC_TAB))
-        {
-            switch (pnmh->code)
-            {
-                case TCN_SELCHANGE:
-                    TaskManager_OnTabWndSelChange();
-                    break;
-                case TCN_KEYDOWN:
-                    bWasKeyboardInput = TRUE;
-                    break;
-                case NM_CLICK:
-                    bWasKeyboardInput = FALSE;
-                break;
-            }
-        }
-        break;
-
     case WM_SIZING:
         /* Make sure the user is sizing the dialog */
         /* in an acceptable range */
@@ -524,7 +508,6 @@ BOOL OnCreate(HWND hWnd)
     WCHAR   szTemp[256];
     WCHAR   szLogOffItem[MAX_PATH];
     LPWSTR  lpUserName;
-    TCITEM  item;
     DWORD   len = 0;
 
     SendMessageW(hMainWnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIconW(hInst, MAKEINTRESOURCEW(IDI_TASKMANAGER)));
@@ -548,34 +531,18 @@ BOOL OnCreate(HWND hWnd)
     nParts[2] = STATUS_SIZE3;
     SendMessageW(hStatusWnd, SB_SETPARTS, _countof(nParts), (LPARAM)(LPINT)nParts);
 
-    /* Create tab pages */
-    hTabWnd = GetDlgItem(hWnd, IDC_TAB);
-#if 1
+    /* Child pages and Win8-style left navigation */
+    hNavList = GetDlgItem(hWnd, IDC_NAV_LIST);
     hApplicationPage = CreateDialogW(hInst, MAKEINTRESOURCEW(IDD_APPLICATION_PAGE), hWnd, ApplicationPageWndProc); EnableDialogTheme(hApplicationPage);
     hProcessPage = CreateDialogW(hInst, MAKEINTRESOURCEW(IDD_PROCESS_PAGE), hWnd, ProcessPageWndProc); EnableDialogTheme(hProcessPage);
     hPerformancePage = CreateDialogW(hInst, MAKEINTRESOURCEW(IDD_PERFORMANCE_PAGE), hWnd, PerformancePageWndProc); EnableDialogTheme(hPerformancePage);
-#else
-    hApplicationPage = CreateDialogW(hInst, MAKEINTRESOURCEW(IDD_APPLICATION_PAGE), hTabWnd, ApplicationPageWndProc); EnableDialogTheme(hApplicationPage);
-    hProcessPage = CreateDialogW(hInst, MAKEINTRESOURCEW(IDD_PROCESS_PAGE), hTabWnd, ProcessPageWndProc); EnableDialogTheme(hProcessPage);
-    hPerformancePage = CreateDialogW(hInst, MAKEINTRESOURCEW(IDD_PERFORMANCE_PAGE), hTabWnd, PerformancePageWndProc); EnableDialogTheme(hPerformancePage);
-#endif
 
-    /* Insert tabs */
-    LoadStringW(hInst, IDS_TAB_APPS, szTemp, 256);
-    memset(&item, 0, sizeof(TCITEM));
-    item.mask = TCIF_TEXT;
-    item.pszText = szTemp;
-    (void)TabCtrl_InsertItem(hTabWnd, 0, &item);
-    LoadStringW(hInst, IDS_TAB_PROCESSES, szTemp, 256);
-    memset(&item, 0, sizeof(TCITEM));
-    item.mask = TCIF_TEXT;
-    item.pszText = szTemp;
-    (void)TabCtrl_InsertItem(hTabWnd, 1, &item);
-    LoadStringW(hInst, IDS_TAB_PERFORMANCE, szTemp, 256);
-    memset(&item, 0, sizeof(TCITEM));
-    item.mask = TCIF_TEXT;
-    item.pszText = szTemp;
-    (void)TabCtrl_InsertItem(hTabWnd, 2, &item);
+    LoadStringW(hInst, IDS_TAB_APPS, szTemp, _countof(szTemp));
+    SendMessageW(hNavList, LB_ADDSTRING, 0, (LPARAM)szTemp);
+    LoadStringW(hInst, IDS_TAB_PROCESSES, szTemp, _countof(szTemp));
+    SendMessageW(hNavList, LB_ADDSTRING, 0, (LPARAM)szTemp);
+    LoadStringW(hInst, IDS_TAB_PERFORMANCE, szTemp, _countof(szTemp));
+    SendMessageW(hNavList, LB_ADDSTRING, 0, (LPARAM)szTemp);
 
     /* Size everything correctly */
     GetClientRect(hWnd, &rc);
@@ -655,10 +622,10 @@ BOOL OnCreate(HWND hWnd)
         CheckMenuRadioItem(hCPUHistoryMenu, ID_VIEW_CPUHISTORY_ONEGRAPHALL, ID_VIEW_CPUHISTORY_ONEGRAPHPERCPU, ID_VIEW_CPUHISTORY_ONEGRAPHALL, MF_BYCOMMAND);
 
     nActivePage = TaskManagerSettings.ActiveTabPage;
-    TabCtrl_SetCurFocus/*Sel*/(hTabWnd, 0);
-    TabCtrl_SetCurFocus/*Sel*/(hTabWnd, 1);
-    TabCtrl_SetCurFocus/*Sel*/(hTabWnd, 2);
-    TabCtrl_SetCurFocus/*Sel*/(hTabWnd, nActivePage);
+    if (nActivePage < 0 || nActivePage > 2)
+        nActivePage = 0;
+    SendMessageW(hNavList, LB_SETCURSEL, nActivePage, 0);
+    TaskManager_OnTabWndSelChange();
 
     /* Set the username in the "Log Off %s" item of the Shutdown menu */
 
@@ -705,6 +672,8 @@ BOOL OnCreate(HWND hWnd)
     RefreshPerformancePage();
 
     TrayIcon_AddIcon();
+
+    TaskManager_LayoutChildWindows(hWnd);
 
     return TRUE;
 }
@@ -755,29 +724,51 @@ void OnSize( WPARAM nType, int cx, int cy )
     nParts[2] = cx;
     SendMessageW(hStatusWnd, SB_SETPARTS, _countof(nParts), (LPARAM)(LPINT)nParts);
 
-    /* Resize the tab control */
-    GetWindowRect(hTabWnd, &rc);
-    cx = (rc.right - rc.left) + nXDifference;
-    cy = (rc.bottom - rc.top) + nYDifference;
-    SetWindowPos(hTabWnd, NULL, 0, 0, cx, cy, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER);
+    TaskManager_LayoutChildWindows(hMainWnd);
+}
 
-    /* Resize the application page */
-    GetWindowRect(hApplicationPage, &rc);
-    cx = (rc.right - rc.left) + nXDifference;
-    cy = (rc.bottom - rc.top) + nYDifference;
-    SetWindowPos(hApplicationPage, NULL, 0, 0, cx, cy, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER);
+void
+TaskManager_LayoutChildWindows(HWND hWnd)
+{
+    RECT rcClient;
+    int statusH;
+    const int navW = 132;
+    const int margin = 4;
 
-    /* Resize the process page */
-    GetWindowRect(hProcessPage, &rc);
-    cx = (rc.right - rc.left) + nXDifference;
-    cy = (rc.bottom - rc.top) + nYDifference;
-    SetWindowPos(hProcessPage, NULL, 0, 0, cx, cy, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER);
+    if (!hNavList || !hStatusWnd || !hApplicationPage)
+        return;
 
-    /* Resize the performance page */
-    GetWindowRect(hPerformancePage, &rc);
-    cx = (rc.right - rc.left) + nXDifference;
-    cy = (rc.bottom - rc.top) + nYDifference;
-    SetWindowPos(hPerformancePage, NULL, 0, 0, cx, cy, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOMOVE|SWP_NOZORDER);
+    GetClientRect(hWnd, &rcClient);
+    {
+        RECT rcStatus;
+        GetWindowRect(hStatusWnd, &rcStatus);
+        statusH = rcStatus.bottom - rcStatus.top;
+    }
+
+    if (rcClient.bottom <= statusH + margin * 2)
+        return;
+
+    {
+        int contentBottom = rcClient.bottom - statusH - margin;
+        SetWindowPos(hNavList, NULL, margin, margin, navW, contentBottom - margin,
+                     SWP_NOACTIVATE | SWP_NOZORDER);
+    }
+
+    {
+        int pageLeft = margin + navW + margin;
+        int pageW = rcClient.right - pageLeft - margin;
+        int pageH = rcClient.bottom - statusH - margin * 2;
+
+        if (pageW >= 80 && pageH >= 80)
+        {
+            SetWindowPos(hApplicationPage, NULL, pageLeft, margin, pageW, pageH,
+                         SWP_NOACTIVATE | SWP_NOZORDER);
+            SetWindowPos(hProcessPage, NULL, pageLeft, margin, pageW, pageH,
+                         SWP_NOACTIVATE | SWP_NOZORDER);
+            SetWindowPos(hPerformancePage, NULL, pageLeft, margin, pageW, pageH,
+                         SWP_NOACTIVATE | SWP_NOZORDER);
+        }
+    }
 }
 
 void LoadSettings(void)
@@ -938,7 +929,7 @@ void TaskManager_OnTabWndSelChange(void)
     hMenu = GetMenu(hMainWnd);
     hViewMenu = GetSubMenu(hMenu, 2);
     hOptionsMenu = GetSubMenu(hMenu, 1);
-    TaskManagerSettings.ActiveTabPage = TabCtrl_GetCurSel(hTabWnd);
+    TaskManagerSettings.ActiveTabPage = (int)SendMessageW(hNavList, LB_GETCURSEL, 0, 0);
     for (i = GetMenuItemCount(hViewMenu) - 1; i > 2; i--) {
         hSubMenu = GetSubMenu(hViewMenu, i);
         if (hSubMenu)
@@ -1051,7 +1042,7 @@ void TaskManager_OnTabWndSelChange(void)
          * Give the tab control focus
          */
         if (!bWasKeyboardInput)
-            SetFocus(hTabWnd);
+            SetFocus(hNavList);
         break;
     }
 }

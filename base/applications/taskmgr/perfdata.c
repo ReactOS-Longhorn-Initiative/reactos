@@ -1132,3 +1132,29 @@ BOOL PerfDataGet(ULONG Index, PPERFDATA *lppData)
     return bSuccessful;
 }
 
+ULONG
+PerfDataGetProcessorNominalSpeedMHz(void)
+{
+    static UCHAR Cached;
+    static ULONG Mhz;
+
+    if (!Cached)
+    {
+        HKEY hKey;
+        DWORD Value = 0;
+        DWORD cb = sizeof(Value);
+
+        Cached = 1;
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                          L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                          0,
+                          KEY_READ,
+                          &hKey) == ERROR_SUCCESS)
+        {
+            if (RegQueryValueExW(hKey, L"~MHz", NULL, NULL, (LPBYTE)&Value, &cb) == ERROR_SUCCESS)
+                Mhz = Value;
+            RegCloseKey(hKey);
+        }
+    }
+    return Mhz;
+}

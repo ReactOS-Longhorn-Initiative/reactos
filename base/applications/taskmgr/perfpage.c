@@ -120,7 +120,7 @@ PerformancePageWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             nPerformancePageHeight = rc.bottom;
 
             /* Update window position */
-            SetWindowPos(hDlg, NULL, 15, 30, 0, 0, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOSIZE|SWP_NOZORDER);
+            SetWindowPos(hDlg, NULL, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOSIZE|SWP_NOZORDER);
 
             /*
              * Get handles to all the controls
@@ -426,7 +426,17 @@ DWORD WINAPI PerformancePageRefreshThread(PVOID Parameter)
 
             if (!bTrackMenu)
             {
-                wsprintfW(Text, szCpuUsage, CpuUsage);
+                ULONG NominalMhz = PerfDataGetProcessorNominalSpeedMHz();
+                WCHAR szSpd[48];
+
+                szSpd[0] = 0;
+                if (NominalMhz >= 1000)
+                    StringCchPrintfW(szSpd, _countof(szSpd), L" · %.2f GHz", NominalMhz / 1000.0);
+                else if (NominalMhz)
+                    StringCchPrintfW(szSpd, _countof(szSpd), L" · %lu MHz", NominalMhz);
+
+                StringCchPrintfW(Text, _countof(Text), szCpuUsage, CpuUsage);
+                StringCchCatW(Text, _countof(Text), szSpd);
                 SendMessageW(hStatusWnd, SB_SETTEXT, 1, (LPARAM)Text);
             }
 

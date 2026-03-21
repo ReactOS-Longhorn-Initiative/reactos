@@ -1,0 +1,120 @@
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE       "Task Manager"
+    IDS_NAV_PROCESSES   "Processes"
+    IDS_NAV_CPU         "CPU"
+    IDS_NAV_MEMORY      "Memory"
+    IDS_COL_NAME        "Name"
+    IDS_COL_PID         "PID"
+    IDS_COL_CPU         "CPU"
+    IDS_COL_MEM         "Memory"
+    IDS_COL_STATUS      "Status"
+    IDS_COL_DISK        "Disk"
+    IDS_COL_NETWORK     "Network"
+    IDS_FEWER_DETAILS   "Fewer details"
+    IDS_CPU_USAGE       "CPU utilization"
+    IDS_MEM_USAGE       "Memory utilization"
+    IDS_MEM_GRAPH_60S   "60 seconds"
+    IDS_MEM_COMPOSITION "Memory composition"
+    IDS_MEM_LBL_INUSE   "In use (Compressed)"
+    IDS_MEM_LBL_COMMIT  "Committed"
+    IDS_MEM_LBL_PAGED   "Paged pool"
+    IDS_MEM_LBL_AVAIL   "Available"
+    IDS_MEM_LBL_CACHED  "Cached"
+    IDS_MEM_LBL_NONPAGED "Non-paged pool"
+    IDS_MEM_LBL_SPEED   "Speed"
+    IDS_MEM_LBL_SLOTS   "Slots used"
+    IDS_MEM_LBL_FORM    "Form factor"
+    IDS_MEM_LBL_HWRES   "Hardware reserved"
+    IDS_BASE_SPEED      "Base speed: %ls"
+    IDS_SPEED_UNKNOWN   "Base speed: —"
+    IDS_ENDTASK         "End Task"
+    IDS_ENDTASK_WARN    "Are you sure you want to end this process?"
+    IDS_ENDTASK_SELF    "You cannot end Task Manager from within Task Manager."
+    IDS_ERR_OPEN        "Cannot open process."
+    IDS_MEM_PHYS_TOTAL  "Installed RAM: %ls"
+    IDS_MEM_PHYS_AVAIL  "Available: %ls"
+    IDS_MEM_COMMIT      "Committed: %ls / %ls"
+    IDS_NAV_TASK_HINT   "Running apps & services"
+    IDS_STAT_UTIL       "Utilization: %lu%%"
+    IDS_STAT_SPEED      "Current speed: %ls"
+    IDS_STAT_PROCS      "Processes: %lu"
+    IDS_STAT_THREADS    "Threads: %lu"
+    IDS_STAT_HANDLES    "Handles: %lu"
+    IDS_STAT_UPTIME     "Up time: %ls"
+    IDS_SPEC_SOCKETS    "Sockets: %lu"
+    IDS_SPEC_LOGICAL    "Logical processors: %lu"
+    IDS_PANEL_CPU       "CPU"
+    IDS_PANEL_MEMORY    "Memory"
+    IDS_TAB_PERFORMANCE "Performance"
+    IDS_TAB_APPHISTORY  "App history"
+    IDS_TAB_STARTUP     "Startup"
+    IDS_TAB_USERS       "Users"
+    IDS_TAB_DETAILS     "Details"
+    IDS_TAB_SERVICES    "Services"
+    IDS_STUB_BODY       "This page is not implemented in this build of Task Manager."
+    IDS_GRAPH_SCALE     "100%"
+    IDS_GRAPH_CAPTION   "Overall CPU utilization"
+    IDS_GRAPH_MEMCAP    "Memory usage"
+    IDS_SPEC_CORES      "Cores: %lu"
+    IDS_SPEC_VIRT       "Virtualization: %ls"
+    IDS_VIRT_ENABLED    "Enabled"
+    IDS_VIRT_DISABLED   "Disabled"
+    IDS_VIRT_UNKNOWN    "—"
+    IDS_SPEC_L2         "L2 cache: %ls"
+    IDS_SPEC_L3         "L3 cache: %ls"
+    IDS_CACHE_KB        "%lu KB"
+    IDS_GRAPH_CAPTION_PERCPU "Utilization per logical processor"
+    IDS_VIEW_CPU_GRAPH  "CPU &graphs"
+    IDS_VIEW_CPU_OVERALL "&Overall (single graph)"
+    IDS_VIEW_CPU_PERLOG "&Per logical processor"
+    IDS_CPU_N_LABEL     "CPU %u"
+    IDS_CPU_UTIL_60S    "% Utilization over 60 seconds"
+    IDS_LBL_UTIL        "Utilization"
+    IDS_LBL_SPEED       "Speed"
+    IDS_LBL_PROCS       "Processes"
+    IDS_LBL_THREADS     "Threads"
+    IDS_LBL_HANDLES     "Handles"
+    IDS_LBL_UPTIME      "Up time"
+    IDS_LBL_BASE        "Base speed"
+    IDS_LBL_SOCKETS     "Sockets"
+    IDS_LBL_CORES       "Cores"
+    IDS_LBL_LOGICAL     "Logical processors"
+    IDS_LBL_VIRT        "Virtualization"
+    IDS_LBL_L2          "L2 cache"
+    IDS_LBL_L3          "L3 cache"
+    IDS_LBL_L1          "L1 cache"
+END
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "E&nd task\tDel", IDM_ENDTASK
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit", ID_FILE_EXIT
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "Always on &top", ID_OPTIONS_TOPMOST
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Refresh now", ID_VIEW_REFRESH
+        POPUP "CPU &graphs"
+        BEGIN
+            MENUITEM "&Overall (single graph)", ID_VIEW_CPU_GRAPH_OVERALL
+            MENUITEM "&Per logical processor", ID_VIEW_CPU_GRAPH_PERCPU
+        END
+    END
+END
+
+IDR_PROC_MENU MENU
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "End &Task", IDM_ENDTASK
+    END
+END

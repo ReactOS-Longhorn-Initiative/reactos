@@ -36,7 +36,7 @@
 #define IDC_ENDTASK                      1012
 #define IDC_SWITCHTO                     1013
 #define IDC_NEWTASK                      1014
-#define IDC_TAB                          1015
+#define IDC_NAV_LIST                     1015
 #define IDC_APPLIST                      1016
 #define IDC_ENDPROCESS                   1017
 #define IDC_PROCESSLIST                  1018

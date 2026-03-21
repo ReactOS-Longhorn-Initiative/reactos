@@ -103,7 +103,7 @@ ApplicationPageWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         nApplicationPageHeight = rc.bottom;
 
         /* Update window position */
-        SetWindowPos(hDlg, NULL, 15, 30, 0, 0, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOSIZE|SWP_NOZORDER);
+        SetWindowPos(hDlg, NULL, 0, 0, 0, 0, SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOSIZE|SWP_NOZORDER);
 
         /* Get handles to the controls */
         hApplicationPageListCtrl = GetDlgItem(hDlg, IDC_APPLIST);
@@ -485,7 +485,7 @@ void ApplicationPageUpdate(void)
 
     /* If we are on the applications tab the windows menu will be */
     /* present on the menu bar so enable & disable the menu items */
-    if (TabCtrl_GetCurSel(hTabWnd) == 0)
+    if (SendMessageW(hNavList, LB_GETCURSEL, 0, 0) == 0)
     {
         HMENU  hMenu;
         HMENU  hWindowsMenu;
@@ -872,7 +872,8 @@ void ApplicationPage_OnGotoProcess(void)
         /*
          * Switch to the process tab
          */
-        TabCtrl_SetCurFocus(hTabWnd, 1);
+        SendMessageW(hNavList, LB_SETCURSEL, 1, 0);
+        TaskManager_OnTabWndSelChange();
         /*
          * Select the process item in the list
          */

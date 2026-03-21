@@ -1,0 +1,19 @@
+/*
+ * Prototypes missing from ReactOS user-mode headers while types live in winnt.h.
+ * taskmgr8.c defines TASKMGR8_NEED_LOGICAL_PROCESSOR_INFORMATION before including.
+ */
+#pragma once
+
+#if defined(TASKMGR8_NEED_LOGICAL_PROCESSOR_INFORMATION)
+
+#ifndef TASKMGR8_GET_LOGICAL_PROCESSOR_INFORMATION_DECLARED
+#define TASKMGR8_GET_LOGICAL_PROCESSOR_INFORMATION_DECLARED
+
+BOOL WINAPI
+GetLogicalProcessorInformation(
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
+    PDWORD ReturnedLength);
+
+#endif /* TASKMGR8_GET_LOGICAL_PROCESSOR_INFORMATION_DECLARED */
+
+#endif /* TASKMGR8_NEED_LOGICAL_PROCESSOR_INFORMATION */
