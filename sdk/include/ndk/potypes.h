@@ -132,7 +132,7 @@ typedef struct _PROCESSOR_POWER_STATE
     ULONG PerfTickCount;
     KTIMER PerfTimer;
     KDPC PerfDpc;
-    PROCESSOR_PERF_STATE *PerfStates;
+    PVOID PerfStates; /* PROCESSOR_PERF_STATES* from PpmDispRegisterPerfStates (driver PPM table) */
     PVOID PerfSetThrottle;
     ULONG LastC3KernelUserTime;
     PVOID PpmIdleDomains;           /* PROCESSOR_IDLE_DOMAINS* from RegisterIdleDomains   */

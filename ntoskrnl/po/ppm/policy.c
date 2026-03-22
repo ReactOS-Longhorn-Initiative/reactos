@@ -73,7 +73,7 @@
  *
  * The function is a no-op when:
  *   • ProcessorMaxThrottle == ProcessorMinThrottle (fixed-frequency system), or
- *   • No performance driver has registered P-states (IdleHandlers == NULL).
+ *   • No performance driver has registered P-states (PerfStates == NULL).
  */
 VOID
 NTAPI
@@ -90,7 +90,7 @@ PpmEvaluatePerfPolicy(
         return;
 
     /* No P-state driver registered; nothing to evaluate */
-    if (PowerState->IdleHandlers == NULL)
+    if (PowerState->PerfStates == NULL)
         return;
 
     /* ------------------------------------------------------------------- */

@@ -307,52 +307,112 @@ Tm8Details_RefreshList(HWND hLv, DWORD msElapsed, BOOL force, BOOL vscrollDraggi
     if (nRows > 1)
         qsort(rows, (size_t)nRows, sizeof(rows[0]), Tm8DetailsCmpRows);
 
-    ListView_DeleteAllItems(hLv);
-
-    for (i = 0; i < nRows; i++)
     {
-        TM8_DETAILS_ROW *r = &rows[i];
-        LVITEMW it;
-        WCHAR num[32], sess[32], line[96];
-        int row;
+        int nOld = ListView_GetItemCount(hLv);
+        int topIdx = ListView_GetTopIndex(hLv);
+        int sel = ListView_GetNextItem(hLv, -1, LVNI_SELECTED);
+        DWORD selPid = 0, topPid = 0;
 
-        ZeroMemory(&it, sizeof(it));
-        it.mask = LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE;
-        it.iItem = i;
-        it.iSubItem = 0;
-        it.pszText = r->exe;
-        it.lParam = (LPARAM)r->pid;
-        it.iImage = r->iconIdx;
-        row = ListView_InsertItem(hLv, &it);
-
-        StringCchPrintfW(num, _countof(num), L"%lu", (ULONG)r->pid);
-        ListView_SetItemText(hLv, row, 1, num);
-
-        ListView_SetItemText(hLv, row, 2, statRun);
-
-        if (r->sessionId == (DWORD)-1)
-            sess[0] = 0;
-        else
-            StringCchPrintfW(sess, _countof(sess), L"%lu", (ULONG)r->sessionId);
-        ListView_SetItemText(hLv, row, 3, sess);
-
-        ListView_SetItemText(hLv, row, 4, r->user);
-
-        StringCchPrintfW(line, _countof(line), L"%.1f%%", r->cpuPct);
-        ListView_SetItemText(hLv, row, 5, line);
-
+        if (sel >= 0 && sel < nOld)
         {
-            double mb = (double)r->ws / (1024.0 * 1024.0);
-            Tm8FmtMbComma1(mb, line, _countof(line));
-            ListView_SetItemText(hLv, row, 6, line);
+            LVITEMW it;
+            ZeroMemory(&it, sizeof(it));
+            it.mask = LVIF_PARAM;
+            it.iItem = sel;
+            if (ListView_GetItem(hLv, &it))
+                selPid = (DWORD)it.lParam;
+        }
+        if (topIdx >= 0 && topIdx < nOld)
+        {
+            LVITEMW it;
+            ZeroMemory(&it, sizeof(it));
+            it.mask = LVIF_PARAM;
+            it.iItem = topIdx;
+            if (ListView_GetItem(hLv, &it))
+                topPid = (DWORD)it.lParam;
         }
 
-        ListView_SetItemText(hLv, row, 7, r->cmdline);
+        ListView_DeleteAllItems(hLv);
 
-        if (metrics && i < metricsMax)
+        for (i = 0; i < nRows; i++)
         {
-            metrics[i].cpuPct = r->cpuPct;
-            metrics[i].ws = r->ws;
+            TM8_DETAILS_ROW *r = &rows[i];
+            LVITEMW it;
+            WCHAR num[32], sess[32], line[96];
+            int row;
+
+            ZeroMemory(&it, sizeof(it));
+            it.mask = LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE;
+            it.iItem = i;
+            it.iSubItem = 0;
+            it.pszText = r->exe;
+            it.lParam = (LPARAM)r->pid;
+            it.iImage = r->iconIdx;
+            row = ListView_InsertItem(hLv, &it);
+
+            StringCchPrintfW(num, _countof(num), L"%lu", (ULONG)r->pid);
+            ListView_SetItemText(hLv, row, 1, num);
+
+            ListView_SetItemText(hLv, row, 2, statRun);
+
+            if (r->sessionId == (DWORD)-1)
+                sess[0] = 0;
+            else
+                StringCchPrintfW(sess, _countof(sess), L"%lu", (ULONG)r->sessionId);
+            ListView_SetItemText(hLv, row, 3, sess);
+
+            ListView_SetItemText(hLv, row, 4, r->user);
+
+            StringCchPrintfW(line, _countof(line), L"%.1f%%", r->cpuPct);
+            ListView_SetItemText(hLv, row, 5, line);
+
+            {
+                double mb = (double)r->ws / (1024.0 * 1024.0);
+                Tm8FmtMbComma1(mb, line, _countof(line));
+                ListView_SetItemText(hLv, row, 6, line);
+            }
+
+            ListView_SetItemText(hLv, row, 7, r->cmdline);
+
+            if (metrics && i < metricsMax)
+            {
+                metrics[i].cpuPct = r->cpuPct;
+                metrics[i].ws = r->ws;
+            }
+        }
+
+        if (topPid != 0)
+        {
+            int r, nlv = ListView_GetItemCount(hLv);
+            for (r = 0; r < nlv; r++)
+            {
+                LVITEMW it;
+                ZeroMemory(&it, sizeof(it));
+                it.mask = LVIF_PARAM;
+                it.iItem = r;
+                if (ListView_GetItem(hLv, &it) && (DWORD)it.lParam == topPid)
+                {
+                    SendMessageW(hLv, LVM_SETTOPINDEX, (WPARAM)r, 0);
+                    break;
+                }
+            }
+        }
+        if (selPid != 0)
+        {
+            int r, nlv = ListView_GetItemCount(hLv);
+            for (r = 0; r < nlv; r++)
+            {
+                LVITEMW it;
+                ZeroMemory(&it, sizeof(it));
+                it.mask = LVIF_PARAM;
+                it.iItem = r;
+                if (ListView_GetItem(hLv, &it) && (DWORD)it.lParam == selPid)
+                {
+                    ListView_SetItemState(hLv, r, LVIS_FOCUSED | LVIS_SELECTED,
+                                          LVIS_FOCUSED | LVIS_SELECTED);
+                    break;
+                }
+            }
         }
     }
 

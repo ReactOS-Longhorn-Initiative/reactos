@@ -442,7 +442,7 @@ PpmApplyThrottle(
     }
     else
     {
-        PerfStates = (PPROCESSOR_PERF_STATES)PowerState->IdleHandlers;
+        PerfStates = (PPROCESSOR_PERF_STATES)PowerState->PerfStates;
         if (PerfStates != NULL &&
             PerfStates->Version == PROCESSOR_PERF_STATES_VERSION &&
             PerfStates->PerfControlHandler != NULL &&

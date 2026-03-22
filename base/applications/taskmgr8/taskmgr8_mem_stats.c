@@ -12,6 +12,7 @@
 
 static int s_MemStatsHScrollPos;
 static int s_MemStatsContentW;
+static BOOL s_MemStatsThumbTrackActive;
 
 static void
 DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
@@ -232,6 +233,7 @@ MemStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         s_MemStatsHScrollPos = 0;
         s_MemStatsContentW = TM8_MEM_STATS_MIN_INNER_W;
+        s_MemStatsThumbTrackActive = FALSE;
         return 0;
 
     case WM_SIZE:
@@ -263,6 +265,7 @@ MemStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             pos += clientW > 0 ? clientW : 1;
             break;
         case SB_THUMBTRACK:
+            s_MemStatsThumbTrackActive = TRUE;
             ZeroMemory(&si, sizeof(si));
             si.cbSize = sizeof(si);
             si.fMask = SIF_TRACKPOS;
@@ -271,7 +274,12 @@ MemStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
         case SB_THUMBPOSITION:
             pos = (short)HIWORD(wParam);
+            s_MemStatsThumbTrackActive = FALSE;
             break;
+        case SB_ENDSCROLL:
+            s_MemStatsThumbTrackActive = FALSE;
+            Tm8MemStatsUpdateScrollInfo(hwnd);
+            return 0;
         default:
             return DefWindowProcW(hwnd, msg, wParam, lParam);
         }
@@ -381,6 +389,8 @@ Tm8MemStats_UpdateScroll(void)
 {
     if (!s_hwndMemStatsPanel || !IsWindow(s_hwndMemStatsPanel))
         return;
+    if (s_MemStatsThumbTrackActive)
+        return;
     Tm8MemStatsUpdateScrollInfo(s_hwndMemStatsPanel);
 }
 
@@ -391,6 +401,7 @@ Tm8MemStats_OnLeaveMemoryPage(int page)
         return;
     if (!s_hwndMemStatsPanel || !IsWindow(s_hwndMemStatsPanel))
         return;
+    s_MemStatsThumbTrackActive = FALSE;
     s_MemStatsHScrollPos = 0;
     Tm8MemStatsUpdateScrollInfo(s_hwndMemStatsPanel);
 }

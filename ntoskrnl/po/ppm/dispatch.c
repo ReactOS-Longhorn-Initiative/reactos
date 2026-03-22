@@ -143,7 +143,7 @@ PpmDispRegisterPerfStates(
     {
         Prcb = KeGetCurrentPrcb();
         PowerState = &Prcb->PowerState;
-        PowerState->IdleHandlers = NULL;
+        PowerState->PerfStates = NULL;
         PowerState->ProcessorMaxThrottle = 100;
         PowerState->ProcessorMinThrottle = 0;
         if (PowerState->CurrentThrottle > 100)
@@ -168,18 +168,8 @@ PpmDispRegisterPerfStates(
     Prcb      = KeGetCurrentPrcb();
     PowerState = &Prcb->PowerState;
 
-    //
-    // Store the driver-provided PROCESSOR_PERF_STATES pointer.
-    //
-    // IdleHandlers is a PVOID that the legacy idle-handler path populates via
-    // NtSetSystemInformation(SystemProcessorIdleHandler).  The new PPM model
-    // does not use that legacy path, so we repurpose IdleHandlers here to
-    // hold the PROCESSOR_PERF_STATES pointer.
-    //
-    // FIXME: Add a dedicated PROCESSOR_POWER_STATE field (e.g. PerfStatesDrv)
-    //        in a future KPRCB extension so this alias is no longer needed.
-    //
-    PowerState->IdleHandlers = PerfStates;
+    /* Store the driver-provided PROCESSOR_PERF_STATES pointer (see potypes.h). */
+    PowerState->PerfStates = PerfStates;
 
     //
     // Extract the key policy limits and store them in the PRCB fields the

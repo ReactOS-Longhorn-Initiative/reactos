@@ -101,12 +101,16 @@ BEGIN
     IDS_SVC_START_DIS   "Disabled"
     IDS_SVC_START_BOOT  "Boot"
     IDS_SVC_START_SYS   "System"
+    IDS_CREATENEWTASK   "Create New Task"
+    IDS_CREATENEWTASK_DESC "Type the name of a program, folder, document, or Internet resource, and Task Manager will open it for you."
 END
 
 IDR_MAINMENU MENU
 BEGIN
     POPUP "&File"
     BEGIN
+        MENUITEM "Run &new task...", ID_FILE_NEW
+        MENUITEM SEPARATOR
         MENUITEM "E&nd task\tDel", IDM_ENDTASK
         MENUITEM SEPARATOR
         MENUITEM "E&xit", ID_FILE_EXIT
@@ -118,6 +122,13 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "&Refresh now", ID_VIEW_REFRESH
+        POPUP "Update &speed"
+        BEGIN
+            MENUITEM "&High", ID_VIEW_UPDATESPEED_HIGH
+            MENUITEM "&Normal", ID_VIEW_UPDATESPEED_NORMAL
+            MENUITEM "&Low", ID_VIEW_UPDATESPEED_LOW
+            MENUITEM "&Paused", ID_VIEW_UPDATESPEED_PAUSED
+        END
         POPUP "CPU &graphs"
         BEGIN
             MENUITEM "&Overall (single graph)", ID_VIEW_CPU_GRAPH_OVERALL
@@ -130,6 +141,8 @@ IDR_PROC_MENU MENU
 BEGIN
     POPUP ""
     BEGIN
+        MENUITEM "Run new &task...", ID_FILE_NEW
+        MENUITEM SEPARATOR
         MENUITEM "End &Task", IDM_ENDTASK
     END
 END

@@ -219,48 +219,93 @@ Tm8Services_RefreshList(HWND hLv, BOOL force, BOOL vscrollDragging, DWORD *pResu
     if (nret > 1)
         qsort(order, (size_t)nret, sizeof(order[0]), Tm8SvcCmpDisplay);
 
-    ListView_DeleteAllItems(hLv);
-
-    for (i = 0; i < (int)nret; i++)
     {
-        LPENUM_SERVICE_STATUS_PROCESSW ep = order[i].ep;
-        LVITEMW it;
-        WCHAR startBuf[64];
-        LPCWSTR disp, internal, stStr, startStr;
-        SC_HANDLE svc;
-        BYTE qstack[4096];
-        LPQUERY_SERVICE_CONFIGW qc = (LPQUERY_SERVICE_CONFIGW)qstack;
-        DWORD qneed = sizeof(qstack);
-        int row;
+        WCHAR selKey[256], topKey[256];
+        int nOld, topIdx, selRow;
 
-        disp = (ep->lpDisplayName && ep->lpDisplayName[0]) ? ep->lpDisplayName : ep->lpServiceName;
-        internal = ep->lpServiceName ? ep->lpServiceName : L"";
+        selKey[0] = 0;
+        topKey[0] = 0;
+        nOld = ListView_GetItemCount(hLv);
+        topIdx = ListView_GetTopIndex(hLv);
+        selRow = ListView_GetNextItem(hLv, -1, LVNI_SELECTED);
+        if (selRow >= 0 && selRow < nOld)
+            ListView_GetItemText(hLv, selRow, 1, selKey, _countof(selKey));
+        if (topIdx >= 0 && topIdx < nOld)
+            ListView_GetItemText(hLv, topIdx, 1, topKey, _countof(topKey));
 
-        stStr = Tm8SvcStateString(ep->ServiceStatusProcess.dwCurrentState, bRun, bStop);
+        ListView_DeleteAllItems(hLv);
 
-        startBuf[0] = 0;
-        startStr = startBuf;
-        svc = OpenServiceW(scm, ep->lpServiceName, SERVICE_QUERY_CONFIG);
-        if (svc)
+        for (i = 0; i < (int)nret; i++)
         {
-            if (QueryServiceConfigW(svc, qc, sizeof(qstack), &qneed))
-                startStr = Tm8SvcStartTypeString(qc->dwStartType, bAuto, bMan, bDis, bBoot, bSys);
-            CloseServiceHandle(svc);
+            LPENUM_SERVICE_STATUS_PROCESSW ep = order[i].ep;
+            LVITEMW it;
+            WCHAR startBuf[64];
+            LPCWSTR disp, internal, stStr, startStr;
+            SC_HANDLE svc;
+            BYTE qstack[4096];
+            LPQUERY_SERVICE_CONFIGW qc = (LPQUERY_SERVICE_CONFIGW)qstack;
+            DWORD qneed = sizeof(qstack);
+            int row;
+
+            disp = (ep->lpDisplayName && ep->lpDisplayName[0]) ? ep->lpDisplayName : ep->lpServiceName;
+            internal = ep->lpServiceName ? ep->lpServiceName : L"";
+
+            stStr = Tm8SvcStateString(ep->ServiceStatusProcess.dwCurrentState, bRun, bStop);
+
+            startBuf[0] = 0;
+            startStr = startBuf;
+            svc = OpenServiceW(scm, ep->lpServiceName, SERVICE_QUERY_CONFIG);
+            if (svc)
+            {
+                if (QueryServiceConfigW(svc, qc, sizeof(qstack), &qneed))
+                    startStr = Tm8SvcStartTypeString(qc->dwStartType, bAuto, bMan, bDis, bBoot, bSys);
+                CloseServiceHandle(svc);
+            }
+            if (!startStr || !startStr[0])
+                startStr = L"";
+
+            ZeroMemory(&it, sizeof(it));
+            it.mask = LVIF_TEXT | LVIF_PARAM;
+            it.iItem = i;
+            it.iSubItem = 0;
+            it.pszText = (LPWSTR)disp;
+            it.lParam = 0;
+            row = ListView_InsertItem(hLv, &it);
+
+            ListView_SetItemText(hLv, row, 1, (LPWSTR)internal);
+            ListView_SetItemText(hLv, row, 2, (LPWSTR)stStr);
+            ListView_SetItemText(hLv, row, 3, (LPWSTR)startStr);
         }
-        if (!startStr || !startStr[0])
-            startStr = L"";
 
-        ZeroMemory(&it, sizeof(it));
-        it.mask = LVIF_TEXT | LVIF_PARAM;
-        it.iItem = i;
-        it.iSubItem = 0;
-        it.pszText = (LPWSTR)disp;
-        it.lParam = 0;
-        row = ListView_InsertItem(hLv, &it);
-
-        ListView_SetItemText(hLv, row, 1, (LPWSTR)internal);
-        ListView_SetItemText(hLv, row, 2, (LPWSTR)stStr);
-        ListView_SetItemText(hLv, row, 3, (LPWSTR)startStr);
+        if (topKey[0])
+        {
+            int r, nlv = ListView_GetItemCount(hLv);
+            for (r = 0; r < nlv; r++)
+            {
+                WCHAR buf[256];
+                ListView_GetItemText(hLv, r, 1, buf, _countof(buf));
+                if (lstrcmpiW(buf, topKey) == 0)
+                {
+                    SendMessageW(hLv, LVM_SETTOPINDEX, (WPARAM)r, 0);
+                    break;
+                }
+            }
+        }
+        if (selKey[0])
+        {
+            int r, nlv = ListView_GetItemCount(hLv);
+            for (r = 0; r < nlv; r++)
+            {
+                WCHAR buf[256];
+                ListView_GetItemText(hLv, r, 1, buf, _countof(buf));
+                if (lstrcmpiW(buf, selKey) == 0)
+                {
+                    ListView_SetItemState(hLv, r, LVIS_FOCUSED | LVIS_SELECTED,
+                                          LVIS_FOCUSED | LVIS_SELECTED);
+                    break;
+                }
+            }
+        }
     }
 
     HeapFree(GetProcessHeap(), 0, order);

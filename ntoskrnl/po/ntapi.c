@@ -176,7 +176,7 @@ PopFillProcessorPowerInformationArray(
         if (Prcb == NULL)
             continue;
 
-        Perf = (PPPM_PERF_STATES_EX)Prcb->PowerState.IdleHandlers;
+        Perf = (PPPM_PERF_STATES_EX)Prcb->PowerState.PerfStates;
         Idle = (PPPM_IDLE_STATES_EX)Prcb->PowerState.IdleState;
 
         if (Perf != NULL && Perf->Version == 1 && Perf->NominalFrequency != 0)

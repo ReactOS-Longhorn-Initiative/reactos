@@ -414,8 +414,7 @@ typedef struct _PPM_PROCESSOR_IDLE_STATE_EX
 
 //
 // PPM_PERF_STATES_EX — alias for the Windows-layout PROCESSOR_PERF_STATES
-// (ndk/processorperfstates.h).  The pointer is stored in
-// Prcb->PowerState.IdleHandlers until a dedicated PRCB field exists.
+// (ndk/processorperfstates.h).  The pointer is stored in Prcb->PowerState.PerfStates.
 //
 #include <ndk/processorperfstates.h>
 typedef PROCESSOR_PERF_STATES PPM_PERF_STATES_EX, *PPPM_PERF_STATES_EX;

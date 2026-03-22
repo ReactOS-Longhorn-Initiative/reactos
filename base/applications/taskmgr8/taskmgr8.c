@@ -20,6 +20,13 @@
 #include <ipifcons.h>
 #include <string.h>
 
+#ifndef RFF_CALCDIRECTORY
+#define RFF_CALCDIRECTORY 0x04
+#endif
+
+typedef void(WINAPI *TM8_RUNFILEDLG)(HWND hwnd, HICON hIcon, LPWSTR lpstrDirectory, LPWSTR lpstrTitle,
+                                     LPWSTR lpstrPrompt, UINT uFlags);
+
 /* See taskmgr8_shared.h — exported for helpers / cpu_stats only. */
 HINSTANCE s_hInst;
 HWND s_hwndCpuStatsPanel;
@@ -113,6 +120,11 @@ static int s_ProcSortPhase;
 /* Pause process-list refresh while dragging the vertical scrollbar; 1s cooldown after. */
 static BOOL s_ProcListVScrollDragging;
 static DWORD s_ProcListResumeDeadline;
+
+/* Refresh cadence (matches classic ReactOS taskmgr: High 500 ms, Normal 2 s, Low 4 s). */
+static DWORD s_RefreshIntervalMs = TIMER_MS;
+static BOOL s_RefreshPaused;
+static UINT s_UpdateSpeedSel = ID_VIEW_UPDATESPEED_HIGH;
 
 static TM8_SCRATCH_PROC s_ProcScratch[TM8_MAX_PROC_ROWS];
 
@@ -1594,11 +1606,12 @@ Tm8SetProcRowStrings(int row, TM8_SCRATCH_PROC *sp)
     double mb;
     LVITEMW it;
 
+    /* Set label and image separately so we do not clear selection/focus state (LVIF_TEXT|LVIF_IMAGE together can reset it on some hosts). */
+    ListView_SetItemText(s_hwndList, row, 0, sp->exe);
     ZeroMemory(&it, sizeof(it));
-    it.mask = LVIF_TEXT | LVIF_IMAGE;
+    it.mask = LVIF_IMAGE;
     it.iItem = row;
     it.iSubItem = 0;
-    it.pszText = sp->exe;
     it.iImage = sp->iconIdx;
     ListView_SetItem(s_hwndList, &it);
 
@@ -1701,7 +1714,7 @@ RefreshProcessListEx(BOOL force)
     PROCESSENTRY32W pe;
     int nScratch;
     SYSTEM_INFO si;
-    DWORD ms = TIMER_MS;
+    DWORD ms = s_RefreshIntervalMs;
     UINT nCpu;
     SIZE_T memMax;
     BOOL sameOrder;
@@ -2473,7 +2486,7 @@ OnTimer(void)
     {
         int dc = 0;
         SIZE_T dmx = 1;
-        Tm8Details_RefreshList(s_hwndList, TIMER_MS, FALSE, s_ProcListVScrollDragging, &s_ProcListResumeDeadline,
+        Tm8Details_RefreshList(s_hwndList, s_RefreshIntervalMs, FALSE, s_ProcListVScrollDragging, &s_ProcListResumeDeadline,
                               s_DetailsMetricRows, TM8_MAX_PROC_ROWS, &dc, &dmx);
         s_DetailsMetricCount = dc;
         if (dc > TM8_MAX_PROC_ROWS)
@@ -2537,6 +2550,11 @@ ListViewSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             return 0;
         }
     }
+    if (msg == WM_MOUSEWHEEL)
+    {
+        /* ListView often handles wheel without WM_VSCROLL; defer refresh so rows are not rebuilt mid-scroll. */
+        s_ProcListResumeDeadline = GetTickCount() + 900;
+    }
     if (msg == WM_VSCROLL)
     {
         UINT code = LOWORD(wParam);
@@ -2546,11 +2564,8 @@ ListViewSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             s_ProcListVScrollDragging = TRUE;
             s_ProcListResumeDeadline = 0;
             break;
-        case SB_ENDSCROLL:
-            s_ProcListVScrollDragging = FALSE;
-            s_ProcListResumeDeadline = GetTickCount() + 1000;
-            break;
         case SB_THUMBPOSITION:
+        case SB_ENDSCROLL:
             s_ProcListVScrollDragging = FALSE;
             s_ProcListResumeDeadline = GetTickCount() + 1000;
             break;
@@ -2627,12 +2642,12 @@ Tm8FmtNetRateKbps(ULONG64 deltaOctets, WCHAR *buf, size_t cch)
     double Bps, kbps;
     if (!buf || cch == 0)
         return;
-    if (deltaOctets == 0 || TIMER_MS < 1)
+    if (deltaOctets == 0 || s_RefreshIntervalMs < 1)
     {
         StringCchCopyW(buf, cch, L"0");
         return;
     }
-    Bps = (double)deltaOctets * 1000.0 / (double)TIMER_MS;
+    Bps = (double)deltaOctets * 1000.0 / (double)s_RefreshIntervalMs;
     kbps = Bps * 8.0 / 1000.0;
     if (kbps >= 10000.0)
         StringCchPrintfW(buf, cch, L"%.1f Mbps", kbps / 1000.0);
@@ -2931,7 +2946,7 @@ Tm8SampleNetAdapters(int histPos)
 
         dTot = dIn + dOut;
         /* Use double (like Tm8MulPagesToBytes) so x86 MSVC does not emit __allmul. */
-        bpsTot = (TIMER_MS > 0) ? ((double)dTot * 1000.0 / (double)TIMER_MS) : 0.0;
+        bpsTot = (s_RefreshIntervalMs > 0) ? ((double)dTot * 1000.0 / (double)s_RefreshIntervalMs) : 0.0;
         pct = (int)(bpsTot / 125000.0);
         if (pct < 0)
             pct = 0;
@@ -3167,6 +3182,70 @@ DrawCpuStatsValueColumn(HDC hdc, const RECT *rcBox, HWND hwndVal)
     SelectObject(hdc, oldf);
 }
 
+static void
+Tm8ApplyRefreshTimer(HWND hwnd)
+{
+    if (!hwnd)
+        return;
+    KillTimer(hwnd, TIMER_ID);
+    if (!s_RefreshPaused && s_RefreshIntervalMs > 0)
+        SetTimer(hwnd, TIMER_ID, s_RefreshIntervalMs, NULL);
+}
+
+/* Shell32 ordinal 61 — same Run dialog as classic ReactOS Task Manager. */
+static void
+Tm8RunNewTask(HWND hwndOwner)
+{
+    HMODULE hShell32;
+    TM8_RUNFILEDLG pRunFileDlg;
+    WCHAR szTitle[48];
+    WCHAR szText[320];
+
+    if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
+    {
+        STARTUPINFOW si = { sizeof(si) };
+        PROCESS_INFORMATION pi;
+        WCHAR szComSpec[MAX_PATH];
+        WCHAR cmdWritable[MAX_PATH];
+        DWORD cchEnv;
+        BOOL ok;
+
+        cchEnv = GetEnvironmentVariableW(L"ComSpec", szComSpec, _countof(szComSpec));
+        if (cchEnv == 0 || cchEnv >= _countof(szComSpec))
+            StringCchCopyW(szComSpec, _countof(szComSpec), L"cmd.exe");
+        StringCchCopyW(cmdWritable, _countof(cmdWritable), szComSpec);
+        ok = CreateProcessW(NULL, cmdWritable, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+        if (!ok)
+        {
+            StringCchCopyW(cmdWritable, _countof(cmdWritable), L"cmd.exe");
+            ok = CreateProcessW(NULL, cmdWritable, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+        }
+        if (ok)
+        {
+            CloseHandle(pi.hThread);
+            CloseHandle(pi.hProcess);
+        }
+        return;
+    }
+
+    LoadStr(IDS_CREATENEWTASK, szTitle, _countof(szTitle));
+    LoadStr(IDS_CREATENEWTASK_DESC, szText, _countof(szText));
+
+    hShell32 = LoadLibraryW(L"shell32.dll");
+    if (!hShell32)
+        return;
+    pRunFileDlg = (TM8_RUNFILEDLG)(void *)GetProcAddress(hShell32, (LPCSTR)(ULONG_PTR)61);
+    if (pRunFileDlg)
+    {
+        HICON hIcon = LoadIconW(NULL, IDI_APPLICATION);
+
+        pRunFileDlg(hwndOwner, hIcon, NULL, szTitle, szText, RFF_CALCDIRECTORY);
+        if (hIcon)
+            DestroyIcon(hIcon);
+    }
+    FreeLibrary(hShell32);
+}
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -3384,7 +3463,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             UpdateWindow(s_hwndMainTab);
         }
 
-        SetTimer(hwnd, TIMER_ID, TIMER_MS, NULL);
+        Tm8ApplyRefreshTimer(hwnd);
         OnTimer();
         return 0;
     }
@@ -3409,7 +3488,14 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (hmBar)
         {
             HMENU hmView = GetSubMenu(hmBar, 2);
-            HMENU hmCpuG = hmView ? GetSubMenu(hmView, 1) : NULL;
+            HMENU hmUpd = hmView ? GetSubMenu(hmView, 1) : NULL;
+            HMENU hmCpuG = hmView ? GetSubMenu(hmView, 2) : NULL;
+            if (hmUpd && hmPop == hmUpd)
+            {
+                CheckMenuRadioItem(hmUpd, ID_VIEW_UPDATESPEED_HIGH, ID_VIEW_UPDATESPEED_PAUSED,
+                                   s_RefreshPaused ? ID_VIEW_UPDATESPEED_PAUSED : s_UpdateSpeedSel,
+                                   MF_BYCOMMAND);
+            }
             if (hmCpuG && hmPop == hmCpuG)
             {
                 CheckMenuItem(hmPop, ID_VIEW_CPU_GRAPH_OVERALL,
@@ -3447,6 +3533,41 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (LOWORD(wParam) == ID_FILE_EXIT)
         {
             DestroyWindow(hwnd);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_FILE_NEW)
+        {
+            Tm8RunNewTask(hwnd);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_VIEW_UPDATESPEED_HIGH)
+        {
+            s_RefreshPaused = FALSE;
+            s_UpdateSpeedSel = ID_VIEW_UPDATESPEED_HIGH;
+            s_RefreshIntervalMs = 500;
+            Tm8ApplyRefreshTimer(hwnd);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_VIEW_UPDATESPEED_NORMAL)
+        {
+            s_RefreshPaused = FALSE;
+            s_UpdateSpeedSel = ID_VIEW_UPDATESPEED_NORMAL;
+            s_RefreshIntervalMs = 2000;
+            Tm8ApplyRefreshTimer(hwnd);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_VIEW_UPDATESPEED_LOW)
+        {
+            s_RefreshPaused = FALSE;
+            s_UpdateSpeedSel = ID_VIEW_UPDATESPEED_LOW;
+            s_RefreshIntervalMs = 4000;
+            Tm8ApplyRefreshTimer(hwnd);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_VIEW_UPDATESPEED_PAUSED)
+        {
+            s_RefreshPaused = TRUE;
+            Tm8ApplyRefreshTimer(hwnd);
             return 0;
         }
         if (LOWORD(wParam) == ID_VIEW_REFRESH)
@@ -3837,7 +3958,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (s_hProcSmIl)
                     ListView_SetImageList(s_hwndList, s_hProcSmIl, LVSIL_SMALL);
                 ShowPage(PAGE_DETAILS);
-                Tm8Details_RefreshList(s_hwndList, TIMER_MS, TRUE, FALSE, &s_ProcListResumeDeadline,
+                Tm8Details_RefreshList(s_hwndList, s_RefreshIntervalMs, TRUE, FALSE, &s_ProcListResumeDeadline,
                                       s_DetailsMetricRows, TM8_MAX_PROC_ROWS, &dc, &dmx);
                 s_DetailsMetricCount = dc;
                 if (s_DetailsMetricCount > TM8_MAX_PROC_ROWS)

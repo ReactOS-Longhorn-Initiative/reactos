@@ -21,25 +21,30 @@
 
 #include <stdarg.h>
 #include <math.h>
+#include <stdlib.h>
 
 #define NONAMELESSUNION
 
 #include "windef.h"
 #include "winbase.h"
+#include "winnls.h"
 
 #include "pdh.h"
 #include "pdhmsg.h"
 #include "winperf.h"
-#ifdef __REACTOS__
-#include <wchar.h>
-#include <winnls.h>
-#endif
 
 #include "wine/debug.h"
 #include "wine/heap.h"
 #include "wine/list.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(pdh);
+
+static void pdh_init_ntdll_apis(void);
+
+static ULONGLONG pdh_filetime_to_ull(const FILETIME *ft)
+{
+    return ((ULONGLONG)ft->dwHighDateTime << 32) | (ULONGLONG)ft->dwLowDateTime;
+}
 
 static CRITICAL_SECTION pdh_handle_cs;
 static CRITICAL_SECTION_DEBUG pdh_handle_cs_debug =
@@ -82,6 +87,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 #endif
     case DLL_PROCESS_ATTACH:
         DisableThreadLibraryCalls(hinstDLL);
+        pdh_init_ntdll_apis();
         break;
     case DLL_PROCESS_DETACH:
         if (lpvReserved) break;
@@ -115,6 +121,11 @@ struct counter
     void (CALLBACK *collect)( struct counter * );   /* collect callback */
     union value     one;                            /* first value */
     union value     two;                            /* second value */
+    ULONG           cpu_index;                      /* instance for \Processor(n)\% Processor Time */
+    UCHAR           has_prev;                       /* delta-based collectors */
+    UCHAR           pad[3];
+    ULONGLONG       prev_idle;
+    ULONGLONG       prev_busy;                     /* kernel+user sum, or total time for SPI */
 };
 
 #define PDH_MAGIC_COUNTER   0x50444831 /* 'PDH1' */
@@ -188,12 +199,6 @@ static const WCHAR path_processor[] =
 static const WCHAR path_uptime[] =
     {'\\','S','y','s','t','e','m', '\\', 'S','y','s','t','e','m',' ','U','p',' ','T','i','m','e',0};
 
-static void CALLBACK collect_processor_time( struct counter *counter )
-{
-    counter->two.largevalue = 500000; /* FIXME */
-    counter->status = PDH_CSTATUS_VALID_DATA;
-}
-
 static void CALLBACK collect_uptime( struct counter *counter )
 {
     counter->two.largevalue = GetTickCount64();
@@ -207,10 +212,261 @@ static void CALLBACK collect_uptime( struct counter *counter )
 #define TYPE_UPTIME \
     (PERF_SIZE_LARGE | PERF_TYPE_COUNTER | PERF_COUNTER_ELAPSED | PERF_OBJECT_TIMER | PERF_DISPLAY_SECONDS)
 
+typedef LONG NTSTATUS;
+#define PDH_NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+
+typedef NTSTATUS (WINAPI *PfnNtQuerySystemInformation)(ULONG SystemInformationClass,
+                                                       PVOID SystemInformation,
+                                                       ULONG SystemInformationLength,
+                                                       PULONG ReturnLength);
+typedef NTSTATUS (WINAPI *PfnNtPowerInformation)(LONG InformationLevel,
+                                                   PVOID InputBuffer,
+                                                   ULONG InputBufferLength,
+                                                   PVOID OutputBuffer,
+                                                   ULONG OutputBufferLength);
+
+typedef struct _PDH_PROCESSOR_POWER_INFO
+{
+    ULONG Number;
+    ULONG MaxMhz;
+    ULONG CurrentMhz;
+    ULONG MhzLimit;
+    ULONG MaxIdleState;
+    ULONG CurrentIdleState;
+    ULONG Reserved[6];
+} PDH_PROCESSOR_POWER_INFO;
+
+typedef struct _PDH_SPI_ENTRY
+{
+    LARGE_INTEGER IdleTime;
+    LARGE_INTEGER KernelTime;
+    LARGE_INTEGER UserTime;
+    LARGE_INTEGER Reserved1[2];
+    ULONG Reserved2;
+} PDH_SPI_ENTRY;
+
+static PfnNtQuerySystemInformation p_NtQuerySystemInformation;
+static PfnNtPowerInformation p_NtPowerInformation;
+
+static void pdh_init_ntdll_apis(void)
+{
+    HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+    if (!ntdll)
+    {
+        WARN("GetModuleHandleW(ntdll.dll) failed\n");
+        return;
+    }
+    if (!p_NtQuerySystemInformation)
+        p_NtQuerySystemInformation = (PfnNtQuerySystemInformation)(void *)GetProcAddress(ntdll, "NtQuerySystemInformation");
+    if (!p_NtPowerInformation)
+        p_NtPowerInformation = (PfnNtPowerInformation)(void *)GetProcAddress(ntdll, "NtPowerInformation");
+    TRACE("ntdll APIs: NtQuerySystemInformation=%p NtPowerInformation=%p\n",
+          p_NtQuerySystemInformation, p_NtPowerInformation);
+}
+
+static ULONG pdh_cpu_count(void)
+{
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    if (si.dwNumberOfProcessors == 0)
+        return 1;
+    return si.dwNumberOfProcessors;
+}
+
+static void CALLBACK collect_pi_frequency(struct counter *c)
+{
+    ULONG n, i;
+    PDH_PROCESSOR_POWER_INFO buf[128];
+    NTSTATUS st;
+    ULONG maxmhz = 0;
+
+    c->status = PDH_CSTATUS_VALID_DATA;
+    c->two.doublevalue = 0.0;
+    if (!p_NtPowerInformation)
+    {
+        WARN("collect_pi_frequency: NtPowerInformation not available\n");
+        return;
+    }
+    n = pdh_cpu_count();
+    if (!n || n > ARRAY_SIZE(buf))
+        return;
+    st = p_NtPowerInformation(11, NULL, 0, buf, n * sizeof(PDH_PROCESSOR_POWER_INFO));
+    if (!PDH_NT_SUCCESS(st))
+    {
+        WARN("collect_pi_frequency: NtPowerInformation failed, status 0x%08lx\n", (ULONG)st);
+        return;
+    }
+    for (i = 0; i < n; i++)
+    {
+        if (buf[i].MaxMhz > maxmhz)
+            maxmhz = buf[i].MaxMhz;
+    }
+    c->two.doublevalue = (double)maxmhz;
+}
+
+static void CALLBACK collect_pi_performance(struct counter *c)
+{
+    ULONG n, i;
+    PDH_PROCESSOR_POWER_INFO buf[128];
+    NTSTATUS st;
+    ULONGLONG sum_max = 0, sum_cur = 0;
+
+    c->status = PDH_CSTATUS_VALID_DATA;
+    c->two.doublevalue = 0.0;
+    if (!p_NtPowerInformation)
+    {
+        WARN("collect_pi_performance: NtPowerInformation not available\n");
+        return;
+    }
+    n = pdh_cpu_count();
+    if (!n || n > ARRAY_SIZE(buf))
+        return;
+    st = p_NtPowerInformation(11, NULL, 0, buf, n * sizeof(PDH_PROCESSOR_POWER_INFO));
+    if (!PDH_NT_SUCCESS(st))
+    {
+        WARN("collect_pi_performance: NtPowerInformation failed, status 0x%08lx\n", (ULONG)st);
+        return;
+    }
+    for (i = 0; i < n; i++)
+    {
+        if (buf[i].MaxMhz == 0)
+            continue;
+        sum_max += buf[i].MaxMhz;
+        sum_cur += buf[i].CurrentMhz;
+    }
+    if (sum_max > 0)
+        c->two.doublevalue = 100.0 * (double)sum_cur / (double)sum_max;
+}
+
+static void CALLBACK collect_system_times_pct(struct counter *c)
+{
+    FILETIME ft_idle, ft_kernel, ft_user;
+    ULONGLONG idle, busy, di, db, dt;
+    double pct;
+
+    c->status = PDH_CSTATUS_VALID_DATA;
+    c->two.doublevalue = 0.0;
+    if (!GetSystemTimes(&ft_idle, &ft_kernel, &ft_user))
+    {
+        WARN("collect_system_times_pct: GetSystemTimes failed\n");
+        c->status = PDH_CSTATUS_INVALID_DATA;
+        return;
+    }
+    idle = pdh_filetime_to_ull(&ft_idle);
+    busy = pdh_filetime_to_ull(&ft_kernel) + pdh_filetime_to_ull(&ft_user);
+    if (!c->has_prev)
+    {
+        c->has_prev = 1;
+        c->prev_idle = idle;
+        c->prev_busy = busy;
+        return;
+    }
+    di = idle - c->prev_idle;
+    db = busy - c->prev_busy;
+    c->prev_idle = idle;
+    c->prev_busy = busy;
+    dt = di + db;
+    if (dt == 0)
+        return;
+    pct = 100.0 * (double)db / (double)dt;
+    if (pct < 0.0)
+        pct = 0.0;
+    if (pct > 100.0)
+        pct = 100.0;
+    c->two.doublevalue = pct;
+}
+
+static void CALLBACK collect_spi_instance(struct counter *c)
+{
+    ULONG n, retlen;
+    PDH_SPI_ENTRY *buf;
+    NTSTATUS st;
+    ULONG k = c->cpu_index;
+    ULONGLONG idle, busy, tot, di, db, dt;
+    double pct;
+
+    c->status = PDH_CSTATUS_VALID_DATA;
+    c->two.doublevalue = 0.0;
+    if (!p_NtQuerySystemInformation)
+    {
+        WARN("collect_spi_instance: NtQuerySystemInformation not available\n");
+        return;
+    }
+    n = pdh_cpu_count();
+    if (!n || k >= n)
+        return;
+    buf = heap_alloc(n * sizeof(*buf));
+    if (!buf)
+    {
+        WARN("collect_spi_instance: heap_alloc failed for %lu CPUs\n", n);
+        return;
+    }
+    st = p_NtQuerySystemInformation(8, buf, n * sizeof(*buf), &retlen);
+    if (!PDH_NT_SUCCESS(st))
+    {
+        WARN("collect_spi_instance: NtQuerySystemInformation failed, status 0x%08lx\n", (ULONG)st);
+        heap_free(buf);
+        return;
+    }
+    idle = buf[k].IdleTime.QuadPart;
+    busy = (ULONGLONG)buf[k].KernelTime.QuadPart + buf[k].UserTime.QuadPart;
+    tot = idle + busy;
+    heap_free(buf);
+    if (!c->has_prev)
+    {
+        c->has_prev = 1;
+        c->prev_idle = idle;
+        c->prev_busy = tot;
+        return;
+    }
+    di = idle - c->prev_idle;
+    dt = tot - c->prev_busy;
+    c->prev_idle = idle;
+    c->prev_busy = tot;
+    if (dt == 0)
+        return;
+    db = dt - di;
+    pct = 100.0 * (double)db / (double)dt;
+    if (pct < 0.0)
+        pct = 0.0;
+    if (pct > 100.0)
+        pct = 100.0;
+    c->two.doublevalue = pct;
+}
+
+static BOOL pdh_parse_processor_time_path(LPCWSTR path, ULONG *cpu)
+{
+    unsigned long n;
+    WCHAR *end;
+
+    if (!path || !cpu)
+        return FALSE;
+    if (wcsncmp(path, L"\\Processor(", 11))
+        return FALSE;
+    n = wcstoul(path + 11, &end, 10);
+    if (end == path + 11 || *end != L')')
+        return FALSE;
+    end++;
+    if (wcscmp(end, L"\\% Processor Time") != 0)
+        return FALSE;
+    *cpu = (ULONG)n;
+    return TRUE;
+}
+
+static const WCHAR path_pi_frequency[] =
+    L"\\Processor Information(_Total)\\Processor Frequency";
+static const WCHAR path_pi_performance[] =
+    L"\\Processor Information(_Total)\\% Processor Performance";
+static const WCHAR path_pi_utility[] =
+    L"\\Processor Information(_Total)\\% Processor Utility";
+
 /* counter source registry */
 static const struct source counter_sources[] =
 {
-    { 6,    path_processor_time,    collect_processor_time,     TYPE_PROCESSOR_TIME,    -5,     10000000 },
+    { 6,    path_processor_time,    collect_system_times_pct,   TYPE_PROCESSOR_TIME,    0,     10000000 },
+    { 5001, path_pi_frequency,      collect_pi_frequency,       TYPE_PROCESSOR_TIME,    0,     10000000 },
+    { 5002, path_pi_performance,   collect_pi_performance,    TYPE_PROCESSOR_TIME,    0,     10000000 },
+    { 5003, path_pi_utility,        collect_system_times_pct,   TYPE_PROCESSOR_TIME,    0,     10000000 },
     { 238,  path_processor,         NULL,                       0,                       0,     0 },
     { 674,  path_uptime,            collect_uptime,             TYPE_UPTIME,            -3,     1000 }
 };
@@ -295,6 +551,32 @@ PDH_STATUS WINAPI PdhAddCounterW( PDH_HQUERY hquery, LPCWSTR path,
                 counter->base         = counter_sources[i].base;
                 counter->queryuser    = query->user;
                 counter->user         = userdata;
+
+                list_add_tail( &query->counters, &counter->entry );
+                *hcounter = counter;
+
+                LeaveCriticalSection( &pdh_handle_cs );
+                return ERROR_SUCCESS;
+            }
+            LeaveCriticalSection( &pdh_handle_cs );
+            return PDH_MEMORY_ALLOCATION_FAILURE;
+        }
+    }
+    {
+        ULONG cpu;
+
+        if (pdh_parse_processor_time_path(path, &cpu))
+        {
+            if ((counter = create_counter()))
+            {
+                counter->path         = pdh_strdup(path);
+                counter->collect      = collect_spi_instance;
+                counter->type         = TYPE_PROCESSOR_TIME;
+                counter->defaultscale = 0;
+                counter->base         = 10000000;
+                counter->queryuser    = query->user;
+                counter->user         = userdata;
+                counter->cpu_index    = cpu;
 
                 list_add_tail( &query->counters, &counter->entry );
                 *hcounter = counter;
@@ -447,6 +729,7 @@ PDH_STATUS WINAPI PdhCloseQuery( PDH_HQUERY handle )
 static void collect_query_data( struct query *query )
 {
     struct list *item;
+    static unsigned int collect_pass;
 
     LIST_FOR_EACH( item, &query->counters )
     {
@@ -457,6 +740,21 @@ static void collect_query_data( struct query *query )
 
         GetLocalTime( &time );
         SystemTimeToFileTime( &time, &counter->stamp );
+    }
+
+    collect_pass++;
+    if (collect_pass == 1u || (collect_pass % 20u) == 0u)
+    {
+        unsigned int idx = 0;
+
+        TRACE("collect_query_data pass %u:\n", collect_pass);
+        LIST_FOR_EACH( item, &query->counters )
+        {
+            struct counter *c = LIST_ENTRY( item, struct counter, entry );
+
+            TRACE("  [%u] %s status=0x%lx double=%.4f large=%lld\n", idx++, debugstr_w(c->path),
+                  (unsigned long)c->status, c->two.doublevalue, (long long)c->two.largevalue);
+        }
     }
 }
 

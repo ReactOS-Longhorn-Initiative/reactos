@@ -475,7 +475,7 @@ RegisterKernelPerfStates(
 
     /*
      * Register with the kernel.
-     * The kernel stores the pointer in Prcb->PowerState.IdleHandlers.
+     * The kernel stores the pointer in Prcb->PowerState.PerfStates.
      * The memory must remain valid for the lifetime of this processor device.
      */
     Status = AmdPpmGlobals.PpmDispatchTable.RegisterPerfStates(PerfStates);
