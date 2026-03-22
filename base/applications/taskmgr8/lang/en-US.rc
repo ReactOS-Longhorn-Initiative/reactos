@@ -103,6 +103,10 @@ BEGIN
     IDS_SVC_START_SYS   "System"
     IDS_CREATENEWTASK   "Create New Task"
     IDS_CREATENEWTASK_DESC "Type the name of a program, folder, document, or Internet resource, and Task Manager will open it for you."
+    IDS_SVC_ERR_GENERIC "The service operation could not be completed."
+    IDS_SVC_ERR_ACCESS  "Access denied. Run Task Manager as an administrator to start or stop services."
+    IDS_SVC_PROPS_CAP   "Service"
+    IDS_SVC_PROPS_NONAME "Select a service."
 END
 
 IDR_MAINMENU MENU
@@ -112,6 +116,7 @@ BEGIN
         MENUITEM "Run &new task...", ID_FILE_NEW
         MENUITEM SEPARATOR
         MENUITEM "E&nd task\tDel", IDM_ENDTASK
+        MENUITEM "P&roperties", IDM_PROPERTIES
         MENUITEM SEPARATOR
         MENUITEM "E&xit", ID_FILE_EXIT
     END
@@ -143,6 +148,20 @@ BEGIN
     BEGIN
         MENUITEM "Run new &task...", ID_FILE_NEW
         MENUITEM SEPARATOR
+        MENUITEM "P&roperties", IDM_PROPERTIES
+        MENUITEM SEPARATOR
         MENUITEM "End &Task", IDM_ENDTASK
+    END
+END
+
+IDR_SVC_MENU MENU
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "&Start", ID_SVC_START
+        MENUITEM "S&top", ID_SVC_STOP
+        MENUITEM "&Restart", ID_SVC_RESTART
+        MENUITEM SEPARATOR
+        MENUITEM "P&roperties", IDM_PROPERTIES
     END
 END

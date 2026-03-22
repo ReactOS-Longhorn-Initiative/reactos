@@ -22,6 +22,7 @@ extern int s_LastCpuPct;
 extern PFN_GetTickCount64 s_pfnGetTickCount64;
 #endif
 
+HANDLE Tm8OpenProcessForInfo(DWORD pid, BOOL withVmRead);
 BOOL Tm8QueryProcessImagePath(HANDLE hProc, WCHAR *path, DWORD cchPath);
 int Tm8IconForExePath(const WCHAR *path);
 void Tm8FmtMbComma1(double mbVal, WCHAR *dst, size_t cch);

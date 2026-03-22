@@ -2,6 +2,7 @@
 
 #define IDR_MAINMENU         128
 #define IDR_PROC_MENU        129
+#define IDR_SVC_MENU         130
 
 #define IDC_NAV              1001
 #define IDC_NAV_SEP          1026
@@ -49,6 +50,10 @@
 #define ID_VIEW_UPDATESPEED_NORMAL 40008
 #define ID_VIEW_UPDATESPEED_LOW    40009
 #define ID_VIEW_UPDATESPEED_PAUSED 40010
+#define IDM_PROPERTIES             40120
+#define ID_SVC_START               40121
+#define ID_SVC_STOP                40122
+#define ID_SVC_RESTART             40123
 
 #define IDS_APP_TITLE        1
 #define IDS_NAV_PROCESSES    2
@@ -151,3 +156,7 @@
 #define IDS_SVC_START_SYS    214
 #define IDS_CREATENEWTASK    215
 #define IDS_CREATENEWTASK_DESC 216
+#define IDS_SVC_ERR_GENERIC    218
+#define IDS_SVC_ERR_ACCESS     219
+#define IDS_SVC_PROPS_CAP      220
+#define IDS_SVC_PROPS_NONAME   221

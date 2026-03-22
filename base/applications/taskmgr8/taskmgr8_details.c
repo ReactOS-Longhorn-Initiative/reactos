@@ -279,9 +279,7 @@ Tm8Details_RefreshList(HWND hLv, DWORD msElapsed, BOOL force, BOOL vscrollDraggi
             if (!ProcessIdToSessionId(r->pid, &r->sessionId))
                 r->sessionId = (DWORD)-1;
 
-            hOpen = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, FALSE, pe.th32ProcessID);
-            if (!hOpen)
-                hOpen = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pe.th32ProcessID);
+            hOpen = Tm8OpenProcessForInfo(pe.th32ProcessID, TRUE);
 
             if (hOpen)
             {

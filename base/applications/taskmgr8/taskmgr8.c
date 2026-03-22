@@ -18,6 +18,7 @@
 #include "taskmgr8_services.h"
 #include <iphlpapi.h>
 #include <ipifcons.h>
+#include <shellapi.h>
 #include <string.h>
 
 #ifndef RFF_CALCDIRECTORY
@@ -72,6 +73,8 @@ static HWND s_hwndStub;
 static HWND s_hwndEndTask;
 static HMENU s_hProcMenuRoot;
 static HMENU s_hCtxMenu;
+static HMENU s_hSvcMenuRoot;
+static HMENU s_hSvcCtxMenu;
 static int s_iPage;
 static int s_iPerfNavSel;
 
@@ -299,6 +302,32 @@ FindCpuTrack(DWORD pid)
     s_CpuTrack[s_CpuTrackCount].Pid = pid;
     s_CpuTrack[s_CpuTrackCount].PrevTotal100Ns = 0;
     return &s_CpuTrack[s_CpuTrackCount++];
+}
+
+HANDLE
+Tm8OpenProcessForInfo(DWORD pid, BOOL withVmRead)
+{
+    HANDLE h;
+    DWORD vm = withVmRead ? PROCESS_VM_READ : 0;
+
+    if (!pid)
+        return NULL;
+
+    h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | vm, FALSE, pid);
+    if (h)
+        return h;
+    h = OpenProcess(PROCESS_QUERY_INFORMATION | vm, FALSE, pid);
+    if (h)
+        return h;
+    if (withVmRead)
+    {
+        h = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+        if (h)
+            return h;
+    }
+    /* ReactOS and some hosts reject LIMITED_INFORMATION; MAXIMUM_ALLOWED uses whatever DACL allows. */
+    h = OpenProcess(MAXIMUM_ALLOWED, FALSE, pid);
+    return h;
 }
 
 BOOL
@@ -1467,9 +1496,7 @@ Tm8ProcessCpuUsagePercent(DWORD pid, ULONGLONG *pTotal100Ns, DWORD msElapsed, UI
 
     *pTotal100Ns = 0;
 
-    hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (!hProc)
-        hProc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+    hProc = Tm8OpenProcessForInfo(pid, FALSE);
     if (!hProc)
         return 0.0;
 
@@ -1771,9 +1798,7 @@ RefreshProcessListEx(BOOL force)
         sp->cpuPct = Tm8ProcessCpuUsagePercent(pe.th32ProcessID, &dummy, ms, nCpu);
         sp->path[0] = 0;
 
-        hOpen = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, FALSE, pe.th32ProcessID);
-        if (!hOpen)
-            hOpen = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pe.th32ProcessID);
+        hOpen = Tm8OpenProcessForInfo(pe.th32ProcessID, TRUE);
         if (hOpen)
         {
             pmc.cb = sizeof(pmc);
@@ -2531,6 +2556,23 @@ Tm8OnProcessOrDetailsTaskList(void)
     return FALSE;
 }
 
+static BOOL
+Tm8HasServiceSelection(void)
+{
+    int i;
+    WCHAR key[8];
+
+    if (s_iPage != PAGE_SERVICES || !s_hwndList)
+        return FALSE;
+    if (!s_hwndMainTab || TabCtrl_GetCurSel(s_hwndMainTab) != TAB_MAIN_SERVICES)
+        return FALSE;
+    i = ListView_GetNextItem(s_hwndList, -1, LVNI_SELECTED);
+    if (i < 0)
+        return FALSE;
+    ListView_GetItemText(s_hwndList, i, 1, key, _countof(key));
+    return key[0] != 0;
+}
+
 static void
 SyncProcEndTaskUi(void)
 {
@@ -2582,6 +2624,55 @@ ListViewSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
     }
     return CallWindowProcW(s_pfnOldListView, hwnd, msg, wParam, lParam);
+}
+
+static void
+Tm8OpenSelectedProcessProperties(HWND hwnd)
+{
+    DWORD pid = GetSelectedPid();
+    WCHAR path[MAX_PATH], sysdir[MAX_PATH], t[256], cap[64];
+    HANDLE hProc;
+    SHELLEXECUTEINFOW sei;
+
+    if (!pid)
+        return;
+
+    if (pid == 4)
+    {
+        if (!GetSystemDirectoryW(sysdir, _countof(sysdir)))
+            return;
+        if (FAILED(StringCchPrintfW(path, _countof(path), L"%s\\ntoskrnl.exe", sysdir)))
+            return;
+    }
+    else
+    {
+        hProc = Tm8OpenProcessForInfo(pid, FALSE);
+        if (!hProc)
+        {
+            LoadStr(IDS_ERR_OPEN, t, _countof(t));
+            LoadStr(IDS_APP_TITLE, cap, _countof(cap));
+            MessageBoxW(hwnd, t, cap, MB_OK | MB_ICONERROR);
+            return;
+        }
+        if (!Tm8QueryProcessImagePath(hProc, path, _countof(path)))
+        {
+            CloseHandle(hProc);
+            LoadStr(IDS_ERR_OPEN, t, _countof(t));
+            LoadStr(IDS_APP_TITLE, cap, _countof(cap));
+            MessageBoxW(hwnd, t, cap, MB_OK | MB_ICONERROR);
+            return;
+        }
+        CloseHandle(hProc);
+    }
+
+    ZeroMemory(&sei, sizeof(sei));
+    sei.cbSize = sizeof(sei);
+    sei.fMask = SEE_MASK_INVOKEIDLIST;
+    sei.hwnd = hwnd;
+    sei.lpVerb = L"properties";
+    sei.lpFile = path;
+    sei.nShow = SW_SHOW;
+    ShellExecuteExW(&sei);
 }
 
 static void
@@ -3442,6 +3533,8 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         s_hProcMenuRoot = LoadMenuW(s_hInst, MAKEINTRESOURCEW(IDR_PROC_MENU));
         s_hCtxMenu = s_hProcMenuRoot ? GetSubMenu(s_hProcMenuRoot, 0) : NULL;
+        s_hSvcMenuRoot = LoadMenuW(s_hInst, MAKEINTRESOURCEW(IDR_SVC_MENU));
+        s_hSvcCtxMenu = s_hSvcMenuRoot ? GetSubMenu(s_hSvcMenuRoot, 0) : NULL;
 
         InitMainTabs();
         FillNavList();
@@ -3472,11 +3565,24 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         HMENU hmPop = (HMENU)wParam;
         HMENU hmBar = GetMenu(hwnd);
+        if (hmPop == s_hCtxMenu)
+        {
+            BOOL onTaskList = Tm8OnProcessOrDetailsTaskList();
+            BOOL canSel = onTaskList && GetSelectedPid() != 0;
+            EnableMenuItem(hmPop, IDM_PROPERTIES, MF_BYCOMMAND | (canSel ? MF_ENABLED : MF_GRAYED));
+            EnableMenuItem(hmPop, IDM_ENDTASK, MF_BYCOMMAND | (canSel ? MF_ENABLED : MF_GRAYED));
+            EnableMenuItem(hmPop, ID_FILE_NEW, MF_BYCOMMAND | MF_ENABLED);
+        }
+        if (hmPop == s_hSvcCtxMenu)
+            Tm8Services_UpdateContextMenu(hmPop, s_hwndList);
         if (hmBar && hmPop == GetSubMenu(hmBar, 0))
         {
             BOOL onTaskList = Tm8OnProcessOrDetailsTaskList();
             BOOL canEnd = onTaskList && GetSelectedPid() != 0;
+            BOOL canProps =
+                (onTaskList && GetSelectedPid() != 0) || Tm8HasServiceSelection();
             EnableMenuItem(hmPop, IDM_ENDTASK, MF_BYCOMMAND | (canEnd ? MF_ENABLED : MF_GRAYED));
+            EnableMenuItem(hmPop, IDM_PROPERTIES, MF_BYCOMMAND | (canProps ? MF_ENABLED : MF_GRAYED));
         }
         if (hmBar && hmPop == GetSubMenu(hmBar, 1))
         {
@@ -3632,6 +3738,29 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 ShowPage(PAGE_NETWORK);
             }
             InvalidateRect(s_hwndNav, NULL, TRUE);
+            return 0;
+        }
+        if (LOWORD(wParam) == IDM_PROPERTIES)
+        {
+            if (s_iPage == PAGE_SERVICES)
+                Tm8ServiceShowProperties(hwnd, s_hwndList);
+            else if (Tm8OnProcessOrDetailsTaskList())
+                Tm8OpenSelectedProcessProperties(hwnd);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_SVC_START)
+        {
+            Tm8ServiceStart(hwnd, s_hwndList, &s_ProcListResumeDeadline);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_SVC_STOP)
+        {
+            Tm8ServiceStop(hwnd, s_hwndList, &s_ProcListResumeDeadline);
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_SVC_RESTART)
+        {
+            Tm8ServiceRestart(hwnd, s_hwndList, &s_ProcListResumeDeadline);
             return 0;
         }
         if (LOWORD(wParam) == IDM_ENDTASK)
@@ -4051,7 +4180,14 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                           LVIS_FOCUSED | LVIS_SELECTED);
                 }
                 SyncProcEndTaskUi();
-                if (s_iPage != PAGE_SERVICES && s_hCtxMenu)
+                if (s_iPage == PAGE_SERVICES && s_hSvcCtxMenu)
+                {
+                    SetForegroundWindow(hwnd);
+                    TrackPopupMenu(s_hSvcCtxMenu, TPM_LEFTALIGN | TPM_RIGHTBUTTON, ptScr.x, ptScr.y, 0,
+                                   hwnd, NULL);
+                    PostMessageW(hwnd, WM_NULL, 0, 0);
+                }
+                else if (s_hCtxMenu)
                 {
                     SetForegroundWindow(hwnd);
                     TrackPopupMenu(s_hCtxMenu, TPM_LEFTALIGN | TPM_RIGHTBUTTON, ptScr.x, ptScr.y, 0,
@@ -4085,6 +4221,12 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             DestroyMenu(s_hProcMenuRoot);
             s_hProcMenuRoot = NULL;
             s_hCtxMenu = NULL;
+        }
+        if (s_hSvcMenuRoot)
+        {
+            DestroyMenu(s_hSvcMenuRoot);
+            s_hSvcMenuRoot = NULL;
+            s_hSvcCtxMenu = NULL;
         }
         if (s_brNavColumn)
         {
