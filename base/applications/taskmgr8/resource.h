@@ -33,7 +33,9 @@
 #define IDC_MEM_COMP_GRAPH   1036
 #define IDC_MEM_STATS_PANEL  1037
 #define IDC_ENDTASK_BTN      1038
-#define IDC_FEWER_DETAILS    1039
+#define IDC_NET_TITLE        1039
+#define IDC_NET_SUB          1040
+#define IDC_NET_GRAPH        1041
 #define IDC_MAIN_TAB         1018
 #define IDC_STUB             1019
 #define IDM_ENDTASK          2001
@@ -54,7 +56,6 @@
 #define IDS_COL_STATUS       119
 #define IDS_COL_DISK         120
 #define IDS_COL_NETWORK      121
-#define IDS_FEWER_DETAILS    122
 #define IDS_CPU_USAGE        8
 #define IDS_MEM_USAGE        9
 #define IDS_BASE_SPEED       10
@@ -127,3 +128,4 @@
 #define IDS_MEM_LBL_SLOTS    116
 #define IDS_MEM_LBL_FORM     117
 #define IDS_MEM_LBL_HWRES    118
+#define IDS_NET_THROUGHPUT   129

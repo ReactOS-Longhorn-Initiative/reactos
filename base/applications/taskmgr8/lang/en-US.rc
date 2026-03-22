@@ -13,7 +13,6 @@ BEGIN
     IDS_COL_STATUS      "Status"
     IDS_COL_DISK        "Disk"
     IDS_COL_NETWORK     "Network"
-    IDS_FEWER_DETAILS   "Fewer details"
     IDS_CPU_USAGE       "CPU utilization"
     IDS_MEM_USAGE       "Memory utilization"
     IDS_MEM_GRAPH_60S   "60 seconds"
@@ -86,6 +85,7 @@ BEGIN
     IDS_LBL_L2          "L2 cache"
     IDS_LBL_L3          "L3 cache"
     IDS_LBL_L1          "L1 cache"
+    IDS_NET_THROUGHPUT  "Throughput over 60 seconds"
 END
 
 IDR_MAINMENU MENU

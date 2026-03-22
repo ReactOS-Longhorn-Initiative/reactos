@@ -1,215 +1,37 @@
 /*
  * PROJECT:     ReactOS — modern Task Manager (Win8-style shell)
  * LICENSE:     GPL-2.0-or-later OR LGPL-2.1-or-later
- * PURPOSE:     Separate lightweight task manager: left nav, processes, performance + CPU speed
+ * PURPOSE:     Main window: tabs, process list, performance graphs, layout, timers.
+ *
+ * Supporting translation units: taskmgr8_helpers.c (strings/format/registry/CPUID),
+ * taskmgr8_cpu_stats.c (CPU statistics strip + RosTm8CpuStats control).
+ * taskmgr8_mem_stats.c (Memory statistics strip + RosTm8MemStats control).
  */
 
-#include <windows.h>
-#include <winnls.h>
-#define TASKMGR8_NEED_LOGICAL_PROCESSOR_INFORMATION 1
-#include "reactos_missing.h"
-#include <windowsx.h>
-#include <commctrl.h>
-#include <tlhelp32.h>
-#include <psapi.h>
-#include <shlwapi.h>
-#include <strsafe.h>
-#include <stdlib.h>
+#include "taskmgr8_common.h"
+#include "taskmgr8_helpers.h"
+#include "taskmgr8_cpu_stats.h"
+#include "taskmgr8_mem_stats.h"
+#include <iphlpapi.h>
+#include <ipifcons.h>
+#include <string.h>
 
-#include "resource.h"
-
-#ifndef DWORD_MAX
-#define DWORD_MAX ((DWORD)-1)
-#endif
-
-/* Vista+ macro; ReactOS PSDK lists GetTopIndex but not SetTopIndex. */
-#ifndef LVM_SETTOPINDEX
-#define LVM_SETTOPINDEX (LVM_FIRST + 51)
-#endif
-
-#if defined(_M_IX86) || defined(_M_AMD64)
-#include <intrin.h>
-#define ROS_HAVE_CPUID 1
-#else
-#define ROS_HAVE_CPUID 0
-#endif
-
-#ifndef PROCESS_QUERY_LIMITED_INFORMATION
-#define PROCESS_QUERY_LIMITED_INFORMATION (0x1000)
-#endif
-
-#define NAV_WIDTH       186
-#define NAV_SPARK_SAMP  16
-/* Square-ish mini graph left of labels (Win10/11 Performance nav) */
-#define NAV_SPARK_BOX   38
-#define NAV_SPARK_GAP   8
-/* Performance nav: tiled cards — inner tile + vertical gap shows column bg */
-#define NAV_TILE_PAD_X  8
-#define NAV_TILE_TOP    6
-#define NAV_TILE_VGAP   8
-/* Inner tile height: left spark + padding; text column vertically fits beside */
-#define NAV_TILE_CPU_H  (6 + NAV_SPARK_BOX + 6)
-#define NAV_TILE_MEM_H  (6 + NAV_SPARK_BOX + 6)
-#define NAV_ITEM_H_CPU  (NAV_TILE_TOP + NAV_TILE_CPU_H + NAV_TILE_VGAP)
-#define NAV_ITEM_H_MEM  (NAV_TILE_MEM_H + NAV_TILE_VGAP)
-#define NAV_TILE_BORDER RGB(218, 218, 218)
-#define PAGE_PROCESSES  0
-#define PAGE_CPU        1
-#define PAGE_MEMORY     2
-#define PAGE_STUB       3
-#define TAB_MAIN_PROCESSES 0
-#define TAB_MAIN_PERF      1
-#define TAB_MAIN_APPHIST   2
-#define TAB_MAIN_STARTUP   3
-#define TAB_MAIN_USERS     4
-#define TAB_MAIN_DETAILS   5
-#define TAB_MAIN_SERVICES  6
-#define MAIN_TAB_FALLBACK_H 24
-#define MAIN_TAB_MIN_H      20
-#define MAIN_TAB_ROW_MAX_H  27
-#define TIMER_ID        1
-#define TIMER_MS        500
-#define CPU_HIST_LEN    120
-#define MAX_CPU_TRACK   4096
-#define TM8_MAX_PROC_ROWS MAX_CPU_TRACK
-#define TM8_MAX_LOGICAL_CPU 64
-/* Minimum logical width for CPU stats strip (three columns); narrower viewports scroll horizontally. */
-#define TM8_CPU_STATS_MIN_INNER_W 600
-
-/* Must match SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION (class 8). */
-typedef struct _TM8_PROC_PERF_INFO
-{
-    LARGE_INTEGER IdleTime;
-    LARGE_INTEGER KernelTime;
-    LARGE_INTEGER UserTime;
-    LARGE_INTEGER DpcTime;
-    LARGE_INTEGER InterruptTime;
-    ULONG InterruptCount;
-} TM8_PROC_PERF_INFO;
-
-/* Kernel uses 0x30 bytes per SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION entry. */
-typedef char tm8_spi_size_must_match_kernel[sizeof(TM8_PROC_PERF_INFO) == 48 ? 1 : -1];
-
-#ifndef TM8_NT_SUCCESS
-#define TM8_NT_SUCCESS(Status) (((LONG)(Status)) >= 0)
-#endif
-
-typedef LONG(NTAPI *PFN_NtQuerySystemInformation)(
-    ULONG SystemInformationClass,
-    PVOID SystemInformation,
-    ULONG SystemInformationLength,
-    PULONG ReturnLength);
-
-typedef struct _TM8_PROCESSOR_POWER_INFORMATION
-{
-    ULONG Number;
-    ULONG MaxMhz;
-    ULONG CurrentMhz;
-    ULONG MhzLimit;
-    ULONG MaxIdleState;
-    ULONG CurrentIdleState;
-} TM8_PROCESSOR_POWER_INFORMATION;
-
-typedef LONG(WINAPI *PFN_CallNtPowerInformation)(
-    INT InformationLevel,
-    PVOID InputBuffer,
-    ULONG InputBufferLength,
-    PVOID OutputBuffer,
-    ULONG OutputBufferLength);
-
-typedef BOOL(WINAPI *PFN_GetPhysicallyInstalledSystemMemory)(PULONGLONG TotalMemoryInKilobytes);
-typedef UINT(WINAPI *PFN_GetSystemFirmwareTable)(DWORD FirmwareTableProviderSignature, DWORD FirmwareTableID,
-                                                 PVOID pFirmwareTableBuffer, DWORD BufferSize);
-
+/* See taskmgr8_shared.h — exported for helpers / cpu_stats only. */
+HINSTANCE s_hInst;
+HWND s_hwndCpuStatsPanel;
+HFONT s_hFontCpuLbl;
+HFONT s_hFontCpuVal;
+DWORD s_NominalCpuMhz;
+DWORD s_CurrentCpuMhzLive;
+DWORD s_NumLogicalCpus;
+int s_LastCpuPct;
 #if defined(_WIN64)
-typedef ULONGLONG (WINAPI *PFN_GetTickCount64)(void);
+PFN_GetTickCount64 s_pfnGetTickCount64;
 #endif
+HWND s_hwndMemStatsPanel;
+TM8_MEM_STATS_PAINT s_MemStatsPaint;
 
-typedef struct _TM8_SYSTEM_BASIC_INFORMATION
-{
-    ULONG Reserved;
-    ULONG TimerResolution;
-    ULONG PageSize;
-    ULONG NumberOfPhysicalPages;
-    ULONG LowestPhysicalPageNumber;
-    ULONG HighestPhysicalPageNumber;
-    ULONG AllocationGranularity;
-    ULONG_PTR MinimumUserModeAddress;
-    ULONG_PTR MaximumUserModeAddress;
-    ULONG_PTR ActiveProcessorsAffinityMask;
-    CCHAR NumberOfProcessors;
-} TM8_SYSTEM_BASIC_INFORMATION;
-
-enum
-{
-    TM8_SystemBasicInformation = 0,
-    TM8_SystemProcessorPerformanceInformation = 8,
-    TM8_ProcessorInformationLevel = 11,
-    TM8_SystemMemoryListInformation = 80
-};
-
-/* SYSTEM_INFORMATION_CLASS 80 — standby breakdown (ndk extypes.h). */
-typedef struct _TM8_SYSTEM_MEMORY_LIST_INFORMATION
-{
-    SIZE_T ZeroPageCount;
-    SIZE_T FreePageCount;
-    SIZE_T ModifiedPageCount;
-    SIZE_T ModifiedNoWritePageCount;
-    SIZE_T BadPageCount;
-    SIZE_T PageCountByPriority[8];
-    SIZE_T RepurposedPagesByPriority[8];
-    SIZE_T ModifiedPageCountPageFile;
-} TM8_SYSTEM_MEMORY_LIST_INFORMATION;
-
-/* Win10+ compressed-RAM info class (undocumented; fails on ReactOS). */
-#define TM8_SystemCompressionInformation 147
-
-/*
- * Task Manager’s “Speed” on Win10+ matches PDH, not raw CallNtPowerInformation CurrentMhz:
- * "\\Processor Information(_Total)\\Processor Frequency" stays near nominal MHz while
- * "% Processor Performance" scales above 100% under turbo. Effective MHz ≈ Freq × (Perf/100).
- * (typeperf on a Ryzen box: Frequency≈4300, Performance≈123 → ~5.3 GHz.)
- */
-#ifndef PDH_FMT_DOUBLE
-#define PDH_FMT_DOUBLE 0x00000200
-#endif
-
-typedef struct _TM8_PDH_FMT_COUNTERVALUE
-{
-    DWORD CStatus;
-    union
-    {
-        LONG LongValue;
-        double DoubleValue;
-    } u;
-} TM8_PDH_FMT_COUNTERVALUE;
-
-typedef LONG(WINAPI *PFN_PdhOpenQueryW)(LPCWSTR szDataSource, DWORD_PTR dwUserData, void **phQuery);
-typedef LONG(WINAPI *PFN_PdhAddEnglishCounterW)(void *hQuery, LPCWSTR szFullCounterPath,
-                                                   DWORD_PTR dwUserData, void **phCounter);
-typedef LONG(WINAPI *PFN_PdhCollectQueryData)(void *hQuery);
-typedef LONG(WINAPI *PFN_PdhGetFormattedCounterValue)(void *hCounter, DWORD dwFormat, LPDWORD lpdwType,
-                                                       TM8_PDH_FMT_COUNTERVALUE *pValue);
-typedef LONG(WINAPI *PFN_PdhCloseQuery)(void *hQuery);
-
-/* Win8-ish performance pane */
-#define COL_NAV_BG      RGB(243, 243, 243)
-#define COL_NAV_SEL     RGB(0, 120, 215)
-#define COL_NAV_TEXT    RGB(32, 32, 32)
-#define COL_GRAPH_BG    RGB(252, 252, 252)
-#define COL_GRAPH_GRID  RGB(238, 240, 245)
-#define COL_GRAPH_FILL  RGB(228, 238, 252)
-#define COL_GRAPH_LINE  RGB(88, 152, 218)
-#define COL_BAR_GREEN   RGB(77, 181, 89)
-#define COL_BAR_TRACK   RGB(237, 237, 237)
-#define COL_MEM_GRAPH_FILL  RGB(228, 236, 252)
-#define COL_MEM_GRAPH_LINE  RGB(56, 112, 188)
-#define COL_MEM_GRAPH_GRID  RGB(244, 246, 250)
-#define COL_MEM_GRAPH_EDGE  RGB(120, 170, 220)
-
-static HINSTANCE s_hInst;
 static HWND s_hwndMain;
-static HWND s_hwndStatus;
 static HWND s_hwndNav;
 static HWND s_hwndNavSep;
 static HWND s_hwndList;
@@ -229,38 +51,49 @@ static HWND s_hwndCpuStatSep;
 static HWND s_hwndCpuSpecLbl;
 static HWND s_hwndCpuSpecVal;
 static HWND s_hwndCpuGraphSub;
-static HWND s_hwndCpuStatsPanel;
-static int s_CpuStatsHScrollPos;
-static int s_CpuStatsContentW;
 static HWND s_hwndMemTitle;
 static HWND s_hwndMemModel;
 static HWND s_hwndMemGraphSub;
 static HWND s_hwndMemCompSub;
 static HWND s_hwndGraphMemComp;
-static HWND s_hwndMemStatsPanel;
 static HWND s_hwndMainTab;
 static HWND s_hwndStub;
 static HWND s_hwndEndTask;
-static HWND s_hwndFewerDetails;
 static HMENU s_hProcMenuRoot;
 static HMENU s_hCtxMenu;
 static int s_iPage;
 static int s_iPerfNavSel;
 
+typedef struct _TM8_NET_ADAPT
+{
+    DWORD dwIndex;
+    DWORD ifType;
+    DWORD physLen;
+    UCHAR physAddr[MAXLEN_PHYSADDR];
+    DWORD descrLen;
+    BYTE bDescrCopy[MAXLEN_IFDESCR];
+    WCHAR wszListTitle[128];
+    ULONG64 prevInOctets;
+    ULONG64 prevOutOctets;
+    BOOL havePrev;
+} TM8_NET_ADAPT;
+
+static TM8_NET_ADAPT s_NetAdapters[TM8_MAX_NET_ADAPTERS];
+static int s_NetAdapterCount;
+static BYTE s_NetHist[TM8_MAX_NET_ADAPTERS][CPU_HIST_LEN];
+static WCHAR s_NetMetaLine[TM8_MAX_NET_ADAPTERS][120];
+static int s_iNetAdapterSel;
+static HWND s_hwndNetTitle;
+static HWND s_hwndNetSub;
+static HWND s_hwndGraphNet;
+
 static FILETIME s_ftIdle0, s_ftKernel0, s_ftUser0;
 static BOOL s_bCpuTimesInit;
-
-typedef struct _CPU_TRACK
-{
-    DWORD Pid;
-    ULONGLONG PrevTotal100Ns;
-} CPU_TRACK;
 
 static CPU_TRACK s_CpuTrack[MAX_CPU_TRACK];
 static int s_CpuTrackCount;
 
 static HIMAGELIST s_hProcSmIl;
-#define TM8_ICON_CACHE_MAX 384
 static int s_IconCacheCount;
 static WCHAR s_IconCachePath[TM8_ICON_CACHE_MAX][MAX_PATH];
 static int s_IconCacheIdx[TM8_ICON_CACHE_MAX];
@@ -269,9 +102,6 @@ static double s_ProcCpuDbl[TM8_MAX_PROC_ROWS];
 static SIZE_T s_ProcMemWs[TM8_MAX_PROC_ROWS];
 static SIZE_T s_ProcMemMax;
 
-#define TM8_PROCSORT_COL_NONE (-1)
-#define TM8_PROCSORT_COL_CPU   2
-#define TM8_PROCSORT_COL_MEM   4
 /* 0 = alphabetical by name (default); 1 = descending by metric; 2 = ascending */
 static int s_ProcSortCol = TM8_PROCSORT_COL_NONE;
 static int s_ProcSortPhase;
@@ -280,28 +110,21 @@ static int s_ProcSortPhase;
 static BOOL s_ProcListVScrollDragging;
 static DWORD s_ProcListResumeDeadline;
 
-typedef struct _TM8_SCRATCH_PROC
-{
-    DWORD pid;
-    double cpuPct;
-    SIZE_T ws;
-    WCHAR exe[MAX_PATH];
-    WCHAR path[MAX_PATH];
-    int iconIdx;
-} TM8_SCRATCH_PROC;
 static TM8_SCRATCH_PROC s_ProcScratch[TM8_MAX_PROC_ROWS];
 
 static void SyncProcEndTaskUi(void);
 static DWORD GetSelectedPid(void);
 static void RefreshProcessList(void);
 static void RefreshProcessListEx(BOOL force);
+static void Tm8PerfReloadNetAdapters(void);
+static void Tm8SampleNetAdapters(int histPos);
+static void RefreshNetworkDetailUi(void);
 
 static BYTE s_CpuHist[CPU_HIST_LEN];
 static int s_CpuHistPos;
 static BYTE s_MemHist[CPU_HIST_LEN];
 static int s_MemHistPos;
 static BOOL s_PerfHistPrimed;
-static int s_LastCpuPct;
 static int s_LastMemUsagePct;
 static ULONGLONG s_MemTotalPhysNav;
 static ULONGLONG s_MemUsedPhysNav;
@@ -309,9 +132,7 @@ static BYTE s_CpuHistPer[TM8_MAX_LOGICAL_CPU][CPU_HIST_LEN];
 static int s_LastCpuPctPer[TM8_MAX_LOGICAL_CPU];
 static TM8_PROC_PERF_INFO s_PrevProcPerf[TM8_MAX_LOGICAL_CPU];
 static BOOL s_ProcPerfInited;
-static DWORD s_NumLogicalCpus;
 static BOOL s_CpuGraphPerLogical = TRUE;
-static DWORD s_CurrentCpuMhzLive;
 static PFN_NtQuerySystemInformation s_pNtQSI;
 static PFN_CallNtPowerInformation s_pCallNtPI;
 static PFN_GetPhysicallyInstalledSystemMemory s_pfnGetPhysMem;
@@ -329,61 +150,13 @@ static PFN_PdhAddEnglishCounterW s_pfnPdhAddEnglishCounterW;
 static PFN_PdhCollectQueryData s_pfnPdhCollectQueryData;
 static PFN_PdhGetFormattedCounterValue s_pfnPdhGetFormattedCounterValue;
 static PFN_PdhCloseQuery s_pfnPdhCloseQuery;
-#if defined(_WIN64)
-static PFN_GetTickCount64 s_pfnGetTickCount64;
-#endif
-static int s_StatusBarCY;
 
-typedef struct _TM8_CPU_STATS_PAINT
-{
-    WCHAR utilLbl[48], utilVal[32];
-    WCHAR speedLbl[48], speedVal[64];
-    WCHAR procLbl[48], procVal[40];
-    WCHAR threadLbl[48], threadVal[40];
-    WCHAR handleLbl[48], handleVal[40];
-    WCHAR upLbl[48], upVal[96];
-    WCHAR specMidLblBuf[768];
-    WCHAR specMidValBuf[768];
-    WCHAR specCacheLblBuf[768];
-    WCHAR specCacheValBuf[768];
-} TM8_CPU_STATS_PAINT;
-static TM8_CPU_STATS_PAINT s_CpuStatsPaint;
-
-typedef struct _TM8_MEM_STATS_PAINT
-{
-    WCHAR c1Lbl1[56], c1Val1[112];
-    WCHAR c1Lbl2[56], c1Val2[112];
-    WCHAR c1Lbl3[56], c1Val3[96];
-    WCHAR c2Lbl1[56], c2Val1[96];
-    WCHAR c2Lbl2[56], c2Val2[96];
-    WCHAR c2Lbl3[56], c2Val3[96];
-    WCHAR c3Lbl1[56], c3Val1[64];
-    WCHAR c3Lbl2[56], c3Val2[64];
-    WCHAR c3Lbl3[56], c3Val3[64];
-    WCHAR c3Lbl4[56], c3Val4[64];
-} TM8_MEM_STATS_PAINT;
-static TM8_MEM_STATS_PAINT s_MemStatsPaint;
 static WCHAR s_szMemGraphYMax[72];
 static double s_MemCompFrac[3]; /* in use, cached, free */
 
-typedef struct _TM8_MEM_DIMM_INFO
-{
-    UINT speedMt;
-    UINT slotsPopulated;
-    UINT slotsTotal;
-    WCHAR formFactor[24];
-    BOOL haveSpeed;
-    BOOL haveSlots;
-    BOOL haveForm;
-    DWORD tickCached;
-} TM8_MEM_DIMM_INFO;
 static TM8_MEM_DIMM_INFO s_MemDimm;
 
 static LRESULT CALLBACK GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-static LRESULT CALLBACK CpuStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-static void Tm8CpuStatsUpdateScrollInfo(HWND hwnd);
-static void DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel);
-static void DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel);
 static void DrawMemoryUsageHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen,
                                         int histWritePos, COLORREF fillCol, COLORREF lineCol,
                                         int lineWidth);
@@ -400,19 +173,9 @@ static HFONT s_hFontTitle;
 static HFONT s_hFontNavBold;
 static HFONT s_hFontNavMeta;
 static HFONT s_hFontTab;
-static HFONT s_hFontCpuLbl;
-static HFONT s_hFontCpuVal;
 static HFONT s_hFontCpuHero;
 static WCHAR s_szCpuModel[260];
-static DWORD s_NominalCpuMhz;
 static WCHAR s_MainTabText[7][48];
-
-static void
-LoadStr(UINT id, WCHAR *buf, size_t cch)
-{
-    if (LoadStringW(s_hInst, id, buf, (int)cch) <= 0)
-        buf[0] = 0;
-}
 
 static void
 ApplyPerfTypography(void)
@@ -488,12 +251,16 @@ ApplyPerfTypography(void)
     SendMessageW(s_hwndCpuSpecVal, WM_SETFONT, (WPARAM)s_hFontCpuVal, FALSE);
     if (s_hwndCpuStatsPanel)
         SendMessageW(s_hwndCpuStatsPanel, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
+    if (s_hwndMemStatsPanel)
+        SendMessageW(s_hwndMemStatsPanel, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
+    if (s_hwndNetTitle)
+        SendMessageW(s_hwndNetTitle, WM_SETFONT, (WPARAM)s_hFontTitle, FALSE);
+    if (s_hwndNetSub)
+        SendMessageW(s_hwndNetSub, WM_SETFONT, (WPARAM)s_hFontNavMeta, FALSE);
     if (s_hwndStub)
         SendMessageW(s_hwndStub, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
     if (s_hwndEndTask)
         SendMessageW(s_hwndEndTask, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
-    if (s_hwndFewerDetails)
-        SendMessageW(s_hwndFewerDetails, WM_SETFONT, (WPARAM)s_hFontPerf, FALSE);
 }
 
 static CPU_TRACK *
@@ -733,412 +500,6 @@ ReadCpuModelString(void)
     RegCloseKey(hKey);
     if (s_szCpuModel[0] && !StrStrIW(s_szCpuModel, L"Processor") && !StrStrIW(s_szCpuModel, L"CPU"))
         StringCchCatW(s_szCpuModel, _countof(s_szCpuModel), L" Processor");
-}
-
-static void
-FormatSpeedFromMhz(DWORD mhz, WCHAR *out, size_t cch)
-{
-    /* NBSP keeps "4.30 GHz" on one line in multiline statics (no wrap before unit). */
-    if (mhz >= 1000)
-        StringCchPrintfW(out, cch, L"%.2f\u00A0GHz", mhz / 1000.0);
-    else if (mhz)
-        StringCchPrintfW(out, cch, L"%lu\u00A0MHz", mhz);
-    else
-        out[0] = 0;
-}
-
-static void
-FormatUptimeString(WCHAR *buf, size_t cch)
-{
-    /*
-     * i386 (and other 32-bit) MSVC links a CRT that often omits __aullrem;
-     * ULONGLONG % pulls that symbol. Use DWORD time-of-day math on 32-bit only.
-     */
-#if defined(_WIN64)
-    ULONGLONG sec;
-
-    if (!s_pfnGetTickCount64)
-    {
-        HMODULE k32 = GetModuleHandleW(L"kernel32.dll");
-        if (k32)
-            s_pfnGetTickCount64 = (PFN_GetTickCount64)(void *)GetProcAddress(k32, "GetTickCount64");
-    }
-    if (s_pfnGetTickCount64)
-        sec = s_pfnGetTickCount64() / 1000ULL;
-    else
-        sec = GetTickCount() / 1000U;
-
-    StringCchPrintfW(buf, cch, L"%llu:%02llu:%02llu:%02llu",
-                     sec / 86400ULL, (sec / 3600ULL) % 24ULL, (sec / 60ULL) % 60ULL, sec % 60ULL);
-#else
-    DWORD sec = GetTickCount() / 1000U;
-    DWORD s = sec % 60U;
-    DWORD m = (sec / 60U) % 60U;
-    DWORD h = (sec / 3600U) % 24U;
-    DWORD d = sec / 86400U;
-
-    StringCchPrintfW(buf, cch, L"%lu:%02lu:%02lu:%02lu", d, h, m, s);
-#endif
-}
-
-static DWORD
-CountPhysicalCores(void)
-{
-    DWORD len = 0, i, n;
-    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION buf;
-    DWORD cores = 0;
-
-    if (!GetLogicalProcessorInformation(NULL, &len) &&
-        GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-        return 0;
-    if (len == 0)
-        return 0;
-    buf = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, len);
-    if (!buf)
-        return 0;
-    if (!GetLogicalProcessorInformation(buf, &len))
-    {
-        HeapFree(GetProcessHeap(), 0, buf);
-        return 0;
-    }
-    n = len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
-    for (i = 0; i < n; i++)
-    {
-        if (buf[i].Relationship == RelationProcessorCore)
-            cores++;
-    }
-    HeapFree(GetProcessHeap(), 0, buf);
-    return cores;
-}
-
-static BOOL
-CpuVirtHardwarePresent(void)
-{
-#if ROS_HAVE_CPUID
-    int info[4];
-    int maxLeaf;
-    char vendor[13];
-
-    __cpuid(info, 0);
-    maxLeaf = info[0];
-    CopyMemory(vendor + 0, &info[1], sizeof(int));
-    CopyMemory(vendor + 4, &info[3], sizeof(int));
-    CopyMemory(vendor + 8, &info[2], sizeof(int));
-    vendor[12] = 0;
-
-    __cpuid(info, 1);
-    if (memcmp(vendor, "GenuineIntel", 12) == 0)
-        return (((unsigned)info[2] >> 5) & 1u) != 0; /* VMX */
-    if (memcmp(vendor, "AuthenticAMD", 12) == 0 || memcmp(vendor, "HygonGenuine", 12) == 0)
-    {
-        if (maxLeaf >= 0x80000000)
-        {
-            __cpuid(info, 0x80000000);
-            if ((unsigned)info[0] >= 0x80000001u)
-            {
-                __cpuid(info, 0x80000001);
-                return (((unsigned)info[2] >> 2) & 1u) != 0; /* SVM */
-            }
-        }
-        return FALSE;
-    }
-    /* Unknown vendor: accept either flag */
-    if (((unsigned)info[2] & (1u << 5)) != 0)
-        return TRUE;
-    if (maxLeaf >= 0x80000000)
-    {
-        __cpuid(info, 0x80000000);
-        if ((unsigned)info[0] >= 0x80000001u)
-        {
-            __cpuid(info, 0x80000001);
-            if (((unsigned)info[2] & (1u << 2)) != 0)
-                return TRUE;
-        }
-    }
-#endif
-    return FALSE;
-}
-
-static void
-FormatCacheKbHuman(DWORD kb, WCHAR *dst, size_t cch)
-{
-    if (!dst || cch == 0)
-        return;
-    if (kb == 0)
-    {
-        dst[0] = 0;
-        return;
-    }
-    if (kb >= 1024)
-        StringCchPrintfW(dst, cch, L"%.1f MB", (double)kb / 1024.0);
-    else
-        StringCchPrintfW(dst, cch, L"%lu KB", (ULONG)kb);
-}
-
-static void
-AppendCacheKvLine(WCHAR *lblDest, size_t cchLbl, WCHAR *valDest, size_t cchVal, UINT idsLbl, DWORD kb)
-{
-    WCHAR name[48], val[72];
-    if (kb == 0)
-        return;
-    LoadStr(idsLbl, name, _countof(name));
-    StringCchCatW(lblDest, cchLbl, name);
-    StringCchCatW(lblDest, cchLbl, L":\r\n");
-    FormatCacheKbHuman(kb, val, _countof(val));
-    StringCchCatW(valDest, cchVal, val);
-    StringCchCatW(valDest, cchVal, L"\r\n");
-}
-
-static BOOL
-ReadProcessor0CacheValue(PCWSTR valueName, DWORD *outKb)
-{
-    HKEY hKey;
-    BYTE buf[96];
-    DWORD cb = sizeof(buf), typ = 0;
-
-    *outKb = 0;
-    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-                      L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
-                      0,
-                      KEY_READ,
-                      &hKey) != ERROR_SUCCESS)
-        return FALSE;
-    if (RegQueryValueExW(hKey, valueName, NULL, &typ, buf, &cb) != ERROR_SUCCESS)
-    {
-        RegCloseKey(hKey);
-        return FALSE;
-    }
-    RegCloseKey(hKey);
-
-    if (typ == REG_DWORD && cb >= sizeof(DWORD))
-    {
-        *outKb = *(DWORD *)buf;
-        return *outKb != 0;
-    }
-    if ((typ == REG_SZ || typ == REG_EXPAND_SZ) && cb >= sizeof(WCHAR))
-    {
-        WCHAR *s = (WCHAR *)buf;
-        size_t nwc = cb / sizeof(WCHAR);
-        if (nwc >= sizeof(buf) / sizeof(WCHAR))
-            nwc = sizeof(buf) / sizeof(WCHAR) - 1;
-        s[nwc] = 0;
-        *outKb = wcstoul(s, NULL, 0);
-        return *outKb != 0;
-    }
-    return FALSE;
-}
-
-#if ROS_HAVE_CPUID
-static void
-AppendMissingCachesFromCpuid4(WCHAR *specLbl, size_t cchLbl, WCHAR *specVal, size_t cchVal, int haveL1,
-                              int haveL2, int haveL3)
-{
-    int i;
-    double l1Bytes = 0, l2Bytes = 0, l3Bytes = 0;
-    int maxf[4];
-
-    __cpuid(maxf, 0);
-    if ((unsigned)maxf[0] < 4)
-        return;
-
-    for (i = 0; i < 32; i++)
-    {
-        int r[4];
-        unsigned type, level;
-        unsigned ways, parts, ls;
-        unsigned sets;
-        double bytes;
-
-        __cpuidex(r, 4, i);
-        type = (unsigned)r[0] & 0x1Fu;
-        if (type == 0)
-            break;
-        level = ((unsigned)r[0] >> 5) & 7u;
-        ways = ((unsigned)r[2] >> 22) + 1u;
-        parts = (((unsigned)r[2] >> 12) & 0x3FFu) + 1u;
-        ls = ((unsigned)r[2] & 0xFFFu) + 1u;
-        sets = (unsigned)r[3] + 1u;
-        bytes = (double)ways * (double)parts * (double)ls * (double)sets;
-        if (level == 1)
-        {
-            if (type == 1 || type == 2 || type == 3)
-                l1Bytes += bytes;
-        }
-        else if (level == 2)
-        {
-            if (bytes > l2Bytes)
-                l2Bytes = bytes;
-        }
-        else if (level == 3)
-        {
-            if (bytes > l3Bytes)
-                l3Bytes = bytes;
-        }
-    }
-    if (!haveL1 && l1Bytes > 0)
-        AppendCacheKvLine(specLbl, cchLbl, specVal, cchVal, IDS_LBL_L1, (DWORD)(l1Bytes / 1024.0 + 0.5));
-    if (!haveL2 && l2Bytes > 0)
-        AppendCacheKvLine(specLbl, cchLbl, specVal, cchVal, IDS_LBL_L2, (DWORD)(l2Bytes / 1024.0 + 0.5));
-    if (!haveL3 && l3Bytes > 0)
-        AppendCacheKvLine(specLbl, cchLbl, specVal, cchVal, IDS_LBL_L3, (DWORD)(l3Bytes / 1024.0 + 0.5));
-}
-#endif /* ROS_HAVE_CPUID */
-
-static void
-AppendLbl(WCHAR *buf, size_t cch, UINT id)
-{
-    WCHAR t[64];
-    LoadStr(id, t, _countof(t));
-    StringCchCatW(buf, cch, t);
-    StringCchCatW(buf, cch, L"\r\n");
-}
-
-static void
-AppendSpecLbl(WCHAR *buf, size_t cch, UINT id)
-{
-    WCHAR t[72];
-    LoadStr(id, t, _countof(t));
-    StringCchCatW(buf, cch, t);
-    StringCchCatW(buf, cch, L":\r\n");
-}
-
-static void
-FormatULongGrouped(ULONG n, WCHAR *buf, size_t cch)
-{
-    WCHAR tmp[24], grp[32];
-    NUMBERFMTW fmt;
-
-    StringCchPrintfW(tmp, _countof(tmp), L"%lu", n);
-    fmt.NumDigits = 0;
-    fmt.LeadingZero = FALSE;
-    fmt.Grouping = 3;
-    fmt.lpDecimalSep = L".";
-    fmt.lpThousandSep = L",";
-    fmt.NegativeOrder = 0;
-    if (GetNumberFormatW(LOCALE_USER_DEFAULT, 0, tmp, &fmt, grp, (int)_countof(grp)))
-        StringCchCopyW(buf, cch, grp);
-    else
-        StringCchCopyW(buf, cch, tmp);
-}
-
-static void
-RefreshCpuStatsPanel(void)
-{
-    WCHAR specMidLbl[768], specMidVal[768], cacheLbl[768], cacheVal[768];
-    WCHAR spd[48], liveSpd[48], up[48], virtLbl[48], line[180];
-    PERFORMANCE_INFORMATION pi;
-    SYSTEM_INFO si;
-    DWORD cores;
-    WCHAR grp[32];
-    TM8_CPU_STATS_PAINT *ps = &s_CpuStatsPaint;
-
-    if (!s_hwndCpuStatsPanel)
-        return;
-
-    GetSystemInfo(&si);
-    FormatSpeedFromMhz(s_NominalCpuMhz, spd, _countof(spd));
-
-    ZeroMemory(ps, sizeof(*ps));
-    specMidLbl[0] = specMidVal[0] = 0;
-    cacheLbl[0] = cacheVal[0] = 0;
-
-    LoadStr(IDS_LBL_UTIL, ps->utilLbl, _countof(ps->utilLbl));
-    StringCchPrintfW(ps->utilVal, _countof(ps->utilVal), L"%lu%%", (ULONG)s_LastCpuPct);
-
-    LoadStr(IDS_LBL_SPEED, ps->speedLbl, _countof(ps->speedLbl));
-    {
-        DWORD mhzLive = s_CurrentCpuMhzLive ? s_CurrentCpuMhzLive : s_NominalCpuMhz;
-        FormatSpeedFromMhz(mhzLive, liveSpd, _countof(liveSpd));
-        if (liveSpd[0])
-            StringCchCopyW(ps->speedVal, _countof(ps->speedVal), liveSpd);
-    }
-
-    ZeroMemory(&pi, sizeof(pi));
-    pi.cb = sizeof(pi);
-    GetPerformanceInfo(&pi, sizeof(pi));
-    LoadStr(IDS_LBL_PROCS, ps->procLbl, _countof(ps->procLbl));
-    FormatULongGrouped(pi.ProcessCount, grp, _countof(grp));
-    StringCchCopyW(ps->procVal, _countof(ps->procVal), grp);
-
-    LoadStr(IDS_LBL_THREADS, ps->threadLbl, _countof(ps->threadLbl));
-    FormatULongGrouped(pi.ThreadCount, grp, _countof(grp));
-    StringCchCopyW(ps->threadVal, _countof(ps->threadVal), grp);
-
-    LoadStr(IDS_LBL_HANDLES, ps->handleLbl, _countof(ps->handleLbl));
-    FormatULongGrouped(pi.HandleCount, grp, _countof(grp));
-    StringCchCopyW(ps->handleVal, _countof(ps->handleVal), grp);
-
-    FormatUptimeString(up, _countof(up));
-    LoadStr(IDS_LBL_UPTIME, ps->upLbl, _countof(ps->upLbl));
-    StringCchCopyW(ps->upVal, _countof(ps->upVal), up);
-
-    if (spd[0])
-    {
-        AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_BASE);
-        StringCchCatW(specMidVal, _countof(specMidVal), spd);
-        StringCchCatW(specMidVal, _countof(specMidVal), L"\r\n");
-    }
-    AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_SOCKETS);
-    StringCchCatW(specMidVal, _countof(specMidVal), L"1\r\n");
-
-    cores = CountPhysicalCores();
-    if (cores > 0)
-    {
-        AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_CORES);
-        StringCchPrintfW(line, _countof(line), L"%lu\r\n", cores);
-        StringCchCatW(specMidVal, _countof(specMidVal), line);
-    }
-
-    AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_LOGICAL);
-    StringCchPrintfW(line, _countof(line), L"%lu\r\n", (ULONG)s_NumLogicalCpus);
-    StringCchCatW(specMidVal, _countof(specMidVal), line);
-
-#if ROS_HAVE_CPUID
-    LoadStr(CpuVirtHardwarePresent() ? IDS_VIRT_ENABLED : IDS_VIRT_DISABLED, virtLbl, _countof(virtLbl));
-#else
-    LoadStr(IDS_VIRT_UNKNOWN, virtLbl, _countof(virtLbl));
-#endif
-    AppendSpecLbl(specMidLbl, _countof(specMidLbl), IDS_LBL_VIRT);
-    StringCchCatW(specMidVal, _countof(specMidVal), virtLbl);
-    StringCchCatW(specMidVal, _countof(specMidVal), L"\r\n");
-
-    {
-        DWORD l1dKB = 0, l1iKB = 0, l1KB = 0, l2KB = 0, l3KB = 0;
-        int haveL1 = 0, haveL2 = 0, haveL3 = 0;
-
-        ReadProcessor0CacheValue(L"L1DataCacheSize", &l1dKB);
-        ReadProcessor0CacheValue(L"L1InstructionCacheSize", &l1iKB);
-        l1KB = l1dKB + l1iKB;
-        if (l1KB == 0)
-            ReadProcessor0CacheValue(L"L1CacheSize", &l1KB);
-        if (l1KB != 0)
-        {
-            AppendCacheKvLine(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), IDS_LBL_L1, l1KB);
-            haveL1 = 1;
-        }
-        if (ReadProcessor0CacheValue(L"L2CacheSize", &l2KB))
-        {
-            AppendCacheKvLine(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), IDS_LBL_L2, l2KB);
-            haveL2 = 1;
-        }
-        if (ReadProcessor0CacheValue(L"ThirdLevelCacheSize", &l3KB) ||
-            ReadProcessor0CacheValue(L"L3CacheSize", &l3KB))
-        {
-            AppendCacheKvLine(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), IDS_LBL_L3, l3KB);
-            haveL3 = 1;
-        }
-#if ROS_HAVE_CPUID
-        if (!haveL1 || !haveL2 || !haveL3)
-            AppendMissingCachesFromCpuid4(cacheLbl, _countof(cacheLbl), cacheVal, _countof(cacheVal), haveL1,
-                                          haveL2, haveL3);
-#endif
-    }
-
-    StringCchCopyW(ps->specMidLblBuf, _countof(ps->specMidLblBuf), specMidLbl);
-    StringCchCopyW(ps->specMidValBuf, _countof(ps->specMidValBuf), specMidVal);
-    StringCchCopyW(ps->specCacheLblBuf, _countof(ps->specCacheLblBuf), cacheLbl);
-    StringCchCopyW(ps->specCacheValBuf, _countof(ps->specCacheValBuf), cacheVal);
-    InvalidateRect(s_hwndCpuStatsPanel, NULL, TRUE);
 }
 
 static int
@@ -1669,44 +1030,16 @@ static void
 LayoutChildren(HWND hwnd)
 {
     RECT rc;
-    RECT rcSt;
-    int statusH, navW = NAV_WIDTH, margin = 6;
+    const int statusH = 0; /* No status bar (Win10/11 Processes has no CPU/RAM strip here). */
+    int navW = NAV_WIDTH, margin = 6;
     int pageLeft, pageW, pageTop, pageH;
     int graphTop, graphH;
     int tabTop, contentTop, tabBarH;
     int tabW;
 
     GetClientRect(hwnd, &rc);
-    GetClientRect(s_hwndStatus, &rcSt);
-    if (rcSt.bottom > 0)
-        s_StatusBarCY = rcSt.bottom;
-    if (s_StatusBarCY <= 0)
-        s_StatusBarCY = 22;
 
-    if (s_hwndMainTab && TabCtrl_GetCurSel(s_hwndMainTab) == TAB_MAIN_PERF)
-    {
-        statusH = 0;
-        if (s_hwndStatus)
-        {
-            ShowWindow(s_hwndStatus, SW_HIDE);
-            SetWindowPos(s_hwndStatus, NULL, 0, rc.bottom, rc.right, 0,
-                         SWP_NOZORDER | SWP_NOACTIVATE);
-        }
-    }
-    else
-    {
-        statusH = s_StatusBarCY;
-        if (s_hwndStatus)
-        {
-            ShowWindow(s_hwndStatus, SW_SHOW);
-            SetWindowPos(s_hwndStatus, NULL, 0, rc.bottom - statusH, rc.right, statusH,
-                         SWP_NOZORDER | SWP_NOACTIVATE);
-        }
-    }
-
-    if (rc.bottom <= statusH + margin * 2 && statusH != 0)
-        return;
-    if (rc.bottom <= margin * 2 && statusH == 0)
+    if (rc.bottom <= margin * 2)
         return;
 
     tabTop = margin;
@@ -1782,16 +1115,15 @@ LayoutChildren(HWND hwnd)
         if (s_hwndNav && s_hwndMainTab && TabCtrl_GetCurSel(s_hwndMainTab) == TAB_MAIN_PERF)
         {
             int cnt = (int)SendMessageW(s_hwndNav, LB_GETCOUNT, 0, 0);
+            int navContentH = 0;
             if (cnt > 0)
             {
-                if (cnt == 2)
-                    navH = NAV_ITEM_H_CPU + NAV_ITEM_H_MEM + 4;
-                else
-                    navH = cnt * NAV_ITEM_H_MEM + 4;
+                navContentH = NAV_ITEM_H_CPU + (cnt - 1) * NAV_ITEM_H_MEM + 4;
+                navH = navContentH;
                 if (navH > pageH)
                     navH = pageH;
             }
-            ShowScrollBar(s_hwndNav, SB_VERT, cnt > 6);
+            ShowScrollBar(s_hwndNav, SB_VERT, navContentH > pageH);
         }
         else if (s_hwndNav)
             ShowScrollBar(s_hwndNav, SB_VERT, TRUE);
@@ -1830,12 +1162,10 @@ LayoutChildren(HWND hwnd)
         SetWindowPos(s_hwndList, NULL, pageLeft, pageTop, pageW, listH,
                      SWP_NOZORDER | SWP_NOACTIVATE);
 
-        if (footerH > 0 && s_hwndFewerDetails && s_hwndEndTask)
+        if (footerH > 0 && s_hwndEndTask)
         {
             int btnW = 100, btnH = 26, yBtn = pageTop + listH + 8;
 
-            SetWindowPos(s_hwndFewerDetails, NULL, pageLeft + 4, yBtn, 180, 24,
-                         SWP_NOZORDER | SWP_NOACTIVATE);
             SetWindowPos(s_hwndEndTask, NULL, pageLeft + pageW - btnW - 8, yBtn - 1, btnW, btnH,
                          SWP_NOZORDER | SWP_NOACTIVATE);
         }
@@ -1973,13 +1303,43 @@ LayoutChildren(HWND hwnd)
                      SWP_NOZORDER | SWP_NOACTIVATE);
         InvalidateRect(s_hwndMemStatsPanel, NULL, TRUE);
     }
+    else if (s_iPage == PAGE_NETWORK)
+    {
+        const int titleY = pageTop + 4;
+        const int titleH = 26;
+        const int subH = 15;
+        const int subGap = 1;
+        const int graphAfterSub = 5;
+        int titleW = (pageW - 16) / 5;
+        int subY;
+
+        if (titleW < 96)
+            titleW = 96;
+        if (titleW > 200)
+            titleW = 200;
+        if (titleW > pageW - 16 - 120)
+            titleW = (pageW - 16) - 120;
+        if (titleW < 72)
+            titleW = 72;
+        subY = titleY + titleH + subGap;
+        SetWindowPos(s_hwndNetTitle, NULL, pageLeft + 4, titleY, titleW - 4, titleH,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+        SetWindowPos(s_hwndNetSub, NULL, pageLeft + 4, subY, pageW - 8, subH,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+        graphTop = subY + subH + graphAfterSub;
+        graphH = pageTop + pageH - graphTop - 8;
+        if (graphH < 56)
+            graphH = 56;
+        InvalidateRect(s_hwndNetTitle, NULL, TRUE);
+        InvalidateRect(s_hwndNetSub, NULL, TRUE);
+    }
     else
     {
         graphTop = pageTop;
         graphH = 1;
     }
 
-    if (s_iPage == PAGE_CPU || s_iPage == PAGE_MEMORY)
+    if (s_iPage == PAGE_CPU || s_iPage == PAGE_MEMORY || s_iPage == PAGE_NETWORK)
     {
         if (graphH > pageH - 8)
             graphH = pageH - 8;
@@ -1987,10 +1347,13 @@ LayoutChildren(HWND hwnd)
             graphH = 100;
     }
 
-    SetWindowPos(s_hwndGraphCpu, NULL, pageLeft + 4, graphTop, pageW - 8, graphH,
-                 SWP_NOZORDER | SWP_NOACTIVATE);
-    SetWindowPos(s_hwndGraphMem, NULL, pageLeft + 4, graphTop, pageW - 8, graphH,
-                 SWP_NOZORDER | SWP_NOACTIVATE);
+    SetWindowPos(s_hwndGraphCpu, NULL, pageLeft + 4, s_iPage == PAGE_CPU ? graphTop : pageTop,
+                 pageW - 8, s_iPage == PAGE_CPU ? graphH : 1, SWP_NOZORDER | SWP_NOACTIVATE);
+    SetWindowPos(s_hwndGraphMem, NULL, pageLeft + 4, s_iPage == PAGE_MEMORY ? graphTop : pageTop,
+                 pageW - 8, s_iPage == PAGE_MEMORY ? graphH : 1, SWP_NOZORDER | SWP_NOACTIVATE);
+    if (s_hwndGraphNet)
+        SetWindowPos(s_hwndGraphNet, NULL, pageLeft + 4, s_iPage == PAGE_NETWORK ? graphTop : pageTop,
+                     pageW - 8, s_iPage == PAGE_NETWORK ? graphH : 1, SWP_NOZORDER | SWP_NOACTIVATE);
 
     if (s_hwndStub)
     {
@@ -2008,17 +1371,12 @@ ShowPage(int page)
 {
     s_iPage = page;
 
-    if (page != PAGE_CPU && s_hwndCpuStatsPanel && IsWindow(s_hwndCpuStatsPanel))
-    {
-        s_CpuStatsHScrollPos = 0;
-        Tm8CpuStatsUpdateScrollInfo(s_hwndCpuStatsPanel);
-    }
+    Tm8CpuStats_OnLeaveCpuPage(page);
+    Tm8MemStats_OnLeaveMemoryPage(page);
 
     ShowWindow(s_hwndList, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
     if (s_hwndEndTask)
         ShowWindow(s_hwndEndTask, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
-    if (s_hwndFewerDetails)
-        ShowWindow(s_hwndFewerDetails, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
     ShowWindow(s_hwndStub, (page == PAGE_STUB) ? SW_SHOW : SW_HIDE);
 
     ShowWindow(s_hwndCpuTitle, (page == PAGE_CPU) ? SW_SHOW : SW_HIDE);
@@ -2046,10 +1404,16 @@ ShowPage(int page)
     ShowWindow(s_hwndMemDetails, SW_HIDE);
     ShowWindow(s_hwndGraphMem, (page == PAGE_MEMORY) ? SW_SHOW : SW_HIDE);
 
+    ShowWindow(s_hwndNetTitle, (page == PAGE_NETWORK) ? SW_SHOW : SW_HIDE);
+    ShowWindow(s_hwndNetSub, (page == PAGE_NETWORK) ? SW_SHOW : SW_HIDE);
+    ShowWindow(s_hwndGraphNet, (page == PAGE_NETWORK) ? SW_SHOW : SW_HIDE);
+
     if (s_hwndMain)
         LayoutChildren(s_hwndMain);
     if (s_hwndNav)
         InvalidateRect(s_hwndNav, NULL, TRUE);
+    if (page == PAGE_NETWORK)
+        RefreshNetworkDetailUi();
     if (page == PAGE_PROCESSES)
         SyncProcEndTaskUi();
 }
@@ -2513,6 +1877,8 @@ SamplePerfCounters(void)
         FillMemory(s_MemHist, sizeof(s_MemHist), 0);
         for (i = 0; i < n; i++)
             FillMemory(s_CpuHistPer[i], CPU_HIST_LEN, 0);
+        for (i = 0; i < TM8_MAX_NET_ADAPTERS; i++)
+            FillMemory(s_NetHist[i], sizeof(s_NetHist[i]), 0);
         s_CpuHistPos = 0;
         s_MemHistPos = 0;
         s_PerfHistPrimed = TRUE;
@@ -2522,6 +1888,7 @@ SamplePerfCounters(void)
     s_MemHist[s_MemHistPos] = (BYTE)memPct;
     for (i = 0; i < n; i++)
         s_CpuHistPer[i][s_CpuHistPos] = (BYTE)s_LastCpuPctPer[i];
+    Tm8SampleNetAdapters(s_CpuHistPos);
 
     s_CpuHistPos = (s_CpuHistPos + 1) % CPU_HIST_LEN;
     s_MemHistPos = (s_MemHistPos + 1) % CPU_HIST_LEN;
@@ -2546,7 +1913,7 @@ RefreshCpuDetailUi(void)
     LoadStr(IDS_CPU_UTIL_60S, wbuf, _countof(wbuf));
     SetWindowTextW(s_hwndCpuGraphSub, wbuf);
 
-    RefreshCpuStatsPanel();
+    Tm8CpuStats_Refresh();
 }
 
 /* MSVC x86 emits __allmul for 64x64 multiply; ReactOS taskmgr8 links without that CRT helper. */
@@ -3027,6 +2394,7 @@ RefreshMemoryStatsPanel(void)
     s_MemCompFrac[1] = 0.0;
     s_MemCompFrac[2] = (fu <= 1.0) ? (1.0 - fu) : 0.0;
 
+    Tm8MemStats_UpdateScroll();
     InvalidateRect(s_hwndMemStatsPanel, NULL, TRUE);
 }
 
@@ -3077,14 +2445,7 @@ OnTimer(void)
     RefreshProcessList();
     RefreshCpuDetailUi();
     RefreshMemoryDetailUi();
-
-    if (s_hwndStatus && IsWindowVisible(s_hwndStatus))
-    {
-        WCHAR b[160];
-        StringCchPrintfW(b, _countof(b), L"CPU %d%%   RAM %lu%%", s_LastCpuPct,
-                         (ULONG)s_LastMemUsagePct);
-        SendMessageW(s_hwndStatus, SB_SETTEXT, 0, (LPARAM)b);
-    }
+    RefreshNetworkDetailUi();
 }
 
 static DWORD
@@ -3194,16 +2555,418 @@ EndSelectedTask(HWND hwnd)
     MessageBoxW(hwnd, t, cap, MB_ICONERROR);
 }
 
+static int
+Tm8CmpNetAdapt(const void *a, const void *b)
+{
+    const TM8_NET_ADAPT *pa = a, *pb = b;
+    if (pa->dwIndex < pb->dwIndex)
+        return -1;
+    if (pa->dwIndex > pb->dwIndex)
+        return 1;
+    return 0;
+}
+
+static void
+Tm8FmtNetRateKbps(ULONG64 deltaOctets, WCHAR *buf, size_t cch)
+{
+    double Bps, kbps;
+    if (!buf || cch == 0)
+        return;
+    if (deltaOctets == 0 || TIMER_MS < 1)
+    {
+        StringCchCopyW(buf, cch, L"0");
+        return;
+    }
+    Bps = (double)deltaOctets * 1000.0 / (double)TIMER_MS;
+    kbps = Bps * 8.0 / 1000.0;
+    if (kbps >= 10000.0)
+        StringCchPrintfW(buf, cch, L"%.1f Mbps", kbps / 1000.0);
+    else if (kbps >= 1.0)
+        StringCchPrintfW(buf, cch, L"%.0f Kbps", kbps);
+    else
+        StringCchPrintfW(buf, cch, L"%.1f Kbps", kbps);
+}
+
+static BOOL
+Tm8PhysAddrAllZero(const UCHAR *addr, DWORD len)
+{
+    DWORD i;
+    if (!addr || len == 0)
+        return TRUE;
+    for (i = 0; i < len; i++)
+    {
+        if (addr[i] != 0)
+            return FALSE;
+    }
+    return TRUE;
+}
+
+/* bDescr may be unterminated; only first dlen bytes are valid. */
+static BOOL
+Tm8NetDescrHasWanAsciiCi(const BYTE *bd, DWORD dlen)
+{
+    DWORD i;
+    if (!bd || dlen < 3)
+        return FALSE;
+    for (i = 0; i + 3 <= dlen; i++)
+    {
+        char a = (char)bd[i], b = (char)bd[i + 1], c = (char)bd[i + 2];
+        if ((a == 'W' || a == 'w') && (b == 'A' || b == 'a') && (c == 'N' || c == 'n'))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+/* hay is not necessarily NUL-terminated; only hayLen bytes are valid. */
+static BOOL
+Tm8NetDescrContainsAsciiCi(const BYTE *hay, DWORD hayLen, const char *needle)
+{
+    size_t n;
+    DWORD i;
+    size_t j;
+    if (!hay || !needle)
+        return FALSE;
+    n = strlen(needle);
+    if (n == 0 || hayLen < n)
+        return FALSE;
+    for (i = 0; i + (DWORD)n <= hayLen; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            char a = (char)hay[i + (DWORD)j], b = needle[j];
+            if (a >= 'A' && a <= 'Z')
+                a = (char)(a + ('a' - 'A'));
+            if (b >= 'A' && b <= 'Z')
+                b = (char)(b + ('a' - 'A'));
+            if (a != b)
+                break;
+        }
+        if (j == n)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+static void
+Tm8PerfReloadNetAdapters(void)
+{
+    ULONG size = 0;
+    PMIB_IFTABLE pTab;
+    DWORD err, j;
+    int x;
+
+    s_NetAdapterCount = 0;
+    err = GetIfTable(NULL, &size, FALSE);
+    if (err != ERROR_INSUFFICIENT_BUFFER || size < sizeof(MIB_IFTABLE))
+        return;
+    pTab = (PMIB_IFTABLE)HeapAlloc(GetProcessHeap(), 0, size);
+    if (!pTab)
+        return;
+    err = GetIfTable(pTab, &size, FALSE);
+    if (err != NO_ERROR)
+    {
+        HeapFree(GetProcessHeap(), 0, pTab);
+        return;
+    }
+    for (j = 0; j < pTab->dwNumEntries && s_NetAdapterCount < TM8_MAX_NET_ADAPTERS; j++)
+    {
+        MIB_IFROW *row = &pTab->table[j];
+        DWORD pl;
+        DWORD dlen;
+        WCHAR titleTmp[128];
+        TM8_NET_ADAPT *na;
+
+        if (row->dwType == IF_TYPE_SOFTWARE_LOOPBACK)
+            continue;
+
+        /* Like Windows Task Manager: list only enabled interfaces with an active link. */
+        if (row->dwAdminStatus == MIB_IF_ADMIN_STATUS_DOWN)
+            continue;
+        if (row->dwOperStatus != IF_OPER_STATUS_OPERATIONAL &&
+            row->dwOperStatus != IF_OPER_STATUS_CONNECTED)
+            continue;
+
+        pl = row->dwPhysAddrLen;
+        if (pl > MAXLEN_PHYSADDR)
+            pl = MAXLEN_PHYSADDR;
+
+        dlen = row->dwDescrLen;
+        if (dlen > MAXLEN_IFDESCR)
+            dlen = MAXLEN_IFDESCR;
+        if (dlen == 0)
+        {
+            DWORD i;
+            for (i = 0; i < MAXLEN_IFDESCR && row->bDescr[i]; i++)
+                ;
+            dlen = i;
+        }
+
+        MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, (LPCSTR)row->bDescr, -1, titleTmp,
+                            (int)_countof(titleTmp));
+        if (titleTmp[0] == 0)
+            LoadStr(IDS_COL_NETWORK, titleTmp, _countof(titleTmp));
+
+        /*
+         * Skip WAN Miniport pseudo-adapters: dozens of NDIS bindings, usually idle graphs;
+         * Task Manager–style lists focus on real Ethernet / Wi‑Fi / Hyper-V / VM adapters.
+         */
+        if (StrStrIW(titleTmp, L"WAN Miniport") != NULL ||
+            Tm8NetDescrContainsAsciiCi(row->bDescr, dlen, "WAN Miniport"))
+            continue;
+
+        /*
+         * GetIfTable often returns several MIB rows per real NIC (filters / NDIS stack),
+         * same MAC and identical counters — collapse to one tile per hardware address.
+         * Rows with no MAC (e.g. some WAN miniports): collapse by interface type + descr bytes.
+         */
+        if (pl > 0 && !Tm8PhysAddrAllZero(row->bPhysAddr, pl))
+        {
+            for (x = 0; x < s_NetAdapterCount; x++)
+            {
+                if (s_NetAdapters[x].physLen == pl &&
+                    memcmp(s_NetAdapters[x].physAddr, row->bPhysAddr, pl) == 0)
+                    goto skip_net_row;
+            }
+        }
+        else
+        {
+            for (x = 0; x < s_NetAdapterCount; x++)
+            {
+                if (s_NetAdapters[x].physLen != 0)
+                    continue;
+                if (s_NetAdapters[x].ifType != row->dwType)
+                    continue;
+                if (dlen == 0 || s_NetAdapters[x].descrLen != dlen)
+                    continue;
+                if (memcmp(s_NetAdapters[x].bDescrCopy, row->bDescr, dlen) == 0)
+                    goto skip_net_row;
+            }
+        }
+
+        /*
+         * Wi‑Fi / WLAN: many MIB rows use different virtual MACs but the same driver title — one tile.
+         * Some stacks use a non‑802.11 ifType; match common title keywords. Never fold real Ethernet (type 6).
+         * WAN miniports: descr strings differ (IKEv2 vs IP…) while the UI title matches — merge by title.
+         */
+        if (row->dwType != IF_TYPE_ETHERNET_CSMACD &&
+            (row->dwType == IF_TYPE_IEEE80211 || StrStrIW(titleTmp, L"Wireless") != NULL ||
+             StrStrIW(titleTmp, L"Wi-Fi") != NULL || StrStrIW(titleTmp, L"WiFi") != NULL ||
+             StrStrIW(titleTmp, L"WLAN") != NULL || StrStrIW(titleTmp, L"802.11") != NULL))
+        {
+            for (x = 0; x < s_NetAdapterCount; x++)
+            {
+                if (s_NetAdapters[x].ifType == IF_TYPE_ETHERNET_CSMACD)
+                    continue;
+                if (_wcsicmp(s_NetAdapters[x].wszListTitle, titleTmp) == 0)
+                    goto skip_net_row;
+            }
+        }
+        if (StrStrIW(titleTmp, L"WAN") || Tm8NetDescrHasWanAsciiCi(row->bDescr, dlen))
+        {
+            for (x = 0; x < s_NetAdapterCount; x++)
+            {
+                if (_wcsicmp(s_NetAdapters[x].wszListTitle, titleTmp) == 0)
+                    goto skip_net_row;
+            }
+        }
+
+        na = &s_NetAdapters[s_NetAdapterCount];
+        na->dwIndex = row->dwIndex;
+        na->ifType = row->dwType;
+        na->havePrev = FALSE;
+        na->descrLen = dlen;
+        if (dlen > 0)
+            memcpy(na->bDescrCopy, row->bDescr, dlen);
+        if (pl > 0 && !Tm8PhysAddrAllZero(row->bPhysAddr, pl))
+        {
+            na->physLen = pl;
+            memcpy(na->physAddr, row->bPhysAddr, pl);
+        }
+        else
+        {
+            na->physLen = 0;
+        }
+
+        StringCchCopyW(na->wszListTitle, _countof(na->wszListTitle), titleTmp);
+        s_NetMetaLine[s_NetAdapterCount][0] = 0;
+        s_NetAdapterCount++;
+
+    skip_net_row:
+        ;
+    }
+    HeapFree(GetProcessHeap(), 0, pTab);
+
+    if (s_NetAdapterCount > 1)
+        qsort(s_NetAdapters, (size_t)s_NetAdapterCount, sizeof(s_NetAdapters[0]), Tm8CmpNetAdapt);
+
+    for (j = 0; j < (DWORD)s_NetAdapterCount; j++)
+        SendMessageW(s_hwndNav, LB_ADDSTRING, 0, (LPARAM)s_NetAdapters[j].wszListTitle);
+}
+
+static void
+Tm8SampleNetAdapters(int histPos)
+{
+    ULONG size = 0;
+    PMIB_IFTABLE pTab;
+    DWORD err, j, k;
+
+    if (s_NetAdapterCount <= 0)
+        return;
+
+    err = GetIfTable(NULL, &size, FALSE);
+    if (err != ERROR_INSUFFICIENT_BUFFER || size < sizeof(MIB_IFTABLE))
+        return;
+    pTab = (PMIB_IFTABLE)HeapAlloc(GetProcessHeap(), 0, size);
+    if (!pTab)
+        return;
+    err = GetIfTable(pTab, &size, FALSE);
+    if (err != NO_ERROR)
+    {
+        HeapFree(GetProcessHeap(), 0, pTab);
+        return;
+    }
+
+    for (k = 0; k < (DWORD)s_NetAdapterCount; k++)
+    {
+        TM8_NET_ADAPT *ad = &s_NetAdapters[k];
+        MIB_IFROW *row = NULL;
+        ULONG64 inOct, outOct, dIn, dOut, dTot;
+        int pct;
+        double bpsTot;
+        WCHAR sRate[48], rRate[48];
+
+        for (j = 0; j < pTab->dwNumEntries; j++)
+        {
+            if (pTab->table[j].dwIndex == ad->dwIndex)
+            {
+                row = &pTab->table[j];
+                break;
+            }
+        }
+        if (!row)
+        {
+            s_NetHist[k][histPos] = 0;
+            continue;
+        }
+
+        inOct = row->dwInOctets;
+        outOct = row->dwOutOctets;
+
+        if (!ad->havePrev)
+        {
+            ad->prevInOctets = inOct;
+            ad->prevOutOctets = outOct;
+            ad->havePrev = TRUE;
+            s_NetHist[k][histPos] = 0;
+            StringCchCopyW(s_NetMetaLine[k], _countof(s_NetMetaLine[k]), L"S: 0  R: 0");
+            continue;
+        }
+
+        if (inOct >= ad->prevInOctets)
+            dIn = inOct - ad->prevInOctets;
+        else
+            dIn = (ULONG64)0x100000000ULL + inOct - ad->prevInOctets;
+        if (outOct >= ad->prevOutOctets)
+            dOut = outOct - ad->prevOutOctets;
+        else
+            dOut = (ULONG64)0x100000000ULL + outOct - ad->prevOutOctets;
+
+        ad->prevInOctets = inOct;
+        ad->prevOutOctets = outOct;
+
+        dTot = dIn + dOut;
+        /* Use double (like Tm8MulPagesToBytes) so x86 MSVC does not emit __allmul. */
+        bpsTot = (TIMER_MS > 0) ? ((double)dTot * 1000.0 / (double)TIMER_MS) : 0.0;
+        pct = (int)(bpsTot / 125000.0);
+        if (pct < 0)
+            pct = 0;
+        if (pct > 100)
+            pct = 100;
+        s_NetHist[k][histPos] = (BYTE)pct;
+
+        Tm8FmtNetRateKbps(dOut, sRate, _countof(sRate));
+        Tm8FmtNetRateKbps(dIn, rRate, _countof(rRate));
+        StringCchPrintfW(s_NetMetaLine[k], _countof(s_NetMetaLine[k]), L"S: %ls  R: %ls", sRate, rRate);
+    }
+
+    HeapFree(GetProcessHeap(), 0, pTab);
+}
+
+static void
+RefreshNetworkDetailUi(void)
+{
+    WCHAR cap[96];
+
+    if (s_iPage != PAGE_NETWORK)
+        return;
+    if (!s_hwndNetTitle || !s_hwndGraphNet)
+        return;
+    if (s_iNetAdapterSel < 0 || s_iNetAdapterSel >= s_NetAdapterCount)
+        return;
+
+    StringCchCopyW(cap, _countof(cap), s_NetAdapters[s_iNetAdapterSel].wszListTitle);
+    SetWindowTextW(s_hwndNetTitle, cap);
+
+    LoadStr(IDS_NET_THROUGHPUT, cap, _countof(cap));
+    SetWindowTextW(s_hwndNetSub, cap);
+
+    InvalidateRect(s_hwndGraphNet, NULL, FALSE);
+}
+
 static void
 FillNavList(void)
 {
     WCHAR b[128];
+    DWORD selIf = 0;
+    BOOL hadNetSel = (s_iPerfNavSel >= 2 && s_NetAdapterCount > 0 &&
+                      (s_iPerfNavSel - 2) < s_NetAdapterCount);
+
+    if (hadNetSel)
+        selIf = s_NetAdapters[s_iPerfNavSel - 2].dwIndex;
+
     SendMessageW(s_hwndNav, LB_RESETCONTENT, 0, 0);
     LoadStr(IDS_NAV_CPU, b, _countof(b));
     SendMessageW(s_hwndNav, LB_ADDSTRING, 0, (LPARAM)b);
     LoadStr(IDS_NAV_MEMORY, b, _countof(b));
     SendMessageW(s_hwndNav, LB_ADDSTRING, 0, (LPARAM)b);
-    SendMessageW(s_hwndNav, LB_SETCURSEL, s_iPerfNavSel, 0);
+
+    Tm8PerfReloadNetAdapters();
+
+    {
+        int cnt = 2 + s_NetAdapterCount;
+        int newSel = s_iPerfNavSel;
+        int k;
+
+        if (cnt > 0)
+        {
+            if (newSel >= cnt)
+                newSel = cnt - 1;
+            if (newSel < 0)
+                newSel = 0;
+        }
+
+        if (hadNetSel && s_NetAdapterCount > 0)
+        {
+            for (k = 0; k < s_NetAdapterCount; k++)
+            {
+                if (s_NetAdapters[k].dwIndex == selIf)
+                {
+                    newSel = 2 + k;
+                    break;
+                }
+            }
+        }
+
+        s_iPerfNavSel = newSel;
+        if (newSel >= 2)
+            s_iNetAdapterSel = newSel - 2;
+        else
+            s_iNetAdapterSel = 0;
+        if (s_iNetAdapterSel >= s_NetAdapterCount && s_NetAdapterCount > 0)
+            s_iNetAdapterSel = s_NetAdapterCount - 1;
+
+        SendMessageW(s_hwndNav, LB_SETCURSEL, newSel, 0);
+    }
 }
 
 static void
@@ -3273,477 +3036,6 @@ SetupListColumns(void)
     col.pszText = b;
     col.cx = wNet;
     ListView_InsertColumn(s_hwndList, 5, &col);
-}
-
-static void
-Tm8CopyOneLine(const WCHAR **pp, WCHAR *dst, size_t cchDst)
-{
-    const WCHAR *p = *pp;
-    size_t n = 0;
-
-    if (!dst || cchDst == 0)
-        return;
-    if (!p)
-    {
-        dst[0] = 0;
-        return;
-    }
-    while (*p && *p != L'\r' && *p != L'\n' && n + 1 < cchDst)
-        dst[n++] = *p++;
-    dst[n] = 0;
-    if (*p == L'\r' && p[1] == L'\n')
-        p += 2;
-    else if (*p == L'\n' || *p == L'\r')
-        p++;
-    *pp = p;
-}
-
-static void
-DrawCpuSpecKvColumn(HDC hdc, const RECT *rcCol, const WCHAR *pl, const WCHAR *pv, int rowSpecH)
-{
-    int y = rcCol->top;
-    WCHAR lineL[128], lineV[256];
-    int guard = 0;
-    int specWcol = rcCol->right - rcCol->left;
-    int valBand;
-
-    if (specWcol < 32 || !pl || !pv)
-        return;
-
-    valBand = (specWcol * 42) / 100;
-    if (valBand < 52)
-        valBand = 52;
-    if (valBand > 120)
-        valBand = 120;
-    if (valBand > specWcol - 10)
-        valBand = (specWcol * 48) / 100;
-    if (valBand < 40)
-        valBand = 40;
-
-    while (*pl && *pv && y + rowSpecH <= rcCol->bottom && guard++ < 48)
-    {
-        RECT rL, rVal;
-
-        Tm8CopyOneLine(&pl, lineL, _countof(lineL));
-        Tm8CopyOneLine(&pv, lineV, _countof(lineV));
-        rL.left = rcCol->left;
-        rL.right = rcCol->right - valBand - 4;
-        rL.top = y;
-        rL.bottom = y + rowSpecH;
-        SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-        SetTextColor(hdc, RGB(96, 96, 96));
-        DrawTextW(hdc, lineL, -1, &rL, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-        rVal.left = rcCol->right - valBand;
-        rVal.right = rcCol->right;
-        rVal.top = y;
-        rVal.bottom = y + rowSpecH;
-        SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-        SetTextColor(hdc, RGB(32, 32, 32));
-        DrawTextW(hdc, lineV, -1, &rVal,
-                  DT_RIGHT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-        y += rowSpecH + 1;
-    }
-}
-
-static void
-DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
-{
-    int w = rcPanel->right - rcPanel->left;
-    int sep1, sep2, y;
-    HFONT oldF;
-    TEXTMETRICW tmLbl, tmMid, tmSpec;
-    int gapRow = 6;
-    int lblH, midH, rowSpecH;
-    int half, tw, c0, c1, c2;
-    RECT rcLeft, rcMid, rcCache;
-    RECT rU, rS, rL, rV;
-
-    if (w < 100 || rcPanel->bottom <= rcPanel->top + 12)
-        return;
-
-    FillRect(hdc, rcPanel, (HBRUSH)GetStockObject(WHITE_BRUSH));
-
-    /*
-     * Win10/11 CPU stats: three stable columns — live metrics | socket/core/virt | caches.
-     * Equal thirds of inner width so widening the window does not change structure.
-     */
-    {
-        const int padOut = 8;
-        const int inset = 6;
-        int L = rcPanel->left + padOut;
-        int R = rcPanel->right - padOut;
-        int W = R - L;
-        int w1, w2;
-
-        if (W < 60)
-            return;
-        w1 = W / 3;
-        w2 = W / 3;
-        sep1 = L + w1;
-        sep2 = L + w1 + w2;
-
-        rcLeft.left = L + inset;
-        rcLeft.right = sep1 - inset;
-        rcMid.left = sep1 + inset;
-        rcMid.right = sep2 - inset;
-        rcCache.left = sep2 + inset;
-        rcCache.right = R - inset;
-
-        if (rcLeft.right < rcLeft.left + 40)
-            rcLeft.right = rcLeft.left + 40;
-        if (rcMid.right < rcMid.left + 40)
-            rcMid.right = rcMid.left + 40;
-        if (rcCache.right < rcCache.left + 40)
-            rcCache.right = rcCache.left + 40;
-    }
-    rcLeft.top = rcPanel->top + 6;
-    rcLeft.bottom = rcPanel->bottom - 6;
-    rcMid.top = rcLeft.top;
-    rcMid.bottom = rcLeft.bottom;
-    rcCache.top = rcLeft.top;
-    rcCache.bottom = rcLeft.bottom;
-
-    SetBkMode(hdc, TRANSPARENT);
-
-    oldF = (HFONT)SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    GetTextMetricsW(hdc, &tmLbl);
-    lblH = tmLbl.tmHeight + 1;
-
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    GetTextMetricsW(hdc, &tmMid);
-    midH = tmMid.tmHeight + 2;
-
-    y = rcLeft.top;
-    /* Utilization | Speed */
-    half = (rcLeft.right - rcLeft.left) / 2;
-    rU.left = rcLeft.left;
-    rU.right = rcLeft.left + half - 6;
-    rU.top = y;
-    rU.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, s_CpuStatsPaint.utilLbl, -1, &rU, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-    rU.top = y + lblH + 2;
-    rU.bottom = rU.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, s_CpuStatsPaint.utilVal, -1, &rU,
-              DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    rS.left = rcLeft.left + half;
-    rS.right = rcLeft.right;
-    rS.top = y;
-    rS.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, s_CpuStatsPaint.speedLbl, -1, &rS, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-    rS.top = y + lblH + 2;
-    rS.bottom = rS.top + midH;
-    if (s_CpuStatsPaint.speedVal[0])
-    {
-        SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-        SetTextColor(hdc, RGB(32, 32, 32));
-        DrawTextW(hdc, s_CpuStatsPaint.speedVal, -1, &rS,
-                  DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    }
-
-    y += lblH + 2 + midH + gapRow;
-
-    /* Processes | Threads | Handles — fixed gutters so columns don’t drift apart */
-    {
-        int innerL = rcLeft.right - rcLeft.left;
-        int gapMid = 10;
-        tw = (innerL - 2 * gapMid) / 3;
-        if (tw < 52)
-            tw = 52;
-        c0 = rcLeft.left;
-        c1 = c0 + tw + gapMid;
-        c2 = c1 + tw + gapMid;
-    }
-
-    rL.left = c0;
-    rL.right = c0 + tw - 2;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, s_CpuStatsPaint.procLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-    rV.left = rL.left;
-    rV.right = rL.right;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, s_CpuStatsPaint.procVal, -1, &rV,
-              DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    rL.left = c1;
-    rL.right = c1 + tw - 2;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, s_CpuStatsPaint.threadLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-    rV.left = rL.left;
-    rV.right = rL.right;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, s_CpuStatsPaint.threadVal, -1, &rV,
-              DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    rL.left = c2;
-    rL.right = rcLeft.right;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, s_CpuStatsPaint.handleLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-    rV.left = rL.left;
-    rV.right = rL.right;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, s_CpuStatsPaint.handleVal, -1, &rV,
-              DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    y += lblH + 2 + midH + gapRow;
-
-    /* Up time */
-    rL.left = rcLeft.left;
-    rL.right = rcLeft.right;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, s_CpuStatsPaint.upLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-    rV.left = rcLeft.left;
-    rV.right = rcLeft.right;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, s_CpuStatsPaint.upVal, -1, &rV,
-              DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    SelectObject(hdc, oldF);
-
-    /* Middle + cache columns (same row height as former single spec strip). */
-    {
-        int specLblH, specValH;
-        SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-        GetTextMetricsW(hdc, &tmSpec);
-        specLblH = tmSpec.tmHeight;
-        SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-        GetTextMetricsW(hdc, &tmSpec);
-        specValH = tmSpec.tmHeight;
-        rowSpecH = (specLblH > specValH ? specLblH : specValH) + 4;
-        if (lblH + 2 > rowSpecH)
-            rowSpecH = lblH + 2;
-    }
-    DrawCpuSpecKvColumn(hdc, &rcMid, s_CpuStatsPaint.specMidLblBuf, s_CpuStatsPaint.specMidValBuf,
-                        rowSpecH);
-    DrawCpuSpecKvColumn(hdc, &rcCache, s_CpuStatsPaint.specCacheLblBuf, s_CpuStatsPaint.specCacheValBuf,
-                        rowSpecH);
-}
-
-static void
-Tm8CpuStatsUpdateScrollInfo(HWND hwnd)
-{
-    RECT rc;
-    SCROLLINFO si;
-    int clientW;
-    int page;
-    BOOL needScroll;
-
-    if (!hwnd || !IsWindow(hwnd))
-        return;
-    GetClientRect(hwnd, &rc);
-    clientW = rc.right - rc.left;
-    if (clientW < 0)
-        clientW = 0;
-
-    s_CpuStatsContentW = TM8_CPU_STATS_MIN_INNER_W;
-    if (s_CpuStatsContentW < clientW)
-        s_CpuStatsContentW = clientW;
-
-    needScroll = (s_CpuStatsContentW > clientW);
-
-    if (!needScroll)
-        s_CpuStatsHScrollPos = 0;
-    else
-    {
-        int maxPos = s_CpuStatsContentW - clientW;
-        if (s_CpuStatsHScrollPos > maxPos)
-            s_CpuStatsHScrollPos = maxPos;
-        if (s_CpuStatsHScrollPos < 0)
-            s_CpuStatsHScrollPos = 0;
-    }
-
-    page = clientW > 0 ? clientW : 1;
-    ZeroMemory(&si, sizeof(si));
-    si.cbSize = sizeof(si);
-    si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
-    si.nMin = 0;
-    si.nMax = (s_CpuStatsContentW > 1) ? (s_CpuStatsContentW - 1) : 0;
-    si.nPage = (UINT)page;
-    si.nPos = s_CpuStatsHScrollPos;
-    SetScrollInfo(hwnd, SB_HORZ, &si, TRUE);
-    ShowScrollBar(hwnd, SB_HORZ, needScroll);
-}
-
-static LRESULT CALLBACK
-CpuStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch (msg)
-    {
-    case WM_CREATE:
-        s_CpuStatsHScrollPos = 0;
-        s_CpuStatsContentW = TM8_CPU_STATS_MIN_INNER_W;
-        return 0;
-
-    case WM_SIZE:
-        Tm8CpuStatsUpdateScrollInfo(hwnd);
-        return 0;
-
-    case WM_HSCROLL:
-    {
-        RECT rc;
-        int clientW, maxPos, pos = s_CpuStatsHScrollPos;
-        SCROLLINFO si;
-
-        GetClientRect(hwnd, &rc);
-        clientW = rc.right - rc.left;
-        maxPos = (s_CpuStatsContentW > clientW) ? (s_CpuStatsContentW - clientW) : 0;
-
-        switch (LOWORD(wParam))
-        {
-        case SB_LINELEFT:
-            pos -= 24;
-            break;
-        case SB_LINERIGHT:
-            pos += 24;
-            break;
-        case SB_PAGELEFT:
-            pos -= clientW > 0 ? clientW : 1;
-            break;
-        case SB_PAGERIGHT:
-            pos += clientW > 0 ? clientW : 1;
-            break;
-        case SB_THUMBTRACK:
-            ZeroMemory(&si, sizeof(si));
-            si.cbSize = sizeof(si);
-            si.fMask = SIF_TRACKPOS;
-            if (GetScrollInfo(hwnd, SB_HORZ, &si))
-                pos = si.nTrackPos;
-            break;
-        case SB_THUMBPOSITION:
-            pos = (short)HIWORD(wParam);
-            break;
-        default:
-            return DefWindowProcW(hwnd, msg, wParam, lParam);
-        }
-        if (pos < 0)
-            pos = 0;
-        if (pos > maxPos)
-            pos = maxPos;
-        if (pos != s_CpuStatsHScrollPos)
-        {
-            s_CpuStatsHScrollPos = pos;
-            Tm8CpuStatsUpdateScrollInfo(hwnd);
-            InvalidateRect(hwnd, NULL, TRUE);
-        }
-        return 0;
-    }
-
-    case WM_MOUSEWHEEL:
-        if (GetKeyState(VK_SHIFT) & 0x8000)
-        {
-            int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-            RECT rc;
-            int clientW, maxPos, pos = s_CpuStatsHScrollPos;
-            const int step = 48;
-
-            GetClientRect(hwnd, &rc);
-            clientW = rc.right - rc.left;
-            maxPos = (s_CpuStatsContentW > clientW) ? (s_CpuStatsContentW - clientW) : 0;
-            if (delta > 0)
-                pos -= step;
-            else
-                pos += step;
-            if (pos < 0)
-                pos = 0;
-            if (pos > maxPos)
-                pos = maxPos;
-            if (pos != s_CpuStatsHScrollPos)
-            {
-                s_CpuStatsHScrollPos = pos;
-                Tm8CpuStatsUpdateScrollInfo(hwnd);
-                InvalidateRect(hwnd, NULL, TRUE);
-            }
-            return 0;
-        }
-        return DefWindowProcW(hwnd, msg, wParam, lParam);
-
-    case WM_ERASEBKGND:
-        return 1;
-
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc;
-        RECT rcC, rcDraw;
-        int drawW, dcSave;
-
-        hdc = BeginPaint(hwnd, &ps);
-        GetClientRect(hwnd, &rcC);
-        drawW = s_CpuStatsContentW;
-        if (drawW < rcC.right)
-            drawW = rcC.right;
-
-        FillRect(hdc, &rcC, (HBRUSH)GetStockObject(WHITE_BRUSH));
-
-        rcDraw.left = 0;
-        rcDraw.top = 0;
-        rcDraw.right = drawW;
-        rcDraw.bottom = rcC.bottom;
-
-        dcSave = SaveDC(hdc);
-        SetViewportOrgEx(hdc, -s_CpuStatsHScrollPos, 0, NULL);
-        DrawCpuPerfStatsPanel(hdc, &rcDraw);
-        RestoreDC(hdc, dcSave);
-        EndPaint(hwnd, &ps);
-        return 0;
-    }
-
-    default:
-        return DefWindowProcW(hwnd, msg, wParam, lParam);
-    }
-}
-
-static BOOL
-Tm8RegisterCpuStatsPanelClass(HINSTANCE hInst)
-{
-    WNDCLASSW wc;
-
-    if (GetClassInfoW(hInst, L"RosTm8CpuStats", &wc))
-        return TRUE;
-    ZeroMemory(&wc, sizeof(wc));
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = CpuStatsPanelProc;
-    wc.cbWndExtra = 0;
-    wc.cbClsExtra = 0;
-    wc.hInstance = hInst;
-    wc.hIcon = NULL;
-    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = L"RosTm8CpuStats";
-    if (!RegisterClassW(&wc))
-        return GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
-    return TRUE;
 }
 
 static void
@@ -3837,9 +3129,6 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         s_brNavColumn = CreateSolidBrush(COL_NAV_BG);
 
-        s_hwndStatus = CreateStatusWindowW(WS_CHILD | WS_VISIBLE, L"", hwnd, 100);
-        SendMessageW(s_hwndStatus, SB_SETTEXT, 0, (LPARAM)L"");
-
         s_hwndMainTab = CreateWindowExW(0, WC_TABCONTROLW, L"",
                                         WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPSIBLINGS |
                                         TCS_FOCUSNEVER,
@@ -3874,17 +3163,12 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             (WNDPROC)SetWindowLongPtrW(s_hwndList, GWLP_WNDPROC, (LONG_PTR)ListViewSubclassProc);
 
         {
-            WCHAR et[48], fd[48];
+            WCHAR et[48];
             LoadStr(IDS_ENDTASK, et, _countof(et));
-            LoadStr(IDS_FEWER_DETAILS, fd, _countof(fd));
             s_hwndEndTask =
                 CreateWindowW(L"Button", et,
                               WS_CHILD | WS_TABSTOP | BS_PUSHBUTTON | WS_VISIBLE,
                               0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_ENDTASK_BTN, s_hInst, NULL);
-            s_hwndFewerDetails =
-                CreateWindowW(L"Static", fd,
-                              WS_CHILD | SS_LEFT | SS_NOTIFY | WS_VISIBLE,
-                              0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_FEWER_DETAILS, s_hInst, NULL);
             EnableWindow(s_hwndEndTask, FALSE);
         }
 
@@ -3948,9 +3232,9 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                          WS_CHILD | SS_OWNERDRAW | SS_NOPREFIX,
                                          0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_CPU_SPEC_VAL,
                                          s_hInst, NULL);
-        Tm8RegisterCpuStatsPanelClass(s_hInst);
+        Tm8CpuStats_RegisterClass(s_hInst);
         s_hwndCpuStatsPanel =
-            CreateWindowW(L"RosTm8CpuStats", L"", WS_CHILD | WS_HSCROLL, 0, 0, 10, 10, hwnd,
+            CreateWindowW(TM8_CPU_STATS_WNDCLASS, L"", WS_CHILD | WS_HSCROLL, 0, 0, 10, 10, hwnd,
                           (HMENU)(UINT_PTR)IDC_CPU_STATS_PANEL, s_hInst, NULL);
         s_hwndMemTitle = CreateWindowW(L"Static", L"",
                                        WS_CHILD | SS_LEFT | SS_NOPREFIX,
@@ -3968,10 +3252,19 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                          WS_CHILD | SS_LEFT | SS_NOPREFIX,
                                          0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_MEM_COMP_SUB,
                                          s_hInst, NULL);
-        s_hwndMemStatsPanel = CreateWindowW(L"Static", L"",
-                                            WS_CHILD | SS_OWNERDRAW | SS_NOPREFIX,
-                                            0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_MEM_STATS_PANEL,
-                                            s_hInst, NULL);
+        Tm8MemStats_RegisterClass(s_hInst);
+        s_hwndMemStatsPanel =
+            CreateWindowW(TM8_MEM_STATS_WNDCLASS, L"", WS_CHILD | WS_HSCROLL, 0, 0, 10, 10, hwnd,
+                          (HMENU)(UINT_PTR)IDC_MEM_STATS_PANEL, s_hInst, NULL);
+
+        s_hwndNetTitle = CreateWindowW(L"Static", L"",
+                                         WS_CHILD | SS_LEFT | SS_NOPREFIX,
+                                         0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_NET_TITLE,
+                                         s_hInst, NULL);
+        s_hwndNetSub = CreateWindowW(L"Static", L"",
+                                     WS_CHILD | SS_LEFT | SS_NOPREFIX,
+                                     0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_NET_SUB,
+                                     s_hInst, NULL);
 
         s_hwndStub = CreateWindowW(L"Static", L"",
                                    WS_CHILD | SS_CENTER | SS_NOPREFIX,
@@ -4001,6 +3294,12 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                            0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_MEM_COMP_GRAPH,
                                            s_hInst, NULL);
         SetWindowLongPtrW(s_hwndGraphMemComp, GWLP_WNDPROC, (LONG_PTR)GraphWndProc);
+
+        s_hwndGraphNet = CreateWindowW(L"Static", L"",
+                                       WS_CHILD | WS_BORDER,
+                                       0, 0, 10, 10, hwnd, (HMENU)(UINT_PTR)IDC_NET_GRAPH,
+                                       s_hInst, NULL);
+        SetWindowLongPtrW(s_hwndGraphNet, GWLP_WNDPROC, (LONG_PTR)GraphWndProc);
 
         s_hProcMenuRoot = LoadMenuW(s_hInst, MAKEINTRESOURCEW(IDR_PROC_MENU));
         s_hCtxMenu = s_hProcMenuRoot ? GetSubMenu(s_hProcMenuRoot, 0) : NULL;
@@ -4138,12 +3437,20 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (!s_hwndMainTab || TabCtrl_GetCurSel(s_hwndMainTab) != TAB_MAIN_PERF)
                 return 0;
             sel = (int)SendMessageW(s_hwndNav, LB_GETCURSEL, 0, 0);
-            if (sel >= 0 && sel <= 1)
-                s_iPerfNavSel = sel;
+            if (sel < 0)
+                return 0;
+            s_iPerfNavSel = sel;
             if (sel == 0)
                 ShowPage(PAGE_CPU);
             else if (sel == 1)
                 ShowPage(PAGE_MEMORY);
+            else
+            {
+                s_iNetAdapterSel = sel - 2;
+                if (s_iNetAdapterSel >= s_NetAdapterCount)
+                    s_iNetAdapterSel = 0;
+                ShowPage(PAGE_NETWORK);
+            }
             InvalidateRect(s_hwndNav, NULL, TRUE);
             return 0;
         }
@@ -4173,11 +3480,6 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_DRAWITEM:
     {
         LPDRAWITEMSTRUCT dis = (LPDRAWITEMSTRUCT)lParam;
-        if (dis->CtlID == IDC_MEM_STATS_PANEL)
-        {
-            DrawMemPerfStatsPanel(dis->hDC, &dis->rcItem);
-            return TRUE;
-        }
         if (dis->CtlID == IDC_CPU_LIVE_VAL || dis->CtlID == IDC_CPU_SPEC_VAL)
         {
             DrawCpuStatsValueColumn(dis->hDC, &dis->rcItem, dis->hwndItem);
@@ -4266,6 +3568,15 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     NavDrawMiniSpark(dis->hDC, &rcSpark, s_MemHist, CPU_HIST_LEN, s_MemHistPos,
                                      COL_MEM_GRAPH_FILL, COL_MEM_GRAPH_LINE, FALSE);
                 }
+                else if ((int)dis->itemID >= 2)
+                {
+                    int ni = (int)dis->itemID - 2;
+                    if (ni >= 0 && ni < s_NetAdapterCount)
+                    {
+                        NavDrawMiniSpark(dis->hDC, &rcSpark, s_NetHist[ni], CPU_HIST_LEN, s_CpuHistPos,
+                                         COL_GRAPH_FILL, COL_GRAPH_LINE, FALSE);
+                    }
+                }
             }
 
             SetBkMode(dis->hDC, TRANSPARENT);
@@ -4312,7 +3623,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     DrawTextW(dis->hDC, metaLine, -1, &rcMeta,
                               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
                 }
-                else
+                else if (dis->itemID == 1)
                 {
                     WCHAR memSub[120];
                     double uGb, tGb;
@@ -4351,6 +3662,37 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     DrawTextW(dis->hDC, memSub, -1, &rcMeta,
                               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
                 }
+                else if ((int)dis->itemID >= 2)
+                {
+                    int ni = (int)dis->itemID - 2;
+
+                    SelectObject(dis->hDC, s_hFontNavBold ? s_hFontNavBold : s_hFontPerf);
+                    SetTextColor(dis->hDC, fg);
+                    GetTextMetricsW(dis->hDC, &tm);
+                    nameH = tm.tmHeight + 1;
+
+                    rcName.left = textL;
+                    rcName.right = textR;
+                    rcName.top = rcTile.top + 6;
+                    rcName.bottom = rcName.top + nameH;
+                    DrawTextW(dis->hDC, text, -1, &rcName,
+                              DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+
+                    SelectObject(dis->hDC, s_hFontNavMeta ? s_hFontNavMeta : s_hFontPerf);
+                    SetTextColor(dis->hDC, RGB(96, 96, 96));
+                    GetTextMetricsW(dis->hDC, &tm);
+                    metaH = tm.tmHeight + 2;
+
+                    rcMeta.left = textL;
+                    rcMeta.right = textR;
+                    rcMeta.top = rcName.bottom + 3;
+                    rcMeta.bottom = rcMeta.top + metaH;
+                    if (rcMeta.bottom > rcTile.bottom - 5)
+                        rcMeta.bottom = rcTile.bottom - 5;
+                    if (ni >= 0 && ni < s_NetAdapterCount)
+                        DrawTextW(dis->hDC, s_NetMetaLine[ni], -1, &rcMeta,
+                                  DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+                }
             }
             return TRUE;
         }
@@ -4367,15 +3709,15 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return DefWindowProcW(hwnd, msg, wParam, lParam);
 
     case WM_CTLCOLORSTATIC:
-        if ((HWND)lParam == s_hwndCpuTitle)
+        if ((HWND)lParam == s_hwndCpuTitle || (HWND)lParam == s_hwndNetTitle)
         {
             HDC hdcSt = (HDC)wParam;
             SetBkColor(hdcSt, RGB(255, 255, 255));
             SetTextColor(hdcSt, RGB(32, 32, 32));
             return (INT_PTR)GetStockObject(WHITE_BRUSH);
         }
-        if ((HWND)lParam == s_hwndCpuGraphSub || (HWND)lParam == s_hwndCpuLiveLbl ||
-            (HWND)lParam == s_hwndCpuSpecLbl)
+        if ((HWND)lParam == s_hwndCpuGraphSub || (HWND)lParam == s_hwndNetSub ||
+            (HWND)lParam == s_hwndCpuLiveLbl || (HWND)lParam == s_hwndCpuSpecLbl)
         {
             HDC hdcSt = (HDC)wParam;
             SetBkColor(hdcSt, RGB(255, 255, 255));
@@ -4412,8 +3754,14 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 ShowPage(PAGE_PROCESSES);
             else if (t == TAB_MAIN_PERF)
             {
+                FillNavList();
                 SendMessageW(s_hwndNav, LB_SETCURSEL, s_iPerfNavSel, 0);
-                ShowPage(s_iPerfNavSel == 1 ? PAGE_MEMORY : PAGE_CPU);
+                if (s_iPerfNavSel == 0)
+                    ShowPage(PAGE_CPU);
+                else if (s_iPerfNavSel == 1)
+                    ShowPage(PAGE_MEMORY);
+                else
+                    ShowPage(PAGE_NETWORK);
             }
             else
                 ShowPage(PAGE_STUB);
@@ -4735,172 +4083,6 @@ DrawMemCompositionBar(HDC hdc, const RECT *rc)
 }
 
 static void
-DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
-{
-    int w = rcPanel->right - rcPanel->left;
-    int pad = 8;
-    int gapCol = 14;
-    int gapRow = 8;
-    int colW, c0, c1, c2;
-    int y, lblH, midH;
-    HFONT oldF;
-    TEXTMETRICW tm;
-    RECT rL, rV;
-    TM8_MEM_STATS_PAINT *ps = &s_MemStatsPaint;
-
-    if (w < 120 || rcPanel->bottom <= rcPanel->top + 8)
-        return;
-
-    FillRect(hdc, rcPanel, (HBRUSH)GetStockObject(WHITE_BRUSH));
-    SetBkMode(hdc, TRANSPARENT);
-
-    colW = (w - 2 * pad - 2 * gapCol) / 3;
-    if (colW < 80)
-        colW = (w - 2 * pad) / 3;
-    c0 = rcPanel->left + pad;
-    c1 = c0 + colW + gapCol;
-    c2 = c1 + colW + gapCol;
-
-    oldF = (HFONT)SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    GetTextMetricsW(hdc, &tm);
-    lblH = tm.tmHeight + 1;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    GetTextMetricsW(hdc, &tm);
-    midH = tm.tmHeight + 2;
-
-    y = rcPanel->top + 6;
-    rL.left = c0;
-    rL.right = c0 + colW;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c1Lbl1, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.left = c0;
-    rV.right = c0 + colW;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c1Val1, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c1Lbl2, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c1Val2, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c1Lbl3, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c1Val3, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    y = rcPanel->top + 6;
-    rL.left = c1;
-    rL.right = c1 + colW;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c2Lbl1, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.left = c1;
-    rV.right = c1 + colW;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c2Val1, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.left = c1;
-    rL.right = c1 + colW;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c2Lbl2, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c2Val2, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.left = c1;
-    rL.right = c1 + colW;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c2Lbl3, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c2Val3, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    y = rcPanel->top + 6;
-    rL.left = c2;
-    rL.right = c2 + colW;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c3Lbl1, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.left = c2;
-    rV.right = c2 + colW;
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c3Val1, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c3Lbl2, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c3Val2, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c3Lbl3, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c3Val3, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    y += lblH + 2 + midH + gapRow;
-    rL.top = y;
-    rL.bottom = y + lblH;
-    SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
-    DrawTextW(hdc, ps->c3Lbl4, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-    rV.top = y + lblH + 2;
-    rV.bottom = rV.top + midH;
-    SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
-    DrawTextW(hdc, ps->c3Val4, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-    SelectObject(hdc, oldF);
-}
-
-static void
 DrawPerfHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen, int histWritePos,
                      COLORREF fillCol, COLORREF lineCol, UINT captionLeftStrId, BOOL draw100Pct,
                      int lineWidth)
@@ -5180,6 +4362,11 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             DrawMemoryUsageHistoryGraph(mem, &rc, s_MemHist, CPU_HIST_LEN, s_MemHistPos,
                                         COL_MEM_GRAPH_FILL, COL_MEM_GRAPH_LINE, 1);
+        }
+        else if (hwnd == s_hwndGraphNet && s_iNetAdapterSel >= 0 && s_iNetAdapterSel < s_NetAdapterCount)
+        {
+            DrawPerfHistoryGraph(mem, &rc, s_NetHist[s_iNetAdapterSel], CPU_HIST_LEN, s_CpuHistPos,
+                                 COL_GRAPH_FILL, COL_GRAPH_LINE, IDS_NET_THROUGHPUT, TRUE, 1);
         }
         else if (hwnd == s_hwndGraphMemComp)
         {
