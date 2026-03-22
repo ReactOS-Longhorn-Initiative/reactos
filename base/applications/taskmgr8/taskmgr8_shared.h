@@ -21,3 +21,8 @@ extern int s_LastCpuPct;
 #if defined(_WIN64)
 extern PFN_GetTickCount64 s_pfnGetTickCount64;
 #endif
+
+BOOL Tm8QueryProcessImagePath(HANDLE hProc, WCHAR *path, DWORD cchPath);
+int Tm8IconForExePath(const WCHAR *path);
+void Tm8FmtMbComma1(double mbVal, WCHAR *dst, size_t cch);
+double Tm8ProcessCpuUsagePercent(DWORD pid, ULONGLONG *pTotal100Ns, DWORD msElapsed, UINT nCpu);

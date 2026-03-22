@@ -86,6 +86,21 @@ BEGIN
     IDS_LBL_L3          "L3 cache"
     IDS_LBL_L1          "L1 cache"
     IDS_NET_THROUGHPUT  "Throughput over 60 seconds"
+    IDS_COL_SESSION     "Session"
+    IDS_COL_USER        "User name"
+    IDS_COL_CMDLINE     "Command line"
+    IDS_STAT_RUNNING    "Running"
+    IDS_SVC_DISPLAY     "Display name"
+    IDS_SVC_INTERNAL    "Name"
+    IDS_SVC_STATUS_COL  "Status"
+    IDS_SVC_START_COL   "Startup type"
+    IDS_SVC_RUNNING     "Running"
+    IDS_SVC_STOPPED     "Stopped"
+    IDS_SVC_START_AUTO  "Automatic"
+    IDS_SVC_START_MAN   "Manual"
+    IDS_SVC_START_DIS   "Disabled"
+    IDS_SVC_START_BOOT  "Boot"
+    IDS_SVC_START_SYS   "System"
 END
 
 IDR_MAINMENU MENU

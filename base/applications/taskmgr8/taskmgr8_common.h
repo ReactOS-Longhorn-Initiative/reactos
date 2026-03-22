@@ -5,10 +5,13 @@
  * Shared types, constants, and includes for all taskmgr8 translation units.
  *
  * Layout:
- *   taskmgr8.c           — Main window, tabs, process list, performance graphs, layout.
+ *   taskmgr8.c           — Main window, tabs, list views, performance graphs, layout.
  *   taskmgr8_helpers.c   — Resource strings, locale formatting, registry, CPU topology/cache.
  *   taskmgr8_cpu_stats.c — Performance / CPU bottom statistics strip (custom control + paint).
  *   taskmgr8_mem_stats.c — Performance / Memory bottom statistics strip (custom control + paint).
+ *   taskmgr8_listutil.c  — Shared ListView column reset helpers.
+ *   taskmgr8_details.c   — Details tab (extended process list).
+ *   taskmgr8_services.c  — Services tab (SCM enumeration).
  */
 
 #pragma once
@@ -70,7 +73,9 @@ typedef ULONGLONG(WINAPI *PFN_GetTickCount64)(void);
 #define PAGE_CPU        1
 #define PAGE_MEMORY     2
 #define PAGE_NETWORK    3
-#define PAGE_STUB       4
+#define PAGE_DETAILS    4
+#define PAGE_SERVICES   5
+#define PAGE_STUB       6
 
 #define TM8_MAX_NET_ADAPTERS 24
 

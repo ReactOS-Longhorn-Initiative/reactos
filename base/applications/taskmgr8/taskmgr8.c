@@ -1,17 +1,21 @@
 /*
  * PROJECT:     ReactOS — modern Task Manager (Win8-style shell)
  * LICENSE:     GPL-2.0-or-later OR LGPL-2.1-or-later
- * PURPOSE:     Main window: tabs, process list, performance graphs, layout, timers.
+ * PURPOSE:     Main window: tabs, process/details/services lists, performance graphs, layout, timers.
  *
  * Supporting translation units: taskmgr8_helpers.c (strings/format/registry/CPUID),
  * taskmgr8_cpu_stats.c (CPU statistics strip + RosTm8CpuStats control).
  * taskmgr8_mem_stats.c (Memory statistics strip + RosTm8MemStats control).
+ * taskmgr8_listutil.c / taskmgr8_details.c / taskmgr8_services.c — list tabs.
  */
 
 #include "taskmgr8_common.h"
 #include "taskmgr8_helpers.h"
 #include "taskmgr8_cpu_stats.h"
 #include "taskmgr8_mem_stats.h"
+#include "taskmgr8_listutil.h"
+#include "taskmgr8_details.h"
+#include "taskmgr8_services.h"
 #include <iphlpapi.h>
 #include <ipifcons.h>
 #include <string.h>
@@ -111,6 +115,12 @@ static BOOL s_ProcListVScrollDragging;
 static DWORD s_ProcListResumeDeadline;
 
 static TM8_SCRATCH_PROC s_ProcScratch[TM8_MAX_PROC_ROWS];
+
+static TM8_DETAILS_ROW_METRICS s_DetailsMetricRows[TM8_MAX_PROC_ROWS];
+static int s_DetailsMetricCount;
+static SIZE_T s_DetailsMemMax;
+
+static BOOL Tm8OnProcessOrDetailsTaskList(void);
 
 static void SyncProcEndTaskUi(void);
 static DWORD GetSelectedPid(void);
@@ -279,7 +289,7 @@ FindCpuTrack(DWORD pid)
     return &s_CpuTrack[s_CpuTrackCount++];
 }
 
-static BOOL
+BOOL
 Tm8QueryProcessImagePath(HANDLE hProc, WCHAR *path, DWORD cchPath)
 {
     typedef BOOL(WINAPI *PFN_Qfpn)(HANDLE, DWORD, LPWSTR, PDWORD);
@@ -339,7 +349,7 @@ Tm8IconCacheStore(const WCHAR *path, int idx)
     s_IconCacheCount++;
 }
 
-static int
+int
 Tm8IconForExePath(const WCHAR *path)
 {
     SHFILEINFOW sfi;
@@ -370,7 +380,7 @@ Tm8IconForExePath(const WCHAR *path)
     return idx;
 }
 
-static void
+void
 Tm8FmtMbComma1(double mbVal, WCHAR *dst, size_t cch)
 {
     WCHAR num[64], out[96];
@@ -1152,7 +1162,8 @@ LayoutChildren(HWND hwnd)
         int footerH = 0;
         int mtab = s_hwndMainTab ? (int)TabCtrl_GetCurSel(s_hwndMainTab) : TAB_MAIN_PROCESSES;
 
-        if (mtab == TAB_MAIN_PROCESSES && s_iPage == PAGE_PROCESSES)
+        if ((mtab == TAB_MAIN_PROCESSES && s_iPage == PAGE_PROCESSES) ||
+            (mtab == TAB_MAIN_DETAILS && s_iPage == PAGE_DETAILS))
         {
             footerH = 44;
             if (listH > footerH)
@@ -1358,7 +1369,7 @@ LayoutChildren(HWND hwnd)
     if (s_hwndStub)
     {
         int mtab = s_hwndMainTab ? (int)TabCtrl_GetCurSel(s_hwndMainTab) : TAB_MAIN_PROCESSES;
-        if (mtab >= TAB_MAIN_APPHIST)
+        if (mtab == TAB_MAIN_APPHIST || mtab == TAB_MAIN_STARTUP || mtab == TAB_MAIN_USERS)
         {
             SetWindowPos(s_hwndStub, NULL, pageLeft + 8, pageTop + 16, pageW - 16, pageH - 24,
                          SWP_NOZORDER | SWP_NOACTIVATE);
@@ -1374,9 +1385,24 @@ ShowPage(int page)
     Tm8CpuStats_OnLeaveCpuPage(page);
     Tm8MemStats_OnLeaveMemoryPage(page);
 
-    ShowWindow(s_hwndList, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
-    if (s_hwndEndTask)
-        ShowWindow(s_hwndEndTask, (page == PAGE_PROCESSES) ? SW_SHOW : SW_HIDE);
+    {
+        BOOL showList = (page == PAGE_PROCESSES || page == PAGE_DETAILS || page == PAGE_SERVICES);
+        BOOL showEnd = (page == PAGE_PROCESSES || page == PAGE_DETAILS);
+
+        ShowWindow(s_hwndList, showList ? SW_SHOW : SW_HIDE);
+        if (s_hwndEndTask)
+            ShowWindow(s_hwndEndTask, showEnd ? SW_SHOW : SW_HIDE);
+
+        if (page == PAGE_PROCESSES || page == PAGE_DETAILS)
+        {
+            if (s_hProcSmIl)
+                ListView_SetImageList(s_hwndList, s_hProcSmIl, LVSIL_SMALL);
+        }
+        else if (page == PAGE_SERVICES)
+        {
+            ListView_SetImageList(s_hwndList, NULL, LVSIL_SMALL);
+        }
+    }
     ShowWindow(s_hwndStub, (page == PAGE_STUB) ? SW_SHOW : SW_HIDE);
 
     ShowWindow(s_hwndCpuTitle, (page == PAGE_CPU) ? SW_SHOW : SW_HIDE);
@@ -1414,12 +1440,12 @@ ShowPage(int page)
         InvalidateRect(s_hwndNav, NULL, TRUE);
     if (page == PAGE_NETWORK)
         RefreshNetworkDetailUi();
-    if (page == PAGE_PROCESSES)
+    if (page == PAGE_PROCESSES || page == PAGE_DETAILS || page == PAGE_SERVICES)
         SyncProcEndTaskUi();
 }
 
-static double
-ProcessCpuUsagePercent(DWORD pid, ULONGLONG *pTotal100Ns, DWORD msElapsed, UINT nCpu)
+double
+Tm8ProcessCpuUsagePercent(DWORD pid, ULONGLONG *pTotal100Ns, DWORD msElapsed, UINT nCpu)
 {
     HANDLE hProc;
     FILETIME fc, fe, fk, fu;
@@ -1729,7 +1755,7 @@ RefreshProcessListEx(BOOL force)
         sp = &s_ProcScratch[nScratch];
         sp->pid = pe.th32ProcessID;
         StringCchCopyW(sp->exe, _countof(sp->exe), pe.szExeFile);
-        sp->cpuPct = ProcessCpuUsagePercent(pe.th32ProcessID, &dummy, ms, nCpu);
+        sp->cpuPct = Tm8ProcessCpuUsagePercent(pe.th32ProcessID, &dummy, ms, nCpu);
         sp->path[0] = 0;
 
         hOpen = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, FALSE, pe.th32ProcessID);
@@ -2443,6 +2469,21 @@ OnTimer(void)
 {
     SamplePerfCounters();
     RefreshProcessList();
+    if (s_iPage == PAGE_DETAILS)
+    {
+        int dc = 0;
+        SIZE_T dmx = 1;
+        Tm8Details_RefreshList(s_hwndList, TIMER_MS, FALSE, s_ProcListVScrollDragging, &s_ProcListResumeDeadline,
+                              s_DetailsMetricRows, TM8_MAX_PROC_ROWS, &dc, &dmx);
+        s_DetailsMetricCount = dc;
+        if (dc > TM8_MAX_PROC_ROWS)
+            s_DetailsMetricCount = TM8_MAX_PROC_ROWS;
+        s_DetailsMemMax = dmx;
+    }
+    else if (s_iPage == PAGE_SERVICES)
+    {
+        Tm8Services_RefreshList(s_hwndList, FALSE, s_ProcListVScrollDragging, &s_ProcListResumeDeadline);
+    }
     RefreshCpuDetailUi();
     RefreshMemoryDetailUi();
     RefreshNetworkDetailUi();
@@ -2462,10 +2503,25 @@ GetSelectedPid(void)
     return (DWORD)it.lParam;
 }
 
+static BOOL
+Tm8OnProcessOrDetailsTaskList(void)
+{
+    int t;
+
+    if (!s_hwndMainTab)
+        return FALSE;
+    t = (int)TabCtrl_GetCurSel(s_hwndMainTab);
+    if (t == TAB_MAIN_PROCESSES && s_iPage == PAGE_PROCESSES)
+        return TRUE;
+    if (t == TAB_MAIN_DETAILS && s_iPage == PAGE_DETAILS)
+        return TRUE;
+    return FALSE;
+}
+
 static void
 SyncProcEndTaskUi(void)
 {
-    BOOL en = (s_iPage == PAGE_PROCESSES && GetSelectedPid() != 0);
+    BOOL en = (Tm8OnProcessOrDetailsTaskList() && GetSelectedPid() != 0);
     if (s_hwndEndTask)
         EnableWindow(s_hwndEndTask, en);
 }
@@ -2475,8 +2531,7 @@ ListViewSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_KEYDOWN && wParam == VK_DELETE)
     {
-        if (s_hwndMainTab && TabCtrl_GetCurSel(s_hwndMainTab) == TAB_MAIN_PROCESSES &&
-            s_iPage == PAGE_PROCESSES && s_hwndMain)
+        if (Tm8OnProcessOrDetailsTaskList() && s_hwndMain)
         {
             PostMessageW(s_hwndMain, WM_COMMAND, MAKEWPARAM(IDM_ENDTASK, 0), 0);
             return 0;
@@ -2998,11 +3053,16 @@ InitMainTabs(void)
 }
 
 static void
-SetupListColumns(void)
+Tm8Processes_SetupListView(HWND hLv)
 {
     WCHAR b[64];
     LVCOLUMNW col;
     int wName = 240, wSt = 72, wCpu = 88, wDisk = 100, wMem = 120, wNet = 100;
+
+    if (!hLv)
+        return;
+
+    Tm8LvResetContentAndColumns(hLv);
 
     ZeroMemory(&col, sizeof(col));
     col.mask = LVCF_TEXT | LVCF_WIDTH;
@@ -3010,32 +3070,32 @@ SetupListColumns(void)
     LoadStr(IDS_COL_NAME, b, _countof(b));
     col.pszText = b;
     col.cx = wName;
-    ListView_InsertColumn(s_hwndList, 0, &col);
+    ListView_InsertColumn(hLv, 0, &col);
 
     LoadStr(IDS_COL_STATUS, b, _countof(b));
     col.pszText = b;
     col.cx = wSt;
-    ListView_InsertColumn(s_hwndList, 1, &col);
+    ListView_InsertColumn(hLv, 1, &col);
 
     LoadStr(IDS_COL_CPU, b, _countof(b));
     col.pszText = b;
     col.cx = wCpu;
-    ListView_InsertColumn(s_hwndList, 2, &col);
+    ListView_InsertColumn(hLv, 2, &col);
 
     LoadStr(IDS_COL_DISK, b, _countof(b));
     col.pszText = b;
     col.cx = wDisk;
-    ListView_InsertColumn(s_hwndList, 3, &col);
+    ListView_InsertColumn(hLv, 3, &col);
 
     LoadStr(IDS_COL_MEM, b, _countof(b));
     col.pszText = b;
     col.cx = wMem;
-    ListView_InsertColumn(s_hwndList, 4, &col);
+    ListView_InsertColumn(hLv, 4, &col);
 
     LoadStr(IDS_COL_NETWORK, b, _countof(b));
     col.pszText = b;
     col.cx = wNet;
-    ListView_InsertColumn(s_hwndList, 5, &col);
+    ListView_InsertColumn(hLv, 5, &col);
 }
 
 static void
@@ -3306,7 +3366,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         InitMainTabs();
         FillNavList();
-        SetupListColumns();
+        Tm8Processes_SetupListView(s_hwndList);
         Tm8ProcEnsureImageList();
         if (s_hProcSmIl)
             ListView_SetImageList(s_hwndList, s_hProcSmIl, LVSIL_SMALL);
@@ -3335,9 +3395,8 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         HMENU hmBar = GetMenu(hwnd);
         if (hmBar && hmPop == GetSubMenu(hmBar, 0))
         {
-            BOOL onProc = s_hwndMainTab && TabCtrl_GetCurSel(s_hwndMainTab) == TAB_MAIN_PROCESSES &&
-                          s_iPage == PAGE_PROCESSES;
-            BOOL canEnd = onProc && GetSelectedPid() != 0;
+            BOOL onTaskList = Tm8OnProcessOrDetailsTaskList();
+            BOOL canEnd = onTaskList && GetSelectedPid() != 0;
             EnableMenuItem(hmPop, IDM_ENDTASK, MF_BYCOMMAND | (canEnd ? MF_ENABLED : MF_GRAYED));
         }
         if (hmBar && hmPop == GetSubMenu(hmBar, 1))
@@ -3751,7 +3810,13 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             int t = (int)TabCtrl_GetCurSel(s_hwndMainTab);
             if (t == TAB_MAIN_PROCESSES)
+            {
+                Tm8Processes_SetupListView(s_hwndList);
+                if (s_hProcSmIl)
+                    ListView_SetImageList(s_hwndList, s_hProcSmIl, LVSIL_SMALL);
                 ShowPage(PAGE_PROCESSES);
+                RefreshProcessListEx(TRUE);
+            }
             else if (t == TAB_MAIN_PERF)
             {
                 FillNavList();
@@ -3763,6 +3828,29 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 else
                     ShowPage(PAGE_NETWORK);
             }
+            else if (t == TAB_MAIN_DETAILS)
+            {
+                int dc = 0;
+                SIZE_T dmx = 1;
+
+                Tm8Details_SetupListView(s_hwndList);
+                if (s_hProcSmIl)
+                    ListView_SetImageList(s_hwndList, s_hProcSmIl, LVSIL_SMALL);
+                ShowPage(PAGE_DETAILS);
+                Tm8Details_RefreshList(s_hwndList, TIMER_MS, TRUE, FALSE, &s_ProcListResumeDeadline,
+                                      s_DetailsMetricRows, TM8_MAX_PROC_ROWS, &dc, &dmx);
+                s_DetailsMetricCount = dc;
+                if (s_DetailsMetricCount > TM8_MAX_PROC_ROWS)
+                    s_DetailsMetricCount = TM8_MAX_PROC_ROWS;
+                s_DetailsMemMax = dmx;
+            }
+            else if (t == TAB_MAIN_SERVICES)
+            {
+                Tm8Services_SetupListView(s_hwndList);
+                ListView_SetImageList(s_hwndList, NULL, LVSIL_SMALL);
+                ShowPage(PAGE_SERVICES);
+                Tm8Services_RefreshList(s_hwndList, TRUE, FALSE, &s_ProcListResumeDeadline);
+            }
             else
                 ShowPage(PAGE_STUB);
             SyncProcEndTaskUi();
@@ -3770,8 +3858,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         if (pnm->hwndFrom == s_hwndList && pnm->code == LVN_COLUMNCLICK)
         {
-            if (s_hwndMainTab && TabCtrl_GetCurSel(s_hwndMainTab) == TAB_MAIN_PROCESSES &&
-                s_iPage == PAGE_PROCESSES)
+            if (s_hwndMainTab && TabCtrl_GetCurSel(s_hwndMainTab) == TAB_MAIN_PROCESSES && s_iPage == PAGE_PROCESSES)
             {
                 LPNMLISTVIEW pnl = (LPNMLISTVIEW)lParam;
                 Tm8OnProcColumnClick(pnl->iSubItem);
@@ -3791,7 +3878,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             case CDDS_ITEMPREPAINT:
                 return CDRF_NOTIFYSUBITEMDRAW;
             case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
-                if (item >= 0 && item < s_ProcListRows && sub >= 2 && sub <= 5)
+                if (s_iPage == PAGE_PROCESSES && item >= 0 && item < s_ProcListRows && sub >= 2 && sub <= 5)
                 {
                     if (sub == 2)
                         lvcd->clrTextBk = Tm8HeatBgCpu(s_ProcCpuDbl[item]);
@@ -3799,6 +3886,15 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         lvcd->clrTextBk = Tm8HeatBgMem(s_ProcMemWs[item], s_ProcMemMax);
                     else
                         lvcd->clrTextBk = Tm8HeatBgCpu(0.0);
+                    lvcd->clrText = RGB(32, 32, 32);
+                }
+                else if (s_iPage == PAGE_DETAILS && item >= 0 && item < s_DetailsMetricCount &&
+                         (sub == 5 || sub == 6))
+                {
+                    if (sub == 5)
+                        lvcd->clrTextBk = Tm8HeatBgCpu(s_DetailsMetricRows[item].cpuPct);
+                    else
+                        lvcd->clrTextBk = Tm8HeatBgMem(s_DetailsMetricRows[item].ws, s_DetailsMemMax);
                     lvcd->clrText = RGB(32, 32, 32);
                 }
                 return CDRF_DODEFAULT;
@@ -3834,7 +3930,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                           LVIS_FOCUSED | LVIS_SELECTED);
                 }
                 SyncProcEndTaskUi();
-                if (s_hCtxMenu)
+                if (s_iPage != PAGE_SERVICES && s_hCtxMenu)
                 {
                     SetForegroundWindow(hwnd);
                     TrackPopupMenu(s_hCtxMenu, TPM_LEFTALIGN | TPM_RIGHTBUTTON, ptScr.x, ptScr.y, 0,
