@@ -71,7 +71,7 @@ add_library(msxml3 MODULE
 
 add_idl_headers(xmlparser_idlheader xmlparser.idl)
 set_module_type(msxml3 win32dll)
-target_link_libraries(msxml3 libxml2 iconv-static uuid wine wine_dll_register zlib)
+target_link_libraries(msxml3 libxml2 iconv-static uuid wine zlib)
 
 if(MSVC)
     target_compile_options(msxml3 PRIVATE /FIwine/typeof.h /FImsvc.h)
