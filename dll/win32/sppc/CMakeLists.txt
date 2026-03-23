@@ -5,7 +5,7 @@ add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 include_directories(${REACTOS_SOURCE_DIR}/sdk/include/reactos/wine)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/include)
 
-add_definitions(-D_sppc_)
+add_definitions(-D_sppc_ -D_SLC_)
 spec2def(sppc.dll sppc.spec ADD_IMPORTLIB)
 list(APPEND SOURCE
     sppc.c)

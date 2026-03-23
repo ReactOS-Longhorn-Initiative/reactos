@@ -8,6 +8,8 @@
 
 #include <win32k.h>
 #include <immdev.h>
+#include "dwm.h"
+#include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserWinpos);
 
 /* GLOBALS *******************************************************************/
@@ -1942,6 +1944,11 @@ co_WinPosSetWindowPos(
       IntLinkHwnd(Window, WinPos.hwndInsertAfter);
    }
 
+   if (!(WinPos.flags & SWP_NOZORDER))
+   {
+      IntDwmOnZorderChanged(Window, WinPos.hwndInsertAfter);
+   }
+
    OldWindowRect = Window->rcWindow;
    OldClientRect = Window->rcClient;
 
@@ -2011,6 +2018,19 @@ co_WinPosSetWindowPos(
       NtGdiOffsetRgn(Window->hrgnUpdate,
                      NewWindowRect.left - OldWindowRect.left,
                      NewWindowRect.top - OldWindowRect.top);
+   }
+
+   if ((OldWindowRect.left != NewWindowRect.left ||
+        OldWindowRect.top != NewWindowRect.top ||
+        OldWindowRect.right != NewWindowRect.right ||
+        OldWindowRect.bottom != NewWindowRect.bottom ||
+        OldClientRect.left != NewClientRect.left ||
+        OldClientRect.top != NewClientRect.top ||
+        OldClientRect.right != NewClientRect.right ||
+        OldClientRect.bottom != NewClientRect.bottom) ||
+       (WinPos.flags & (SWP_SHOWWINDOW | SWP_HIDEWINDOW)))
+   {
+      IntDwmOnWindowPosChanged(Window, WinPos.flags, &OldClientRect);
    }
 
    DceResetActiveDCEs(Window); // For WS_VISIBLE changes.
@@ -3636,6 +3656,7 @@ NtUserSetWindowRgn(
    PWND Window;
    INT flags = (SWP_NOCLIENTSIZE|SWP_NOCLIENTMOVE|SWP_NOACTIVATE|SWP_FRAMECHANGED|SWP_NOSIZE|SWP_NOMOVE);
    INT Ret = 0;
+   RECTL rcClientBefore;
 
    TRACE("Enter NtUserSetWindowRgn\n");
    UserEnterExclusive();
@@ -3645,6 +3666,8 @@ NtUserSetWindowRgn(
    {
       goto Exit; // Return 0
    }
+
+   rcClientBefore = Window->rcClient;
 
    if (hRgn) // The region will be deleted in user32.
    {
@@ -3670,6 +3693,12 @@ NtUserSetWindowRgn(
    }
    //// HACK 2
    Ret = (INT)co_WinPosSetWindowPos(Window, HWND_TOP, 0, 0, 0, 0, bRedraw ? flags : (flags | SWP_NOREDRAW));
+
+   if (Ret && gfbDwmCompositing &&
+       RtlCompareMemory(&rcClientBefore, &Window->rcClient, sizeof(RECTL)) == sizeof(RECTL))
+   {
+      IntDwmOnWindowShapeChanged(Window);
+   }
 
 Exit:
    TRACE("Leave NtUserSetWindowRgn, ret=%i\n", Ret);

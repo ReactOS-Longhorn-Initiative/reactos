@@ -8,6 +8,7 @@
 
 #include <win32k.h>
 #include <immdev.h>
+#include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserFocus);
 
 PUSER_MESSAGE_QUEUE gpqForeground = NULL;
@@ -1160,6 +1161,8 @@ co_IntSetActiveWindow(
 
    //ERR("co_IntSetActiveWindow Exit\n");
    Wnd->state &= ~WNDS_BEINGACTIVATED;
+   if (ThreadQueue->spwndActive == Wnd && ThreadQueue == gpqForeground)
+      IntDwmSendForegroundInputLpc();
    return (ThreadQueue->spwndActive == Wnd);
 }
 

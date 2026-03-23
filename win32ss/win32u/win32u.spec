@@ -672,4 +672,10 @@
 @ stdcall NtGdiBRUSHOBJ_DeleteRbrush(ptr ptr)
 @ stdcall NtGdiUMPDEngFreeUserMem(ptr)
 @ stdcall NtGdiDrawStream(ptr long ptr)
+@ stdcall NtUserSetWindowRgnEx(ptr ptr long)
+@ stdcall NtUserUpdateWindowTransform(ptr ptr long)
+@ stdcall NtUserDwmStartup(long)
+@ stdcall NtUserDwmShutdown()
+@ stdcall NtGdiDwmGetSurfaceData(ptr ptr)
+@ stdcall NtUserDwmGetSurfaceData(ptr ptr)
 

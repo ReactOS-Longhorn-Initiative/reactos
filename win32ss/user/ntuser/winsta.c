@@ -10,6 +10,7 @@
  */
 
 #include <win32k.h>
+#include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserWinsta);
 
 /* GLOBALS *******************************************************************/
@@ -328,6 +329,8 @@ co_IntInitializeDesktopGraphics(VOID)
     /* Put the pointer in the center of the screen */
     gpsi->ptCursor.x = gpsi->aiSysMet[SM_CXSCREEN] / 2;
     gpsi->ptCursor.y = gpsi->aiSysMet[SM_CYSCREEN] / 2;
+
+    IntDwmNotifyDisplaySettingsChanged(DWM_DISPLAY_HINT_SESSION, (ULONG)gpsi->BitCount);
 
     /* Attach monitor */
     UserAttachMonitor((HDEV)gpmdev->ppdevGlobal);

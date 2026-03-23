@@ -646,8 +646,6 @@
 @ stdcall -version=0x600+ D3DKMTPollDisplayChildren(ptr) NtGdiDdDDIPollDisplayChildren
 @ stdcall -version=0x600+ D3DKMTPresent(ptr) NtGdiDdDDIPresent
 @ stdcall -version=0x600+ D3DKMTQueryAdapterInfo(ptr) NtGdiDdDDIQueryAdapterInfo
-@ stdcall -stub D3DKMTWaitForSynchronizationObject2(ptr)
-@ stdcall -stub D3DKMTCreateSynchronizationObject2(ptr)
 @ stdcall -version=0x600+ D3DKMTQueryAllocationResidency(ptr) NtGdiDdDDIQueryAllocationResidency
 @ stdcall -version=0x600+ D3DKMTQueryResourceInfo(ptr) NtGdiDdDDIQueryResourceInfo
 @ stdcall -version=0x600+ D3DKMTQueryStatistics(ptr) NtGdiDdDDIQueryStatistics

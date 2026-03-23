@@ -78,7 +78,8 @@ HRESULT WINAPI DwmEnableComposition(UINT uCompositionAction)
  */
 HRESULT WINAPI DwmExtendFrameIntoClientArea(HWND hwnd, const MARGINS* margins)
 {
-    FIXME("(%p, %p) stub\n", hwnd, margins);
+    /* LH/Vista: handled in uDWM (RPC to DWM); not an NtUser syscall in 5048-class win32k. */
+    FIXME("(%p, %p) stub — implement in milcore/uDWM\n", hwnd, margins);
 
     return S_OK;
 }

@@ -1119,6 +1119,7 @@ MiResolveImageReferences(IN PVOID ImageBase,
         NormalLink = NormalLink ||
                      ((_strnicmp(ImportName, "win32k", sizeof("win32k") - 1)) &&
                       (_strnicmp(ImportName, "ntoskrnl", sizeof("ntoskrnl") - 1)) && 
+                      (_strnicmp(ImportName, "hal", sizeof("hal") - 1)) && 
                       (_strnicmp(ImportName, "dxapi", sizeof("dxapi") - 1)) &&
                       (_strnicmp(ImportName, "coverage", sizeof("coverage") - 1)) &&
                       (_strnicmp(ImportName, "irt", sizeof("irt") - 1)));

@@ -740,7 +740,10 @@ typedef struct _WND
     HIMC hImc; // Input context associated with this window.
     LONG_PTR dwUserData;
     PVOID pActCtx;
-    //PD3DMATRIX pTransForm;
+    /* Longhorn MIL: 64-byte window transform blob (pool, USERTAG_MILTRANSFORM). */
+    PVOID pMilTransform;
+    /* DWM compositor: off-screen bitmap (HBITMAP/HSURF) for GreDwmGetSurfaceData when no DCE surface. */
+    HBITMAP hbmDwmRedirect;
     struct _WND *spwndClipboardListener;
     DWORD ExStyle2;
 
@@ -3333,6 +3336,36 @@ NtUserSetWindowRgn(
     HWND hWnd,
     HRGN hRgn,
     BOOL bRedraw);
+
+INT
+NTAPI
+NtUserSetWindowRgnEx(
+    HWND hWnd,
+    HRGN hRgn,
+    DWORD dwFlags);
+
+BOOL
+NTAPI
+NtUserUpdateWindowTransform(
+    HWND hwnd,
+    PVOID pTransform,
+    DWORD cbOrFlags);
+
+BOOL
+NTAPI
+NtUserDwmStartup(
+    _In_ HANDLE hDwmApiPort);
+
+BOOL
+NTAPI
+NtUserDwmShutdown(
+    VOID);
+
+BOOL
+NTAPI
+NtUserDwmGetSurfaceData(
+    _In_opt_ HWND hwnd,
+    _In_ PVOID pSurfaceDataOut);
 
 HHOOK
 NTAPI

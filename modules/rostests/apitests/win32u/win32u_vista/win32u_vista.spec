@@ -206,7 +206,7 @@
 @ stdcall NtGdiDvpUpdateVideoPort(ptr ptr ptr ptr)
 @ stdcall NtGdiDvpWaitForVideoPortSync(ptr ptr)
 @ stdcall NtGdiDwmGetDirtyRgn(long long long long long)
-@ stdcall NtGdiDwmGetSurfaceData(long long)
+@ stdcall NtGdiDwmGetSurfaceData(ptr ptr)
 @ stdcall NtGdiDxgGenericThunk(ptr ptr ptr ptr ptr ptr)
 @ stdcall NtGdiEllipse(ptr long long long long)
 @ stdcall NtGdiEnableEudc(long)

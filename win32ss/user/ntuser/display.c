@@ -7,6 +7,10 @@
  */
 
 #include <win32k.h>
+
+#include "dwmnotify.h"
+#include <debug.h>
+
 DBG_DEFAULT_CHANNEL(UserDisplay);
 
 BOOL gbBaseVideo = FALSE;
@@ -207,6 +211,7 @@ UserRefreshDisplay(IN PPDEVOBJ ppdev)
     // UserUpdateMonitorSize((HDEV)ppdev);
 
     //co_IntShowDesktop(pdesk, ppdev->gdiinfo.ulHorzRes, ppdev->gdiinfo.ulVertRes);
+    IntDwmNotifyDisplaySettingsChanged(DWM_DISPLAY_HINT_VIDRESCAN, (ULONG)gpsi->BitCount);
     UserRedrawDesktop();
 
     PDEVOBJ_vRelease(ppdev);
@@ -758,6 +763,17 @@ UserChangeDisplaySettings(
     /* Save original bit count */
     OrigBC = gpsi->BitCount;
 
+    DPRINT1("[DWM/display] UserChangeDisplaySettings proc=%.15s PID=%p flags=%#lx mode=%s dm=%ux%u@%u Hz=%u fields=%#lx\n",
+            (const char *)PsGetCurrentProcess()->ImageFileName,
+            PsGetProcessId(PsGetCurrentProcess()),
+            flags,
+            pdm ? "caller" : "registry",
+            dm.dmPelsWidth,
+            dm.dmPelsHeight,
+            dm.dmBitsPerPel,
+            dm.dmDisplayFrequency,
+            dm.dmFields);
+
     /* Check params */
     if ((dm.dmFields & (DM_PELSWIDTH | DM_PELSHEIGHT)) != (DM_PELSWIDTH | DM_PELSHEIGHT))
     {
@@ -888,6 +904,8 @@ UserChangeDisplaySettings(
             // Font is realized and this dc was previously set to internal DC_ATTR.
             gpsi->cxSysFontChar = IntGetCharDimensions(hSystemBM, &tmw, (DWORD*)&gpsi->cySysFontChar);
             gpsi->tmSysFont     = tmw;
+
+            IntDwmNotifyDisplaySettingsChanged(flags, (ULONG)OrigBC);
         }
 
         /*
@@ -1041,6 +1059,12 @@ NtUserChangeDisplaySettings(
     }
 
     // FIXME: Copy videoparameters
+
+    DPRINT1("[DWM/display] NtUserChangeDisplaySettings proc=%.15s PID=%p flags=%#lx lpDevMode=%p\n",
+            (const char *)PsGetCurrentProcess()->ImageFileName,
+            PsGetProcessId(PsGetCurrentProcess()),
+            dwflags,
+            lpDevMode);
 
     /* Acquire global USER lock */
     UserEnterExclusive();

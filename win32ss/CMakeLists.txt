@@ -122,6 +122,8 @@ list(APPEND SOURCE
     user/ntuser/dde.c
     user/ntuser/defwnd.c
     user/ntuser/desktop.c
+    user/ntuser/dwm.c
+    user/ntuser/dwmnotify.c
     user/ntuser/display.c
     user/ntuser/draw.c
     user/ntuser/event.c
@@ -176,6 +178,7 @@ list(APPEND SOURCE
     gdi/ntgdi/dcattr.c
     gdi/ntgdi/dclife.c
     gdi/ntgdi/dcobjs.c
+    gdi/ntgdi/dwm.c
     gdi/ntgdi/dcstate.c
     gdi/ntgdi/dcutil.c
     gdi/ntgdi/device.c

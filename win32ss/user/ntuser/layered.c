@@ -7,6 +7,9 @@
  */
 
 #include <win32k.h>
+
+#include "dwmnotify.h"
+
 DBG_DEFAULT_CHANNEL(UserMisc);
 
 
@@ -92,6 +95,8 @@ IntSetLayeredWindowAttributes(PWND pWnd,
   
       if (!was_Layered)
          co_UserRedrawWindow(pWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME );
+
+      IntDwmOnLayeredPresentationChanged(pWnd);
    }
    // FIXME: Now set some bits to the Window DC!!!!
    return TRUE;
@@ -229,6 +234,8 @@ IntUpdateLayeredWindowI( PWND pWnd,
       ret = TRUE;
 
    co_WinPosSetWindowPos(pWnd, 0, Window.left, Window.top, Window.right - Window.left, Window.bottom - Window.top, flags);
+   if (ret)
+      IntDwmOnLayeredPresentationChanged(pWnd);
    return ret;
 }
 

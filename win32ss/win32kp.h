@@ -97,6 +97,8 @@ typedef struct _DC *PDC;
 #include "user/ntuser/mmcopy.h"
 #include "user/ntuser/ghost.h"
 
+#include "user/ntuser/dwmnotify.h"
+
 /* CSRSS Interface */
 #include "user/ntuser/csr.h"
 

@@ -7,6 +7,7 @@
  */
 
 #include <win32k.h>
+#include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserDce);
 
 /* GLOBALS *******************************************************************/
@@ -67,6 +68,86 @@ DceGetDceFromDC(HDC hdc)
     return NULL;
 }
 
+PDCE
+FASTCALL
+DceFindDceForWindow(PWND pwnd)
+{
+    PLIST_ENTRY ListEntry;
+    PDCE dce;
+    HWND hwnd;
+
+    if (!pwnd)
+        return NULL;
+
+    hwnd = UserHMGetHandle(pwnd);
+    ListEntry = LEDce.Flink;
+    while (ListEntry != &LEDce)
+    {
+        dce = CONTAINING_RECORD(ListEntry, DCE, List);
+        ListEntry = ListEntry->Flink;
+
+        if (dce->DCXFlags & DCX_DCEEMPTY)
+            continue;
+
+        if (dce->pwndOrg == pwnd || dce->hwndCurrent == hwnd)
+            return dce;
+    }
+
+    return NULL;
+}
+
+PDCE
+FASTCALL
+DceFindDceForDwmSurfaceResolve(PWND pwnd)
+{
+    PLIST_ENTRY ListEntry;
+    PDCE dce;
+    PDCE dceFallback = NULL;
+    HWND hwnd;
+
+    if (!pwnd)
+        return NULL;
+
+    hwnd = UserHMGetHandle(pwnd);
+    ListEntry = LEDce.Flink;
+    while (ListEntry != &LEDce)
+    {
+        dce = CONTAINING_RECORD(ListEntry, DCE, List);
+        ListEntry = ListEntry->Flink;
+
+        if (dce->DCXFlags & DCX_DCEEMPTY)
+            continue;
+
+        if (!(dce->pwndOrg == pwnd || dce->hwndCurrent == hwnd))
+            continue;
+
+        dceFallback = dce;
+        if (!(dce->DCXFlags & DCX_WINDOW))
+            return dce;
+    }
+
+    return dceFallback;
+}
+
+VOID
+FASTCALL
+DceEnumerateAll(PFNDCE_ENUM Callback, PVOID Context)
+{
+    PLIST_ENTRY ListEntry;
+    PDCE dce;
+
+    if (!Callback)
+        return;
+
+    ListEntry = LEDce.Flink;
+    while (ListEntry != &LEDce)
+    {
+        dce = CONTAINING_RECORD(ListEntry, DCE, List);
+        ListEntry = ListEntry->Flink;
+        Callback(dce, Context);
+    }
+}
+
 static
 PREGION FASTCALL
 DceGetVisRgn(PWND Window, ULONG Flags, HWND hWndChild, ULONG CFlags)
@@ -99,6 +180,8 @@ DceAllocDCE(PWND Window OPTIONAL, DCE_TYPE Type)
   }
   DCECount++;
   TRACE("Alloc DCE's! %d\n",DCECount);
+  pDce->AllocType = Type;
+  pDce->fDwmRedirectBound = FALSE;
   pDce->hwndCurrent = (Window ? UserHMGetHandle(Window) : NULL);
   pDce->pwndOrg  = Window;
   pDce->pwndClip = Window;
@@ -278,9 +361,18 @@ noparent:
 static INT FASTCALL
 DceReleaseDC(DCE* dce, BOOL EndPaint)
 {
+   PDC pdcUnbind;
+
    if (DCX_DCEBUSY != (dce->DCXFlags & (DCX_INDESTROY | DCX_DCEEMPTY | DCX_DCEBUSY)))
    {
       return 0;
+   }
+
+   pdcUnbind = DC_LockDc(dce->hDC);
+   if (pdcUnbind)
+   {
+      IntDwmUnbindRedirectDcLocked(pdcUnbind, dce);
+      DC_UnlockDc(pdcUnbind);
    }
 
    /* Restore previous visible region */
@@ -600,6 +692,16 @@ UserGetDCEx(PWND Wnd OPTIONAL, HANDLE ClipRegion, ULONG Flags)
 
    if (bUpdateVisRgn) DceUpdateVisRgn(Dce, Wnd, Flags);
 
+   if (Wnd)
+   {
+      PDC pdcBind = DC_LockDc(Dce->hDC);
+      if (pdcBind)
+      {
+         IntDwmBindRedirectDcLocked(pdcBind, Dce, Wnd, Flags);
+         DC_UnlockDc(pdcBind);
+      }
+   }
+
    if (Dce->DCXFlags & DCX_CACHE)
    {
       TRACE("ENTER!!!!!! DCX_CACHE!!!!!!   hDC-> %p\n", Dce->hDC);
@@ -661,7 +763,11 @@ DceFreeDCE(PDCE pdce, BOOLEAN Force)
         GreSetDCOwner(pdce->hDC, GDI_OBJ_HMGR_POWNED);
   }
 
-  if (!Hit) IntGdiDeleteDC(pdce->hDC, TRUE);
+  if (!Hit)
+  {
+     IntDwmUnbindRedirectDc(pdce);
+     IntGdiDeleteDC(pdce->hDC, TRUE);
+  }
 
   if (pdce->hrgnClip && !(pdce->DCXFlags & DCX_KEEPCLIPRGN))
   {
@@ -855,36 +961,69 @@ DceResetActiveDCEs(PWND Window)
          {
             continue;
          }
-         if (Window == CurrentWindow || IntIsChildWindow(Window, CurrentWindow))
-         {
-            if (pDCE->DCXFlags & DCX_WINDOW)
-            {
-               DeltaX = CurrentWindow->rcWindow.left - dc->ptlDCOrig.x;
-               DeltaY = CurrentWindow->rcWindow.top - dc->ptlDCOrig.y;
-               dc->ptlDCOrig.x = CurrentWindow->rcWindow.left;
-               dc->ptlDCOrig.y = CurrentWindow->rcWindow.top;
-            }
-            else
-            {
-               DeltaX = CurrentWindow->rcClient.left - dc->ptlDCOrig.x;
-               DeltaY = CurrentWindow->rcClient.top - dc->ptlDCOrig.y;
-               dc->ptlDCOrig.x = CurrentWindow->rcClient.left;
-               dc->ptlDCOrig.y = CurrentWindow->rcClient.top;
-            }
 
-            if (NULL != dc->dclevel.prgnClip)
+         if (pDCE->fDwmRedirectBound)
+            IntDwmUnbindRedirectDcLocked(dc, pDCE);
+
+         /*
+          * Always snap DC origin / erclWindow to this DCE's current window.
+          * The old test (Window == CurrentWindow || IntIsChildWindow(Window, CurrentWindow))
+          * skipped top-level popups when the reset was for an unrelated ancestor (e.g. desktop),
+          * leaving ptlDCOrig stale while DceGetVisRgn used fresh screen coords — GdiSelectVisRgn
+          * then subtracted the wrong origin and the visible region clipped everything (white
+          * client areas), especially with DWM redirect surfaces.
+          */
+         if (CurrentWindow)
+         {
+            RECTL rectSync;
+
+            if (pDCE->DCXFlags & DCX_WINDOW)
+               rectSync = CurrentWindow->rcWindow;
+            else
+               rectSync = CurrentWindow->rcClient;
+
+            DeltaX = rectSync.left - dc->ptlDCOrig.x;
+            DeltaY = rectSync.top - dc->ptlDCOrig.y;
+
+            dc->ptlDCOrig.x = rectSync.left;
+            dc->ptlDCOrig.y = rectSync.top;
+            dc->erclWindow = rectSync;
+            dc->ptlFillOrigin.x = dc->dclevel.ptlBrushOrigin.x + rectSync.left;
+            dc->ptlFillOrigin.y = dc->dclevel.ptlBrushOrigin.y + rectSync.top;
+
+            /*
+             * User clip regions live in the same coordinate space as ptlDCOrig. Only offset them
+             * when this reset is for the DCE's window or an ancestor of it. If we applied Delta for
+             * unrelated resets (e.g. desktop) while still snapping ptlDCOrig above, client-space
+             * clips would be shifted again and again (staircase / hall-of-mirrors). Vis rgn is
+             * recomputed below regardless.
+             */
+            if ((Window == CurrentWindow || IntIsChildWindow(Window, CurrentWindow)) &&
+                (DeltaX || DeltaY))
             {
-               REGION_bOffsetRgn(dc->dclevel.prgnClip, DeltaX, DeltaY);
-               dc->fs |= DC_DIRTY_RAO;
-            }
-            if (NULL != pDCE->hrgnClip)
-            {
-               NtGdiOffsetRgn(pDCE->hrgnClip, DeltaX, DeltaY);
+               if (NULL != dc->dclevel.prgnClip)
+               {
+                  REGION_bOffsetRgn(dc->dclevel.prgnClip, DeltaX, DeltaY);
+                  dc->fs |= DC_DIRTY_RAO;
+               }
+               if (NULL != pDCE->hrgnClip)
+               {
+                  NtGdiOffsetRgn(pDCE->hrgnClip, DeltaX, DeltaY);
+               }
             }
          }
          DC_UnlockDc(dc);
 
          DceUpdateVisRgn(pDCE, CurrentWindow, pDCE->DCXFlags);
+
+         dc = DC_LockDc(pDCE->hDC);
+         if (dc)
+         {
+            if (CurrentWindow)
+               IntDwmBindRedirectDcLocked(dc, pDCE, CurrentWindow, pDCE->DCXFlags);
+            DC_UnlockDc(dc);
+         }
+
          IntGdiSetHookFlags(pDCE->hDC, DCHF_VALIDATEVISRGN);
       }
    }

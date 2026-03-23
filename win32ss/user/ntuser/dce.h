@@ -19,6 +19,8 @@ typedef struct tagDCE
     LIST_ENTRY   List;
     HDC          hDC;
     HWND         hwndCurrent;
+    /* Allocation kind (GreDwmStartup mirrors Longhorn gDceState pass1 vs pass2 split). */
+    DCE_TYPE     AllocType;
     PWND         pwndOrg;
     PWND         pwndClip;
     PWND         pwndRedirect;
@@ -29,6 +31,10 @@ typedef struct tagDCE
     PTHREADINFO  ptiOwner;
     PPROCESSINFO ppiOwner;
     struct _MONITOR* pMonitor;
+    /* True GDI redirect: client GetDC draws into WND.hbmDwmRedirect instead of the framebuffer. */
+    BOOLEAN      fDwmRedirectBound;
+    POINTL       DwmPtlDcOrigSave;
+    RECTL        DwmErclWindowSave;
 } DCE, *PDCE;
 
 /* internal DCX flags, see psdk/winuser.h for the rest */
@@ -53,3 +59,10 @@ void FASTCALL DceFreeWindowDCE(PWND);
 void FASTCALL DceFreeThreadDCE(PTHREADINFO);
 VOID FASTCALL DceUpdateVisRgn(DCE *Dce, PWND Window, ULONG Flags);
 DCE* FASTCALL DceGetDceFromDC(HDC hdc);
+/* First DCE tied to this window (owned / class / current hwnd), skipping empty cache slots. */
+PDCE FASTCALL DceFindDceForWindow(_In_opt_ PWND pwnd);
+/* For DWM surface resolve: prefer client-area DCE (no DCX_WINDOW) when multiple DCEs exist. */
+PDCE FASTCALL DceFindDceForDwmSurfaceResolve(_In_opt_ PWND pwnd);
+
+typedef VOID (FASTCALL *PFNDCE_ENUM)(_In_ PDCE Dce, _In_opt_ PVOID Context);
+VOID FASTCALL DceEnumerateAll(_In_ PFNDCE_ENUM Callback, _In_opt_ PVOID Context);

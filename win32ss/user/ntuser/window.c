@@ -11,6 +11,8 @@
 #include <immdev.h>
 #include <unaligned.h>
 
+#include "dwmnotify.h"
+
 DBG_DEFAULT_CHANNEL(UserWnd);
 
 INT gNestedWindowLimit = 50;
@@ -703,6 +705,15 @@ LRESULT co_UserFreeWindow(PWND Window,
       Window->state &= ~WNDS_INTERNALPAINT;
    }
 
+   if (Window->pMilTransform)
+   {
+      ExFreePoolWithTag(Window->pMilTransform, USERTAG_MILTRANSFORM);
+      Window->pMilTransform = NULL;
+   }
+
+   IntDwmOnWindowDestroyed(Window);
+   IntDwmFreeRedirectSurface(Window);
+
    if (Window->state & (WNDS_SENDERASEBACKGROUND|WNDS_SENDNCPAINT))
    {
       Window->state &= ~(WNDS_SENDERASEBACKGROUND|WNDS_SENDNCPAINT);
@@ -1143,6 +1154,7 @@ IntSetOwner(HWND hWnd, HWND hWndNewOwner)
    if (IntValidateOwnerDepth(Wnd, WndNewOwner))
    {
       WndSetOwner(Wnd, WndNewOwner);
+      IntDwmOnOwnerChanged(Wnd);
    }
    else
    {
@@ -2593,6 +2605,7 @@ co_UserCreateWindowEx(CREATESTRUCTW* Cs,
    }
 
    TRACE("co_UserCreateWindowEx(%wZ): Created window %p\n", ClassName, hWnd);
+   IntDwmOnWindowCreated(Window);
    ret = Window;
 
 cleanup:
@@ -3932,6 +3945,12 @@ co_IntSetWindowLongPtr(HWND hWnd, DWORD Index, LONG_PTR NewValue, BOOL Ansi, ULO
 
             Window->ExStyle = (DWORD)Style.styleNew;
 
+            if (((DWORD)OldValue ^ Window->ExStyle) & WS_EX_LAYERED)
+               IntDwmOnExStyleLayeredToggle(Window);
+
+            if (((DWORD)OldValue ^ Window->ExStyle) & (WS_EX_TOOLWINDOW | WS_EX_APPWINDOW))
+               IntDwmOnNonClientStateHintChanged(Window);
+
             co_IntSendMessage(hWnd, WM_STYLECHANGED, GWL_EXSTYLE, (LPARAM) &Style);
             break;
 
@@ -3984,6 +4003,12 @@ co_IntSetWindowLongPtr(HWND hWnd, DWORD Index, LONG_PTR NewValue, BOOL Ansi, ULO
                DceResetActiveDCEs( Window );
             }
             Window->style = (DWORD)Style.styleNew;
+
+            if ((Style.styleOld ^ Style.styleNew) & WS_VISIBLE)
+               IntDwmOnVisibleStyleChanged(Window, (Style.styleNew & WS_VISIBLE) != 0);
+
+            if ((Style.styleOld ^ Style.styleNew) & (WS_DISABLED | WS_MINIMIZE | WS_MAXIMIZE))
+               IntDwmOnNonClientStateHintChanged(Window);
 
             if (!bAlter)
                 co_IntSendMessage(hWnd, WM_STYLECHANGED, GWL_STYLE, (LPARAM) &Style);
@@ -4589,6 +4614,7 @@ NtUserDefSetText(HWND hWnd, PLARGE_STRING WindowText)
       co_IntShellHookNotify(HSHELL_REDRAW, (WPARAM) hWnd, FALSE); // FIXME Flashing?
    }
 
+   IntDwmOnWindowCaptionChanged(Wnd);
    Ret = TRUE;
 Exit:
    if (UnicodeString.Buffer) RtlFreeUnicodeString(&UnicodeString);

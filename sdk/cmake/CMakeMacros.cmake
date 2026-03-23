@@ -394,6 +394,19 @@ function(add_cd_file)
     endif() #end bootcd
 endfunction()
 
+# Append ISO graft-point lines from a GLOBAL list property to a path-list file.
+# Do not use string(REPLACE ";" "\\n"): real paths or other values can contain
+# semicolons (CMake stores them as \\; in the list string); replacing every ';'
+# splits those entries and glues neighboring lines together, breaking mkisofs.
+function(_reactos_append_iso_path_list_file _out_path _prop_name)
+    get_property(_entries GLOBAL PROPERTY ${_prop_name})
+    foreach(_iso_line IN LISTS _entries)
+        if(NOT _iso_line STREQUAL "")
+            file(APPEND ${_out_path} "${_iso_line}\n")
+        endif()
+    endforeach()
+endfunction()
+
 function(create_iso_lists)
     # generate reactos.cab before anything else
     get_property(_filelist GLOBAL PROPERTY REACTOS_CAB_DEPENDS)
@@ -423,34 +436,22 @@ function(create_iso_lists)
         DESTINATION livecd
         FOR hybridcd)
 
-    get_property(_filelist GLOBAL PROPERTY BOOTCD_FILE_LIST)
-    string(REPLACE ";" "\n" _filelist "${_filelist}")
-    file(APPEND ${REACTOS_BINARY_DIR}/boot/bootcd.cmake.lst "${_filelist}")
-    unset(_filelist)
+    _reactos_append_iso_path_list_file(${REACTOS_BINARY_DIR}/boot/bootcd.cmake.lst BOOTCD_FILE_LIST)
     file(GENERATE
          OUTPUT ${REACTOS_BINARY_DIR}/boot/bootcd.$<CONFIG>.lst
          INPUT ${REACTOS_BINARY_DIR}/boot/bootcd.cmake.lst)
 
-    get_property(_filelist GLOBAL PROPERTY LIVECD_FILE_LIST)
-    string(REPLACE ";" "\n" _filelist "${_filelist}")
-    file(APPEND ${REACTOS_BINARY_DIR}/boot/livecd.cmake.lst "${_filelist}")
-    unset(_filelist)
+    _reactos_append_iso_path_list_file(${REACTOS_BINARY_DIR}/boot/livecd.cmake.lst LIVECD_FILE_LIST)
     file(GENERATE
          OUTPUT ${REACTOS_BINARY_DIR}/boot/livecd.$<CONFIG>.lst
          INPUT ${REACTOS_BINARY_DIR}/boot/livecd.cmake.lst)
 
-    get_property(_filelist GLOBAL PROPERTY HYBRIDCD_FILE_LIST)
-    string(REPLACE ";" "\n" _filelist "${_filelist}")
-    file(APPEND ${REACTOS_BINARY_DIR}/boot/hybridcd.cmake.lst "${_filelist}")
-    unset(_filelist)
+    _reactos_append_iso_path_list_file(${REACTOS_BINARY_DIR}/boot/hybridcd.cmake.lst HYBRIDCD_FILE_LIST)
     file(GENERATE
          OUTPUT ${REACTOS_BINARY_DIR}/boot/hybridcd.$<CONFIG>.lst
          INPUT ${REACTOS_BINARY_DIR}/boot/hybridcd.cmake.lst)
 
-    get_property(_filelist GLOBAL PROPERTY BOOTCDREGTEST_FILE_LIST)
-    string(REPLACE ";" "\n" _filelist "${_filelist}")
-    file(APPEND ${REACTOS_BINARY_DIR}/boot/bootcdregtest.cmake.lst "${_filelist}")
-    unset(_filelist)
+    _reactos_append_iso_path_list_file(${REACTOS_BINARY_DIR}/boot/bootcdregtest.cmake.lst BOOTCDREGTEST_FILE_LIST)
     file(GENERATE
          OUTPUT ${REACTOS_BINARY_DIR}/boot/bootcdregtest.$<CONFIG>.lst
          INPUT ${REACTOS_BINARY_DIR}/boot/bootcdregtest.cmake.lst)

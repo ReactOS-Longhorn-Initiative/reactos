@@ -8,6 +8,7 @@
  */
 
 #include <win32k.h>
+#include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserMonitor);
 
 #define NDEBUG
@@ -206,6 +207,7 @@ UserDetachMonitor(IN HDEV hDev)
     /* Finally destroy monitor */
     IntDestroyMonitorObject(pMonitor);
 
+    IntDwmNotifyDisplaySettingsChanged(DWM_DISPLAY_HINT_MONITOR, (ULONG)gpsi->BitCount);
     return STATUS_SUCCESS;
 }
 
@@ -271,6 +273,7 @@ UserUpdateMonitorSize(IN HDEV hDev)
     //
     gpsi->rcScreenReal = pMonitor->rcMonitor;
 
+    IntDwmNotifyDisplaySettingsChanged(DWM_DISPLAY_HINT_MONITOR, (ULONG)gpsi->BitCount);
     return STATUS_SUCCESS;
 }
 

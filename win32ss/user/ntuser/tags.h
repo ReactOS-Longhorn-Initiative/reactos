@@ -200,6 +200,7 @@
 #define USERTAG_CLIPBOARD                'bcsU'
 #define USERTAG_CALLBACK                 'ccsU'
 #define USERTAG_COMPOSITIONPROP          'dcsU'
+#define USERTAG_MILTRANSFORM             'mxfU'
 #define USERTAG_CLIENTTHREADINFO         'icsU'
 #define USERTAG_CLASS                    'lcsU'
 #define USERTAG_SCANCODEMAP              'mcsU'

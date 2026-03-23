@@ -1,6 +1,8 @@
 #ifndef WIN32K_NTGDI_BAD_INCLUDED
 #define WIN32K_NTGDI_BAD_INCLUDED
 
+#include "dwmkm.h"
+
 /*
  *
  * If you want to help, please read this:
@@ -109,6 +111,18 @@ NtGdiSetWindowOrgEx (
     int Y,
     LPPOINT Point
     );
+
+/* Longhorn DWM: GDI device composition bridge (win32k). */
+BOOL APIENTRY GreDwmStartup(_In_ HDEV hdev);
+BOOL APIENTRY GreDwmShutdown(_In_ HDEV hdev);
+NTSTATUS APIENTRY GreDwmGetSurfaceData(_In_ HDEV hdev, _In_opt_ HWND hwnd, _Out_writes_bytes_(sizeof(DWM_SURFACE_KERNEL_OUT)) PVOID pUserOutput);
+
+/* Alternate syscall to GreDwmGetSurfaceData; LH5048 user path is NtUserDwmGetSurfaceData. */
+BOOL
+APIENTRY
+NtGdiDwmGetSurfaceData(
+    HWND hwnd,
+    PVOID pSurfaceDataOut);
 
 #endif /* WIN32K_NTGDI_BAD_INCLUDED */
 

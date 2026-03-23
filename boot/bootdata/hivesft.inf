@@ -145,6 +145,19 @@ HKLM,"SOFTWARE\Microsoft\CTF\TIP",,0x00000012
 ; DirectX
 HKLM,"SOFTWARE\Microsoft\DirectX","InstalledVersion",0x00000001, 0x00,0x00,0x00,0x09,0x00,0x00,0x00,0x00
 HKLM,"SOFTWARE\Microsoft\DirectX","Version",0x00000000,"4.09.00.0904"
+
+; Desktop Window Manager policy (Windows Vista build 5048 / Longhorn Developer Preview layout)
+; Ref: https://betawiki.net/wiki/Windows_Vista_build_5048 — HKLM\Software\Microsoft\DWM
+HKLM,"SOFTWARE\Microsoft\DWM",,0x00000012
+; 1 = enforce 5048 GPU whitelist; 0 = allow other hardware (typical for ReactOS bring-up)
+HKLM,"SOFTWARE\Microsoft\DWM","EnableMachineCheck",0x10001,0x00000000
+; 1 = force software D3D; 0 = attempt hardware D3D
+HKLM,"SOFTWARE\Microsoft\DWM","ForceSoftwareD3D",0x10001,0x00000000
+; 1 = opaque "Jade"/metal-style frames; 0 = glass-style frames
+HKLM,"SOFTWARE\Microsoft\DWM","Metal",0x10001,0x00000000
+; 1 = alternate (square) caption buttons; 0 = default glass buttons
+HKLM,"SOFTWARE\Microsoft\DWM","UseAlternateButtons",0x10001,0x00000001
+
 HKLM,"SOFTWARE\Microsoft\DirectPlay\Service Providers\Internet TCP/IP Connection For DirectPlay","DescriptionA",,"Internet TCP/IP Connection For DirectPlay"
 HKLM,"SOFTWARE\Microsoft\DirectPlay\Service Providers\Internet TCP/IP Connection For DirectPlay","DescriptionW",,"Internet TCP/IP Connection For DirectPlay"
 HKLM,"SOFTWARE\Microsoft\DirectPlay\Service Providers\Internet TCP/IP Connection For DirectPlay","dwReserved1",0x10001,0x000001f4

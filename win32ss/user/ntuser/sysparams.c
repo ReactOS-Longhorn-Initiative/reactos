@@ -12,6 +12,7 @@
 // - Save appropriate text metrics.
 
 #include <win32k.h>
+#include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserSysparams);
 
 SPIVALUES gspv;
@@ -2162,6 +2163,12 @@ UserSystemParametersInfo(
 
         /* Update system metrics */
         InitMetrics();
+
+        if (uiAction == SPI_SETWORKAREA || uiAction == SPI_SETNONCLIENTMETRICS ||
+            uiAction == SPI_SETICONMETRICS)
+        {
+            IntDwmNotifyDisplaySettingsChanged(DWM_DISPLAY_HINT_METRICS, (ULONG)gpsi->BitCount);
+        }
 
         /* Send notification to toplevel windows, if requested */
         if (fWinIni & SPIF_SENDCHANGE)

@@ -12,6 +12,7 @@
 DBG_DEFAULT_CHANNEL(UserDesktop);
 
 #include <reactos/buildno.h>
+#include "dwmnotify.h"
 
 static NTSTATUS
 UserInitializeDesktop(PDESKTOP pdesk, PUNICODE_STRING DesktopName, PWINSTATION_OBJECT pwinsta);
@@ -1370,6 +1371,9 @@ IntSetFocusMessageQueue(PUSER_MESSAGE_QUEUE NewQueue)
         ERR("ptiLastInput is CLEARED!!\n");
         ptiLastInput = NULL; // ReactOS hacks... should check for process death.
     }
+
+    if (Old != NewQueue)
+        IntDwmSendForegroundInputLpc();
 }
 
 PWND FASTCALL
