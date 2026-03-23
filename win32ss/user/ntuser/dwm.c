@@ -6,6 +6,7 @@
  * NtUserDwmStartup / NtUserDwmShutdown follow Windows Vista build 5048 win32k (see LH win32k.sys).
  * NtUserDwmGetSurfaceData: 5048 win32k (EnterCrit + GreDwmGetSurfaceData for gpepDwm only).
  * NtUserUpdateWindowTransform follows the same build’s per-window MIL transform slot (64 bytes).
+ * 5048 MIL op 24 (hit-test wait/reply) is win32k-internal (DwmHitTestQuery + LpcRequestWaitReplyPort), not an NtUser syscall.
  */
 
 #include <win32k.h>
@@ -67,6 +68,8 @@ IntXxxDwmStartup(VOID)
 
     gfbDwmCompositing = TRUE;
     DPRINT1("[DWM] IntXxxDwmStartup: OK hdev=%p compositing=1\n", hdev);
+    /* 5048 xxxComposeDesktop: DwmNotifyChildrenAddRemove for existing WS_CHILD windows. */
+    IntDwmNotifyDesktopChildrenAddRemove(TRUE);
     UserRedrawDesktop();
     return STATUS_SUCCESS;
 }
@@ -83,6 +86,7 @@ IntXxxDwmShutdown(VOID)
     }
 
     DPRINT1("[DWM] IntXxxDwmShutdown: begin\n");
+    IntDwmNotifyDesktopChildrenAddRemove(FALSE);
     IntDwmUnbindAllActiveRedirectDcs();
     IntDwmFreeAllRedirectBitmaps();
 
@@ -179,7 +183,7 @@ NtUserDwmShutdown(VOID)
     NTSTATUS Status;
     BOOL ret = FALSE;
 
-    TRACE("NtUserDwmShutdown\n");
+    DPRINT1("NtUserDwmShutdown\n");
 
     UserEnterExclusive();
 
@@ -360,6 +364,85 @@ NtUserUpdateWindowTransform(
 done:
     UserLeave();
     return ret;
+}
+
+#define DWM_MIL_OP_HITTEST 24u
+
+#include <pshpack1.h>
+typedef struct _DWM_MIL_HITTEST_BODY
+{
+    ULONG Opcode;
+    ULONG Hwnd;
+    ULONG Arg2;
+    ULONG Arg3;
+    ULONG Arg4;
+    LONG PtX;
+    LONG PtY;
+    ULONG ReplyHit;
+    ULONG ReplyMilHandled;
+} DWM_MIL_HITTEST_BODY;
+#include <poppack.h>
+
+C_ASSERT(sizeof(DWM_MIL_HITTEST_BODY) == 36);
+
+NTSTATUS
+FASTCALL
+IntDwmHitTestQuery(
+    _In_ HWND hwnd,
+    _In_ ULONG Arg2,
+    _In_ LONG PtX,
+    _In_ LONG PtY,
+    _In_ ULONG Arg3,
+    _In_ ULONG Arg4,
+    _Out_ PULONG pHitValue,
+    _Out_ PULONG pMilHandledNonZero)
+{
+    NTSTATUS Status;
+    UCHAR Raw[256];
+    PPORT_MESSAGE H = (PPORT_MESSAGE)Raw;
+    DWM_MIL_HITTEST_BODY *Body;
+
+    if (!pHitValue || !pMilHandledNonZero)
+        return STATUS_INVALID_PARAMETER;
+
+    *pHitValue = 0;
+    *pMilHandledNonZero = 0;
+
+    if (!gpvDwmApiPort || !gfbDwmCompositing)
+        return STATUS_DEVICE_NOT_CONNECTED;
+
+    if (sizeof(PORT_MESSAGE) + sizeof(DWM_MIL_HITTEST_BODY) > sizeof(Raw))
+        return STATUS_INVALID_PARAMETER;
+
+    RtlZeroMemory(H, sizeof(PORT_MESSAGE) + sizeof(DWM_MIL_HITTEST_BODY));
+    H->u1.s1.DataLength = sizeof(DWM_MIL_HITTEST_BODY);
+    H->u1.s1.TotalLength = (CSHORT)(sizeof(PORT_MESSAGE) + sizeof(DWM_MIL_HITTEST_BODY));
+    H->u2.s2.Type = (CSHORT)(USHORT)0x8000u;
+    H->u2.s2.DataInfoOffset = 0;
+
+    Body = (DWM_MIL_HITTEST_BODY *)((PUCHAR)H + sizeof(PORT_MESSAGE));
+    Body->Opcode = DWM_MIL_OP_HITTEST;
+    Body->Hwnd = (ULONG)(ULONG_PTR)hwnd;
+    Body->Arg2 = Arg2;
+    Body->Arg3 = Arg3;
+    Body->Arg4 = Arg4;
+    Body->PtX = PtX;
+    Body->PtY = PtY;
+    Body->ReplyHit = 0;
+    Body->ReplyMilHandled = 0;
+
+    UserLeave();
+
+    Status = LpcRequestWaitReplyPort(gpvDwmApiPort, H, H);
+
+    UserEnterExclusive();
+
+    if (!NT_SUCCESS(Status))
+        return Status;
+
+    *pHitValue = Body->ReplyHit;
+    *pMilHandledNonZero = Body->ReplyMilHandled;
+    return STATUS_SUCCESS;
 }
 
 VOID

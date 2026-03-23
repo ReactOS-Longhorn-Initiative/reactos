@@ -115,6 +115,10 @@ GreCreateBitmapEx(
     /* Verify format */
     if (iFormat < BMF_1BPP || iFormat > BMF_PNG) return NULL;
 
+    /* SURFACE_AllocSurface asserts cy > 0; reject here (themes/DWM may probe during mode churn). */
+    if (nWidth == 0 || nHeight == 0)
+        return NULL;
+
     /* The infamous RLE hack */
     if ((iFormat == BMF_4RLE) || (iFormat == BMF_8RLE))
     {

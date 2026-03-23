@@ -86,6 +86,7 @@ list(APPEND SOURCE
     gdi/eng/paint.c
     gdi/eng/pathobj.c
     gdi/eng/pdevobj.c
+    gdi/eng/sprite.c
     gdi/eng/perfcnt.c
     gdi/eng/rlecomp.c
     gdi/eng/semaphor.c
@@ -124,6 +125,7 @@ list(APPEND SOURCE
     user/ntuser/desktop.c
     user/ntuser/dwm.c
     user/ntuser/dwmnotify.c
+    user/ntuser/dwmvisual.c
     user/ntuser/display.c
     user/ntuser/draw.c
     user/ntuser/event.c

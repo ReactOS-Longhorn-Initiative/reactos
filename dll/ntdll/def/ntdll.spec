@@ -693,7 +693,7 @@
 @ stdcall RtlComputeCrc32(long ptr long)
 @ stdcall RtlComputeImportTableHash(ptr ptr long)
 @ stdcall RtlComputePrivatizedDllName_U(ptr ptr ptr)
-@ stdcall -stub -version=0x600+ RtlConnectToSm(ptr ptr long ptr)
+@ stdcall -version=0x600+ RtlConnectToSm(ptr ptr long ptr) SmConnectToSm
 @ stdcall RtlConsoleMultiByteToUnicodeN(ptr long ptr ptr long ptr)
 @ stdcall RtlConvertExclusiveToShared(ptr)
 @ stdcall -version=0x600+ RtlConvertLCIDToString(long long long ptr long)
@@ -866,7 +866,7 @@
 @ stdcall RtlFreeThreadActivationContextStack()
 @ stdcall RtlFreeUnicodeString(ptr)
 @ stdcall -stub -version=0x600+ RtlFreeUserStack(long)
-@ stdcall -version=0x502 RtlFreeUserThreadStack(ptr ptr)
+@ stdcall -version=0x502+ RtlFreeUserThreadStack(ptr ptr)
 @ stdcall RtlGUIDFromString(ptr ptr)
 @ stdcall RtlGenerate8dot3Name(ptr ptr long ptr)
 @ stdcall RtlGetAce(ptr long ptr)
@@ -888,7 +888,7 @@
 @ stdcall RtlGetFullPathName_UstrEx(ptr ptr ptr ptr ptr ptr ptr ptr)
 @ stdcall -arch=x86_64 RtlGetFunctionTableListHead()
 @ stdcall RtlGetGroupSecurityDescriptor(ptr ptr ptr)
-@ stub -version=0x600+ RtlGetIntegerAtom
+@ stdcall -version=0x600+ RtlGetIntegerAtom(wstr ptr)
 @ stdcall RtlGetLastNtStatus()
 @ stdcall RtlGetLastWin32Error()
 @ stdcall RtlGetLengthWithoutLastFullDosOrNtPathElement(long ptr ptr)
@@ -1138,7 +1138,7 @@
 @ stdcall RtlSeekMemoryStream(ptr int64 long ptr)
 @ stdcall RtlSelfRelativeToAbsoluteSD2(ptr ptr)
 @ stdcall RtlSelfRelativeToAbsoluteSD(ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr)
-@ stdcall -stub -version=0x600+ RtlSendMsgToSm(ptr ptr)
+@ stdcall -version=0x600+ RtlSendMsgToSm(ptr ptr) SmSendMsgToSm
 @ stdcall RtlSetAllBits(ptr)
 @ stdcall RtlSetAttributesSecurityDescriptor(ptr long ptr)
 @ stdcall RtlSetBits(ptr long long)

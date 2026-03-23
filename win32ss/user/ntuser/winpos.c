@@ -8,7 +8,6 @@
 
 #include <win32k.h>
 #include <immdev.h>
-#include "dwm.h"
 #include "dwmnotify.h"
 DBG_DEFAULT_CHANNEL(UserWinpos);
 
@@ -2993,6 +2992,7 @@ co_WinPosSearchChildren(
 
     if (ScopeWin->head.pti == PsGetCurrentThreadWin32Thread())
     {
+       /* 5048 DwmHitTestQuery is only from xxxDCEWindowHitTest2 (DCE args); WinPos has no equivalent yet. */
        *HitTest = (USHORT)co_IntSendMessage(UserHMGetHandle(ScopeWin), WM_NCHITTEST, 0, MAKELONG(Point->x, Point->y));
 
        if ((*HitTest) == (USHORT)HTTRANSPARENT)

@@ -31,7 +31,7 @@ typedef struct tagDCE
     PTHREADINFO  ptiOwner;
     PPROCESSINFO ppiOwner;
     struct _MONITOR* pMonitor;
-    /* True GDI redirect: client GetDC draws into WND.hbmDwmRedirect instead of the framebuffer. */
+    /* DWM redirection: GreSelectRedirectionBitmap-style bind selects WND.hbmDwmRedirect into the DC. */
     BOOLEAN      fDwmRedirectBound;
     POINTL       DwmPtlDcOrigSave;
     RECTL        DwmErclWindowSave;

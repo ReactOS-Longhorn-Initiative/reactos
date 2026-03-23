@@ -545,6 +545,7 @@ UserGetDCEx(PWND Wnd OPTIONAL, HANDLE ClipRegion, ULONG Flags)
    { // Scan the cheap wine list for our match.
       DCE* DceEmpty = NULL;
       DCE* DceUnused = NULL;
+      DCE* DceMatch = NULL;
       KeEnterCriticalRegion();
       ListEntry = LEDce.Flink;
       while (ListEntry != &LEDce)
@@ -565,6 +566,7 @@ UserGetDCEx(PWND Wnd OPTIONAL, HANDLE ClipRegion, ULONG Flags)
             else if (Dce->hwndCurrent == (Wnd ? UserHMGetHandle(Wnd) : NULL) &&
                      ((Dce->DCXFlags & DCX_CACHECOMPAREMASK) == DcxFlags))
             {
+               DceMatch = Dce;
                UpdateClipOrigin = TRUE;
                break;
             }
@@ -573,7 +575,15 @@ UserGetDCEx(PWND Wnd OPTIONAL, HANDLE ClipRegion, ULONG Flags)
       }
       KeLeaveCriticalRegion();
 
-      Dce = (DceEmpty == NULL) ? DceUnused : DceEmpty;
+      /*
+       * Must keep the matching cache DCE when found. Previously we always replaced Dce with
+       * DceEmpty/DceUnused after the loop, discarding the match and handing out another hDC —
+       * wrong surface / DWM redirect target (smearing, hall-of-mirrors).
+       */
+      if (DceMatch)
+         Dce = DceMatch;
+      else
+         Dce = (DceEmpty == NULL) ? DceUnused : DceEmpty;
 
       if (Dce == NULL)
       {

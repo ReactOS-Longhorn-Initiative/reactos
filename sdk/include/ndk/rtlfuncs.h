@@ -2694,6 +2694,14 @@ RtlLookupAtomInAtomTable(
     _Out_ PRTL_ATOM Atom
 );
 
+_Success_(return)
+NTSYSAPI
+BOOLEAN
+NTAPI
+RtlGetIntegerAtom(
+    _In_ PCWSTR AtomName,
+    _Out_opt_ PUSHORT IntegerAtom);
+
 //
 // Process Management Functions
 //
@@ -2792,6 +2800,13 @@ VOID
 NTAPI
 RtlExitUserThread(
     _In_ NTSTATUS Status);
+
+NTSYSAPI
+VOID
+NTAPI
+RtlFreeUserThreadStack(
+    _In_ HANDLE ProcessHandle,
+    _In_ HANDLE ThreadHandle);
 
 NTSYSAPI
 VOID

@@ -8,6 +8,8 @@
 #include <win32k.h>
 #include <windowsx.h>
 
+#include "dwmnotify.h"
+
 DBG_DEFAULT_CHANNEL(UserDefwnd);
 
 INT WINAPI DrawTextExWorker( HDC hdc, LPWSTR str, INT i_count,
@@ -464,6 +466,8 @@ DefWndSetIcon(PWND pWnd, WPARAM wParam, LPARAM lParam)
 
     UserSetProp(pWnd, gpsi->atomIconProp, hIcon, TRUE);
     UserSetProp(pWnd, gpsi->atomIconSmProp, hIconSmall, TRUE);
+
+    IntDwmOnWindowIconChanged(pWnd);
 
     if ((pWnd->style & WS_CAPTION ) == WS_CAPTION)
        UserPaintCaption(pWnd, DC_ICON);

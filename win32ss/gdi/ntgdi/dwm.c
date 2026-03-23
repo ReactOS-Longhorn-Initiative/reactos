@@ -11,6 +11,7 @@
 #include "user/ntuser/dwm.h"
 #include "user/ntuser/dce.h"
 #include "user/ntuser/dwmnotify.h"
+#include "user/ntuser/dwmvisual.h"
 #include "dwmkm.h"
 
 DBG_DEFAULT_CHANNEL(UserMisc);
@@ -27,7 +28,8 @@ typedef struct _GRE_DWM_STATE
 
 static GRE_DWM_STATE *gGreDwmState;
 
-static NTSTATUS
+NTSTATUS
+APIENTRY
 IntGreDwmResolveSurface(
     _In_ HDEV hdev,
     _In_opt_ HWND hwnd,
@@ -254,6 +256,14 @@ GreDwmStartup(_In_ HDEV hdev)
     DPRINT1("[DWM] GreDwmStartup: [5] scratch HRGN=%p hdev stored=%p\n",
             gGreDwmState->hrgnScratch, gGreDwmState->hdev);
 
+    /*
+     * Longhorn 5048: TransferSpriteStateToVisualState(hsurf, &P) before DwmTopLevelCreate walk on gDceState.
+     */
+    if (!NT_SUCCESS(EngpTransferSpriteStateToVisualState(ppdevFromHdev)))
+    {
+        DPRINT1("[DWM] GreDwmStartup: EngpTransferSpriteStateToVisualState failed (continuing with DCE walk)\n");
+    }
+
     DPRINT1("[DWM] GreDwmStartup: [6] IntDwmGreStartupWalkDceList(%p) START (DCE pass1+pass2 LPC)\n", hdev);
     IntDwmGreStartupWalkDceList(hdev);
     DPRINT1("[DWM] GreDwmStartup: [6] IntDwmGreStartupWalkDceList END\n");
@@ -290,6 +300,8 @@ APIENTRY
 GreDwmShutdown(_In_ HDEV hdev)
 {
     DPRINT1("[DWM] GreDwmShutdown: enter hdev=%p state=%p\n", hdev, gGreDwmState);
+
+    IntRosDwmFreeAllVisuals();
 
     DxEngLockShareSem();
     DxEngLockHdev(hdev);
@@ -335,57 +347,199 @@ GreDwmGetSurfaceData(
         return STATUS_INVALID_PARAMETER;
     }
 
-    if (!gfbDwmCompositing)
-    {
-        DPRINT1("[DWM] GreDwmGetSurfaceData: not compositing hwnd=%p\n", hwnd);
-        return STATUS_DEVICE_NOT_READY;
-    }
-
-    DPRINT1("[DWM] GreDwmGetSurfaceData: enter hwnd=%p\n", hwnd);
+    DPRINT1("[DWM] GreDwmGetSurfaceData: enter hwnd=%p compositing=%u\n", hwnd, (unsigned)gfbDwmCompositing);
     RtlZeroMemory(&kOut, sizeof(kOut));
+    Status = STATUS_UNSUCCESSFUL;
+
+    if (!hwnd)
+    {
+        DPRINT1("[DWM] GreDwmGetSurfaceData: null hwnd\n");
+        return STATUS_INVALID_PARAMETER;
+    }
 
     DxEngLockShareSem();
     DxEngLockHdev(hdev);
 
-    if (hwnd)
+    /*
+     * Compositing: prefer LH5048-style pFindVisual (ROS_DWM_VISUAL). Unlike real win32k, our visual
+     * list is not always complete for every HWND milcore asks for; refresh redirect + upsert first,
+     * then if still no visual fall back to IntGreDwmResolveSurface (DWM syscall entry points already
+     * restrict callers to the DWM process).
+     */
+    if (gfbDwmCompositing)
     {
-        PWND pPrep = UserGetWindowObject(hwnd);
-        if (pPrep)
-            IntDwmPrepareRedirectSurface(hdev, pPrep);
-    }
+        PROS_DWM_VISUAL vis;
+        PWND pwndPrep;
 
-    Status = IntGreDwmResolveSurface(hdev, hwnd, &pwnd, &psurf);
-    if (NT_SUCCESS(Status) && psurf)
-    {
-        ld = psurf->SurfObj.lDelta;
-        rowB = (ULONG)(ld >= 0 ? ld : -ld);
-
-        kOut.Width = psurf->SurfObj.sizlBitmap.cx;
-        kOut.Height = psurf->SurfObj.sizlBitmap.cy;
-        kOut.PixelFormat = psurf->SurfObj.iBitmapFormat;
-        kOut.SurfaceFlags = psurf->flags;
-        kOut.StrideBytes = rowB;
-        if (pwnd && (pwnd->ExStyle & WS_EX_LAYERED))
-            kOut.BlendState = 1;
-
-        CopyStatus = IntGreDwmCopySurfaceToSection(psurf, &hSection);
-        if (!NT_SUCCESS(CopyStatus))
+        pwndPrep = UserGetWindowObject(hwnd);
+        if (pwndPrep)
         {
-            DPRINT1("[DWM] GreDwmGetSurfaceData: CopySurfaceToSection failed %08lX hwnd=%p\n",
-                    CopyStatus, hwnd);
-            SURFACE_ShareUnlockSurface(psurf);
-            DxEngUnlockHdev(hdev);
-            DxEngUnlockShareSem();
-            return CopyStatus;
+            IntDwmPrepareRedirectSurface(hdev, pwndPrep);
+            IntRosDwmUpsertForPwnd(pwndPrep);
         }
-        kOut.hSection = hSection;
 
-        DPRINT1("[DWM] GreDwmGetSurfaceData: surf %lux%lu fmt=%lu flags=%#lx hwnd=%p section=%p\n",
-                kOut.Width, kOut.Height, kOut.PixelFormat, kOut.SurfaceFlags, hwnd, kOut.hSection);
+        vis = IntRosDwmFindVisual(hwnd);
 
-        SURFACE_ShareUnlockSurface(psurf);
+        if (vis && (vis->Flags & ROS_DWM_VISUAL_FLAG_VALID))
+        {
+            LONG vrw = vis->rcScreen.right - vis->rcScreen.left;
+            LONG vrh = vis->rcScreen.bottom - vis->rcScreen.top;
+
+            if (vis->pso)
+            {
+                psurf = CONTAINING_RECORD(vis->pso, SURFACE, SurfObj);
+                ld = psurf->SurfObj.lDelta;
+                rowB = (ULONG)(ld >= 0 ? ld : -ld);
+
+                if (psurf->SurfObj.sizlBitmap.cx > 0 && psurf->SurfObj.sizlBitmap.cy > 0 &&
+                    rowB > 0)
+                {
+                    kOut.Width = psurf->SurfObj.sizlBitmap.cx;
+                    kOut.Height = psurf->SurfObj.sizlBitmap.cy;
+                    kOut.PixelFormat = psurf->SurfObj.iBitmapFormat;
+                    kOut.SurfaceFlags = psurf->flags;
+                    kOut.StrideBytes = rowB;
+                    kOut.BlendState = EngpDwmBlendStateFromSpriteAttrs(&vis->Blend,
+                                                                       vis->ulSpriteAttr10,
+                                                                       vis->ulSpriteAttr8);
+
+                    CopyStatus = IntGreDwmCopySurfaceToSection(psurf, &hSection);
+                    if (!NT_SUCCESS(CopyStatus))
+                    {
+                        DPRINT1("[DWM] GreDwmGetSurfaceData: visual CopySurfaceToSection failed %08lX hwnd=%p\n",
+                                CopyStatus, hwnd);
+                        DxEngUnlockHdev(hdev);
+                        DxEngUnlockShareSem();
+                        return CopyStatus;
+                    }
+                    kOut.hSection = hSection;
+                    Status = STATUS_SUCCESS;
+                    DPRINT1("[DWM] GreDwmGetSurfaceData: visual+pso hwnd=%p section=%p\n", hwnd, kOut.hSection);
+                    goto GreDwmSurfaceDone;
+                }
+
+                DPRINT1("[DWM] GreDwmGetSurfaceData: visual pso degenerate hwnd=%p surf=%lux%lu -> dims-only\n",
+                        hwnd,
+                        psurf->SurfObj.sizlBitmap.cx,
+                        psurf->SurfObj.sizlBitmap.cy);
+            }
+
+            kOut.Width = (ULONG_PTR)vrw;
+            kOut.Height = (ULONG_PTR)vrh;
+            kOut.BlendState = EngpDwmBlendStateFromSpriteAttrs(&vis->Blend,
+                                                               vis->ulSpriteAttr10,
+                                                               vis->ulSpriteAttr8);
+            Status = STATUS_SUCCESS;
+            DPRINT1("[DWM] GreDwmGetSurfaceData: visual dims-only hwnd=%p %lux%lu\n",
+                    hwnd, kOut.Width, kOut.Height);
+            goto GreDwmSurfaceDone;
+        }
+
+        Status = IntGreDwmResolveSurface(hdev, hwnd, &pwnd, &psurf);
+        if (NT_SUCCESS(Status) && psurf)
+        {
+            ld = psurf->SurfObj.lDelta;
+            rowB = (ULONG)(ld >= 0 ? ld : -ld);
+
+            kOut.Width = psurf->SurfObj.sizlBitmap.cx;
+            kOut.Height = psurf->SurfObj.sizlBitmap.cy;
+            kOut.PixelFormat = psurf->SurfObj.iBitmapFormat;
+            kOut.SurfaceFlags = psurf->flags;
+            kOut.StrideBytes = rowB;
+            if (pwnd && (pwnd->ExStyle & WS_EX_LAYERED))
+                kOut.BlendState = 1;
+
+            CopyStatus = IntGreDwmCopySurfaceToSection(psurf, &hSection);
+            if (!NT_SUCCESS(CopyStatus))
+            {
+                DPRINT1("[DWM] GreDwmGetSurfaceData: resolve CopySurfaceToSection failed %08lX hwnd=%p\n",
+                        CopyStatus, hwnd);
+                SURFACE_ShareUnlockSurface(psurf);
+                psurf = NULL;
+                DxEngUnlockHdev(hdev);
+                DxEngUnlockShareSem();
+                return CopyStatus;
+            }
+            kOut.hSection = hSection;
+            Status = STATUS_SUCCESS;
+            DPRINT1("[DWM] GreDwmGetSurfaceData: compositing resolve fallback hwnd=%p section=%p\n",
+                    hwnd, kOut.hSection);
+            SURFACE_ShareUnlockSurface(psurf);
+            psurf = NULL;
+            goto GreDwmSurfaceDone;
+        }
+
+        if (psurf)
+        {
+            SURFACE_ShareUnlockSurface(psurf);
+            psurf = NULL;
+        }
+
+        DxEngUnlockHdev(hdev);
+        DxEngUnlockShareSem();
+        DPRINT1("[DWM] GreDwmGetSurfaceData: compositing, no visual and no resolve hwnd=%p\n", hwnd);
+        return STATUS_NOT_FOUND;
     }
 
+    {
+        PPDEVOBJ ppdevSp = (PPDEVOBJ)hdev;
+        ULONG spCx, spCy;
+        ULONG attr4 = 0, attr6 = 0;
+        BLENDFUNCTION blendSp;
+
+        psurf = EngpSpGetShapeSurface(ppdevSp, hwnd);
+        if (psurf)
+        {
+            if (EngpGdiGetSpriteAttributes(ppdevSp, hwnd, NULL, &attr4, &blendSp, &attr6) &&
+                ppdevSp->pSpriteState)
+            {
+                (VOID)EngpSpriteGet(ppdevSp->pSpriteState, hwnd, NULL);
+            }
+
+            ld = psurf->SurfObj.lDelta;
+            rowB = (ULONG)(ld >= 0 ? ld : -ld);
+            kOut.Width = psurf->SurfObj.sizlBitmap.cx;
+            kOut.Height = psurf->SurfObj.sizlBitmap.cy;
+            kOut.PixelFormat = psurf->SurfObj.iBitmapFormat;
+            kOut.SurfaceFlags = psurf->flags;
+            kOut.StrideBytes = rowB;
+            kOut.BlendState = EngpDwmBlendStateFromSpriteAttrs(&blendSp, attr6, attr4);
+
+            CopyStatus = IntGreDwmCopySurfaceToSection(psurf, &hSection);
+            SURFACE_ShareUnlockSurface(psurf);
+            psurf = NULL;
+            if (!NT_SUCCESS(CopyStatus))
+            {
+                DPRINT1("[DWM] GreDwmGetSurfaceData: sprite CopySurfaceToSection failed %08lX hwnd=%p\n",
+                        CopyStatus, hwnd);
+                DxEngUnlockHdev(hdev);
+                DxEngUnlockShareSem();
+                return CopyStatus;
+            }
+            kOut.hSection = hSection;
+            Status = STATUS_SUCCESS;
+            DPRINT1("[DWM] GreDwmGetSurfaceData: sprite+shape hwnd=%p section=%p\n", hwnd, kOut.hSection);
+            goto GreDwmSurfaceDone;
+        }
+
+        if (EngpSpriteTryGetExtents(ppdevSp, hwnd, &spCx, &spCy))
+        {
+            if (EngpGdiGetSpriteAttributes(ppdevSp, hwnd, NULL, &attr4, &blendSp, &attr6) &&
+                ppdevSp->pSpriteState)
+            {
+                (VOID)EngpSpriteGet(ppdevSp->pSpriteState, hwnd, NULL);
+            }
+            kOut.Width = spCx;
+            kOut.Height = spCy;
+            kOut.BlendState = EngpDwmBlendStateFromSpriteAttrs(&blendSp, attr6, attr4);
+            Status = STATUS_SUCCESS;
+            DPRINT1("[DWM] GreDwmGetSurfaceData: sprite dims-only hwnd=%p %lux%lu\n",
+                    hwnd, kOut.Width, kOut.Height);
+            goto GreDwmSurfaceDone;
+        }
+    }
+
+GreDwmSurfaceDone:
     DxEngUnlockHdev(hdev);
     DxEngUnlockShareSem();
 

@@ -99,6 +99,8 @@ typedef struct _DC *PDC;
 
 #include "user/ntuser/dwmnotify.h"
 
+#include "gdi/eng/sprite.h"
+
 /* CSRSS Interface */
 #include "user/ntuser/csr.h"
 

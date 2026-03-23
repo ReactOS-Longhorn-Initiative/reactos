@@ -130,7 +130,13 @@ SURFACE_AllocSurface(
 
     NT_ASSERT(!pvBits || (iType == STYPE_BITMAP));
     NT_ASSERT((iFormat <= BMF_32BPP) || (cjBufSize != 0));
-    NT_ASSERT((LONG)cy > 0);
+
+    if (cy == 0)
+    {
+        DPRINT1("SURFACE_AllocSurface: reject cy=0 type=%u cx=%lu fmt=%lu\n",
+                iType, cx, iFormat);
+        return NULL;
+    }
 
     /* Verify format */
     if ((iFormat < BMF_1BPP) || (iFormat > BMF_PNG))

@@ -711,6 +711,7 @@ LRESULT co_UserFreeWindow(PWND Window,
       Window->pMilTransform = NULL;
    }
 
+   IntEngSpriteOnWindowDestroyed(Window);
    IntDwmOnWindowDestroyed(Window);
    IntDwmFreeRedirectSurface(Window);
 
@@ -1300,6 +1301,8 @@ co_IntSetParent(PWND Wnd, PWND WndNewParent)
                           pt.x, pt.y, 0, 0, swFlags);
    //ERR("IntSetParent SetWindowPos 2 X %d Y %d\n",pt.x, pt.y);
    if (WasVisible) co_WinPosShowWindow(Wnd, SW_SHOWNORMAL);
+
+   IntDwmNotifyChildParentChanged(Wnd, WndNewParent);
 
    return WndOldParent;
 }
@@ -2605,6 +2608,7 @@ co_UserCreateWindowEx(CREATESTRUCTW* Cs,
    }
 
    TRACE("co_UserCreateWindowEx(%wZ): Created window %p\n", ClassName, hWnd);
+   IntEngSpriteOnWindowCreated(Window);
    IntDwmOnWindowCreated(Window);
    ret = Window;
 
@@ -3833,6 +3837,8 @@ NtUserSetShellWindowEx(HWND hwndShell, HWND hwndListView)
    UserDerefObjectCo(WndShell);
 
    ObDereferenceObject(WinStaObject);
+   if (gfbDwmCompositing)
+       IntDwmSendShellWindowLpc(hwndShell);
    Ret = TRUE;
 
 Exit:
@@ -3945,6 +3951,9 @@ co_IntSetWindowLongPtr(HWND hWnd, DWORD Index, LONG_PTR NewValue, BOOL Ansi, ULO
 
             Window->ExStyle = (DWORD)Style.styleNew;
 
+            if ((DWORD)OldValue != Window->ExStyle)
+               IntDwmNotifyWindowStyleChanged(Window, GWL_EXSTYLE, (DWORD)OldValue, Window->ExStyle);
+
             if (((DWORD)OldValue ^ Window->ExStyle) & WS_EX_LAYERED)
                IntDwmOnExStyleLayeredToggle(Window);
 
@@ -4003,6 +4012,9 @@ co_IntSetWindowLongPtr(HWND hWnd, DWORD Index, LONG_PTR NewValue, BOOL Ansi, ULO
                DceResetActiveDCEs( Window );
             }
             Window->style = (DWORD)Style.styleNew;
+
+            if ((DWORD)OldValue != Window->style)
+               IntDwmNotifyWindowStyleChanged(Window, GWL_STYLE, (DWORD)OldValue, Window->style);
 
             if ((Style.styleOld ^ Style.styleNew) & WS_VISIBLE)
                IntDwmOnVisibleStyleChanged(Window, (Style.styleNew & WS_VISIBLE) != 0);

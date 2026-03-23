@@ -90,7 +90,9 @@ typedef struct _PDEVOBJ
 //  HSEMAPHORE                hsemPointer;
     POINTL                    ptlPointer;
 //  SIZEL                     szlPointer;
-//  SPRITESTATE               SpriteState;
+/* LH5048: SPRITESTATE (z/y lists + sentinel at +384) for pSp* / non-compositing DWM paths.
+ * Compositing still uses dwmvisual.c + redirect surfaces; both may coexist during bring-up. */
+    struct _SPRITESTATE *     pSpriteState;
 //  HFONT                     hlfntDefault;
 //  HFONT                     hlfntAnsiVariable;
 //  HFONT                     hlfntAnsiFixed;

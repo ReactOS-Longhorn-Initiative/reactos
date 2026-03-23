@@ -73,6 +73,8 @@
 #define GDITAG_DEVMODE                   'vedG'
 #define GDITAG_MDEV                      'vdmG'
 #define GDITAG_PDEV                      'veDG'
+#define GDITAG_SPRITE                    0x20707347 /* LH 'psG ' */
+#define GDITAG_SPRITESTATE               'tSsG'
 #define GDITAG_HGLYPH_ARRAY              'mfdG'
 #define GDITAG_DRVSUP                    'srdG'
 #define GDITAG_CLIPOBJ                   'vrdG'
@@ -157,7 +159,6 @@
 #define GDITAG_PALETTE_RGB_XLATE         'bgrG'
 #define GDITAG_REGION                    'ngrG'
 #define GDITAG_SEMAPHORE                 'mesG'
-#define GDITAG_SPRITE                    ' psG'
 #define GDITAG_METASPRITE                'mpsG'
 #define GDITAG_SPRITESCAN                'rpsG'
 #define GDITAG_STACKTRACE                'atsG'

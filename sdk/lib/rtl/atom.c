@@ -84,13 +84,13 @@ RtlpHashAtomName(
 static
 BOOLEAN
 RtlpCheckIntegerAtom(
-    PWSTR AtomName,
+    PCWSTR AtomName,
     PUSHORT AtomValue)
 {
     UNICODE_STRING AtomString;
     ULONG LongValue;
     USHORT LoValue;
-    PWCHAR p;
+    PCWSTR p;
 
     DPRINT("RtlpCheckIntegerAtom(AtomName '%S' AtomValue %p)\n",
            AtomName, AtomValue);
@@ -136,9 +136,22 @@ RtlpCheckIntegerAtom(
 
     DPRINT("LongValue: %lu\n", LongValue);
 
-    *AtomValue = (USHORT)(LongValue & 0x0000FFFF);
+    if (AtomValue != NULL)
+        *AtomValue = (USHORT)(LongValue & 0x0000FFFF);
 
     return TRUE;
+}
+
+/*
+ * @implemented
+ */
+BOOLEAN
+NTAPI
+RtlGetIntegerAtom(
+    _In_ PCWSTR AtomName,
+    _Out_opt_ PUSHORT IntegerAtom)
+{
+    return RtlpCheckIntegerAtom(AtomName, IntegerAtom);
 }
 
 

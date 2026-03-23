@@ -9,6 +9,8 @@
 #include <win32k.h>
 #include <unaligned.h>
 
+#include "dwmnotify.h"
+
 DBG_DEFAULT_CHANNEL(UserClass);
 
 static PWSTR ControlsList[] =
@@ -2685,6 +2687,7 @@ InvalidParameter:
                {
                   if (Ret && Ret != dwNewLong)
                      UserPaintCaption(Window, DC_ICON);
+                  IntDwmNotifyClassIconsChanged(Window->pcls);
                }
             }
         }

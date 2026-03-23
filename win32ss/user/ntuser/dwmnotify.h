@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dce.h"
+#include "dwm.h"
 
 struct _DC;
 typedef struct _DC *PDC;
@@ -20,23 +21,30 @@ VOID FASTCALL IntDwmOnWindowPosChanged(_In_ PWND Wnd, _In_ UINT SwpFlags,
 VOID FASTCALL IntDwmOnWindowShapeChanged(_In_ PWND Wnd);
 /* Layered alpha/colorkey or UpdateLayeredWindow presentation changed. */
 VOID FASTCALL IntDwmOnLayeredPresentationChanged(_In_ PWND Wnd);
-/* After applied display mode change while compositing: LPC + unbind active redirect DCs.
- * OldBitCount: gpsi->BitCount before the switch; used to drop redirect bitmaps if depth changed.
- * CdsFlags: CDS_* from caller; OR with DWM_DISPLAY_HINT_* so milcore can classify (5048+). */
+/* While compositing: 5048-style ResetRedirectedWindows — unbind active redirect DCs; if bit
+ * depth changed, free redirect bitmaps under the desktop. Then DwmPowerNotification (op 16)
+ * with argument CdsFlags (5048 packs one ULONG in the power slot). */
 #define DWM_DISPLAY_HINT_MONITOR    0x10000000u
 #define DWM_DISPLAY_HINT_VIDRESCAN  0x20000000u
 #define DWM_DISPLAY_HINT_SESSION    0x40000000u
 #define DWM_DISPLAY_HINT_METRICS    0x80000000u
 VOID FASTCALL IntDwmNotifyDisplaySettingsChanged(_In_ DWORD CdsFlags, _In_ ULONG OldBitCount);
 
-/* Foreground message queue / active+focus HWND roots (opcode 13) — call after input desktop changes. */
 VOID FASTCALL IntDwmSendForegroundInputLpc(VOID);
+VOID FASTCALL IntDwmSendDesktopSwitchLpc(VOID);
+VOID FASTCALL IntDwmSendShellWindowLpc(_In_ HWND hwndShell);
 
 /* WS_DISABLED / minimize / maximize changed without a full SetWindowPos path. */
 VOID FASTCALL IntDwmOnNonClientStateHintChanged(_In_ PWND Wnd);
 
 VOID FASTCALL IntDwmFreeAllRedirectBitmaps(VOID);
 VOID FASTCALL IntDwmOnWindowCaptionChanged(_In_ PWND Wnd);
+
+struct _CLS;
+VOID FASTCALL IntDwmOnWindowIconChanged(_In_ PWND Wnd);
+VOID FASTCALL IntDwmNotifyClassIconsChanged(_In_ struct _CLS *pcls);
+VOID FASTCALL IntDwmNotifyWindowStyleChanged(_In_ PWND Wnd, _In_ LONG Idx, _In_ ULONG OldVal, _In_ ULONG NewVal);
+VOID FASTCALL IntDwmNotifyChildParentChanged(_In_ PWND Wnd, _In_ PWND WndNewParent);
 
 VOID FASTCALL IntDwmOnOwnerChanged(_In_ PWND Wnd);
 VOID FASTCALL IntDwmOnExStyleLayeredToggle(_In_ PWND Wnd);
@@ -56,3 +64,6 @@ VOID FASTCALL IntDwmUnbindAllActiveRedirectDcs(VOID);
 VOID FASTCALL IntDwmTopLevelCreate(_In_ PWND Wnd, _In_opt_ PRECTL prcIn, _In_ ULONG HintFlagsAnd1);
 VOID FASTCALL IntDwmTopLevelUpdate(_In_ PWND Wnd, _In_ ULONG UpdateArg, _In_opt_ PRECTL prcOptional);
 VOID FASTCALL IntDwmGreStartupWalkDceList(_In_ HDEV hdev);
+
+/* 5048 DwmNotifyChildrenAddRemove: batch child op 0x11 / 18 under the desktop window. */
+VOID FASTCALL IntDwmNotifyDesktopChildrenAddRemove(_In_ BOOLEAN BooleanAdd);

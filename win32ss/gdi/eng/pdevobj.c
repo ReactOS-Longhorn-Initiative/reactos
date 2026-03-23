@@ -92,6 +92,7 @@ VOID
 PDEVOBJ_vDeletePDEV(
     PPDEVOBJ ppdev)
 {
+    EngpSpriteStateDestroy(ppdev);
     EngDeleteSemaphore(ppdev->hsemDevLock);
     if (ppdev->pdmwDev)
         ExFreePoolWithTag(ppdev->pdmwDev, GDITAG_DEVMODE);
@@ -598,6 +599,14 @@ PDEVOBJ_Create(
         PDEVOBJ_vRelease(ppdev);
         EngUnloadImage(pldev);
         return NULL;
+    }
+
+    if (ldevtype == LDEV_DEVICE_DISPLAY)
+    {
+        if (!NT_SUCCESS(EngpSpriteStateCreate(ppdev)))
+        {
+            WARN("EngpSpriteStateCreate failed for hdev %p (sprites disabled)\n", ppdev);
+        }
     }
 
     /* Enable DirectDraw */

@@ -142,9 +142,10 @@
 @ stdcall DdeSetUserHandle (long long long)
 @ stdcall DdeUnaccessData(long)
 @ stdcall DdeUninitialize(long)
-@ stdcall -version=0x600+ DwmGetSurfaceData(ptr ptr)
-@ stdcall -version=0x600+ DwmStartup(long)
-@ stdcall -version=0x600+ DwmShutdown()
+; Milcore (LH5048): GetProcAddress DwmStartup/DwmShutdown/DwmGetSurfaceData — always export (not DLL_EXPORT_VERSION gated).
+@ stdcall DwmGetSurfaceData(ptr ptr)
+@ stdcall DwmStartup(long)
+@ stdcall DwmShutdown()
 @ stdcall DefDlgProcA(long long long long)
 @ stdcall DefDlgProcW(long long long long)
 @ stdcall DefFrameProcA(long long long long long)
@@ -710,7 +711,8 @@
 @ stdcall SetWindowPlacement(long ptr) NtUserSetWindowPlacement
 @ stdcall SetWindowPos(long long long long long long long) NtUserSetWindowPos
 @ stdcall SetWindowRgn(long long long)
-@ stdcall -version=0x600+ SetWindowRgnEx(long long long)
+; Milcore MilDwmInitialize: GetProcAddress SetWindowRgnEx / UpdateWindowTransform (same as Dwm* above).
+@ stdcall SetWindowRgnEx(long long long)
 @ stdcall SetWindowStationUser(long long long long)
 @ stdcall SetWindowTextA(long str)
 @ stdcall SetWindowTextW(long wstr)
@@ -772,7 +774,7 @@
 @ stdcall UpdateLayeredWindowIndirect(long ptr)
 @ stdcall UpdatePerUserSystemParameters(long long)
 @ stdcall UpdateWindow(long)
-@ stdcall -version=0x600+ UpdateWindowTransform(long ptr long)
+@ stdcall UpdateWindowTransform(long ptr long)
 @ stdcall User32InitializeImmEntryTable(ptr)
 @ stdcall UserClientDllInitialize(ptr long ptr) DllMain
 @ stdcall UserHandleGrantAccess(ptr ptr long) NtUserUserHandleGrantAccess

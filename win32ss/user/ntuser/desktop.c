@@ -3053,6 +3053,9 @@ NtUserSwitchDesktop(HDESK hdesk)
     TRACE("SwitchDesktop gpdeskInputDesktop 0x%p\n", gpdeskInputDesktop);
     ObDereferenceObject(pdesk);
 
+    if (gfbDwmCompositing)
+        IntDwmSendDesktopSwitchLpc();
+
     Ret = TRUE;
 
 Exit:

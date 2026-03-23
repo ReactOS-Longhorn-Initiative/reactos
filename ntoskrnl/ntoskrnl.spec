@@ -1170,6 +1170,7 @@
 @ stdcall RtlGetElementGenericTableAvl(ptr long)
 @ stdcall RtlGetFirstRange(ptr ptr ptr)
 @ stdcall RtlGetGroupSecurityDescriptor(ptr ptr ptr)
+@ stdcall RtlGetIntegerAtom(wstr ptr)
 @ stdcall RtlGetNextRange(ptr ptr long)
 @ stdcall RtlGetNtGlobalFlags()
 @ stdcall RtlGetOwnerSecurityDescriptor(ptr ptr ptr)
