@@ -1,6 +1,6 @@
 
 add_definitions(-D__WINESRC__)
-spec2def(dwmapi.dll dwmapi.spec)
+spec2def(dwmapi.dll dwmapi.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
      dwmapi_main.c)

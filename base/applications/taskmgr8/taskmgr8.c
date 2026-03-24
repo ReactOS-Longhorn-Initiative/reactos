@@ -25,6 +25,27 @@
 #define RFF_CALCDIRECTORY 0x04
 #endif
 
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+
+/* TCM_SETBKCOLOR / TCM_SETTEXTCOLOR (comctl 4.70+); psdk may omit TabCtrl_Set* macros at _WIN32_WINNT 0x502. */
+#ifndef TCM_SETBKCOLOR
+#define TCM_SETBKCOLOR (TCM_FIRST + 29)
+#endif
+#ifndef TCM_SETTEXTCOLOR
+#define TCM_SETTEXTCOLOR (TCM_FIRST + 36)
+#endif
+
+#ifndef HDM_SETBKCOLOR
+#define HDM_SETBKCOLOR (HDM_FIRST + 29)
+#endif
+#ifndef HDM_SETTEXTCOLOR
+#define HDM_SETTEXTCOLOR (HDM_FIRST + 38)
+#endif
+
+HRESULT WINAPI DwmSetWindowAttribute(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
 typedef void(WINAPI *TM8_RUNFILEDLG)(HWND hwnd, HICON hIcon, LPWSTR lpstrDirectory, LPWSTR lpstrTitle,
                                      LPWSTR lpstrPrompt, UINT uFlags);
 
@@ -190,6 +211,8 @@ static void DrawCpuStatsValueColumn(HDC hdc, const RECT *rcBox, HWND hwndVal);
 static void ShowCpuGraphModeContextMenu(HWND hwndMain, HWND hwndGraph, LPARAM lParam);
 static WNDPROC s_pfnOldGraph;
 static WNDPROC s_pfnOldListView;
+static WNDPROC s_pfnOldListHdr;
+static HWND s_hwndListHdr;
 static void NavDrawMiniSpark(HDC hdc, const RECT *rcBox, const BYTE *hist, int histLen, int writePos,
                              COLORREF fillRgb, COLORREF lineRgb, BOOL fillUnderCurve);
 static HBRUSH s_brNavColumn;
@@ -454,6 +477,38 @@ Tm8HeatBgMem(SIZE_T ws, SIZE_T mx)
     if (t > 1.0)
         t = 1.0;
     return Tm8HeatBgCpu(t * 40.0);
+}
+
+static COLORREF
+Tm8HeatBgCpuForUi(double pct)
+{
+    double t;
+
+    if (!Tm8ThemeIsDark())
+        return Tm8HeatBgCpu(pct);
+    t = pct / 35.0;
+    if (t < 0.0)
+        t = 0.0;
+    if (t > 1.0)
+        t = 1.0;
+    {
+        int r1 = 48, g1 = 50, b1 = 54;
+        int r2 = 130, g2 = 85, b2 = 42;
+        return RGB((BYTE)(r1 + (r2 - r1) * t), (BYTE)(g1 + (g2 - g1) * t), (BYTE)(b1 + (b2 - b1) * t));
+    }
+}
+
+static COLORREF
+Tm8HeatBgMemForUi(SIZE_T ws, SIZE_T mx)
+{
+    double t = 0.0;
+    if (mx > 0 && ws > 0)
+        t = (double)ws / (double)mx;
+    if (t > 1.0)
+        t = 1.0;
+    if (!Tm8ThemeIsDark())
+        return Tm8HeatBgMem(ws, mx);
+    return Tm8HeatBgCpuForUi(t * 40.0);
 }
 
 static void
@@ -1129,7 +1184,7 @@ LayoutChildren(HWND hwnd)
         }
         SetWindowPos(s_hwndMainTab, HWND_TOP, margin, tabTop, tabW, tabBarH,
                      SWP_SHOWWINDOW | SWP_NOACTIVATE);
-        contentTop = tabTop + tabBarH + 2;
+        contentTop = tabTop + tabBarH;
     }
     else
     {
@@ -1844,7 +1899,7 @@ RefreshProcessListEx(BOOL force)
     if (topIdx >= 0 && topIdx < nLvOld)
         topPid = Tm8ListViewGetItemPid(topIdx);
 
-    LockWindowUpdate(s_hwndList);
+    SendMessageW(s_hwndList, WM_SETREDRAW, FALSE, 0);
     if (!sameOrder)
     {
         ListView_DeleteAllItems(s_hwndList);
@@ -1869,7 +1924,8 @@ RefreshProcessListEx(BOOL force)
         for (i = 0; i < nScratch; i++)
             Tm8SetProcRowStrings(i, &s_ProcScratch[i]);
     }
-    LockWindowUpdate(NULL);
+    SendMessageW(s_hwndList, WM_SETREDRAW, TRUE, 0);
+    RedrawWindow(s_hwndList, NULL, NULL, RDW_INVALIDATE | RDW_NOCHILDREN);
 
     Tm8SyncHeatArraysFromListView(nScratch);
 
@@ -2582,6 +2638,24 @@ SyncProcEndTaskUi(void)
 }
 
 static LRESULT CALLBACK
+Tm8ListHeaderThemeProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_ERASEBKGND && Tm8ThemeIsDark())
+    {
+        HDC hdc = (HDC)wParam;
+        RECT rc;
+
+        if (hdc)
+        {
+            GetClientRect(hwnd, &rc);
+            FillRect(hdc, &rc, Tm8ThemePanelBrush());
+        }
+        return 1;
+    }
+    return CallWindowProcW(s_pfnOldListHdr, hwnd, msg, wParam, lParam);
+}
+
+static LRESULT CALLBACK
 ListViewSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_KEYDOWN && wParam == VK_DELETE)
@@ -3227,9 +3301,9 @@ DrawCpuStatsValueColumn(HDC hdc, const RECT *rcBox, HWND hwndVal)
     if (lineH < 1)
         lineH = 18;
 
-    FillRect(hdc, rcBox, (HBRUSH)GetStockObject(WHITE_BRUSH));
+    FillRect(hdc, rcBox, Tm8ThemePanelBrush());
     SetBkMode(hdc, TRANSPARENT);
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
 
     rc.left = rcBox->left;
     rc.right = rcBox->right;
@@ -3337,16 +3411,230 @@ Tm8RunNewTask(HWND hwndOwner)
     FreeLibrary(hShell32);
 }
 
+static void
+Tm8DisconnectClassPanelBrush(HWND hwnd)
+{
+    HBRUSH cls;
+
+    if (!hwnd)
+        return;
+    cls = (HBRUSH)GetClassLongPtrW(hwnd, GCLP_HBRBACKGROUND);
+    if (cls == Tm8ThemePanelBrush())
+        SetClassLongPtrW(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)GetStockObject(WHITE_BRUSH));
+}
+
+/*
+ * ReactOS comctl often ignores DarkMode_Explorer; use flat TCM_/header erase there.
+ * Windows 10+ looks wrong if we strip theme and rely on TCM_SETBKCOLOR alone.
+ */
+static BOOL
+Tm8UseFlatCompatTheming(void)
+{
+    static int cache = -1;
+    HKEY hk;
+    LONG e;
+    WCHAR buf[96];
+    DWORD typ, cb;
+
+    if (cache >= 0)
+        return cache != 0;
+
+    e = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\ReactOS", 0, KEY_READ, &hk);
+    if (e == ERROR_SUCCESS)
+    {
+        RegCloseKey(hk);
+        cache = 1;
+        return TRUE;
+    }
+    cb = sizeof(buf);
+    buf[0] = 0;
+    e = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
+                      KEY_READ, &hk);
+    if (e != ERROR_SUCCESS)
+    {
+        cache = 0;
+        return FALSE;
+    }
+    e = RegQueryValueExW(hk, L"ProductName", NULL, &typ, (LPBYTE)buf, &cb);
+    RegCloseKey(hk);
+    if (e == ERROR_SUCCESS && typ == REG_SZ && wcsstr(buf, L"ReactOS"))
+    {
+        cache = 1;
+        return TRUE;
+    }
+    cache = 0;
+    return FALSE;
+}
+
+/* Optional uxtheme: dark menu-adjacent chrome, tab strip, scrollbars (Windows 10+). */
+static void
+Tm8ApplyExplorerDarkTheme(HWND h, BOOL dark)
+{
+    typedef HRESULT(WINAPI *PFN_SetWindowTheme)(HWND hwnd, LPCWSTR pszSubAppName, LPCWSTR pszSubIdList);
+    static HMODULE s_uxtheme;
+    static PFN_SetWindowTheme s_pfnSetWindowTheme;
+
+    if (!h)
+        return;
+    if (!s_uxtheme)
+    {
+        s_uxtheme = LoadLibraryW(L"uxtheme.dll");
+        if (s_uxtheme)
+            s_pfnSetWindowTheme =
+                (PFN_SetWindowTheme)(void *)GetProcAddress(s_uxtheme, "SetWindowTheme");
+    }
+    if (!s_pfnSetWindowTheme)
+        return;
+    if (dark)
+        s_pfnSetWindowTheme(h, L"DarkMode_Explorer", NULL);
+    else
+        s_pfnSetWindowTheme(h, L"", L"");
+}
+
+static void
+Tm8SyncThemeUi(HWND hwnd)
+{
+    if (s_brNavColumn)
+    {
+        DeleteObject(s_brNavColumn);
+        s_brNavColumn = NULL;
+    }
+    s_brNavColumn = CreateSolidBrush(COL_NAV_BG);
+
+    if (s_hwndCpuBar)
+    {
+        SendMessageW(s_hwndCpuBar, PBM_SETBARCOLOR, 0, COL_BAR_GREEN);
+        SendMessageW(s_hwndCpuBar, PBM_SETBKCOLOR, 0, COL_BAR_TRACK);
+    }
+    if (s_hwndMemBar)
+    {
+        SendMessageW(s_hwndMemBar, PBM_SETBARCOLOR, 0, COL_BAR_GREEN);
+        SendMessageW(s_hwndMemBar, PBM_SETBKCOLOR, 0, COL_BAR_TRACK);
+    }
+    if (s_hwndList)
+    {
+        ListView_SetBkColor(s_hwndList, g_Tm8Theme.panelBg);
+        ListView_SetTextBkColor(s_hwndList, g_Tm8Theme.panelBg);
+        ListView_SetTextColor(s_hwndList, g_Tm8Theme.listText);
+    }
+
+    if (hwnd && (HBRUSH)GetClassLongPtrW(hwnd, GCLP_HBRBACKGROUND) != Tm8ThemePanelBrush())
+        SetClassLongPtrW(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)Tm8ThemePanelBrush());
+
+    /* Delay-loaded dwmapi: title bar / shell chrome on Windows 10 1809+; no-op if DLL missing. */
+    if (hwnd)
+    {
+        BOOL immersiveDark = Tm8ThemeIsDark() ? TRUE : FALSE;
+
+        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &immersiveDark, sizeof(immersiveDark));
+        /* Do not SetWindowTheme the frame: it can glitch the non-client menu band on some systems. */
+        if (GetMenu(hwnd))
+            DrawMenuBar(hwnd);
+    }
+
+    if (s_hwndMainTab)
+    {
+        if (Tm8UseFlatCompatTheming())
+        {
+            Tm8ApplyExplorerDarkTheme(s_hwndMainTab, FALSE);
+            if (Tm8ThemeIsDark())
+            {
+                SendMessageW(s_hwndMainTab, TCM_SETBKCOLOR, 0, (LPARAM)g_Tm8Theme.panelBg);
+                SendMessageW(s_hwndMainTab, TCM_SETTEXTCOLOR, 0, (LPARAM)g_Tm8Theme.listText);
+            }
+            else
+            {
+                SendMessageW(s_hwndMainTab, TCM_SETBKCOLOR, 0, CLR_NONE);
+                SendMessageW(s_hwndMainTab, TCM_SETTEXTCOLOR, 0, CLR_NONE);
+            }
+        }
+        else
+        {
+            Tm8ApplyExplorerDarkTheme(s_hwndMainTab, Tm8ThemeIsDark());
+            SendMessageW(s_hwndMainTab, TCM_SETBKCOLOR, 0, CLR_NONE);
+            SendMessageW(s_hwndMainTab, TCM_SETTEXTCOLOR, 0, CLR_NONE);
+        }
+    }
+    if (s_hwndList)
+    {
+        HWND hdr;
+
+        Tm8ApplyExplorerDarkTheme(s_hwndList, Tm8ThemeIsDark());
+        hdr = ListView_GetHeader(s_hwndList);
+        if (hdr)
+        {
+            Tm8ApplyExplorerDarkTheme(hdr, Tm8ThemeIsDark());
+            if (Tm8UseFlatCompatTheming())
+            {
+                if (Tm8ThemeIsDark())
+                {
+                    SendMessageW(hdr, HDM_SETBKCOLOR, 0, (LPARAM)g_Tm8Theme.panelBg);
+                    SendMessageW(hdr, HDM_SETTEXTCOLOR, 0, (LPARAM)g_Tm8Theme.listText);
+                }
+                else
+                {
+                    SendMessageW(hdr, HDM_SETBKCOLOR, 0, CLR_NONE);
+                    SendMessageW(hdr, HDM_SETTEXTCOLOR, 0, CLR_NONE);
+                }
+            }
+            else if (!Tm8ThemeIsDark())
+            {
+                SendMessageW(hdr, HDM_SETBKCOLOR, 0, CLR_NONE);
+                SendMessageW(hdr, HDM_SETTEXTCOLOR, 0, CLR_NONE);
+            }
+            InvalidateRect(hdr, NULL, TRUE);
+        }
+    }
+    if (s_hwndEndTask)
+        Tm8ApplyExplorerDarkTheme(s_hwndEndTask, Tm8ThemeIsDark());
+    if (s_hwndCpuStatsPanel)
+        Tm8ApplyExplorerDarkTheme(s_hwndCpuStatsPanel, Tm8ThemeIsDark());
+    if (s_hwndMemStatsPanel)
+        Tm8ApplyExplorerDarkTheme(s_hwndMemStatsPanel, Tm8ThemeIsDark());
+
+    InvalidateRect(hwnd, NULL, TRUE);
+    if (s_hwndNav)
+        InvalidateRect(s_hwndNav, NULL, TRUE);
+    if (s_hwndMainTab)
+        InvalidateRect(s_hwndMainTab, NULL, TRUE);
+    if (s_hwndGraphCpu)
+        InvalidateRect(s_hwndGraphCpu, NULL, FALSE);
+    if (s_hwndGraphMem)
+        InvalidateRect(s_hwndGraphMem, NULL, FALSE);
+    if (s_hwndGraphMemComp)
+        InvalidateRect(s_hwndGraphMemComp, NULL, FALSE);
+    if (s_hwndGraphNet)
+        InvalidateRect(s_hwndGraphNet, NULL, FALSE);
+    if (s_hwndCpuStatsPanel)
+        InvalidateRect(s_hwndCpuStatsPanel, NULL, TRUE);
+    if (s_hwndMemStatsPanel)
+        InvalidateRect(s_hwndMemStatsPanel, NULL, TRUE);
+}
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
+    case WM_ERASEBKGND:
+    {
+        HDC hdc = (HDC)wParam;
+        RECT rc;
+
+        if (hdc)
+        {
+            GetClientRect(hwnd, &rc);
+            FillRect(hdc, &rc, Tm8ThemePanelBrush());
+        }
+        return 1;
+    }
+
     case WM_CREATE:
     {
         WCHAR cap[64];
 
         s_hwndMain = hwnd;
+        Tm8ThemeLoad();
         {
             INITCOMMONCONTROLSEX icc;
             icc.dwSize = sizeof(icc);
@@ -3356,8 +3644,6 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
 
         LoadStr(IDS_APP_TITLE, cap, _countof(cap));
-
-        s_brNavColumn = CreateSolidBrush(COL_NAV_BG);
 
         s_hwndMainTab = CreateWindowExW(0, WC_TABCONTROLW, L"",
                                         WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_CLIPSIBLINGS |
@@ -3391,6 +3677,15 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                           LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
         s_pfnOldListView =
             (WNDPROC)SetWindowLongPtrW(s_hwndList, GWLP_WNDPROC, (LONG_PTR)ListViewSubclassProc);
+        {
+            HWND hh = ListView_GetHeader(s_hwndList);
+
+            if (hh && Tm8UseFlatCompatTheming())
+            {
+                s_hwndListHdr = hh;
+                s_pfnOldListHdr = (WNDPROC)SetWindowLongPtrW(hh, GWLP_WNDPROC, (LONG_PTR)Tm8ListHeaderThemeProc);
+            }
+        }
 
         {
             WCHAR et[48];
@@ -3550,6 +3845,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ApplyPerfTypography();
         ShowPage(PAGE_PROCESSES);
         LayoutChildren(hwnd);
+        Tm8SyncThemeUi(hwnd);
         if (s_hwndMainTab)
         {
             InvalidateRect(s_hwndMainTab, NULL, TRUE);
@@ -3594,8 +3890,8 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (hmBar)
         {
             HMENU hmView = GetSubMenu(hmBar, 2);
-            HMENU hmUpd = hmView ? GetSubMenu(hmView, 1) : NULL;
-            HMENU hmCpuG = hmView ? GetSubMenu(hmView, 2) : NULL;
+            HMENU hmUpd = hmView ? GetSubMenu(hmView, 2) : NULL;
+            HMENU hmCpuG = hmView ? GetSubMenu(hmView, 3) : NULL;
             if (hmUpd && hmPop == hmUpd)
             {
                 CheckMenuRadioItem(hmUpd, ID_VIEW_UPDATESPEED_HIGH, ID_VIEW_UPDATESPEED_PAUSED,
@@ -3608,6 +3904,11 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                               MF_BYCOMMAND | (s_CpuGraphPerLogical ? MF_UNCHECKED : MF_CHECKED));
                 CheckMenuItem(hmPop, ID_VIEW_CPU_GRAPH_PERCPU,
                               MF_BYCOMMAND | (s_CpuGraphPerLogical ? MF_CHECKED : MF_UNCHECKED));
+            }
+            if (hmView && hmPop == hmView)
+            {
+                CheckMenuItem(hmPop, ID_VIEW_DARK_MODE,
+                              MF_BYCOMMAND | (Tm8ThemeIsDark() ? MF_CHECKED : MF_UNCHECKED));
             }
         }
         return 0;
@@ -3679,6 +3980,14 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (LOWORD(wParam) == ID_VIEW_REFRESH)
         {
             OnTimer();
+            return 0;
+        }
+        if (LOWORD(wParam) == ID_VIEW_DARK_MODE)
+        {
+            Tm8DisconnectClassPanelBrush(hwnd);
+            Tm8ThemeSetDark(!Tm8ThemeIsDark());
+            Tm8ThemeSave();
+            Tm8SyncThemeUi(hwnd);
             return 0;
         }
         if (LOWORD(wParam) == ID_VIEW_CPU_GRAPH_OVERALL)
@@ -3804,7 +4113,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HPEN penFrame, oldPen;
             HBRUSH oldBr;
             COLORREF fg = COL_NAV_TEXT;
-            COLORREF borderCol = isSel ? RGB(210, 214, 220) : NAV_TILE_BORDER;
+            COLORREF borderCol = isSel ? g_Tm8Theme.navTileBorderSel : NAV_TILE_BORDER;
             TEXTMETRICW tm;
 
             n = (int)SendMessageW(s_hwndNav, LB_GETTEXTLEN, dis->itemID, 0);
@@ -3831,7 +4140,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 rcTile.bottom = rcTile.top + NAV_TILE_MEM_H;
             }
 
-            brTile = CreateSolidBrush(isSel ? RGB(248, 249, 251) : RGB(255, 255, 255));
+            brTile = CreateSolidBrush(isSel ? g_Tm8Theme.navTileSelBg : g_Tm8Theme.navTileBg);
             FillRect(dis->hDC, &rcTile, brTile);
             DeleteObject(brTile);
 
@@ -3910,7 +4219,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
                     SelectObject(dis->hDC, s_hFontNavMeta ? s_hFontNavMeta : s_hFontPerf);
-                    SetTextColor(dis->hDC, RGB(96, 96, 96));
+                    SetTextColor(dis->hDC, g_Tm8Theme.textMuted);
                     GetTextMetricsW(dis->hDC, &tm);
                     metaH = tm.tmHeight + 2;
                     {
@@ -3950,7 +4259,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
                     SelectObject(dis->hDC, s_hFontNavMeta ? s_hFontNavMeta : s_hFontPerf);
-                    SetTextColor(dis->hDC, RGB(96, 96, 96));
+                    SetTextColor(dis->hDC, g_Tm8Theme.textMuted);
                     GetTextMetricsW(dis->hDC, &tm);
                     metaH = tm.tmHeight + 2;
 
@@ -3988,7 +4297,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
                     SelectObject(dis->hDC, s_hFontNavMeta ? s_hFontNavMeta : s_hFontPerf);
-                    SetTextColor(dis->hDC, RGB(96, 96, 96));
+                    SetTextColor(dis->hDC, g_Tm8Theme.textMuted);
                     GetTextMetricsW(dis->hDC, &tm);
                     metaH = tm.tmHeight + 2;
 
@@ -4021,24 +4330,24 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if ((HWND)lParam == s_hwndCpuTitle || (HWND)lParam == s_hwndNetTitle)
         {
             HDC hdcSt = (HDC)wParam;
-            SetBkColor(hdcSt, RGB(255, 255, 255));
-            SetTextColor(hdcSt, RGB(32, 32, 32));
-            return (INT_PTR)GetStockObject(WHITE_BRUSH);
+            SetBkColor(hdcSt, g_Tm8Theme.panelBg);
+            SetTextColor(hdcSt, g_Tm8Theme.textPrimary);
+            return (INT_PTR)Tm8ThemePanelBrush();
         }
         if ((HWND)lParam == s_hwndCpuGraphSub || (HWND)lParam == s_hwndNetSub ||
             (HWND)lParam == s_hwndCpuLiveLbl || (HWND)lParam == s_hwndCpuSpecLbl)
         {
             HDC hdcSt = (HDC)wParam;
-            SetBkColor(hdcSt, RGB(255, 255, 255));
-            SetTextColor(hdcSt, RGB(96, 96, 96));
-            return (INT_PTR)GetStockObject(WHITE_BRUSH);
+            SetBkColor(hdcSt, g_Tm8Theme.panelBg);
+            SetTextColor(hdcSt, g_Tm8Theme.textMuted);
+            return (INT_PTR)Tm8ThemePanelBrush();
         }
         if ((HWND)lParam == s_hwndCpuModel)
         {
             HDC hdcSt = (HDC)wParam;
-            SetBkColor(hdcSt, RGB(255, 255, 255));
-            SetTextColor(hdcSt, RGB(64, 64, 64));
-            return (INT_PTR)GetStockObject(WHITE_BRUSH);
+            SetBkColor(hdcSt, g_Tm8Theme.panelBg);
+            SetTextColor(hdcSt, g_Tm8Theme.textTertiary);
+            return (INT_PTR)Tm8ThemePanelBrush();
         }
         if ((HWND)lParam == s_hwndCpuLbl || (HWND)lParam == s_hwndMemLbl ||
             (HWND)lParam == s_hwndSpeed || (HWND)lParam == s_hwndMemDetails ||
@@ -4047,9 +4356,9 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             (HWND)lParam == s_hwndStub)
         {
             HDC hdcSt = (HDC)wParam;
-            SetBkColor(hdcSt, RGB(255, 255, 255));
-            SetTextColor(hdcSt, RGB(32, 32, 32));
-            return (INT_PTR)GetStockObject(WHITE_BRUSH);
+            SetBkColor(hdcSt, g_Tm8Theme.panelBg);
+            SetTextColor(hdcSt, g_Tm8Theme.textPrimary);
+            return (INT_PTR)Tm8ThemePanelBrush();
         }
         return DefWindowProcW(hwnd, msg, wParam, lParam);
 
@@ -4131,21 +4440,31 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (s_iPage == PAGE_PROCESSES && item >= 0 && item < s_ProcListRows && sub >= 2 && sub <= 5)
                 {
                     if (sub == 2)
-                        lvcd->clrTextBk = Tm8HeatBgCpu(s_ProcCpuDbl[item]);
+                        lvcd->clrTextBk = Tm8HeatBgCpuForUi(s_ProcCpuDbl[item]);
                     else if (sub == 4)
-                        lvcd->clrTextBk = Tm8HeatBgMem(s_ProcMemWs[item], s_ProcMemMax);
+                        lvcd->clrTextBk = Tm8HeatBgMemForUi(s_ProcMemWs[item], s_ProcMemMax);
                     else
-                        lvcd->clrTextBk = Tm8HeatBgCpu(0.0);
-                    lvcd->clrText = RGB(32, 32, 32);
+                        lvcd->clrTextBk = Tm8HeatBgCpuForUi(0.0);
+                    lvcd->clrText = Tm8ThemeIsDark() ? g_Tm8Theme.listText : RGB(32, 32, 32);
                 }
-                else if (s_iPage == PAGE_DETAILS && item >= 0 && item < s_DetailsMetricCount &&
-                         (sub == 5 || sub == 6))
+                else if (s_iPage == PAGE_PROCESSES && item >= 0 && item < s_ProcListRows && sub >= 0 &&
+                         sub <= 1 && Tm8ThemeIsDark())
+                {
+                    lvcd->clrTextBk = g_Tm8Theme.panelBg;
+                    lvcd->clrText = g_Tm8Theme.listText;
+                }
+                else if (s_iPage == PAGE_DETAILS && item >= 0 && item < s_DetailsMetricCount)
                 {
                     if (sub == 5)
-                        lvcd->clrTextBk = Tm8HeatBgCpu(s_DetailsMetricRows[item].cpuPct);
-                    else
-                        lvcd->clrTextBk = Tm8HeatBgMem(s_DetailsMetricRows[item].ws, s_DetailsMemMax);
-                    lvcd->clrText = RGB(32, 32, 32);
+                        lvcd->clrTextBk = Tm8HeatBgCpuForUi(s_DetailsMetricRows[item].cpuPct);
+                    else if (sub == 6)
+                        lvcd->clrTextBk = Tm8HeatBgMemForUi(s_DetailsMetricRows[item].ws, s_DetailsMemMax);
+                    else if (Tm8ThemeIsDark())
+                        lvcd->clrTextBk = g_Tm8Theme.panelBg;
+                    if (sub == 5 || sub == 6)
+                        lvcd->clrText = Tm8ThemeIsDark() ? g_Tm8Theme.listText : RGB(32, 32, 32);
+                    else if (Tm8ThemeIsDark())
+                        lvcd->clrText = g_Tm8Theme.listText;
                 }
                 return CDRF_DODEFAULT;
             default:
@@ -4201,6 +4520,14 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_DESTROY:
+        Tm8DisconnectClassPanelBrush(hwnd);
+        Tm8ThemeShutdown();
+        if (s_hwndListHdr && s_pfnOldListHdr && IsWindow(s_hwndListHdr))
+        {
+            SetWindowLongPtrW(s_hwndListHdr, GWLP_WNDPROC, (LONG_PTR)s_pfnOldListHdr);
+            s_hwndListHdr = NULL;
+            s_pfnOldListHdr = NULL;
+        }
         if (s_hwndList && s_pfnOldListView)
         {
             SetWindowLongPtrW(s_hwndList, GWLP_WNDPROC, (LONG_PTR)s_pfnOldListView);
@@ -4355,7 +4682,7 @@ DrawMemoryUsageHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histL
         HFONT oldF = (HFONT)SelectObject(mem, hfScale);
         RECT rcTxt;
         SetBkMode(mem, TRANSPARENT);
-        SetTextColor(mem, RGB(105, 105, 105));
+        SetTextColor(mem, g_Tm8Theme.graphCaption);
         LoadStr(IDS_MEM_GRAPH_60S, g60, _countof(g60));
         rcTxt.left = rc->left + pad;
         rcTxt.right = rc->left + pad + (innerW * 2) / 5;
@@ -4388,8 +4715,8 @@ DrawMemCompositionBar(HDC hdc, const RECT *rc)
     HPEN frame, oldPen, innerFrame;
     HBRUSH oldBr;
     int wbar, wu, wf;
-    COLORREF colUse = RGB(138, 194, 244);
-    COLORREF colAvail = RGB(255, 255, 255);
+    COLORREF colUse = g_Tm8Theme.compUse;
+    COLORREF colAvail = g_Tm8Theme.compAvail;
 
     FillRect(hdc, rc, bg);
     DeleteObject(bg);
@@ -4398,7 +4725,7 @@ DrawMemCompositionBar(HDC hdc, const RECT *rc)
     if (inner.right <= inner.left + 2 || inner.bottom <= inner.top + 2)
         return;
 
-    frame = CreatePen(PS_SOLID, 1, RGB(0, 120, 215));
+    frame = CreatePen(PS_SOLID, 1, g_Tm8Theme.compFrame);
     oldPen = (HPEN)SelectObject(hdc, frame);
     oldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
     Rectangle(hdc, inner.left, inner.top, inner.right, inner.bottom);
@@ -4432,7 +4759,7 @@ DrawMemCompositionBar(HDC hdc, const RECT *rc)
         r.right = inner.right;
         FillRect(hdc, &r, b);
         DeleteObject(b);
-        innerFrame = CreatePen(PS_SOLID, 1, RGB(200, 220, 245));
+        innerFrame = CreatePen(PS_SOLID, 1, g_Tm8Theme.compInnerSep);
         oldPen = (HPEN)SelectObject(hdc, innerFrame);
         MoveToEx(hdc, r.left, r.top, NULL);
         LineTo(hdc, r.left, r.bottom - 1);
@@ -4444,7 +4771,7 @@ DrawMemCompositionBar(HDC hdc, const RECT *rc)
 static void
 DrawPerfHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen, int histWritePos,
                      COLORREF fillCol, COLORREF lineCol, UINT captionLeftStrId, BOOL draw100Pct,
-                     int lineWidth)
+                     BOOL drawInnerGrid, int lineWidth)
 {
     int w = rc->right - rc->left;
     int h = rc->bottom - rc->top;
@@ -4460,33 +4787,45 @@ DrawPerfHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen, int
     if (w < 6 || h < 6 || !hist || histLen < 2)
         return;
 
-    pad = (w < 48) ? 3 : 8;
+    if (!drawInnerGrid)
+    {
+        pad = 2;
+        if (w >= 72)
+            pad = 3;
+    }
+    else if (w < 48)
+        pad = 3;
+    else
+        pad = 8;
     if (w <= pad * 2 || h <= pad * 2)
         return;
 
     baseY = rc->bottom - pad;
-    topMargin = rc->top + pad + (drawCaptions ? 11 : 4);
+    topMargin = rc->top + pad + (drawCaptions ? 11 : (drawInnerGrid ? 4 : 2));
     if (topMargin >= baseY - 4)
         topMargin = rc->top + pad + 2;
     innerW = w - 2 * pad;
     denom = (histLen > 1) ? (histLen - 1) : 1;
 
-    gridPen = CreatePen(PS_SOLID, 1, COL_GRAPH_GRID);
-    oldGp = (HPEN)SelectObject(mem, gridPen);
-    for (gi = 1; gi < 4; gi++)
+    if (drawInnerGrid)
     {
-        int yy = topMargin + (gi * (baseY - topMargin)) / 4;
-        MoveToEx(mem, rc->left + pad, yy, NULL);
-        LineTo(mem, rc->right - pad, yy);
+        gridPen = CreatePen(PS_SOLID, 1, COL_GRAPH_GRID);
+        oldGp = (HPEN)SelectObject(mem, gridPen);
+        for (gi = 1; gi < 4; gi++)
+        {
+            int yy = topMargin + (gi * (baseY - topMargin)) / 4;
+            MoveToEx(mem, rc->left + pad, yy, NULL);
+            LineTo(mem, rc->right - pad, yy);
+        }
+        for (gi = 1; gi < 8; gi++)
+        {
+            int xx = rc->left + pad + (gi * innerW) / 8;
+            MoveToEx(mem, xx, topMargin, NULL);
+            LineTo(mem, xx, baseY);
+        }
+        SelectObject(mem, oldGp);
+        DeleteObject(gridPen);
     }
-    for (gi = 1; gi < 8; gi++)
-    {
-        int xx = rc->left + pad + (gi * innerW) / 8;
-        MoveToEx(mem, xx, topMargin, NULL);
-        LineTo(mem, xx, baseY);
-    }
-    SelectObject(mem, oldGp);
-    DeleteObject(gridPen);
 
     poly[0].x = rc->left + pad;
     poly[0].y = baseY;
@@ -4530,7 +4869,7 @@ DrawPerfHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen, int
         HFONT oldF = (HFONT)SelectObject(mem, hfCap);
         int capLen;
         SetBkMode(mem, TRANSPARENT);
-        SetTextColor(mem, RGB(105, 105, 105));
+        SetTextColor(mem, g_Tm8Theme.graphCaption);
         LoadStr(captionLeftStrId, gtxt, _countof(gtxt));
         capLen = lstrlenW(gtxt);
         TextOutW(mem, rc->left + pad, rc->top + 2, gtxt, capLen);
@@ -4543,7 +4882,7 @@ DrawPerfHistoryGraph(HDC mem, const RECT *rc, const BYTE *hist, int histLen, int
         HFONT oldF = (HFONT)SelectObject(mem, hfScale);
         RECT rcScale;
         SetBkMode(mem, TRANSPARENT);
-        SetTextColor(mem, RGB(105, 105, 105));
+        SetTextColor(mem, g_Tm8Theme.graphCaption);
         LoadStr(IDS_GRAPH_SCALE, gtxt, _countof(gtxt));
         rcScale.left = rc->right - pad - 44;
         rcScale.right = rc->right - pad;
@@ -4575,11 +4914,11 @@ NavDrawMiniSpark(HDC hdc, const RECT *rcBox, const BYTE *hist, int histLen, int 
         return;
 
     {
-        HBRUSH b = CreateSolidBrush(RGB(255, 255, 255));
+        HBRUSH b = CreateSolidBrush(g_Tm8Theme.miniSparkBg);
         FillRect(hdc, &box, b);
         DeleteObject(b);
     }
-    pen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
+    pen = CreatePen(PS_SOLID, 1, g_Tm8Theme.miniSparkBorder);
     oldPen = (HPEN)SelectObject(hdc, pen);
     Rectangle(hdc, box.left, box.top, box.right, box.bottom);
     SelectObject(hdc, oldPen);
@@ -4725,7 +5064,7 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         else if (hwnd == s_hwndGraphNet && s_iNetAdapterSel >= 0 && s_iNetAdapterSel < s_NetAdapterCount)
         {
             DrawPerfHistoryGraph(mem, &rc, s_NetHist[s_iNetAdapterSel], CPU_HIST_LEN, s_CpuHistPos,
-                                 COL_GRAPH_FILL, COL_GRAPH_LINE, IDS_NET_THROUGHPUT, TRUE, 1);
+                                 COL_GRAPH_FILL, COL_GRAPH_LINE, IDS_NET_THROUGHPUT, TRUE, TRUE, 1);
         }
         else if (hwnd == s_hwndGraphMemComp)
         {
@@ -4748,7 +5087,7 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (cw < 20 || ch < 20)
                 {
                     DrawPerfHistoryGraph(mem, &gridRc, s_CpuHist, CPU_HIST_LEN, s_CpuHistPos,
-                                         COL_GRAPH_FILL, COL_GRAPH_LINE, 0, TRUE, 1);
+                                         COL_GRAPH_FILL, COL_GRAPH_LINE, 0, TRUE, TRUE, 1);
                 }
                 else
                 {
@@ -4757,7 +5096,6 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         for (c = 0; c < cols; c++)
                         {
                             RECT cell;
-                            HPEN cellFrame, oldCellPen;
 
                             idx = r * cols + c;
                             if (idx >= (int)n)
@@ -4767,17 +5105,32 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             cell.right = cell.left + cw;
                             cell.bottom = cell.top + ch;
 
-                            cellFrame = CreatePen(PS_SOLID, 1, RGB(235, 235, 235));
-                            oldCellPen = (HPEN)SelectObject(mem, cellFrame);
-                            Rectangle(mem, cell.left, cell.top, cell.right - 1, cell.bottom - 1);
-                            SelectObject(mem, oldCellPen);
-                            DeleteObject(cellFrame);
-
-                            InflateRect(&cell, -2, -2);
+                            InflateRect(&cell, -1, -1);
                             DrawPerfHistoryGraph(mem, &cell, s_CpuHistPer[idx], CPU_HIST_LEN,
                                                  s_CpuHistPos, COL_GRAPH_FILL, COL_GRAPH_LINE, 0, FALSE,
-                                                 1);
+                                                 FALSE, cw >= 28 ? 2 : 1);
                         }
+                    }
+                    {
+                        int divC, divR;
+                        HPEN divPen, oldDivPen;
+
+                        divPen = CreatePen(PS_SOLID, 1, g_Tm8Theme.graphCellFrame);
+                        oldDivPen = (HPEN)SelectObject(mem, divPen);
+                        for (divC = 1; divC < cols; divC++)
+                        {
+                            int x = gridRc.left + divC * cw;
+                            MoveToEx(mem, x, gridRc.top, NULL);
+                            LineTo(mem, x, gridRc.bottom - 1);
+                        }
+                        for (divR = 1; divR < rows; divR++)
+                        {
+                            int y = gridRc.top + divR * ch;
+                            MoveToEx(mem, gridRc.left, y, NULL);
+                            LineTo(mem, gridRc.right - 1, y);
+                        }
+                        SelectObject(mem, oldDivPen);
+                        DeleteObject(divPen);
                     }
                     {
                         WCHAR gtxt[112];
@@ -4785,7 +5138,7 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         HFONT oldF = (HFONT)SelectObject(mem, hfScale);
                         RECT rcScale;
                         SetBkMode(mem, TRANSPARENT);
-                        SetTextColor(mem, RGB(105, 105, 105));
+                        SetTextColor(mem, g_Tm8Theme.graphCaption);
                         LoadStr(IDS_GRAPH_SCALE, gtxt, _countof(gtxt));
                         rcScale.left = gridRc.right - 44;
                         rcScale.right = gridRc.right - 4;
@@ -4799,7 +5152,7 @@ GraphWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             else
             {
                 DrawPerfHistoryGraph(mem, &rc, s_CpuHist, CPU_HIST_LEN, s_CpuHistPos,
-                                     COL_GRAPH_FILL, COL_GRAPH_LINE, 0, TRUE, 1);
+                                     COL_GRAPH_FILL, COL_GRAPH_LINE, 0, TRUE, TRUE, 1);
             }
         }
 

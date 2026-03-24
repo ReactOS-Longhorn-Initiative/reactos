@@ -86,14 +86,14 @@ DrawCpuSpecKvColumn(HDC hdc, const RECT *rcCol, const WCHAR *pl, const WCHAR *pv
         rL.top = y;
         rL.bottom = y + rowSpecH;
         SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-        SetTextColor(hdc, RGB(96, 96, 96));
+        SetTextColor(hdc, g_Tm8Theme.textMuted);
         DrawTextW(hdc, lineL, -1, &rL, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
         rVal.left = rcCol->right - valBand;
         rVal.right = rcCol->right;
         rVal.top = y;
         rVal.bottom = y + rowSpecH;
         SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-        SetTextColor(hdc, RGB(32, 32, 32));
+        SetTextColor(hdc, g_Tm8Theme.textPrimary);
         DrawTextW(hdc, lineV, -1, &rVal,
                   DT_RIGHT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
         y += rowSpecH + 1;
@@ -116,7 +116,7 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     if (w < 100 || rcPanel->bottom <= rcPanel->top + 12)
         return;
 
-    FillRect(hdc, rcPanel, (HBRUSH)GetStockObject(WHITE_BRUSH));
+    FillRect(hdc, rcPanel, Tm8ThemePanelBrush());
 
     /* Three equal thirds: live metrics | topology/virt | caches (Win10/11 style, no rules). */
     {
@@ -172,12 +172,12 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rU.top = y;
     rU.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, s_CpuStatsPaint.utilLbl, -1, &rU, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
     rU.top = y + lblH + 2;
     rU.bottom = rU.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, s_CpuStatsPaint.utilVal, -1, &rU,
               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
@@ -186,14 +186,14 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rS.top = y;
     rS.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, s_CpuStatsPaint.speedLbl, -1, &rS, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
     rS.top = y + lblH + 2;
     rS.bottom = rS.top + midH;
     if (s_CpuStatsPaint.speedVal[0])
     {
         SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-        SetTextColor(hdc, RGB(32, 32, 32));
+        SetTextColor(hdc, g_Tm8Theme.textPrimary);
         DrawTextW(hdc, s_CpuStatsPaint.speedVal, -1, &rS,
                   DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     }
@@ -216,14 +216,14 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, s_CpuStatsPaint.procLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
     rV.left = rL.left;
     rV.right = rL.right;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, s_CpuStatsPaint.procVal, -1, &rV,
               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
@@ -232,14 +232,14 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, s_CpuStatsPaint.threadLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
     rV.left = rL.left;
     rV.right = rL.right;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, s_CpuStatsPaint.threadVal, -1, &rV,
               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
@@ -248,14 +248,14 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, s_CpuStatsPaint.handleLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
     rV.left = rL.left;
     rV.right = rL.right;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, s_CpuStatsPaint.handleVal, -1, &rV,
               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
@@ -266,14 +266,14 @@ DrawCpuPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, s_CpuStatsPaint.upLbl, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
     rV.left = rcLeft.left;
     rV.right = rcLeft.right;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, s_CpuStatsPaint.upVal, -1, &rV,
               DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
@@ -451,7 +451,7 @@ CpuStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (drawW < rcC.right)
             drawW = rcC.right;
 
-        FillRect(hdc, &rcC, (HBRUSH)GetStockObject(WHITE_BRUSH));
+        FillRect(hdc, &rcC, Tm8ThemePanelBrush());
 
         rcDraw.left = 0;
         rcDraw.top = 0;

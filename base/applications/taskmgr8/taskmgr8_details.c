@@ -209,6 +209,65 @@ Tm8DetailsShouldSkipRefresh(BOOL force, BOOL vscrollDragging, DWORD *pResumeDead
     return FALSE;
 }
 
+static DWORD
+Tm8DetailsLvRowPid(HWND hLv, int row)
+{
+    LVITEMW it;
+
+    ZeroMemory(&it, sizeof(it));
+    it.mask = LVIF_PARAM;
+    it.iItem = row;
+    if (!ListView_GetItem(hLv, &it))
+        return (DWORD)-1;
+    return (DWORD)it.lParam;
+}
+
+static void
+Tm8DetailsSetColumns1to7(HWND hLv, int row, const TM8_DETAILS_ROW *r, LPCWSTR statRun,
+                         TM8_DETAILS_ROW_METRICS *metrics, int metricsIdx, int metricsMax)
+{
+    WCHAR num[32], sess[32], line[96];
+
+    StringCchPrintfW(num, _countof(num), L"%lu", (ULONG)r->pid);
+    ListView_SetItemText(hLv, row, 1, num);
+    ListView_SetItemText(hLv, row, 2, (LPWSTR)statRun);
+    if (r->sessionId == (DWORD)-1)
+        sess[0] = 0;
+    else
+        StringCchPrintfW(sess, _countof(sess), L"%lu", (ULONG)r->sessionId);
+    ListView_SetItemText(hLv, row, 3, sess);
+    ListView_SetItemText(hLv, row, 4, (LPWSTR)r->user);
+    StringCchPrintfW(line, _countof(line), L"%.1f%%", r->cpuPct);
+    ListView_SetItemText(hLv, row, 5, line);
+    {
+        double mb = (double)r->ws / (1024.0 * 1024.0);
+        Tm8FmtMbComma1(mb, line, _countof(line));
+        ListView_SetItemText(hLv, row, 6, line);
+    }
+    ListView_SetItemText(hLv, row, 7, (LPWSTR)r->cmdline);
+
+    if (metrics && metricsIdx >= 0 && metricsIdx < metricsMax)
+    {
+        metrics[metricsIdx].cpuPct = r->cpuPct;
+        metrics[metricsIdx].ws = r->ws;
+    }
+}
+
+static void
+Tm8DetailsUpdateExistingRow(HWND hLv, int row, const TM8_DETAILS_ROW *r, LPCWSTR statRun,
+                            TM8_DETAILS_ROW_METRICS *metrics, int metricsIdx, int metricsMax)
+{
+    LVITEMW it;
+
+    ZeroMemory(&it, sizeof(it));
+    it.mask = LVIF_TEXT | LVIF_IMAGE;
+    it.iItem = row;
+    it.pszText = (LPWSTR)r->exe;
+    it.iImage = r->iconIdx;
+    ListView_SetItem(hLv, &it);
+    Tm8DetailsSetColumns1to7(hLv, row, r, statRun, metrics, metricsIdx, metricsMax);
+}
+
 void
 Tm8Details_RefreshList(HWND hLv, DWORD msElapsed, BOOL force, BOOL vscrollDragging, DWORD *pResumeDeadline,
                        TM8_DETAILS_ROW_METRICS *metrics, int metricsMax, int *outCount, SIZE_T *outMemMax)
@@ -310,6 +369,8 @@ Tm8Details_RefreshList(HWND hLv, DWORD msElapsed, BOOL force, BOOL vscrollDraggi
         int topIdx = ListView_GetTopIndex(hLv);
         int sel = ListView_GetNextItem(hLv, -1, LVNI_SELECTED);
         DWORD selPid = 0, topPid = 0;
+        BOOL sameOrder;
+        int r;
 
         if (sel >= 0 && sel < nOld)
         {
@@ -330,88 +391,74 @@ Tm8Details_RefreshList(HWND hLv, DWORD msElapsed, BOOL force, BOOL vscrollDraggi
                 topPid = (DWORD)it.lParam;
         }
 
-        ListView_DeleteAllItems(hLv);
-
-        for (i = 0; i < nRows; i++)
+        sameOrder = (nOld == nRows);
+        if (sameOrder)
         {
-            TM8_DETAILS_ROW *r = &rows[i];
-            LVITEMW it;
-            WCHAR num[32], sess[32], line[96];
-            int row;
-
-            ZeroMemory(&it, sizeof(it));
-            it.mask = LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE;
-            it.iItem = i;
-            it.iSubItem = 0;
-            it.pszText = r->exe;
-            it.lParam = (LPARAM)r->pid;
-            it.iImage = r->iconIdx;
-            row = ListView_InsertItem(hLv, &it);
-
-            StringCchPrintfW(num, _countof(num), L"%lu", (ULONG)r->pid);
-            ListView_SetItemText(hLv, row, 1, num);
-
-            ListView_SetItemText(hLv, row, 2, statRun);
-
-            if (r->sessionId == (DWORD)-1)
-                sess[0] = 0;
-            else
-                StringCchPrintfW(sess, _countof(sess), L"%lu", (ULONG)r->sessionId);
-            ListView_SetItemText(hLv, row, 3, sess);
-
-            ListView_SetItemText(hLv, row, 4, r->user);
-
-            StringCchPrintfW(line, _countof(line), L"%.1f%%", r->cpuPct);
-            ListView_SetItemText(hLv, row, 5, line);
-
+            for (i = 0; i < nRows; i++)
             {
-                double mb = (double)r->ws / (1024.0 * 1024.0);
-                Tm8FmtMbComma1(mb, line, _countof(line));
-                ListView_SetItemText(hLv, row, 6, line);
-            }
-
-            ListView_SetItemText(hLv, row, 7, r->cmdline);
-
-            if (metrics && i < metricsMax)
-            {
-                metrics[i].cpuPct = r->cpuPct;
-                metrics[i].ws = r->ws;
-            }
-        }
-
-        if (topPid != 0)
-        {
-            int r, nlv = ListView_GetItemCount(hLv);
-            for (r = 0; r < nlv; r++)
-            {
-                LVITEMW it;
-                ZeroMemory(&it, sizeof(it));
-                it.mask = LVIF_PARAM;
-                it.iItem = r;
-                if (ListView_GetItem(hLv, &it) && (DWORD)it.lParam == topPid)
+                if (Tm8DetailsLvRowPid(hLv, i) != rows[i].pid)
                 {
-                    SendMessageW(hLv, LVM_SETTOPINDEX, (WPARAM)r, 0);
+                    sameOrder = FALSE;
                     break;
                 }
             }
         }
-        if (selPid != 0)
+
+        SendMessageW(hLv, WM_SETREDRAW, FALSE, 0);
+        if (!sameOrder)
         {
-            int r, nlv = ListView_GetItemCount(hLv);
-            for (r = 0; r < nlv; r++)
+            ListView_DeleteAllItems(hLv);
+            for (i = 0; i < nRows; i++)
             {
+                TM8_DETAILS_ROW *rowData = &rows[i];
                 LVITEMW it;
+                int row;
+
                 ZeroMemory(&it, sizeof(it));
-                it.mask = LVIF_PARAM;
-                it.iItem = r;
-                if (ListView_GetItem(hLv, &it) && (DWORD)it.lParam == selPid)
+                it.mask = LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE;
+                it.iItem = i;
+                it.iSubItem = 0;
+                it.pszText = rowData->exe;
+                it.lParam = (LPARAM)rowData->pid;
+                it.iImage = rowData->iconIdx;
+                row = ListView_InsertItem(hLv, &it);
+                if (row >= 0)
+                    Tm8DetailsSetColumns1to7(hLv, row, rowData, statRun, metrics, row, metricsMax);
+            }
+
+            if (topPid != 0)
+            {
+                int nlv = ListView_GetItemCount(hLv);
+                for (r = 0; r < nlv; r++)
                 {
-                    ListView_SetItemState(hLv, r, LVIS_FOCUSED | LVIS_SELECTED,
-                                          LVIS_FOCUSED | LVIS_SELECTED);
-                    break;
+                    if (Tm8DetailsLvRowPid(hLv, r) == topPid)
+                    {
+                        SendMessageW(hLv, LVM_SETTOPINDEX, (WPARAM)r, 0);
+                        break;
+                    }
+                }
+            }
+            if (selPid != 0)
+            {
+                int nlv = ListView_GetItemCount(hLv);
+                for (r = 0; r < nlv; r++)
+                {
+                    if (Tm8DetailsLvRowPid(hLv, r) == selPid)
+                    {
+                        ListView_SetItemState(hLv, r, LVIS_FOCUSED | LVIS_SELECTED,
+                                              LVIS_FOCUSED | LVIS_SELECTED);
+                        break;
+                    }
                 }
             }
         }
+        else
+        {
+            for (i = 0; i < nRows; i++)
+                Tm8DetailsUpdateExistingRow(hLv, i, &rows[i], statRun, metrics, i, metricsMax);
+        }
+        SendMessageW(hLv, WM_SETREDRAW, TRUE, 0);
+        RedrawWindow(hLv, NULL, NULL, RDW_INVALIDATE | RDW_NOCHILDREN);
     }
 
     if (outCount)

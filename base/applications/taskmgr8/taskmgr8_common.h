@@ -67,7 +67,8 @@ typedef ULONGLONG(WINAPI *PFN_GetTickCount64)(void);
 #define NAV_TILE_MEM_H  (6 + NAV_SPARK_BOX + 6)
 #define NAV_ITEM_H_CPU  (NAV_TILE_TOP + NAV_TILE_CPU_H + NAV_TILE_VGAP)
 #define NAV_ITEM_H_MEM  (NAV_TILE_MEM_H + NAV_TILE_VGAP)
-#define NAV_TILE_BORDER RGB(218, 218, 218)
+#include "taskmgr8_theme.h"
+#define NAV_TILE_BORDER (g_Tm8Theme.navTileBorder)
 
 #define PAGE_PROCESSES  0
 #define PAGE_CPU        1
@@ -207,21 +208,21 @@ typedef LONG(WINAPI *PFN_PdhGetFormattedCounterValue)(void *hCounter, DWORD dwFo
                                                       TM8_PDH_FMT_COUNTERVALUE *pValue);
 typedef LONG(WINAPI *PFN_PdhCloseQuery)(void *hQuery);
 
-/* --- UI colors (performance pane) ---------------------------------------- */
+/* --- UI colors (performance pane; light/dark via taskmgr8_theme) ---------- */
 
-#define COL_NAV_BG      RGB(243, 243, 243)
-#define COL_NAV_SEL     RGB(0, 120, 215)
-#define COL_NAV_TEXT    RGB(32, 32, 32)
-#define COL_GRAPH_BG    RGB(252, 252, 252)
-#define COL_GRAPH_GRID  RGB(238, 240, 245)
-#define COL_GRAPH_FILL  RGB(228, 238, 252)
-#define COL_GRAPH_LINE  RGB(88, 152, 218)
-#define COL_BAR_GREEN   RGB(77, 181, 89)
-#define COL_BAR_TRACK   RGB(237, 237, 237)
-#define COL_MEM_GRAPH_FILL  RGB(228, 236, 252)
-#define COL_MEM_GRAPH_LINE  RGB(56, 112, 188)
-#define COL_MEM_GRAPH_GRID  RGB(244, 246, 250)
-#define COL_MEM_GRAPH_EDGE  RGB(120, 170, 220)
+#define COL_NAV_BG           (g_Tm8Theme.navBg)
+#define COL_NAV_SEL          (g_Tm8Theme.navSel)
+#define COL_NAV_TEXT         (g_Tm8Theme.navText)
+#define COL_GRAPH_BG         (g_Tm8Theme.graphBg)
+#define COL_GRAPH_GRID       (g_Tm8Theme.graphGrid)
+#define COL_GRAPH_FILL       (g_Tm8Theme.graphFill)
+#define COL_GRAPH_LINE       (g_Tm8Theme.graphLine)
+#define COL_BAR_GREEN        (g_Tm8Theme.barGreen)
+#define COL_BAR_TRACK        (g_Tm8Theme.barTrack)
+#define COL_MEM_GRAPH_FILL   (g_Tm8Theme.memGraphFill)
+#define COL_MEM_GRAPH_LINE   (g_Tm8Theme.memGraphLine)
+#define COL_MEM_GRAPH_GRID   (g_Tm8Theme.memGraphGrid)
+#define COL_MEM_GRAPH_EDGE   (g_Tm8Theme.memGraphEdge)
 
 /* --- Process list / sorting ---------------------------------------------- */
 

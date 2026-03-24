@@ -31,7 +31,7 @@ DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     if (w < 120 || rcPanel->bottom <= rcPanel->top + 8)
         return;
 
-    FillRect(hdc, rcPanel, (HBRUSH)GetStockObject(WHITE_BRUSH));
+    FillRect(hdc, rcPanel, Tm8ThemePanelBrush());
     SetBkMode(hdc, TRANSPARENT);
 
     colW = (w - 2 * pad - 2 * gapCol) / 3;
@@ -54,36 +54,36 @@ DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c1Lbl1, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.left = c0;
     rV.right = c0 + colW;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c1Val1, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c1Lbl2, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c1Val2, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c1Lbl3, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c1Val3, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
     y = rcPanel->top + 6;
@@ -92,14 +92,14 @@ DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c2Lbl1, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.left = c1;
     rV.right = c1 + colW;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c2Val1, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.left = c1;
@@ -107,12 +107,12 @@ DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c2Lbl2, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c2Val2, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.left = c1;
@@ -120,12 +120,12 @@ DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c2Lbl3, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c2Val3, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
     y = rcPanel->top + 6;
@@ -134,47 +134,47 @@ DrawMemPerfStatsPanel(HDC hdc, const RECT *rcPanel)
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c3Lbl1, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.left = c2;
     rV.right = c2 + colW;
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c3Val1, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c3Lbl2, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c3Val2, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c3Lbl3, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c3Val3, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     y += lblH + 2 + midH + gapRow;
     rL.top = y;
     rL.bottom = y + lblH;
     SelectObject(hdc, s_hFontCpuLbl ? s_hFontCpuLbl : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(96, 96, 96));
+    SetTextColor(hdc, g_Tm8Theme.textMuted);
     DrawTextW(hdc, ps->c3Lbl4, -1, &rL, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
     rV.top = y + lblH + 2;
     rV.bottom = rV.top + midH;
     SelectObject(hdc, s_hFontCpuVal ? s_hFontCpuVal : GetStockObject(DEFAULT_GUI_FONT));
-    SetTextColor(hdc, RGB(32, 32, 32));
+    SetTextColor(hdc, g_Tm8Theme.textPrimary);
     DrawTextW(hdc, ps->c3Val4, -1, &rV, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
     SelectObject(hdc, oldF);
@@ -341,7 +341,7 @@ MemStatsPanelProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (drawW < rcC.right)
             drawW = rcC.right;
 
-        FillRect(hdc, &rcC, (HBRUSH)GetStockObject(WHITE_BRUSH));
+        FillRect(hdc, &rcC, Tm8ThemePanelBrush());
 
         rcDraw.left = 0;
         rcDraw.top = 0;

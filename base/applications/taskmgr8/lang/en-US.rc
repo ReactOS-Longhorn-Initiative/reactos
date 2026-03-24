@@ -127,6 +127,7 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "&Refresh now", ID_VIEW_REFRESH
+        MENUITEM "&Dark mode", ID_VIEW_DARK_MODE
         POPUP "Update &speed"
         BEGIN
             MENUITEM "&High", ID_VIEW_UPDATESPEED_HIGH

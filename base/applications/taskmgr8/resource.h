@@ -50,6 +50,7 @@
 #define ID_VIEW_UPDATESPEED_NORMAL 40008
 #define ID_VIEW_UPDATESPEED_LOW    40009
 #define ID_VIEW_UPDATESPEED_PAUSED 40010
+#define ID_VIEW_DARK_MODE          40011
 #define IDM_PROPERTIES             40120
 #define ID_SVC_START               40121
 #define ID_SVC_STOP                40122
