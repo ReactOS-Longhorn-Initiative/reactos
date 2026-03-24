@@ -152,7 +152,7 @@ HKLM,"SOFTWARE\Microsoft\DWM",,0x00000012
 ; 1 = enforce 5048 GPU whitelist; 0 = allow other hardware (typical for ReactOS bring-up)
 HKLM,"SOFTWARE\Microsoft\DWM","EnableMachineCheck",0x10001,0x00000000
 ; 1 = force software D3D; 0 = attempt hardware D3D
-HKLM,"SOFTWARE\Microsoft\DWM","ForceSoftwareD3D",0x10001,0x00000000
+HKLM,"SOFTWARE\Microsoft\DWM","ForceSoftwareD3D",0x10001,0x00000001
 ; 1 = opaque "Jade"/metal-style frames; 0 = glass-style frames
 HKLM,"SOFTWARE\Microsoft\DWM","Metal",0x10001,0x00000000
 ; 1 = alternate (square) caption buttons; 0 = default glass buttons

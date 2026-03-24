@@ -71,7 +71,7 @@ if(ARCH STREQUAL "i386")
         foreach(item ${EXTRA_FILES})
             add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x86/system32/${item} DESTINATION reactos/system32 NAME_ON_CD ${item} FOR all)
         endforeach(item)#
-    endif()
+    endif()##
     ## Slipstreaming Resources/Themes (x86): mirror repo layout under modules/x86/Resources/Themes/
     ## e.g. .../aero/..., .../luna/..., .../aero/Shell/NormalColor/... -> reactos/Resources/Themes/...
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/x86/Resources/Themes/)
@@ -79,8 +79,8 @@ if(ARCH STREQUAL "i386")
         foreach(item ${EXTRA_FILES})
             add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/x86/Resources/Themes/${item} DESTINATION reactos/Resources/Themes NAME_ON_CD ${item} FOR all)
         endforeach(item)
-    endif()
-elseif(ARCH STREQUAL "amd64")
+    endif()##
+elseif(ARCH STREQUAL "amd64") 
     ## Slipstreaming drivers amd64
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/x64/drivers/)
         file(GLOB_RECURSE EXTRA_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/x64/drivers/ ${CMAKE_CURRENT_SOURCE_DIR}/x64/drivers/*)

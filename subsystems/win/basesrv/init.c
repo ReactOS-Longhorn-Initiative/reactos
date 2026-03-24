@@ -59,7 +59,6 @@ PCSR_API_ROUTINE BaseServerApiDispatchTable[BasepMaxApiNumber - BASESRV_FIRST_AP
     BaseSrvGetVDMCurDirs,
     BaseSrvBatNotification,
     BaseSrvRegisterWowExec,
-    BaseSrvSoundSentryNotification,
     BaseSrvRefreshIniFileMapping,
     BaseSrvDefineDosDevice,
     BaseSrvSetTermsrvAppInstallMode,
@@ -94,7 +93,6 @@ BOOLEAN BaseServerApiServerValidTable[BasepMaxApiNumber - BASESRV_FIRST_API_NUMB
     TRUE,   // BaseSrvGetVDMCurDirs
     TRUE,   // BaseSrvBatNotification
     TRUE,   // BaseSrvRegisterWowExec
-    TRUE,   // BaseSrvSoundSentryNotification
     TRUE,   // BaseSrvRefreshIniFileMapping
     TRUE,   // BaseSrvDefineDosDevice
     TRUE,   // BaseSrvSetTermsrvAppInstallMode

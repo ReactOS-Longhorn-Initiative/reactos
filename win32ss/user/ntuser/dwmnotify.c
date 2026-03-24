@@ -721,6 +721,8 @@ IntDwmTopLevelCreate(_In_ PWND Wnd, _In_opt_ PRECTL prcIn, _In_ ULONG HintFlagsA
         DPRINT1("[DWM] LPC TopLevelCreate hwnd=%p hintBit=%lu\n", hLog, HintFlagsAnd1 & 1u);
     }
     IntDwmSendLpcDatagram(H);
+    /* Milcore calls DwmGetSurfaceData / pFindVisual for HWNDs we announce; keep list in sync. */
+    IntRosDwmUpsertForPwnd(Wnd);
 }
 
 VOID
@@ -769,6 +771,7 @@ IntDwmTopLevelUpdate(_In_ PWND Wnd, _In_ ULONG UpdateArg, _In_opt_ PRECTL prcOpt
     DPRINT1("[DWM] LPC TopLevelUpdate hwnd=%p UpdateArg=%lu hasRect=%u\n",
             UserHMGetHandle(Wnd), UpdateArg, prcOptional ? 1u : 0u);
     IntDwmSendLpcDatagram(H);
+    IntRosDwmUpsertForPwnd(Wnd);
 }
 
 static VOID FASTCALL
@@ -1127,6 +1130,7 @@ IntDwmSendChildCreate(_In_ PWND Wnd)
     DPRINT1("[DWM] LPC ChildCreate hwnd=%p parent=%p\n",
             UserHMGetHandle(Wnd), UserHMGetHandle(Wnd->spwndParent));
     IntDwmSendLpcDatagram(H);
+    IntRosDwmUpsertForPwnd(Wnd);
 }
 
 static VOID

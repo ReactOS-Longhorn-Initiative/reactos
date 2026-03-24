@@ -39,11 +39,5 @@ FirstSoundSentry(VOID)
 }
 
 /* PUBLIC SERVER APIS *********************************************************/
-
-CSR_API(BaseSrvSoundSentryNotification)
-{
-    /* Call the API and see if it succeeds */
-    return STATUS_ACCESS_DENIED;
-}
-
+\
 /* EOF */

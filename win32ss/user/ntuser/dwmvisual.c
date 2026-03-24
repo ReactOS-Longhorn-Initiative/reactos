@@ -94,11 +94,19 @@ RosDwmVisualUpsertPwnd(_In_ PWND pwnd)
 static VOID FASTCALL
 RosDwmVisualUpsertFromDce(_In_ PDCE dce)
 {
+    PWND pwnd;
+
     if (!dce || (dce->DCXFlags & DCX_DCEEMPTY))
         return;
-    if (!dce->pwndOrg)
+
+    /* Match DwmGreStartupEnumerate*: pwndOrg may be NULL while hwndCurrent is valid. */
+    pwnd = dce->pwndOrg;
+    if (!pwnd && dce->hwndCurrent)
+        pwnd = UserGetWindowObject(dce->hwndCurrent);
+    if (!pwnd || UserIsDesktopWindow(pwnd))
         return;
-    RosDwmVisualUpsertPwnd(dce->pwndOrg);
+
+    RosDwmVisualUpsertPwnd(pwnd);
 }
 
 static VOID FASTCALL
@@ -138,7 +146,11 @@ IntRosDwmRebuildVisualList(_In_ HDEV hdev)
 {
     (void)hdev;
 
-    IntRosDwmFreeAllVisuals();
+    /*
+     * GreDwmStartup calls EngpTransferSpriteStateToVisualState first, which builds a visual list
+     * from the sprite z-order. A full free here discarded that list so only DCE-org windows
+     * reappeared — milcore then hit NOT_FOUND on AttachToHwnd and AV'd. Merge DCE state in.
+     */
     DceEnumerateAll(RosDwmVisualEnumerateDce, NULL);
 }
 

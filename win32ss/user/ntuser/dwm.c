@@ -3,7 +3,8 @@
  * LICENSE:         GPL-2.0-or-later
  * PURPOSE:         Vista / Longhorn DWM-related syscalls (NtUser*)
  *
- * NtUserDwmStartup / NtUserDwmShutdown follow Windows Vista build 5048 win32k (see LH win32k.sys).
+ * NtUserDwmStartup / NtUserDwmShutdown: IntXxxDwm* mirrors 5048 xxxDwmStartup/xxxDwmShutdown order
+ * (SetPointer off, GreDwm*, gpsi SRVINFO_DWM_COMPOSITING, xxxComposeDesktop, SetPointer on).
  * NtUserDwmGetSurfaceData: 5048 win32k (EnterCrit + GreDwmGetSurfaceData for gpepDwm only).
  * NtUserUpdateWindowTransform follows the same build’s per-window MIL transform slot (64 bytes).
  * 5048 MIL op 24 (hit-test wait/reply) is win32k-internal (DwmHitTestQuery + LpcRequestWaitReplyPort), not an NtUser syscall.
@@ -41,6 +42,89 @@ DwmIsDwmClientProcess(VOID)
     return (gpepDwm != NULL) && (PsGetCurrentProcess() == gpepDwm);
 }
 
+/*
+ * Longhorn 5048 SetPointer(0): GreSetPointer(gpDispInfo, 0,0,0,0) — hide hardware cursor during
+ * composition transitions. ReactOS: GreMovePointer(screen, -1, -1) / restore from gpsi->ptCursor.
+ */
+static VOID
+FASTCALL
+IntDwm5048SetPointer(_In_ BOOL fShow)
+{
+    if (!ScreenDeviceContext)
+        return;
+
+    if (!fShow)
+    {
+        GreMovePointer(ScreenDeviceContext, -1, -1);
+    }
+    else
+    {
+        GreMovePointer(ScreenDeviceContext, gpsi->ptCursor.x, gpsi->ptCursor.y);
+    }
+}
+
+/* 5048 xxxComposeWindow(pwnd, DoRender): per top-level under desktop; then DwmNotifyChildrenAddRemove. */
+static VOID
+FASTCALL
+IntXxxComposeWindow5048(_In_ PWND pwnd, _In_ BOOLEAN fEnableComposition)
+{
+    if (!pwnd || UserIsDesktopWindow(pwnd))
+        return;
+
+    if (fEnableComposition)
+    {
+        if (!(pwnd->style & WS_VISIBLE) || (pwnd->style & WS_MINIMIZE))
+            return;
+        /* 5048: layered windows get xxxInternalInvalidate; others go through xxxSetLayeredWindow path.
+         * Approximate both with a full-frame invalidation so milcore/DWM can pick up the new mode. */
+        co_UserRedrawWindow(pwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME);
+    }
+    else
+    {
+        if (pwnd->pMilTransform)
+        {
+            ExFreePoolWithTag(pwnd->pMilTransform, USERTAG_MILTRANSFORM);
+            pwnd->pMilTransform = NULL;
+        }
+        /* 5048: UnsetLayeredWindow + redraw; we only force repaint if still visible. */
+        if (pwnd->style & WS_VISIBLE)
+            co_UserRedrawWindow(pwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME);
+    }
+}
+
+/*
+ * 5048 xxxComposeDesktop(grpdeskRitInput, flags): BuildHwndList(desktop children); for each hwnd
+ * xxxComposeWindow; then DwmNotifyChildrenAddRemove(desktop pwnd tree, flags).
+ */
+static VOID
+FASTCALL
+IntXxxComposeDesktop5048(_In_ BOOLEAN fEnableComposition)
+{
+    PWND Desktop;
+    HWND *List, *ph;
+
+    Desktop = UserGetDesktopWindow();
+    if (!Desktop)
+    {
+        IntDwmNotifyDesktopChildrenAddRemove(fEnableComposition);
+        return;
+    }
+
+    List = IntWinListChildren(Desktop);
+    if (List)
+    {
+        for (ph = List; *ph; ++ph)
+        {
+            PWND pwnd = ValidateHwndNoErr(*ph);
+            if (pwnd)
+                IntXxxComposeWindow5048(pwnd, fEnableComposition);
+        }
+        ExFreePoolWithTag(List, USERTAG_WINDOWLIST);
+    }
+
+    IntDwmNotifyDesktopChildrenAddRemove(fEnableComposition);
+}
+
 static NTSTATUS
 IntXxxDwmStartup(VOID)
 {
@@ -60,16 +144,25 @@ IntXxxDwmStartup(VOID)
 
     hdev = (HDEV)gpmdev->ppdevGlobal;
 
+    /* 5048 xxxDwmStartup: SetPointer(0); StopFade if active; bSetDevDragRect(hdev,0,0); GreDwmStartup;
+     * on success gfCompositing, gpsi composition flag, xxxComposeDesktop(...,1); SetPointer(1). */
+    IntDwm5048SetPointer(FALSE);
+
     if (!GreDwmStartup(hdev))
     {
         DPRINT1("[DWM] IntXxxDwmStartup: GreDwmStartup failed hdev=%p\n", hdev);
+        IntDwm5048SetPointer(TRUE);
         return STATUS_UNSUCCESSFUL;
     }
 
     gfbDwmCompositing = TRUE;
-    DPRINT1("[DWM] IntXxxDwmStartup: OK hdev=%p compositing=1\n", hdev);
-    /* 5048 xxxComposeDesktop: DwmNotifyChildrenAddRemove for existing WS_CHILD windows. */
-    IntDwmNotifyDesktopChildrenAddRemove(TRUE);
+    if (gpsi)
+        gpsi->dwSRVIFlags |= SRVINFO_DWM_COMPOSITING;
+
+    DPRINT1("[DWM] IntXxxDwmStartup: OK hdev=%p compositing=1 (5048-order compose + notify)\n", hdev);
+    IntXxxComposeDesktop5048(TRUE);
+
+    IntDwm5048SetPointer(TRUE);
     UserRedrawDesktop();
     return STATUS_SUCCESS;
 }
@@ -85,15 +178,26 @@ IntXxxDwmShutdown(VOID)
         return STATUS_UNSUCCESSFUL;
     }
 
-    DPRINT1("[DWM] IntXxxDwmShutdown: begin\n");
-    IntDwmNotifyDesktopChildrenAddRemove(FALSE);
+    DPRINT1("[DWM] IntXxxDwmShutdown: begin (5048-order)\n");
+
+    /* 5048 xxxDwmShutdown: SetPointer(0); StopFade; bSetDevDragRect(0,0); xxxComposeDesktop(...,0);
+     * GreDwmShutdown; SetPointer(1); clear gfCompositing + gpsi flag; redraw desktop. */
+    IntDwm5048SetPointer(FALSE);
+
+    /* 5048: xxxComposeDesktop(0) (LPC + per-window teardown) before GreDwmShutdown; then drop redirects. */
+    IntXxxComposeDesktop5048(FALSE);
+
     IntDwmUnbindAllActiveRedirectDcs();
     IntDwmFreeAllRedirectBitmaps();
 
     if (!gpmdev || !gpmdev->ppdevGlobal)
     {
-        DPRINT1("[DWM] IntXxxDwmShutdown: no pdev (compositing cleared)\n");
+        DPRINT1("[DWM] IntXxxDwmShutdown: no pdev\n");
         gfbDwmCompositing = FALSE;
+        if (gpsi)
+            gpsi->dwSRVIFlags &= ~SRVINFO_DWM_COMPOSITING;
+        IntDwm5048SetPointer(TRUE);
+        UserRedrawDesktop();
         return STATUS_SUCCESS;
     }
 
@@ -105,11 +209,19 @@ IntXxxDwmShutdown(VOID)
     {
         DPRINT1("[DWM] IntXxxDwmShutdown: GreDwmShutdown failed hdev=%p\n", hdev);
         gfbDwmCompositing = FALSE;
+        if (gpsi)
+            gpsi->dwSRVIFlags &= ~SRVINFO_DWM_COMPOSITING;
+        IntDwm5048SetPointer(TRUE);
+        UserRedrawDesktop();
         return STATUS_UNSUCCESSFUL;
     }
 
     gfbDwmCompositing = FALSE;
+    if (gpsi)
+        gpsi->dwSRVIFlags &= ~SRVINFO_DWM_COMPOSITING;
+
     DPRINT1("[DWM] IntXxxDwmShutdown: OK\n");
+    IntDwm5048SetPointer(TRUE);
     UserRedrawDesktop();
     return STATUS_SUCCESS;
 }

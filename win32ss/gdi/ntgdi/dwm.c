@@ -95,7 +95,7 @@ IntGreDwmResolveSurface(
             }
         }
 
-        DPRINT1("[DWM] IntGreDwmResolveSurface: NOT_FOUND hwnd=%p\n", hwnd);
+        TRACE("[DWM] IntGreDwmResolveSurface: NOT_FOUND hwnd=%p (expected for sprite fill)\n", hwnd);
         return STATUS_NOT_FOUND;
     }
 
@@ -109,6 +109,58 @@ IntGreDwmResolveSurface(
     SURFACE_ShareLockByPointer(psurf);
     *ppsurf = psurf;
     return STATUS_SUCCESS;
+}
+
+/*
+ * 5048 GreDwmGetSurfaceData: visual with no bits still returns success; Handle[1]/[2] are rect size.
+ * Milcore may still read PixelFormat; use primary display BPP when hSection is NULL.
+ */
+static VOID
+IntGreDwmFinalizeDimsOnlyOutput(_Inout_ DWM_SURFACE_KERNEL_OUT *kOut, _In_opt_ PWND pwnd)
+{
+    LONG w = (LONG)kOut->Width;
+    LONG h = (LONG)kOut->Height;
+
+    if (w < 0)
+        w = -w;
+    if (h < 0)
+        h = -h;
+
+    if (w <= 0 || h <= 0)
+    {
+        if (pwnd && (pwnd->style & WS_MINIMIZE) && gpsi)
+        {
+            if (w <= 0)
+                w = (LONG)gpsi->aiSysMet[SM_CXMINIMIZED];
+            if (h <= 0)
+                h = (LONG)gpsi->aiSysMet[SM_CYMINIMIZED];
+        }
+        if (w <= 0)
+            w = 1;
+        if (h <= 0)
+            h = 1;
+        kOut->Width = (ULONG_PTR)w;
+        kOut->Height = (ULONG_PTR)h;
+    }
+
+    if (!kOut->hSection && gpsi && kOut->PixelFormat == 0)
+    {
+        switch (gpsi->BitsPixel)
+        {
+            case 8:
+                kOut->PixelFormat = BMF_8BPP;
+                break;
+            case 16:
+                kOut->PixelFormat = BMF_16BPP;
+                break;
+            case 24:
+                kOut->PixelFormat = BMF_24BPP;
+                break;
+            default:
+                kOut->PixelFormat = BMF_32BPP;
+                break;
+        }
+    }
 }
 
 static NTSTATUS
@@ -429,6 +481,7 @@ GreDwmGetSurfaceData(
             kOut.BlendState = EngpDwmBlendStateFromSpriteAttrs(&vis->Blend,
                                                                vis->ulSpriteAttr10,
                                                                vis->ulSpriteAttr8);
+            IntGreDwmFinalizeDimsOnlyOutput(&kOut, pwndPrep);
             Status = STATUS_SUCCESS;
             DPRINT1("[DWM] GreDwmGetSurfaceData: visual dims-only hwnd=%p %lux%lu\n",
                     hwnd, kOut.Width, kOut.Height);
@@ -475,9 +528,31 @@ GreDwmGetSurfaceData(
             psurf = NULL;
         }
 
+        /*
+         * Milcore still needs a successful GetSurfaceData for HWNDs it registered via LPC even when
+         * there is no bits yet (no DCE surface / redirect). IntGreDwmResolveSurface leaves pwnd set
+         * on STATUS_NOT_FOUND for a valid HWND.
+         */
+        if (!pwnd)
+            pwnd = UserGetWindowObject(hwnd);
+        if (pwnd && !UserIsDesktopWindow(pwnd))
+        {
+            LONG ww = pwnd->rcWindow.right - pwnd->rcWindow.left;
+            LONG hh = pwnd->rcWindow.bottom - pwnd->rcWindow.top;
+
+            kOut.Width = (ULONG_PTR)ww;
+            kOut.Height = (ULONG_PTR)hh;
+            kOut.BlendState = (pwnd->ExStyle & WS_EX_LAYERED) ? 1 : 0;
+            IntGreDwmFinalizeDimsOnlyOutput(&kOut, pwnd);
+            Status = STATUS_SUCCESS;
+            DPRINT1("[DWM] GreDwmGetSurfaceData: compositing window-dims-only hwnd=%p %lux%lux\n",
+                    hwnd, kOut.Width, kOut.Height);
+            goto GreDwmSurfaceDone;
+        }
+
         DxEngUnlockHdev(hdev);
         DxEngUnlockShareSem();
-        DPRINT1("[DWM] GreDwmGetSurfaceData: compositing, no visual and no resolve hwnd=%p\n", hwnd);
+        DPRINT1("[DWM] GreDwmGetSurfaceData: compositing, no data hwnd=%p\n", hwnd);
         return STATUS_NOT_FOUND;
     }
 

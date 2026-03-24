@@ -444,7 +444,7 @@ RtlAdjustPrivilege(IN ULONG Privilege,
     if (!NT_SUCCESS (Status))
     {
         DPRINT1("Retrieving token handle failed (Status %lx)\n", Status);
-        return Status;
+        return 0;
     }
 
     OldState.PrivilegeCount = 1;

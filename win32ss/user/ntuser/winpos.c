@@ -2992,7 +2992,35 @@ co_WinPosSearchChildren(
 
     if (ScopeWin->head.pti == PsGetCurrentThreadWin32Thread())
     {
-       /* 5048 DwmHitTestQuery is only from xxxDCEWindowHitTest2 (DCE args); WinPos has no equivalent yet. */
+       /*
+        * Longhorn 5048 (xxxDCEWindowHitTest2): under gfCompositing, on the input desktop, after
+        * LeaveCrit — DwmHitTestQuery(hwnd, dceArg2, pt.x, pt.y, dceArg3, dceArg4, &hit, &milHandled).
+        * If milHandled, use MIL hit and skip WM_NCHITTEST. WinPos has no DCE bundle; Arg2/3/4 = 0.
+        */
+       if (gfbDwmCompositing &&
+           (!gpdeskInputDesktop || ScopeWin->head.rpdesk == gpdeskInputDesktop))
+       {
+           ULONG milHit = 0;
+           ULONG milHandled = 0;
+           NTSTATUS HtStatus;
+
+           HtStatus = IntDwmHitTestQuery(UserHMGetHandle(ScopeWin),
+                                         0,
+                                         Point->x,
+                                         Point->y,
+                                         0,
+                                         0,
+                                         &milHit,
+                                         &milHandled);
+           if (NT_SUCCESS(HtStatus) && milHandled != 0)
+           {
+               *HitTest = (USHORT)(milHit & 0xFFFFu);
+               if (*HitTest == (USHORT)HTTRANSPARENT)
+                   return NULL;
+               return ScopeWin;
+           }
+       }
+
        *HitTest = (USHORT)co_IntSendMessage(UserHMGetHandle(ScopeWin), WM_NCHITTEST, 0, MAKELONG(Point->x, Point->y));
 
        if ((*HitTest) == (USHORT)HTTRANSPARENT)

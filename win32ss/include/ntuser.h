@@ -953,6 +953,8 @@ typedef LONG_PTR
 #define SRVINFO_APIHOOK     0x0010
 #define SRVINFO_CTFIME_ENABLED 0x0020
 #define SRVINFO_KBDPREF     0x0080
+/* Longhorn ~5048: win32k sets *(gpsi+composition_slot)=1 with DWM on (see xxxDwmStartup). */
+#define SRVINFO_DWM_COMPOSITING 0x00000100
 
 #define NUM_SYSCOLORS 31
 
