@@ -677,5 +677,6 @@
 @ stdcall NtUserDwmStartup(long)
 @ stdcall NtUserDwmShutdown()
 @ stdcall NtGdiDwmGetSurfaceData(ptr ptr)
+@ stdcall NtGdiDwmGetDirtyRgn(ptr long)
 @ stdcall NtUserDwmGetSurfaceData(ptr ptr)
 

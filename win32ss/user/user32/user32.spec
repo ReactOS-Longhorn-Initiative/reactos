@@ -144,6 +144,7 @@
 @ stdcall DdeUninitialize(long)
 ; Milcore (LH5048): GetProcAddress DwmStartup/DwmShutdown/DwmGetSurfaceData — always export (not DLL_EXPORT_VERSION gated).
 @ stdcall DwmGetSurfaceData(ptr ptr)
+@ stdcall DwmGetDirtyRgn(ptr long)
 @ stdcall DwmStartup(long)
 @ stdcall DwmShutdown()
 @ stdcall DefDlgProcA(long long long long)

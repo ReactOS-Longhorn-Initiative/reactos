@@ -58,14 +58,13 @@ IsProcessDPIAware(VOID)
 }
 
 /*
- * @stub
+ * Vista+. Milcore DWM host calls this; treat as no-op success (per-monitor DPI uses newer APIs).
  */
 BOOL
 WINAPI
 SetProcessDPIAware(VOID)
 {
-    UNIMPLEMENTED;
-    return FALSE;
+    return TRUE;
 }
 
 /*

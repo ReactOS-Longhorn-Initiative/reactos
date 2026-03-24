@@ -432,11 +432,25 @@ void WINAPI DbgExOpenLogFile(LPCSTR szFName)
 
 void WINAPI DbgExDumpProcessHeaps()
 {
-} 
+}
+
+/*
+ * Longhorn MIL/uDWM (debug): ProcessHeapImpl::AllocClear → MtValidateMeter.
+ * Real PresentationDebug returns non-NULL default meters and non-empty names; our stubs used
+ * NULL / "" and uDWM asserts ("Allocation made without a valid meter tag", empty Tag:).
+ */
+static volatile LONG g_MtSeq = 16;
+static PERFMETERTAG g_MtDefault = (PERFMETERTAG)(INT_PTR)1;
+static CHAR g_szMtStubName[] = "PresentationDebug";
+static CHAR g_szMtStubDesc[] = "ReactOS stub meter";
 
 PERFMETERTAG WINAPI DbgExMtRegister(__in PCSTR szTag, __in PCSTR szOwner, __in PCSTR szDescrip, DWORD dwFlags)
 {
-    return(0);
+    UNREFERENCED_PARAMETER(szTag);
+    UNREFERENCED_PARAMETER(szOwner);
+    UNREFERENCED_PARAMETER(szDescrip);
+    UNREFERENCED_PARAMETER(dwFlags);
+    return (PERFMETERTAG)(INT_PTR)(LONG)InterlockedIncrement(&g_MtSeq);
 }
 
 void WINAPI DbgExMtAdd(PERFMETERTAG mt, LONG lCnt, LONG lVal)
@@ -449,12 +463,16 @@ void WINAPI DbgExMtSet(PERFMETERTAG mt, LONG lCnt, LONG lVal)
 
 char * WINAPI DbgExMtGetName(PERFMETERTAG mt)
 {
-    return("");
+    if (!mt)
+        return "";
+    return g_szMtStubName;
 }
 
 char * WINAPI DbgExMtGetDesc(PERFMETERTAG mt)
 {
-    return("");
+    if (!mt)
+        return "";
+    return g_szMtStubDesc;
 }
 
 PERFMETERTAG WINAPI DbgExMtGetParent(PERFMETERTAG mt)
@@ -487,12 +505,23 @@ void WINAPI DbgExMtLogDump(__in PCSTR pchFile)
 
 PERFMETERTAG WINAPI DbgExMtLookupMeter(__in PCSTR szTag)
 {
-    return 0;
+    ULONG_PTR h = 3;
+    const unsigned char *p;
+
+    if (szTag)
+    {
+        for (p = (const unsigned char *)szTag; *p; ++p)
+            h = h * 131u + *p;
+    }
+    h |= 1u;
+    if (h < 16)
+        h += 16;
+    return (PERFMETERTAG)h;
 }
 
 PERFMETERTAG WINAPI bgExMtLookupMeter(__in PCSTR szTag)
 {
-    return 0;
+    return DbgExMtLookupMeter(szTag);
 }
 
 long WINAPI DbgExMtGetMeterCnt(PERFMETERTAG mt, BOOL fExclusive)
@@ -505,14 +534,20 @@ long WINAPI DbgExMtGetMeterVal(PERFMETERTAG mt, BOOL fExclusive)
     return 0;
 }
 
-PERFMETERTAG WINAPI DbgExMtGetDefaultMeter()
+PERFMETERTAG WINAPI DbgExMtGetDefaultMeter(void)
 {
-    return (PERFMETERTAG)NULL;
+    return g_MtDefault;
 }
 
 PERFMETERTAG WINAPI DbgExMtSetDefaultMeter(PERFMETERTAG mtDefault)
 {
-    return (PERFMETERTAG)NULL;
+    PERFMETERTAG old = g_MtDefault;
+
+    if (mtDefault)
+        g_MtDefault = mtDefault;
+    else
+        g_MtDefault = (PERFMETERTAG)(INT_PTR)1;
+    return old;
 }
 
 void WINAPI DbgExSetTopUrl(__in LPWSTR pstrUrl)

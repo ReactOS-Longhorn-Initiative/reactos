@@ -1,7 +1,7 @@
 #pragma once
 
 /*
- * Longhorn 5048-style DWM "visual" list (gDceState / pFindVisual analogue).
+ * Longhorn 5112-style DWM "visual" list (gDceState / pFindVisual analogue).
  * Nodes are ~0x2C bytes like LH DceState; filled from USER DCEs + redirect surfaces
  * and/or EngpTransferSpriteStateToVisualState (sprite z-list migration at DWM startup).
  */

@@ -1,12 +1,12 @@
 /*
- * Longhorn ~5048 DWM LPC notifications to milcore + per-window redirect bitmaps.
+ * Longhorn ~5112 DWM LPC notifications to milcore + per-window redirect bitmaps.
  *
- * 5048 win32k opcode map (first ULONG after PORT_MESSAGE): 5 create, 6 destroy, 7 update,
+ * Win32k opcode map (first ULONG after PORT_MESSAGE): 5 create, 6 destroy, 7 update,
  * 8 z-order, 9 top-level show, 10 icon, 11 text, 12 style, 13 activation, 14 desktop switch,
  * 15 shell, 16 power; child 0x11 create, 18 destroy, 19 z-order, 20 move/size, 21 parent,
- * 22 style, 23 clip; 24 hit-test (wait/reply, Type 0x8000; 5048 win32k-internal DwmHitTestQuery only).
+ * 22 style, 23 clip; 24 hit-test (wait/reply, Type 0x8000; win32k-internal DwmHitTestQuery only).
  * PORT_MESSAGE: DataLength = byte size of data after header; TotalLength = header + data;
- * Type = 0x8003 (5048 Dwm datagram) per DwmIconChange / DwmTopLevelCreate / etc.
+ * Type = 0x8003 (Dwm datagram) per DwmIconChange / DwmTopLevelCreate / etc.
  */
 
 #include <win32k.h>
@@ -42,7 +42,7 @@ extern BOOL NTAPI DC_bIsBitmapCompatible(_In_ PDC pdc, _In_ PSURFACE psurf);
 #define DWM_MIL_OP_CHILD_STYLE         22u
 #define DWM_MIL_OP_CHILD_CLIP          23u
 
-/* DwmTopLevelUpdate second argument (5048 a2); GreStartup pass2 uses 1. */
+/* DwmTopLevelUpdate second argument (5112 a2); GreStartup pass2 uses 1. */
 #define DWM_TOP_UPDATE_LAYOUT            2u
 #define DWM_TOP_UPDATE_SHAPE           5u
 #define DWM_TOP_UPDATE_LAYERED         6u
@@ -71,14 +71,14 @@ static VOID
 IntDwmSendPowerNotificationLpc(_In_ ULONG NotificationArg);
 
 static VOID
-DwmMsgInitLpc5048(_Out_writes_bytes_(sizeof(PORT_MESSAGE) + cbData) PPORT_MESSAGE H, USHORT cbData)
+DwmMsgInitLpc5112(_Out_writes_bytes_(sizeof(PORT_MESSAGE) + cbData) PPORT_MESSAGE H, USHORT cbData)
 {
     USHORT total = (USHORT)(sizeof(PORT_MESSAGE) + cbData);
 
     RtlZeroMemory(H, total);
     H->u1.s1.DataLength = (CSHORT)cbData;
     H->u1.s1.TotalLength = (CSHORT)total;
-    /* 5048 win32k Dwm* helpers (-32765 == 0x8003). */
+    /* Win32k Dwm* helpers (-32765 == 0x8003). */
     H->u2.s2.Type = (CSHORT)(USHORT)0x8003u;
     H->u2.s2.DataInfoOffset = 0;
 }
@@ -99,7 +99,7 @@ IntDwmSendMilOpAndHwnd32(_In_ ULONG Opcode, _In_ HWND hwnd)
     if (!gfbDwmCompositing || !hwnd)
         return;
 
-    DwmMsgInitLpc5048(H, 8);
+    DwmMsgInitLpc5112(H, 8);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = Opcode;
     pl += sizeof(ULONG);
@@ -167,7 +167,7 @@ IntDwmSendMilStyle20(_In_ ULONG Opcode, _In_ HWND hwnd, _In_ LONG Idx, _In_ ULON
     if (!gfbDwmCompositing || !hwnd)
         return;
 
-    DwmMsgInitLpc5048(H, 20);
+    DwmMsgInitLpc5112(H, 20);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = Opcode;
     pl += sizeof(ULONG);
@@ -230,7 +230,7 @@ IntDwmNotifyChildParentChanged(_In_ PWND Wnd, _In_ PWND WndNewParent)
 
     hChild = UserHMGetHandle(Wnd);
     hPar = UserHMGetHandle(WndNewParent);
-    DwmMsgInitLpc5048(H, 12);
+    DwmMsgInitLpc5112(H, 12);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_CHILD_PARENT;
     pl += sizeof(ULONG);
@@ -250,7 +250,7 @@ IntDwmSendPowerNotificationLpc(_In_ ULONG NotificationArg)
     if (!gfbDwmCompositing)
         return;
 
-    DwmMsgInitLpc5048(H, 8);
+    DwmMsgInitLpc5112(H, 8);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_POWER;
     pl += sizeof(ULONG);
@@ -269,7 +269,7 @@ IntDwmSendTopLevelShow(_In_ PWND Wnd, _In_ BOOL Show)
     if (!gfbDwmCompositing || !Wnd)
         return;
 
-    DwmMsgInitLpc5048(H, 12);
+    DwmMsgInitLpc5112(H, 12);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_TOPLEVEL_SHOW;
     pl += sizeof(ULONG);
@@ -297,7 +297,7 @@ IntDwmSendChildMoveSize(_In_ PWND Wnd)
     if (sizeof(PORT_MESSAGE) + cbPayload > sizeof(Buf))
         return;
 
-    DwmMsgInitLpc5048(H, cbPayload);
+    DwmMsgInitLpc5112(H, cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_CHILD_MOVESIZE;
     pl += sizeof(ULONG);
@@ -320,7 +320,7 @@ IntDwmSendChildClipRgnChange(_In_ PWND Wnd)
     if (!gfbDwmCompositing || !Wnd)
         return;
 
-    DwmMsgInitLpc5048(H, 8);
+    DwmMsgInitLpc5112(H, 8);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_CHILD_CLIP;
     pl += sizeof(ULONG);
@@ -550,7 +550,7 @@ IntDwmBindRedirectDcLocked(_Inout_ PDC pdc, _Inout_ PDCE dce, _In_opt_ PWND Wnd,
         return;
 
     /*
-     * LH5048 ConvertRedirectionDCs: skip DCE with (flags & (DCX_INDESTROY|DCX_DCEEMPTY)); when
+     * LH5112 ConvertRedirectionDCs: skip DCE with (flags & (DCX_INDESTROY|DCX_DCEEMPTY)); when
      * installing redirect (non-null surf), require DCX_DCEBUSY — same mask 0x400800 / 0x1000.
      */
     if (DcxFlags & (DCX_INDESTROY | DCX_DCEEMPTY))
@@ -659,7 +659,7 @@ IntDwmBindRedirectDcLocked(_Inout_ PDC pdc, _Inout_ PDCE dce, _In_opt_ PWND Wnd,
             UserHMGetHandle(Wnd), dce->hDC, dce, w, h, DcxFlags);
 }
 
-/* 5048 payload: 10 ULONG window snapshot (window rect, client rect, style, exstyle). */
+/* 5112 payload: 10 ULONG window snapshot (window rect, client rect, style, exstyle). */
 static VOID
 IntDwmFillMiniWinInfo(_In_ PWND Wnd, _Out_writes_(10) PULONG Mini)
 {
@@ -697,7 +697,7 @@ IntDwmTopLevelCreate(_In_ PWND Wnd, _In_opt_ PRECTL prcIn, _In_ ULONG HintFlagsA
     if (sizeof(PORT_MESSAGE) + cbPayload > sizeof(Buf))
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_TOPLEVEL_CREATE;
     pl += sizeof(ULONG);
@@ -741,7 +741,7 @@ IntDwmTopLevelUpdate(_In_ PWND Wnd, _In_ ULONG UpdateArg, _In_opt_ PRECTL prcOpt
     if (sizeof(PORT_MESSAGE) + cbPayload > sizeof(Buf))
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_TOPLEVEL_UPDATE;
     pl += sizeof(ULONG);
@@ -886,7 +886,7 @@ IntDwmNotifyDisplaySettingsChanged(_In_ DWORD CdsFlags, _In_ ULONG OldBitCount)
     if (!gfbDwmCompositing)
         return;
 
-    /* 5048 xxxUserChangeDisplaySettings: ResetRedirectedWindows() — no Dwm* LPC for mode. */
+    /* 5112 xxxUserChangeDisplaySettings: ResetRedirectedWindows() — no Dwm* LPC for mode. */
     IntDwmUnbindAllActiveRedirectDcs();
 
     if (OldBitCount != gpsi->BitCount)
@@ -900,13 +900,13 @@ IntDwmNotifyDisplaySettingsChanged(_In_ DWORD CdsFlags, _In_ ULONG OldBitCount)
         }
     }
 
-    DPRINT1("[DWM] Display settings notify (5048-style redirect reset; flags=%#lx screen=%lux%lu bpp=%lu)\n",
+    DPRINT1("[DWM] Display settings notify (5112-style redirect reset; flags=%#lx screen=%lux%lu bpp=%lu)\n",
             CdsFlags,
             (ULONG)gpsi->aiSysMet[SM_CXSCREEN],
             (ULONG)gpsi->aiSysMet[SM_CYSCREEN],
             (ULONG)gpsi->BitCount);
 
-    /* 5048 uses DwmPowerNotification for PnP/video paths; reuse same LPC shape for display hints. */
+    /* 5112 uses DwmPowerNotification for PnP/video paths; reuse same LPC shape for display hints. */
     IntDwmSendPowerNotificationLpc(CdsFlags);
 }
 
@@ -921,7 +921,7 @@ IntDwmSendDesktopSwitchLpc(VOID)
     if (!gfbDwmCompositing)
         return;
 
-    DwmMsgInitLpc5048(H, 4);
+    DwmMsgInitLpc5112(H, 4);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_DESKTOP_SWITCH;
     IntDwmSendLpcDatagram(H);
@@ -938,7 +938,7 @@ IntDwmSendShellWindowLpc(_In_ HWND hwndShell)
     if (!gfbDwmCompositing)
         return;
 
-    DwmMsgInitLpc5048(H, 8);
+    DwmMsgInitLpc5112(H, 8);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_SHELL;
     pl += sizeof(ULONG);
@@ -978,7 +978,7 @@ IntDwmSendForegroundInputLpc(VOID)
     if (sizeof(PORT_MESSAGE) + cbPayload > sizeof(Buf))
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_ACTIVATION;
     pl += sizeof(ULONG);
@@ -1068,7 +1068,7 @@ IntDwmOnOwnerChanged(_In_ PWND Wnd)
     if (Wnd->style & WS_CHILD)
         return;
 
-    /* 5048 has no separate owner LPC; push a layout update so milcore rescans chrome. */
+    /* No separate owner LPC; push a layout update so milcore rescans chrome. */
     IntDwmTopLevelUpdate(Wnd, DWM_TOP_UPDATE_LAYOUT, &Wnd->rcWindow);
 }
 
@@ -1083,7 +1083,7 @@ IntDwmSendTopLevelDestroy(_In_ PWND Wnd)
     if (!gfbDwmCompositing || !Wnd)
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_TOPLEVEL_DESTROY;
     pl += sizeof(ULONG);
@@ -1104,10 +1104,11 @@ IntDwmSendChildCreate(_In_ PWND Wnd)
     PUCHAR pl;
     const ULONG cbPayload = sizeof(ULONG) + sizeof(HWND) * 2 + sizeof(ULONG) * 2 + sizeof(RECTL);
 
-    if (!gfbDwmCompositing || !Wnd || !Wnd->spwndParent)
+    /* Before gfCompositing: 5112 xxxDwmStartup sends DwmNotifyChildrenAddRemove(1) first. */
+    if (!gpepDwm || !Wnd || !Wnd->spwndParent)
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_CHILD_CREATE;
     pl += sizeof(ULONG);
@@ -1141,10 +1142,10 @@ IntDwmSendChildDestroy(_In_ PWND Wnd)
     PUCHAR pl;
     const ULONG cbPayload = sizeof(ULONG) + sizeof(HWND);
 
-    if (!gfbDwmCompositing || !Wnd)
+    if (!gpepDwm || !Wnd)
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = DWM_MIL_OP_CHILD_DESTROY;
     pl += sizeof(ULONG);
@@ -1157,8 +1158,8 @@ IntDwmSendChildDestroy(_In_ PWND Wnd)
     IntDwmSendLpcDatagram(H);
 }
 
-/* 5048 DwmNotifyChildrenAddRemove(xxxComposeDesktop): walk desktop subtree and batch
- * DwmChildCreate / DwmChildDestroy for WS_CHILD windows when composition toggles. */
+/* DwmNotifyChildrenAddRemove: walk desktop subtree and batch DwmChildCreate / DwmChildDestroy
+ * for WS_CHILD windows (5112 sprite.c — invoked from xxxDwmStartup/Shutdown, not xxxComposeDesktop). */
 static VOID
 DwmNotifyChildrenSubtreeAdd(_In_ PWND Wnd)
 {
@@ -1191,11 +1192,14 @@ DwmNotifyChildrenSubtreeRemove(_In_ PWND Wnd)
 
 VOID
 FASTCALL
-IntDwmNotifyDesktopChildrenAddRemove(_In_ BOOLEAN BooleanAdd)
+IntDwmNotifyDesktopChildrenAddRemove(_In_ BOOLEAN BooleanAdd,
+                                       _In_ BOOLEAN fIgnoreCompositingGate)
 {
     PWND Desktop;
 
-    if (!gfbDwmCompositing)
+    if (!fIgnoreCompositingGate && !gfbDwmCompositing)
+        return;
+    if (!gpepDwm)
         return;
 
     Desktop = UserGetDesktopWindow();
@@ -1219,7 +1223,7 @@ IntDwmSendZorder(_In_ ULONG Opcode, _In_ PWND Wnd, _In_ HWND hwndInsertAfter)
     if (!gfbDwmCompositing || !Wnd)
         return;
 
-    DwmMsgInitLpc5048(H, (USHORT)cbPayload);
+    DwmMsgInitLpc5112(H, (USHORT)cbPayload);
     pl = DwmMsgPayload(H);
     *(PULONG)pl = Opcode;
     pl += sizeof(ULONG);

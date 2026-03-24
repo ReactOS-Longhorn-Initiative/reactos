@@ -130,12 +130,33 @@ HRESULT WINAPI GetThemeInt(HTHEME hTheme, int iPartId, int iStateId,
     PTHEME_CLASS pClass = ValidateHandle(hTheme);
 
     TRACE("(%d, %d, %d)\n", iPartId, iStateId, iPropId);
-    if(!pClass)
+
+    if (!pClass)
         return E_HANDLE;
 
-    if(!(tp = MSSTYLES_FindProperty(pClass, iPartId, iStateId, TMT_INT, iPropId)))
-        return E_PROP_ID_UNSUPPORTED;
-    return MSSTYLES_GetPropertyInt(tp, piVal);
+    if ((tp = MSSTYLES_FindProperty(pClass, iPartId, iStateId, TMT_INT, iPropId)))
+        return MSSTYLES_GetPropertyInt(tp, piVal);
+
+    /*
+     * uDWM glyphcache (Longhorn): GetThemeInt(hTheme, DWMWP_TOPFRAME, 0, TMT_TEXTGLOWSIZE / TMT_GLOWINTENSITY).
+     * ReactOS .msstyles may ship a DWM class without every int; use Vista-ish defaults (vsstyle DWMWP_TOPFRAME = 4;
+     * vssym32: 2425 = TMT_TEXTGLOWSIZE, 2429 = TMT_GLOWINTENSITY).
+     */
+    if (piVal && iPartId == 4 && iStateId == 0)
+    {
+        if (iPropId == 2425)
+        {
+            *piVal = 12;
+            return S_OK;
+        }
+        if (iPropId == 2429)
+        {
+            *piVal = 100;
+            return S_OK;
+        }
+    }
+
+    return E_PROP_ID_UNSUPPORTED;
 }
 
 /***********************************************************************

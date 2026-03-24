@@ -117,12 +117,21 @@ BOOL APIENTRY GreDwmStartup(_In_ HDEV hdev);
 BOOL APIENTRY GreDwmShutdown(_In_ HDEV hdev);
 NTSTATUS APIENTRY GreDwmGetSurfaceData(_In_ HDEV hdev, _In_opt_ HWND hwnd, _Out_writes_bytes_(sizeof(DWM_SURFACE_KERNEL_OUT)) PVOID pUserOutput);
 
+NTSTATUS APIENTRY GreDwmGetDirtyRgn(_In_ HWND hwnd, _In_ ULONG_PTR uCookie, _Out_ HRGN *pHrgnOut);
+
 /* Alternate syscall to GreDwmGetSurfaceData; LH5048 user path is NtUserDwmGetSurfaceData. */
 BOOL
 APIENTRY
 NtGdiDwmGetSurfaceData(
     HWND hwnd,
     PVOID pSurfaceDataOut);
+
+/* Longhorn 5112 win32k: NtGdiDwmGetDirtyRgn (user32 export DwmGetDirtyRgn). */
+HRGN
+APIENTRY
+NtGdiDwmGetDirtyRgn(
+    HWND hwnd,
+    INT iCookie);
 
 #endif /* WIN32K_NTGDI_BAD_INCLUDED */
 

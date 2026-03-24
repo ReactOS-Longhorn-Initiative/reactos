@@ -1,5 +1,5 @@
 /*
- * Internal DWM / MIL bring-up state (Vista Longhorn 5048-style).
+ * Internal DWM / MIL bring-up state (Vista Longhorn 5112-style).
  */
 #pragma once
 
@@ -16,8 +16,8 @@ BOOLEAN FASTCALL DwmIsDwmClientProcess(VOID);
 VOID FASTCALL IntDwmSendLpcDatagram(_In_ struct _PORT_MESSAGE *Msg);
 
 /*
- * Longhorn 5048 win32k DwmHitTestQuery: MIL op 24, LPC Type 0x8000, wait/reply (see dwm.c).
- * 5048 primary path: xxxDCEWindowHitTest2 (DCE args in Arg2/Arg3/Arg4). WinPos mirrors this in
+ * Longhorn 5112 win32k DwmHitTestQuery: MIL op 24, LPC Type 0x8000, wait/reply (see dwm.c).
+ * Primary path: xxxDCEWindowHitTest2 (DCE args in Arg2/Arg3/Arg4). WinPos mirrors this in
  * co_WinPosSearchChildren with Arg2/3/4 = 0 when no DCE context is available.
  * On success: *pHitValue = mil hit code; *pMilHandledNonZero != 0 means skip WM_NCHITTEST.
  */

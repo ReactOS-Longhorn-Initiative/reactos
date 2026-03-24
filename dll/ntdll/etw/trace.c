@@ -12,6 +12,9 @@
 
 #define FIXME DPRINT1
 
+/* Monotonic dummy handles so RegisterTraceGuids* out-params are never left uninitialized (milcore ETW). */
+static ULONG64 EtwNextStubRegistration = 1;
+
 /*
  * @unimplemented
  */
@@ -105,7 +108,30 @@ EtwRegisterTraceGuidsA(
     PTRACEHANDLE RegistrationHandle
 )
 {
+    ULONG i;
+
+    UNREFERENCED_PARAMETER(RequestAddress);
+    UNREFERENCED_PARAMETER(RequestContext);
+    UNREFERENCED_PARAMETER(ControlGuid);
+    UNREFERENCED_PARAMETER(MofImagePath);
+    UNREFERENCED_PARAMETER(MofResourceName);
+
     FIXME("EtwRegisterTraceGuidsA stub()\n");
+
+    if (!RegistrationHandle)
+        return ERROR_INVALID_PARAMETER;
+
+    *RegistrationHandle = EtwNextStubRegistration++;
+
+    if (TraceGuidReg && GuidCount)
+    {
+        for (i = 0; i < GuidCount; i++)
+        {
+            if (TraceGuidReg[i].Guid)
+                TraceGuidReg[i].RegHandle = (HANDLE)(ULONG_PTR)EtwNextStubRegistration++;
+        }
+    }
+
     return ERROR_SUCCESS;
 }
 
@@ -122,7 +148,30 @@ EtwRegisterTraceGuidsW(
     PTRACEHANDLE RegistrationHandle
 )
 {
+    ULONG i;
+
+    UNREFERENCED_PARAMETER(RequestAddress);
+    UNREFERENCED_PARAMETER(RequestContext);
+    UNREFERENCED_PARAMETER(ControlGuid);
+    UNREFERENCED_PARAMETER(MofImagePath);
+    UNREFERENCED_PARAMETER(MofResourceName);
+
     FIXME("EtwRegisterTraceGuidsW stub()\n");
+
+    if (!RegistrationHandle)
+        return ERROR_INVALID_PARAMETER;
+
+    *RegistrationHandle = EtwNextStubRegistration++;
+
+    if (TraceGuidReg && GuidCount)
+    {
+        for (i = 0; i < GuidCount; i++)
+        {
+            if (TraceGuidReg[i].Guid)
+                TraceGuidReg[i].RegHandle = (HANDLE)(ULONG_PTR)EtwNextStubRegistration++;
+        }
+    }
+
     return ERROR_SUCCESS;
 }
 

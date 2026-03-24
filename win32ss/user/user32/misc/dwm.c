@@ -1,10 +1,13 @@
 /*
  * PROJECT:     ReactOS user32.dll
  * LICENSE:     GPL-2.0-or-later (https://spdx.org/licenses/GPL-2.0-or-later)
- * PURPOSE:     Longhorn / Vista-era DWM-related exports (LH 5048 / milcore expectations)
+ * PURPOSE:     Longhorn / Vista-era DWM-related exports (LH 5112 / milcore expectations)
  */
 
 #include <user32.h>
+
+/* NtGdiDwmGetDirtyRgn: win32u syscall (see ntgdibad.h in kernel). Do not include ntgdibad.h here — it pulls Gre* / HDEV and breaks user32. */
+HRGN APIENTRY NtGdiDwmGetDirtyRgn(HWND hwnd, INT iCookie);
 
 WINE_DEFAULT_DEBUG_CHANNEL(user32);
 
@@ -57,13 +60,25 @@ UpdateWindowTransform(HWND hwnd, const void *pTransform, DWORD cbOrFlags)
 /**********************************************************************
  *              DwmGetSurfaceData [USER32.@]
  *
- * Longhorn 5048: win32k NtUserDwmGetSurfaceData (not NtGdi*).
+ * Longhorn 5112: win32k NtUserDwmGetSurfaceData (not NtGdi*).
  */
 BOOL
 WINAPI
 DwmGetSurfaceData(HWND hwnd, PVOID pSurfaceDataOut)
 {
     return NtUserDwmGetSurfaceData(hwnd, pSurfaceDataOut);
+}
+
+/**********************************************************************
+ *              DwmGetDirtyRgn [USER32.@]
+ *
+ * Longhorn 5112: win32k NtGdiDwmGetDirtyRgn; user32 still exports DwmGetDirtyRgn for milcore GetProcAddress.
+ */
+HRGN
+WINAPI
+DwmGetDirtyRgn(HWND hwnd, UINT uCookie)
+{
+    return NtGdiDwmGetDirtyRgn(hwnd, (INT)uCookie);
 }
 
 /**********************************************************************

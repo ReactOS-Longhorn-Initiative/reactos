@@ -1,9 +1,9 @@
 /*
  * PROJECT:         ReactOS Win32k GDI
  * LICENSE:         GPL-2.0-or-later
- * PURPOSE:         Longhorn DWM GDI path (GreDwm*; NtGdiDwmGetSurfaceData is extra syscall — LH5048 uses NtUserDwmGetSurfaceData).
+ * PURPOSE:         Longhorn DWM GDI path (GreDwm*; NtGdiDwmGetSurfaceData + NtGdiDwmGetDirtyRgn; LH5112 surface path also NtUserDwmGetSurfaceData).
  *
- * GreDwmGetSurfaceData follows build ~5048 layout (7×ULONG_PTR user block + optional section; qmemcpy 0x1C on x86).
+ * GreDwmGetSurfaceData follows build ~5112 layout (7×ULONG_PTR user block + optional section; qmemcpy 0x1C on x86).
  */
 
 #include <win32k.h>
@@ -112,7 +112,7 @@ IntGreDwmResolveSurface(
 }
 
 /*
- * 5048 GreDwmGetSurfaceData: visual with no bits still returns success; Handle[1]/[2] are rect size.
+ * 5112 GreDwmGetSurfaceData: visual with no bits still returns success; Handle[1]/[2] are rect size.
  * Milcore may still read PixelFormat; use primary display BPP when hSection is NULL.
  */
 static VOID
@@ -309,7 +309,7 @@ GreDwmStartup(_In_ HDEV hdev)
             gGreDwmState->hrgnScratch, gGreDwmState->hdev);
 
     /*
-     * Longhorn 5048: TransferSpriteStateToVisualState(hsurf, &P) before DwmTopLevelCreate walk on gDceState.
+     * Longhorn 5112: TransferSpriteStateToVisualState(hsurf, &P) before DwmTopLevelCreate walk on gDceState.
      */
     if (!NT_SUCCESS(EngpTransferSpriteStateToVisualState(ppdevFromHdev)))
     {
@@ -413,7 +413,7 @@ GreDwmGetSurfaceData(
     DxEngLockHdev(hdev);
 
     /*
-     * Compositing: prefer LH5048-style pFindVisual (ROS_DWM_VISUAL). Unlike real win32k, our visual
+     * Compositing: prefer LH5112-style pFindVisual (ROS_DWM_VISUAL). Unlike real win32k, our visual
      * list is not always complete for every HWND milcore asks for; refresh redirect + upsert first,
      * then if still no visual fall back to IntGreDwmResolveSurface (DWM syscall entry points already
      * restrict callers to the DWM process).
@@ -642,6 +642,40 @@ GreDwmSurfaceDone:
     return STATUS_SUCCESS;
 }
 
+/*
+ * Longhorn 5112 GreDwmGetDirtyRgn: under DCE/visual lock, if the HWND’s redirection surface
+ * matches uCookie, consume a queued dirty HRGN. ReactOS: no dirty queue yet — succeed with NULL.
+ */
+NTSTATUS
+APIENTRY
+GreDwmGetDirtyRgn(_In_ HWND hwnd, _In_ ULONG_PTR uCookie, _Out_ HRGN *pHrgnOut)
+{
+    PROS_DWM_VISUAL vis;
+
+    (void)uCookie;
+
+    if (!pHrgnOut)
+        return STATUS_INVALID_PARAMETER;
+
+    *pHrgnOut = NULL;
+
+    if (!hwnd)
+        return STATUS_INVALID_PARAMETER;
+
+    if (!gfbDwmCompositing)
+        return STATUS_NOT_FOUND;
+
+    vis = IntRosDwmFindVisual(hwnd);
+    if (!vis || !(vis->Flags & ROS_DWM_VISUAL_FLAG_VALID))
+        return STATUS_NOT_FOUND;
+
+    /*
+     * LH win32k matches uCookie to a field on the visual’s surface; we have no dirty-RGN queue yet.
+     * When added, reconcile uCookie with SURFACE / redirection state before returning an HRGN.
+     */
+    return STATUS_SUCCESS;
+}
+
 BOOL
 APIENTRY
 NtGdiDwmGetSurfaceData(_In_ HWND hwnd, _In_opt_ PVOID pSurfaceDataOut)
@@ -685,4 +719,34 @@ NtGdiDwmGetSurfaceData(_In_ HWND hwnd, _In_opt_ PVOID pSurfaceDataOut)
 
     DPRINT1("[DWM] NtGdiDwmGetSurfaceData: OK hwnd=%p\n", hwnd);
     return TRUE;
+}
+
+/*
+ * Longhorn 5112 win32k (sprite.c path): NtGdiDwmGetDirtyRgn — DWM process only; GreDwmGetDirtyRgn
+ * fills output HRGN; return value is that handle (int in LH sources).
+ */
+HRGN
+APIENTRY
+NtGdiDwmGetDirtyRgn(_In_ HWND hwnd, _In_ INT iCookie)
+{
+    NTSTATUS Status;
+    HRGN hrgn = NULL;
+
+    if (!DwmIsDwmClientProcess())
+    {
+        EngSetLastError(ERROR_ACCESS_DENIED);
+        return NULL;
+    }
+
+    UserEnterExclusive();
+    Status = GreDwmGetDirtyRgn(hwnd, (ULONG_PTR)(INT_PTR)iCookie, &hrgn);
+    UserLeave();
+
+    if (!NT_SUCCESS(Status))
+    {
+        EngSetLastError(RtlNtStatusToDosError(Status));
+        return NULL;
+    }
+
+    return hrgn;
 }

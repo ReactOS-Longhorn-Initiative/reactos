@@ -26,6 +26,41 @@ IntUnmapDesktopView(IN PDESKTOP pdesk);
 static VOID
 IntFreeDesktopHeap(IN PDESKTOP pdesk);
 
+static VOID
+FASTCALL
+IntPulseWinSta0DesktopSwitchEvent(_In_ ULONG dwSessionId)
+{
+    NTSTATUS Status;
+    HANDLE hEvent;
+    OBJECT_ATTRIBUTES oa;
+    UNICODE_STRING usName;
+    WCHAR buf[96];
+
+    if (dwSessionId != 0)
+    {
+        Status = RtlStringCbPrintfW(buf,
+                                    sizeof(buf),
+                                    L"\\Sessions\\%lu\\BaseNamedObjects\\WinSta0_DesktopSwitch",
+                                    dwSessionId);
+    }
+    else
+    {
+        Status = RtlStringCbCopyW(buf, sizeof(buf),
+                                  L"\\BaseNamedObjects\\WinSta0_DesktopSwitch");
+    }
+    if (!NT_SUCCESS(Status))
+        return;
+
+    RtlInitUnicodeString(&usName, buf);
+    InitializeObjectAttributes(&oa, &usName, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+    Status = ZwOpenEvent(&hEvent, EVENT_MODIFY_STATE, &oa);
+    if (!NT_SUCCESS(Status))
+        return;
+
+    ZwPulseEvent(hEvent, NULL);
+    ZwClose(hEvent);
+}
+
 /* GLOBALS *******************************************************************/
 
 /* These can be changed via registry settings.
@@ -3051,7 +3086,11 @@ NtUserSwitchDesktop(HDESK hdesk)
     co_IntShowDesktop(pdesk, UserGetSystemMetrics(SM_CXSCREEN), UserGetSystemMetrics(SM_CYSCREEN), bRedrawDesktop);
 
     TRACE("SwitchDesktop gpdeskInputDesktop 0x%p\n", gpdeskInputDesktop);
-    ObDereferenceObject(pdesk);
+    {
+        ULONG DesktopSwitchSessionId = pdesk->dwSessionId;
+        ObDereferenceObject(pdesk);
+        IntPulseWinSta0DesktopSwitchEvent(DesktopSwitchSessionId);
+    }
 
     if (gfbDwmCompositing)
         IntDwmSendDesktopSwitchLpc();

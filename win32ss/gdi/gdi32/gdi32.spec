@@ -651,6 +651,7 @@
 @ stdcall -version=0x600+ D3DKMTQueryStatistics(ptr) NtGdiDdDDIQueryStatistics
 @ stdcall -version=0x600+ D3DKMTReleaseProcessVidPnSourceOwners(ptr) NtGdiDdDDIReleaseProcessVidPnSourceOwners
 @ stdcall -version=0x600+ D3DKMTRender(ptr) NtGdiDdDDIRender
+@ stdcall DwmGetDirtyRgn(ptr long) NtGdiDwmGetDirtyRgn
 @ stdcall -version=0x600+ D3DKMTSetAllocationPriority(ptr) NtGdiDdDDISetAllocationPriority
 @ stdcall -version=0x600+ D3DKMTSetContextSchedulingPriority(ptr) NtGdiDdDDISetContextSchedulingPriority
 @ stdcall -version=0x600+ D3DKMTSetDisplayMode(ptr) NtGdiDdDDISetDisplayMode

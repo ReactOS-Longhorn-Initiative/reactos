@@ -21,9 +21,9 @@ VOID FASTCALL IntDwmOnWindowPosChanged(_In_ PWND Wnd, _In_ UINT SwpFlags,
 VOID FASTCALL IntDwmOnWindowShapeChanged(_In_ PWND Wnd);
 /* Layered alpha/colorkey or UpdateLayeredWindow presentation changed. */
 VOID FASTCALL IntDwmOnLayeredPresentationChanged(_In_ PWND Wnd);
-/* While compositing: 5048-style ResetRedirectedWindows — unbind active redirect DCs; if bit
+/* While compositing: Longhorn 5112-style ResetRedirectedWindows — unbind active redirect DCs; if bit
  * depth changed, free redirect bitmaps under the desktop. Then DwmPowerNotification (op 16)
- * with argument CdsFlags (5048 packs one ULONG in the power slot). */
+ * with argument CdsFlags (5112 packs one ULONG in the power slot). */
 #define DWM_DISPLAY_HINT_MONITOR    0x10000000u
 #define DWM_DISPLAY_HINT_VIDRESCAN  0x20000000u
 #define DWM_DISPLAY_HINT_SESSION    0x40000000u
@@ -60,10 +60,12 @@ VOID FASTCALL IntDwmUnbindRedirectDc(_Inout_ PDCE dce);
 VOID FASTCALL IntDwmUnbindRedirectForWindow(_In_ PWND Wnd);
 VOID FASTCALL IntDwmUnbindAllActiveRedirectDcs(VOID);
 
-/* Longhorn 5048 DwmTopLevelCreate / DwmTopLevelUpdate LPC bodies (used from GreDwmStartup + runtime). */
+/* Longhorn 5112 DwmTopLevelCreate / DwmTopLevelUpdate LPC bodies (used from GreDwmStartup + runtime). */
 VOID FASTCALL IntDwmTopLevelCreate(_In_ PWND Wnd, _In_opt_ PRECTL prcIn, _In_ ULONG HintFlagsAnd1);
 VOID FASTCALL IntDwmTopLevelUpdate(_In_ PWND Wnd, _In_ ULONG UpdateArg, _In_opt_ PRECTL prcOptional);
 VOID FASTCALL IntDwmGreStartupWalkDceList(_In_ HDEV hdev);
 
-/* 5048 DwmNotifyChildrenAddRemove: batch child op 0x11 / 18 under the desktop window. */
-VOID FASTCALL IntDwmNotifyDesktopChildrenAddRemove(_In_ BOOLEAN BooleanAdd);
+/* DwmNotifyChildrenAddRemove: batch child op 0x11 / 18 under the desktop (5112 sprite.c).
+ * fIgnoreCompositingGate: TRUE for the pre-GreDwmStartup notify in xxxDwmStartup. */
+VOID FASTCALL IntDwmNotifyDesktopChildrenAddRemove(_In_ BOOLEAN BooleanAdd,
+                                                   _In_ BOOLEAN fIgnoreCompositingGate);

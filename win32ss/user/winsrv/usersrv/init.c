@@ -13,6 +13,8 @@
 #include "api.h"            // USERSRV Public server APIs definitions
 #include "../consrv/api.h"  //  CONSRV Public server APIs definitions
 
+#include <ntstrsafe.h>
+
 #define NDEBUG
 #include <debug.h>
 
@@ -278,6 +280,54 @@ CSR_SERVER_DLL_INIT(UserServerDllInitialization)
     {
         DPRINT1("Media request event creation failed with Status 0x%08x\n", Status);
         return Status;
+    }
+
+    /*
+     * Longhorn milcore / uxss (dwmstate.cpp) and ctfmon open "WinSta0_DesktopSwitch"
+     * (SYNCHRONIZE) under the session BaseNamedObjects namespace.
+     */
+    {
+        WCHAR BnoEventPath[128];
+        UNICODE_STRING EventName;
+        OBJECT_ATTRIBUTES ObjectAttributes;
+        HANDLE hDesktopSwitchEvent;
+
+        if (NtCurrentPeb()->SessionId != 0)
+        {
+            Status = RtlStringCbPrintfW(BnoEventPath,
+                                        sizeof(BnoEventPath),
+                                        L"\\Sessions\\%lu\\BaseNamedObjects\\WinSta0_DesktopSwitch",
+                                        (ULONG)NtCurrentPeb()->SessionId);
+        }
+        else
+        {
+            Status = RtlStringCbCopyW(BnoEventPath,
+                                      sizeof(BnoEventPath),
+                                      L"\\BaseNamedObjects\\WinSta0_DesktopSwitch");
+        }
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("WinSta0_DesktopSwitch path build failed 0x%08x\n", Status);
+            return Status;
+        }
+
+        RtlInitUnicodeString(&EventName, BnoEventPath);
+        InitializeObjectAttributes(&ObjectAttributes,
+                                   &EventName,
+                                   OBJ_CASE_INSENSITIVE | OBJ_OPENIF,
+                                   NULL,
+                                   NULL);
+        Status = NtCreateEvent(&hDesktopSwitchEvent,
+                               EVENT_ALL_ACCESS,
+                               &ObjectAttributes,
+                               NotificationEvent,
+                               FALSE);
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("WinSta0_DesktopSwitch NtCreateEvent failed 0x%08x\n", Status);
+            return Status;
+        }
+        NtClose(hDesktopSwitchEvent);
     }
 
     /* Set the process creation notify routine for BASE */

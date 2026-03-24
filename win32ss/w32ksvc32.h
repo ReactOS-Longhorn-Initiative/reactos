@@ -756,4 +756,5 @@
     SVC_(UserDwmStartup, 1)
     SVC_(UserDwmShutdown, 0)
     SVC_(GdiDwmGetSurfaceData, 2)
+    SVC_(GdiDwmGetDirtyRgn, 2)
     SVC_(UserDwmGetSurfaceData, 2)

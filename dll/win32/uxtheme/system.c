@@ -773,7 +773,9 @@ PTHEME_CLASS ValidateHandle(HTHEME hTheme)
 {
     PUXTHEME_HANDLE pHandle;
 
-    if (!g_bThemeHooksActive || !hTheme || hTheme == INVALID_HANDLE_VALUE)
+    /* Do not gate on g_bThemeHooksActive: uDWM uses OpenThemeDataFromFile + GetThemeInt for DWM glow
+     * metrics; hooks may still be off during early session bring-up. */
+    if (!hTheme || hTheme == INVALID_HANDLE_VALUE)
         return NULL;
 
     if (!RtlIsValidHandle(&g_UxThemeHandleTable, (PRTL_HANDLE_TABLE_ENTRY)hTheme))
@@ -983,29 +985,29 @@ HRESULT WINAPI GetCurrentThemeName(LPWSTR pszThemeFileName, int dwMaxNameChars,
 {
     int cchar;
 
-    if(g_ActiveThemeFile == NULL)
-         return E_PROP_ID_UNSUPPORTED;
+    if (g_ActiveThemeFile == NULL)
+        return E_PROP_ID_UNSUPPORTED;
 
-    if (pszThemeFileName && dwMaxNameChars) 
+    if (pszThemeFileName && dwMaxNameChars)
     {
         cchar = lstrlenW(g_ActiveThemeFile->szThemeFile) + 1;
-        if(cchar > dwMaxNameChars)
+        if (cchar > dwMaxNameChars)
            return HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
         lstrcpynW(pszThemeFileName, g_ActiveThemeFile->szThemeFile, cchar);
     }
 
-    if (pszColorBuff && cchMaxColorChars) 
+    if (pszColorBuff && cchMaxColorChars)
     {
         cchar = lstrlenW(g_ActiveThemeFile->pszSelectedColor) + 1;
-        if(cchar > cchMaxColorChars)
+        if (cchar > cchMaxColorChars)
             return HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
         lstrcpynW(pszColorBuff, g_ActiveThemeFile->pszSelectedColor, cchar);
     }
 
-   if (pszSizeBuff && cchMaxSizeChars) 
+    if (pszSizeBuff && cchMaxSizeChars)
     {
         cchar = lstrlenW(g_ActiveThemeFile->pszSelectedSize) + 1;
-        if(cchar > cchMaxSizeChars)
+        if (cchar > cchMaxSizeChars)
             return HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
         lstrcpynW(pszSizeBuff, g_ActiveThemeFile->pszSelectedSize, cchar);
     }

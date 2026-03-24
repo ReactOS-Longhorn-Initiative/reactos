@@ -1,10 +1,10 @@
 /*
  * PROJECT:         ReactOS Win32k
  * LICENSE:         GPL-2.0-or-later
- * PURPOSE:         LH5048-style DWM visual list (pFindVisual / gDceState analogue).
+ * PURPOSE:         Longhorn 5112-style DWM visual list (pFindVisual / gDceState analogue).
  *
  * Visuals are built from USER DCEs + hbmDwmRedirect and/or from EngpTransferSpriteStateToVisualState
- * (sprite z-list → ROS_DWM_VISUAL) so GreDwmGetSurfaceData matches LH5048 compositing / sprite paths.
+ * (sprite z-list → ROS_DWM_VISUAL) so GreDwmGetSurfaceData matches 5112 compositing / sprite paths.
  */
 
 #include <win32k.h>

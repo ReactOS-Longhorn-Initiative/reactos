@@ -1,5 +1,5 @@
 /*
- * Kernel / user shared layout for Longhorn-style DwmGetSurfaceData (build ~5048).
+ * Kernel / user shared layout for Longhorn-style DwmGetSurfaceData (build ~5112).
  * Milcore passes a pointer to this block; win32k fills it (7 pointer-sized fields).
  */
 #pragma once
@@ -17,4 +17,4 @@ typedef struct _DWM_SURFACE_KERNEL_OUT
     ULONG_PTR BlendState;   /* layered / MIL hints (0 if unknown) */
 } DWM_SURFACE_KERNEL_OUT;
 
-/* x86: 7 * 4 = 0x1C (matches LH win32k GreDwmGetSurfaceData copy size). */
+/* x86: 7 * 4 = 0x1C (matches Longhorn win32k GreDwmGetSurfaceData copy size). */

@@ -2993,7 +2993,7 @@ co_WinPosSearchChildren(
     if (ScopeWin->head.pti == PsGetCurrentThreadWin32Thread())
     {
        /*
-        * Longhorn 5048 (xxxDCEWindowHitTest2): under gfCompositing, on the input desktop, after
+        * Longhorn 5112 (xxxDCEWindowHitTest2): under gfCompositing, on the input desktop, after
         * LeaveCrit — DwmHitTestQuery(hwnd, dceArg2, pt.x, pt.y, dceArg3, dceArg4, &hit, &milHandled).
         * If milHandled, use MIL hit and skip WM_NCHITTEST. WinPos has no DCE bundle; Arg2/3/4 = 0.
         */
