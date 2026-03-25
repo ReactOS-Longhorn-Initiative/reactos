@@ -421,6 +421,31 @@ GetProcAddress(HMODULE hModule, LPCSTR lpProcName)
     /* Map provided handle */
     hMapped = BasepMapModuleHandle(hModule, FALSE);
 
+#if DBG
+    {
+        WCHAR modPathW[MAX_PATH];
+        CHAR modPathA[MAX_PATH * 2];
+
+        modPathW[0] = L'\0';
+        if (hMapped &&
+            GetModuleFileNameW((HINSTANCE)hMapped, modPathW, MAX_PATH) &&
+            WideCharToMultiByte(CP_ACP, 0, modPathW, -1, modPathA, sizeof(modPathA), NULL, NULL))
+        {
+            if ((ULONG_PTR)lpProcName > MAXUSHORT)
+                DPRINT1("GetProcAddress: %s : %s\n", modPathA, lpProcName);
+            else
+                DPRINT1("GetProcAddress: %s : #%lu\n", modPathA, Ordinal);
+        }
+        else
+        {
+            if ((ULONG_PTR)lpProcName > MAXUSHORT)
+                DPRINT1("GetProcAddress: hModule=%p base=%p : %s\n", hModule, hMapped, lpProcName);
+            else
+                DPRINT1("GetProcAddress: hModule=%p base=%p : #%lu\n", hModule, hMapped, Ordinal);
+        }
+    }
+#endif
+
     /* Get the proc address */
     Status = LdrGetProcedureAddress(hMapped,
                                     ProcNamePtr,
