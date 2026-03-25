@@ -840,8 +840,24 @@ RtlGetFullPathName_Ustr(
         return FullLength + sizeof(UNICODE_NULL);
     }
 
-    /* Zero-out the destination buffer. FileName must be different from Buffer */
-    RtlZeroMemory(Buffer, Size);
+    /* Prepare the output buffer.
+     *
+     * Do not RtlZeroMemory(Buffer, Size) when Size is enormous: GetFullPathNameW passes
+     * nBufferLength * sizeof(WCHAR), and some apps claim a huge character count while
+     * only supplying a small stack buffer. A full memset can then wipe unrelated memory
+     * (e.g. PEB.ProcessHeap on ReactOS when the stack sits just below the heap).
+     *
+     * Cap the clear at one 64 KiB block: enough for any normal path and for code that
+     * expects a large zeroed prefix, but avoids marching hundreds of KiB past a tiny
+     * real allocation. Successful paths still overwrite with a null-terminated string.
+     */
+    {
+        SIZE_T ZeroBytes = Size;
+
+        if (ZeroBytes > 0x10000)
+            ZeroBytes = 0x10000;
+        RtlZeroMemory(Buffer, ZeroBytes);
+    }
 
     /* Get the path type */
     *PathType = RtlDetermineDosPathNameType_U(FileNameBuffer);

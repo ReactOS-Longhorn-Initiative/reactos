@@ -14,7 +14,8 @@
 
 /* INTERNAL TYPES *************************************************************/
 
-#define NUM_KEY_HASH_BUCKETS 23
+/* Windows: 64 buckets, index ((ULONG_PTR)Key >> 5) & 0x3F. */
+#define NUM_KEY_HASH_BUCKETS 64
 typedef struct _EX_KEYED_EVENT
 {
     struct
@@ -118,19 +119,18 @@ ExpReleaseOrWaitForKeyedEvent(
     _In_ BOOLEAN Release)
 {
     PETHREAD Thread, CurrentThread;
-    PEPROCESS CurrentProcess;
     PLIST_ENTRY ListEntry, WaitListHead1, WaitListHead2;
     NTSTATUS Status;
     ULONG_PTR HashIndex;
     PVOID PreviousKeyedWaitValue;
+    PEPROCESS CurrentThreadProcess;
 
-    /* Get the current process */
-    CurrentProcess = PsGetCurrentProcess();
+    CurrentThread = PsGetCurrentThread();
+    /* Same as PsGetCurrentThreadProcess(); not declared in headers this TU pulls. */
+    CurrentThreadProcess = CurrentThread->ThreadsProcess;
 
-    /* Calculate the hash index */
-    HashIndex = (ULONG_PTR)KeyedWaitValue >> 5;
-    HashIndex ^= (ULONG_PTR)CurrentProcess >> 6;
-    HashIndex %= NUM_KEY_HASH_BUCKETS;
+    /* Bucket index matches Windows keyed-event object layout. */
+    HashIndex = ((ULONG_PTR)KeyedWaitValue >> 5) & (NUM_KEY_HASH_BUCKETS - 1);
 
     /* Lock the lists */
     KeEnterCriticalRegion();
@@ -160,33 +160,33 @@ ExpReleaseOrWaitForKeyedEvent(
         Thread = CONTAINING_RECORD(ListEntry, ETHREAD, KeyedWaitChain);
         ListEntry = ListEntry->Flink;
 
-        /* Check if this thread is a correct waiter */
-        if ((Thread->Tcb.Process == &CurrentProcess->Pcb) &&
-            (Thread->KeyedWaitValue == KeyedWaitValue))
-        {
-            /* Remove the thread from the list */
-            RemoveEntryList(&Thread->KeyedWaitChain);
+        /* Same key; same owning process (ThreadsProcess, not ApcState.Process — the
+         * latter can disagree with the thread's home EPROCESS in attach / edge cases
+         * and would skip a legitimate waiter, e.g. under heavy condvar load). */
+        if (Thread->KeyedWaitValue != KeyedWaitValue)
+            continue;
+        if (PsGetThreadProcess(Thread) != CurrentThreadProcess)
+            continue;
 
-            /* Initialize the list entry to show that it was removed */
-            InitializeListHead(&Thread->KeyedWaitChain);
+        /* Remove the thread from the list */
+        RemoveEntryList(&Thread->KeyedWaitChain);
 
-            /* Wake the thread */
-            KeReleaseSemaphore(&Thread->KeyedWaitSemaphore,
-                               IO_NO_INCREMENT,
-                               1,
-                               FALSE);
-            Thread = NULL;
+        /* Initialize the list entry to show that it was removed */
+        InitializeListHead(&Thread->KeyedWaitChain);
 
-            /* Unlock the list. After this it is not safe to access Thread */
-            ExReleasePushLockExclusive(&KeyedEvent->HashTable[HashIndex].Lock);
-            KeLeaveCriticalRegion();
+        /* Wake the thread (priority increment 1 matches Windows Nt*KeyedEvent). */
+        KeReleaseSemaphore(&Thread->KeyedWaitSemaphore,
+                           1,
+                           1,
+                           FALSE);
+        Thread = NULL;
 
-            return STATUS_SUCCESS;
-        }
+        /* Unlock the list. After this it is not safe to access Thread */
+        ExReleasePushLockExclusive(&KeyedEvent->HashTable[HashIndex].Lock);
+        KeLeaveCriticalRegion();
+
+        return STATUS_SUCCESS;
     }
-
-    /* Get the current thread */
-    CurrentThread = PsGetCurrentThread();
 
     /* Set the wait key and remember the old value */
     PreviousKeyedWaitValue = CurrentThread->KeyedWaitValue;
@@ -202,7 +202,10 @@ ExpReleaseOrWaitForKeyedEvent(
     ExReleasePushLockExclusive(&KeyedEvent->HashTable[HashIndex].Lock);
     KeLeaveCriticalRegion();
 
-    /* Wait for the keyed wait semaphore */
+    /* Wait in kernel mode: the per-thread KeyedWaitSemaphore is an internal
+     * kernel synchronization detail. UserMode waits rely on KiCheckAlertability
+     * and user-APC paths that do not match Windows here and can strand waiters
+     * (e.g. condition-variable stress under multi-threaded load on amd64). */
     Status = KeWaitForSingleObject(&CurrentThread->KeyedWaitSemaphore,
                                    WrKeyedEvent,
                                    KernelMode,
