@@ -3244,8 +3244,6 @@ cleanup:
     return ret;
 }
 
-#endif
-
 /******************************************************************************
  * RegLoadAppKeyA (kernelbase.@)
  *
@@ -3275,6 +3273,8 @@ LSTATUS WINAPI RegLoadAppKeyW(const WCHAR *file, HKEY *result, REGSAM sam, DWORD
     *result = (HKEY)0xdeadbeef;
     return ERROR_SUCCESS;
 }
+
+#endif
 
 /***********************************************************************
  * DnsHostnameToComputerNameExW   (kernelbase.@)
