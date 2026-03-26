@@ -619,6 +619,9 @@ typedef struct _KSPECIAL_REGISTERS
     ULONG64 MsrLStar;
     ULONG64 MsrCStar;
     ULONG64 MsrSyscallMask;
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
+    ULONG64 Xcr0;
+#endif
 } KSPECIAL_REGISTERS, *PKSPECIAL_REGISTERS;
 
 //
