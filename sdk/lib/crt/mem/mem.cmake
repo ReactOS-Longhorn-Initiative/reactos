@@ -1,8 +1,8 @@
 
 list(APPEND LIBCNTPR_MEM_SOURCE
-    mem/memccpy.c
+    #mem/memccpy.c
     #mem/memcmp.c
-    mem/memicmp.c
+    #mem/memicmp.c
 )
 
 if(ARCH STREQUAL "i386")

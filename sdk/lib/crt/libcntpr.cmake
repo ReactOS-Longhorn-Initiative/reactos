@@ -23,13 +23,13 @@ list(APPEND LIBCNTPR_ASM_SOURCE
 set_source_files_properties(${LIBCNTPR_ASM_SOURCE} PROPERTIES COMPILE_DEFINITIONS "NO_RTL_INLINES;_NTSYSTEM_;_NTDLLBUILD_;_LIBCNT_;__CRT__NO_INLINE;CRTDLL")
 add_asm_files(libcntpr_asm ${LIBCNTPR_ASM_SOURCE})
 
-add_library(libcntpr STATIC ${LIBCNTPR_SOURCE} ${libcntpr_asm})
-target_link_libraries(libcntpr INTERFACE vcruntime)
-target_compile_definitions(libcntpr
+add_library(libcntpr_old STATIC ${LIBCNTPR_SOURCE} ${libcntpr_asm})
+target_link_libraries(libcntpr_old INTERFACE vcruntime)
+target_compile_definitions(libcntpr_old
  PRIVATE    NO_RTL_INLINES
     _NTSYSTEM_
     _NTDLLBUILD_
     _LIBCNT_
     __CRT__NO_INLINE
     CRTDLL)
-add_dependencies(libcntpr psdk asm)
+add_dependencies(libcntpr_old psdk asm)

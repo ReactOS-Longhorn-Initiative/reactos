@@ -950,6 +950,7 @@ extern _CRTIMP int _commode;
 #include <vadefs.h>
 #endif
 
+#ifndef _NO_CRT_STDIO_INLINE
 #ifndef _CRT_NON_CONFORMING_SWPRINTFS
   _Check_return_opt_
   static inline
@@ -982,7 +983,8 @@ extern _CRTIMP int _commode;
   {
       return _vsnwprintf(_DstBuf, _SizeInWords, _Format, _ArgList);
   }
-#endif
+#endif // _CRT_NON_CONFORMING_SWPRINTFS
+#endif // _NO_CRT_STDIO_INLINE
 
   _Check_return_
   _CRTIMP

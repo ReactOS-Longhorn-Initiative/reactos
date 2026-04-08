@@ -22,7 +22,7 @@ extern "C" {
 #if defined(_MSC_VER)
 #define _CRTALLOC(x) __declspec(allocate(x))
 #else
-#define _CRTALLOC(x) __attribute__((section(x)))
+#define _CRTALLOC(x) __attribute__((used, section(x)))
 #endif
 
 #ifdef _MSC_VER

@@ -65,7 +65,7 @@
 #if defined(_MSC_VER)
 #define _CRTALLOC(x) __declspec(allocate(x))
 #elif defined(__GNUC__)
-#define _CRTALLOC(x) __attribute__ ((section (x) ))
+#define _CRTALLOC(x) __attribute__ ((used, section (x) ))
 #else
 #error Your compiler is not supported.
 #endif

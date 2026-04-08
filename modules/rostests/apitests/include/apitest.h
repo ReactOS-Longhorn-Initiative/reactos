@@ -119,8 +119,10 @@ static inline ULONG GetNTDDIVersion(VOID)
 #define ok_eq_long(value, expected)         ok_eq_print(value, expected, "%ld")
 #define ok_eq_ulong(value, expected)        ok_eq_print(value, expected, "%lu")
 #define ok_eq_longlong(value, expected)     ok_eq_print(value, expected, "%I64d")
+#define ok_eq_int64(value, expected)        ok_eq_print(value, expected, "%I64d")
 #define ok_eq_ulonglong(value, expected)    ok_eq_print(value, expected, "%I64u")
 #define ok_eq_char(value, expected)         ok_eq_print(value, expected, "%c")
+#define ok_eq_uchar(value, expected)        ok_eq_print(value, expected, "0x%02x")
 #define ok_eq_wchar(value, expected)        ok_eq_print(value, expected, "%C")
 #ifndef _WIN64
 #define ok_eq_size(value, expected)         ok_eq_print(value, (SIZE_T)(expected), "%lu")
@@ -145,5 +147,8 @@ static inline ULONG GetNTDDIVersion(VOID)
 #define ok_eq_hex64_(file, line, value, expected) ok_eq_print_(file, line, value, expected, "%I64x")
 #define ok_eq_hex64(value, expected)        ok_eq_print((unsigned long long)value, (unsigned long long)expected, "%I64x")
 #define ok_eq_xmm(value, expected)          ok((value).Low == (expected).Low, #value " = %I64x'%08I64x, expected %I64x'%08I64x\n", (value).Low, (value).High, (expected).Low, (expected).High)
+
+#define ok_eq_errno(value, expected)          ok_eq_print(value, expected, "%d")
+#define ok_eq_ptr(value, expected)            ok_eq_print((void*)(value), (void*)(expected), "%p")
 
 #endif /* _APITEST_H */

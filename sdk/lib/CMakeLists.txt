@@ -37,6 +37,7 @@ if(STACK_PROTECTOR)
 endif()
 
 add_subdirectory(ioevent)
+add_subdirectory(libcnt)
 add_subdirectory(lsalib)
 add_subdirectory(nt)
 add_subdirectory(pathcch)

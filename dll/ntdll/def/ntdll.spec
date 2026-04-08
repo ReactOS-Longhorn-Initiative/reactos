@@ -1814,8 +1814,8 @@
 @ cdecl _itow(long ptr long)
 @ cdecl _lfind(ptr ptr ptr long ptr)
 @ cdecl -arch=x86_64 _local_unwind()
-@ cdecl _ltoa(long ptr long)
-@ cdecl _ltow(long ptr long)
+@ cdecl _ltoa(long ptr long) _itoa
+@ cdecl _ltow(long ptr long) _itow
 @ cdecl _memccpy(ptr ptr long long)
 @ cdecl _memicmp(str str long)
 @ cdecl -arch=x86_64,arm _setjmp(ptr ptr)
@@ -1830,8 +1830,8 @@
 @ cdecl _strupr(str)
 @ cdecl -version=0x400-0x502 -impsym _swprintf() swprintf # Compatibility for pre NT6
 @ cdecl -version=0x600+ _swprintf(ptr str)
-@ cdecl -version=0x502 _tolower(long)
-@ cdecl -version=0x502 _toupper(long)
+@ cdecl -version=0x502 _tolower(long) tolower
+@ cdecl -version=0x502 _toupper(long) toupper
 @ cdecl _ui64toa(double ptr long)
 @ cdecl _ui64tow(double ptr long)
 @ cdecl _ultoa(long ptr long)
@@ -1839,7 +1839,7 @@
 @ cdecl _vscwprintf(wstr ptr)
 @ cdecl _vsnprintf(ptr long str ptr)
 @ cdecl _vsnwprintf(ptr long wstr ptr)
-@ cdecl -stub -version=0x600+ _vswprintf(ptr wstr ptr)
+@ cdecl -version=0x600+ _vswprintf(ptr wstr ptr)
 @ cdecl _wcsicmp(wstr wstr)
 @ cdecl _wcslwr(wstr)
 @ cdecl _wcsnicmp(wstr wstr long)
@@ -1847,11 +1847,11 @@
 @ cdecl _wcsupr(wstr)
 @ cdecl _wtoi(wstr)
 @ cdecl _wtoi64(wstr)
-@ cdecl _wtol(wstr)
+@ cdecl _wtol(wstr) _wtoi
 @ cdecl abs(long)
 @ cdecl -arch=i386,x86_64 atan(double)
 @ cdecl atoi(str)
-@ cdecl atol(str)
+@ cdecl atol(str) atoi
 @ cdecl bsearch(ptr ptr long long ptr)
 @ cdecl ceil(double)
 @ cdecl cos(double)
@@ -1908,7 +1908,7 @@
 @ varargs swprintf(ptr wstr) _swprintf # Non-conforming swprintf
 @ cdecl -arch=i386,x86_64 tan(double)
 @ cdecl tolower(long)
-@ cdecl toupper(long) toupper_nt_mb
+@ cdecl toupper(long)
 @ cdecl towlower(long)
 @ cdecl towupper(long)
 @ stdcall vDbgPrintEx(long long str ptr)

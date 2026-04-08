@@ -1,0 +1,22 @@
+/*
+ * PROJECT:     ReactOS NT CRT library
+ * LICENSE:     MIT (https://spdx.org/licenses/MIT)
+ * PURPOSE:     Implementation of tolower
+ * COPYRIGHT:   Copyright 2025 Timo Kreuzer <timo.kreuzer@reactos.org>
+ */
+
+#include <ctype.h>
+
+_Check_return_
+int
+__cdecl
+tolower(
+    _In_ int const _C)
+{
+    if (((char)_C >= 'A') && ((char)_C <= 'Z'))
+    {
+        return _C + ('a' - 'A');
+    }
+
+    return _C;
+}

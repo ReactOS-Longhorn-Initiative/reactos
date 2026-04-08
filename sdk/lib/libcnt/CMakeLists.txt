@@ -1,0 +1,213 @@
+
+remove_definitions(-D_CRT_NON_CONFORMING_SWPRINTFS)
+
+add_library(libcnt
+    src/convert/atoi.cpp
+    src/convert/atol.cpp
+    src/convert/strtol.cpp
+    src/convert/strtoul.cpp
+    src/convert/strtoull.cpp
+    src/convert/tcstox_impl.hpp
+    src/convert/wcstol.cpp
+    src/convert/wcstoul.cpp
+    src/convert/xtostr_impl.hpp
+    src/convert/_atoi64.cpp
+    src/convert/_i64toa.cpp
+    src/convert/_i64toa_s.cpp
+    src/convert/_i64tow.cpp
+    src/convert/_i64tow_s.cpp
+    src/convert/_itoa.cpp
+    src/convert/_itoa_s.cpp
+    src/convert/_itow.cpp
+    src/convert/_itow_s.cpp
+    src/convert/_strtoi64.cpp
+    src/convert/_strtoui64.cpp
+    src/convert/_ui64toa.cpp
+    src/convert/_ui64toa_s.cpp
+    src/convert/_ui64tow.cpp
+    src/convert/_ui64tow_s.cpp
+    src/convert/_ultoa.cpp
+    src/convert/_ultoa_s.cpp
+    src/convert/_ultow.cpp
+    src/convert/_ultow_s.cpp
+    src/convert/_wcstoi64.cpp
+    src/convert/_wcstoui64.cpp
+    src/convert/_wtoi.cpp
+    src/convert/_wtoi64.cpp
+    src/ctype/isalnum.c
+    src/ctype/isalpha.c
+    src/ctype/iscntrl.c
+    src/ctype/isdigit.c
+    src/ctype/isgraph.c
+    src/ctype/islower.c
+    src/ctype/isprint.c
+    src/ctype/ispunct.c
+    src/ctype/isspace.c
+    src/ctype/isupper.c
+    src/ctype/iswalnum.c
+    src/ctype/iswalpha.c
+    src/ctype/iswascii.c
+    src/ctype/iswcntrl.c
+    src/ctype/iswctype.c
+    src/ctype/iswdigit.c
+    src/ctype/iswgraph.c
+    src/ctype/iswlower.c
+    src/ctype/iswprint.c
+    src/ctype/iswpunct.c
+    src/ctype/iswspace.c
+    src/ctype/iswupper.c
+    src/ctype/iswxdigit.c
+    src/ctype/isxdigit.c
+    src/ctype/tolower.c
+    src/ctype/toupper.c
+    src/ctype/towlower.c
+    src/ctype/towupper.c
+    src/ctype/_ctype.c
+    src/ctype/_ctype.h
+    src/ctype/_isctype.c
+    src/ctype/_wctype.c
+    src/ctype/_wctype.h
+    src/ctype/__isascii.c
+    src/ctype/__iscsym.c
+    src/ctype/__iscsymf.c
+    src/ctype/__iswcsym.c
+    src/ctype/__iswcsymf.c
+    src/ctype/__mb_cur_max.c
+    src/ctype/__toascii.c
+    src/misc/rand.c
+    src/misc/_errno.c
+    src/misc/_fltused.c
+    src/misc/_invalid_parameter.c
+    src/misc/_invalid_parameter_noinfo.c
+    src/stdio/sprintf.cpp
+    src/stdio/sprintf_s.cpp
+    src/stdio/sscanf.cpp
+    src/stdio/sscanf_s.cpp
+    src/stdio/swprintf.cpp
+    src/stdio/swprintf_s.cpp
+    src/stdio/swscanf.cpp
+    src/stdio/swscanf_s.cpp
+    src/stdio/vsprintf.cpp
+    src/stdio/vsprintf_s.cpp
+    src/stdio/vswprintf.cpp
+    src/stdio/vswprintf_s.cpp
+    src/stdio/_input.cpp
+    src/stdio/_input.hpp
+    src/stdio/_output.cpp
+    src/stdio/_output.hpp
+    src/stdio/_snprintf.cpp
+    src/stdio/_snprintf_s.cpp
+    src/stdio/_snscanf.cpp
+    src/stdio/_snscanf_s.cpp
+    src/stdio/_snwprintf.cpp
+    src/stdio/_snwprintf_s.cpp
+    src/stdio/_snwscanf_s.cpp
+    src/stdio/_swprintf.cpp
+    src/stdio/_vscprintf.cpp
+    src/stdio/_vscwprintf.cpp
+    src/stdio/_vsnprintf.cpp
+    src/stdio/_vsnprintf_s.cpp
+    src/stdio/_vsnwprintf.cpp
+    src/stdio/_vsnwprintf_s.cpp
+    src/stdio/_vswprintf.cpp
+    src/stdlib/abs.c
+    src/stdlib/bsearch.c
+    src/stdlib/bsearch_s.c
+    src/stdlib/mbstowcs.c
+    src/stdlib/mbtowc.c
+    src/stdlib/qsort.cpp
+    src/stdlib/qsort.hpp
+    src/stdlib/qsort_s.cpp
+    src/stdlib/wcstombs.c
+    src/stdlib/wctomb.c
+    src/stdlib/_abs64.c
+    src/stdlib/_lfind.c
+    src/stdlib/_makepath_s.c
+    src/stdlib/_splitpath.c
+    src/stdlib/_splitpath_s.c
+    src/stdlib/_wmakepath_s.c
+    src/stdlib/_wsplitpath_s.c
+    src/string/memcpy_s.c
+    src/string/memmove_s.c
+    src/string/strcat.c
+    src/string/strcat_s.c
+    src/string/strcmp.c
+    src/string/strcpy.c
+    src/string/strcpy_s.c
+    src/string/strcspn.c
+    src/string/strlen.c
+    src/string/strlen.txt
+    src/string/strncat.c
+    src/string/strncat_s.c
+    src/string/strncmp.c
+    src/string/strncpy.c
+    src/string/strncpy_s.c
+    src/string/strnlen.c
+    src/string/strpbrk.c
+    src/string/strspn.c
+    src/string/strtok_s.c
+    src/string/wcscat.c
+    src/string/wcscat_s.c
+    src/string/wcscmp.c
+    src/string/wcscpy.c
+    src/string/wcscpy_s.c
+    src/string/wcscspn.c
+    src/string/wcslen.c
+    src/string/wcsncat.c
+    src/string/wcsncat_s.c
+    src/string/wcsncmp.c
+    src/string/wcsncpy.c
+    src/string/wcsncpy_s.c
+    src/string/wcsnlen.c
+    src/string/wcspbrk.c
+    src/string/wcsspn.c
+    src/string/wcstok_s.c
+    src/string/_memccpy.c
+    src/string/_memicmp.c
+    src/string/_stricmp.c
+    src/string/_strlwr.c
+    src/string/_strlwr_s.c
+    src/string/_strnicmp.c
+    src/string/_strnset.c
+    src/string/_strnset_s.c
+    src/string/_strrev.c
+    src/string/_strset.c
+    src/string/_strset_s.c
+    src/string/_strupr.c
+    src/string/_strupr_s.c
+    src/string/_wcsicmp.c
+    src/string/_wcslwr.c
+    src/string/_wcslwr_s.c
+    src/string/_wcsnicmp.c
+    src/string/_wcsnset.c
+    src/string/_wcsnset_s.c
+    src/string/_wcsset_s.c
+    src/string/_wcsrev.c
+    src/string/_wcsupr.c
+    src/string/_wcsupr_s.c
+    src/string/__strncnt.c
+)
+
+target_compile_definitions(libcnt PRIVATE
+    _NTSYSTEM_
+    _CORECRT_BUILD
+    _CRTBLD
+    _CTYPE_DISABLE_MACROS
+    _NO_CRT_STDIO_INLINE
+    _CRT_SECURE_NO_WARNINGS
+    __STDC_WANT_SECURE_LIB__
+)
+
+# TODO: do this in vcruntime, too (use in-source pragmas?)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    # Prevent GCC from optimizing loops in memcpy/memmove/memset back into
+    # calls to memcpy/memmove/memset, causing infinite recursion at -O2.
+    #set_source_files_properties(mem/memcpy.c mem/memmove.c mem/memset.c
+    #    PROPERTIES COMPILE_FLAGS "-fno-tree-loop-distribute-patterns")
+endif()
+
+target_link_libraries(libcnt crtmath vcruntime chkstk)
+#add_dependencies(libcnt psdk asm)
+
+add_library(libcntpr INTERFACE)
+target_link_libraries(libcntpr INTERFACE libcnt)

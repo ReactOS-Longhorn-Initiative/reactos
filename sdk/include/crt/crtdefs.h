@@ -9,6 +9,13 @@
 #ifndef _INC_CRTDEFS
 #define _INC_CRTDEFS
 
+#if __STDC_WANT_SECURE_LIB__
+#ifndef _RSIZE_T_DEFINED
+typedef size_t rsize_t;
+#define _RSIZE_T_DEFINED
+#endif
+#endif
+
 #ifndef NULL
 #ifdef __cplusplus
 #define NULL 0

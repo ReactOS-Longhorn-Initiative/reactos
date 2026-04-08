@@ -9,7 +9,7 @@ list(APPEND LIBCNTPR_STRING_SOURCE
     string/atoi.c
     string/atoi64.c
     string/atol.c
-    string/ctype.c
+    #string/ctype.c
     #string/is_wctype.c
     string/iswctype_nt.c
     string/itoa.c

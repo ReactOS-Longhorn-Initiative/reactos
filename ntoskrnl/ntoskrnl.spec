@@ -1626,7 +1626,7 @@
 @ cdecl strstr()
 @ cdecl swprintf() _swprintf # Non-conforming swprintf
 @ cdecl tolower()
-@ cdecl toupper() toupper_nt_mb
+@ cdecl toupper() # toupper_nt_mb
 @ cdecl towlower()
 @ cdecl towupper()
 @ stdcall vDbgPrintEx(long long str ptr)

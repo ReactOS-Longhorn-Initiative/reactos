@@ -162,12 +162,6 @@ int __cdecl mbtowc(wchar_t *wchar, const char *mbchar, size_t count)
     return 1;
 }
 
-// The wctype table is 144 KB, too much for poor freeldr
-int __cdecl iswctype(wint_t wc, wctype_t wctypeFlags)
-{
-    return _isctype((char)wc, wctypeFlags);
-}
-
 #ifdef _MSC_VER
 #pragma warning(disable:4164)
 #pragma function(pow)
