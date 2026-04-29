@@ -1094,11 +1094,13 @@ ExpInitializeExecutive(IN ULONG Cpu,
     CmGetSystemControlValues(LoaderBlock->RegistryBase, CmControlVector);
 
     /* Set the Service Pack Number and add it to the CSD Version number if needed */
-    CmNtSpBuildNumber = VER_PRODUCTBUILD_QFE;
+    /*CmNtSpBuildNumber = VER_PRODUCTBUILD_QFE;
     if (((CmNtCSDVersion & 0xFFFF0000) == 0) && (CmNtCSDReleaseType == 1))
     {
         CmNtCSDVersion |= (VER_PRODUCTBUILD_QFE << 16);
-    }
+    }*/
+   CmNtCSDVersion = 0;
+   CmNtSpBuildNumber = 7181; // from windows 10 registry
 
     /* Add loaded CmNtGlobalFlag value */
     NtGlobalFlag |= CmNtGlobalFlag;
