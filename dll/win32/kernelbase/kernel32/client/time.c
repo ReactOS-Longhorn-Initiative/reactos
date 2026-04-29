@@ -143,6 +143,7 @@ WINAPI
 GetSystemTimePreciseAsFileTime(OUT PFILETIME lpFileTime)
 {
     STUB;
+    GetSystemTimeAsFileTime(lpFileTime);
 }
 
 /*
