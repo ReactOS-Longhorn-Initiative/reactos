@@ -22,8 +22,10 @@ list(APPEND SOURCE
     k32.h)
 
 
+add_asm_files(kernel32_asm thunks.s)
 add_library(kernel32 MODULE
     ${SOURCE}
+    ${kernel32_asm}
     kernel32.rc
     ${CMAKE_CURRENT_BINARY_DIR}/kernel32_stubs.c
     ${CMAKE_CURRENT_BINARY_DIR}/kernel32.def)

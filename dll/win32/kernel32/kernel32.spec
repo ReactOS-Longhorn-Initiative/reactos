@@ -77,7 +77,7 @@
 @ stdcall ClearCommBreak(long) kernelbase.ClearCommBreak
 @ stdcall ClearCommError(long ptr ptr) kernelbase.ClearCommError
 @ stdcall CloseConsoleHandle(long) kernelbase.CloseConsoleHandle
-@ stdcall CloseHandle(long) kernelbase.CloseHandle
+@ stdcall CloseHandle(long) CloseHandleStub
 @ stdcall -stub -version=0x600+ ClosePrivateNamespace(ptr long)
 @ stdcall CloseProfileUserMapping() kernelbase.CloseProfileUserMapping
 @ stdcall -stub -version=0xA00+ ClosePseudoConsole(ptr)
@@ -135,7 +135,7 @@
 @ stdcall CreateFiber(long ptr ptr) kernelbase.CreateFiber
 @ stdcall CreateFiberEx(long long long ptr ptr) kernelbase.CreateFiberEx
 @ stdcall -version=0x602+ CreateFile2(wstr long long long ptr) kernelbase.CreateFile2
-@ stdcall CreateFileA(str long long ptr long long long) kernelbase.CreateFileA
+@ stdcall CreateFileA(str long long ptr long long long) CreateFileAStub
 @ stdcall CreateFileMappingA(long ptr long long long str) kernelbase.CreateFileMappingA
 @ stdcall -version=0x600+ CreateFileMappingFromApp(long ptr long int64 wstr) kernelbase.CreateFileMappingFromApp
 @ stdcall -stub -version=0x600+ CreateFileMappingNumaA(ptr ptr long long long str long)
@@ -158,7 +158,7 @@
 @ stdcall CreateMutexA(ptr long str) kernelbase.CreateMutexA
 @ stdcall -version=0x600+ CreateMutexExA(ptr str long long) kernelbase.CreateMutexExA
 @ stdcall -version=0x600+ CreateMutexExW(ptr wstr long long) kernelbase.CreateMutexExW
-@ stdcall CreateMutexW(ptr long wstr) kernelbase.CreateMutexW
+@ stdcall CreateMutexW(ptr long wstr) CreateMutexWStub
 @ stdcall CreateNamedPipeA(str long long long long long long ptr) kernelbase.CreateNamedPipeA
 @ stdcall CreateNamedPipeW(wstr long long long long long long ptr) kernelbase.CreateNamedPipeW
 @ stdcall -version=0x501-0x502 CreateNlsSecurityDescriptor(ptr long long) kernelbase.CreateNlsSecurityDescriptor
@@ -290,7 +290,7 @@
 @ stdcall EraseTape(ptr long long)
 @ stdcall EscapeCommFunction(long long) kernelbase.EscapeCommFunction
 @ stdcall -version=0x601 -arch=win64 ExecuteUmsThread(ptr)
-@ stdcall ExitProcess(long) kernelbase.ExitProcess
+@ stdcall ExitProcess(long) ExitProcessStub
 @ stdcall ExitThread(long) kernelbase.ExitThread
 @ stdcall ExitVDM(long long) kernelbase.ExitVDM
 @ stdcall ExpandEnvironmentStringsA(str ptr long) kernelbase.ExpandEnvironmentStringsA
@@ -362,14 +362,14 @@
 @ stdcall FormatMessageW(long ptr long long ptr long ptr) kernelbase.FormatMessageW
 @ stdcall FreeConsole() kernelbase.FreeConsole
 @ stdcall FreeEnvironmentStringsA(ptr) kernelbase.FreeEnvironmentStringsA
-@ stdcall FreeEnvironmentStringsW(ptr) kernelbase.FreeEnvironmentStringsW
+@ stdcall FreeEnvironmentStringsW(ptr) FreeEnvironmentStringsWStub
 @ stdcall FreeLibrary(long) kernelbase.FreeLibrary
 @ stdcall FreeLibraryAndExitThread(long long) kernelbase.FreeLibraryAndExitThread
 @ stdcall -version=0x600+ FreeLibraryWhenCallbackReturns(ptr ptr) ntdll.TpCallbackUnloadDllOnCompletion
 @ stdcall FreeResource(long) kernelbase.FreeResource
 @ stdcall FreeUserPhysicalPages(long long long) kernelbase.FreeUserPhysicalPages
 @ stdcall GenerateConsoleCtrlEvent(long long) kernelbase.GenerateConsoleCtrlEvent
-@ stdcall GetACP() kernelbase.GetACP
+@ stdcall GetACP() GetACPStub
 @ stdcall -stub -version=0x601+ GetActiveProcessorCount(long)
 @ stdcall -stub -version=0x601+ GetActiveProcessorGroupCount()
 @ stdcall -version=0x600+ GetApplicationRecoveryCallback(ptr ptr ptr ptr ptr) kernelbase.GetApplicationRecoveryCallback
@@ -380,7 +380,7 @@
 @ stdcall GetBinaryTypeA(str ptr) kernelbase.GetBinaryTypeA
 @ stdcall GetBinaryTypeW(wstr ptr) kernelbase.GetBinaryTypeW
 @ stdcall -version=0x501-0x600 GetCPFileNameFromRegistry(long wstr long) kernelbase.GetCPFileNameFromRegistry
-@ stdcall GetCPInfo(long ptr) kernelbase.GetCPInfo
+@ stdcall GetCPInfo(long ptr) GetCPInfoStub
 @ stdcall GetCPInfoExA(long long ptr) kernelbase.GetCPInfoExA
 @ stdcall GetCPInfoExW(long long ptr) kernelbase.GetCPInfoExW
 @ stub -version=0x600+ GetCalendarDateFormat
@@ -462,11 +462,11 @@
 @ stdcall -version=0x602+ GetCurrentPackageFullName(ptr ptr) kernelbase.GetCurrentPackageFullName
 @ stdcall -version=0x602+ GetCurrentPackageId(ptr ptr) kernelbase.GetCurrentPackageId
 @ stdcall -version=0x602+ GetCurrentPackagePath(ptr ptr) kernelbase.GetCurrentPackagePath
-@ stdcall -norelay GetCurrentProcess() kernelbase.GetCurrentProcess
+@ stdcall -norelay GetCurrentProcess() GetCurrentProcessStub
 @ stdcall -norelay GetCurrentProcessId() kernelbase.GetCurrentProcessId
 @ stdcall GetCurrentProcessorNumber() kernelbase.GetCurrentProcessorNumber
 @ stub GetCurrentProcessorNumberEx(ptr) ;NTDLL.RtlGetCurrentProcessorNumberEx
-@ stdcall -norelay GetCurrentThread() kernelbase.GetCurrentThread
+@ stdcall -norelay GetCurrentThread() GetCurrentThreadStub
 @ stdcall -norelay GetCurrentThreadId() kernelbase.GetCurrentThreadId
 @ stdcall -version=0x602+  GetCurrentThreadStackLimits(ptr ptr) kernelbase.GetCurrentThreadStackLimits
 @ stdcall -version=0x601+ -arch=win64 GetCurrentUmsThread()
@@ -489,9 +489,9 @@
 @ stub -version=0x600+ GetDurationFormatEx
 @ stdcall -version=0x600+ GetDynamicTimeZoneInformation(ptr) kernelbase.GetDynamicTimeZoneInformation
 @ stdcall -stub -version=0x602+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
-@ stdcall GetEnvironmentStrings() kernelbase.GetEnvironmentStrings
+@ stdcall GetEnvironmentStrings() GetEnvironmentStringsStub
 @ stdcall GetEnvironmentStringsA() kernelbase.GetEnvironmentStringsA
-@ stdcall GetEnvironmentStringsW() kernelbase.GetEnvironmentStringsW
+@ stdcall GetEnvironmentStringsW() GetEnvironmentStringsWStub
 @ stdcall GetEnvironmentVariableA(str ptr long) kernelbase.GetEnvironmentVariableA
 @ stdcall GetEnvironmentVariableW(wstr ptr long) kernelbase.GetEnvironmentVariableW
 @ stdcall -version=0x600+ GetErrorMode() kernelbase.GetErrorMode
@@ -513,7 +513,7 @@
 @ stdcall GetFileSize(long ptr) kernelbase.GetFileSize
 @ stdcall GetFileSizeEx(long ptr) kernelbase.GetFileSizeEx
 @ stdcall GetFileTime(long ptr ptr ptr) kernelbase.GetFileTime
-@ stdcall GetFileType(long) kernelbase.GetFileType
+@ stdcall GetFileType(long) GetFileTypeStub
 @ stdcall -version=0x600+ GetFinalPathNameByHandleA(ptr str long long) kernelbase.GetFinalPathNameByHandleA
 @ stdcall -version=0x600+ GetFinalPathNameByHandleW(ptr wstr long long) kernelbase.GetFinalPathNameByHandleW
 @ stdcall GetFirmwareEnvironmentVariableA(str str ptr long) kernelbase.GetFirmwareEnvironmentVariableA
@@ -550,12 +550,12 @@
 @ stdcall GetMailslotInfo(long ptr ptr ptr ptr)
 @ stdcall -version=0x601+ GetMaximumProcessorCount(long)
 @ stdcall -version=0x601+ GetMaximumProcessorGroupCount()
-@ stdcall GetModuleFileNameA(long ptr long) kernelbase.GetModuleFileNameA
-@ stdcall GetModuleFileNameW(long ptr long) kernelbase.GetModuleFileNameW
-@ stdcall GetModuleHandleA(str) kernelbase.GetModuleHandleA
+@ stdcall GetModuleFileNameA(long ptr long) GetModuleFileNameAStub
+@ stdcall GetModuleFileNameW(long ptr long) GetModuleFileNameWStub
+@ stdcall GetModuleHandleA(str) GetModuleHandleAStub
 @ stdcall GetModuleHandleExA(long ptr ptr) kernelbase.GetModuleHandleExA
 @ stdcall GetModuleHandleExW(long ptr ptr) kernelbase.GetModuleHandleExW
-@ stdcall GetModuleHandleW(wstr) kernelbase.GetModuleHandleW
+@ stdcall GetModuleHandleW(wstr) GetModuleHandleWStub
 @ stdcall GetNLSVersion(long long ptr) kernelbase.GetNLSVersion
 @ stdcall GetNLSVersionEx(long wstr ptr) kernelbase.GetNLSVersionEx
 @ stub -version=0x600+ GetNamedPipeAttribute
@@ -607,13 +607,13 @@
 @ stdcall GetPrivateProfileStringW(wstr wstr wstr ptr long wstr) kernelbase.GetPrivateProfileStringW
 @ stdcall GetPrivateProfileStructA(str str ptr long str) kernelbase.GetPrivateProfileStructA
 @ stdcall GetPrivateProfileStructW(wstr wstr ptr long wstr) kernelbase.GetPrivateProfileStructW
-@ stdcall GetProcAddress(long str) kernelbase.GetProcAddress
+@ stdcall GetProcAddress(long str) GetProcAddressStub
 @ stdcall GetProcessAffinityMask(long ptr ptr) kernelbase.GetProcessAffinityMask
 @ stdcall -version=0x600+ GetProcessDEPPolicy(ptr ptr ptr)
 @ stdcall -version=0x601+ GetProcessGroupAffinity(long ptr ptr) kernelbase.GetProcessGroupAffinity
 @ stdcall GetProcessHandleCount(long ptr) kernelbase.GetProcessHandleCount
-@ stdcall -norelay GetProcessHeap() kernelbase.GetProcessHeap
-@ stdcall GetProcessHeaps(long ptr) kernelbase.GetProcessHeaps
+@ stdcall -norelay GetProcessHeap() GetProcessHeapStub
+@ stdcall GetProcessHeaps(long ptr) GetProcessHeapsStub
 @ stdcall GetProcessId(long) kernelbase.GetProcessId
 @ stdcall GetProcessIdOfThread(ptr) kernelbase.GetProcessIdOfThread
 @ stdcall  -version=0x602+ GetProcessInformation(long long ptr long) kernelbase.GetProcessInformation
@@ -638,13 +638,13 @@
 @ stdcall GetShortPathNameA(str ptr long)
 @ stdcall GetShortPathNameW(wstr ptr long) kernelbase.GetShortPathNameW
 @ stdcall GetStartupInfoA(ptr)
-@ stdcall GetStartupInfoW(ptr) kernelbase.GetStartupInfoW
+@ stdcall GetStartupInfoW(ptr) GetStartupInfoWStub
 @ stdcall GetStdHandle(long) kernelbase.GetStdHandle
 @ stub -version=0x600+ GetStringScripts
 @ stdcall GetStringTypeA(long long str long ptr) kernelbase.GetStringTypeA
 @ stdcall GetStringTypeExA(long long str long ptr) kernelbase.GetStringTypeExA
 @ stdcall GetStringTypeExW(long long wstr long ptr) kernelbase.GetStringTypeExW
-@ stdcall GetStringTypeW(long wstr long ptr) kernelbase.GetStringTypeW
+@ stdcall GetStringTypeW(long wstr long ptr) GetStringTypeWStub
 @ stdcall -version=0x600+ GetSystemDEPPolicy() kernelbase.GetSystemDEPPolicy
 @ stdcall -stub -version=0xA00+ GetSystemCpuSetInformation(ptr long ptr ptr long)
 @ stdcall GetSystemDefaultLCID() kernelbase.GetSystemDefaultLCID
@@ -688,9 +688,9 @@
 @ stdcall GetThreadPriority(long) kernelbase.GetThreadPriority
 @ stdcall GetThreadPriorityBoost(long ptr) kernelbase.GetThreadPriorityBoost
 @ stdcall GetThreadSelectorEntry(long long ptr) kernelbase.GetThreadSelectorEntry
-@ stdcall GetThreadTimes(long ptr ptr ptr ptr) kernelbase.GetThreadTimes
+@ stdcall GetThreadTimes(long ptr ptr ptr ptr) GetThreadTimesStub
 @ stdcall -version=0x600+ GetThreadUILanguage() kernelbase.GetThreadUILanguage
-@ stdcall GetTickCount() kernelbase.GetTickCount
+@ stdcall GetTickCount() GetTickCountStub
 @ stdcall -version=0x600+ -ret64 GetTickCount64() kernelbase.GetTickCount64
 @ stdcall GetTimeFormatA(long long ptr str ptr long) kernelbase.GetTimeFormatA
 @ stdcall -version=0x600+ GetTimeFormatEx(wstr long ptr wstr wstr long) kernelbase.GetTimeFormatEx
@@ -752,7 +752,7 @@
 @ stdcall -version=0x351-0x502 HeapCreateTagsW(ptr long wstr wstr) kernelbase.HeapCreateTagsW
 @ stdcall HeapDestroy(long) kernelbase.HeapDestroy
 @ stdcall -version=0x351-0x502 HeapExtend(long long ptr long) kernelbase.HeapExtend
-@ stdcall HeapFree(long long long) kernelbase.HeapFree
+@ stdcall HeapFree(long long long) HeapFreeStub
 @ stdcall HeapLock(long) kernelbase.HeapLock
 @ stdcall HeapQueryInformation(long long ptr long ptr) kernelbase.HeapQueryInformation
 @ stdcall -version=0x351-0x502 HeapQueryTagW(long long long long ptr) kernelbase.HeapQueryTagW
@@ -812,7 +812,7 @@
 @ stdcall -version=0x600+ IsThreadpoolTimerSet() ntdll.TpIsTimerSet
 @ stdcall IsTimeZoneRedirectionEnabled() kernelbase.IsTimeZoneRedirectionEnabled
 @ stub -version=0x600+ IsValidCalDateTime
-@ stdcall IsValidCodePage(long) kernelbase.IsValidCodePage
+@ stdcall IsValidCodePage(long) IsValidCodePageStub
 @ stdcall IsValidLanguageGroup(long long) kernelbase.IsValidLanguageGroup
 @ stdcall IsValidLocale(long long) kernelbase.IsValidLocale
 @ stdcall -version=0x501-0x502 IsValidUILanguage(long) kernelbase.IsValidUILanguage
@@ -864,10 +864,10 @@
 @ stdcall LeaveCriticalSection(ptr) ntdll.RtlLeaveCriticalSection
 @ stdcall -version=0x600+ LeaveCriticalSectionWhenCallbackReturns(ptr ptr) ntdll.TpCallbackLeaveCriticalSectionOnCompletion
 @ stdcall -version=0x601+ LoadAppInitDlls() kernelbase.LoadAppInitDlls
-@ stdcall LoadLibraryA(str) kernelbase.LoadLibraryA
+@ stdcall LoadLibraryA(str) LoadLibraryAStub
 @ stdcall LoadLibraryExA(str long long) kernelbase.LoadLibraryExA
 @ stdcall LoadLibraryExW(wstr long long) kernelbase.LoadLibraryExW
-@ stdcall LoadLibraryW(wstr) kernelbase.LoadLibraryW
+@ stdcall LoadLibraryW(wstr) LoadLibraryWStub
 @ stdcall LoadModule(str ptr) kernelbase.LoadModule
 @ stdcall -version=0x602+ LoadPackagedLibrary(wstr long) kernelbase.LoadPackagedLibrary
 @ stdcall LoadResource(long long) kernelbase.LoadResource
@@ -927,7 +927,7 @@
 @ stdcall OpenFile(str ptr long) kernelbase.OpenFile
 @ stdcall -version=0x600+ OpenFileById(ptr ptr long long ptr long) kernelbase.OpenFileById
 @ stdcall OpenFileMappingA(long long str) kernelbase.OpenFileMappingA
-@ stdcall OpenFileMappingW(long long wstr) kernelbase.OpenFileMappingW
+@ stdcall OpenFileMappingW(long long wstr) OpenFileMappingWStub
 @ stdcall OpenJobObjectA(long long str)
 @ stdcall OpenJobObjectW(long long wstr)
 @ stdcall OpenMutexA(long long str) kernelbase.OpenMutexA
@@ -975,7 +975,7 @@
 @ stdcall QueryInformationJobObject(long long ptr long ptr)
 @ stdcall QueryMemoryResourceNotification(ptr ptr) kernelbase.QueryMemoryResourceNotification
 @ stdcall QueryPerformanceCounter(ptr) kernelbase.QueryPerformanceCounter
-@ stdcall QueryPerformanceFrequency(ptr) kernelbase.QueryPerformanceFrequency
+@ stdcall QueryPerformanceFrequency(ptr) QueryPerformanceFrequencyStub
 @ stub -version=0x600+ QueryProcessAffinityUpdateMode
 @ stdcall -version=0x600+ QueryProcessCycleTime(long ptr) kernelbase.QueryProcessCycleTime
 @ stdcall -version=0x600+ QueryThreadCycleTime(long ptr) kernelbase.QueryThreadCycleTime
@@ -999,7 +999,7 @@
 @ stdcall ReadConsoleOutputW(long ptr long long ptr) kernelbase.ReadConsoleOutputW
 @ stdcall ReadConsoleW(long ptr long ptr ptr) kernelbase.ReadConsoleW
 @ stdcall ReadDirectoryChangesW(long ptr long long long ptr ptr ptr) kernelbase.ReadDirectoryChangesW
-@ stdcall ReadFile(long ptr long ptr ptr) kernelbase.ReadFile
+@ stdcall ReadFile(long ptr long ptr ptr) ReadFileStub
 @ stdcall ReadFileEx(long ptr long ptr ptr) kernelbase.ReadFileEx
 @ stdcall ReadFileScatter(long ptr long ptr ptr) kernelbase.ReadFileScatter
 @ stdcall ReadProcessMemory(long ptr ptr long ptr) kernelbase.ReadProcessMemory
@@ -1057,7 +1057,7 @@
 @ stdcall RegisterWowBaseHandlers(long) kernelbase.RegisterWowBaseHandlers
 @ stdcall RegisterWowExec(long) kernelbase.RegisterWowExec
 @ stdcall ReleaseActCtx(ptr) kernelbase.ReleaseActCtx
-@ stdcall ReleaseMutex(long) kernelbase.ReleaseMutex
+@ stdcall ReleaseMutex(long) ReleaseMutexStub
 @ stdcall -version=0x600+ ReleaseMutexWhenCallbackReturns(ptr long) TpCallbackReleaseMutexOnCompletion
 @ stdcall -version=0x600+ ReleaseSRWLockExclusive(ptr) ntdll.RtlReleaseSRWLockExclusive
 @ stdcall -version=0x600+ ReleaseSRWLockShared(ptr) ntdll.RtlReleaseSRWLockShared
@@ -1094,7 +1094,7 @@
 @ stdcall -arch=x86_64 RtlInstallFunctionTableCallback(double double long ptr ptr ptr) ntdll.RtlInstallFunctionTableCallback
 @ stdcall -arch=x86_64 RtlLookupFunctionEntry(ptr ptr ptr) ntdll.RtlLookupFunctionEntry
 @ stdcall RtlMoveMemory(ptr ptr long) ntdll.RtlMoveMemory
-@ stdcall -arch=x86_64 RtlPcToFileHeader(ptr ptr) ntdll.RtlPcToFileHeader
+@ stdcall -arch=x86_64 RtlPcToFileHeader(ptr ptr) RtlPcToFileHeaderStub
 @ stdcall -arch=x86_64 RtlRaiseException(ptr) ntdll.RtlRaiseException
 @ stdcall -arch=x86_64 RtlRestoreContext(ptr ptr) ntdll.RtlRestoreContext
 @ stdcall RtlUnwind(ptr ptr ptr ptr) ntdll.RtlUnwind
@@ -1253,7 +1253,7 @@
 @ stdcall SetTimeZoneInformation(ptr) kernelbase.SetTimeZoneInformation
 @ stdcall SetTimerQueueTimer(long ptr ptr long long long) kernelbase.SetTimerQueueTimer
 @ stdcall -version=0x601+ -arch=win64 SetUmsThreadInformation(ptr long ptr long)
-@ stdcall SetUnhandledExceptionFilter(ptr) kernelbase.SetUnhandledExceptionFilter
+@ stdcall SetUnhandledExceptionFilter(ptr) SetUnhandledExceptionFilterStub
 @ stdcall SetUserGeoID(long) kernelbase.SetUserGeoID
 @ stdcall -stub -version=0xA00+ SetUserGeoName(wstr)
 @ stdcall SetVDMCurrentDirectories(long long) kernelbase.SetVDMCurrentDirectories
@@ -1279,7 +1279,7 @@
 @ stdcall SystemTimeToFileTime(ptr ptr) kernelbase.SystemTimeToFileTime
 @ stdcall SystemTimeToTzSpecificLocalTime(ptr ptr ptr) kernelbase.SystemTimeToTzSpecificLocalTime
 @ stdcall TerminateJobObject(ptr long)
-@ stdcall TerminateProcess(ptr long) kernelbase.TerminateProcess
+@ stdcall TerminateProcess(ptr long) TerminateProcessStub
 @ stdcall TerminateThread(ptr long) kernelbase.TerminateThread
 @ stdcall TermsrvAppInstallMode() kernelbase.TermsrvAppInstallMode
 @ stdcall Thread32First(long ptr) kernelbase.Thread32First
@@ -1330,7 +1330,7 @@
 @ stdcall VirtualFree(ptr long long) kernelbase.VirtualFree
 @ stdcall VirtualFreeEx(long ptr long long) kernelbase.VirtualFreeEx
 @ stdcall VirtualLock(ptr long) kernelbase.VirtualLock
-@ stdcall VirtualProtect(ptr long long ptr) kernelbase.VirtualProtect
+@ stdcall VirtualProtect(ptr long long ptr)
 @ stdcall VirtualProtectEx(long ptr long long ptr) kernelbase.VirtualProtectEx
 @ stdcall VirtualQuery(ptr ptr long) kernelbase.VirtualQuery
 @ stdcall VirtualQueryEx(long ptr ptr long) kernelbase.VirtualQueryEx
@@ -1341,7 +1341,7 @@
 @ stdcall -version=0xA00+ WaitForDebugEventEx(ptr long) kernelbase.WaitForDebugEventEx
 @ stdcall WaitForMultipleObjects(long ptr long long) kernelbase.WaitForMultipleObjects
 @ stdcall WaitForMultipleObjectsEx(long ptr long long long) kernelbase.WaitForMultipleObjectsEx
-@ stdcall WaitForSingleObject(long long) kernelbase.WaitForSingleObject
+@ stdcall WaitForSingleObject(long long) WaitForSingleObjectStub
 @ stdcall WaitForSingleObjectEx(long long long) kernelbase.WaitForSingleObjectEx
 @ stdcall -version=0x600+ WaitForThreadpoolIoCallbacks(ptr long) NTDLL.TpWaitForIoCompletion
 @ stdcall -version=0x600+ WaitForThreadpoolTimerCallbacks(ptr long) NTDLL.TpWaitForTimer
@@ -1378,7 +1378,7 @@
 @ stdcall WriteConsoleOutputCharacterW(long ptr long long ptr) kernelbase.WriteConsoleOutputCharacterW
 @ stdcall WriteConsoleOutputW(long ptr long long ptr) kernelbase.WriteConsoleOutputW
 @ stdcall WriteConsoleW(long ptr long ptr ptr) kernelbase.WriteConsoleW
-@ stdcall WriteFile(long ptr long ptr ptr) kernelbase.WriteFile
+@ stdcall WriteFile(long ptr long ptr ptr) WriteFileStub
 @ stdcall WriteFileEx(long ptr long ptr ptr) kernelbase.WriteFileEx
 @ stdcall WriteFileGather(long ptr long ptr ptr) kernelbase.WriteFileGather
 @ stdcall WritePrivateProfileSectionA(str str str) kernelbase.WritePrivateProfileSectionA
