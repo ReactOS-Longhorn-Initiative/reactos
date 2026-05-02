@@ -72,7 +72,7 @@
 @ stdcall -stub -version=0x600+ EtwEventEnabled(int64 ptr)
 @ stdcall -stub -version=0x600+ EtwEventProviderEnabled(long long long)
 @ stdcall -stub -version=0x600+ EtwEventRegister(ptr ptr ptr ptr)
-@ stdcall -stub -version=0x600+ EtwEventSetInformation(int64 long ptr long)
+@ stdcall -stub -version=0x603+ EtwEventSetInformation(int64 long ptr long)
 @ stdcall -stub -version=0x600+ EtwEventUnregister(int64)
 @ stdcall -stub -version=0x600+ EtwEventWrite(int64 ptr long ptr)
 @ stdcall -stub -version=0x600+ EtwEventWriteEndScenario(long ptr long long)
@@ -97,7 +97,6 @@
 @ stdcall -version=0x502 EtwQueryTraceW(double wstr ptr)
 @ stdcall -stub -version=0x502 EtwReceiveNotificationsA(long long long long)
 @ stdcall -stub -version=0x502 EtwReceiveNotificationsW(long long long long)
-@ stdcall -stub -version=0x600+ EtwRegister(ptr ptr ptr ptr)
 @ stdcall -stub -version=0x600+ EtwRegisterSecurityProvider()
 @ stdcall EtwRegisterTraceGuidsA(ptr ptr ptr long ptr str str ptr)
 @ stdcall EtwRegisterTraceGuidsW(ptr ptr ptr long ptr wstr wstr ptr)
@@ -112,11 +111,9 @@
 @ stdcall -stub EtwTraceEventInstance(double ptr ptr ptr)
 @ varargs EtwTraceMessage(int64 long ptr long)
 @ stdcall -stub EtwTraceMessageVa(int64 long ptr long ptr)
-@ stdcall -stub -version=0x600+ EtwUnregister(int64)
 @ stdcall EtwUnregisterTraceGuids(double)
 @ stdcall -version=0x502 EtwUpdateTraceA(double str ptr)
 @ stdcall -version=0x502 EtwUpdateTraceW(double wstr ptr)
-@ stdcall -stub -version=0x600+ EtwWrite(int64 ptr ptr long ptr)
 @ stdcall -stub -version=0x600+ EtwWriteUMSecurityEvent(ptr long long long)
 @ stdcall -stub -version=0x600+ EtwpCreateEtwThread(long long)
 @ stdcall -stub -version=0x600+ EtwpGetCpuSpeed(ptr)
@@ -712,7 +709,7 @@
 @ cdecl -version=0x600+ -arch=x86_64 RtlCopyMemory(ptr ptr long) memmove
 @ stdcall -stub -version=0x600+ -arch=x86_64 RtlCopyMemoryNonTemporal(ptr ptr long)
 @ stdcall RtlCopyMemoryStreamTo(ptr ptr int64 ptr ptr)
-@ stdcall RtlCopyOutOfProcessMemoryStreamTo(ptr ptr int64 ptr ptr) RtlCopyMemoryStreamTo
+@ stdcall RtlCopyOutOfProcessMemoryStreamTo(ptr ptr int64 ptr ptr) RtlCopyMemoryStreamTo # Dummy
 @ stdcall RtlCopySecurityDescriptor(ptr ptr)
 @ stdcall RtlCopySid(long ptr ptr)
 @ stdcall RtlCopySidAndAttributesArray(long ptr long ptr ptr ptr ptr)
@@ -1467,6 +1464,7 @@
 @ stdcall ZwCreateNamedPipeFile(ptr long ptr ptr long long long long long long long long long ptr)
 @ stdcall ZwCreatePagingFile(ptr ptr ptr long)
 @ stdcall ZwCreatePort(ptr ptr long long long)
+@ stdcall -stub -version=0x600+ ZwCreatePrivateNamespace(ptr long ptr ptr)
 @ stdcall ZwCreateProcess(ptr long ptr ptr long ptr ptr ptr)
 @ stdcall ZwCreateProcessEx(ptr long ptr ptr long ptr ptr ptr long)
 @ stdcall ZwCreateProfile(ptr ptr ptr long long ptr long long long) ; CHECKME
