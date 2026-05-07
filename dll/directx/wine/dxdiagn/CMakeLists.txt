@@ -1,7 +1,7 @@
 add_definitions(
     -Dwcsicmp=_wcsicmp
     -Dwcsnicmp=_wcsnicmp
-    -Dswprintf=_swprintf)
+    -D_CRT_NON_CONFORMING_SWPRINTFS)
 
 spec2def(dxdiagn.dll dxdiagn.spec)
 
