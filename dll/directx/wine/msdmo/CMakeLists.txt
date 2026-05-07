@@ -1,3 +1,5 @@
+
+add_compile_definitions(-D_CRT_NON_CONFORMING_SWPRINTFS)
 spec2def(msdmo.dll msdmo.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE

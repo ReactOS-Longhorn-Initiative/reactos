@@ -7,6 +7,7 @@ include_directories(
 add_definitions(
     -D_SETUPAPI_
     -D_CFGMGR32_
+    -D_CRT_NON_CONFORMING_SWPRINTFS
 )
 
 add_rpc_files(client ${REACTOS_SOURCE_DIR}/sdk/include/reactos/idl/pnp.idl)
