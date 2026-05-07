@@ -1,6 +1,6 @@
 
 add_definitions(
-    -D_WINE)
+    -D_WINE -D_CRT_NON_CONFORMING_SWPRINTFS)
 
 spec2def(comdlg32.dll comdlg32.spec ADD_IMPORTLIB)
 
