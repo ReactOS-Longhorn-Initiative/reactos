@@ -327,4 +327,5 @@
     SVC_(AlpcRevokeSecurityContext, 3)
     SVC_(AlpcSendWaitReceivePort, 8)
     SVC_(AlpcSetInformation, 4)
+    SVC_(GetNextThread, 6)
 #endif
