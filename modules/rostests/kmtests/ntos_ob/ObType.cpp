@@ -9,7 +9,6 @@
 /* TODO: split this into multiple tests! ObLife, ObHandle, ObName, ... */
 
 #include <kmt_test.h>
-#include "ObTypes.hpp"
 
 #define NDEBUG
 #include <debug.h>
@@ -37,9 +36,10 @@ typedef struct _MY_OBJECT2
     ULONG SomeLong[10];
 } MY_OBJECT2, *PMY_OBJECT2;
 
-static PVOID                   ObTypes_[NUM_OBTYPES];
+static POBJECT_TYPE            ObTypes[NUM_OBTYPES];
 static UNICODE_STRING          ObTypeName[NUM_OBTYPES];
 static UNICODE_STRING          ObName[NUM_OBTYPES];
+static OBJECT_TYPE_INITIALIZER ObTypeInitializer[NUM_OBTYPES];
 static UNICODE_STRING          ObDirectoryName;
 static OBJECT_ATTRIBUTES       ObDirectoryAttributes;
 static OBJECT_ATTRIBUTES       ObAttributes[NUM_OBTYPES];
@@ -185,14 +185,10 @@ QueryNameProc(
     return STATUS_OBJECT_NAME_NOT_FOUND;
 }
 
-template<unsigned NtDdiVersion>
 static
 NTSTATUS
 ObtCreateObjectTypes(VOID)
 {
-    static TOBJECT_TYPE_INITIALIZER<NtDdiVersion> ObTypeInitializer[NUM_OBTYPES];
-    using OBJECT_TYPE = TOBJECT_TYPE<NtDdiVersion>;
-    OBJECT_TYPE** ObTypes = reinterpret_cast<OBJECT_TYPE**>(&ObTypes_);
     INT i;
     NTSTATUS Status;
     struct
@@ -203,7 +199,12 @@ ObtCreateObjectTypes(VOID)
     OBJECT_ATTRIBUTES ObjectAttributes;
     HANDLE ObjectTypeHandle;
     UNICODE_STRING ObjectPath;
-    BOOLEAN UseNT6Callbacks = (GetNTVersion() >= _WIN32_WINNT_VISTA);
+
+    if (skip(GetNTVersion() < _WIN32_WINNT_VISTA, "Custom object types are not supported on Vista+.\n"))
+        return STATUS_NOT_SUPPORTED;
+
+    if (skip(is_reactos(), "Cannot run this test on REactOS, because it uses NT6 type callbacks\n"))
+        return STATUS_NOT_SUPPORTED;
 
     RtlCopyMemory(&Name.DirectoryName, L"\\ObjectTypes\\", sizeof Name.DirectoryName);
 
@@ -221,25 +222,21 @@ ObtCreateObjectTypes(VOID)
         ObTypeInitializer[i].ValidAccessMask = OBJECT_TYPE_ALL_ACCESS;
 
         // Test for invalid parameter
-        // FIXME: Make it more exact, to see which params Win2k3 checks existence of.
-        // Vista+: This triggers a DbgBreakPoint() in the kernel
-        if (NtDdiVersion <= NTDDI_WS03)
-        {
-            Status = ObCreateObjectType(&ObTypeName[i], (POBJECT_TYPE_INITIALIZER)&ObTypeInitializer[i], NULL, (POBJECT_TYPE*)&ObTypes[i]);
-            ok_eq_hex(Status, STATUS_INVALID_PARAMETER);
-        }
+        // FIXME: Make it more exact, to see which params Win2k3 checks
+        // existence of
+        Status = ObCreateObjectType(&ObTypeName[i], &ObTypeInitializer[i], NULL, &ObTypes[i]);
+        ok_eq_hex(Status, STATUS_INVALID_PARAMETER);
 
-        using OPEN_PROCEDURE = decltype(ObTypeInitializer[i].OpenProcedure);
         ObTypeInitializer[i].CloseProcedure = CloseProc;
         ObTypeInitializer[i].DeleteProcedure = DeleteProc;
         ObTypeInitializer[i].DumpProcedure = DumpProc;
-        ObTypeInitializer[i].OpenProcedure = UseNT6Callbacks ? (OPEN_PROCEDURE)OpenProc_NT6 : (OPEN_PROCEDURE)OpenProc;
+        ObTypeInitializer[i].OpenProcedure = is_reactos() ? OpenProc_NT6 : (OB_OPEN_METHOD)OpenProc;
         ObTypeInitializer[i].ParseProcedure = ParseProc;
         ObTypeInitializer[i].OkayToCloseProcedure = OkayToCloseProc;
         ObTypeInitializer[i].QueryNameProcedure = QueryNameProc;
         //ObTypeInitializer[i].SecurityProcedure = SecurityProc;
 
-        Status = ObCreateObjectType(&ObTypeName[i], (POBJECT_TYPE_INITIALIZER)&ObTypeInitializer[i], NULL, (POBJECT_TYPE*)&ObTypes[i]);
+        Status = ObCreateObjectType(&ObTypeName[i], &ObTypeInitializer[i], NULL, &ObTypes[i]);
         if (Status == STATUS_OBJECT_NAME_COLLISION)
         {
             /* as we cannot delete the object types, get a pointer if they
@@ -251,15 +248,14 @@ ObtCreateObjectTypes(VOID)
             ok(ObjectTypeHandle != NULL, "ObjectTypeHandle = NULL\n");
             if (!skip(Status == STATUS_SUCCESS && ObjectTypeHandle, "No handle\n"))
             {
-                Status = ObReferenceObjectByHandle(ObjectTypeHandle, 0, NULL, KernelMode, (PVOID*)&ObTypes[i], NULL);
+                Status = ObReferenceObjectByHandle(ObjectTypeHandle, 0, NULL, KernelMode, (PVOID)&ObTypes[i], NULL);
                 ok_eq_hex(Status, STATUS_SUCCESS);
                 if (!skip(Status == STATUS_SUCCESS && ObTypes[i], "blah\n"))
                 {
-                    using OPEN_PROCEDURE = decltype(ObTypes[i]->TypeInfo.OpenProcedure);
                     ObTypes[i]->TypeInfo.CloseProcedure = CloseProc;
                     ObTypes[i]->TypeInfo.DeleteProcedure = DeleteProc;
                     ObTypes[i]->TypeInfo.DumpProcedure = DumpProc;
-                    ObTypes[i]->TypeInfo.OpenProcedure = UseNT6Callbacks ? (OPEN_PROCEDURE)OpenProc_NT6 : (OPEN_PROCEDURE)OpenProc;
+                    ObTypes[i]->TypeInfo.OpenProcedure = is_reactos() ? OpenProc_NT6 : (OB_OPEN_METHOD)OpenProc;
                     ObTypes[i]->TypeInfo.ParseProcedure = ParseProc;
                     ObTypes[i]->TypeInfo.OkayToCloseProcedure = OkayToCloseProc;
                     ObTypes[i]->TypeInfo.QueryNameProcedure = QueryNameProc;
@@ -292,7 +288,6 @@ ObtCreateDirectory(VOID)
                         OkayToCloseCount, QueryNameCount) do        \
 {                                                                   \
     ok_eq_uint(Counts.Open, OpenCount);                             \
-    if (Counts.Open != OpenCount) __debugbreak(); \
     ok_eq_uint(Counts.Close, CloseCount);                           \
     ok_eq_uint(Counts.Delete, DeleteCount);                         \
     ok_eq_uint(Counts.Parse, ParseCount);                           \
@@ -304,8 +299,6 @@ ObtCreateDirectory(VOID)
 
 /* TODO: make this the same as NUM_OBTYPES */
 #define NUM_OBTYPES2 2
-
-template<unsigned NtDdiVersion>
 static
 VOID
 ObtCreateObjects(VOID)
@@ -330,7 +323,7 @@ ObtCreateObjects(VOID)
 
     for (i = 0; i < NUM_OBTYPES2; ++i)
     {
-        Status = ObCreateObject(KernelMode, (POBJECT_TYPE)ObTypes_[i], &ObAttributes[i], KernelMode, NULL, ObjectSize[i], 0L, 0L, &ObBody[i]);
+        Status = ObCreateObject(KernelMode, ObTypes[i], &ObAttributes[i], KernelMode, NULL, ObjectSize[i], 0L, 0L, &ObBody[i]);
         ok_eq_hex(Status, STATUS_SUCCESS);
     }
 
@@ -360,7 +353,6 @@ ObtClose(
     BOOLEAN Clean,
     BOOLEAN AlternativeMethod)
 {
-    PVOID* ObTypes = ObTypes_;
     NTSTATUS Status;
     LONG_PTR Ret;
     PVOID TypeObject;
@@ -406,7 +398,6 @@ ObtClose(
 
         Status = ZwClose(DirectoryHandle);
         ok_eq_hex(Status, STATUS_SUCCESS);
-        DirectoryHandle = NULL;
     }
 
     /* we don't delete the object types we created. It makes Windows unstable.
@@ -444,57 +435,26 @@ ObtClose(
     }
 }
 
-template<unsigned NtDdiVersion>
 static
 VOID
-TestObjectType_(
+TestObjectType(
     IN BOOLEAN Clean)
 {
-    PVOID* ObTypes = ObTypes_;
     NTSTATUS Status;
 
     RtlZeroMemory(&Counts, sizeof Counts);
 
-    Status = ObtCreateObjectTypes<NtDdiVersion>();
+    Status = ObtCreateObjectTypes();
     DPRINT("ObtCreateObjectTypes() %s\n", NT_SUCCESS(Status) ? "succeeded" : "failed");
 
     ObtCreateDirectory();
     DPRINT("ObtCreateDirectory() done\n");
 
     if (!skip(ObTypes[0] != NULL, "No object types!\n"))
-        ObtCreateObjects<NtDdiVersion>();
+        ObtCreateObjects();
     DPRINT("ObtCreateObjects() done\n");
 
     ObtClose(Clean, FALSE);
-}
-
-static
-VOID
-TestObjectType(
-    IN BOOLEAN Clean)
-{
-    ULONG NtDdiVersion = GetNTDDIVersion();
-
-    switch (NtDdiVersion)
-    {
-        case NTDDI_WS03:
-            TestObjectType_<NTDDI_WS03>(Clean);
-            return;
-        case NTDDI_VISTA:
-            TestObjectType_<NTDDI_VISTA>(Clean);
-            return;
-        case NTDDI_VISTASP1:
-        case NTDDI_VISTASP2:
-        case NTDDI_VISTASP3:
-            TestObjectType_<NTDDI_VISTASP1>(Clean);
-            return;
-        case NTDDI_WIN7:
-            TestObjectType_<NTDDI_WIN7>(Clean);
-            return;
-        default:
-            skip(FALSE, "Unsupported NTDDI version: 0x%lx\n", NtDdiVersion);
-            return;
-    }
 }
 
 START_TEST(ObType)
