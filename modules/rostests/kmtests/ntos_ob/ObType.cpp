@@ -205,6 +205,9 @@ ObtCreateObjectTypes(VOID)
     UNICODE_STRING ObjectPath;
     BOOLEAN UseNT6Callbacks = (GetNTVersion() >= _WIN32_WINNT_VISTA);
 
+    if (skip(is_reactos(), "Cannot run this test on REactOS, because it uses NT6 type callbacks\n"))
+        return STATUS_NOT_SUPPORTED;
+
     RtlCopyMemory(&Name.DirectoryName, L"\\ObjectTypes\\", sizeof Name.DirectoryName);
 
     for (i = 0; i < NUM_OBTYPES; ++i)
@@ -233,7 +236,7 @@ ObtCreateObjectTypes(VOID)
         ObTypeInitializer[i].CloseProcedure = CloseProc;
         ObTypeInitializer[i].DeleteProcedure = DeleteProc;
         ObTypeInitializer[i].DumpProcedure = DumpProc;
-        ObTypeInitializer[i].OpenProcedure = UseNT6Callbacks ? (OPEN_PROCEDURE)OpenProc_NT6 : (OPEN_PROCEDURE)OpenProc;
+        ObTypeInitializer[i].OpenProcedure = is_reactos() ? OpenProc_NT6 : (OB_OPEN_METHOD)OpenProc;
         ObTypeInitializer[i].ParseProcedure = ParseProc;
         ObTypeInitializer[i].OkayToCloseProcedure = OkayToCloseProc;
         ObTypeInitializer[i].QueryNameProcedure = QueryNameProc;
@@ -259,7 +262,7 @@ ObtCreateObjectTypes(VOID)
                     ObTypes[i]->TypeInfo.CloseProcedure = CloseProc;
                     ObTypes[i]->TypeInfo.DeleteProcedure = DeleteProc;
                     ObTypes[i]->TypeInfo.DumpProcedure = DumpProc;
-                    ObTypes[i]->TypeInfo.OpenProcedure = UseNT6Callbacks ? (OPEN_PROCEDURE)OpenProc_NT6 : (OPEN_PROCEDURE)OpenProc;
+                    ObTypes[i]->TypeInfo.OpenProcedure = is_reactos() ? OpenProc_NT6 : (OB_OPEN_METHOD)OpenProc;
                     ObTypes[i]->TypeInfo.ParseProcedure = ParseProc;
                     ObTypes[i]->TypeInfo.OkayToCloseProcedure = OkayToCloseProc;
                     ObTypes[i]->TypeInfo.QueryNameProcedure = QueryNameProc;
