@@ -15,9 +15,74 @@ extern "C" {
 
 #define NETIOAPI_API NETIO_STATUS NETIOAPI_API_
 
+// FIXME: should be defined in iprtrmib.h
+#ifndef ANY_SIZE
+#define ANY_SIZE 1
+#endif
+
 #ifdef _WS2IPDEF_
 #include <ntddndis.h>
 #include <ifdef.h>
+
+typedef struct _IP_ADDRESS_PREFIX
+{
+    SOCKADDR_INET Prefix;
+    UINT8 PrefixLength;
+} IP_ADDRESS_PREFIX, *PIP_ADDRESS_PREFIX;
+
+typedef struct _MIB_IPFORWARD_ROW2
+{
+    NET_LUID InterfaceLuid;
+    NET_IFINDEX InterfaceIndex;
+    IP_ADDRESS_PREFIX DestinationPrefix;
+    SOCKADDR_INET NextHop;
+    UCHAR SitePrefixLength;
+    ULONG ValidLifetime;
+    ULONG PreferredLifetime;
+    ULONG Metric;
+    NL_ROUTE_PROTOCOL Protocol;
+    BOOLEAN Loopback;
+    BOOLEAN AutoconfigureAddress;
+    BOOLEAN Publish;
+    BOOLEAN Immortal;
+    ULONG Age;
+    NL_ROUTE_ORIGIN Origin;
+} MIB_IPFORWARD_ROW2, *PMIB_IPFORWARD_ROW2;
+
+typedef struct _MIB_IPFORWARD_TABLE2 {
+    ULONG NumEntries;
+    MIB_IPFORWARD_ROW2 Table[ANY_SIZE];
+} MIB_IPFORWARD_TABLE2, *PMIB_IPFORWARD_TABLE2;
+
+typedef struct _MIB_IPNET_ROW2
+{
+    SOCKADDR_INET Address;
+    NET_IFINDEX InterfaceIndex;
+    NET_LUID InterfaceLuid;
+    UCHAR PhysicalAddress[IF_MAX_PHYS_ADDRESS_LENGTH];
+    ULONG PhysicalAddressLength;
+    NL_NEIGHBOR_STATE State;
+    union
+    {
+        struct
+        {
+            BOOLEAN IsRouter : 1;
+            BOOLEAN IsUnreachable : 1;
+        };
+        UCHAR Flags;
+    };
+    union
+    {
+        ULONG LastReachable;
+        ULONG LastUnreachable;
+    } ReachabilityTime;
+} MIB_IPNET_ROW2, *PMIB_IPNET_ROW2;
+
+typedef struct _MIB_IPNET_TABLE2
+{
+    ULONG NumEntries;
+    MIB_IPNET_ROW2 Table[ANY_SIZE];
+} MIB_IPNET_TABLE2, *PMIB_IPNET_TABLE2;
 
 typedef struct _MIB_IF_ROW2 {
     NET_LUID InterfaceLuid;
@@ -78,8 +143,40 @@ typedef struct _MIB_IF_TABLE2
     MIB_IF_ROW2 Table[1];
 } MIB_IF_TABLE2, *PMIB_IF_TABLE2;
 
+typedef enum _MIB_IF_TABLE_LEVEL
+{
+    MibIfTableNormal,
+    MibIfTableRaw,
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS2)
+    MibIfTableNormalWithoutStatistics
+#endif
+} MIB_IF_TABLE_LEVEL, *PMIB_IF_TABLE_LEVEL;
+
+typedef struct _MIB_UNICASTIPADDRESS_ROW
+{
+    SOCKADDR_INET Address;
+    NET_LUID InterfaceLuid;
+    NET_IFINDEX InterfaceIndex;
+    NL_PREFIX_ORIGIN PrefixOrigin;
+    NL_SUFFIX_ORIGIN SuffixOrigin;
+    ULONG ValidLifetime;
+    ULONG PreferredLifetime;
+    UINT8 OnLinkPrefixLength;
+    BOOLEAN SkipAsSource;
+    NL_DAD_STATE DadState;
+    SCOPE_ID ScopeId;
+    LARGE_INTEGER CreationTimeStamp;
+} MIB_UNICASTIPADDRESS_ROW, *PMIB_UNICASTIPADDRESS_ROW;
+
+typedef struct _MIB_UNICASTIPADDRESS_TABLE
+{
+    ULONG NumEntries;
+    MIB_UNICASTIPADDRESS_ROW Table[ANY_SIZE];
+} MIB_UNICASTIPADDRESS_TABLE, *PMIB_UNICASTIPADDRESS_TABLE;
+
 NETIOAPI_API GetIfEntry2(IN OUT PMIB_IF_ROW2 Row);
 NETIOAPI_API GetIfTable2(OUT PMIB_IF_TABLE2 *Table);
+NETIOAPI_API ConvertInterfaceLuidToIndex(const NET_LUID*,NET_IFINDEX*);
 
 #endif
 
