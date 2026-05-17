@@ -434,6 +434,17 @@ Init(PUSERCONNECT UserCon /*PUSERSRV_API_CONNECTINFO*/)
         return FALSE;
     }
 
+#if (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA)
+    /* FIXME: Provide the actual PFNs */
+    PVOID DummyPfns[RTLP_NUMBER_OF_NTUSER_AW_PFNS] = { 0 };
+    Status = RtlInitializeNtUserPfn(DummyPfns,
+                                    sizeof(DummyPfns),
+                                    DummyPfns,
+                                    sizeof(DummyPfns),
+                                    DummyPfns,
+                                    RTLP_NUMBER_OF_NTUSER_X_PFNS * sizeof(PVOID));
+#endif
+
     TRACE("<-- user32::Init()\n");
 
     return NT_SUCCESS(Status);
