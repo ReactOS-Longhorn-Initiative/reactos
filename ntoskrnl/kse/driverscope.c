@@ -162,7 +162,7 @@ ShimExFreePoolWithTag(
             p, _ReturnAddress(), Tag);
     }
 
-    return OriginalFunction(p, Tag);
+    OriginalFunction(p, Tag);
 }
 
 static PVOID NTAPI
@@ -199,7 +199,7 @@ ShimExFreePool(
             p, _ReturnAddress(), 0);
     }
 
-    return OriginalFunction(p);
+    OriginalFunction(p);
 }
 
 static NTSTATUS NTAPI
