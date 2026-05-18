@@ -15,6 +15,11 @@
             <KSHIM_REF NAME="SkipDriverUnload" />
         </KDRIVER>
 
+        <!-- -->
+        <KDRIVER NAME="nv4_mini.sys" APP_NAME="Nvidia kernel mode driver" VENDOR="NVIDIA">
+            <KSHIM_REF NAME="KmVlShim" />
+        </KDRIVER>
+
         <!-- KDEVICE is not supported yet! -->
         <KDEVICE NAME="USB:USB\VID_0000&amp;PID_0000">
             <FLAG NAME="USB">
@@ -23,6 +28,10 @@
         </KDEVICE>
 
         <KSHIM NAME="driverscope">
+            <MODULE>NT kernel component</MODULE>
+        </KSHIM>
+
+        <KSHIM NAME="KmVlShim">
             <MODULE>NT kernel component</MODULE>
         </KSHIM>
 
