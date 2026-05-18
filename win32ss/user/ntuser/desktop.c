@@ -2191,7 +2191,7 @@ IntPaintDesktop(HDC hDC)
             if (!pszPrevText)
                 pszPrevText = L"";
             
-            if (swprintf(wszExportVer, wszDllExportFormat, major, minor, pszPrevText) > 0)
+            if (swprintf(wszExportVer, _countof(wszExportVer), wszDllExportFormat, major, minor, pszPrevText) > 0)
             {
                 VerStrs[index].n = lstrlenW(wszExportVer);
                 VerStrs[index].lpstr = wszExportVer;

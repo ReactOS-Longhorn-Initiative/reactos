@@ -3918,11 +3918,6 @@ static HRESULT MLangConvertCharset_create(IUnknown *outer, void **obj)
 
 /******************************************************************************/
 
-HRESULT WINAPI DllCanUnloadNow(void)
-{
-    return dll_count == 0 ? S_OK : S_FALSE;
-}
-
 static BOOL WINAPI allocate_font_link_cb(PINIT_ONCE init_once, PVOID args, PVOID *context)
 {
     return SUCCEEDED(MultiLanguage_create(NULL, (void**)&font_link_global));
