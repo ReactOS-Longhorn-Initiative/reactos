@@ -861,7 +861,7 @@ PdoHandleQueryInstanceId(
     LPWSTR InstanceId;
 
     // use instance count and LUN
-    swprintf(Buffer, L"%x%x%x", PdoExtension->Bus, PdoExtension->Target, PdoExtension->Lun);
+    swprintf(Buffer, ARRAYSIZE(Buffer), L"%x%x%x", PdoExtension->Bus, PdoExtension->Target, PdoExtension->Lun);
 
     Length = wcslen(Buffer) + 1;
 
