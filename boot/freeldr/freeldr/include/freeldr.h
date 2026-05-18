@@ -134,7 +134,7 @@
 #include <arch/mips/arcbios.h>
 #endif
 
-#define TARGET_VERSION _WIN32_WINNT_WS03
+#define TARGET_VERSION _WIN32_WINNT_WIN10
 
 VOID __cdecl BootMain(IN PCCH CmdLine);
 
