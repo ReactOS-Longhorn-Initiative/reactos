@@ -23,6 +23,7 @@ endif()
 
 add_subdirectory(delayimp)
 add_subdirectory(dmilib)
+add_subdirectory(dmoguids)
 #add_subdirectory(dnslib) Nothing links to this lib.
 add_subdirectory(drivers)
 add_subdirectory(dxguid)
@@ -37,6 +38,7 @@ endif()
 
 add_subdirectory(ioevent)
 add_subdirectory(lsalib)
+add_subdirectory(mfuuid)
 add_subdirectory(nt)
 add_subdirectory(pathcch)
 add_subdirectory(poguid)

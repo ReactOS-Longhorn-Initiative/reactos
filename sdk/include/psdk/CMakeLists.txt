@@ -99,6 +99,7 @@ list(APPEND SOURCE
     endpointvolume.idl
     exdisp.idl
     eventtoken.idl
+    evr.idl
     fusion.idl
     hlink.idl
     hstring.idl
@@ -116,8 +117,12 @@ list(APPEND SOURCE
     inspectable.idl
     mediaobj.idl
     metahost.idl
+    mfd3d12.idl
     mfidl.idl
+    mfmediaengine.idl
     mfobjects.idl
+    mfplay.idl
+    mfreadwrite.idl
     mftransform.idl
     mimeinfo.idl
     mimeole.idl
@@ -161,6 +166,7 @@ list(APPEND SOURCE
 #   rstbas.idl
 #   rstinf.idl
 #   rstloc.idl
+    rtworkq.idl
     sensevts.idl
     servprov.idl
 #   sesprp.idl
@@ -225,6 +231,7 @@ list(APPEND SOURCE
     inputpaneinterop.idl
     ivectorchangedeventargs.idl
     winsxs.idl
+    wmcodecdsp.idl
     wmdrmsdk.idl
     wmiutils.idl
     wmsbuffer.idl
