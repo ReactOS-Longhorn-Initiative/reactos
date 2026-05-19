@@ -1170,10 +1170,10 @@ CommitLegacyRoutine(
     IN LPVOID Parameter)
 {
     PSOUND_OVERLAPPED Overlap = (PSOUND_OVERLAPPED)Parameter;
-    DPRINT1("CommitLegacyRoutine Before wait\n");
+    //DPRINT1("CommitLegacyRoutine Before wait\n");
     /* Wait for the I/O to complete */
     WaitForSingleObjectEx(Overlap->Standard.hEvent, INFINITE, TRUE);
-    DPRINT1("CommitLegacyRoutine after wait\n");
+    //DPRINT1("CommitLegacyRoutine after wait\n");
     CommitWaveBufferApc(NULL, (PIO_STATUS_BLOCK)Overlap, 0);
     ExitThread(0);
 }

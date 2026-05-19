@@ -324,7 +324,7 @@ NTSTATUS AfdWaitForListen( PDEVICE_OBJECT DeviceObject, PIRP Irp,
         SocketStateUnlock( FCB );
         return Status;
     } else if (FCB->NonBlocking) {
-        AFD_DbgPrint(MIN_TRACE,("No connection ready on a non-blocking socket\n"));
+        //AFD_DbgPrint(MIN_TRACE,("No connection ready on a non-blocking socket\n"));
 
         return UnlockAndMaybeComplete(FCB, STATUS_CANT_WAIT, Irp, 0);
     } else {
