@@ -57,6 +57,7 @@
 @ stdcall FreeAddrInfoW(ptr) freeaddrinfo
 @ stdcall -stub -version=0x600+ GetAddrInfoExA(str str long ptr ptr ptr ptr ptr ptr ptr)
 @ stdcall -stub -version=0x600+ GetAddrInfoExW(wstr wstr long ptr ptr ptr ptr ptr ptr ptr)
+@ stdcall -stub -version=0x600+ GetAddrInfoExCancel(ptr)
 @ stdcall GetAddrInfoW(wstr wstr ptr ptr)
 @ stdcall GetNameInfoW(ptr long wstr long wstr long long)
 @ stdcall -version=0x600+ InetNtopW(long ptr ptr long)

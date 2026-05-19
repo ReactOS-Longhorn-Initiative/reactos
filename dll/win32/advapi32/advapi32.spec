@@ -217,6 +217,7 @@
 @ stdcall EncryptionDisable(wstr long)
 @ stdcall EnumDependentServicesA(long long ptr long ptr ptr)
 @ stdcall EnumDependentServicesW(long long ptr long ptr ptr)
+@ stdcall -stub -version=0x600+ EnumDynamicTimeZoneInformation(long ptr)
 @ stdcall EnumServiceGroupW(ptr long long ptr long ptr ptr ptr wstr)
 @ stdcall EnumServicesStatusA(long long long ptr long ptr ptr ptr)
 @ stdcall EnumServicesStatusExA(long long long long ptr long ptr ptr ptr str)
@@ -224,6 +225,7 @@
 @ stdcall EnumServicesStatusW(long long long ptr long ptr ptr ptr)
 @ stdcall -version=0x502 EnumerateTraceGuids(ptr long ptr) ntdll.EtwEnumerateTraceGuids
 @ stdcall -stub -version=0x600+ EnumerateTraceGuids(ptr long ptr) # EtwEnumerateTraceGuids
+@ stdcall -stub -version=0x600+ EnumerateTraceGuidsEx(long ptr long ptr long ptr)
 @ stdcall EqualDomainSid(ptr ptr ptr)
 @ stdcall EqualPrefixSid(ptr ptr)
 @ stdcall EqualSid(ptr ptr)
@@ -234,6 +236,7 @@
 @ stdcall EventSetInformation(int64 long ptr long) ntdll.EtwEventSetInformation
 @ stdcall EventUnregister(int64) ntdll.EtwEventUnregister
 @ stdcall EventWrite(int64 ptr long ptr) ntdll.EtwEventWrite
+@ stdcall -stub -version=0x600+ EventWriteEx(long long int64 long long long long long)
 @ stdcall EventWriteString(int64 long int64 ptr) ntdll.EtwEventWriteString
 @ stdcall EventWriteTransfer(int64 ptr ptr ptr long ptr) ntdll.EtwEventWriteTransfer
 @ stdcall FileEncryptionStatusA(str ptr)
@@ -255,6 +258,7 @@
 @ stdcall GetAuditedPermissionsFromAclW(ptr ptr ptr ptr)
 @ stdcall GetCurrentHwProfileA(ptr)
 @ stdcall GetCurrentHwProfileW(ptr)
+@ stdcall -stub -version=0x600+ GetDynamicTimeZoneInformationEffectiveYears(ptr ptr ptr)
 @ stdcall GetEffectiveRightsFromAclA(ptr ptr ptr)
 @ stdcall GetEffectiveRightsFromAclW(ptr ptr ptr)
 @ stdcall GetEventLogInformation(long long ptr long ptr)
