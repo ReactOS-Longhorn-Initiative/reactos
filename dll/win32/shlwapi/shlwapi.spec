@@ -472,7 +472,8 @@
 472 stdcall -noname SHCreatePropertyBagOnProfileSection(wstr wstr long ptr ptr)
 473 stdcall -noname SHGetIniStringUTF7W(wstr wstr ptr long wstr)
 474 stdcall -noname SHSetIniStringUTF7W(wstr wstr wstr wstr)
-475 stdcall -noname GetShellSecurityDescriptor(ptr long)
+475 stdcall -version=0x500-0x503 -noname GetShellSecurityDescriptor(ptr long)
+475 stdcall -version=0x600+ -noname GetShellSecurityDescriptor(ptr long) shunimpl.$211 # FIXME: should be #211, but GCC 8 is broken
 476 stdcall -noname SHGetObjectCompatFlags(ptr ptr)
 477 stdcall -noname SHCreatePropertyBagOnMemory(long ptr ptr)
 478 stdcall -noname IUnknown_TranslateAcceleratorIO(ptr ptr)
