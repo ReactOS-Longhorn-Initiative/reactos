@@ -283,6 +283,10 @@
 284 stdcall BSTR_UserMarshal(ptr ptr ptr)
 285 stdcall BSTR_UserUnmarshal(ptr ptr ptr)
 286 stdcall BSTR_UserFree(ptr ptr)
+@ stdcall -version=0x600+ BSTR_UserSize64(ptr long ptr) BSTR_UserSize
+@ stdcall -version=0x600+ BSTR_UserMarshal64(ptr ptr ptr) BSTR_UserMarshal
+@ stdcall -version=0x600+ BSTR_UserUnmarshal64(ptr ptr ptr) BSTR_UserUnmarshal
+@ stdcall -version=0x600+ BSTR_UserFree64(ptr ptr) BSTR_UserFree
 287 stdcall VARIANT_UserSize(ptr long ptr)
 288 stdcall VARIANT_UserMarshal(ptr ptr ptr)
 289 stdcall VARIANT_UserUnmarshal(ptr ptr ptr)
@@ -291,6 +295,10 @@
 292 stdcall LPSAFEARRAY_UserMarshal(ptr ptr ptr)
 293 stdcall LPSAFEARRAY_UserUnmarshal(ptr ptr ptr)
 294 stdcall LPSAFEARRAY_UserFree(ptr ptr)
+@ stdcall -version=0x600+ LPSAFEARRAY_UserSize64(ptr long ptr) LPSAFEARRAY_UserSize
+@ stdcall -version=0x600+ LPSAFEARRAY_UserMarshal64(ptr ptr ptr) LPSAFEARRAY_UserMarshal
+@ stdcall -version=0x600+ LPSAFEARRAY_UserUnmarshal64(ptr ptr ptr) LPSAFEARRAY_UserUnmarshal
+@ stdcall -version=0x600+ LPSAFEARRAY_UserFree64(ptr ptr) LPSAFEARRAY_UserFree
 295 stub LPSAFEARRAY_Size
 296 stub LPSAFEARRAY_Marshal
 297 stub LPSAFEARRAY_Unmarshal

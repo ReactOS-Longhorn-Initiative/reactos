@@ -543,3 +543,12 @@ Win32PoolAllocationStats(DWORD dw1, DWORD dw2, DWORD dw3, DWORD dw4, DWORD dw5)
     return FALSE;
 }
 
+
+BOOL
+WINAPI
+SoundSentry()
+{
+    UNIMPLEMENTED;
+    return TRUE;
+}
+

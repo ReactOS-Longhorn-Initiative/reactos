@@ -726,6 +726,7 @@
 @ stdcall -version=0x600+ ShutdownBlockReasonCreate(long wstr)
 @ stdcall -version=0x600+ ShutdownBlockReasonDestroy(long)
 @ stdcall SoftModalMessageBox(ptr)
+@ stdcall -version=0x600+ SoundSentry()
 @ stdcall SubtractRect(ptr ptr ptr)
 @ stdcall SwapMouseButton(long)
 @ stdcall SwitchDesktop(long) NtUserSwitchDesktop
