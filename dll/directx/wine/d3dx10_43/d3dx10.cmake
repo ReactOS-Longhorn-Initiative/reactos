@@ -5,15 +5,9 @@ function(add_d3dx10_target __version)
     spec2def(${module}.dll ${module}.spec ADD_IMPORTLIB)
 
     list(APPEND SOURCE
-        ../d3dx10_43/async.c
-        ../d3dx10_43/compiler.c
-        ../d3dx10_43/font.c
-        ../d3dx10_43/mesh.c
-        ../d3dx10_43/sprite.c
-        ../d3dx10_43/texture.c)
+        ../${module}/${module}_main.c)
 
     list(APPEND PCH_SKIP_SOURCE
-        ../d3dx10_43/guid.c
         ${CMAKE_CURRENT_BINARY_DIR}/${module}_stubs.c)
 
     add_library(${module} MODULE
@@ -22,14 +16,16 @@ function(add_d3dx10_target __version)
         version.rc
         ${CMAKE_CURRENT_BINARY_DIR}/${module}.def)
 
-    add_definitions(-D__ROS_LONG64__)
     set_module_type(${module} win32dll)
-    add_dependencies(${module} d3d_idl_headers)
+    add_dependencies(${module} d3d_idl_headers d3dx10_43)
+    add_importlibs(${module} d3dx10_43 msvcrt ntdll)
+    if(${__version} LESS 39)
+        add_importlibs(${module} d3dx10_39)
+        if(${__version} LESS 37)
+           add_importlibs(${module} d3dx10_37)
+        endif()
+    endif()
     target_link_libraries(${module} dxguid wine oldnames)
-    add_importlibs(${module} d3dcompiler_43 d3dxof usp10 user32 ole32 gdi32 msvcrt kernel32 ntdll)
-    add_delay_importlibs(${module} windowscodecs)
-  #  add_pch(${module} ../d3dx10_36/precomp.h "${PCH_SKIP_SOURCE}")
+  #  add_pch(${module} ../${module}/precomp.h "${PCH_SKIP_SOURCE}")
     add_cd_file(TARGET ${module} DESTINATION reactos/system32 FOR all)
-
-    target_compile_definitions(${module} PRIVATE D3DX_SDK_VERSION=${__version} __WINESRC__ copysignf=_copysignf)
 endfunction()
