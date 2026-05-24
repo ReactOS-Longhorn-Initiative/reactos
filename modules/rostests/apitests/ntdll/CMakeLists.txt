@@ -271,6 +271,7 @@ list(APPEND SOURCE
     RtlDosPathNameToNtPathName_U.c
     RtlDosSearchPath_U.c
     RtlDosSearchPath_Ustr.c
+    RtlExtendedContext.c
     RtlFirstFreeAce.c
     RtlFls.c
     RtlGenerate8dot3Name.c
@@ -351,7 +352,7 @@ set_target_properties(ntdll_apitest
     ENABLE_EXPORTS TRUE
     DEFINE_SYMBOL "")
 
-target_link_libraries(ntdll_apitest ntdll_crt_test_lib rtl_test_lib wine uuid ${PSEH_LIB})
+target_link_libraries(ntdll_apitest ntdll_crt_test_lib rtl_test_lib testutils wine uuid ${PSEH_LIB})
 set_module_type(ntdll_apitest win32cui)
 add_delay_importlibs(ntdll_apitest advapi32)
 add_importlibs(ntdll_apitest msvcrt kernel32 ntdll)
