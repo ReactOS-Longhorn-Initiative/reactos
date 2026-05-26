@@ -744,3 +744,8 @@
     SVC_(GdiDdDDISharedPrimaryUnLockNotification, 1)
     SVC_(GdiDdDDISignalSynchronizationObject, 1)
     SVC_(GdiDdDDIWaitForSynchronizationObject, 1)
+    SVC_(UserUpdateWindowTransform, 3)
+    SVC_(UserDwmGetSurfaceData, 2)
+    SVC_(UserDwmShutdown, 0)
+    SVC_(UserDwmStartup, 1)
+    SVC_(UserSetWindowRgnEx, 3)

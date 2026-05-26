@@ -11,10 +11,6 @@
 
 #include <std.h>
 
-
-/* This seems to be something we don't support? */
-DECLARE_HANDLE(HSPRITE);
-
 typedef struct _REMOTE_PORT_VIEW
 {
     ULONG Length;
