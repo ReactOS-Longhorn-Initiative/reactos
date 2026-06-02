@@ -556,13 +556,13 @@ typedef struct _KUSER_SHARED_DATA
     ULONG TimeZoneId;                                       // 0x240
     ULONG LargePageMinimum;                                 // 0x244
 
-#if (NTDDI_VERSION >= NTDDI_WIN8)
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
     ULONG AitSamplingValue;                                 // 0x248
     ULONG AppCompatFlag;                                    // 0x24c
     ULONGLONG RNGSeedVersion;                               // 0x250
     ULONG GlobalValidationRunlevel;                         // 0x258
     volatile LONG TimeZoneBiasStamp;                        // 0x25c
-#if (NTDDI_VERSION >= NTDDI_WIN10)
+#if (NTDDI_VERSION >= NTDDI_WIN10) || defined(__REACTOS__)
     ULONG NtBuildNumber;                                    // 0x260
 #else
     ULONG Reserved2;                                        // 0x260
@@ -574,7 +574,7 @@ typedef struct _KUSER_SHARED_DATA
     NT_PRODUCT_TYPE NtProductType;                          // 0x264
     BOOLEAN ProductTypeIsValid;                             // 0x268
     BOOLEAN Reserved0[1];                                   // 0x269
-#if (NTDDI_VERSION >= NTDDI_WIN8)
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
     USHORT NativeProcessorArchitecture;                     // 0x26a
 #endif
     ULONG NtMajorVersion;                                   // 0x26c
@@ -584,7 +584,7 @@ typedef struct _KUSER_SHARED_DATA
     ULONG Reserved3;                                        // 0x2b8
     volatile ULONG TimeSlip;                                // 0x2bc
     ALTERNATIVE_ARCHITECTURE_TYPE AlternativeArchitecture;  // 0x2c0
-#if (NTDDI_VERSION >= NTDDI_WIN10)
+#if (NTDDI_VERSION >= NTDDI_WIN10) || defined(__REACTOS__)
     ULONG BootId;                                           // 0x2c4
 #else
     ULONG AltArchitecturePad[1];                            // 0x2c4
@@ -603,7 +603,7 @@ typedef struct _KUSER_SHARED_DATA
             UCHAR Reserved : 2;
         };
     };
-#if (NTDDI_VERSION >= NTDDI_WIN10_19H1)
+#if (NTDDI_VERSION >= NTDDI_WIN10_19H1) || defined(__REACTOS__)
     USHORT CyclesPerYield;                                  // 0x2d6 // Win 10 19H1+
 #else
     UCHAR Reserved6[2];                                     // 0x2d6
@@ -627,7 +627,7 @@ typedef struct _KUSER_SHARED_DATA
         } DUMMYSTRUCTNAME;
     } DUMMYUNIONNAME;
     UCHAR TscQpcPad[2];                                     // 0x2ee
-#elif (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+#elif (NTDDI_VERSION >= NTDDI_WIN10_RS1) || defined(__REACTOS__)
     union
     {
         UCHAR VirtualizationFlags;                          // 0x2ed
@@ -645,7 +645,7 @@ typedef struct _KUSER_SHARED_DATA
     UCHAR Reserved12[3];                                    // 0x2ed
 #endif // NTDDI_VERSION == NTDDI_WIN7
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if (NTDDI_VERSION >= NTDDI_VISTA) || defined(__REACTOS__)
     union
     {
         ULONG SharedDataFlags;                              // 0x2f0
@@ -679,13 +679,13 @@ typedef struct _KUSER_SHARED_DATA
 
     ULONG DataFlagsPad[1];                                  // 0x2f4
     ULONGLONG TestRetInstruction;                           // 0x2f8
-#if (NTDDI_VERSION >= NTDDI_WIN8)
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
     ULONGLONG QpcFrequency;                                 // 0x300
 #else
     ULONG SystemCall;                                       // 0x300
     ULONG SystemCallReturn;                                 // 0x304
 #endif
-#if (NTDDI_VERSION >= NTDDI_WIN10_TH2)
+#if (NTDDI_VERSION >= NTDDI_WIN10_TH2) || defined(__REACTOS__)
     ULONG SystemCall;                                       // 0x308
     ULONG SystemCallPad0;                                   // 0x30c Renamed to Reserved2 in Vibranium R3
     ULONGLONG SystemCallPad[2];                             // 0x310
@@ -704,20 +704,20 @@ typedef struct _KUSER_SHARED_DATA
     } DUMMYUNIONNAME3;
     ULONG Cookie;                                           // 0x330
 
-#if (NTDDI_VERSION < NTDDI_VISTA)
+#if 0//(NTDDI_VERSION < NTDDI_VISTA)
     ULONG Wow64SharedInformation[MAX_WOW64_SHARED_ENTRIES]; // 0x334
 #endif
 
 //
 // Windows Vista and later
 //
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if (NTDDI_VERSION >= NTDDI_VISTA) || defined(__REACTOS__)
 
     ULONG CookiePad[1];                                     // 0x334
     LONGLONG ConsoleSessionForegroundProcessId;             // 0x338
 
-#if (NTDDI_VERSION >= NTDDI_WIN8)
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
+#if (NTDDI_VERSION >= NTDDI_WINBLUE) || defined(__REACTOS__)
     ULONGLONG TimeUpdateLock;                               // 0x340
 #else
     ULONGLONG TimeUpdateSequence;                           // 0x340
@@ -726,7 +726,7 @@ typedef struct _KUSER_SHARED_DATA
     ULONGLONG BaselineInterruptTimeQpc;                     // 0x350
     ULONGLONG QpcSystemTimeIncrement;                       // 0x358
     ULONGLONG QpcInterruptTimeIncrement;                    // 0x360
-#if (NTDDI_VERSION >= NTDDI_WIN10)
+#if (NTDDI_VERSION >= NTDDI_WIN10) || defined(__REACTOS__)
     UCHAR QpcSystemTimeIncrementShift;                      // 0x368
     UCHAR QpcInterruptTimeIncrementShift;                   // 0x369
     USHORT UnparkedProcessorCount;                          // 0x36a
@@ -737,20 +737,20 @@ typedef struct _KUSER_SHARED_DATA
     ULONG QpcInterruptTimeIncrement32;                      // 0x36c
     UCHAR QpcSystemTimeIncrementShift;                      // 0x370
     UCHAR QpcInterruptTimeIncrementShift;                   // 0x371
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
+#if (NTDDI_VERSION >= NTDDI_WINBLUE) || defined(__REACTOS__)
     USHORT UnparkedProcessorCount;                          // 0x372
     UCHAR Reserved8[12];                                    // 0x374
 #else
     UCHAR Reserved8[14];                                    // 0x372
 #endif
 #endif // NTDDI_VERSION < NTDDI_WIN10
-#elif (NTDDI_VERSION >= NTDDI_VISTASP2)
+#elif (NTDDI_VERSION >= NTDDI_VISTASP2) || defined(__REACTOS__)
     ULONG DEPRECATED_Wow64SharedInformation[MAX_WOW64_SHARED_ENTRIES]; // 0x340
 #else
     ULONG Wow64SharedInformation[MAX_WOW64_SHARED_ENTRIES]; // 0x340
 #endif // NTDDI_VERSION >= NTDDI_VISTA
 
-#if (NTDDI_VERSION >= NTDDI_WIN7)
+#if (NTDDI_VERSION >= NTDDI_WIN7) || defined(__REACTOS__)
     USHORT UserModeGlobalLogger[16];                        // 0x380
 #else
     USHORT UserModeGlobalLogger[8];                         // 0x380
@@ -761,9 +761,9 @@ typedef struct _KUSER_SHARED_DATA
     ULONG ImageFileExecutionOptions;                        // 0x3a0
     ULONG LangGenerationCount;                              // 0x3a4 Vista SP2+
 
-#if (NTDDI_VERSION >= NTDDI_WIN8)
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
     ULONGLONG Reserved4;                                    // 0x3a8
-#elif (NTDDI_VERSION >= NTDDI_WIN7)
+#elif (NTDDI_VERSION >= NTDDI_WIN7) || defined(__REACTOS__)
     ULONGLONG Reserved5;                                    // 0x3a8
 #else
     union
@@ -779,11 +779,11 @@ typedef struct _KUSER_SHARED_DATA
 //
 // Windows 7 and later
 //
-#if (NTDDI_VERSION >= NTDDI_WIN7)
+#if (NTDDI_VERSION >= NTDDI_WIN7) || defined(__REACTOS__)
     volatile ULONGLONG QpcBias;                            // 0x3b8 // Win7: TscQpcBias
     /* volatile */ ULONG ActiveProcessorCount;             // 0x3c0 // not volatile since Win 8.1 Update 1
 
-#if (NTDDI_VERSION >= NTDDI_WIN8)
+#if (NTDDI_VERSION >= NTDDI_WIN8) || defined(__REACTOS__)
     volatile UCHAR ActiveGroupCount;                        // 0x3c4
     UCHAR Reserved9;                                        // 0x3c5
     union
@@ -824,10 +824,6 @@ typedef struct _KUSER_SHARED_DATA
 #if (NTDDI_VERSION >= NTDDI_WIN11_NI)
     ULONG64 UserPointerAuthMask;                            // 0x730
 #endif // NTDDI_VERSION >= NTDDI_WIN11_NI
-
-#if (NTDDI_VERSION < NTDDI_WIN7) && defined(__REACTOS__)
-    XSTATE_CONFIGURATION XState;
-#endif
 } KUSER_SHARED_DATA, *PKUSER_SHARED_DATA;
 
 //
