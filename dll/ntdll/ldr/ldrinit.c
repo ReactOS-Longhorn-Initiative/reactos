@@ -994,13 +994,6 @@ LdrShutdownProcess(VOID)
     /* Enter the Loader Lock */
     RtlEnterCriticalSection(&LdrpLoaderLock);
 
-    /* Cleanup trace logging data (Etw) */
-    if (SharedUserData->TraceLogging)
-    {
-        /* FIXME */
-        DPRINT1("We don't support Etw yet.\n");
-    }
-
     /* Start at the end */
     ListHead = &Peb->Ldr->InInitializationOrderModuleList;
     NextEntry = ListHead->Blink;
@@ -1113,13 +1106,6 @@ LdrShutdownThread(VOID)
 
     DPRINT("LdrShutdownThread() called for %wZ\n",
             &LdrpImageEntry->BaseDllName);
-
-    /* Cleanup trace logging data (Etw) */
-    if (SharedUserData->TraceLogging)
-    {
-        /* FIXME */
-        DPRINT1("We don't support Etw yet.\n");
-    }
 
     /* Get the Ldr Lock */
     RtlEnterCriticalSection(&LdrpLoaderLock);
