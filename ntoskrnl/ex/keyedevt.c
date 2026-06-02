@@ -124,6 +124,7 @@ ExpReleaseOrWaitForKeyedEvent(
     ULONG_PTR HashIndex;
     PVOID PreviousKeyedWaitValue;
     PEPROCESS CurrentThreadProcess;
+    KPROCESSOR_MODE PreviousMode;
 
     CurrentThread = PsGetCurrentThread();
     /* Same as PsGetCurrentThreadProcess(); not declared in headers this TU pulls. */
@@ -201,6 +202,7 @@ ExpReleaseOrWaitForKeyedEvent(
     /* Unlock the list */
     ExReleasePushLockExclusive(&KeyedEvent->HashTable[HashIndex].Lock);
     KeLeaveCriticalRegion();
+    PreviousMode = KeGetPreviousMode();
 
     /* Wait in kernel mode: the per-thread KeyedWaitSemaphore is an internal
      * kernel synchronization detail. UserMode waits rely on KiCheckAlertability
@@ -208,7 +210,7 @@ ExpReleaseOrWaitForKeyedEvent(
      * (e.g. condition-variable stress under multi-threaded load on amd64). */
     Status = KeWaitForSingleObject(&CurrentThread->KeyedWaitSemaphore,
                                    WrKeyedEvent,
-                                   KernelMode,
+                                   PreviousMode,
                                    Alertable,
                                    Timeout);
 
