@@ -2480,6 +2480,7 @@ MmArmInitSystem(IN ULONG Phase,
         ASSERT(SharedUserData->NumberOfPhysicalPages == 0);
         SharedUserData->NumberOfPhysicalPages = MmNumberOfPhysicalPages;
         SharedUserData->LargePageMinimum = 0;
+        SharedUserData->SuiteMask = 256;
 
         /* Check for workstation (Wi for WinNT) */
         if (MmProductType == '\0i\0W')

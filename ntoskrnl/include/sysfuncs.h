@@ -103,10 +103,7 @@ SVC_(AccessCheckByType, 11)
 SVC_(AccessCheckByTypeResultList, 11)
 SVC_(AccessCheckByTypeResultListAndAuditAlarm, 16)
 SVC_(AccessCheckByTypeResultListAndAuditAlarmByHandle, 17)
-// NtAcquireProcessActivityReference in 1709+
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(AddAtomEx, 0) // FIXME
-#endif
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 #if (NTDDI_VERSION < NTDDI_WIN7)
 SVC_(AcquireCMFViewOwnership, 3)
@@ -115,30 +112,22 @@ SVC_(AddBootEntry, 2)
 SVC_(AddDriverEntry, 2)
 #endif
 SVC_(AdjustGroupsToken, 6)
-#if (NTDDI_VERSION >= NTDDI_WIN8)
-SVC_(AdjustTokenClaimsAndDeviceGroups, 0) // FIXME
-#endif
+SVC_(AdjustTokenClaimsAndDeviceGroups, 0)
 SVC_(AlertResumeThread, 2)
 SVC_(AlertThread, 1)
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(AlertThreadByThreadId, 0) // FIXME
-#endif
 SVC_(AllocateLocallyUniqueId, 1)
-#if (NTDDI_VERSION >= NTDDI_WIN7)
 SVC_(AllocateReserveObject, 3)
-#endif
 SVC_(AllocateUserPhysicalPages, 3)
 SVC_(AllocateUuids, 4)
 /*#if (NTDDI_VERSION >= NTDDI_WIN10_RS4)
 SVC_(AllocateVirtualMemoryEx, 7) // Added in 1803
 #endif*/
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+
 SVC_(AlpcAcceptConnectPort, 9)
 SVC_(AlpcCancelMessage, 3)
 SVC_(AlpcConnectPort, 11)
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(AlpcConnectPortEx, 0) // FIXME
-#endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(AlpcCreatePort, 3)
 SVC_(AlpcCreatePortSection, 6)
 SVC_(AlpcCreateResourceReserve, 4)
@@ -149,9 +138,7 @@ SVC_(AlpcDeleteResourceReserve, 3)
 SVC_(AlpcDeleteSectionView, 3)
 SVC_(AlpcDeleteSecurityContext, 3)
 SVC_(AlpcDisconnectPort, 2)
-#if (NTDDI_VERSION >= NTDDI_WIN10)
 SVC_(AlpcImpersonateClientContainerOfPort, 0) // FIXME
-#endif
 SVC_(AlpcImpersonateClientOfPort, 3)
 SVC_(AlpcOpenSenderProcess, 6)
 SVC_(AlpcOpenSenderThread, 6)
@@ -160,7 +147,6 @@ SVC_(AlpcQueryInformationMessage, 6)
 SVC_(AlpcRevokeSecurityContext, 3)
 SVC_(AlpcSendWaitReceivePort, 8)
 SVC_(AlpcSetInformation, 4)
-#endif // (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(AreMappedFilesTheSame, 2)
 SVC_(AssignProcessToJobObject, 2)
 /*#if (NTDDI_VERSION >= NTDDI_SERVER08 && NTDDI_VERSION < NTDDI_WIN7)
@@ -169,32 +155,22 @@ SVC_(RequestDeviceWakeup, 0) // FIXME
 /*#if (NTDDI_VERSION == NTDDI_VISTA)
 SVC_(SavepointTransaction, 0) // FIXME
 #endif*/
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(AssociateWaitCompletionPacket, 0) // FIXME
-#endif
 /*#if (NTDDI_VERSION >= NTDDI_WIN10_RS3)
 SVC_(CallEnclave, 0) // FIXME
 #endif*/
-#if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CancelIoFileEx, 3)
 SVC_(CancelSynchronousIoFile, 3)
-#if (NTDDI_VERSION >= NTDDI_WIN8)
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
 SVC_(CancelTimer2, 0) // FIXME
-#endif
 SVC_(CancelWaitCompletionPacket, 0) // FIXME
-#endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CommitComplete, 2)
 SVC_(CommitEnlistment, 2)
 
 // Note: added in 1607
 SVC_(CommitRegistryTransaction, 0) // FIXME
 SVC_(CommitTransaction, 2)
-#endif // (NTDDI_VERSION == NTDDI_VISTA)
 SVC_(CompactKeys, 2)
-#if (NTDDI_VERSION >= NTDDI_WIN10)
 SVC_(CompareObjects, 0) // FIXME
-#endif
 // NtCompareSigningLevels: 1709+
 SVC_(CompareTokens, 3)
 SVC_(CompleteConnectPort, 1)
@@ -203,9 +179,7 @@ SVC_(ConnectPort, 8)
 // NtConvertBetweenAuxiliaryCounterAndPerformanceCounter: 1709
 SVC_(CreateDebugObject, 4)
 SVC_(CreateDirectoryObject, 3)
-#if (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CreateDirectoryObjectEx, 0) // FIXME
-#endif // (NTDDI_VERSION >= NTDDI_WIN8)
 SVC_(CreateEnclave, 0) // FIXME
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(CreateEnlistment, 8)

@@ -935,7 +935,7 @@ ExpInitializeExecutive(IN ULONG Cpu,
     PCHAR CommandLine, PerfMem;
     ULONG PerfMemUsed;
     PLDR_DATA_TABLE_ENTRY NtosEntry;
-    PMESSAGE_RESOURCE_ENTRY MsgEntry;
+    //PMESSAGE_RESOURCE_ENTRY MsgEntry;
     ANSI_STRING CSDString;
     size_t Remaining = 0;
     PCHAR RcEnd = NULL;
@@ -1143,6 +1143,7 @@ ExpInitializeExecutive(IN ULONG Cpu,
                                   InLoadOrderLinks);
 
     /* Check if this is a service pack */
+#if 0
     if (CmNtCSDVersion & 0xFFFF)
     {
         /* Get the service pack string */
@@ -1209,6 +1210,7 @@ ExpInitializeExecutive(IN ULONG Cpu,
         /* Update length */
         CmCSDVersionString.MaximumLength = sizeof(Buffer) - (USHORT)Remaining;
     }
+#endif
 
     /* Check if we have an RC number */
     if ((CmNtCSDVersion & 0xFFFF0000) && (CmNtCSDReleaseType == 1))
