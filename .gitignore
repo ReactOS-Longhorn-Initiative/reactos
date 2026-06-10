@@ -14,3 +14,5 @@ DarkFiresReactOSModules
 .settings
 .vscode
 sdk/tools/winesync/winesync.cfg
+modules/x86
+modules/x64
