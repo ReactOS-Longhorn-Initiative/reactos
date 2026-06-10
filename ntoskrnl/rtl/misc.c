@@ -228,6 +228,14 @@ AVrfInternalHeapFreeNotification(PVOID AllocationBase, SIZE_T AllocationSize)
     /* Stub for linking against rtl */
 }
 
-
+BOOLEAN
+NTAPI
+RtlIsNtDdiVersionAvailable_nt(ULONG Version)
+{
+    BOOLEAN result = 0; 
+    if (!Version)
+        result = Version <= 0xA000002; 
+    return result;
+}
 
 /* EOF */

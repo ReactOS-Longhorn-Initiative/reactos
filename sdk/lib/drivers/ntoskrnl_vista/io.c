@@ -8,6 +8,7 @@
 
 #include <ntdef.h>
 #include <ntifs.h>
+#include <debug.h>
 
 typedef struct _EX_WORKITEM_CONTEXT
 {
@@ -17,6 +18,24 @@ typedef struct _EX_WORKITEM_CONTEXT
 } EX_WORKITEM_CONTEXT, *PEX_WORKITEM_CONTEXT;
 
 #define TAG_IOWI 'IWOI'
+
+extern
+NTSTATUS
+NTAPI
+IopSynchronousCompletion(IN PDEVICE_OBJECT DeviceObject,
+                         IN PIRP Irp,
+                         IN PVOID Context);
+
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoCreateArcName(
+  _In_ PDEVICE_OBJECT DeviceObject
+)
+{
+    UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
 
 NTKRNLVISTAAPI
 NTSTATUS
@@ -66,6 +85,52 @@ IoQueueWorkItemEx(
     IoQueueWorkItem(IoWorkItem, IopWorkItemExCallback, QueueType, newContext);
 }
 
+NTSTATUS
+NTAPI
+IoAllocateSfioStreamIdentifier(
+  _In_ PFILE_OBJECT FileObject,
+  _In_ ULONG Length,
+  _In_ PVOID Signature,
+  _Out_ PVOID *StreamIdentifier)
+{
+    UNIMPLEMENTED;
+    *StreamIdentifier = NULL;
+    return STATUS_SUCCESS;
+}
+
+
+PVOID
+NTAPI
+IoGetSfioStreamIdentifier(
+    _In_ PFILE_OBJECT FileObject,
+    _In_ PVOID Signature)
+{
+    UNIMPLEMENTED;
+    return NULL;
+}
+
+NTSTATUS
+NTAPI
+IoFreeSfioStreamIdentifier(
+    _In_ PFILE_OBJECT FileObject,
+    _In_ PVOID Signature)
+{
+    UNIMPLEMENTED;
+    return STATUS_SUCCESS;
+}
+
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoSetActivityIdIrp(
+    _In_ PIRP    Irp,
+    _In_opt_ LPCGUID Guid
+)
+{
+    UNIMPLEMENTED;
+    return STATUS_UNSUCCESSFUL;
+}
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTKRNLVISTAAPI
@@ -80,6 +145,7 @@ IoSetDevicePropertyData(
     _In_ ULONG Size,
     _In_opt_ PVOID Data)
 {
+    UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -98,6 +164,7 @@ IoGetDevicePropertyData(
     _Out_ PULONG RequiredSize,
     _Out_ PDEVPROPTYPE Type)
 {
+    UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -114,6 +181,7 @@ IoSetDeviceInterfacePropertyData(
     _In_ ULONG Size,
     _In_reads_bytes_opt_(Size) PVOID Data)
 {
+    UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -145,4 +213,101 @@ IoSetMasterIrpStatus(
     {
         MasterIrp->IoStatus.Status = Status;
     }
+}
+
+NTKRNLVISTAAPI
+NTSTATUS
+NTAPI
+IoGetActivityIdIrp(
+    _In_ PIRP    Irp,
+    _Out_ LPCGUID Guid
+)
+{
+    UNIMPLEMENTED;
+    return STATUS_NOT_FOUND;
+}
+
+NTSTATUS
+NTAPI
+IoGetAffinityInterrupt(
+  _In_ PKINTERRUPT InterruptObject,
+  _Out_ PGROUP_AFFINITY GroupAffinity)
+{
+    UNIMPLEMENTED;
+    return STATUS_INVALID_PARAMETER;
+}
+
+NTKRNLVISTAAPI
+VOID
+NTAPI
+IoReportInterruptActive(
+    _In_ PIO_REPORT_INTERRUPT_ACTIVE_STATE_PARAMETERS Parameters
+)
+{
+    UNIMPLEMENTED;
+}
+
+NTKRNLVISTAAPI
+VOID
+NTAPI
+IoReportInterruptInactive(
+    _In_ PIO_REPORT_INTERRUPT_ACTIVE_STATE_PARAMETERS Parameters
+)
+{
+    UNIMPLEMENTED;
+}
+
+LONG_PTR FASTCALL
+ObfReferenceObjectWithTag (
+    PVOID Object,
+    ULONG Tag )
+{
+    return ObfReferenceObject(Object);
+}
+
+
+LONG_PTR FASTCALL
+ObfDereferenceObjectWithTag (
+    PVOID Object,
+    ULONG Tag )
+{
+    return ObfDereferenceObject(Object);
+}
+
+errno_t memcpy_s(
+    void* dest,
+    size_t      destSize,
+    const void* src,
+    size_t      count
+)
+{
+    if (dest == NULL) {
+        return EINVAL;
+    }
+    
+    if (destSize == 0) {
+        return ERANGE;
+    }
+
+    if (src == NULL || count == 0) {
+        RtlZeroMemory(dest, destSize); 
+        return (src == NULL) ? EINVAL : 0;
+    }
+
+    if (count > destSize) {
+        RtlZeroMemory(dest, destSize);
+        return ERANGE;
+    }
+    const unsigned char* s = (const unsigned char*)src;
+    unsigned char* d = (unsigned char*)dest;
+
+    if ((d >= s && d < s + count) || (s >= d && s < d + destSize)) {
+        RtlZeroMemory(dest, destSize);
+        return EINVAL; 
+    }
+    for (size_t i = 0; i < count; i++) {
+        d[i] = s[i];
+    }
+
+    return 0; // Success
 }
