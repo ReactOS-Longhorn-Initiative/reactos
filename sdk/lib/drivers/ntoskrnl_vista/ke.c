@@ -55,3 +55,22 @@ KeSetCoalescableTimer(
 {
     return KeSetTimerEx(Timer, DueTime, Period, Dpc);
 }
+
+NTKRNLVISTAAPI
+ULONG
+NTAPI
+KeQueryActiveProcessorCountEx(_In_ USHORT GroupNumber)
+{
+	return 1;
+}
+
+ULONG
+NTAPI
+KeGetProcessorIndexFromNumber(IN PPROCESSOR_NUMBER ProcNumber)
+{
+    if (ProcNumber->Group != 0 || ProcNumber->Number != 0)
+    {
+        return MAXULONG;
+    }
+    return 0;
+}
