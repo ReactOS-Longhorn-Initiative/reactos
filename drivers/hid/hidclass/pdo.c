@@ -344,7 +344,7 @@ HidClassPDO_HandleQueryInstanceId(
     //
     // write device id
     //
-    swprintf(Buffer, L"%04x", (UINT16)(PDODeviceExtension->CollectionNumber & 0xFFFF));
+    _swprintf(Buffer, L"%04x", (UINT16)(PDODeviceExtension->CollectionNumber & 0xFFFF));
     Irp->IoStatus.Information = (ULONG_PTR)Buffer;
 
     //

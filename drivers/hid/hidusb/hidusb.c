@@ -468,7 +468,15 @@ HidUsb_ReadReportCompletion(
         //
         // FIXME handle error
         //
-        ASSERT(Urb->UrbHeader.Status == USBD_STATUS_SUCCESS || Urb->UrbHeader.Status == USBD_STATUS_DEVICE_GONE);
+        // Only the success path guarantees a successful URB. We also reach here
+        // when the read-report IRP is cancelled (e.g. the interrupt queue is
+        // purged while the device is being removed) or the device has been
+        // disconnected; in those cases the URB legitimately carries an error
+        // status such as USBD_STATUS_CANCELED, so do not assert on it.
+        //
+        ASSERT(!NT_SUCCESS(Irp->IoStatus.Status) ||
+               Urb->UrbHeader.Status == USBD_STATUS_SUCCESS ||
+               Urb->UrbHeader.Status == USBD_STATUS_DEVICE_GONE);
 
         //
         // free the urb

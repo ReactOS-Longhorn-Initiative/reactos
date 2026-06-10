@@ -132,6 +132,122 @@ HalBuildMdlFromScatterGatherList(
     IN PMDL OriginalMdl,
     OUT PMDL *TargetMdl);
 
+/*
+ * DMA v3 (DEVICE_DESCRIPTION_VERSION3) operations. The HAL DMA engine is
+ * v2-era, but KMDF/WDM drivers (e.g. USBXHCI) request a v3 adapter whenever
+ * they set an AddressWidthOverride / WdmDmaVersionOverride or use a system-DMA
+ * profile, and then dispatch through the *Ex entries of DMA_OPERATIONS. These
+ * are thin shims that translate the v3 (MDL + 64-bit Offset + Flags + optional
+ * completion routine) calling convention onto the existing v2 primitives.
+ */
+NTSTATUS
+NTAPI
+HalGetDmaAdapterInfo(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN OUT PDMA_ADAPTER_INFO AdapterInfo);
+
+NTSTATUS
+NTAPI
+HalGetDmaTransferInfo(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PMDL Mdl,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN BOOLEAN WriteOnly,
+    IN OUT PDMA_TRANSFER_INFO TransferInfo);
+
+NTSTATUS
+NTAPI
+HalInitializeDmaTransferContext(
+    IN PADAPTER_OBJECT AdapterObject,
+    OUT PVOID DmaTransferContext);
+
+NTSTATUS
+NTAPI
+HalAllocateAdapterChannelEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext,
+    IN ULONG NumberOfMapRegisters,
+    IN ULONG Flags,
+    IN PDRIVER_CONTROL ExecutionRoutine OPTIONAL,
+    IN PVOID ExecutionContext OPTIONAL,
+    OUT PVOID *MapRegisterBase OPTIONAL);
+
+BOOLEAN
+NTAPI
+HalCancelAdapterChannel(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext);
+
+NTSTATUS
+NTAPI
+HalMapTransferEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PMDL Mdl,
+    IN PVOID MapRegisterBase,
+    IN ULONGLONG Offset,
+    IN ULONG DeviceOffset,
+    IN OUT PULONG Length,
+    IN BOOLEAN WriteToDevice,
+    OUT PSCATTER_GATHER_LIST ScatterGatherBuffer,
+    IN ULONG ScatterGatherBufferLength,
+    IN PVOID DmaCompletionRoutine OPTIONAL,
+    IN PVOID CompletionContext OPTIONAL);
+
+NTSTATUS
+NTAPI
+HalGetScatterGatherListEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext,
+    IN PMDL Mdl,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN ULONG Flags,
+    IN PDRIVER_LIST_CONTROL ExecutionRoutine OPTIONAL,
+    IN PVOID Context OPTIONAL,
+    IN BOOLEAN WriteToDevice,
+    IN PVOID DmaCompletionRoutine OPTIONAL,
+    IN PVOID CompletionContext OPTIONAL,
+    OUT PSCATTER_GATHER_LIST *ScatterGatherList OPTIONAL);
+
+NTSTATUS
+NTAPI
+HalBuildScatterGatherListEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext,
+    IN PMDL Mdl,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN ULONG Flags,
+    IN PDRIVER_LIST_CONTROL ExecutionRoutine OPTIONAL,
+    IN PVOID Context OPTIONAL,
+    IN BOOLEAN WriteToDevice,
+    IN PVOID ScatterGatherBuffer,
+    IN ULONG ScatterGatherBufferLength,
+    IN PVOID DmaCompletionRoutine OPTIONAL,
+    IN PVOID CompletionContext OPTIONAL,
+    OUT PVOID ScatterGatherList OPTIONAL);
+
+NTSTATUS
+NTAPI
+HalFlushAdapterBuffersEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PMDL Mdl,
+    IN PVOID MapRegisterBase,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN BOOLEAN WriteToDevice);
+
+NTSTATUS
+NTAPI
+HalCancelMappedTransfer(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PVOID DmaTransferContext);
+
 
 static DMA_OPERATIONS HalpDmaOperations = {
    sizeof(DMA_OPERATIONS),
@@ -190,6 +306,23 @@ HalpInitDma(VOID)
     HalpDmaOperations.FreeAdapterChannel = (PFREE_ADAPTER_CHANNEL)IoFreeAdapterChannel;
     HalpDmaOperations.FreeMapRegisters = (PFREE_MAP_REGISTERS)IoFreeMapRegisters;
     HalpDmaOperations.MapTransfer = (PMAP_TRANSFER)IoMapTransfer;
+
+    /*
+     * Initialize the DMA v3 (DEVICE_DESCRIPTION_VERSION3) operations. These
+     * are required by KMDF/WDM drivers that request a v3 adapter (USBXHCI and
+     * others); without them HalGetAdapter would either reject the request or
+     * KMDF's UsesDmaV3() path would dereference NULL *Ex pointers and crash.
+     */
+    HalpDmaOperations.GetDmaAdapterInfo = (PGET_DMA_ADAPTER_INFO)HalGetDmaAdapterInfo;
+    HalpDmaOperations.GetDmaTransferInfo = (PGET_DMA_TRANSFER_INFO)HalGetDmaTransferInfo;
+    HalpDmaOperations.InitializeDmaTransferContext = (PINITIALIZE_DMA_TRANSFER_CONTEXT)HalInitializeDmaTransferContext;
+    HalpDmaOperations.AllocateAdapterChannelEx = (PALLOCATE_ADAPTER_CHANNEL_EX)HalAllocateAdapterChannelEx;
+    HalpDmaOperations.CancelAdapterChannel = (PCANCEL_ADAPTER_CHANNEL)HalCancelAdapterChannel;
+    HalpDmaOperations.MapTransferEx = (PMAP_TRANSFER_EX)HalMapTransferEx;
+    HalpDmaOperations.GetScatterGatherListEx = (PGET_SCATTER_GATHER_LIST_EX)HalGetScatterGatherListEx;
+    HalpDmaOperations.BuildScatterGatherListEx = (PBUILD_SCATTER_GATHER_LIST_EX)HalBuildScatterGatherListEx;
+    HalpDmaOperations.FlushAdapterBuffersEx = (PFLUSH_ADAPTER_BUFFERS_EX)HalFlushAdapterBuffersEx;
+    HalpDmaOperations.CancelMappedTransfer = (PCANCEL_MAPPED_TRANSFER)HalCancelMappedTransfer;
 
     if (HalpBusType == MACHINE_TYPE_EISA)
     {
@@ -665,8 +798,16 @@ HalGetAdapter(IN PDEVICE_DESCRIPTION DeviceDescription,
     ULONG MaximumLength;
     KIRQL OldIrql;
 
-    /* Validate parameters in device description */
-    if (DeviceDescription->Version > DEVICE_DESCRIPTION_VERSION2) return NULL;
+    /*
+     * Validate parameters in device description. DEVICE_DESCRIPTION_VERSION3
+     * is accepted: KMDF/WDM drivers request a v3 adapter when they set an
+     * AddressWidthOverride / WdmDmaVersionOverride or use a system-DMA profile.
+     * For the bus-master case the v2-compatible Dma32BitAddresses /
+     * Dma64BitAddresses fields are filled in by the caller, so the adapter is
+     * created exactly as for v2; the extra v3 capabilities are serviced through
+     * the *Ex entries of HalpDmaOperations (see HalpInitDma).
+     */
+    if (DeviceDescription->Version > DEVICE_DESCRIPTION_VERSION3) return NULL;
 
     /*
      * See if we're going to use ISA/EISA DMA adapter. These adapters are
@@ -1321,6 +1462,385 @@ HalBuildMdlFromScatterGatherList(
 {
     UNIMPLEMENTED;
     return STATUS_NOT_IMPLEMENTED;
+}
+
+/* DMA v3 (DEVICE_DESCRIPTION_VERSION3) operation shims ***********************/
+
+/**
+ * @name HalGetDmaAdapterInfo
+ *
+ * DMA v3. Report the capabilities of the adapter. Shim over the static
+ * adapter limits; only the V1 information block is supported.
+ */
+NTSTATUS
+NTAPI
+HalGetDmaAdapterInfo(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN OUT PDMA_ADAPTER_INFO AdapterInfo)
+{
+    if (AdapterInfo->Version != DMA_ADAPTER_INFO_VERSION1)
+    {
+        AdapterInfo->Version = DMA_ADAPTER_INFO_VERSION1;
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    AdapterInfo->V1.ReadDmaCounterAvailable = !AdapterObject->MasterDevice;
+    AdapterInfo->V1.ScatterGatherLimit = MAX_SG_ELEMENTS;
+    AdapterInfo->V1.DmaAddressWidth = AdapterObject->Dma64BitAddresses ? 64 : 32;
+    AdapterInfo->V1.Flags = 0;
+    AdapterInfo->V1.MinimumTransferUnit = 1;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @name HalGetDmaTransferInfo
+ *
+ * DMA v3. Compute a worst-case estimate of the number of map registers and
+ * scatter/gather elements needed to transfer the given MDL range. This mirrors
+ * the computation KMDF performs itself on the DMA v2 path so the two agree.
+ */
+NTSTATUS
+NTAPI
+HalGetDmaTransferInfo(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PMDL Mdl,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN BOOLEAN WriteOnly,
+    IN OUT PDMA_TRANSFER_INFO TransferInfo)
+{
+    ULONG MapRegisterCount = 0;
+    ULONGLONG RemainingOffset = Offset;
+    ULONG RemainingLength = Length;
+    PMDL CurrentMdl = Mdl;
+
+    UNREFERENCED_PARAMETER(AdapterObject);
+    UNREFERENCED_PARAMETER(WriteOnly);
+
+    /* Walk the MDL chain, skipping bytes up to the starting offset */
+    while ((CurrentMdl != NULL) && (RemainingLength != 0))
+    {
+        ULONG ByteCount = MmGetMdlByteCount(CurrentMdl);
+
+        if (ByteCount <= RemainingOffset)
+        {
+            RemainingOffset -= ByteCount;
+        }
+        else
+        {
+            ULONG_PTR StartVa = (ULONG_PTR)MmGetMdlVirtualAddress(CurrentMdl) +
+                                (ULONG)RemainingOffset;
+            ULONG ThisLength = min(ByteCount - (ULONG)RemainingOffset, RemainingLength);
+
+            MapRegisterCount += (ULONG)ADDRESS_AND_SIZE_TO_SPAN_PAGES(StartVa, ThisLength);
+            RemainingLength -= ThisLength;
+            RemainingOffset = 0;
+        }
+
+        CurrentMdl = CurrentMdl->Next;
+    }
+
+    TransferInfo->Version = DMA_TRANSFER_INFO_VERSION1;
+    TransferInfo->V1.MapRegisterCount = MapRegisterCount;
+    TransferInfo->V1.ScatterGatherElementCount = MapRegisterCount;
+    TransferInfo->V1.ScatterGatherListSize = sizeof(SCATTER_GATHER_LIST) +
+        MapRegisterCount * sizeof(SCATTER_GATHER_ELEMENT);
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @name HalInitializeDmaTransferContext
+ *
+ * DMA v3. Initialize the opaque DMA transfer context the caller allocated.
+ * The ReactOS HAL keeps its transfer state in the WAIT_CONTEXT_BLOCK /
+ * SCATTER_GATHER_CONTEXT instead, so simply zero the caller's buffer.
+ */
+NTSTATUS
+NTAPI
+HalInitializeDmaTransferContext(
+    IN PADAPTER_OBJECT AdapterObject,
+    OUT PVOID DmaTransferContext)
+{
+    UNREFERENCED_PARAMETER(AdapterObject);
+
+    RtlZeroMemory(DmaTransferContext, DMA_TRANSFER_CONTEXT_SIZE_V1);
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @name HalAllocateAdapterChannelEx
+ *
+ * DMA v3. Reserve map registers / the DMA channel. For the bus-master case
+ * this maps directly onto the v2 IoAllocateAdapterChannel; the transfer
+ * context, flags and returned map register base (used only by system DMA,
+ * which always passes them as NULL here) are not needed.
+ */
+NTSTATUS
+NTAPI
+HalAllocateAdapterChannelEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext,
+    IN ULONG NumberOfMapRegisters,
+    IN ULONG Flags,
+    IN PDRIVER_CONTROL ExecutionRoutine OPTIONAL,
+    IN PVOID ExecutionContext OPTIONAL,
+    OUT PVOID *MapRegisterBase OPTIONAL)
+{
+    UNREFERENCED_PARAMETER(DmaTransferContext);
+    UNREFERENCED_PARAMETER(Flags);
+
+    /*
+     * The real map register base is delivered to ExecutionRoutine as its
+     * MapRegisterBase argument, exactly as for v2. Callers that pass a
+     * MapRegisterBase out pointer (synchronous system DMA) are not supported
+     * by this v2-era engine; clear it for safety.
+     */
+    if (MapRegisterBase != NULL) *MapRegisterBase = NULL;
+
+    return IoAllocateAdapterChannel(AdapterObject,
+                                    DeviceObject,
+                                    NumberOfMapRegisters,
+                                    ExecutionRoutine,
+                                    ExecutionContext);
+}
+
+/**
+ * @name HalCancelAdapterChannel
+ *
+ * DMA v3. Cancel a pending (queued) adapter-channel allocation. The ReactOS
+ * engine grants bus-master channels synchronously, so by the time a driver
+ * tries to cancel there is never a pending allocation to abort. Returning
+ * FALSE tells KMDF the allocation could not be cancelled and the transfer
+ * must be allowed to complete normally.
+ */
+BOOLEAN
+NTAPI
+HalCancelAdapterChannel(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext)
+{
+    UNREFERENCED_PARAMETER(AdapterObject);
+    UNREFERENCED_PARAMETER(DeviceObject);
+    UNREFERENCED_PARAMETER(DmaTransferContext);
+
+    return FALSE;
+}
+
+/**
+ * @name HalMapTransferEx
+ *
+ * DMA v3. Map (a fragment of) a transfer and fill in a single scatter/gather
+ * element describing it. Shim over the v2 IoMapTransfer; the MDL-relative
+ * 64-bit Offset replaces the v2 CurrentVa and DeviceOffset is meaningless for
+ * bus-master devices. Asynchronous completion (DmaCompletionRoutine) is only
+ * used by system DMA and is not supported here.
+ */
+NTSTATUS
+NTAPI
+HalMapTransferEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PMDL Mdl,
+    IN PVOID MapRegisterBase,
+    IN ULONGLONG Offset,
+    IN ULONG DeviceOffset,
+    IN OUT PULONG Length,
+    IN BOOLEAN WriteToDevice,
+    OUT PSCATTER_GATHER_LIST ScatterGatherBuffer,
+    IN ULONG ScatterGatherBufferLength,
+    IN PVOID DmaCompletionRoutine OPTIONAL,
+    IN PVOID CompletionContext OPTIONAL)
+{
+    PVOID CurrentVa;
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    UNREFERENCED_PARAMETER(DeviceOffset);
+    UNREFERENCED_PARAMETER(DmaCompletionRoutine);
+    UNREFERENCED_PARAMETER(CompletionContext);
+
+    CurrentVa = (PVOID)((PUCHAR)MmGetMdlVirtualAddress(Mdl) + Offset);
+
+    PhysicalAddress = IoMapTransfer(AdapterObject,
+                                    Mdl,
+                                    MapRegisterBase,
+                                    CurrentVa,
+                                    Length,
+                                    WriteToDevice);
+
+    if (ScatterGatherBuffer != NULL)
+    {
+        if (ScatterGatherBufferLength <
+            sizeof(SCATTER_GATHER_LIST) + sizeof(SCATTER_GATHER_ELEMENT))
+        {
+            return STATUS_BUFFER_TOO_SMALL;
+        }
+
+        ScatterGatherBuffer->NumberOfElements = 1;
+        ScatterGatherBuffer->Reserved = 0;
+        ScatterGatherBuffer->Elements[0].Address = PhysicalAddress;
+        ScatterGatherBuffer->Elements[0].Length = *Length;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @name HalGetScatterGatherListEx
+ *
+ * DMA v3. Allocate map registers and build a scatter/gather list. Shim over
+ * the v2 HalBuildScatterGatherList with the HAL allocating the list itself
+ * (no preallocated buffer). The MDL-relative 64-bit Offset replaces the v2
+ * CurrentVa; the transfer context, flags and asynchronous completion routine
+ * are not needed by the bus-master engine.
+ */
+NTSTATUS
+NTAPI
+HalGetScatterGatherListEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext,
+    IN PMDL Mdl,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN ULONG Flags,
+    IN PDRIVER_LIST_CONTROL ExecutionRoutine OPTIONAL,
+    IN PVOID Context OPTIONAL,
+    IN BOOLEAN WriteToDevice,
+    IN PVOID DmaCompletionRoutine OPTIONAL,
+    IN PVOID CompletionContext OPTIONAL,
+    OUT PSCATTER_GATHER_LIST *ScatterGatherList OPTIONAL)
+{
+    PVOID CurrentVa;
+
+    UNREFERENCED_PARAMETER(DmaTransferContext);
+    UNREFERENCED_PARAMETER(Flags);
+    UNREFERENCED_PARAMETER(DmaCompletionRoutine);
+    UNREFERENCED_PARAMETER(CompletionContext);
+
+    /*
+     * This engine delivers the completed list to ExecutionRoutine; it does not
+     * return it directly. KMDF always passes a NULL out pointer here.
+     */
+    if (ScatterGatherList != NULL) *ScatterGatherList = NULL;
+
+    CurrentVa = (PVOID)((PUCHAR)MmGetMdlVirtualAddress(Mdl) + Offset);
+
+    return HalBuildScatterGatherList(AdapterObject,
+                                     DeviceObject,
+                                     Mdl,
+                                     CurrentVa,
+                                     Length,
+                                     ExecutionRoutine,
+                                     Context,
+                                     WriteToDevice,
+                                     NULL,
+                                     0);
+}
+
+/**
+ * @name HalBuildScatterGatherListEx
+ *
+ * DMA v3. As HalGetScatterGatherListEx but using a caller-supplied buffer for
+ * the HAL's scatter/gather bookkeeping. Shim over the v2
+ * HalBuildScatterGatherList.
+ */
+NTSTATUS
+NTAPI
+HalBuildScatterGatherListEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PDEVICE_OBJECT DeviceObject,
+    IN PVOID DmaTransferContext,
+    IN PMDL Mdl,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN ULONG Flags,
+    IN PDRIVER_LIST_CONTROL ExecutionRoutine OPTIONAL,
+    IN PVOID Context OPTIONAL,
+    IN BOOLEAN WriteToDevice,
+    IN PVOID ScatterGatherBuffer,
+    IN ULONG ScatterGatherBufferLength,
+    IN PVOID DmaCompletionRoutine OPTIONAL,
+    IN PVOID CompletionContext OPTIONAL,
+    OUT PVOID ScatterGatherList OPTIONAL)
+{
+    PVOID CurrentVa;
+
+    UNREFERENCED_PARAMETER(DmaTransferContext);
+    UNREFERENCED_PARAMETER(Flags);
+    UNREFERENCED_PARAMETER(DmaCompletionRoutine);
+    UNREFERENCED_PARAMETER(CompletionContext);
+
+    if (ScatterGatherList != NULL) *(PVOID *)ScatterGatherList = NULL;
+
+    CurrentVa = (PVOID)((PUCHAR)MmGetMdlVirtualAddress(Mdl) + Offset);
+
+    return HalBuildScatterGatherList(AdapterObject,
+                                     DeviceObject,
+                                     Mdl,
+                                     CurrentVa,
+                                     Length,
+                                     ExecutionRoutine,
+                                     Context,
+                                     WriteToDevice,
+                                     ScatterGatherBuffer,
+                                     ScatterGatherBufferLength);
+}
+
+/**
+ * @name HalFlushAdapterBuffersEx
+ *
+ * DMA v3. Flush any data still held in map-register bounce buffers back to the
+ * target buffer. Shim over the v2 IoFlushAdapterBuffers; the MDL-relative
+ * 64-bit Offset replaces the v2 CurrentVa.
+ */
+NTSTATUS
+NTAPI
+HalFlushAdapterBuffersEx(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PMDL Mdl,
+    IN PVOID MapRegisterBase,
+    IN ULONGLONG Offset,
+    IN ULONG Length,
+    IN BOOLEAN WriteToDevice)
+{
+    PVOID CurrentVa;
+
+    CurrentVa = (PVOID)((PUCHAR)MmGetMdlVirtualAddress(Mdl) + Offset);
+
+    if (IoFlushAdapterBuffers(AdapterObject,
+                              Mdl,
+                              MapRegisterBase,
+                              CurrentVa,
+                              Length,
+                              WriteToDevice))
+    {
+        return STATUS_SUCCESS;
+    }
+
+    return STATUS_UNSUCCESSFUL;
+}
+
+/**
+ * @name HalCancelMappedTransfer
+ *
+ * DMA v3. Cancel an in-progress mapped (system DMA) transfer. The ReactOS
+ * engine has no asynchronous system-DMA transfer to cancel, so this is a
+ * no-op success. Bus-master drivers never reach this path.
+ */
+NTSTATUS
+NTAPI
+HalCancelMappedTransfer(
+    IN PADAPTER_OBJECT AdapterObject,
+    IN PVOID DmaTransferContext)
+{
+    UNREFERENCED_PARAMETER(AdapterObject);
+    UNREFERENCED_PARAMETER(DmaTransferContext);
+
+    UNIMPLEMENTED_ONCE;
+    return STATUS_SUCCESS;
 }
 #endif
 

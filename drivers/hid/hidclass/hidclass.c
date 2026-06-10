@@ -54,7 +54,7 @@ HidClassAddDevice(
     UINT32 hidclassDevNum = InterlockedIncrement(&HidClassDeviceNumber) & 0xFFFFFFFF;
 
     /* construct device name */
-    swprintf(CharDeviceName, L"\\Device\\_HID%08x", hidclassDevNum);
+    _swprintf(CharDeviceName, L"\\Device\\_HID%08x", hidclassDevNum);
 
     /* initialize device name */
     RtlInitUnicodeString(&DeviceName, CharDeviceName);
