@@ -7,8 +7,8 @@
 3 stdcall USBD_ParseDescriptors(ptr long ptr long)
 4 stdcall -private DllInitialize(long)
 5 stdcall -private DllUnload()
-6 stdcall -stub USBD_AddDeviceToGlobalList(long ptr long ptr long long long)
-7 stdcall -stub USBD_AllocateHubNumber()
+6 stdcall USBD_AddDeviceToGlobalList(long ptr long ptr long long long)
+7 stdcall USBD_AllocateHubNumber()
 8 stdcall USBD_CalculateUsbBandwidth(long long long)
 9 stdcall USBD_CreateConfigurationRequest(ptr ptr)
 ;10 stdcall -arch=i386 _USBD_CreateConfigurationRequestEx@8(ptr ptr)
@@ -23,8 +23,8 @@
 ;;;;;;18 stdcall USBD_ParseDescriptors(ptr long ptr long)
 19 stdcall USBD_QueryBusTime(ptr ptr)
 20 stdcall USBD_RegisterHcFilter(ptr ptr) ; This is a stub in windows 8
-21 stdcall -stub USBD_ReleaseHubNumber(long)
-22 stdcall -stub USBD_RemoveDeviceFromGlobalList(ptr)
+21 stdcall USBD_ReleaseHubNumber(long)
+22 stdcall USBD_RemoveDeviceFromGlobalList(ptr)
 23 stdcall USBD_ValidateConfigurationDescriptor(ptr long long ptr long)
 
 

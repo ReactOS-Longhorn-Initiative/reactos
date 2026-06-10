@@ -695,3 +695,144 @@ USBD_ValidateConfigurationDescriptor(PUSB_CONFIGURATION_DESCRIPTOR ConfigDesc, U
     UNIMPLEMENTED;
     return STATUS_INVALID_PARAMETER;
 }
+
+
+/*
+ * Hub number allocation:
+ * Old USBD.dll exported helper used by legacy USB hub/class drivers.
+ * Windows kept this for compatibility; numbers are small monotonically
+ * increasing IDs.
+ */
+static volatile LONG UsbdNextHubNumber = 0;
+
+typedef struct _USBD_GLOBAL_DEVICE_ENTRY
+{
+    LIST_ENTRY ListEntry;
+    ULONG Arg1;
+    PVOID Arg2;
+    ULONG Arg3;
+    PVOID Arg4;
+    ULONG Arg5;
+    ULONG Arg6;
+    ULONG Arg7;
+} USBD_GLOBAL_DEVICE_ENTRY, *PUSBD_GLOBAL_DEVICE_ENTRY;
+
+static LIST_ENTRY UsbdGlobalDeviceListHead;
+static KSPIN_LOCK UsbdGlobalDeviceListLock;
+static LONG UsbdGlobalDeviceListInitialized = 0;
+
+static
+FORCEINLINE
+VOID
+UsbdInitializeGlobalDeviceListIfNeeded(VOID)
+{
+    if (UsbdGlobalDeviceListInitialized == 0)
+    {
+        if (InterlockedCompareExchange(&UsbdGlobalDeviceListInitialized, 1, 0) == 0)
+        {
+            InitializeListHead(&UsbdGlobalDeviceListHead);
+            KeInitializeSpinLock(&UsbdGlobalDeviceListLock);
+        }
+        else
+        {
+            /* Another CPU is initializing */
+            while (UsbdGlobalDeviceListInitialized != 1) YieldProcessor();
+        }
+    }
+}
+
+/*
+ * @implemented
+ */
+ULONG
+NTAPI
+USBD_AllocateHubNumber(VOID)
+{
+    /*
+     * Return a 1-based hub number.
+     * We keep 0 as "invalid/unassigned".
+     */
+    LONG Value = InterlockedIncrement(&UsbdNextHubNumber);
+    if (Value <= 0)
+    {
+        /* Extremely unlikely: handle wrap/overflow */
+        InterlockedExchange(&UsbdNextHubNumber, 1);
+        Value = 1;
+    }
+    return (ULONG)Value;
+}
+
+/*
+ * @implemented
+ */
+VOID
+NTAPI
+USBD_ReleaseHubNumber(
+    _In_ ULONG HubNumber)
+{
+    UNREFERENCED_PARAMETER(HubNumber);
+    /* Monotonic allocator: nothing to release. */
+}
+
+/*
+ * @implemented
+ */
+PVOID
+NTAPI
+USBD_AddDeviceToGlobalList(
+    _In_ ULONG Arg1,
+    _In_ PVOID Arg2,
+    _In_ ULONG Arg3,
+    _In_ PVOID Arg4,
+    _In_ ULONG Arg5,
+    _In_ ULONG Arg6,
+    _In_ ULONG Arg7)
+{
+    KIRQL OldIrql;
+    PUSBD_GLOBAL_DEVICE_ENTRY Entry;
+
+    UsbdInitializeGlobalDeviceListIfNeeded();
+
+    Entry = ExAllocatePoolWithTag(NonPagedPool,
+                                  sizeof(*Entry),
+                                  'bdsU');
+    if (!Entry) return NULL;
+
+    Entry->Arg1 = Arg1;
+    Entry->Arg2 = Arg2;
+    Entry->Arg3 = Arg3;
+    Entry->Arg4 = Arg4;
+    Entry->Arg5 = Arg5;
+    Entry->Arg6 = Arg6;
+    Entry->Arg7 = Arg7;
+
+    KeAcquireSpinLock(&UsbdGlobalDeviceListLock, &OldIrql);
+    InsertTailList(&UsbdGlobalDeviceListHead, &Entry->ListEntry);
+    KeReleaseSpinLock(&UsbdGlobalDeviceListLock, OldIrql);
+
+    return Entry;
+}
+
+/*
+ * @implemented
+ */
+VOID
+NTAPI
+USBD_RemoveDeviceFromGlobalList(
+    _In_ PVOID Handle)
+{
+    KIRQL OldIrql;
+    PUSBD_GLOBAL_DEVICE_ENTRY Entry;
+
+    if (!Handle) return;
+
+    UsbdInitializeGlobalDeviceListIfNeeded();
+
+    Entry = (PUSBD_GLOBAL_DEVICE_ENTRY)Handle;
+
+    KeAcquireSpinLock(&UsbdGlobalDeviceListLock, &OldIrql);
+    RemoveEntryList(&Entry->ListEntry);
+    KeReleaseSpinLock(&UsbdGlobalDeviceListLock, OldIrql);
+
+    ExFreePoolWithTag(Entry, 'bdsU');
+}
