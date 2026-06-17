@@ -44,10 +44,6 @@ BOOL WINAPI GetVolumeInformationByHandleW( HANDLE handle, WCHAR *label, DWORD la
                                            DWORD *serial, DWORD *filename_len, DWORD *flags,
                                            WCHAR *fsname, DWORD fsname_len );
 
-
-INT WINAPI DECLSPEC_HOTPATCH CompareStringOrdinal( const WCHAR *str1, INT len1,
-                                                   const WCHAR *str2, INT len2, BOOL ignore_case );
-
 #define URL_UNESCAPE_AS_UTF8            URL_ESCAPE_AS_UTF8
 
 

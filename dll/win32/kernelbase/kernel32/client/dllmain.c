@@ -128,7 +128,7 @@ DllMain(HANDLE hDll,
             else
             {
                 /* Use the session path */
-                swprintf(SessionDir,
+                _swprintf(SessionDir,
                          L"%ws\\%ld%ws",
                          SESSION_DIR,
                          SessionId,

@@ -31,7 +31,9 @@
  * warn about legacy Path* APIs being deprecated, and don't deprecate
  * classic Path* in favour of PathCch for this Wine-synced implementation. */
 #define WINSHLWAPI
+#ifndef __REACTOS__
 #define PATHCCH_NO_DEPRECATE
+#endif
 #pragma warning(disable:4995)
 #endif
 
