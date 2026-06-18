@@ -410,7 +410,7 @@ NTSTATUS
 NTAPI
 NtOpenKeyEx(OUT PHANDLE KeyHandle,
             IN ACCESS_MASK DesiredAccess,
-            const OBJECT_ATTRIBUTES* ObjectAttributes,
+            OBJECT_ATTRIBUTES* ObjectAttributes,
             IN ULONG OpenOptions)
 {
     CM_PARSE_CONTEXT ParseContext = {0};
@@ -418,26 +418,11 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
     NTSTATUS Status;
     KPROCESSOR_MODE PreviousMode = ExGetPreviousMode();
     PAGED_CODE();
-    DPRINT("NtOpenKeyEx(Path: %wZ, Root %x, Access: %x, Options: %x)\n",
-            ObjectAttributes->ObjectName, ObjectAttributes->RootDirectory, DesiredAccess, OpenOptions);
-    OBJECT_ATTRIBUTES* CapturedObjectAttributes;
-    CapturedObjectAttributes = ExAllocatePoolWithTag(PagedPool,
-                                                        sizeof(OBJECT_ATTRIBUTES),
-                                                        ' xaR');
-    if (CapturedObjectAttributes == NULL)
-    {
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    Status = ProbeAndCaptureObjectAttributes(CapturedObjectAttributes,
-                                             CapturedObjectAttributes->ObjectName,
-                                             PreviousMode,
-                                             (POBJECT_ATTRIBUTES)ObjectAttributes,
-                                             FALSE);
 
     /* Validate the open options */
-    if (OpenOptions & ~REG_OPTION_OPEN_LINK)
+    if (OpenOptions & ~REG_OPTION_OPEN_LINK || !KeyHandle || !ObjectAttributes)
     {
+        DPRINT1("NtOpenKeyEx: invalid parameters\n");
         return STATUS_INVALID_PARAMETER;
     }
 
@@ -455,7 +440,7 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
             *KeyHandle = NULL;
 
             /* Probe object attributes */
-            ProbeForRead(CapturedObjectAttributes,
+            ProbeForRead(ObjectAttributes,
                          sizeof(OBJECT_ATTRIBUTES),
                          sizeof(ULONG));
         }
@@ -466,6 +451,9 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
         }
         _SEH2_END;
     }
+    
+    DPRINT("NtOpenKeyEx(Path: %wZ, Root %x, Access: %x, Options: %x)\n",
+            ObjectAttributes->ObjectName, ObjectAttributes->RootDirectory, DesiredAccess, OpenOptions);
 
     /* Set up the parse context based on open options */
     ParseContext.CreateOptions = OpenOptions;
@@ -479,7 +467,7 @@ NtOpenKeyEx(OUT PHANDLE KeyHandle,
     }
 
     /* Just let the object manager handle this */
-    Status = ObOpenObjectByName(CapturedObjectAttributes,
+    Status = ObOpenObjectByName(ObjectAttributes,
                                 CmpKeyObjectType,
                                 PreviousMode,
                                 NULL,
