@@ -2045,6 +2045,17 @@ AdjustWindowRectExForDpi(
     return TRUE;
 }
 
+UINT_PTR SetCoalescableTimer(
+  HWND      hWnd,
+             UINT_PTR  nIDEvent,
+        UINT      uElapse,
+   TIMERPROC lpTimerFunc,
+             ULONG     uToleranceDelay
+)
+{
+    return SetTimer(hWnd, nIDEvent, uElapse, lpTimerFunc);
+}
+
 int GetSystemMetricsForDpi(
   int  nIndex,
   UINT dpi
