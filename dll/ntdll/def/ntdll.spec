@@ -838,7 +838,7 @@
 @ stdcall -stub -version=0x600+ RtlGetThreadPreferredUILanguages(long long ptr ptr)
 @ stdcall -stub -version=0x600+ RtlGetUILanguageInfo(long ptr long ptr ptr)
 @ stdcall RtlGetUnloadEventTrace()
-@ stdcall -stub -version=0x600+ RtlGetUnloadEventTraceEx(ptr ptr ptr)
+@ stdcall -version=0x600+ RtlGetUnloadEventTraceEx(ptr ptr ptr)
 @ stdcall RtlGetUserInfoHeap(ptr long ptr ptr ptr)
 @ stdcall -stub -version=0x600+ RtlGetUserPreferredUILanguages(long ptr ptr ptr ptr)
 @ stdcall RtlGetVersion(ptr)
