@@ -1117,7 +1117,7 @@ LdrpApplyFileNameRedirection(
     NTSTATUS Status = STATUS_SUCCESS;
 
     DWORD ApisetVersion = LdrpApisetVersion();
-    if (ApisetVersion)
+  //  if (ApisetVersion)
     {
         Status = ApiSetResolveToHost(ApisetVersion, OriginalName, RedirectedDll, &ApisetName);
         if (!NT_SUCCESS(Status))
