@@ -1,11 +1,7 @@
 
 add_definitions(-D__WINESRC__ -D__ROS_LONG64__)
 
-if(DLL_EXPORT_VERSION GREATER_EQUAL 0x600)
-    spec2def(uxtheme.dll uxtheme_vista.spec ADD_IMPORTLIB)
-else()
-    spec2def(uxtheme.dll uxtheme.spec ADD_IMPORTLIB)
-endif()
+spec2def(uxtheme.dll uxtheme_vista.spec ADD_IMPORTLIB)
 
 list(APPEND SOURCE
     buffer.c
