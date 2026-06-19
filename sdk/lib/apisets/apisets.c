@@ -70,7 +70,7 @@ ApiSetResolveToHost(
         if (result == 0)
         {
             // Check if this version is included
-            if (g_Apisets[Index].dwOsVersions & ApisetVersion)
+           // if (g_Apisets[Index].dwOsVersions & ApisetVersion)
             {
                 // Return a static string (does not have to be freed)
                 *Resolved = TRUE;
