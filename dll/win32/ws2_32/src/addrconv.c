@@ -412,7 +412,13 @@ inet_ntop(
     _In_ size_t StringBufSize)
 {
     NTSTATUS Status;
-    ULONG BufSize = StringBufSize;
+    ULONG BufSize = (ULONG)StringBufSize;
+
+    if (StringBufSize > ULONG_MAX)
+    {
+        SetLastError(WSAEINVAL);
+        return NULL;
+    }
 
     switch (Family)
     {
@@ -445,7 +451,13 @@ InetNtopW(
     _In_ size_t StringBufSize)
 {
     NTSTATUS Status;
-    ULONG BufSize = StringBufSize;
+    ULONG BufSize = (ULONG)StringBufSize;
+
+    if (StringBufSize > ULONG_MAX)
+    {
+        SetLastError(WSAEINVAL);
+        return NULL;
+    }
 
     switch (Family)
     {
