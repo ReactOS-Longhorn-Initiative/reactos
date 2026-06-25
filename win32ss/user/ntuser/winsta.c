@@ -1118,11 +1118,15 @@ NtUserGetObjectInformation(
     PVOID pvData = NULL;
     SIZE_T nDataSize = 0;
 
+    if (nLength == 0)
+        pvInformation = NULL;
+
     _SEH2_TRY
     {
         if (nLengthNeeded)
             ProbeForWrite(nLengthNeeded, sizeof(*nLengthNeeded), 1);
-        ProbeForWrite(pvInformation, nLength, 1);
+        if (pvInformation)
+            ProbeForWrite(pvInformation, nLength, 1);
     }
     _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
     {
