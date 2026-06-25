@@ -24,7 +24,7 @@ typedef struct _ROSSYM_HEADER {
 } ROSSYM_HEADER, *PROSSYM_HEADER;
 
 typedef struct _ROSSYM_ENTRY {
-  ULONG Address; /* RVA */
+  ULONG Address;
   ULONG FunctionOffset;
   ULONG FileOffset;
   ULONG SourceLine;
