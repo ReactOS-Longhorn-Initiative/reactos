@@ -373,7 +373,11 @@ CRegPropertyBag::_ReadBinary(
     DWORD uBytes)
 {
     HRESULT hr = E_FAIL;
-    if (vt != VT_UNKNOWN || uBytes < sizeof(GUID))
+
+    if ((vt != VT_UNKNOWN) && (vt != VT_EMPTY))
+        return hr;
+
+    if (uBytes < sizeof(GUID))
         return hr;
 
     LPBYTE pbData = (LPBYTE)::LocalAlloc(LMEM_ZEROINIT, uBytes);
