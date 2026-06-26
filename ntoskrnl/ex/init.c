@@ -1816,6 +1816,11 @@ Phase1InitializationDiscard(IN PVOID Context)
     /* Set maximum update to 100% */
     InbvSetProgressBarSubset(0, 100);
 
+    NTSTATUS
+    NTAPI
+    AlpcpInitSystem(VOID);
+    AlpcpInitSystem();
+
     /* Are we in safe mode? */
     if (InitSafeBootMode)
     {

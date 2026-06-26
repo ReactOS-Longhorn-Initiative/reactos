@@ -196,15 +196,6 @@ list(APPEND SOURCE
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/time.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/timerobj.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/wait.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/alpc.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/close.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/complete.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/connect.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/create.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/listen.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/port.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/reply.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/send.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/mm/ARM3/contmem.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/mm/ARM3/drvmgmt.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/mm/ARM3/dynamic.c

@@ -404,5 +404,130 @@ ZwWriteRequestData(
     _In_ ULONG BufferLength,
     _Out_ PULONG ReturnLength
 );
+#if 0
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcAcceptConnectPort(
+    _Out_ PHANDLE PortHandle,
+    _In_ HANDLE ConnectionPortHandle,
+    _In_ ULONG Flags,
+    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_opt_ PALPC_PORT_ATTRIBUTES PortAttributes,
+    _In_opt_ PVOID PortContext,
+    _In_reads_bytes_(ConnectionRequest->u1.s1.TotalLength) PPORT_MESSAGE ConnectionRequest,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES ConnectionMessageAttributes,
+    _In_ BOOLEAN AcceptConnection
+);
 
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCancelMessage();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcConnectPort();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcConnectPortEx();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCreatePort();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCreatePortSection();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCreateResourceReserve();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCreateSectionView();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCreateSecurityContext();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcDeletePortSection();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcDeleteResourceReserve();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcDeleteSectionView();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcDeleteSecurityContext();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcDisconnectPort();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtNtAlpcImpersonateClientContainerOfPort();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcImpersonateClientOfPort();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcOpenSenderProcess();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcOpenSenderThread();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcQueryInformation();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcQueryInformationMessage();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcRevokeSecurityContext();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcSendWaitReceivePort();
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcSetInformation();
+#endif
 #endif
