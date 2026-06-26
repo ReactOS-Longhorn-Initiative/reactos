@@ -404,7 +404,81 @@ ZwWriteRequestData(
     _In_ ULONG BufferLength,
     _Out_ PULONG ReturnLength
 );
-#if 0
+//
+// ALPC Native Calls (Vista+)
+//
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcCreatePort(
+    _Out_ PHANDLE PortHandle,
+    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_opt_ PALPC_PORT_ATTRIBUTES PortAttributes
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcDisconnectPort(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcQueryInformation(
+    _In_opt_ HANDLE PortHandle,
+    _In_ ALPC_PORT_INFORMATION_CLASS PortInformationClass,
+    _Inout_updates_bytes_to_(Length, *ReturnLength) PVOID PortInformation,
+    _In_ ULONG Length,
+    _Out_opt_ PULONG ReturnLength
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcSetInformation(
+    _In_ HANDLE PortHandle,
+    _In_ ALPC_PORT_INFORMATION_CLASS PortInformationClass,
+    _In_reads_bytes_opt_(Length) PVOID PortInformation,
+    _In_ ULONG Length
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcConnectPort(
+    _Out_ PHANDLE PortHandle,
+    _In_ PUNICODE_STRING PortName,
+    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_opt_ PALPC_PORT_ATTRIBUTES PortAttributes,
+    _In_ ULONG Flags,
+    _In_opt_ PSID RequiredServerSid,
+    _Inout_updates_bytes_to_opt_(*BufferLength, *BufferLength) PPORT_MESSAGE ConnectionMessage,
+    _Inout_opt_ PSIZE_T BufferLength,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES OutMessageAttributes,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES InMessageAttributes,
+    _In_opt_ PLARGE_INTEGER Timeout
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAlpcConnectPortEx(
+    _Out_ PHANDLE PortHandle,
+    _In_ POBJECT_ATTRIBUTES ConnectionPortObjectAttributes,
+    _In_opt_ POBJECT_ATTRIBUTES ClientPortObjectAttributes,
+    _In_opt_ PALPC_PORT_ATTRIBUTES PortAttributes,
+    _In_ ULONG Flags,
+    _In_opt_ PSECURITY_DESCRIPTOR ServerSecurityRequirements,
+    _Inout_updates_bytes_to_opt_(*BufferLength, *BufferLength) PPORT_MESSAGE ConnectionMessage,
+    _Inout_opt_ PSIZE_T BufferLength,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES OutMessageAttributes,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES InMessageAttributes,
+    _In_opt_ PLARGE_INTEGER Timeout
+);
+
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -423,111 +497,192 @@ NtAlpcAcceptConnectPort(
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcCancelMessage();
+NtAlpcSendWaitReceivePort(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_reads_bytes_opt_(SendMessage->u1.s1.TotalLength) PPORT_MESSAGE SendMessage,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES SendMessageAttributes,
+    _Out_writes_bytes_to_opt_(*BufferLength, *BufferLength) PPORT_MESSAGE ReceiveMessage,
+    _Inout_opt_ PSIZE_T BufferLength,
+    _Inout_opt_ PALPC_MESSAGE_ATTRIBUTES ReceiveMessageAttributes,
+    _In_opt_ PLARGE_INTEGER Timeout
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcConnectPort();
+NtAlpcCancelMessage(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ PALPC_CONTEXT_ATTR MessageContext
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcConnectPortEx();
+NtAlpcImpersonateClientOfPort(
+    _In_ HANDLE PortHandle,
+    _In_ PPORT_MESSAGE Message,
+    _In_ PVOID Flags
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcCreatePort();
+NtAlpcImpersonateClientContainerOfPort(
+    _In_ HANDLE PortHandle,
+    _In_ PPORT_MESSAGE Message,
+    _In_ ULONG Flags
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcCreatePortSection();
+NtAlpcOpenSenderProcess(
+    _Out_ PHANDLE ProcessHandle,
+    _In_ HANDLE PortHandle,
+    _In_ PPORT_MESSAGE PortMessage,
+    _In_ ULONG Flags,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_ POBJECT_ATTRIBUTES ObjectAttributes
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcCreateResourceReserve();
+NtAlpcOpenSenderThread(
+    _Out_ PHANDLE ThreadHandle,
+    _In_ HANDLE PortHandle,
+    _In_ PPORT_MESSAGE PortMessage,
+    _In_ ULONG Flags,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_ POBJECT_ATTRIBUTES ObjectAttributes
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcCreateSectionView();
+NtAlpcQueryInformationMessage(
+    _In_ HANDLE PortHandle,
+    _In_ PPORT_MESSAGE PortMessage,
+    _In_ ALPC_MESSAGE_INFORMATION_CLASS MessageInformationClass,
+    _Out_writes_bytes_to_opt_(Length, *ReturnLength) PVOID MessageInformation,
+    _In_ ULONG Length,
+    _Out_opt_ PULONG ReturnLength
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcCreateSecurityContext();
+NtAlpcCreatePortSection(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_opt_ HANDLE SectionHandle,
+    _In_ SIZE_T SectionSize,
+    _Out_ PALPC_HANDLE AlpcSectionHandle,
+    _Out_ PSIZE_T ActualSectionSize
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcDeletePortSection();
+NtAlpcDeletePortSection(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ ALPC_HANDLE SectionHandle
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcDeleteResourceReserve();
+NtAlpcCreateResourceReserve(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ SIZE_T MessageSize,
+    _Out_ PALPC_HANDLE ResourceId
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcDeleteSectionView();
+NtAlpcDeleteResourceReserve(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ ALPC_HANDLE ResourceId
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcDeleteSecurityContext();
+NtAlpcCreateSectionView(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _Inout_ PALPC_DATA_VIEW_ATTR ViewAttributes
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcDisconnectPort();
+NtAlpcDeleteSectionView(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ PVOID ViewBase
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtNtAlpcImpersonateClientContainerOfPort();
+NtAlpcCreateSecurityContext(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _Inout_ PALPC_SECURITY_ATTR SecurityAttribute
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcImpersonateClientOfPort();
+NtAlpcDeleteSecurityContext(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ ALPC_HANDLE ContextHandle
+);
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
-NtAlpcOpenSenderProcess();
+NtAlpcRevokeSecurityContext(
+    _In_ HANDLE PortHandle,
+    _In_ ULONG Flags,
+    _In_ ALPC_HANDLE ContextHandle
+);
 
-NTSYSCALLAPI
+#ifdef NTOS_MODE_USER
+//
+// ALPC ntdll-only helper routines (not syscalls)
+//
+NTSYSAPI
 NTSTATUS
 NTAPI
-NtAlpcOpenSenderThread();
+AlpcInitializeMessageAttribute(
+    _In_ ULONG AttributeFlags,
+    _Out_opt_ PALPC_MESSAGE_ATTRIBUTES Buffer,
+    _In_ SIZE_T BufferSize,
+    _Out_ PSIZE_T RequiredBufferSize
+);
 
-NTSYSCALLAPI
-NTSTATUS
+NTSYSAPI
+PVOID
 NTAPI
-NtAlpcQueryInformation();
+AlpcGetMessageAttribute(
+    _In_ PALPC_MESSAGE_ATTRIBUTES Buffer,
+    _In_ ULONG AttributeFlag
+);
 
-NTSYSCALLAPI
-NTSTATUS
+NTSYSAPI
+ULONG
 NTAPI
-NtAlpcQueryInformationMessage();
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtAlpcRevokeSecurityContext();
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtAlpcSendWaitReceivePort();
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtAlpcSetInformation();
-#endif
+AlpcGetHeaderSize(
+    _In_ ULONG Flags
+);
+#endif // NTOS_MODE_USER
 #endif

@@ -89,6 +89,207 @@ typedef enum _PORT_INFORMATION_CLASS
     PortNoInformation
 } PORT_INFORMATION_CLASS;
 
+//
+// ALPC handle type
+//
+typedef HANDLE ALPC_HANDLE, *PALPC_HANDLE;
+
+//
+// ALPC Port Attribute Flags (ALPC_PORT_ATTRIBUTES.Flags)
+//
+#define ALPC_PORFLG_ALLOW_LPC_REQUESTS  0x20000
+#define ALPC_PORFLG_WAITABLE_PORT       0x40000
+#define ALPC_PORFLG_SYSTEM_PROCESS      0x100000
+
+//
+// ALPC Message Attribute presence bitmasks (AllocatedAttributes / ValidAttributes)
+//
+#define ALPC_MESSAGE_SECURITY_ATTRIBUTE 0x80000000
+#define ALPC_MESSAGE_VIEW_ATTRIBUTE     0x40000000
+#define ALPC_MESSAGE_CONTEXT_ATTRIBUTE  0x20000000
+#define ALPC_MESSAGE_HANDLE_ATTRIBUTE   0x10000000
+
+//
+// ALPC Message Flags (NtAlpcSendWaitReceivePort)
+//
+#define ALPC_MSGFLG_REPLY_MESSAGE       0x1
+#define ALPC_MSGFLG_LPC_MODE            0x2
+#define ALPC_MSGFLG_RELEASE_MESSAGE     0x10000
+#define ALPC_MSGFLG_SYNC_REQUEST        0x20000
+#define ALPC_MSGFLG_WAIT_USER_MODE      0x100000
+#define ALPC_MSGFLG_WAIT_ALERTABLE      0x200000
+#define ALPC_MSGFLG_WOW64_CALL          0x80000000
+
+//
+// ALPC Security Context Flags (NtAlpcCreateSecurityContext / ALPC_SECURITY_ATTR.Flags)
+//
+#define ALPC_SECFLG_CREATE_HANDLE       0x20000
+#define ALPC_SECFLG_NOSECTIONHANDLE     0x40000
+
+//
+// ALPC Data View Flags (ALPC_DATA_VIEW_ATTR.Flags)
+//
+#define ALPC_VIEWFLG_NOT_SECURE         0x40000
+
+//
+// ALPC Handle Attribute Flags (ALPC_HANDLE_ATTR.Flags)
+//
+#define ALPC_HANDLEFLG_DUPLICATE_SAME_ACCESS     0x10000
+#define ALPC_HANDLEFLG_DUPLICATE_SAME_ATTRIBUTES 0x20000
+#define ALPC_HANDLEFLG_DUPLICATE_INHERIT         0x80000
+
+//
+// ALPC Port Attributes (passed to NtAlpcCreatePort / NtAlpcConnectPort / NtAlpcAcceptConnectPort)
+//
+typedef struct _ALPC_PORT_ATTRIBUTES
+{
+    ULONG Flags;
+    SECURITY_QUALITY_OF_SERVICE SecurityQos;
+    SIZE_T MaxMessageLength;
+    SIZE_T MemoryBandwidth;
+    SIZE_T MaxPoolUsage;
+    SIZE_T MaxSectionSize;
+    SIZE_T MaxViewSize;
+    SIZE_T MaxTotalSectionSize;
+    ULONG DupObjectTypes;
+#ifdef _WIN64
+    ULONG Reserved;
+#endif
+} ALPC_PORT_ATTRIBUTES, *PALPC_PORT_ATTRIBUTES;
+
+//
+// ALPC Message Attributes container
+//
+typedef struct _ALPC_MESSAGE_ATTRIBUTES
+{
+    ULONG AllocatedAttributes;
+    ULONG ValidAttributes;
+} ALPC_MESSAGE_ATTRIBUTES, *PALPC_MESSAGE_ATTRIBUTES;
+
+//
+// ALPC Context Attribute
+//
+typedef struct _ALPC_CONTEXT_ATTR
+{
+    PVOID PortContext;
+    PVOID MessageContext;
+    ULONG Sequence;
+    ULONG MessageId;
+    ULONG CallbackId;
+} ALPC_CONTEXT_ATTR, *PALPC_CONTEXT_ATTR;
+
+//
+// ALPC Security Attribute
+//
+typedef struct _ALPC_SECURITY_ATTR
+{
+    ULONG Flags;
+    PSECURITY_QUALITY_OF_SERVICE QoS;
+    ALPC_HANDLE ContextHandle;
+} ALPC_SECURITY_ATTR, *PALPC_SECURITY_ATTR;
+
+//
+// ALPC Data View Attribute
+//
+typedef struct _ALPC_DATA_VIEW_ATTR
+{
+    ULONG Flags;
+    ALPC_HANDLE SectionHandle;
+    PVOID ViewBase;
+    SIZE_T ViewSize;
+} ALPC_DATA_VIEW_ATTR, *PALPC_DATA_VIEW_ATTR;
+
+//
+// ALPC Handle Attribute
+//
+typedef struct _ALPC_HANDLE_ATTR
+{
+    ULONG Flags;
+    HANDLE Handle;
+    ULONG ObjectType;
+    ACCESS_MASK DesiredAccess;
+} ALPC_HANDLE_ATTR, *PALPC_HANDLE_ATTR;
+
+//
+// ALPC Token Attribute
+//
+typedef struct _ALPC_TOKEN_ATTR
+{
+    LUID TokenId;
+    LUID AuthenticationId;
+    LUID ModifiedId;
+} ALPC_TOKEN_ATTR, *PALPC_TOKEN_ATTR;
+
+//
+// ALPC Direct Attribute (direct event signalling)
+//
+typedef struct _ALPC_DIRECT_ATTR
+{
+    HANDLE Event;
+} ALPC_DIRECT_ATTR, *PALPC_DIRECT_ATTR;
+
+//
+// ALPC Work-On-Behalf Attribute
+//
+typedef struct _ALPC_WORK_ON_BEHALF_ATTR
+{
+    ULONG ThreadId;
+    ULONG ThreadCreationTimeLow;
+} ALPC_WORK_ON_BEHALF_ATTR, *PALPC_WORK_ON_BEHALF_ATTR;
+
+//
+// Information Classes for NtAlpcQueryInformation / NtAlpcSetInformation
+//
+typedef enum _ALPC_PORT_INFORMATION_CLASS
+{
+    AlpcBasicInformation,
+    AlpcPortInformation,
+    AlpcAssociateCompletionPortInformation,
+    AlpcConnectedSIDInformation,
+    AlpcServerInformation,
+    AlpcMessageZoneInformation,
+    AlpcRegisterCompletionListInformation,
+    AlpcUnregisterCompletionListInformation,
+    AlpcAdjustCompletionListConcurrencyCountInformation,
+    AlpcRegisterCallbackInformation,
+    AlpcCompletionListRundownInformation,
+    AlpcWaitForPortReferences,
+    MaxAlpcPortInfoClass
+} ALPC_PORT_INFORMATION_CLASS;
+
+//
+// Information Classes for NtAlpcQueryInformationMessage
+//
+typedef enum _ALPC_MESSAGE_INFORMATION_CLASS
+{
+    AlpcMessageSidInformation,
+    AlpcMessageTokenModifiedIdInformation,
+    AlpcMessageDirectStatusInformation,
+    AlpcMessageHandleInformation,
+    MaxAlpcMessageInfoClass
+} ALPC_MESSAGE_INFORMATION_CLASS;
+
+//
+// ALPC Basic Information (AlpcBasicInformation)
+//
+typedef struct _ALPC_BASIC_INFORMATION
+{
+    ULONG Flags;
+    ULONG SequenceNo;
+    PVOID PortContext;
+} ALPC_BASIC_INFORMATION, *PALPC_BASIC_INFORMATION;
+
+//
+// ALPC Completion List registration (AlpcRegisterCompletionListInformation)
+//
+typedef struct _ALPC_PORT_COMPLETION_LIST_INFORMATION
+{
+    PVOID Buffer;
+    ULONG Size;
+    ULONG ConcurrencyCount;
+    ULONG AttributeFlags;
+} ALPC_PORT_COMPLETION_LIST_INFORMATION, *PALPC_PORT_COMPLETION_LIST_INFORMATION;
+
 #ifdef NTOS_MODE_USER
 
 //
