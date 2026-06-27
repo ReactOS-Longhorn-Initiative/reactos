@@ -1493,7 +1493,8 @@ HRESULT WINAPI DeletePrinterDriverPackageW(
   LPCWSTR pszEnvironment
 );
 
-HRESULT DocumentEventA(
+/* DocumentEvent returns INT (per the Windows SDK), not HRESULT, and is WINAPI. */
+INT WINAPI DocumentEventA(
   HANDLE hPrinter,
   HDC hdc,
   INT iEsc,
@@ -1503,7 +1504,7 @@ HRESULT DocumentEventA(
   PVOID pvOut
 );
 
-HRESULT DocumentEventW(
+INT WINAPI DocumentEventW(
   HANDLE hPrinter,
   HDC hdc,
   INT iEsc,

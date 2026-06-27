@@ -818,8 +818,11 @@ QSI_DEF(SystemPerformanceInformation)
         if (Prcb)
         {
             Spi->ContextSwitches += KeGetContextSwitches(Prcb);
+#if (NTDDI_VERSION < NTDDI_LONGHORN)
+            /* Vista removed the TB-fill counters from the KPRCB; report 0. */
             Spi->FirstLevelTbFills += Prcb->KeFirstLevelTbFills;
             Spi->SecondLevelTbFills += Prcb->KeSecondLevelTbFills;
+#endif
             Spi->SystemCalls += Prcb->KeSystemCalls;
         }
     }
@@ -1801,9 +1804,10 @@ QSI_DEF(SystemExceptionInformation)
         {
             AlignmentFixupCount += Prcb->KeAlignmentFixupCount;
             ExceptionDispatchCount += Prcb->KeExceptionDispatchCount;
-#ifndef _M_ARM
+#if !defined(_M_ARM) && (NTDDI_VERSION < NTDDI_LONGHORN)
+            /* Vista removed KeFloatingEmulationCount from the KPRCB; report 0. */
             FloatingEmulationCount += Prcb->KeFloatingEmulationCount;
-#endif // _M_ARM
+#endif // !_M_ARM && pre-Vista
         }
     }
 

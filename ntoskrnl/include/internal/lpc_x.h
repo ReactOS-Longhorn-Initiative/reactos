@@ -122,6 +122,14 @@ LpcpAllocateFromPortZone(VOID)
 }
 
 //
+// The helpers below use the NT5.x ETHREAD LPC fields (LpcReplyMessage /
+// LpcWaitingOnPort), which were removed from the Vista (Longhorn) ETHREAD
+// layout. They are referenced only by the legacy ntoskrnl/lpc/*.c sources,
+// which are disabled on NT6+ (legacy LPC is emulated on ALPC in
+// alpc/legacylpc.c), so they are gated out entirely under Vista.
+//
+#if (NTDDI_VERSION < NTDDI_LONGHORN)
+//
 // Get the LPC Message associated to the Thread
 //
 FORCEINLINE
@@ -164,6 +172,7 @@ LpcpSetPortToThread(IN PETHREAD Thread,
     Thread->LpcWaitingOnPort = (PVOID)(((ULONG_PTR)Port) |
                                        LPCP_THREAD_FLAG_IS_PORT);
 }
+#endif /* (NTDDI_VERSION < NTDDI_LONGHORN) */
 
 FORCEINLINE
 PLPCP_DATA_INFO

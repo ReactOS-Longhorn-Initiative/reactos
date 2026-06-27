@@ -1210,7 +1210,14 @@ typedef struct _ETHREAD
     LIST_ENTRY ActiveTimerListHead;
     CLIENT_ID Cid;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    KSEMAPHORE KeyedWaitSemaphore;
+    /* ReactOS retains the legacy-LPC reply semaphore overlaying the Vista
+     * KeyedWaitSemaphore (same size); keeping both names preserves the NDK layout
+     * tests. The Vista AlpcWaitSemaphore used by the new ALPC code is separate. */
+    union
+    {
+        KSEMAPHORE LpcReplySemaphore;
+        KSEMAPHORE KeyedWaitSemaphore;
+    };
 #else
     union
     {
@@ -1228,7 +1235,12 @@ typedef struct _ETHREAD
     ULONG_PTR TopLevelIrp;
     PDEVICE_OBJECT DeviceToVerify;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    PPSP_RATE_APC RateControlApc;
+    /* ReactOS keeps the owning-process back-pointer (ThreadsProcess) here; real
+     * Vista uses this slot for RateControlApc. Both are one pointer wide; keep
+     * both names so the NDK layout tests still pass. ThreadsProcess is the
+     * constant creator process, which differs from KTHREAD.Process (changes
+     * across Ke*AttachProcess). */
+    union { PPSP_RATE_APC RateControlApc; struct _EPROCESS *ThreadsProcess; };
 #else
     struct _EPROCESS *ThreadsProcess;
 #endif
@@ -1246,7 +1258,9 @@ typedef struct _ETHREAD
 #endif
     ULONG ReadClusterSize;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    ULONG SpareUlong0;
+    /* ReactOS uses GrantedAccess; real Vista calls this slot SpareUlong0.
+     * Keep both (same offset/size) so the NDK layout tests still pass. */
+    union { ULONG SpareUlong0; ACCESS_MASK GrantedAccess; };
 #else
     ACCESS_MASK GrantedAccess;
 #endif
@@ -1255,9 +1269,10 @@ typedef struct _ETHREAD
         struct
         {
            ULONG Terminated:1;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#if (NTDDI_VERSION >= NTDDI_LONGHORN) && !defined(__REACTOS__)
            ULONG ThreadInserted:1;
 #else
+           /* ReactOS keeps the NT5.x DeadThread bit here (Vista: ThreadInserted). */
            ULONG DeadThread:1;
 #endif
            ULONG HideFromDebugger:1;
@@ -1296,9 +1311,10 @@ typedef struct _ETHREAD
         {
            ULONG LpcReceivedMsgIdValid:1;
            ULONG LpcExitThreadCalled:1;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#if (NTDDI_VERSION >= NTDDI_LONGHORN) && !defined(__REACTOS__)
            ULONG Spare:1;
 #else
+           /* ReactOS MM uses this bit (Vista: Spare). */
            ULONG AddressSpaceOwner:1;
 #endif
            ULONG OwnsProcessWorkingSetExclusive:1;
@@ -1307,18 +1323,20 @@ typedef struct _ETHREAD
            ULONG OwnsSystemWorkingSetShared:1;
            ULONG OwnsSessionWorkingSetExclusive:1;
            ULONG OwnsSessionWorkingSetShared:1;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#if (NTDDI_VERSION >= NTDDI_LONGHORN) && !defined(__REACTOS__)
            ULONG SuppressSymbolLoad:1;
            ULONG Spare1:3;
            ULONG PriorityRegionActive:4;
 #else
+           /* ReactOS MM uses this bit (Vista: SuppressSymbolLoad/PriorityRegionActive). */
            ULONG ApcNeeded:1;
 #endif
         };
         ULONG SameThreadApcFlags;
     };
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    UCHAR CacheManagerActive;
+    /* ReactOS MM uses ForwardClusterOnly; real Vista calls it CacheManagerActive. */
+    union { UCHAR CacheManagerActive; UCHAR ForwardClusterOnly; };
 #else
     UCHAR ForwardClusterOnly;
 #endif
@@ -1362,11 +1380,15 @@ typedef struct _EPROCESS
     LIST_ENTRY SessionProcessLinks;
     PVOID DebugPort;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    /* ReactOS stores a plain exception-port object pointer (ExceptionPort) and
+     * does not use the Vista exception-port-state feature (low 3 bits). Keep all
+     * names so the NDK layout tests still validate the Vista members. */
     union
     {
         PVOID ExceptionPortData;
         ULONG ExceptionPortValue;
         UCHAR ExceptionPortState:3;
+        PVOID ExceptionPort;
     };
 #else
     PVOID ExceptionPort;
@@ -1376,7 +1398,11 @@ typedef struct _EPROCESS
     PFN_NUMBER WorkingSetPage;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     EX_PUSH_LOCK AddressCreationLock;
-    PETHREAD RotateInProgress;
+    /* Real Vista uses a per-processor hyperspace mechanism (no EPROCESS field),
+     * but ReactOS ARM3 hyperspace (mm/ARM3/hypermap.c) needs a per-process lock.
+     * Overlay it on the pointer-sized RotateInProgress slot so the EPROCESS layout
+     * (and the NDK layout tests) are preserved. */
+    union { PETHREAD RotateInProgress; KSPIN_LOCK HyperSpaceLock; };
 #else
     KGUARDED_MUTEX AddressCreationLock;
     KSPIN_LOCK HyperSpaceLock;
@@ -1423,7 +1449,9 @@ typedef struct _EPROCESS
 #endif
     ULONG ActiveThreads;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    ULONG ImagePathHash;
+    /* ReactOS uses GrantedAccess; real Vista calls this slot ImagePathHash.
+     * Keep both (same offset/size) so the NDK layout tests still pass. */
+    union { ULONG ImagePathHash; ACCESS_MASK GrantedAccess; };
 #else
     ACCESS_MASK GrantedAccess;
 #endif
@@ -1448,9 +1476,13 @@ typedef struct _EPROCESS
     LIST_ENTRY MmProcessLinks;
 #endif
     ULONG ModifiedPageCount;
+/* ReactOS uses the NT5.x ULONG JobStatus; real Vista replaced it with the Flags2
+ * bitfield union. JobStatus is added as another union member (same offset/size)
+ * so the NDK layout tests still validate Flags2. */
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     union
     {
+        ULONG JobStatus;
         struct
         {
             ULONG JobNotReallyActive:1;
@@ -1524,7 +1556,8 @@ typedef struct _EPROCESS
     };
     NTSTATUS ExitStatus;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    USHORT Spare7;
+    /* ReactOS MM uses NextPageColor for page coloring; real Vista calls it Spare7. */
+    union { USHORT Spare7; USHORT NextPageColor; };
 #else
     USHORT NextPageColor;
 #endif
@@ -1606,7 +1639,9 @@ typedef struct _EJOB
     ULONG CurrentJobMemoryUsed;
 #if (NTDDI_VERSION >= NTDDI_WINXP) && (NTDDI_VERSION < NTDDI_WS03)
     FAST_MUTEX MemoryLimitsLock;
-#elif (NTDDI_VERSION >= NTDDI_WS03) && (NTDDI_VERSION < NTDDI_LONGHORN)
+#elif ((NTDDI_VERSION >= NTDDI_WS03) && (NTDDI_VERSION < NTDDI_LONGHORN)) || defined(__REACTOS__)
+    /* ReactOS uses a guarded mutex for the job memory-limits lock; real Vista uses
+     * an EX_PUSH_LOCK. EJOB is a ReactOS-internal object, so the size change is fine. */
     KGUARDED_MUTEX MemoryLimitsLock;
 #elif (NTDDI_VERSION >= NTDDI_LONGHORN)
     EX_PUSH_LOCK MemoryLimitsLock;

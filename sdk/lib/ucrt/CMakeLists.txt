@@ -22,7 +22,7 @@ if(${ARCH} STREQUAL "i386")
     include_directories(inc/i386)
 endif()
 
-remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+remove_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 add_compile_definitions(
     WINVER=0x600
     _WIN32_WINNT=0x600

@@ -4,7 +4,7 @@ add_definitions(
     -D__ROS_LONG64__
     -D_COMCTL32_)
 
-remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+remove_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 
 spec2def(comctl32.dll comctl32.spec ADD_IMPORTLIB)

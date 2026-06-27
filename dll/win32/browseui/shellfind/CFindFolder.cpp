@@ -12,6 +12,10 @@ WINE_DEFAULT_DEBUG_CHANNEL(shellfind);
 
 #ifndef _SHELL32_
 
+/* DisplayNameOfW is declared in undocshell.h and provided by shell32 on NT6.0+
+ * (NTDDI_LONGHORN), so only supply this local copy on pre-Vista targets. The other
+ * helpers below are browseui-local and remain unconditional. */
+#if (NTDDI_VERSION < NTDDI_LONGHORN)
 static HRESULT WINAPI DisplayNameOfW(_In_ IShellFolder *psf, _In_ LPCITEMIDLIST pidl,
                                      _In_ DWORD dwFlags, _Out_ LPWSTR pszBuf, _In_ UINT cchBuf)
 {
@@ -20,6 +24,7 @@ static HRESULT WINAPI DisplayNameOfW(_In_ IShellFolder *psf, _In_ LPCITEMIDLIST 
     HRESULT hr = psf->GetDisplayNameOf(pidl, dwFlags, &sr);
     return FAILED(hr) ? hr : StrRetToBufW(&sr, pidl, pszBuf, cchBuf);
 }
+#endif
 
 static HRESULT
 GetCommandStringA(_In_ IContextMenu *pCM, _In_ UINT_PTR Id, _In_ UINT GCS,

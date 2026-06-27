@@ -462,8 +462,11 @@ PspExitThread(IN NTSTATUS ExitStatus)
     PTEB Teb;
     PEPROCESS CurrentProcess;
     PETHREAD Thread, OtherThread, PreviousThread = NULL;
+#if (NTDDI_VERSION < NTDDI_LONGHORN)
+    /* Only used by the pre-Vista FreeStackOnTermination path below. */
     PVOID DeallocationStack;
     SIZE_T Dummy;
+#endif
     BOOLEAN Last = FALSE;
     PTERMINATION_PORT TerminationPort, NextPort;
     PLIST_ENTRY FirstEntry, CurrentEntry;

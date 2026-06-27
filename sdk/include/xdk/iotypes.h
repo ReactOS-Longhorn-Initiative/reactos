@@ -1305,7 +1305,10 @@ typedef enum _FILE_INFORMATION_CLASS {
   FileNormalizedNameInformation,
   FileNetworkPhysicalNameInformation,
 #endif
-#if (NTDDI_VERSION >= NTDDI_WIN7)
+/* These are Win7 file-information classes; ReactOS makes them available from
+ * Vista up so drivers (e.g. btrfs) that reference them by name compile, and the
+ * enumerator values stay correct (FileStandardLinkInformation == 54, etc.). */
+#if (NTDDI_VERSION >= NTDDI_VISTA)
   FileIdGlobalTxDirectoryInformation,
   FileIsRemoteDeviceInformation,
   FileAttributeCacheInformation,

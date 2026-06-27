@@ -1690,6 +1690,41 @@ MmGrowKernelStack(
 );
 
 
+//
+// Address-creation lock helpers.
+//
+// On NT5.x, EPROCESS.AddressCreationLock is a KGUARDED_MUTEX. On NT6.0 (Vista,
+// Longhorn) it is an EX_PUSH_LOCK acquired exclusively, matching real Vista
+// (see Reference/ntoskrnl_analysis.c -> ExfAcquirePushLockExclusive). The
+// guarded mutex implicitly entered a guarded region, so the push-lock path pairs
+// acquire/release with KeEnterGuardedRegion/KeLeaveGuardedRegion to preserve the
+// APC-deferral semantics. Push locks do not track an owner, so the ownership
+// assertions become no-ops under Vista.
+//
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#define MiInitializeAddressCreationLock(Process) \
+    ExInitializePushLock(&(Process)->AddressCreationLock)
+#define MiAcquireAddressCreationLock(Process) \
+    do { KeEnterGuardedRegion(); \
+         ExAcquirePushLockExclusive(&(Process)->AddressCreationLock); } while (0)
+#define MiReleaseAddressCreationLock(Process) \
+    do { ExReleasePushLockExclusive(&(Process)->AddressCreationLock); \
+         KeLeaveGuardedRegion(); } while (0)
+#define MI_ADDRESS_CREATION_LOCK_HELD_BY_ME(Process)     (TRUE)
+#define MI_ADDRESS_CREATION_LOCK_NOT_HELD_BY_ME(Process) (TRUE)
+#else
+#define MiInitializeAddressCreationLock(Process) \
+    KeInitializeGuardedMutex(&(Process)->AddressCreationLock)
+#define MiAcquireAddressCreationLock(Process) \
+    KeAcquireGuardedMutex(&(Process)->AddressCreationLock)
+#define MiReleaseAddressCreationLock(Process) \
+    KeReleaseGuardedMutex(&(Process)->AddressCreationLock)
+#define MI_ADDRESS_CREATION_LOCK_HELD_BY_ME(Process) \
+    ((Process)->AddressCreationLock.Owner == KeGetCurrentThread())
+#define MI_ADDRESS_CREATION_LOCK_NOT_HELD_BY_ME(Process) \
+    ((Process)->AddressCreationLock.Owner != KeGetCurrentThread())
+#endif
+
 FORCEINLINE
 VOID
 MmLockAddressSpace(PMMSUPPORT AddressSpace)
@@ -1700,14 +1735,14 @@ MmLockAddressSpace(PMMSUPPORT AddressSpace)
     ASSERT(!PsGetCurrentThread()->OwnsSystemWorkingSetShared);
     ASSERT(!PsGetCurrentThread()->OwnsSessionWorkingSetExclusive);
     ASSERT(!PsGetCurrentThread()->OwnsSessionWorkingSetShared);
-    KeAcquireGuardedMutex(&CONTAINING_RECORD(AddressSpace, EPROCESS, Vm)->AddressCreationLock);
+    MiAcquireAddressCreationLock(CONTAINING_RECORD(AddressSpace, EPROCESS, Vm));
 }
 
 FORCEINLINE
 VOID
 MmUnlockAddressSpace(PMMSUPPORT AddressSpace)
 {
-    KeReleaseGuardedMutex(&CONTAINING_RECORD(AddressSpace, EPROCESS, Vm)->AddressCreationLock);
+    MiReleaseAddressCreationLock(CONTAINING_RECORD(AddressSpace, EPROCESS, Vm));
 }
 
 FORCEINLINE

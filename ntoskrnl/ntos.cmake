@@ -11,7 +11,9 @@ include_directories(
 add_definitions(
     -D_NTOSKRNL_
     -D_NTSYSTEM_
-    -DNTDDI_VERSION=0x05020400)
+    # NT6.0 retarget: kernel targets Vista NTDDI to match the global _WIN32_WINNT=0x600.
+    # (was 0x05020400 / NTDDI_WS03SP4 for the NT5.2 build.)
+    -DNTDDI_VERSION=0x06000000)
 
 if(NOT DEFINED NEWCC)
     set(NEWCC FALSE)

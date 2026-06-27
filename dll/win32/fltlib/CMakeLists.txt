@@ -1,4 +1,10 @@
 
+# fltlib pins NTDDI to NTDDI_WS03SP1 (see target_compile_definitions below); align
+# _WIN32_WINNT/WINVER to the matching NT5.2 value so they don't conflict with the
+# global 0x600 default (which would trip the sdkddkver.h NTDDI/_WIN32_WINNT check).
+remove_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
+add_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+
 add_definitions(-D__WINESRC__)
 spec2def(fltlib.dll fltlib.spec ADD_IMPORTLIB)
 

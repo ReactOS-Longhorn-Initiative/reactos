@@ -654,6 +654,9 @@ DevQueryPrintEx( PDEVQUERYPRINT_INFO pDQPInfo )
     return Ret;
 }
 
+/* DocumentEvent is exported under its plain name (see winspool.spec); undo the
+ * spurious A/W macro that <winspool.h> applies on NT6.0+. */
+#undef DocumentEvent
 INT WINAPI
 DocumentEvent( HANDLE hPrinter, HDC hdc, int iEsc, ULONG cbIn, PVOID pvIn, ULONG cbOut, PVOID pvOut)
 {

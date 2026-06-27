@@ -325,13 +325,19 @@ WinLdrMapSpecialPages(void)
      * The Page Tables have been setup, make special handling
      * for the boot processor PCR and KI_USER_SHARED_DATA.
      */
-    HalPageTable[(KI_USER_SHARED_DATA - 0xFFC00000) >> MM_PAGE_SHIFT].PageFrameNumber = PcrBasePage+1;
+    HalPageTable[(KI_USER_SHARED_DATA - 0xFFC00000) >> MM_PAGE_SHIFT].PageFrameNumber = PcrBasePage+2;
     HalPageTable[(KI_USER_SHARED_DATA - 0xFFC00000) >> MM_PAGE_SHIFT].Valid = 1;
     HalPageTable[(KI_USER_SHARED_DATA - 0xFFC00000) >> MM_PAGE_SHIFT].Write = 1;
 
+    /* The boot-processor KIPCR (KPCR + the larger NT6.0 KPRCB) spans two pages on x86:
+     * map 0xFFDFF000 (page 0) and 0xFFE00000 (page 1). Page 2 holds KI_USER_SHARED_DATA above. */
     HalPageTable[(KIP0PCRADDRESS - 0xFFC00000) >> MM_PAGE_SHIFT].PageFrameNumber = PcrBasePage;
     HalPageTable[(KIP0PCRADDRESS - 0xFFC00000) >> MM_PAGE_SHIFT].Valid = 1;
     HalPageTable[(KIP0PCRADDRESS - 0xFFC00000) >> MM_PAGE_SHIFT].Write = 1;
+
+    HalPageTable[((KIP0PCRADDRESS + MM_PAGE_SIZE) - 0xFFC00000) >> MM_PAGE_SHIFT].PageFrameNumber = PcrBasePage+1;
+    HalPageTable[((KIP0PCRADDRESS + MM_PAGE_SIZE) - 0xFFC00000) >> MM_PAGE_SHIFT].Valid = 1;
+    HalPageTable[((KIP0PCRADDRESS + MM_PAGE_SIZE) - 0xFFC00000) >> MM_PAGE_SHIFT].Write = 1;
 
     /* Map APIC */
     WinLdrpMapApic();
@@ -379,8 +385,9 @@ void WinLdrSetupMachineDependent(PLOADER_PARAMETER_BLOCK LoaderBlock)
     LoaderBlock->u.I386.CommonDataArea = NULL; // Force No ABIOS support
     LoaderBlock->u.I386.MachineType = MACHINE_TYPE_ISA;
 
-    /* Allocate 2 pages for PCR: one for the boot processor PCR and one for KI_USER_SHARED_DATA */
-    Pcr = (ULONG_PTR)MmAllocateMemoryWithType(2 * MM_PAGE_SIZE, LoaderStartupPcrPage);
+    /* Allocate 3 pages: two for the boot-processor KIPCR (the NT6.0 KPRCB is larger than
+     * the NT5.x one, so the KPCR+PRCB spans two pages on x86) and one for KI_USER_SHARED_DATA. */
+    Pcr = (ULONG_PTR)MmAllocateMemoryWithType(3 * MM_PAGE_SIZE, LoaderStartupPcrPage);
     PcrBasePage = Pcr >> MM_PAGE_SHIFT;
     if (Pcr == 0)
     {

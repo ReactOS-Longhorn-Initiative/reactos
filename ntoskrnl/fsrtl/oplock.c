@@ -898,7 +898,7 @@ FsRtlOplockCleanup(IN PINTERNAL_OPLOCK Oplock,
 
 NTSTATUS
 NTAPI
-FsRtlOplockBreakToNone(IN PINTERNAL_OPLOCK Oplock,
+FsRtlpOplockBreakToNone(IN PINTERNAL_OPLOCK Oplock,
                        IN PIO_STACK_LOCATION Stack,
                        IN PIRP Irp,
                        IN PVOID Context,
@@ -910,7 +910,7 @@ FsRtlOplockBreakToNone(IN PINTERNAL_OPLOCK Oplock,
     PIRP ListIrp;
     KEVENT WaitEvent;
 
-    DPRINT("FsRtlOplockBreakToNone(%p, %p, %p, %p, %p, %p)\n", Oplock, Stack, Irp, Context, CompletionRoutine, PostIrpRoutine);
+    DPRINT("FsRtlpOplockBreakToNone(%p, %p, %p, %p, %p, %p)\n", Oplock, Stack, Irp, Context, CompletionRoutine, PostIrpRoutine);
 
     ExAcquireFastMutexUnsafe(Oplock->IntLock);
 
@@ -1185,7 +1185,7 @@ FsRtlCheckOplock(IN POPLOCK Oplock,
 
 #define BreakToNoneIfRequired                                                             \
     if (IntOplock->Flags == LEVEL_2_OPLOCK || IntOplock->FileObject != Stack->FileObject) \
-        return FsRtlOplockBreakToNone(IntOplock, Stack, Irp, Context, CompletionRoutine, PostIrpRoutine)
+        return FsRtlpOplockBreakToNone(IntOplock, Stack, Irp, Context, CompletionRoutine, PostIrpRoutine)
 
     DPRINT("FsRtlCheckOplock(%p, %p, %p, %p, %p)\n", Oplock, Irp, Context, CompletionRoutine, PostIrpRoutine);
 

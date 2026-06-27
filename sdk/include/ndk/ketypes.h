@@ -991,7 +991,13 @@ typedef struct _SYNCH_COUNTERS
 typedef struct _KDPC_DATA
 {
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#ifdef __REACTOS__
+    /* ReactOS uses a doubly-linked DPC list; real Vista switched to a singly-
+     * linked KDPC_LIST. Both are two pointers wide, so the layout is preserved. */
+    LIST_ENTRY DpcListHead;
+#else
     KDPC_LIST DpcList;
+#endif
 #else
     LIST_ENTRY DpcListHead;
 #endif
@@ -1696,7 +1702,9 @@ typedef struct _KTHREAD
 #endif // ]
 #if defined(_M_IX86) // [
 #if (NTDDI_VERSION >= NTDDI_LONGHORN) // [
-    UCHAR OtherPlatformFill;
+    // ReactOS uses this byte as Iopl; real Vista calls it OtherPlatformFill.
+    // Keep both names (same offset/size) so the NDK layout tests still pass.
+    union { UCHAR OtherPlatformFill; UCHAR Iopl; };
 #else // ][
     UCHAR Iopl;
 #endif // ]
@@ -1712,7 +1720,10 @@ typedef struct _KTHREAD
 #if (NTDDI_VERSION >= NTDDI_WIN7) // [
             UCHAR ResourceIndex;
 #elif (NTDDI_VERSION >= NTDDI_LONGHORN) // ][
-            CHAR Spare04;
+            // ReactOS uses Quantum here for its tick-based scheduler; real Vista
+            // calls this byte Spare04. Keep both names (same offset/size) so the
+            // NDK layout tests still validate against the real Vista name.
+            union { CHAR Spare04; SCHAR Quantum; };
 #else // ][
             SCHAR Quantum;
 #endif // ]
@@ -2231,8 +2242,15 @@ typedef struct _KPROCESS
     DISPATCHER_HEADER Header;
     LIST_ENTRY ProfileListHead;
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#ifdef __REACTOS__
+    /* ReactOS keeps the two-entry paging base (entry [1] is the hyperspace PDE).
+     * Real Vista has a scalar DirectoryTableBase + Unused0 occupying the same
+     * two ULONG_PTR slots, so the layout is preserved. */
+    ULONG_PTR DirectoryTableBase[2];
+#else
     ULONG_PTR DirectoryTableBase;
     ULONG_PTR Unused0;
+#endif
 #else
     ULONG_PTR DirectoryTableBase[2];
 #endif

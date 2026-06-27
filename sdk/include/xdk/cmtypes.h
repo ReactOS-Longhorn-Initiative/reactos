@@ -620,11 +620,12 @@ typedef struct _KEY_WRITE_TIME_INFORMATION {
   LARGE_INTEGER LastWriteTime;
 } KEY_WRITE_TIME_INFORMATION, *PKEY_WRITE_TIME_INFORMATION;
 
-#if (NTDDI_VERSION < NTDDI_VISTA)
+/* KeyFlagsInformation (and its KEY_USER_FLAGS_INFORMATION buffer) is a Vista+
+ * key information class, so this type must be available at NTDDI_VISTA and above.
+ * It is defined unconditionally, mirroring its sibling KEY_WOW64_FLAGS_INFORMATION. */
 typedef struct _KEY_USER_FLAGS_INFORMATION {
     ULONG   UserFlags;
 } KEY_USER_FLAGS_INFORMATION, *PKEY_USER_FLAGS_INFORMATION;
-#endif
 
 typedef enum _REG_NOTIFY_CLASS {
   RegNtDeleteKey,

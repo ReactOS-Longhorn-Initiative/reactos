@@ -695,8 +695,11 @@ LoadReactOSSetup(
     if (SosEnabled)
         UiResetForSOS();
 
-    /* Allocate and minimally-initialize the Loader Parameter Block */
-    AllocateAndInitLPB(_WIN32_WINNT_WS03, &LoaderBlock);
+    /* Allocate and minimally-initialize the Loader Parameter Block.
+     * NT6.0 retarget: advertise Vista so the loader extension carries
+     * MajorVersion=6/MinorVersion=0 and the Vista loader-block fields the
+     * NTDDI_VISTA kernel validates (ExpIsLoaderValid). */
+    AllocateAndInitLPB(_WIN32_WINNT_VISTA, &LoaderBlock);
 
     /* Allocate and initialize the setup loader block */
     SetupBlock = &WinLdrSystemBlock->SetupBlock;
@@ -733,8 +736,8 @@ LoadReactOSSetup(
 
     UiDrawStatusText("The Setup program is starting...");
 
-    /* Finish loading */
-    return LoadAndBootWindowsCommon(_WIN32_WINNT_WS03,
+    /* Finish loading (NT6.0 retarget: boot as Vista, see AllocateAndInitLPB above) */
+    return LoadAndBootWindowsCommon(_WIN32_WINNT_VISTA,
                                     LoaderBlock,
                                     BootOptions,
                                     SystemPartition,

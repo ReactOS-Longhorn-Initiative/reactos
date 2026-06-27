@@ -1,5 +1,9 @@
 #include "desk.h"
 
+/* On NT6.0+, RegLoadMUIStringW is provided by advapi32 (advapi32_vista), so this
+ * backport is only built for pre-Vista targets. */
+#if (_WIN32_WINNT < 0x0600)
+
 /******************************************************************************
  * load_string [Internal]
  *
@@ -142,3 +146,5 @@ cleanup:
     HeapFree(GetProcessHeap(), 0, pwszExpandedBuffer);
     return result;
 }
+
+#endif /* (_WIN32_WINNT < 0x0600) */

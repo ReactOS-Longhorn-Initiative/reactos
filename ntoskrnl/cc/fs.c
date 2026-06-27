@@ -158,8 +158,18 @@ CcPurgeCacheSection (
     IN PSECTION_OBJECT_POINTERS SectionObjectPointer,
     IN PLARGE_INTEGER FileOffset OPTIONAL,
     IN ULONG Length,
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+    IN ULONG Flags)
+#else
     IN BOOLEAN UninitializeCacheMaps)
+#endif
 {
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+    /* Vista turned the trailing BOOLEAN UninitializeCacheMaps into a ULONG Flags
+     * field; bit 0 preserves the original UninitializeCacheMaps meaning, which is
+     * what ReactOS callers pass (TRUE/FALSE -> 1/0). */
+    BOOLEAN UninitializeCacheMaps = (BOOLEAN)(Flags & 1);
+#endif
     PROS_SHARED_CACHE_MAP SharedCacheMap;
     PPRIVATE_CACHE_MAP PrivateCacheMap;
     LONGLONG StartOffset;

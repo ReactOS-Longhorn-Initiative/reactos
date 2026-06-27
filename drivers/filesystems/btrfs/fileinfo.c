@@ -185,6 +185,81 @@ typedef struct _FILE_LINK_INFORMATION_EX {
 #define FILE_LINK_REPLACE_IF_EXISTS                       0x001
 #define FILE_LINK_POSIX_SEMANTICS                         0x002
 #define FILE_LINK_IGNORE_READONLY_ATTRIBUTE               0x040
+
+/* The following file-information classes and structures are not present in the
+ * ReactOS NT6.0 DDK (they are Win7/Win8/Win10 additions), so define them here.
+ * The *_EX rename/disposition/link types above are the ReactOS-specific subset
+ * that the DDK also lacks; these are the remainder btrfs references. */
+#define FileIdInformation (enum _FILE_INFORMATION_CLASS)59
+#define FileHardLinkFullIdInformation (enum _FILE_INFORMATION_CLASS)62
+#define FileStatInformation (enum _FILE_INFORMATION_CLASS)68
+#define FileStatLxInformation (enum _FILE_INFORMATION_CLASS)70
+#define FileCaseSensitiveInformation (enum _FILE_INFORMATION_CLASS)71
+/* FileStandardLinkInformation (54) and FileRemoteProtocolInformation (55) are now
+ * real enumerators in the DDK FILE_INFORMATION_CLASS (available from Vista), so
+ * they are intentionally not redefined here. */
+
+typedef struct _FILE_ID_INFORMATION {
+    ULONGLONG VolumeSerialNumber;
+    FILE_ID_128 FileId;
+} FILE_ID_INFORMATION, *PFILE_ID_INFORMATION;
+
+typedef struct _FILE_STAT_INFORMATION {
+    LARGE_INTEGER FileId;
+    LARGE_INTEGER CreationTime;
+    LARGE_INTEGER LastAccessTime;
+    LARGE_INTEGER LastWriteTime;
+    LARGE_INTEGER ChangeTime;
+    LARGE_INTEGER AllocationSize;
+    LARGE_INTEGER EndOfFile;
+    ULONG FileAttributes;
+    ULONG ReparseTag;
+    ULONG NumberOfLinks;
+    ACCESS_MASK EffectiveAccess;
+} FILE_STAT_INFORMATION, *PFILE_STAT_INFORMATION;
+
+typedef struct _FILE_STAT_LX_INFORMATION {
+    LARGE_INTEGER FileId;
+    LARGE_INTEGER CreationTime;
+    LARGE_INTEGER LastAccessTime;
+    LARGE_INTEGER LastWriteTime;
+    LARGE_INTEGER ChangeTime;
+    LARGE_INTEGER AllocationSize;
+    LARGE_INTEGER EndOfFile;
+    ULONG         FileAttributes;
+    ULONG         ReparseTag;
+    ULONG         NumberOfLinks;
+    ACCESS_MASK   EffectiveAccess;
+    ULONG         LxFlags;
+    ULONG         LxUid;
+    ULONG         LxGid;
+    ULONG         LxMode;
+    ULONG         LxDeviceIdMajor;
+    ULONG         LxDeviceIdMinor;
+} FILE_STAT_LX_INFORMATION, *PFILE_STAT_LX_INFORMATION;
+
+#define LX_FILE_METADATA_HAS_UID        0x01
+#define LX_FILE_METADATA_HAS_GID        0x02
+#define LX_FILE_METADATA_HAS_MODE       0x04
+#define LX_FILE_METADATA_HAS_DEVICE_ID  0x08
+#define LX_FILE_CASE_SENSITIVE_DIR      0x10
+
+typedef struct _FILE_CASE_SENSITIVE_INFORMATION {
+    ULONG Flags;
+} FILE_CASE_SENSITIVE_INFORMATION, *PFILE_CASE_SENSITIVE_INFORMATION;
+
+typedef struct _FILE_LINK_ENTRY_FULL_ID_INFORMATION {
+    ULONG NextEntryOffset;
+    FILE_ID_128 ParentFileId;
+    ULONG FileNameLength;
+    WCHAR FileName[1];
+} FILE_LINK_ENTRY_FULL_ID_INFORMATION, *PFILE_LINK_ENTRY_FULL_ID_INFORMATION;
+
+typedef struct _FILE_LINKS_FULL_ID_INFORMATION {
+    ULONG BytesNeeded;
+    ULONG EntriesReturned;
+    FILE_LINK_ENTRY_FULL_ID_INFORMATION Entry;
+} FILE_LINKS_FULL_ID_INFORMATION, *PFILE_LINKS_FULL_ID_INFORMATION;
 #endif
 
 static NTSTATUS set_basic_information(device_extension* Vcb, PIRP Irp, PFILE_OBJECT FileObject) {
@@ -4516,7 +4591,10 @@ end:
     return Status;
 }
 
-#ifndef __REACTOS__
+/* These query handlers were excluded on ReactOS (the classes weren't available on
+ * the old target); they are needed now that the NT6.0 build exposes the Win7+
+ * file-information classes. */
+#if !defined(__REACTOS__) || (NTDDI_VERSION >= NTDDI_VISTA)
 static NTSTATUS fill_in_file_standard_link_information(FILE_STANDARD_LINK_INFORMATION* fsli, fcb* fcb, file_ref* fileref, LONG* length) {
     TRACE("FileStandardLinkInformation\n");
 

@@ -135,7 +135,7 @@ MmDeleteTeb(IN PEPROCESS Process,
     KeAttachProcess(&Process->Pcb);
 
     /* Lock the process address space */
-    KeAcquireGuardedMutex(&Process->AddressCreationLock);
+    MiAcquireAddressCreationLock(Process);
 
     /* Find the VAD, make sure it's a TEB VAD */
     Vad = MiLocateAddress(Teb);
@@ -176,7 +176,7 @@ MmDeleteTeb(IN PEPROCESS Process,
     }
 
     /* Release the address space lock */
-    KeReleaseGuardedMutex(&Process->AddressCreationLock);
+    MiReleaseAddressCreationLock(Process);
 
     /* Detach */
     KeDetachProcess();
@@ -967,7 +967,7 @@ MmInitializeProcessAddressSpace(IN PEPROCESS Process,
     Process->AddressSpaceInitialized = 2;
 
     /* Initialize the Addresss Space lock */
-    KeInitializeGuardedMutex(&Process->AddressCreationLock);
+    MiInitializeAddressCreationLock(Process);
     Process->Vm.WorkingSetExpansionLinks.Flink = NULL;
 
     /* Initialize AVL tree */
@@ -1132,7 +1132,7 @@ MmInitializeHandBuiltProcess(IN PEPROCESS Process,
     DirectoryTableBase[1] = PsGetCurrentProcess()->Pcb.DirectoryTableBase[1];
 
     /* Initialize the Addresss Space */
-    KeInitializeGuardedMutex(&Process->AddressCreationLock);
+    MiInitializeAddressCreationLock(Process);
     KeInitializeSpinLock(&Process->HyperSpaceLock);
     Process->Vm.WorkingSetExpansionLinks.Flink = NULL;
     ASSERT(Process->VadRoot.NumberGenericTableElements == 0);

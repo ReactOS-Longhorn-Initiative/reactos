@@ -8,6 +8,9 @@
 #include "precomp.h"
 
 
+/* GetSpoolFileHandle is exported under its plain name (see winspool.spec); undo the
+ * spurious A/W macro that <winspool.h> applies on NT6.0+. */
+#undef GetSpoolFileHandle
 HANDLE WINAPI
 GetSpoolFileHandle( HANDLE hPrinter )
 {

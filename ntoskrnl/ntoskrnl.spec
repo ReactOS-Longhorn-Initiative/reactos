@@ -185,6 +185,7 @@
 @ fastcall -arch=i386 ExiTryToAcquireFastMutex(ptr) ExTryToAcquireFastMutex
 @ stdcall FsRtlAcquireFileExclusive(ptr)
 @ stdcall FsRtlAddBaseMcbEntry(ptr long long long long long long)
+@ stdcall -version=0x600+ FsRtlAreVolumeStartupApplicationsComplete()
 @ stdcall FsRtlAddLargeMcbEntry(ptr long long long long long long)
 @ stdcall FsRtlAddMcbEntry(ptr long long long)
 @ stdcall FsRtlAddToTunnelCache(ptr long long ptr ptr long long ptr)
@@ -284,6 +285,7 @@
 @ stdcall FsRtlRegisterUncProvider(ptr ptr long)
 @ stdcall FsRtlReleaseFile(ptr)
 @ stdcall FsRtlRemoveBaseMcbEntry(ptr long long long long)
+@ stdcall -version=0x600+ FsRtlRemoveDotsFromPath(ptr long ptr)
 @ stdcall FsRtlRemoveLargeMcbEntry(ptr long long long long)
 @ stdcall FsRtlRemoveMcbEntry(ptr long long)
 @ stdcall FsRtlRemovePerFileObjectContext(ptr ptr ptr)
@@ -637,6 +639,7 @@
 @ stdcall -arch=i386,arm KeProfileInterrupt(ptr)
 @ stdcall KeProfileInterruptWithSource(ptr long)
 @ stdcall KePulseEvent(ptr long long)
+@ stdcall -version=0x600+ KeQueryActiveProcessorCount(ptr)
 @ stdcall KeQueryActiveProcessors()
 @ stdcall -arch=i386,arm KeQueryInterruptTime()
 ;@ cdecl -arch=x86_64 KeQueryMultiThreadProcessorSet

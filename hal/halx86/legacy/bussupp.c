@@ -1277,7 +1277,7 @@ HalpRegisterKdSupportFunctions(VOID)
 
     /* Register memory functions */
 #ifndef _MINIHAL_
-#if (NTDDI_VERSION >= NTDDI_VISTA)
+#if (NTDDI_VERSION >= NTDDI_VISTASP1)
     KdMapPhysicalMemory64 = HalpMapPhysicalMemory64Vista;
     KdUnmapVirtualAddress = HalpUnmapVirtualAddressVista;
 #else

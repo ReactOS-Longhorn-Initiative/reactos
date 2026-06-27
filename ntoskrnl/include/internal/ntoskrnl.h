@@ -100,7 +100,13 @@
 
 #endif
 
-#ifndef _WIN64
+/*
+ * These i386 layout assertions hardcode the NT5.2 KTHREAD/KPCR/KPROCESS field
+ * offsets (and pre-Vista members such as Quantum/TlsArray that became bit-fields
+ * or were removed in the Vista layout). They validate the NT5.2 struct against
+ * the assembler offset macros and do not apply to the NT6.0 (Longhorn) layout.
+ */
+#if !defined(_WIN64) && (NTDDI_VERSION < NTDDI_LONGHORN)
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, SystemCall) == 0x300);
 
 C_ASSERT(FIELD_OFFSET(KTHREAD, InitialStack) == KTHREAD_INITIAL_STACK);

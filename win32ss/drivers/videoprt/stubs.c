@@ -343,6 +343,10 @@ VideoPortWriteRegisterBufferUlong(
     WRITE_REGISTER_BUFFER_ULONG(Register, Buffer, Count);
 }
 
+#endif /* _M_AMD64 */
+
+/* All architectures: the videoprt function table (funclist.c) needs a real local
+ * symbol for VideoPortQuerySystemTime, so define it outside the AMD64-only block. */
 VOID
 NTAPI
 VideoPortQuerySystemTime(
@@ -350,5 +354,3 @@ VideoPortQuerySystemTime(
 {
     KeQuerySystemTime(CurrentTime);
 }
-
-#endif /* _M_AMD64 */

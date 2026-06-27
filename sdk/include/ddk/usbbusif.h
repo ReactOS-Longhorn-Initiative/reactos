@@ -121,6 +121,11 @@ typedef struct _USB_BUS_INTERFACE_USBDI_V2 {
 
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 
+/* Forward declaration so the USBC callback typedef below can name the device-object
+ * pointer without depending on wdm.h having been included first (this header can be
+ * pulled in early via the WDF USB chain in storage drivers). */
+struct _DEVICE_OBJECT;
+
 typedef
 _Must_inspect_result_
 NTSTATUS
@@ -182,8 +187,11 @@ NTSTATUS
   _Outptr_result_bytebuffer_maybenull_(*FunctionDescriptorBufferLength)
     PUSBC_FUNCTION_DESCRIPTOR *FunctionDescriptorBuffer,
   _Out_ PULONG FunctionDescriptorBufferLength,
-  _In_ PDEVICE_OBJECT FdoDeviceObject,
-  _In_ PDEVICE_OBJECT PdoDeviceObject);
+  /* Use the forward-referenceable struct pointer instead of PDEVICE_OBJECT so this
+   * Vista USBC typedef compiles even when usbbusif.h is pulled in (e.g. via the WDF
+   * USB chain in storage drivers) before wdm.h has typedef'd PDEVICE_OBJECT. */
+  _In_ struct _DEVICE_OBJECT *FdoDeviceObject,
+  _In_ struct _DEVICE_OBJECT *PdoDeviceObject);
 
 typedef
 _Must_inspect_result_

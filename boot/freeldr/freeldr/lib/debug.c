@@ -27,8 +27,8 @@
 // #define DEBUG_ERR
 // #define DEBUG_INIFILE
 // #define DEBUG_REACTOS
-// #define DEBUG_CUSTOM
-#define DEBUG_NONE
+#define DEBUG_CUSTOM
+// #define DEBUG_NONE
 
 #define DBG_DEFAULT_LEVELS (ERR_LEVEL|FIXME_LEVEL)
 

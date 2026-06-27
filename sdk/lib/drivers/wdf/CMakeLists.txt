@@ -2,7 +2,7 @@
 add_subdirectory(wdfldr)
 add_subdirectory(wdfdriverentry)
 
-remove_definitions(-D_WIN32_WINNT=0x502)
+remove_definitions(-D_WIN32_WINNT=0x600)
 
 list(APPEND SOURCE_SHARED
     shared/core/fxcxdeviceinit.cpp

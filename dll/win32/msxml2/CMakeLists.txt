@@ -1,5 +1,5 @@
 
-remove_definitions(-D_WIN32_WINNT=0x502)
+remove_definitions(-D_WIN32_WINNT=0x600)
 add_definitions(-D_WIN32_WINNT=0x601)
 
 add_definitions(

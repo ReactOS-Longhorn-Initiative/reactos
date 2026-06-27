@@ -79,6 +79,7 @@ HvpValidateBaseHeader(
  * it lacks the implementation for growing the log file size.
  * See the FIXME comment below for further details.
  */
+#if (NTDDI_VERSION < NTDDI_VISTA)
 static
 BOOLEAN
 CMAPI
@@ -276,6 +277,7 @@ HvpWriteLog(
 
     return TRUE;
 }
+#endif /* (NTDDI_VERSION < NTDDI_VISTA) */
 
 /**
  * @brief

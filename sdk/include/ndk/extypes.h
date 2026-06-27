@@ -804,7 +804,10 @@ typedef struct _HANDLE_TABLE
 #endif
     PHANDLE_TRACE_DEBUG_INFO DebugInfo;
     LONG ExtraInfoPages;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+/* ReactOS implements the NT5.x handle free-list (FirstFree/LastFree indices);
+ * real Vista uses FirstFreeHandle + LastFreeHandleEntry with a different order.
+ * Both variants are the same size, so ReactOS keeps the NT5.x layout on NT6+. */
+#if (NTDDI_VERSION >= NTDDI_LONGHORN) && !defined(__REACTOS__)
     union
     {
         ULONG Flags;

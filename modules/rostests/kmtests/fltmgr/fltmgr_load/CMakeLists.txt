@@ -1,3 +1,7 @@
+# These fltmgr tests target the NT5.2 fltmgr (NTDDI_WS03SP1); align _WIN32_WINNT/WINVER.
+remove_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
+add_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+
 
 include_directories(../../include)
 

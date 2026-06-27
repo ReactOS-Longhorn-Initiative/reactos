@@ -21,6 +21,9 @@
 #define EFI_DUMMY_NAMESPACE_GUID_STRING "{00000000-0000-0000-0000-000000000000}"
 #define EFI_DUMMY_VARIABLE_NAME ""
 
+/* FIRMWARE_TYPE is defined by the SDK (winnt.h) on NT6.0+; only define it locally
+ * for older targets. */
+#if (_WIN32_WINNT < 0x0600)
 typedef enum _FIRMWARE_TYPE
 {
     FirmwareTypeUnknown,
@@ -28,6 +31,7 @@ typedef enum _FIRMWARE_TYPE
     FirmwareTypeUefi,
     FirmwareTypeMax
 } FIRMWARE_TYPE, *PFIRMWARE_TYPE;
+#endif
 
 typedef
 _Success_(return)

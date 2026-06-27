@@ -197,6 +197,8 @@ SaveDesktopSettings(PDESKTOP_DATA pData);
 VOID
 SetDesktopSettings(PDESKTOP_DATA pData);
 
+/* On NT6.0+ this is declared by <winreg.h> and exported by advapi32. */
+#if (_WIN32_WINNT < 0x0600)
 LONG
 RegLoadMUIStringW(IN HKEY hKey,
                   IN LPCWSTR pszValue  OPTIONAL,
@@ -205,5 +207,6 @@ RegLoadMUIStringW(IN HKEY hKey,
                   OUT LPDWORD pcbData OPTIONAL,
                   IN DWORD Flags,
                   IN LPCWSTR pszDirectory  OPTIONAL);
+#endif
 
 #endif /* _DESK_H */

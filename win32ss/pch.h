@@ -21,8 +21,18 @@
 #include <intrin.h>
 
 /* DDK headers */
+/* NT6.0 retarget: win32k MUST be compiled at NTDDI_VISTA so it sees the *same*
+ * EPROCESS/ETHREAD/KPROCESS/KTHREAD layout the Vista kernel uses. When win32k was
+ * pinned at NT5.2 (NTDDI_WS03SP1), the kernel's Vista-layout changes (e.g.
+ * AddressCreationLock -> EX_PUSH_LOCK, ~28 bytes smaller) shifted every EPROCESS
+ * field after it, so win32k read Process->Peb (and ~44 other kernel-struct fields)
+ * at stale offsets -> ASSERT(Process->Peb) and silent corruption at GUI bring-up. */
 #undef NTDDI_VERSION
-#define NTDDI_VERSION NTDDI_WS03SP1
+#define NTDDI_VERSION NTDDI_VISTA
+#undef _WIN32_WINNT
+#define _WIN32_WINNT _WIN32_WINNT_VISTA
+#undef WINVER
+#define WINVER _WIN32_WINNT_VISTA
 #include <ntifs.h>
 #include <ntddkbd.h>
 #include <ntddmou.h>

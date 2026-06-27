@@ -5,7 +5,7 @@ add_subdirectory(cpl)
 
 # For (NT6+) WaveRT support.
 # See WAVERT define in debug.hpp.
-# remove_definitions(-D_WIN32_WINNT=0x502)
+# remove_definitions(-D_WIN32_WINNT=0x600)
 # add_definitions(-D_WIN32_WINNT=0x600)
 
 list(APPEND SOURCE

@@ -4,7 +4,7 @@ add_definitions(
     -DPROXY_DELEGATION
     -DWINE_REGISTER_DLL)
 
-remove_definitions(-D_WIN32_WINNT=0x502)
+remove_definitions(-D_WIN32_WINNT=0x600)
 add_definitions(-D_WIN32_WINNT=0x600)
 
 include_directories(

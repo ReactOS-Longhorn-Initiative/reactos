@@ -4,7 +4,11 @@
 #include <usbdlib.h>
 #include <debug.h>
 
+/* On NT6.0+ (NTDDI_VISTA), usbdlib.h declares USBD_HANDLE and the USBD_* routines
+ * this file implements, so only declare the handle locally on older targets. */
+#if (NTDDI_VERSION < NTDDI_VISTA)
 DECLARE_HANDLE(USBD_HANDLE);
+#endif
 
 NTSTATUS
 USBD_QueryUsbCapability(

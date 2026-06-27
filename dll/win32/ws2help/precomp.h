@@ -12,6 +12,7 @@
 #define WIN32_NO_STATUS
 #define _INC_WINDOWS
 #define COM_NO_WINDOWS_H
+#undef _WIN32_WINNT  /* override global 0x600: this winsock SPI helper targets the NT5.2 surface */
 #define _WIN32_WINNT 0x502
 #define NTOS_MODE_USER
 #define INCL_WINSOCK_API_TYPEDEFS 1

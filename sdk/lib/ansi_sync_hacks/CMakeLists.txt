@@ -3,7 +3,7 @@
 # Vista+ functionality, Eventually we won't need to maintain a 0x502 build and this
 # will be removed.
 
-remove_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+remove_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 add_definitions(-D_WIN32_WINNT=0x600 -DWINVER=0x600)
 
 list(APPEND SOURCE

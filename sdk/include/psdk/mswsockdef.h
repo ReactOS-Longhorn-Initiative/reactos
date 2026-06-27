@@ -8,7 +8,9 @@ extern "C" {
 #ifdef _MSC_VER
 #define MSWSOCKDEF_INLINE __inline
 #else
-#define MSWSOCKDEF_INLINE extern inline
+/* Use 'static __inline': a plain 'extern inline' emits an external definition in
+ * every translation unit under -std=gnu99, causing multiple-definition link errors. */
+#define MSWSOCKDEF_INLINE static __inline
 #endif
 #endif /* (_WIN32_WINNT>=0x0600) */
 
@@ -21,7 +23,9 @@ extern "C" {
 
 #ifdef _WS2DEF_
 
-const UCHAR sockaddr_size[AF_MAX];
+/* 'static' so each translation unit gets its own copy (a plain file-scope const
+ * array has external linkage in C, causing multiple-definition link errors). */
+static const UCHAR sockaddr_size[AF_MAX];
 
 MSWSOCKDEF_INLINE
 UCHAR

@@ -524,6 +524,13 @@ C_ASSERT(sizeof(KDDEBUGGER_DATA64) >= 0x318);
 #else
 #define PtrToUL64(x)    ((ULPTR64)(x))
 #endif
+#if defined(__GNUC__) || defined(__clang__)
+/* This large flat positional initializer with a braced Header trips GCC/Clang's
+ * pedantic -Wmissing-braces brace-elision heuristic (purely stylistic; the element
+ * count is correct - no "excess elements" diagnostic). Suppress it locally. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#endif
 KDDEBUGGER_DATA64 KdDebuggerDataBlock =
 {
     {{0}},
@@ -703,6 +710,16 @@ KDDEBUGGER_DATA64 KdDebuggerDataBlock =
     PtrToUL64(IopTriageDumpDataBlocks),
 
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-#error KdDebuggerDataBlock requires other fields for this NT version!
+    //
+    // Vista (Longhorn) added these KDDEBUGGER_DATA64 fields. ReactOS does not
+    // implement Driver Verifier crash data or the bad/zeroed-page single-bit
+    // error counters, so the debugger data block leaves them NULL.
+    //
+    0, // VfCrashDataBlock
+    0, // MmBadPagesDetected
+    0, // MmZeroedPageSingleBitErrorsDetected
 #endif
 };
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif

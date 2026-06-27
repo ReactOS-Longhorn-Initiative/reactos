@@ -106,7 +106,11 @@ AllocateAndInitLPB(
     Extension->MinorVersion = (VersionToBoot & 0xFF);
 
 #ifdef UEFIBOOT
+    /* LOADER_PARAMETER_EXTENSION.BootViaEFI only exists in the Win10 layout; on
+     * NT6.0 the EFI boot is recorded via FirmwareInformation.FirmwareTypeEfi. */
+#if (NTDDI_VERSION >= NTDDI_WIN10)
     Extension->BootViaEFI = 1;
+#endif
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     LoaderBlock->FirmwareInformation.FirmwareTypeEfi = 1;
 #endif
@@ -1205,7 +1209,11 @@ LoadAndBootWindows(
     if (_stricmp(ArgValue, "Windows") == 0 ||
         _stricmp(ArgValue, "Windows2003") == 0)
     {
-        OperatingSystemVersion = _WIN32_WINNT_WS03;
+        /* NT6.0 retarget: this whole ReactOS is now a Vista (NTDDI_VISTA) build, so the
+         * legacy "Windows"/"Windows2003" boot entries must advertise Vista in the loader
+         * block — otherwise the NTDDI_VISTA kernel's ExpIsLoaderValid bugchecks
+         * MISMATCHED_HAL (loader MajorVersion < VER_PRODUCTMAJORVERSION). */
+        OperatingSystemVersion = _WIN32_WINNT_VISTA;
     }
     else if (_stricmp(ArgValue, "WindowsNT40") == 0)
     {

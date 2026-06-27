@@ -359,3 +359,16 @@ FailEmpty:
     return STATUS_NOT_FOUND;
 }
 
+
+/*
+ * @implemented (stub)
+ *
+ * Returns whether the volume startup applications (autochk/chkdsk) have completed.
+ * ReactOS does not track this state, so report TRUE (the normal post-boot state).
+ */
+BOOLEAN
+NTAPI
+FsRtlAreVolumeStartupApplicationsComplete(VOID)
+{
+    return TRUE;
+}

@@ -296,7 +296,16 @@ _MmTryToLockAddressSpace(IN PMMSUPPORT AddressSpace,
                          const char *file,
                          int line)
 {
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    /* Vista: AddressCreationLock is an EX_PUSH_LOCK (see mm.h helpers). */
+    PEPROCESS Process = CONTAINING_RECORD(AddressSpace, EPROCESS, Vm);
+    BOOLEAN Result;
+    KeEnterGuardedRegion();
+    Result = ExTryToAcquirePushLockExclusive(&Process->AddressCreationLock);
+    if (!Result) KeLeaveGuardedRegion();
+#else
     BOOLEAN Result = KeTryToAcquireGuardedMutex(&CONTAINING_RECORD(AddressSpace, EPROCESS, Vm)->AddressCreationLock);
+#endif
     //DbgPrint("(%s:%d) Try Lock Address Space %x -> %s\n", file, line, AddressSpace, Result ? "true" : "false");
     return Result;
 }
