@@ -165,11 +165,27 @@ MiReadFilePage(PMMSUPPORT AddressSpace,
     Mdl->MdlFlags |= MDL_PAGES_LOCKED;
 
     KeInitializeEvent(&Event, NotificationEvent, FALSE);
-    Status = IoPageRead(FileObject, Mdl, FileOffset, &Event, &IOSB);
-    if (Status == STATUS_PENDING)
+
+    /*
+     * Mark the thread as performing cache-manager / paging I/O across the read
+     * (Vista's save-restore of ETHREAD.CacheManagerActive around IoPageRead).
+     * If a filesystem driver is reentered for a *recursive* page fault while it
+     * services this read, MmIsRecursiveIoFault() then returns TRUE so the driver
+     * can avoid the resource it would otherwise deadlock on.
+     */
     {
-        KeWaitForSingleObject(&Event, Executive, KernelMode, FALSE, NULL);
-        Status = IOSB.Status;
+        PETHREAD Thread = PsGetCurrentThread();
+        UCHAR OldCacheManagerActive = Thread->CacheManagerActive;
+        Thread->CacheManagerActive = TRUE;
+
+        Status = IoPageRead(FileObject, Mdl, FileOffset, &Event, &IOSB);
+        if (Status == STATUS_PENDING)
+        {
+            KeWaitForSingleObject(&Event, Executive, KernelMode, FALSE, NULL);
+            Status = IOSB.Status;
+        }
+
+        Thread->CacheManagerActive = OldCacheManagerActive;
     }
     if (Mdl->MdlFlags & MDL_MAPPED_TO_SYSTEM_VA)
     {

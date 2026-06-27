@@ -233,9 +233,13 @@ MmIsRecursiveIoFault(VOID)
     PETHREAD Thread = PsGetCurrentThread();
 
     //
-    // If any of these is true, this is a recursive fault
+    // A recursive I/O fault is in progress if the thread is currently performing
+    // cache-manager / page I/O (Vista's CacheManagerActive, which the section
+    // paging-read path sets around IoPageRead) or has page-fault clustering
+    // disabled. NT5.x used ForwardClusterOnly for the former; Vista renamed that
+    // byte to CacheManagerActive.
     //
-    return ((Thread->DisablePageFaultClustering) | (Thread->ForwardClusterOnly));
+    return (Thread->CacheManagerActive | Thread->DisablePageFaultClustering);
 }
 
 /*

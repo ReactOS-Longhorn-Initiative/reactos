@@ -247,7 +247,7 @@ KeBoostPriorityThread(IN PKTHREAD Thread,
                 }
 
                 /* Reset the quantum */
-                Thread->Quantum = Thread->QuantumReset;
+                KiSetQuantumTarget(Thread);
 
                 /* Set the new Priority */
                 KiSetPriorityThread(Thread, Priority);
@@ -502,8 +502,9 @@ KeStartThread(IN OUT PKTHREAD Thread)
 #if defined(_M_IX86)
     Thread->Iopl = Process->Iopl;
 #endif
-    Thread->Quantum = Process->QuantumReset;
     Thread->QuantumReset = Process->QuantumReset;
+    Thread->CycleTime = 0;
+    KiSetQuantumTarget(Thread);
     Thread->SystemAffinityActive = FALSE;
 
     /* Lock the process */
@@ -1256,7 +1257,7 @@ KeSetBasePriorityThread(IN PKTHREAD Thread,
     if (Priority != Thread->Priority)
     {
         /* Reset the quantum and do the actual priority modification */
-        Thread->Quantum = Thread->QuantumReset;
+        KiSetQuantumTarget(Thread);
         KiSetPriorityThread(Thread, Priority);
     }
 
@@ -1321,7 +1322,7 @@ KeSetPriorityThread(IN PKTHREAD Thread,
     if (Priority != Thread->Priority)
     {
         /* Reset the quantum */
-        Thread->Quantum = Thread->QuantumReset;
+        KiSetQuantumTarget(Thread);
 
         /* Check if priority is being set too low and normalize if so */
         if ((Thread->BasePriority != 0) && !(Priority)) Priority = 1;

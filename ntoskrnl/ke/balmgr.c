@@ -92,7 +92,8 @@ KiScanReadyQueues(IN PKDPC Dpc,
 
                         /* Update priority and insert into ready list */
                         Thread->Priority = THREAD_BOOST_PRIORITY;
-                        Thread->Quantum = WAIT_QUANTUM_DECREMENT * 4;
+                        Thread->QuantumTarget = Thread->CycleTime +
+                            (ULONG64)(WAIT_QUANTUM_DECREMENT * 4) * KiCyclesPerClockQuantum;
                         KiInsertDeferredReadyList(Thread);
                         Count --;
                     }

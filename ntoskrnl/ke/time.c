@@ -229,14 +229,42 @@ KeUpdateRunTime(IN PKTRAP_FRAME TrapFrame,
         }
     }
 
-    /* Decrement the thread quantum */
-    Thread->Quantum -= CLOCK_QUANTUM_DECREMENT;
-
-    /* Check if the time expired */
-    if ((Thread->Quantum <= 0) && (Thread != Prcb->IdleThread))
+    /* Charge the elapsed CPU cycles to the current thread (Vista cycle accounting) */
     {
-        /* Schedule a quantum end */
-        Prcb->QuantumEnd = 1;
-        HalRequestSoftwareInterrupt(DISPATCH_LEVEL);
+#if defined(_M_IX86) || defined(_M_AMD64)
+        ULONG64 Tsc = __rdtsc();
+#else
+        /* No cycle counter: advance synthetically by one tick's worth of cycles,
+         * which reproduces the legacy CLOCK_QUANTUM_DECREMENT-per-tick behaviour. */
+        ULONG64 Tsc = KiLastQuantumTsc +
+                      (KiCyclesPerClockQuantum * CLOCK_QUANTUM_DECREMENT);
+#endif
+        if (KiLastQuantumTsc == 0)
+        {
+            /* First tick: just establish the cycle baseline, charge nothing */
+            KiLastQuantumTsc = Tsc;
+        }
+        else
+        {
+            ULONG64 Delta = Tsc - KiLastQuantumTsc;
+            KiLastQuantumTsc = Tsc;
+
+            /* Self-calibrate cycles-per-quantum-unit from the first real tick delta:
+             * one tick == CLOCK_QUANTUM_DECREMENT quantum-units. Guard a bogus sample. */
+            if (!KiQuantumCalibrated && (Delta > 1000) && (Delta < (1ULL << 40)))
+            {
+                KiCyclesPerClockQuantum = (Delta / CLOCK_QUANTUM_DECREMENT) | 1;
+                KiQuantumCalibrated = TRUE;
+            }
+
+            /* Charge the cycles; the idle thread never burns a quantum */
+            Thread->CycleTime += Delta;
+            if ((Thread != Prcb->IdleThread) && KiQuantumExpired(Thread))
+            {
+                /* Schedule a quantum end */
+                Prcb->QuantumEnd = 1;
+                HalRequestSoftwareInterrupt(DISPATCH_LEVEL);
+            }
+        }
     }
 }

@@ -1720,10 +1720,9 @@ typedef struct _KTHREAD
 #if (NTDDI_VERSION >= NTDDI_WIN7) // [
             UCHAR ResourceIndex;
 #elif (NTDDI_VERSION >= NTDDI_LONGHORN) // ][
-            // ReactOS uses Quantum here for its tick-based scheduler; real Vista
-            // calls this byte Spare04. Keep both names (same offset/size) so the
-            // NDK layout tests still validate against the real Vista name.
-            union { CHAR Spare04; SCHAR Quantum; };
+            // Vista is cycle-based (KTHREAD.CycleTime / QuantumTarget); this byte is
+            // a genuine spare. ReactOS now uses the cycle-based quantum too.
+            CHAR Spare04;
 #else // ][
             SCHAR Quantum;
 #endif // ]

@@ -1335,8 +1335,7 @@ typedef struct _ETHREAD
         ULONG SameThreadApcFlags;
     };
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-    /* ReactOS MM uses ForwardClusterOnly; real Vista calls it CacheManagerActive. */
-    union { UCHAR CacheManagerActive; UCHAR ForwardClusterOnly; };
+    UCHAR CacheManagerActive;
 #else
     UCHAR ForwardClusterOnly;
 #endif
@@ -1476,13 +1475,11 @@ typedef struct _EPROCESS
     LIST_ENTRY MmProcessLinks;
 #endif
     ULONG ModifiedPageCount;
-/* ReactOS uses the NT5.x ULONG JobStatus; real Vista replaced it with the Flags2
- * bitfield union. JobStatus is added as another union member (same offset/size)
- * so the NDK layout tests still validate Flags2. */
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
+    /* Vista replaced the NT5.x ULONG JobStatus with the Flags2 bitfield union;
+     * ReactOS now uses the named bits (e.g. AccountingFolded) directly. */
     union
     {
-        ULONG JobStatus;
         struct
         {
             ULONG JobNotReallyActive:1;
@@ -1639,9 +1636,7 @@ typedef struct _EJOB
     ULONG CurrentJobMemoryUsed;
 #if (NTDDI_VERSION >= NTDDI_WINXP) && (NTDDI_VERSION < NTDDI_WS03)
     FAST_MUTEX MemoryLimitsLock;
-#elif ((NTDDI_VERSION >= NTDDI_WS03) && (NTDDI_VERSION < NTDDI_LONGHORN)) || defined(__REACTOS__)
-    /* ReactOS uses a guarded mutex for the job memory-limits lock; real Vista uses
-     * an EX_PUSH_LOCK. EJOB is a ReactOS-internal object, so the size change is fine. */
+#elif (NTDDI_VERSION >= NTDDI_WS03) && (NTDDI_VERSION < NTDDI_LONGHORN)
     KGUARDED_MUTEX MemoryLimitsLock;
 #elif (NTDDI_VERSION >= NTDDI_LONGHORN)
     EX_PUSH_LOCK MemoryLimitsLock;

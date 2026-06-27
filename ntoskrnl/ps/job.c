@@ -309,7 +309,7 @@ NtCreateJobObject (
         /* inherit the session id from the caller */
         Job->SessionId = PsGetProcessSessionId(CurrentProcess);
 
-        KeInitializeGuardedMutex(&Job->MemoryLimitsLock);
+        ExInitializePushLock(&Job->MemoryLimitsLock);
 
         Status = ExInitializeResource(&Job->JobLock);
         if(!NT_SUCCESS(Status))
@@ -629,7 +629,8 @@ NtQueryInformationJobObject (
                 PEPROCESS Process;
 
                 Process = CONTAINING_RECORD(NextEntry, EPROCESS, JobLinks);
-                if (!BooleanFlagOn(Process->JobStatus, 2))
+                /* PS_JOB_STATUS_ACCOUNTING_FOLDED (NT5.x JobStatus bit 0x2) == Vista AccountingFolded */
+                if (!Process->AccountingFolded)
                 {
                     PROCESS_VALUES Values;
 
@@ -676,14 +677,14 @@ NtQueryInformationJobObject (
             /* If asking for extending limits */
             if (JobInformationClass == JobObjectExtendedLimitInformation)
             {
-                /* Lock our memory lock */
-                KeAcquireGuardedMutexUnsafe(&Job->MemoryLimitsLock);
+                /* Lock our memory lock (Vista EX_PUSH_LOCK; caller already holds JobLock) */
+                ExAcquirePushLockExclusive(&Job->MemoryLimitsLock);
                 /* Return limits */
                 ExtendedLimit.ProcessMemoryLimit = Job->ProcessMemoryLimit << PAGE_SHIFT;
                 ExtendedLimit.JobMemoryLimit = Job->JobMemoryLimit << PAGE_SHIFT;
                 ExtendedLimit.PeakProcessMemoryUsed = Job->PeakProcessMemoryUsed << PAGE_SHIFT;
                 ExtendedLimit.PeakJobMemoryUsed = Job->PeakJobMemoryUsed << PAGE_SHIFT;
-                KeReleaseGuardedMutexUnsafe(&Job->MemoryLimitsLock);
+                ExReleasePushLockExclusive(&Job->MemoryLimitsLock);
 
                 /* And done */
                 ExReleaseResourceLite(&Job->JobLock);

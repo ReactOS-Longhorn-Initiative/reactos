@@ -590,7 +590,7 @@ ExpBoostOwnerThread(IN PKTHREAD Thread,
             OwnerThread->PriorityDecrement += 14 - OwnerThread->Priority;
 
             /* Update quantum */
-            OwnerThread->Quantum = OwnerThread->QuantumReset;
+            KiSetQuantumTarget(OwnerThread);
 
             /* Update the kernel state */
             KiSetPriorityThread(OwnerThread, 14);
@@ -1445,7 +1445,7 @@ ExConvertExclusiveToSharedLite(IN PERESOURCE Resource)
  * @implemented NT4
  *
  *     The ExConvertExclusiveToSharedLite routine deletes a given resource
- *     from the system’s resource list.
+ *     from the systemï¿½s resource list.
  *
  * @param Resource
  *        Pointer to the resource to delete.

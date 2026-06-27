@@ -25,6 +25,16 @@
 KAFFINITY KiIdleSummary;
 KAFFINITY KiIdleSMTSummary;
 
+/*
+ * Cycle-based quantum (Vista). KiCyclesPerClockQuantum starts at a sane default
+ * and is self-calibrated to the real cycles-per-clock-tick on the first ticks
+ * (see KeUpdateRunTime). KiLastQuantumTsc holds the TSC at the last charge
+ * (0 = baseline not yet taken).
+ */
+ULONG64 KiCyclesPerClockQuantum = 1000000;
+ULONG64 KiLastQuantumTsc = 0;
+BOOLEAN KiQuantumCalibrated = FALSE;
+
 /* FUNCTIONS *****************************************************************/
 
 PKTHREAD
@@ -189,9 +199,10 @@ KiDeferredReadyThread(IN PKTHREAD Thread)
             Thread->Priority = (SCHAR)OldPriority;
         }
 
-        /* We need 4 quanta, make sure we have them, then decrease by one */
-        if (Thread->Quantum < 4) Thread->Quantum = 4;
-        Thread->Quantum--;
+        /* Guarantee at least 4 quantum-units of cycles remain, then charge one */
+        if (Thread->QuantumTarget < Thread->CycleTime + 4 * KiCyclesPerClockQuantum)
+            Thread->QuantumTarget = Thread->CycleTime + 4 * KiCyclesPerClockQuantum;
+        Thread->CycleTime += KiCyclesPerClockQuantum;
 
         /* Make sure the priority is still valid */
         ASSERT((Thread->Priority >= 0) && (Thread->Priority <= HIGH_PRIORITY));
@@ -210,7 +221,7 @@ KiDeferredReadyThread(IN PKTHREAD Thread)
             if (Thread->BasePriority >= (LOW_REALTIME_PRIORITY - 2))
             {
                 /* It is, so simply reset its quantum */
-                Thread->Quantum = Thread->QuantumReset;
+                KiSetQuantumTarget(Thread);
             }
             else
             {
@@ -218,17 +229,18 @@ KiDeferredReadyThread(IN PKTHREAD Thread)
                 if (!(Thread->PriorityDecrement) && (Thread->AdjustIncrement))
                 {
                     /* Yes, reset its quantum */
-                    Thread->Quantum = Thread->QuantumReset;
+                    KiSetQuantumTarget(Thread);
                 }
 
                 /* Wait code already handles quantum adjustment during APCs */
                 if (Thread->WaitStatus != STATUS_KERNEL_APC)
                 {
-                    /* Decrease the quantum by one and check if we're out */
-                    if (--Thread->Quantum <= 0)
+                    /* Charge one quantum-unit of cycles and check if we're out */
+                    Thread->CycleTime += KiCyclesPerClockQuantum;
+                    if (KiQuantumExpired(Thread))
                     {
                         /* We are, reset the quantum and get a new priority */
-                        Thread->Quantum = Thread->QuantumReset;
+                        KiSetQuantumTarget(Thread);
                         Thread->Priority = KiComputeNewPriority(Thread, 1);
                     }
                 }
@@ -283,7 +295,7 @@ KiDeferredReadyThread(IN PKTHREAD Thread)
         else
         {
             /* It's a real-time thread, so just reset its quantum */
-            Thread->Quantum = Thread->QuantumReset;
+            KiSetQuantumTarget(Thread);
         }
 
         /* Make sure the priority makes sense */
@@ -544,11 +556,12 @@ KiAdjustQuantumThread(IN PKTHREAD Thread)
     if ((Thread->Priority < LOW_REALTIME_PRIORITY) &&
         (Thread->BasePriority < (LOW_REALTIME_PRIORITY - 2)))
     {
-        /* Decrease Quantum by one and see if we've ran out */
-        if (--Thread->Quantum <= 0)
+        /* Charge one quantum-unit of cycles and see if we've run out */
+        Thread->CycleTime += KiCyclesPerClockQuantum;
+        if (KiQuantumExpired(Thread))
         {
             /* Return quantum */
-            Thread->Quantum = Thread->QuantumReset;
+            KiSetQuantumTarget(Thread);
 
             /* Calculate new Priority */
             Thread->Priority = KiComputeNewPriority(Thread, 1);
@@ -919,7 +932,7 @@ NtYieldExecution(VOID)
         if (NextThread)
         {
             /* Reset quantum and recalculate priority */
-            Thread->Quantum = Thread->QuantumReset;
+            KiSetQuantumTarget(Thread);
             Thread->Priority = KiComputeNewPriority(Thread, 1);
 
             /* Release the thread lock */

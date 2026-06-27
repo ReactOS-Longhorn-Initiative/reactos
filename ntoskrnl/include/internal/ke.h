@@ -130,6 +130,31 @@ extern BOOLEAN KeThreadDpcEnable;
 extern LARGE_INTEGER KiTimeIncrementReciprocal;
 extern UCHAR KiTimeIncrementShiftCount;
 extern ULONG KiTimeLimitIsrMicroseconds;
+
+//
+// Cycle-based quantum (Vista). Instead of decrementing a per-thread byte each
+// clock tick, the thread accumulates CPU cycles (KTHREAD.CycleTime) and the
+// quantum ends once that reaches KTHREAD.QuantumTarget. KiCyclesPerClockQuantum
+// is the number of cycles in one "quantum unit" (QuantumReset is expressed in
+// these units, CLOCK_QUANTUM_DECREMENT units == one clock tick); it is
+// self-calibrated from the measured TSC rate on the first clock ticks.
+//
+extern ULONG64 KiCyclesPerClockQuantum;
+extern ULONG64 KiLastQuantumTsc;
+extern BOOLEAN KiQuantumCalibrated;
+
+//
+// (Re)arms a thread's quantum: it may run QuantumReset quantum-units worth of
+// cycles from its current accumulated CycleTime before quantum end.
+//
+#define KiSetQuantumTarget(Thread) \
+    ((Thread)->QuantumTarget = (Thread)->CycleTime + \
+     (ULONG64)(UCHAR)(Thread)->QuantumReset * KiCyclesPerClockQuantum)
+
+//
+// TRUE once a thread has accumulated its quantum's worth of cycles.
+//
+#define KiQuantumExpired(Thread) ((Thread)->CycleTime >= (Thread)->QuantumTarget)
 extern ULONG KiServiceLimit;
 extern LIST_ENTRY KeBugcheckCallbackListHead, KeBugcheckReasonCallbackListHead;
 extern KSPIN_LOCK BugCheckCallbackLock;
