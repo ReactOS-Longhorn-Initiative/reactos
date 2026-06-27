@@ -30,6 +30,7 @@ target_link_libraries(etwtrace ${PSEH_LIB})
 add_dependencies(etwtrace psdk)
 
 list(APPEND SOURCE
+    alpc/alpc.c
     dbg/dbgui.c
     ldr/ldrapi.c
     ldr/ldrinit.c

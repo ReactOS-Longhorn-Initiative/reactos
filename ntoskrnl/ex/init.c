@@ -1851,6 +1851,8 @@ Phase1InitializationDiscard(IN PVOID Context)
     /* Set maximum update to 100% */
     InbvSetProgressBarSubset(0, 100);
 
+    /* ALPC is initialized by LpcInitSystem (legacy LPC is backed by ALPC). */
+
     /* Are we in safe mode? */
     if (InitSafeBootMode)
     {

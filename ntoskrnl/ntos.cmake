@@ -201,14 +201,27 @@ list(APPEND SOURCE
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/time.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/timerobj.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/ke/wait.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/close.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/complete.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/connect.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/create.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/listen.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/port.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/reply.c
-    ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/send.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcinit.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcport.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpccon.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpchandle.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcmsg.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcview.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcrsrc.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcsec.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpcquery.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/alpccl.c
+    ${REACTOS_SOURCE_DIR}/ntoskrnl/alpc/legacylpc.c
+    # Legacy LPC is now backed by ALPC via alpc/legacylpc.c; the old standalone
+    # LPC implementation in lpc/ is disabled.
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/close.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/complete.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/connect.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/create.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/listen.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/port.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/reply.c
+    # ${REACTOS_SOURCE_DIR}/ntoskrnl/lpc/send.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/mm/ARM3/contmem.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/mm/ARM3/drvmgmt.c
     ${REACTOS_SOURCE_DIR}/ntoskrnl/mm/ARM3/dynamic.c

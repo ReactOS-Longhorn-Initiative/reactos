@@ -19,6 +19,9 @@ add_registry_inf(
 # Regtest
 add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/bootcdregtest/regtest.cmd DESTINATION reactos/bin FOR all)
 
+# ALPC conformance auto-runner (development harness)
+add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/alpctest.cmd DESTINATION reactos/bin FOR all)
+
 # autorun.inf
 add_cd_file(FILE ${CMAKE_CURRENT_SOURCE_DIR}/autorun.inf DESTINATION root NO_CAB FOR bootcd)
 
