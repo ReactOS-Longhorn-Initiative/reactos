@@ -1810,6 +1810,10 @@ MmDetachSession(
     _Inout_ PVOID SessionEntry,
     _Out_ PKAPC_STATE ApcState);
 
+NTSTATUS
+NTAPI
+MmDetachCurrentSession(VOID);
+
 VOID
 NTAPI
 MmQuitNextSession(

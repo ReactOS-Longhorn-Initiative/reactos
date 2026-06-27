@@ -521,6 +521,20 @@ typedef struct _MM_SESSION_SPACE
 } MM_SESSION_SPACE, *PMM_SESSION_SPACE;
 
 extern PMM_SESSION_SPACE MmSessionSpace;
+
+//
+// Per-session loaded-image tracking entry. Linked into
+// MmSessionSpace->ImageList; one per distinct image mapped into the session,
+// with a reference count covering repeated loads of the same image within the
+// session (ReactOS uses a simple list where Win10 uses an AVL ImageTree).
+//
+typedef struct _MI_SESSION_IMAGE
+{
+    LIST_ENTRY Link;
+    PVOID ImageBase;
+    PFN_COUNT PteCount;
+    LONG ImageCount;
+} MI_SESSION_IMAGE, *PMI_SESSION_IMAGE;
 extern MMPTE HyperTemplatePte;
 extern MMPDE ValidKernelPde;
 extern MMPTE ValidKernelPte;
@@ -1879,6 +1893,71 @@ MiInitializeSessionWsSupport(
 VOID
 NTAPI
 MiInitializeSessionIds(
+    VOID
+);
+
+PVOID
+NTAPI
+MiSessionWideReserveImageAddress(
+    _In_ PFN_COUNT PteCount
+);
+
+VOID
+NTAPI
+MiSessionWideFreeImageAddress(
+    _In_ PVOID ImageBase,
+    _In_ PFN_COUNT PteCount
+);
+
+NTSTATUS
+NTAPI
+MiSessionCommitPageTables(
+    _In_ PVOID StartVa,
+    _In_ PVOID EndVa
+);
+
+NTSTATUS
+NTAPI
+MiCommitSessionImagePages(
+    _In_ PVOID DriverBase,
+    _In_ PFN_COUNT PteCount
+);
+
+VOID
+NTAPI
+MiFreeSessionImage(
+    _In_ PVOID DriverBase,
+    _In_ PFN_COUNT PteCount
+);
+
+VOID
+NTAPI
+MiTestSessionImageLoad(
+    VOID
+);
+
+PMI_SESSION_IMAGE
+NTAPI
+MiSessionLookupImage(
+    _In_ PVOID ImageBase
+);
+
+NTSTATUS
+NTAPI
+MiSessionInsertImage(
+    _In_ PVOID ImageBase,
+    _In_ PFN_COUNT PteCount
+);
+
+VOID
+NTAPI
+MiSessionRemoveImage(
+    _In_ PVOID ImageBase
+);
+
+VOID
+NTAPI
+MiSessionImageTeardown(
     VOID
 );
 

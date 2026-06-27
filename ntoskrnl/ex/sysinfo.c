@@ -1976,11 +1976,22 @@ SSI_DEF(SystemExtendServiceTableInformation)
                                       sizeof(Win32kName));
     }
 
-    /* Load the image */
+    /*
+     * Load the image into SESSION space. win32k is a per-session driver: every
+     * session maps its own physical copy at the same session-wide virtual
+     * address, so win32k's .data (gpsi, the USER/GDI heaps and handle tables,
+     * ...) is naturally per-session, while the single shadow service table -
+     * registered once and pointing at that shared VA - resolves to the current
+     * session's copy via its page tables. The first session loads it fresh; a
+     * later session reuses the existing entry and gets its own copy (the
+     * session-image reuse path in MmLoadSystemImage). The caller is attached to
+     * the target session here (the session was just created), so this maps into
+     * the right session.
+     */
     Status = MmLoadSystemImage((PUNICODE_STRING)Buffer,
                                NULL,
                                NULL,
-                               0,
+                               1,
                                (PVOID)&ModuleObject,
                                &ImageBase);
 
@@ -2266,6 +2277,10 @@ NTSTATUS
 NTAPI
 MmSessionDelete(IN ULONG SessionId);
 
+NTSTATUS
+NTAPI
+MmDetachCurrentSession(VOID);
+
 /* Class 47 - Create a new session (TSE) */
 SSI_DEF(SystemSessionCreate)
 {
@@ -2291,10 +2306,9 @@ SSI_DEF(SystemSessionCreate)
     return Status;
 }
 
-/* Class 48 - Delete an existing session (TSE) */
+/* Class 48 - Detach the calling process from its session (TSE) */
 SSI_DEF(SystemSessionDetach)
 {
-    ULONG SessionId;
     KPROCESSOR_MODE PreviousMode = KeGetPreviousMode();
 
     if (Size != sizeof(ULONG)) return STATUS_INFO_LENGTH_MISMATCH;
@@ -2305,11 +2319,17 @@ SSI_DEF(SystemSessionDetach)
         {
             return STATUS_PRIVILEGE_NOT_HELD;
         }
+
+        ProbeForReadUlong(Buffer);
     }
 
-    SessionId = *(PULONG)Buffer;
-
-    return MmSessionDelete(SessionId);
+    /*
+     * The session id is accepted for ABI compatibility but the operation always
+     * detaches the calling process from its current session (matching the class
+     * name and Windows semantics), leaving it sessionless so it can create or
+     * join another session.
+     */
+    return MmDetachCurrentSession();
 }
 
 /* Class 49 - UNKNOWN */

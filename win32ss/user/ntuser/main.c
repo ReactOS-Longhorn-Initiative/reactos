@@ -988,51 +988,61 @@ DriverEntry(
     PVOID GlobalUserHeapBase = NULL;
 
     /*
-     * Register user mode call interface
-     * (system service table index = 1)
+     * Register user mode call interface (system service table index = 1).
+     *
+     * win32k is a per-session driver - every session maps its own copy at the
+     * same session-wide VA - but the shadow service table is a single
+     * kernel-global that points at win32k's shared VA, which resolves to each
+     * session's own copy. So only the FIRST session to load win32k registers
+     * it; a later session's DriverEntry finds it already registered
+     * (Result == FALSE), which is expected, not an error. The success of this
+     * registration is also our "am I the first session" signal, used to gate
+     * the other one-time, system-global registrations below. Everything after
+     * that lives in win32k's per-session .data (gpsi, the heaps, the handle
+     * tables, ...) and is therefore initialized once per session.
      */
     Result = KeAddSystemServiceTable(Win32kSSDT,
                                      NULL,
                                      Win32kNumberOfSysCalls,
                                      Win32kSSPT,
                                      1);
-    if (Result == FALSE)
-    {
-        DPRINT1("Adding system services failed!\n");
-        return STATUS_UNSUCCESSFUL;
-    }
 
     hModuleWin = MmPageEntireDriver(DriverEntry);
     DPRINT("Win32k hInstance 0x%p!\n", hModuleWin);
 
     DriverObject->DriverUnload = DriverUnload;
 
-    /* Register Object Manager Callbacks */
-    CalloutData.ProcessCallout = Win32kProcessCallback;
-    CalloutData.ThreadCallout = Win32kThreadCallback;
-    // CalloutData.GlobalAtomTableCallout = NULL;
-    CalloutData.PowerEventCallout = IntHandlePowerEvent;
-    CalloutData.PowerStateCallout = IntHandlePowerState;
-    // CalloutData.JobCallout = NULL;
-    CalloutData.BatchFlushRoutine = NtGdiFlushUserBatch;
-    CalloutData.DesktopOpenProcedure = IntDesktopObjectOpen;
-    CalloutData.DesktopOkToCloseProcedure = IntDesktopOkToClose;
-    CalloutData.DesktopCloseProcedure = IntDesktopObjectClose;
-    CalloutData.DesktopDeleteProcedure = IntDesktopObjectDelete;
-    CalloutData.WindowStationOkToCloseProcedure = IntWinStaOkToClose;
-    // CalloutData.WindowStationCloseProcedure = NULL;
-    CalloutData.WindowStationDeleteProcedure = IntWinStaObjectDelete;
-    CalloutData.WindowStationParseProcedure = IntWinStaObjectParse;
-    // CalloutData.WindowStationOpenProcedure = NULL;
+    if (Result)
+    {
+        /* First session: perform the one-time, system-global registrations. */
 
-    /* Register our per-process and per-thread structures. */
-    PsEstablishWin32Callouts(&CalloutData);
+        /* Register Object Manager Callbacks */
+        CalloutData.ProcessCallout = Win32kProcessCallback;
+        CalloutData.ThreadCallout = Win32kThreadCallback;
+        // CalloutData.GlobalAtomTableCallout = NULL;
+        CalloutData.PowerEventCallout = IntHandlePowerEvent;
+        CalloutData.PowerStateCallout = IntHandlePowerState;
+        // CalloutData.JobCallout = NULL;
+        CalloutData.BatchFlushRoutine = NtGdiFlushUserBatch;
+        CalloutData.DesktopOpenProcedure = IntDesktopObjectOpen;
+        CalloutData.DesktopOkToCloseProcedure = IntDesktopOkToClose;
+        CalloutData.DesktopCloseProcedure = IntDesktopObjectClose;
+        CalloutData.DesktopDeleteProcedure = IntDesktopObjectDelete;
+        CalloutData.WindowStationOkToCloseProcedure = IntWinStaOkToClose;
+        // CalloutData.WindowStationCloseProcedure = NULL;
+        CalloutData.WindowStationDeleteProcedure = IntWinStaObjectDelete;
+        CalloutData.WindowStationParseProcedure = IntWinStaObjectParse;
+        // CalloutData.WindowStationOpenProcedure = NULL;
 
-    /* Register service hook callbacks */
+        /* Register our per-process and per-thread structures. */
+        PsEstablishWin32Callouts(&CalloutData);
+
+        /* Register service hook callbacks */
 #if DBG && defined(KDBG)
-    KdSystemDebugControl('CsoR', DbgPreServiceHook, ID_Win32PreServiceHook, 0, 0, 0, 0);
-    KdSystemDebugControl('CsoR', DbgPostServiceHook, ID_Win32PostServiceHook, 0, 0, 0, 0);
+        KdSystemDebugControl('CsoR', DbgPreServiceHook, ID_Win32PreServiceHook, 0, 0, 0, 0);
+        KdSystemDebugControl('CsoR', DbgPostServiceHook, ID_Win32PostServiceHook, 0, 0, 0, 0);
 #endif
+    }
 
     /* Create the global USER heap */
     GlobalUserHeap = UserCreateHeap(&GlobalUserHeapSection,

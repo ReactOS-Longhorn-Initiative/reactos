@@ -328,8 +328,13 @@ MiCheckVirtualAddress(IN PVOID VirtualAddress,
     }
     else if (MI_IS_SESSION_ADDRESS(VirtualAddress))
     {
-        /* ReactOS does not have an image list yet, so bail out to failure case */
-        ASSERT(IsListEmpty(&MmSessionSpace->ImageList));
+        /*
+         * Session images use a copy-based model: their pages are committed as
+         * valid PTEs and their PDEs are demand-faulted by MiCheckPdeForSessionSpace,
+         * so a legitimate session-image access never reaches this prototype-PTE
+         * lookup. Anything that lands here is an access to an uncommitted session
+         * address, which falls through to the failure case below.
+         */
     }
 
     /* Default case -- failure */

@@ -26,6 +26,14 @@ LONG MmSessionDataPages;
 PRTL_BITMAP MiSessionIdBitmap;
 volatile LONG MiSessionLeaderExists;
 
+/*
+ * Tracks which pages of session image space (MiSessionImageStart..End) are
+ * reserved. The reservation is global so that a given driver (e.g. win32k.sys)
+ * occupies the same virtual address in every session, while each session backs
+ * that address with its own physical pages. Guarded by MiSessionIdMutex.
+ */
+PRTL_BITMAP MiSessionImageBitmap;
+
 LIST_ENTRY MiSessionWsList;
 LIST_ENTRY MmWorkingSetExpansionHead;
 
@@ -160,6 +168,76 @@ MiInitializeSessionIds(VOID)
                      MmHighestPhysicalPage,
                      0x200);
     }
+
+    /* Allocate the session image-space reservation bitmap (one bit per page of
+     * session image space), so session driver loads can carve out addresses. */
+    Size = (ULONG)(MmSessionImageSize >> PAGE_SHIFT);
+    BitmapSize = ((Size + 31) / 32) * sizeof(ULONG);
+    MiSessionImageBitmap = ExAllocatePoolWithTag(PagedPool,
+                                                 sizeof(RTL_BITMAP) + BitmapSize,
+                                                 TAG_MM);
+    if (MiSessionImageBitmap)
+    {
+        RtlInitializeBitMap(MiSessionImageBitmap,
+                            (PVOID)(MiSessionImageBitmap + 1),
+                            Size);
+        RtlClearAllBits(MiSessionImageBitmap);
+    }
+    else
+    {
+        KeBugCheckEx(INSTALL_MORE_MEMORY,
+                     MmNumberOfPhysicalPages,
+                     MmLowestPhysicalPage,
+                     MmHighestPhysicalPage,
+                     0x201);
+    }
+}
+
+/**
+ * @brief Reserves a run of session image-space virtual address for a driver.
+ *
+ * The reservation is global across sessions so the same driver lands at the same
+ * session-image VA in every session (each session backs it with its own pages).
+ *
+ * @param[in]  PteCount   Number of pages (PTEs) the image needs.
+ *
+ * @return The reserved base address in session image space, or NULL if there is
+ * no free run large enough.
+ */
+PVOID
+NTAPI
+MiSessionWideReserveImageAddress(
+    _In_ PFN_COUNT PteCount)
+{
+    ULONG Index;
+
+    KeAcquireGuardedMutex(&MiSessionIdMutex);
+    Index = RtlFindClearBitsAndSet(MiSessionImageBitmap, PteCount, 0);
+    KeReleaseGuardedMutex(&MiSessionIdMutex);
+
+    if (Index == 0xFFFFFFFF)
+        return NULL;
+
+    return (PVOID)((ULONG_PTR)MiSessionImageStart + ((ULONG_PTR)Index << PAGE_SHIFT));
+}
+
+/**
+ * @brief Releases a session image-space reservation made by
+ *        MiSessionWideReserveImageAddress.
+ */
+VOID
+NTAPI
+MiSessionWideFreeImageAddress(
+    _In_ PVOID ImageBase,
+    _In_ PFN_COUNT PteCount)
+{
+    ULONG Index;
+
+    Index = (ULONG)(((ULONG_PTR)ImageBase - (ULONG_PTR)MiSessionImageStart) >> PAGE_SHIFT);
+
+    KeAcquireGuardedMutex(&MiSessionIdMutex);
+    RtlClearBits(MiSessionImageBitmap, Index, PteCount);
+    KeReleaseGuardedMutex(&MiSessionIdMutex);
 }
 
 VOID
@@ -331,6 +409,10 @@ MiDereferenceSessionFinal(VOID)
         /* Call it */
         SessionGlobal->Win32KDriverUnload(NULL);
     }
+
+    /* Reclaim any session images that were not explicitly unloaded, before the
+       session page tables are torn down */
+    MiSessionImageTeardown();
 }
 
 
@@ -827,7 +909,6 @@ NTAPI
 MmSessionCreate(OUT PULONG SessionId)
 {
     PEPROCESS Process = PsGetCurrentProcess();
-    ULONG SessionLeaderExists;
     NTSTATUS Status;
 
     /* Fail if the process is already in a session */
@@ -837,19 +918,25 @@ MmSessionCreate(OUT PULONG SessionId)
         return STATUS_ALREADY_COMMITTED;
     }
 
-    /* Check if the process is already the session leader */
+    /*
+     * Elect the master session leader on the very first session creation. The
+     * leader (the master session manager) owns the bootstrap session; every
+     * later session is created by some other sessionless process - a per-session
+     * manager - which becomes the first member of the new session without being
+     * a leader. Decoupling creation from leadership is what allows more than one
+     * session to exist: the old code rejected any non-leader caller, capping the
+     * system at a single session.
+     */
     if (!Process->Vm.Flags.SessionLeader)
     {
-        /* Atomically set it as the leader */
-        SessionLeaderExists = InterlockedCompareExchange(&MiSessionLeaderExists, 1, 0);
-        if (SessionLeaderExists)
+        if (InterlockedCompareExchange(&MiSessionLeaderExists, 1, 0) == 0)
         {
-            DPRINT1("Session leader race\n");
-            return STATUS_INVALID_SYSTEM_SERVICE;
+            /* We won the election: this process is the master session leader */
+            MiSessionLeader(Process);
         }
 
-        /* Do the work required to upgrade him */
-        MiSessionLeader(Process);
+        /* Otherwise a leader already exists, and we create this session as an
+           ordinary (non-leader) member - no failure. */
     }
 
     /* Create the session */
@@ -879,6 +966,18 @@ MmSessionCreate(OUT PULONG SessionId)
     MmSessionSpace->u.Flags.Initialized = 1;
     PspSetProcessFlag(Process, PSF_PROCESS_IN_SESSION_BIT);
     ASSERT(MiSessionLeaderExists == 1);
+
+    /*
+     * The current process is now in the session, so session space is current.
+     * Exercise the per-session image-load mechanism once (reserve/commit/free of
+     * a session-image range), the first real test of that otherwise-unused path.
+     */
+    {
+        static LONG SessionImageTested = 0;
+        if (InterlockedCompareExchange(&SessionImageTested, 1, 0) == 0)
+            MiTestSessionImageLoad();
+    }
+
     return Status;
 }
 
@@ -908,6 +1007,80 @@ MmSessionDelete(IN ULONG SessionId)
     KeLeaveCriticalRegion();
 
     /* All done */
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Detaches the current process from its session, leaving it sessionless.
+ *
+ * This lets a process leave the session it is attached to so it can go on to
+ * create or join a different session - the address-space prerequisite for more
+ * than one session to exist (MmSessionCreate / MiSessionCreateInternal require
+ * the caller's session-space mapping to be absent). The session manager uses
+ * this to drop back to no session after launching a session's first processes.
+ *
+ * It drops the process out of the session (dereference, which also clears
+ * PSF_PROCESS_IN_SESSION_BIT and, when this was the last member, tears the
+ * session down), then removes the session mapping from this process's address
+ * space so it is genuinely sessionless. Per-process session PDEs are plain
+ * copies of the shared session page tables (faulted in by
+ * MiCheckPdeForSessionSpace with no PFN reference), so clearing them needs no
+ * PFN accounting; the shared page tables belong to the session and are freed by
+ * its teardown, not here.
+ */
+NTSTATUS
+NTAPI
+MmDetachCurrentSession(VOID)
+{
+    PEPROCESS Process = PsGetCurrentProcess();
+    PMMPDE PointerPde, LastPde;
+
+    /* Must currently be in a session */
+    if (!(Process->Flags & PSF_PROCESS_IN_SESSION_BIT))
+    {
+        DPRINT1("Not in a session!\n");
+        return STATUS_UNABLE_TO_FREE_VM;
+    }
+
+    /*
+     * Leave the session by dropping our reference. The leader is special:
+     * MiSessionRemoveProcess is a no-op for it (it never joined the process
+     * list), so the leader dereferences directly - exactly what MmSessionDelete
+     * does - while a normal member is first unlinked from the process list.
+     * Either way this clears PSF_PROCESS_IN_SESSION_BIT and, when we are the
+     * last member, runs the full session teardown while session space is still
+     * mapped.
+     */
+    KeEnterCriticalRegion();
+    if (Process->Vm.Flags.SessionLeader)
+    {
+        MiDereferenceSession();
+    }
+    else
+    {
+        MiSessionRemoveProcess();
+    }
+    KeLeaveCriticalRegion();
+
+    /*
+     * Now drop the session mapping from this process. Zero every session-space
+     * PDE so MmSessionSpace is no longer resolvable here; this is what makes the
+     * process genuinely sessionless for a later MmSessionCreate/attach. (The
+     * old leader path left these mappings stale - harmless only because the
+     * leader never created a second session.)
+     */
+    PointerPde = MiAddressToPde(MmSessionBase);
+    LastPde = MiAddressToPde((PVOID)((ULONG_PTR)MmSessionBase + MmSessionSize - 1));
+    while (PointerPde <= LastPde)
+    {
+        PointerPde->u.Long = 0;
+        PointerPde++;
+    }
+
+    /* Forget the session and flush the stale TLB entries for the range */
+    Process->Session = NULL;
+    KeFlushEntireTb(FALSE, FALSE);
+
     return STATUS_SUCCESS;
 }
 

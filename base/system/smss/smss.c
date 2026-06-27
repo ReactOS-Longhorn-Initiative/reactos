@@ -514,6 +514,74 @@ _main(IN INT argc,
         }
         SmpReleasePrivilege(State);
 
+        /*
+         * Bring up a second session (MuSession 1). smss is the session leader
+         * and is now sessionless again, so it can create another kernel session,
+         * load that session's subsystems (its own csrss) and launch its initial
+         * command (winlogon) - exactly what the SB API SmpStartCsr does for a
+         * remote session-create request, just driven directly here.
+         *
+         * Gated behind HKLM\SYSTEM\CCS\Control\Session Manager:EnableSecondSession
+         * (DWORD, default 0): the kernel session create, the per-session win32k
+         * load (session-image reuse path) and the per-session object namespaces
+         * all work, but session 1's csrss still trips deep per-session win32k GUI
+         * issues, so it is opt-in until that is finished.
+         */
+        {
+            ULONG EnableSecondSession = 0;
+            RTL_QUERY_REGISTRY_TABLE SecondSessionQueryTable[2];
+
+            RtlZeroMemory(SecondSessionQueryTable, sizeof(SecondSessionQueryTable));
+            SecondSessionQueryTable[0].Flags = RTL_QUERY_REGISTRY_DIRECT;
+            SecondSessionQueryTable[0].Name = L"EnableSecondSession";
+            SecondSessionQueryTable[0].EntryContext = &EnableSecondSession;
+            SecondSessionQueryTable[0].DefaultType = REG_DWORD;
+            SecondSessionQueryTable[0].DefaultData = &EnableSecondSession;
+            SecondSessionQueryTable[0].DefaultLength = sizeof(EnableSecondSession);
+            RtlQueryRegistryValues(RTL_REGISTRY_CONTROL,
+                                   L"Session Manager",
+                                   SecondSessionQueryTable,
+                                   NULL,
+                                   NULL);
+
+            if (EnableSecondSession)
+            {
+            ULONG Session1Id = 1;
+            HANDLE Session1WinSubSysPid = NULL;
+            HANDLE Session1Command = NULL;
+            UNICODE_STRING Session1InitialCommand;
+
+            RtlInitEmptyUnicodeString(&Session1InitialCommand, NULL, 0);
+
+            DPRINT1("SMSS: Bringing up session %lu\n", Session1Id);
+            Status = SmpLoadSubSystemsForMuSession(&Session1Id,
+                                                   &Session1WinSubSysPid,
+                                                   &Session1InitialCommand);
+            if (!NT_SUCCESS(Status))
+            {
+                DPRINT1("SMSS: SmpLoadSubSystemsForMuSession(%lu) failed - 0x%x\n",
+                        Session1Id, Status);
+            }
+            else
+            {
+                Status = SmpExecuteInitialCommand(Session1Id,
+                                                  &Session1InitialCommand,
+                                                  &Session1Command,
+                                                  NULL);
+                if (!NT_SUCCESS(Status))
+                {
+                    DPRINT1("SMSS: session %lu initial command failed - 0x%x\n",
+                            Session1Id, Status);
+                }
+                else
+                {
+                    DPRINT1("SMSS: session %lu is up and running\n", Session1Id);
+                    if (Session1Command) NtClose(Session1Command);
+                }
+            }
+            } /* if (EnableSecondSession) */
+        }
+
         /* Wait on either CSRSS or Winlogon to die */
         Status = NtWaitForMultipleObjects(RTL_NUMBER_OF(Handles),
                                           Handles,

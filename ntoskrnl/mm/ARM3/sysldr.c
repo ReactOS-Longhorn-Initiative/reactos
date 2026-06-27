@@ -73,6 +73,339 @@ MiCacheImageSymbols(IN PVOID BaseAddress)
     return DebugDirectory;
 }
 
+/**
+ * @brief Finds the per-session tracking entry for an image base, if any.
+ *
+ * Walks the current session's ImageList. Callers run serialized under the
+ * system load lock (MmLoadSystemImage) or at boot in single-session context.
+ *
+ * @return The matching MI_SESSION_IMAGE, or NULL if the image is not mapped
+ *         into this session.
+ */
+PMI_SESSION_IMAGE
+NTAPI
+MiSessionLookupImage(
+    _In_ PVOID ImageBase)
+{
+    PLIST_ENTRY Entry;
+    PMI_SESSION_IMAGE Image;
+
+    for (Entry = MmSessionSpace->ImageList.Flink;
+         Entry != &MmSessionSpace->ImageList;
+         Entry = Entry->Flink)
+    {
+        Image = CONTAINING_RECORD(Entry, MI_SESSION_IMAGE, Link);
+        if (Image->ImageBase == ImageBase)
+            return Image;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Records an image as mapped into the current session.
+ *
+ * If the image is already tracked (a repeated load of the same driver within
+ * the session) its reference count is bumped instead of creating a duplicate.
+ *
+ * @return STATUS_SUCCESS, or STATUS_INSUFFICIENT_RESOURCES on allocation
+ *         failure.
+ */
+NTSTATUS
+NTAPI
+MiSessionInsertImage(
+    _In_ PVOID ImageBase,
+    _In_ PFN_COUNT PteCount)
+{
+    PMI_SESSION_IMAGE Image;
+
+    /* Already mapped into this session? Just add a reference. */
+    Image = MiSessionLookupImage(ImageBase);
+    if (Image != NULL)
+    {
+        Image->ImageCount++;
+        return STATUS_SUCCESS;
+    }
+
+    Image = ExAllocatePoolWithTag(NonPagedPool, sizeof(*Image), 'iSmM');
+    if (Image == NULL)
+        return STATUS_INSUFFICIENT_RESOURCES;
+
+    Image->ImageBase = ImageBase;
+    Image->PteCount = PteCount;
+    Image->ImageCount = 1;
+    InsertTailList(&MmSessionSpace->ImageList, &Image->Link);
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Drops a reference to a session image, unlinking and freeing the
+ *        tracking entry when the last reference goes away.
+ *
+ * Only the bookkeeping entry is touched here; physical pages are released
+ * separately by MiFreeSessionImage.
+ */
+VOID
+NTAPI
+MiSessionRemoveImage(
+    _In_ PVOID ImageBase)
+{
+    PMI_SESSION_IMAGE Image;
+
+    Image = MiSessionLookupImage(ImageBase);
+    if (Image == NULL)
+        return;
+
+    if (--Image->ImageCount > 0)
+        return;
+
+    RemoveEntryList(&Image->Link);
+    ExFreePoolWithTag(Image, 'iSmM');
+}
+
+/**
+ * @brief Reclaims every image still mapped into the session being torn down.
+ *
+ * Called from the final session dereference, after the win32k unload routine
+ * and while session space is still mapped. Any images that were not explicitly
+ * unloaded are force-released here (pages, VA reservation and tracking entry),
+ * so the session leaves no leaked image space behind.
+ */
+VOID
+NTAPI
+MiSessionImageTeardown(VOID)
+{
+    PMI_SESSION_IMAGE Image;
+
+    while (!IsListEmpty(&MmSessionSpace->ImageList))
+    {
+        Image = CONTAINING_RECORD(MmSessionSpace->ImageList.Flink,
+                                  MI_SESSION_IMAGE,
+                                  Link);
+
+        /* Force the final release regardless of outstanding per-session refs;
+         * MiFreeSessionImage then unlinks the entry and reclaims the pages. */
+        Image->ImageCount = 1;
+        MiFreeSessionImage(Image->ImageBase, Image->PteCount);
+    }
+}
+
+/**
+ * @brief Backs a session image VA range with this session's own physical pages.
+ *
+ * Commits the session page tables (recording the PDEs in MmSessionSpace->
+ * PageTables[] so the session's other processes fault them in) and fills the
+ * session image PTEs with freshly-allocated, session-local pages.
+ *
+ * @return STATUS_SUCCESS on success, otherwise an appropriate NTSTATUS.
+ */
+NTSTATUS
+NTAPI
+MiCommitSessionImagePages(
+    _In_ PVOID DriverBase,
+    _In_ PFN_COUNT PteCount)
+{
+    PMMPTE PointerPte, LastPte;
+    MMPTE TempPte;
+    KIRQL OldIrql;
+    PFN_NUMBER PageFrameIndex;
+    NTSTATUS Status;
+
+    /* Make sure the session page tables backing this VA range exist */
+    Status = MiSessionCommitPageTables(DriverBase,
+                                       (PVOID)((ULONG_PTR)DriverBase +
+                                               ((ULONG_PTR)PteCount << PAGE_SHIFT)));
+    if (!NT_SUCCESS(Status))
+        return Status;
+
+    /* Fill the session image PTEs with this session's own pages */
+    PointerPte = MiAddressToPte(DriverBase);
+    LastPte = PointerPte + PteCount;
+    OldIrql = MiAcquirePfnLock();
+    TempPte = ValidKernelPteLocal;
+    while (PointerPte < LastPte)
+    {
+        ASSERT(PointerPte->u.Hard.Valid == 0);
+        MI_SET_USAGE(MI_USAGE_DRIVER_PAGE);
+        PageFrameIndex = MiRemoveAnyPage(MI_GET_NEXT_COLOR());
+        MiInitializePfn(PageFrameIndex, PointerPte, TRUE);
+        TempPte.u.Hard.PageFrameNumber = PageFrameIndex;
+        MI_WRITE_VALID_PTE(PointerPte, TempPte);
+        PointerPte++;
+    }
+    MiReleasePfnLock(OldIrql);
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Frees a session image previously backed by MiCommitSessionImagePages
+ *        and releases its session-wide address reservation.
+ *
+ * Mirrors the contiguous-memory free path: mark each page deleted, invalidate
+ * its PTE and decrement the share count so the page is returned to the free
+ * list. (The session page tables themselves are left committed for reuse.)
+ */
+VOID
+NTAPI
+MiFreeSessionImage(
+    _In_ PVOID DriverBase,
+    _In_ PFN_COUNT PteCount)
+{
+    PMMPTE PointerPte, LastPte;
+    MMPTE ZeroPte = {{0}};
+    KIRQL OldIrql;
+    PFN_NUMBER PageFrameIndex;
+    PMMPFN Pfn1;
+    PMI_SESSION_IMAGE Image;
+
+    /*
+     * Drop a session reference. Only the last unmap of an image within this
+     * session actually reclaims the pages and the VA reservation. When the
+     * image is tracked, its recorded PteCount is authoritative.
+     */
+    Image = MiSessionLookupImage(DriverBase);
+    if (Image != NULL)
+    {
+        if (--Image->ImageCount > 0)
+            return;
+
+        PteCount = Image->PteCount;
+        RemoveEntryList(&Image->Link);
+        ExFreePoolWithTag(Image, 'iSmM');
+    }
+
+    PointerPte = MiAddressToPte(DriverBase);
+    LastPte = PointerPte + PteCount;
+
+    OldIrql = MiAcquirePfnLock();
+    while (PointerPte < LastPte)
+    {
+        if (PointerPte->u.Hard.Valid)
+        {
+            PageFrameIndex = PointerPte->u.Hard.PageFrameNumber;
+            Pfn1 = MiGetPfnEntry(PageFrameIndex);
+
+            /* Invalidate the mapping and release the page */
+            MI_SET_PFN_DELETED(Pfn1);
+            MI_WRITE_INVALID_PTE(PointerPte, ZeroPte);
+            MiDecrementShareCount(Pfn1, PageFrameIndex);
+        }
+        PointerPte++;
+    }
+    MiReleasePfnLock(OldIrql);
+
+    /* Drop stale TLB entries for the (session-local) range and free the VA */
+    KeFlushEntireTb(FALSE, TRUE);
+    MiSessionWideFreeImageAddress(DriverBase, PteCount);
+}
+
+/**
+ * @brief Boot-time self-test for the session image-load mechanism.
+ *
+ * Runs once, in the context of the freshly-created session (so session space is
+ * current). It reserves a session-image VA, backs it with pages, reads/writes
+ * through it to prove the mapping is usable, then tears it down - exercising
+ * MiSessionWideReserveImageAddress / MiCommitSessionImagePages / MiFreeSessionImage
+ * end to end. This is the first real exercise of the per-session image path
+ * (which is otherwise dead code until win32k is session-loaded).
+ */
+VOID
+NTAPI
+MiTestSessionImageLoad(VOID)
+{
+    const PFN_COUNT TestPages = 2;
+    PVOID Base;
+    PULONG Data;
+    ULONG i;
+    NTSTATUS Status;
+    BOOLEAN Ok = TRUE;
+    PMI_SESSION_IMAGE Image;
+
+    /* Reserve a session-wide image VA */
+    Base = MiSessionWideReserveImageAddress(TestPages);
+    if (!Base)
+    {
+        DPRINT1("SESSIONIMG SELFTEST: reserve FAILED\n");
+        return;
+    }
+
+    /* Back it with this session's pages */
+    Status = MiCommitSessionImagePages(Base, TestPages);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("SESSIONIMG SELFTEST: commit FAILED 0x%lx\n", Status);
+        MiSessionWideFreeImageAddress(Base, TestPages);
+        return;
+    }
+
+    /* Track it in the session image list, then look it up and bump/drop a
+     * reference to exercise the refcount path */
+    Status = MiSessionInsertImage(Base, TestPages);
+    if (!NT_SUCCESS(Status))
+    {
+        DPRINT1("SESSIONIMG SELFTEST: insert FAILED 0x%lx\n", Status);
+        MiFreeSessionImage(Base, TestPages);
+        return;
+    }
+    Image = MiSessionLookupImage(Base);
+    if ((Image == NULL) || (Image->PteCount != TestPages) || (Image->ImageCount != 1))
+        Ok = FALSE;
+    /* Second load of the same image -> refcount 2, no new VA/pages */
+    MiSessionInsertImage(Base, TestPages);
+    Image = MiSessionLookupImage(Base);
+    if ((Image == NULL) || (Image->ImageCount != 2))
+        Ok = FALSE;
+    /* Drop the extra reference; entry must survive (count back to 1) */
+    MiFreeSessionImage(Base, TestPages);
+    Image = MiSessionLookupImage(Base);
+    if ((Image == NULL) || (Image->ImageCount != 1))
+        Ok = FALSE;
+
+    /* Write a pattern through the session-image VA and read it back */
+    Data = Base;
+    for (i = 0; i < (TestPages * PAGE_SIZE) / sizeof(ULONG); i++)
+        Data[i] = 0x5E550000 | (i & 0xFFFF);
+    for (i = 0; i < (TestPages * PAGE_SIZE) / sizeof(ULONG); i++)
+    {
+        if (Data[i] != (0x5E550000 | (i & 0xFFFF)))
+        {
+            Ok = FALSE;
+            break;
+        }
+    }
+
+    DPRINT1("SESSIONIMG SELFTEST: base=%p pages=%lu readback=%s\n",
+            Base, TestPages, Ok ? "OK" : "MISMATCH");
+
+    /* Tear it down (last reference -> frees pages + VA + tracking entry) */
+    MiFreeSessionImage(Base, TestPages);
+    if (MiSessionLookupImage(Base) != NULL)
+        Ok = FALSE;
+
+    /* Exercise the session-delete force-teardown: stage an image with an
+     * outstanding reference and confirm MiSessionImageTeardown reclaims it
+     * regardless of the refcount, leaving the image list empty */
+    Base = MiSessionWideReserveImageAddress(TestPages);
+    if (Base &&
+        NT_SUCCESS(MiCommitSessionImagePages(Base, TestPages)) &&
+        NT_SUCCESS(MiSessionInsertImage(Base, TestPages)))
+    {
+        MiSessionInsertImage(Base, TestPages);   /* ImageCount == 2 */
+        MiSessionImageTeardown();                 /* must force-free anyway */
+        if (!IsListEmpty(&MmSessionSpace->ImageList) ||
+            (MiSessionLookupImage(Base) != NULL))
+        {
+            Ok = FALSE;
+        }
+    }
+    else
+    {
+        Ok = FALSE;
+    }
+
+    DPRINT1("SESSIONIMG SELFTEST: %s\n", Ok ? "PASSED" : "FAILED");
+}
+
 NTSTATUS
 NTAPI
 MiLoadImageSection(_Inout_ PSECTION *SectionPtr,
@@ -100,9 +433,81 @@ MiLoadImageSection(_Inout_ PSECTION *SectionPtr,
     /* Detect session load */
     if (SessionLoad)
     {
-        /* Fail */
-        UNIMPLEMENTED_DBGBREAK("Session loading not yet supported!\n");
-        return STATUS_NOT_IMPLEMENTED;
+        /*
+         * Session load: the image goes into per-session image space instead of
+         * system space. The caller is attached to the target session, so we stay
+         * in its context (the session page tables are the current ones). We pick
+         * a session-wide VA - the same in every session for a given driver - and
+         * back it with this session's own physical pages, sharing the image with
+         * the session's other processes via MiSessionCommitPageTables (which
+         * records the PDEs in MmSessionSpace->PageTables for fault-in).
+         */
+        Process = PsGetCurrentProcess();
+        ASSERT(Process->Flags & PSF_PROCESS_IN_SESSION_BIT);
+
+        /* Map the source image so we can copy it into session space */
+        Status = MmMapViewOfSection(Section, Process, &Base, 0, 0, &SectionOffset,
+                                    &ViewSize, ViewUnmap, 0, PAGE_EXECUTE);
+        if (Status == STATUS_IMAGE_MACHINE_TYPE_MISMATCH)
+            Status = STATUS_INVALID_IMAGE_FORMAT;
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("MmMapViewOfSection (session) failed with status 0x%x\n", Status);
+            return Status;
+        }
+
+        /* Number of pages the image occupies */
+        PteCount = ROUND_TO_PAGES(((PMM_IMAGE_SECTION_OBJECT)Section->Segment)->
+                                  ImageInformation.ImageFileSize) >> PAGE_SHIFT;
+
+        /* Reuse the existing session-wide VA if this driver is already loaded in
+         * another session; otherwise reserve a fresh session-image range */
+        if (LdrEntry != NULL)
+        {
+            DriverBase = LdrEntry->DllBase;
+        }
+        else
+        {
+            DriverBase = MiSessionWideReserveImageAddress(PteCount);
+            if (!DriverBase)
+            {
+                DPRINT1("No session image space available for %wZ\n", FileName);
+                MmUnmapViewOfSection(Process, Base);
+                return STATUS_NO_MEMORY;
+            }
+        }
+
+        /* Back the session image VA with this session's own pages (also commits
+         * the session page tables, recording the PDEs for cross-process fault-in) */
+        Status = MiCommitSessionImagePages(DriverBase, PteCount);
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("MiCommitSessionImagePages failed with status 0x%x\n", Status);
+            if (LdrEntry == NULL)
+                MiSessionWideFreeImageAddress(DriverBase, PteCount);
+            MmUnmapViewOfSection(Process, Base);
+            return Status;
+        }
+
+        /* Record the image in the session's image list (refcounted per session) */
+        Status = MiSessionInsertImage(DriverBase, PteCount);
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("MiSessionInsertImage failed with status 0x%x\n", Status);
+            MiFreeSessionImage(DriverBase, PteCount);
+            MmUnmapViewOfSection(Process, Base);
+            return Status;
+        }
+
+        *ImageBase = DriverBase;
+        DPRINT1("Loading (session): %wZ at %p with %lx pages\n",
+                FileName, DriverBase, PteCount);
+
+        /* Copy the image into session space and drop the source mapping */
+        RtlCopyMemory(DriverBase, Base, (SIZE_T)PteCount << PAGE_SHIFT);
+        Status = MmUnmapViewOfSection(Process, Base);
+        ASSERT(NT_SUCCESS(Status));
+        return Status;
     }
 
     /* Not session load, shouldn't have an entry */
@@ -985,9 +1390,20 @@ MmUnloadSystemImage(IN PVOID ImageHandle)
         }
     }
 
-    /* FIXME: Free the driver */
-    DPRINT1("Leaking driver: %wZ\n", &LdrEntry->BaseDllName);
-    //MmFreeSection(LdrEntry->DllBase);
+    /* A session-loaded image lives in session image space and was backed by
+     * MiCommitSessionImagePages; free its pages and address reservation here.
+     * System-space drivers are still leaked (see FIXME below). */
+    if (MI_IS_SESSION_IMAGE_ADDRESS(BaseAddress))
+    {
+        PFN_COUNT PteCount = ROUND_TO_PAGES(LdrEntry->SizeOfImage) >> PAGE_SHIFT;
+        MiFreeSessionImage(BaseAddress, PteCount);
+    }
+    else
+    {
+        /* FIXME: Free the driver */
+        DPRINT1("Leaking driver: %wZ\n", &LdrEntry->BaseDllName);
+        //MmFreeSection(LdrEntry->DllBase);
+    }
 
     /* Check if we're linked in */
     if (LdrEntry->InLoadOrderLinks.Flink)
@@ -2499,8 +2915,13 @@ MiWriteProtectSystemImage(
     /* Large page mapped images are not supported */
     NT_ASSERT(!MI_IS_PHYSICAL_ADDRESS(ImageBase));
 
-    /* Session images are not yet supported */
-    NT_ASSERT(!MI_IS_SESSION_ADDRESS(ImageBase));
+    /*
+     * Per-session images are not write-protected here: their section protection
+     * would have to be applied to the session PTEs (and consistently across
+     * every session's copy). Skip it for them rather than touching system PTEs.
+     */
+    if (MI_IS_SESSION_ADDRESS(ImageBase))
+        return;
 
     /* Get the NT headers */
     NtHeaders = RtlImageNtHeader(ImageBase);
@@ -2662,6 +3083,13 @@ MiEnablePagingOfDriver(IN PLDR_DATA_TABLE_ENTRY LdrEntry)
     PIMAGE_SECTION_HEADER Section;
     PMMPTE PointerPte = NULL, LastPte = NULL;
     if (MmDisablePagingExecutive) return;
+
+    /*
+     * Per-session images are kept fully resident: the session fault path only
+     * demand-faults missing PDEs, not paged-out session image pages, so making
+     * them pageable would strand them. Leave them locked.
+     */
+    if (MI_IS_SESSION_ADDRESS(LdrEntry->DllBase)) return;
 
     /* Get the driver base address and its NT header */
     ImageBase = (ULONG_PTR)LdrEntry->DllBase;
@@ -2961,6 +3389,7 @@ MmLoadSystemImage(IN PUNICODE_STRING FileName,
     PIMAGE_NT_HEADERS NtHeader;
     UNICODE_STRING BaseName, BaseDirectory, PrefixName;
     PLDR_DATA_TABLE_ENTRY LdrEntry = NULL;
+    PLDR_DATA_TABLE_ENTRY SessionReuseEntry = NULL;
     ULONG EntrySize, DriverSize;
     PLOAD_IMPORTS LoadedImports = MM_SYSLDR_NO_IMPORTS;
     PCHAR MissingApiName, Buffer;
@@ -3118,33 +3547,55 @@ LoaderScan:
     /* Check if we found the image */
     if (NextEntry != &PsLoadedModuleList)
     {
-        /* Check if we had already mapped a section */
-        if (Section)
-        {
-            /* Dereference and clear */
-            ObDereferenceObject(Section);
-            Section = NULL;
-        }
-
-        /* Check if this was supposed to be a session load */
+        /* Non-session load: the image is already in system space, return it */
         if (!Flags)
         {
-            /* It wasn't, so just return the data */
+            /* Drop any section we mapped on a previous pass */
+            if (Section)
+            {
+                ObDereferenceObject(Section);
+                Section = NULL;
+            }
+
             *ModuleObject = LdrEntry;
             *ImageBaseAddress = LdrEntry->DllBase;
             Status = STATUS_IMAGE_ALREADY_LOADED;
-        }
-        else
-        {
-            /* We don't support session loading yet */
-            UNIMPLEMENTED_DBGBREAK("Unsupported Session-Load!\n");
-            Status = STATUS_NOT_IMPLEMENTED;
+            goto Quickie;
         }
 
-        /* Do cleanup */
-        goto Quickie;
+        /*
+         * Session load of a driver that already has a (shared) system loader
+         * entry and a reserved session-wide VA. If THIS session has already
+         * mapped it, just add a reference and return its session VA.
+         */
+        if (MiSessionLookupImage(LdrEntry->DllBase) != NULL)
+        {
+            if (Section)
+            {
+                ObDereferenceObject(Section);
+                Section = NULL;
+            }
+
+            LdrEntry->LoadCount++;
+            *ModuleObject = LdrEntry;
+            *ImageBaseAddress = LdrEntry->DllBase;
+            Status = STATUS_SUCCESS;
+            goto Quickie;
+        }
+
+        /*
+         * Otherwise the driver is loaded in another session but not this one:
+         * build this session's own physical copy at the shared VA, reusing the
+         * existing system entry. That needs the file section, so remember the
+         * entry to reuse and fall through to create it (the rescan resumes here
+         * with the section in hand, then loads via the reuse entry below).
+         */
+        SessionReuseEntry = LdrEntry;
     }
-    else if (!Section)
+
+    /* Open and map the image if we don't have a section yet - a fresh load, or a
+       session reuse that still needs the file to copy from */
+    if (!Section)
     {
         /* It wasn't loaded, and we didn't have a previous attempt */
         KeReleaseMutant(&MmSystemLoadLock, MUTANT_INCREMENT, FALSE, FALSE);
@@ -3234,51 +3685,43 @@ LoaderScan:
         ZwClose(SectionHandle);
         if (!NT_SUCCESS(Status)) goto Quickie;
 
-        /* Check if this was supposed to be a session-load */
-        if (Flags)
-        {
-            /* We don't support session loading yet */
-            UNIMPLEMENTED_DBGBREAK("Unsupported Session-Load!\n");
-            goto Quickie;
-        }
-
-        /* Check the loader list again, we should end up in the path below */
+        /* Re-scan the loader list; we'll create the entry and load it below
+         * (this is also the path a fresh session load takes) */
         goto LoaderScan;
     }
-    else
-    {
-        /* We don't have a valid entry */
-        LdrEntry = NULL;
-    }
 
-    /* Load the image */
+    /* We have a section. For a session reuse, load into this session at the
+       existing VA using the remembered entry; for a fresh load this is NULL. */
+    LdrEntry = SessionReuseEntry;
+
+    /* Load the image (into session space if this is a session load) */
     Status = MiLoadImageSection(&Section,
                                 &ModuleLoadBase,
                                 FileName,
-                                FALSE,
-                                NULL);
+                                Flags != 0,
+                                LdrEntry);
     ASSERT(Status != STATUS_ALREADY_COMMITTED);
 
     /* Get the size of the driver */
     DriverSize = ((PMM_IMAGE_SECTION_OBJECT)Section->Segment)->ImageInformation.ImageFileSize;
 
-    /* Make sure we're not being loaded into session space */
-    if (!Flags)
+    /* Large-driver-page promotion only applies to system-space (non-session) loads */
+    if (!Flags && NT_SUCCESS(Status))
     {
-        /* Check for success */
-        if (NT_SUCCESS(Status))
-        {
-            /* Support large pages for drivers */
-            MiUseLargeDriverPage(DriverSize / PAGE_SIZE,
-                                 &ModuleLoadBase,
-                                 &BaseName,
-                                 TRUE);
-        }
-
-        /* Dereference the section */
-        ObDereferenceObject(Section);
-        Section = NULL;
+        /* Support large pages for drivers */
+        MiUseLargeDriverPage(DriverSize / PAGE_SIZE,
+                             &ModuleLoadBase,
+                             &BaseName,
+                             TRUE);
     }
+
+    /*
+     * The image has been copied out of the section (both for system space and,
+     * since we use a copy-based session image, for session space too), so the
+     * section is no longer needed.
+     */
+    ObDereferenceObject(Section);
+    Section = NULL;
 
     /* Check for failure of the load earlier */
     if (!NT_SUCCESS(Status))
@@ -3297,6 +3740,41 @@ LoaderScan:
     if (!NT_SUCCESS(Status))
     {
         DPRINT1("LdrRelocateImageWithBias failed with status 0x%x\n", Status);
+        goto Quickie;
+    }
+
+    /*
+     * Session reuse: an existing system loader entry is shared across sessions,
+     * so we don't create a new one. MiLoadImageSection already built this
+     * session's own physical copy of the image at the shared VA; all that is
+     * left is to bind that copy's imports (its IAT lives in this session's pages
+     * and is otherwise unresolved) and account for the extra session reference.
+     */
+    if (SessionReuseEntry != NULL)
+    {
+        LdrEntry = SessionReuseEntry;
+
+        MissingApiName = Buffer;
+        MissingDriverName = NULL;
+        Status = MiResolveImageReferences(ModuleLoadBase,
+                                          &BaseDirectory,
+                                          NULL,
+                                          &MissingApiName,
+                                          &MissingDriverName,
+                                          &LoadedImports);
+        if (!NT_SUCCESS(Status))
+        {
+            DPRINT1("Session-reuse import resolution failed with status 0x%x\n",
+                    Status);
+            goto Quickie;
+        }
+
+        /* This session now references the (shared) driver entry */
+        LdrEntry->LoadCount++;
+
+        *ModuleObject = LdrEntry;
+        *ImageBaseAddress = ModuleLoadBase;
+        Status = STATUS_SUCCESS;
         goto Quickie;
     }
 

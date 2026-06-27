@@ -920,8 +920,8 @@ Quickie:
     return Status;
 }
 
-static
 NTSTATUS
+NTAPI
 MiSessionCommitPageTables(IN PVOID StartVa,
                           IN PVOID EndVa)
 {

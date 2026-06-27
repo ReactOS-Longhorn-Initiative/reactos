@@ -599,9 +599,12 @@ BaseInitializeStaticServerData(IN PCSR_SERVER_DLL LoadedServerDll)
                                             &SymlinkName);
         if ((NT_SUCCESS(Status)) && SessionId == 0) NtClose(SymHandle);
 
-        /* Make local point back to \Sessions\x\BNO */
+        /*
+         * Make "Local" point back to this session's BaseNamedObjects: BnoString
+         * is "\BaseNamedObjects" for session 0 and "\Sessions\<id>\BaseNamedObjects"
+         * otherwise, so the symlink is correct for every session.
+         */
         RtlInitUnicodeString(&DirectoryName, L"Local");
-        ASSERT(SessionId == 0);
         InitializeObjectAttributes(&ObjectAttributes,
                                    &DirectoryName,
                                    OBJ_OPENIF | OBJ_PERMANENT | OBJ_CASE_INSENSITIVE,
