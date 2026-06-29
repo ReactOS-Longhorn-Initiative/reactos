@@ -44,21 +44,33 @@ RtlpCreateUserStack(IN HANDLE ProcessHandle,
     /* Use the Image Settings if we are dealing with the current Process */
     if (ProcessHandle == NtCurrentProcess())
     {
-        /* Get the Image Headers */
-        Headers = RtlImageNtHeader(NtCurrentPeb()->ImageBaseAddress);
-        if (!Headers) return STATUS_INVALID_IMAGE_FORMAT;
-
-        /* If we didn't get the parameters, find them ourselves */
-        if (StackReserve == 0)
-            StackReserve = Headers->OptionalHeader.SizeOfStackReserve;
-        if (StackCommit == 0)
-            StackCommit = Headers->OptionalHeader.SizeOfStackCommit;
-
-        MinimumStackCommit = NtCurrentPeb()->MinimumStackCommit;
-        if ((MinimumStackCommit != 0) && (StackCommit < MinimumStackCommit))
+        _SEH2_TRY
         {
-            StackCommit = MinimumStackCommit;
+            /* Get the Image Headers */
+            PPEB Peb = NtCurrentPeb();
+            //ProbeForRead(Peb, sizeof(*Peb), TYPE_ALIGNMENT(PEB));
+            PVOID ImageBase = Peb->ImageBaseAddress;
+            //ProbeForRead(ImageBase, PAGE_SIZE, PAGE_SIZE);
+            Headers = RtlImageNtHeader(ImageBase);
+            if (!Headers) return STATUS_INVALID_IMAGE_FORMAT;
+
+            /* If we didn't get the parameters, find them ourselves */
+            if (StackReserve == 0)
+                StackReserve = Headers->OptionalHeader.SizeOfStackReserve;
+            if (StackCommit == 0)
+                StackCommit = Headers->OptionalHeader.SizeOfStackCommit;
+
+            MinimumStackCommit = NtCurrentPeb()->MinimumStackCommit;
+            if ((MinimumStackCommit != 0) && (StackCommit < MinimumStackCommit))
+            {
+                StackCommit = MinimumStackCommit;
+            }
         }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            return _SEH2_GetExceptionCode();
+        }
+        _SEH2_END;
     }
     else
     {
