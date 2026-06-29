@@ -2070,6 +2070,14 @@ struct _RTL_MEMORY_STREAM
 
 #endif /* NTOS_MODE_USER */
 
+typedef
+_Function_class_(USER_THREAD_START_ROUTINE)
+NTSTATUS
+NTAPI
+USER_THREAD_START_ROUTINE(
+    _In_ PVOID ThreadParameter);
+typedef USER_THREAD_START_ROUTINE* PUSER_THREAD_START_ROUTINE;
+
 #ifdef __cplusplus
 }
 #endif

@@ -280,6 +280,18 @@ RtlCreateUserThread(IN HANDLE ProcessHandle,
     return Status;
 }
 
+VOID
+NTAPI
+RtlUserThreadStart(
+    _In_ PUSER_THREAD_START_ROUTINE Function,
+    _In_ PVOID Parameter)
+{
+    NTSTATUS Status;
+
+    Status = Function(Parameter);
+    RtlExitUserThread(Status);
+}
+
 /*
  * @implemented
  */

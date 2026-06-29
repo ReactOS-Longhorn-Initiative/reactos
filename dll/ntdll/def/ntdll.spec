@@ -1259,7 +1259,7 @@
 @ stdcall RtlUpperChar(long)
 @ stdcall RtlUpperString(ptr ptr)
 @ stdcall -version=0x502 RtlUsageHeap(ptr long ptr)
-@ stdcall -stub -version=0x600+ RtlUserThreadStart(long long)
+@ stdcall -version=0x600+ RtlUserThreadStart(ptr ptr)
 @ stdcall RtlValidAcl(ptr)
 @ stdcall RtlValidRelativeSecurityDescriptor(ptr long long)
 @ stdcall RtlValidSecurityDescriptor(ptr)

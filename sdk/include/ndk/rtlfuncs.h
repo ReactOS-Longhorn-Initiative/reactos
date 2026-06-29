@@ -5115,6 +5115,13 @@ RtlRetrieveNtUserPfn(
     _Out_ const PVOID** ProcsW,
     _Out_ const PVOID** ProcsX);
 
+NTSYSAPI
+VOID
+NTAPI
+RtlUserThreadStart(
+    _In_ PUSER_THREAD_START_ROUTINE Function,
+    _In_ PVOID Parameter);
+
 #endif
 
 #if (_WIN32_WINNT >= _WIN32_WINNT_VISTA) || (defined(__REACTOS__) && defined(_NTDLLBUILD_))
