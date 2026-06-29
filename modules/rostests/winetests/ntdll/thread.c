@@ -44,6 +44,7 @@ static void init_function_pointers(void)
 
 static void CALLBACK test_NtCreateThreadEx_proc(void *param)
 {
+    __debugbreak();
 }
 
 static void test_dbg_hidden_thread_creation(void)
@@ -62,9 +63,9 @@ static void test_dbg_hidden_thread_creation(void)
         win_skip( "NtCreateThreadEx is not available.\n" );
         return;
     }
-
+__debugbreak();
     status = pNtCreateThreadEx( &thread, THREAD_ALL_ACCESS, NULL, GetCurrentProcess(), test_NtCreateThreadEx_proc,
-                                NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED, 0, 0, 0, NULL );
+                               (PVOID)0xdeadf00d, THREAD_CREATE_FLAGS_CREATE_SUSPENDED, 0, 0, 0, NULL);
     ok( status == STATUS_SUCCESS, "Got unexpected status %#lx.\n", status );
 
     dbg_hidden = 0xcc;
@@ -155,7 +156,7 @@ static void test_unique_teb(void)
         win_skip( "NtCreateThreadEx is not available.\n" );
         return;
     }
-
+__debugbreak();
     args1.running_event = running_events[0] = CreateEventW( NULL, FALSE, FALSE, NULL );
     ok( args1.running_event != NULL, "CreateEventW failed %lu.\n", GetLastError() );
 
