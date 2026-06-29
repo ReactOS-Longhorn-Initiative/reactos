@@ -146,10 +146,6 @@ START_TEST(RtlInitializeContext)
     ok_eq_hex64(Stack[1], 0xCCCCCCCCCCCCCCCCull);
     ok_eq_hex64(Stack[2], 0xCCCCCCCCCCCCCCCCull);
     ok_eq_hex64(Stack[3], 0xCCCCCCCCCCCCCCCCull);
-#else
-
-_WARN("Missing CONTEXT validation in RtlInitializeContext test");
-
 #endif
 
     /* Test NULL Context */
