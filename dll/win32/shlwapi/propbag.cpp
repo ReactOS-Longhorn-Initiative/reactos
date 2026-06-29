@@ -28,9 +28,7 @@ WINE_DEFAULT_DEBUG_CHANNEL(shell);
 
 class CBasePropertyBag
     : public IPropertyBag
-#if (_WIN32_WINNT < _WIN32_WINNT_VISTA) || defined(__REACTOS__)
     , public IPropertyBag2
-#endif
 {
 protected:
     LONG m_cRefs;   // reference count
@@ -51,14 +49,11 @@ public:
         if (!ppvObject)
             return E_POINTER;
         
-        if (GetProcessOsVersion() < _WIN32_WINNT_VISTA)
+        if (::IsEqualGUID(riid, IID_IPropertyBag2))
         {
-            if (::IsEqualGUID(riid, IID_IPropertyBag2))
-            {
-                AddRef();
-                *ppvObject = static_cast<IPropertyBag2*>(this);
-                return S_OK;
-            }
+            AddRef();
+            *ppvObject = static_cast<IPropertyBag2*>(this);
+            return S_OK;
         }
 
         if (::IsEqualGUID(riid, IID_IUnknown) || ::IsEqualGUID(riid, IID_IPropertyBag))
@@ -85,7 +80,6 @@ public:
         return m_cRefs;
     }
 
-#if (_WIN32_WINNT < _WIN32_WINNT_VISTA) || defined(__REACTOS__)
     // IPropertyBag2 interface (stubs)
     STDMETHODIMP Read(
         _In_ ULONG cProperties,
@@ -123,7 +117,6 @@ public:
     {
         return E_NOTIMPL;
     }
-#endif
 };
 
 struct CPropMapEqual
@@ -166,13 +159,10 @@ CMemPropertyBag::Read(
 
     ::VariantInit(pvari);
 
-    if (GetProcessOsVersion() < _WIN32_WINNT_VISTA)
+    if (!MODE_CAN_READ(m_dwMode))
     {
-        if (!MODE_CAN_READ(m_dwMode))
-        {
-            ERR("%p: 0x%X\n", this, m_dwMode);
-            return E_ACCESSDENIED;
-        }
+        ERR("%p: 0x%X\n", this, m_dwMode);
+        return E_ACCESSDENIED;
     }
 
     if (!pszPropName || !pvari)
@@ -212,13 +202,10 @@ CMemPropertyBag::Write(
 {
     TRACE("%p: %s %p\n", this, debugstr_w(pszPropName), pvari);
 
-    if (GetProcessOsVersion() < _WIN32_WINNT_VISTA)
+    if (!MODE_CAN_WRITE(m_dwMode))
     {
-        if (!MODE_CAN_WRITE(m_dwMode))
-        {
-            ERR("%p: 0x%X\n", this, m_dwMode);
-            return E_ACCESSDENIED;
-        }
+        ERR("%p: 0x%X\n", this, m_dwMode);
+        return E_ACCESSDENIED;
     }
 
     if (!pszPropName || !pvari)
