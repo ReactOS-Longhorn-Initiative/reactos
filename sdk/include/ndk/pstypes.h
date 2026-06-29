@@ -1805,6 +1805,37 @@ typedef struct _WIN32_CALLOUTS_FPNS
 
 #endif // !NTOS_MODE_USER
 
+typedef struct _PS_ATTRIBUTE
+{
+    ULONG_PTR Attribute;
+    SIZE_T Size;
+    union
+    {
+        ULONG_PTR Value;
+        PVOID ValuePtr;
+    };
+    PSIZE_T ReturnLength;
+} PS_ATTRIBUTE, *PPS_ATTRIBUTE;
+
+_Struct_size_bytes_(TotalLength)
+typedef struct _PS_ATTRIBUTE_LIST
+{
+    SIZE_T TotalLength;
+    PS_ATTRIBUTE Attributes[1];
+} PS_ATTRIBUTE_LIST, *PPS_ATTRIBUTE_LIST;
+
+#define THREAD_CREATE_FLAGS_NONE                    0x00000000
+#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED        0x00000001
+#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH      0x00000002
+#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER      0x00000004
+#define THREAD_CREATE_FLAGS_HAS_SECURITY_DESCRIPTOR 0x00000010 // Wine name
+#define THREAD_CREATE_FLAGS_LOADER_WORKER           0x00000010 // From ntdocs
+#define THREAD_CREATE_FLAGS_ACCESS_CHECK_IN_TARGET  0x00000020
+#define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT        0x00000020  // From ntdocs
+#define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE   0x00000040  // From ntdocs
+#define THREAD_CREATE_FLAGS_INITIAL_THREAD          0x00000080
+#define THREAD_CREATE_FLAGS_VALID_MASK              0x000000FF
+
 #ifdef __cplusplus
 }; // extern "C"
 #endif

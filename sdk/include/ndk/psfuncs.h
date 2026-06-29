@@ -501,6 +501,22 @@ NtOpenThread(
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
+NtCreateThreadEx(
+    _Out_ PHANDLE ThreadHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ const OBJECT_ATTRIBUTES* ObjectAttributes,
+    _In_ HANDLE ProcessHandle,
+    _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
+    _In_opt_ PVOID Argument,
+    _In_ ULONG CreateFlags, // THREAD_CREATE_FLAGS_*
+    _In_ SIZE_T StackZeroBits,
+    _In_ SIZE_T StackSize,
+    _In_ SIZE_T MaximumStackSize,
+    _In_opt_ PPS_ATTRIBUTE_LIST AttributeList);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
 NtOpenThreadToken(
     _In_ HANDLE ThreadHandle,
     _In_ ACCESS_MASK DesiredAccess,
