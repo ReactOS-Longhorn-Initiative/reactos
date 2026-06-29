@@ -66,4 +66,42 @@ PspGetOrSetContextKernelRoutine(
     KeSetEvent(&GetSetContext->Event, IO_NO_INCREMENT, FALSE);
 }
 
+VOID
+NTAPI
+PspInitializeUserThreadContext(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PCONTEXT ThreadContext,
+    _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
+    _In_opt_ PVOID Argument,
+    _In_ PVOID StackBase)
+{
+    RtlZeroMemory(ThreadContext, sizeof(CONTEXT));
+
+    /* Initialize the stack */
+    ThreadContext->SegSs = KGDT64_R3_DATA | RPL_MASK;
+    ThreadContext->Rsp = (ULONG64)StackBase - 6 * sizeof(PVOID);
+
+    /* Align stack by 16 and substract 8 (unaligned on function entry) */
+    ThreadContext->Rsp &= ~15;
+    ThreadContext->Rsp -= 8;
+
+    /* Initialize start address (RtlUserThreadStart) and parameters */
+    ThreadContext->SegCs = KGDT64_R3_CODE | RPL_MASK;
+    ThreadContext->Rip = (ULONG64)PspUserThreadStartAddress;
+    ThreadContext->Rcx = (ULONG64)StartRoutine;
+    ThreadContext->Rdx = (ULONG64)Argument;
+
+    /* Enable Interrupts */
+    ThreadContext->EFlags = EFLAGS_INTERRUPT_MASK;
+
+    /* Initialize floating point and SSE state */
+    RtlZeroMemory(&ThreadContext->FltSave, sizeof(ThreadContext->FltSave));
+    ThreadContext->MxCsr = INITIAL_MXCSR;
+    ThreadContext->FltSave.MxCsr = INITIAL_MXCSR;
+    ThreadContext->FltSave.ControlWord = INITIAL_FPCSR;
+
+    /* Set the context flags (control, integer, floating point) */
+    ThreadContext->ContextFlags = CONTEXT_FULL;
+}
+
 /* EOF */

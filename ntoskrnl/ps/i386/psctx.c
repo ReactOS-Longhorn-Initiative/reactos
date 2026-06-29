@@ -88,4 +88,33 @@ PspGetOrSetContextKernelRoutine(IN PKAPC Apc,
     KeSetEvent(Event, IO_NO_INCREMENT, FALSE);
 }
 
+VOID
+NTAPI
+PspInitializeUserThreadContext(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PCONTEXT UserThreadContext,
+    _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
+    _In_opt_ PVOID Argument,
+    _In_ PINITIAL_TEB InitialTeb)
+{
+    RtlZeroMemory(UserThreadContext, sizeof(CONTEXT));
+
+    /* Set up the start context (Place Argument as 2nd parameter on the stack) */
+    RtlInitializeContext(ProcessHandle,
+                         UserThreadContext,
+                         Argument,
+                         PspUserThreadStartAddress,
+                         InitialTeb);
+
+    /* Put the 2nd argument for RtlUserThreadStart on the stack */
+    ZwWriteVirtualMemory(ProcessHandle,
+                         (PVOID)UserThreadContext->Esp,
+                         (PVOID)&StartRoutine,
+                         sizeof(PVOID),
+                         NULL);
+
+    /* Move the stack pointer one more down */
+    UserThreadContext->Esp -= sizeof(PVOID);
+}
+
 /* EOF */

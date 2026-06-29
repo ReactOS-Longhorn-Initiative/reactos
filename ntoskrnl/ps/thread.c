@@ -13,6 +13,14 @@
 #define NDEBUG
 #include <debug.h>
 
+NTSTATUS
+NTAPI
+RtlpCreateUserStack(IN HANDLE ProcessHandle,
+                    IN SIZE_T StackReserve OPTIONAL,
+                    IN SIZE_T StackCommit OPTIONAL,
+                    IN ULONG StackZeroBits OPTIONAL,
+                    OUT PINITIAL_TEB InitialTeb);
+
 /* GLOBALS ******************************************************************/
 
 extern BOOLEAN CcPfEnablePrefetcher;
@@ -192,18 +200,20 @@ PspSystemThreadStartup(IN PKSTART_ROUTINE StartRoutine,
 
 NTSTATUS
 NTAPI
-PspCreateThread(OUT PHANDLE ThreadHandle,
-                IN ACCESS_MASK DesiredAccess,
-                IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL,
-                IN HANDLE ProcessHandle,
-                IN PEPROCESS TargetProcess,
-                OUT PCLIENT_ID ClientId,
-                IN PCONTEXT ThreadContext,
-                IN PINITIAL_TEB InitialTeb,
-                IN BOOLEAN CreateSuspended,
-                IN PKSTART_ROUTINE StartRoutine OPTIONAL,
-                IN PVOID StartContext OPTIONAL)
+PspCreateThread(
+    _Out_ PHANDLE ThreadHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ PCOBJECT_ATTRIBUTES ObjectAttributes,
+    _In_opt_ HANDLE ProcessHandle,
+    _In_opt_ PEPROCESS TargetProcess,
+    _Out_ PCLIENT_ID ClientId,
+    _In_opt_ PCONTEXT ThreadContext,
+    _In_ PINITIAL_TEB InitialTeb,
+    _In_ ULONG CreateFlags,
+    _In_opt_ PKSTART_ROUTINE StartRoutine,
+    _In_opt_ PVOID StartContext)
 {
+    BOOLEAN CreateSuspended = BooleanFlagOn(CreateFlags, THREAD_CREATE_FLAGS_CREATE_SUSPENDED);
     HANDLE hThread;
     PEPROCESS Process;
     PETHREAD Thread;
@@ -268,7 +278,7 @@ PspCreateThread(OUT PHANDLE ThreadHandle,
     /* Create Thread Object */
     Status = ObCreateObject(PreviousMode,
                             PsThreadType,
-                            ObjectAttributes,
+                            (POBJECT_ATTRIBUTES)ObjectAttributes,
                             PreviousMode,
                             NULL,
                             sizeof(ETHREAD),
@@ -654,7 +664,7 @@ PsCreateSystemThread(OUT PHANDLE ThreadHandle,
                            ClientId,
                            NULL,
                            NULL,
-                           FALSE,
+                           0,
                            StartRoutine,
                            StartContext);
 }
@@ -1024,7 +1034,7 @@ NtCreateThread(OUT PHANDLE ThreadHandle,
                            ClientId,
                            ThreadContext,
                            &SafeInitialTeb,
-                           CreateSuspended,
+                           CreateSuspended ? THREAD_CREATE_FLAGS_CREATE_SUSPENDED : 0,
                            NULL,
                            NULL);
 }
@@ -1203,6 +1213,126 @@ NtOpenThread(OUT PHANDLE ThreadHandle,
 
     /* Return status */
     return Status;
+}
+
+VOID
+NTAPI
+PspInitializeUserThreadContext(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PCONTEXT ThreadContext,
+    _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
+    _In_opt_ PVOID Argument,
+    _In_ PVOID StackBase);
+/**
+ * Creates a new thread in the specified process.
+ *
+ * \param ThreadHandle A pointer to a handle that receives the thread object handle.
+ * \param DesiredAccess The access rights desired for the thread object.
+ * \param ObjectAttributes Optional. A pointer to an OBJECT_ATTRIBUTES structure that specifies the attributes of the new thread.
+ * \param ProcessHandle A handle to the process in which the thread is to be created.
+ * \param StartRoutine A pointer to the application-defined function to be executed by the thread.
+ * \param Argument Optional. A pointer to a variable that is passed to the thread.
+ * \param CreateFlags Flags that control the creation of the thread. These flags are defined as THREAD_CREATE_FLAGS_*.
+ * \param StackZeroBits The number of zero bits in the starting address of the thread's stack.
+ * \param StackSize The initial size of the thread's stack, in bytes.
+ * \param MaximumStackSize The maximum size of the thread's stack, in bytes.
+ * \param AttributeList Optional. A pointer to a list of attributes for the thread.
+ * \return NTSTATUS Successful or errant status.
+ */
+NTSTATUS
+NTAPI
+NtCreateThreadEx(
+    _Out_ PHANDLE ThreadHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ PCOBJECT_ATTRIBUTES ObjectAttributes,
+    _In_ HANDLE ProcessHandle,
+    _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
+    _In_opt_ PVOID Argument,
+    _In_ ULONG CreateFlags, // THREAD_CREATE_FLAGS_*
+    _In_ SIZE_T StackZeroBits,
+    _In_ SIZE_T StackSize,
+    _In_ SIZE_T MaximumStackSize,
+    _In_opt_ PPS_ATTRIBUTE_LIST AttributeList)
+{
+    INITIAL_TEB InitialTeb;
+    CLIENT_ID ClientId;
+    CONTEXT StartContext;
+    NTSTATUS Status;
+
+    PAGED_CODE();
+
+    /* Validate CreateFlags */
+    if (CreateFlags & ~THREAD_CREATE_FLAGS_VALID_MASK)
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Validate StartRoutine */
+    if ((StartRoutine == NULL) || ((PVOID)StartRoutine > MmHighestUserAddress))
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    /* Check if this was from user-mode */
+    if (KeGetPreviousMode() != KernelMode)
+    {
+        /* Protect checks */
+        _SEH2_TRY
+        {
+            /* Make sure the handle pointer we got is valid */
+            ProbeForWriteHandle(ThreadHandle);
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            /* Return the exception code */
+            _SEH2_YIELD(return _SEH2_GetExceptionCode());
+        }
+        _SEH2_END;
+    }
+
+    /* Create the user stack */
+    Status = RtlpCreateUserStack(ProcessHandle,
+                                 MaximumStackSize,
+                                 StackSize,
+                                 StackZeroBits,
+                                 &InitialTeb);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    /* Set up the start context */
+    PspInitializeUserThreadContext(ProcessHandle,
+                                   &StartContext,
+                                   StartRoutine,
+                                   Argument,
+                                   InitialTeb.StackBase);
+
+    // Start Context:
+    // RIP = ntdll!LdrInitializeThunk (PspSystemDllEntryPoint)
+    // RCX = Context:
+    //     Rip = RtlUserThreadStart
+    //     Rcx = test_NtCreateThreadEx_proc
+    //     Rdx = 0 (Parameter)
+    //     Rsp = 0x000000ddef1ffd48
+    //     
+    // RDX = ntdll base address
+    //
+    // Kernel: PspUserThreadStartup
+    // Why does the thread not have a Win32StartAddress?
+
+    /* Call the internal function */
+    return PspCreateThread(ThreadHandle,
+                           DesiredAccess,
+                           ObjectAttributes,
+                           ProcessHandle,
+                           NULL,
+                           &ClientId,
+                           &StartContext,
+                           &InitialTeb,
+                           CreateFlags,
+                           NULL,
+                           NULL);
 }
 
 /* EOF */

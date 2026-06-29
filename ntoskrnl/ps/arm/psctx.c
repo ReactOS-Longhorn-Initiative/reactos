@@ -44,4 +44,16 @@ PspGetOrSetContextKernelRoutine(IN PKAPC Apc,
     UNIMPLEMENTED;
 }
 
+VOID
+NTAPI
+PspInitializeUserThreadContext(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PCONTEXT UserThreadContext,
+    _In_ PUSER_THREAD_START_ROUTINE StartRoutine,
+    _In_opt_ PVOID Argument,
+    _In_ PINITIAL_TEB InitialTeb)
+{
+    UNIMPLEMENTED;
+}
+
 /* EOF */

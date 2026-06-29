@@ -41,6 +41,7 @@ GENERIC_MAPPING PspThreadMapping =
 PVOID PspSystemDllBase;
 PVOID PspSystemDllSection;
 PVOID PspSystemDllEntryPoint;
+PVOID PspUserThreadStartAddress;
 
 UNICODE_STRING PsNtDllPathName =
     RTL_CONSTANT_STRING(L"\\SystemRoot\\System32\\ntdll.dll");
@@ -281,6 +282,14 @@ PspInitializeSystemDll(VOID)
     {
         /* Failed, bugcheck */
         KeBugCheckEx(PROCESS1_INITIALIZATION_FAILED, Status, 7, 0, 0);
+    }
+
+    /* NT6 CreateThreadEx entry point */
+    Status = PspLookupSystemDllEntryPoint("RtlUserThreadStart",
+                                          &PspUserThreadStartAddress);
+    if (!NT_SUCCESS(Status))
+    {
+        /* Ignore */
     }
 
     /* Get all the other entrypoints */
