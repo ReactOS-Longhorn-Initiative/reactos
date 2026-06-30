@@ -70,6 +70,29 @@ KPRIORITY PspPriorityTable[PROCESS_PRIORITY_CLASS_ABOVE_NORMAL + 1] =
 
 /* PRIVATE FUNCTIONS *********************************************************/
 
+NTSTATUS
+NTAPI
+PspProcessOpen(
+    _In_ OB_OPEN_REASON Reason,
+    _In_ KPROCESSOR_MODE AccessMode,
+    _In_opt_ PEPROCESS Process,
+    _In_ PVOID ObjectBody,
+    _In_ PACCESS_MASK GrantedAccess,
+    _In_ ULONG HandleCount)
+{
+    if (*GrantedAccess & PROCESS_SET_INFORMATION)
+    {
+        *GrantedAccess |= PROCESS_SET_LIMITED_INFORMATION;
+    }
+
+    if (*GrantedAccess & PROCESS_QUERY_INFORMATION)
+    {
+        *GrantedAccess |= PROCESS_QUERY_LIMITED_INFORMATION;
+    }
+
+    return STATUS_SUCCESS;
+}
+
 PETHREAD
 NTAPI
 PsGetNextProcessThread(IN PEPROCESS Process,
@@ -865,6 +888,7 @@ PspCreateProcess(OUT PHANDLE ProcessHandle,
                                    PROCESS_VM_READ |
                                    PROCESS_VM_WRITE |
                                    PROCESS_QUERY_INFORMATION |
+                                   PROCESS_QUERY_LIMITED_INFORMATION |
                                    PROCESS_TERMINATE |
                                    PROCESS_CREATE_THREAD |
                                    PROCESS_DUP_HANDLE |

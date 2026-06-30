@@ -723,7 +723,7 @@
 @ stdcall -stub -version=0xA00+ GetSystemCpuSetInformation(ptr long ptr ptr long)
 @ stdcall GetSystemDefaultLCID()
 @ stdcall GetSystemDefaultLangID()
-@ stdcall -stub GetSystemDefaultLocaleName(ptr long)
+@ stdcall GetSystemDefaultLocaleName(ptr long)
 @ stdcall GetSystemDefaultUILanguage()
 @ stdcall GetSystemDirectoryA(ptr long)
 @ stdcall GetSystemDirectoryW(ptr long)

@@ -2599,16 +2599,16 @@ PipDeviceActionWorker(
             case PiActionStartDevice:
                 // This action is triggered from usermode, when a driver is installed
                 // for a non-critical PDO
-                if (deviceNode->State == DeviceNodeInitialized &&
-                    !(deviceNode->Flags & DNF_HAS_PROBLEM))
+              //  if (deviceNode->State == DeviceNodeInitialized &&
+              //      !(deviceNode->Flags & DNF_HAS_PROBLEM))
                 {
                     PiDevNodeStateMachine(deviceNode);
                 }
-                else
+              //  else
                 {
-                    DPRINT1("NOTE: attempt to start an already started/uninitialized device %wZ\n",
-                            &deviceNode->InstancePath);
-                    status = STATUS_UNSUCCESSFUL;
+              //      DPRINT1("NOTE: attempt to start an already started/uninitialized device %wZ\n",
+              //              &deviceNode->InstancePath);
+                //    status = STATUS_UNSUCCESSFUL;
                 }
                 break;
 

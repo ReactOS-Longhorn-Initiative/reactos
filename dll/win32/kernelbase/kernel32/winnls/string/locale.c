@@ -1238,8 +1238,6 @@ LCID WINAPI GetSystemDefaultLCID(void)
     NtQueryDefaultLocale( FALSE, &lcid );
     return lcid;
 }
-
-#ifndef __REACTOS__
 /***********************************************************************
  *		GetSystemDefaultLocaleName (KERNEL32.@)
  */
@@ -1248,6 +1246,9 @@ INT WINAPI GetSystemDefaultLocaleName(LPWSTR localename, INT len)
     LCID lcid = GetSystemDefaultLCID();
     return LCIDToLocaleName(lcid, localename, len, 0);
 }
+
+#ifndef __REACTOS__
+
 
 static BOOL get_dummy_preferred_ui_language( DWORD flags, ULONG *count, WCHAR *buffer, ULONG *size )
 {
