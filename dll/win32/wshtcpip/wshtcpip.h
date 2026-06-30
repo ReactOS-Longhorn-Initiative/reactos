@@ -23,7 +23,10 @@
 #include <mstcpip.h>
 #include <mswsock.h>
 #include <rtlfuncs.h>
+#include <mstcpip.h>
+
 #  define SIO_IDEAL_SEND_BACKLOG_QUERY _IOR('t', 123, ULONG)
+
 #define EXPORT WINAPI
 
 #define DD_TCP_DEVICE_NAME      L"\\Device\\Tcp"
@@ -60,6 +63,12 @@ WSHIoctl_GetInterfaceList(
     IN  DWORD OutputBufferLength,
     OUT LPDWORD NumberOfBytesReturned,
     OUT LPBOOL NeedsCompletion);
+
+INT
+SendRequest(
+    IN PVOID Request,
+    IN DWORD RequestSize,
+    IN DWORD IOCTL);
 
 #endif /* __WSHTCPIP_H */
 
