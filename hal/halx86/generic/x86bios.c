@@ -273,7 +273,7 @@ x86MemRead(
     else
     {
         RtlFillMemory(Buffer, Size, 0xCC);
-        DPRINT1("x86MemRead: invalid read at 0x%lx (size 0x%lx)\n", Address, Size);
+   //     DPRINT1("x86MemRead: invalid read at 0x%lx (size 0x%lx)\n", Address, Size);
     }
 }
 
@@ -293,7 +293,7 @@ x86MemWrite(
     }
     else
     {
-        DPRINT1("x86MemWrite: invalid write at 0x%lx (size 0x%lx)\n", Address, Size);
+      //  DPRINT1("x86MemWrite: invalid write at 0x%lx (size 0x%lx)\n", Address, Size);
     }
 }
 
@@ -336,7 +336,7 @@ ValidatePort(
     }
 
     /* Allow but report unknown ports, we trust the BIOS for now */
-    DPRINT1("Unknown port 0x%x, size %d, write %d\n", Port, Size, IsWrite);
+  //  DPRINT1("Unknown port 0x%x, size %d, write %d\n", Port, Size, IsWrite);
     return TRUE;
 }
 
@@ -353,7 +353,7 @@ x86IoRead(
     /* Validate the port */
     if (!ValidatePort(Port, DataSize, FALSE))
     {
-        DPRINT1("Invalid IO port read access (port: 0x%x, count: 0x%x)\n", Port, DataSize);
+       // DPRINT1("Invalid IO port read access (port: 0x%x, count: 0x%x)\n", Port, DataSize);
     }
 
     switch (DataSize)
@@ -377,7 +377,7 @@ x86IoWrite(
     /* Validate the port */
     if (!ValidatePort(Port, DataSize, TRUE))
     {
-        DPRINT1("Invalid IO port write access (port: 0x%x, count: 0x%x)\n", Port, DataSize);
+       // DPRINT1("Invalid IO port write access (port: 0x%x, count: 0x%x)\n", Port, DataSize);
     }
 
     switch (DataSize)
