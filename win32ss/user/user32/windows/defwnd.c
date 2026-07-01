@@ -65,6 +65,8 @@ DefSetText(HWND hWnd, PCWSTR String, BOOL Ansi)
 
   if ( String )
   {
+     if (IS_ATOM(String))
+         return FALSE;
      if ( Ansi )
         RtlInitLargeAnsiString((PLARGE_ANSI_STRING)&lsString, (PCSZ)String, 0);
      else
@@ -901,9 +903,10 @@ RealDefWindowProcA(HWND hWnd,
 
         case WM_SETTEXT:
         {
-            DefSetText(hWnd, (PCWSTR)lParam, TRUE);
+            if (!DefSetText(hWnd, (PCWSTR)lParam, TRUE))
+                return FALSE;
 
-            if ((GetWindowLongPtrW(hWnd, GWL_STYLE) & WS_CAPTION) == WS_CAPTION)
+            if ((GetWindowLongW(hWnd, GWL_STYLE) & WS_CAPTION) == WS_CAPTION)
             {
                 UserPaintCaption(Wnd, DC_TEXT);
                 IntNotifyWinEvent(EVENT_OBJECT_NAMECHANGE, hWnd, OBJID_WINDOW, CHILDID_SELF, 0);
