@@ -2389,7 +2389,7 @@ ObDuplicateObject(IN PEPROCESS SourceProcess,
     if (TargetAccess & ~SourceAccess)
     {
         /* We are. We need the security procedure to validate this */
-        if (ObjectType->TypeInfo.SecurityProcedure == SeDefaultObjectMethod)
+        if (0)//ObjectType->TypeInfo.SecurityProcedure == SeDefaultObjectMethod)
         {
             /* Use our built-in access state */
             PassedAccessState = &AccessState;
