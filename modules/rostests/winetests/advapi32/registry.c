@@ -2774,6 +2774,9 @@ static void _check_enum_value( int line, const char *name, DWORD flags, DWORD su
     err = RegOpenKeyExA( HKEY_LOCAL_MACHINE, name, 0, flags, &key );
     ok_( __FILE__, line )( err == ERROR_SUCCESS, "RegOpenKeyExA failed: %lu\n", err );
 
+#ifdef __REACTOS__
+    subkeys = 0; // Prevent excessive loop, when RegQueryInfoKeyA leaves subkeys uninitialized (0xCCCCCCCC)
+#endif
     err = RegQueryInfoKeyA( key, NULL, NULL, NULL, &subkeys,
                             NULL, NULL, NULL, NULL, NULL, NULL, NULL );
     ok_( __FILE__, line )( err == ERROR_SUCCESS, "RegQueryInfoKeyA failed: %lu\n", err );
