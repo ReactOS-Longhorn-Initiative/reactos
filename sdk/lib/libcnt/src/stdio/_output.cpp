@@ -13,6 +13,7 @@
 #include <intrin.h>
 #include <string.h>
 #include <minmax.h>
+#include "../ntrtl.h"
 
 #define UINT64_MAX_DIGITS 20 /* 18446744073709551615 */
 
@@ -189,6 +190,7 @@ _tcsoutput_astring(
     {
         wchar_t* dest = OutputBuffer.Buffer + OutputBuffer.CurrentPosition;
         size_t maxcount = min(CharsToWrite, OutputBuffer.BufferSizeInElems - OutputBuffer.CurrentPosition);
+        //RtlMultiByteToUnicodeN(dest, (ULONG)maxcount, NULL, String, (ULONG)CharsToWrite);
         mbstowcs(dest, String, maxcount);
     }
 
@@ -206,6 +208,7 @@ _tcsoutput_wstring(
     {
         char* dest = OutputBuffer.Buffer + OutputBuffer.CurrentPosition;
         size_t maxcount = min(CharsToWrite, OutputBuffer.BufferSizeInElems - OutputBuffer.CurrentPosition);
+        //RtlUnicodeToMultiByteN(dest, (ULONG)maxcount, NULL, String, (ULONG)CharsToWrite);
         wcstombs(dest, String, maxcount);
     }
 

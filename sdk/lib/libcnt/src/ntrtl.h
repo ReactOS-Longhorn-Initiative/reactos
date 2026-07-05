@@ -26,6 +26,10 @@ typedef _Return_type_success_(return >= 0) long NTSTATUS;
 #define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 _IRQL_requires_max_(APC_LEVEL)
 NTSYSAPI
 WCHAR
@@ -90,3 +94,7 @@ RtlUnicodeToMultiByteSize(
     _Out_ PULONG BytesInMultiByteString,
     _In_reads_bytes_(BytesInUnicodeString) PCWCH UnicodeString,
     _In_ ULONG BytesInUnicodeString);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
