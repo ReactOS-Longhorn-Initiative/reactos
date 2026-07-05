@@ -5206,6 +5206,55 @@ RtlIsValidLocaleName(
 
 #endif /* Win Vista or ReactOS Ntdll build */
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA) || (defined(__REACTOS__) && (DLL_EXPORT_VERSION >= _WIN32_WINNT_VISTA))
+
+typedef VOID (NTAPI *PFLS_CALLBACK_FUNCTION)(PVOID);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlFlsAlloc(
+    _In_ PFLS_CALLBACK_FUNCTION Callback,
+    _Out_ PULONG FlsIndex);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlFlsFree(
+    _In_ ULONG FlsIndex);
+
+#endif /* Win Vista or ReactOS NT6 build */
+
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN10)
+
+NTSTATUS
+NTAPI
+RtlFlsGetValue(
+    _In_ ULONG FlsIndex,
+    _Out_ PVOID* FlsData);
+
+NTSTATUS
+NTAPI
+RtlFlsSetValue(
+    _In_ ULONG FlsIndex,
+    _In_ PVOID FlsData);
+
+// The following 2 are Windows 11:
+
+NTSTATUS
+NTAPI
+RtlFlsAllocEx(
+    _In_ PFLS_CALLBACK_FUNCTION Callback,
+    _Out_opt_ PULONG Unknown,
+    _Out_ PULONG FlsIndex);
+
+PVOID
+WINAPI
+RtlFlsGetValue2(
+    _In_ ULONG FlsIndex);
+
+#endif /* _WIN32_WINNT >= _WIN32_WINNT_WIN11 */
+
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7) || (defined(__REACTOS__) && defined(_NTDLLBUILD_))
 
 // NTSYSAPI
