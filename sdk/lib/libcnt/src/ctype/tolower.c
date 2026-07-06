@@ -11,7 +11,7 @@ _Check_return_
 int
 __cdecl
 tolower(
-    _In_ int const _C)
+    _In_ int _C)
 {
     if (((char)_C >= 'A') && ((char)_C <= 'Z'))
     {

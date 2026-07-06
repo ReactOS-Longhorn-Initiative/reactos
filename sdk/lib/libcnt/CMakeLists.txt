@@ -204,6 +204,8 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     # calls to memcpy/memmove/memset, causing infinite recursion at -O2.
     #set_source_files_properties(mem/memcpy.c mem/memmove.c mem/memset.c
     #    PROPERTIES COMPILE_FLAGS "-fno-tree-loop-distribute-patterns")
+else()
+    remove_target_compile_option(libcnt "/we4028") # temp hack
 endif()
 
 target_link_libraries(libcnt crtmath vcruntime chkstk)
