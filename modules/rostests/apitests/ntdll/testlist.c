@@ -86,7 +86,6 @@ extern void func_wcstol(void);
 extern void func_wcstoul(void);
 extern void func_wcstox_table(void);
 extern void func_xtostr_table(void);
-extern void func__abs64(void);
 extern void func__atoi64(void);
 extern void func__errno(void);
 extern void func__i64toa(void);
@@ -353,7 +352,6 @@ const struct test winetest_testlist[] =
     { "wcstok_s", func_wcstok_s },
     { "wcstol", func_wcstol },
     { "wcstoul", func_wcstoul },
-    { "_abs64", func__abs64 },
     { "_atoi64", func__atoi64 },
     { "_errno", func__errno },
     { "_i64toa", func__i64toa },

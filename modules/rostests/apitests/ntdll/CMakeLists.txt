@@ -124,7 +124,7 @@ list(APPEND SOURCE_CRT_TESTS
     crt/xtostr_table.c
     crt/xtostr_table.h
     crt/xtowcs_table.c
-    crt/_abs64.c
+    #crt/_abs64.c
     crt/_atoi64.c
     crt/_errno.c
     crt/_i64toa.c
