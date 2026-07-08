@@ -11,21 +11,22 @@
 _Check_return_
 int
 __cdecl
-toupper(_In_ int const _C)
+toupper(_In_ int _C)
 {
     PUCHAR ptr;
-    WCHAR wc;
+    WCHAR wc, wcUpper;
     CHAR chrUpper[2];
     ULONG mbSize;
 
     ptr = (PUCHAR)&_C;
     wc = RtlAnsiCharToUnicodeChar(&ptr);
-    
-    if (RtlUpcaseUnicodeToMultiByteN(chrUpper, sizeof(chrUpper), &mbSize, &wc, sizeof(wc)) < 0)
-        return _C;
+    wcUpper = RtlUpcaseUnicodeChar(wc);
+    RtlUnicodeToMultiByteN(chrUpper, 2, &mbSize, &wcUpper, sizeof(WCHAR));
 
     if (mbSize == 2)
         return (UCHAR)chrUpper[1] + ((UCHAR)chrUpper[0] << 8);
-    else
+    else if (mbSize == 1)
         return (UCHAR)chrUpper[0];
+    else
+        return (WCHAR)_C;
 }
