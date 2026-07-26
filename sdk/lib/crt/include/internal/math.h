@@ -18,9 +18,11 @@ int     _isinfl         (long double); /* not exported */
 #elif defined(_MSC_VER)
 #define FPU_DOUBLE(var) double var; \
     __asm { fstp [var] }; __asm { fwait };
+/* At entry ST(0) holds the last-pushed (second) argument and ST(1) the
+ * first, so pop into var2 before var1 to match the GCC branch above. */
 #define FPU_DOUBLES(var1,var2) double var1,var2; \
-    __asm { fstp [var1] }; __asm { fwait }; \
-    __asm { fstp [var2] }; __asm { fwait };
+    __asm { fstp [var2] }; __asm { fwait }; \
+    __asm { fstp [var1] }; __asm { fwait };
 #endif
 
 #endif
