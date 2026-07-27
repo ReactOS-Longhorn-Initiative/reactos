@@ -1081,12 +1081,17 @@ WlxShutdown(
 
     TRACE("WlxShutdown(%p %lx)\n", pWlxContext, ShutdownType);
 
-    /* Close the LSA handle */
+    /* Close the LSA handle, if we ever connected to LSA (no interactive
+     * logon happened otherwise, e.g. during setup) */
     pgContext->AuthenticationPackage = 0;
-    Status = LsaDeregisterLogonProcess(pgContext->LsaHandle);
-    if (!NT_SUCCESS(Status))
+    if (pgContext->LsaHandle != NULL)
     {
-        ERR("LsaDeregisterLogonProcess failed (Status 0x%08lx)\n", Status);
+        Status = LsaDeregisterLogonProcess(pgContext->LsaHandle);
+        if (!NT_SUCCESS(Status))
+        {
+            ERR("LsaDeregisterLogonProcess failed (Status 0x%08lx)\n", Status);
+        }
+        pgContext->LsaHandle = NULL;
     }
 }
 

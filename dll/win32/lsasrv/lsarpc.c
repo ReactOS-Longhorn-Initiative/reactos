@@ -13,21 +13,19 @@
 
 static RTL_CRITICAL_SECTION PolicyHandleTableLock;
 
-static
+/* Shared with database.c (LsapResolveDbObjectAccess). */
 GENERIC_MAPPING
 LsapPolicyMapping = {POLICY_READ,
                      POLICY_WRITE,
                      POLICY_EXECUTE,
                      POLICY_ALL_ACCESS};
 
-static
 GENERIC_MAPPING
 LsapAccountMapping = {ACCOUNT_READ,
                       ACCOUNT_WRITE,
                       ACCOUNT_EXECUTE,
                       ACCOUNT_ALL_ACCESS};
 
-static
 GENERIC_MAPPING
 LsapSecretMapping = {SECRET_READ,
                      SECRET_WRITE,
