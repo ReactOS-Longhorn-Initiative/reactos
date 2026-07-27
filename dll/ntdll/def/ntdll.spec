@@ -13,20 +13,20 @@
 @ stdcall -version=0x600+ A_SHAFinal(ptr ptr)
 @ stdcall -version=0x600+ A_SHAInit(ptr)
 @ stdcall -version=0x600+ A_SHAUpdate(ptr ptr long)
-@ stdcall -stub -version=0x600+ AlpcAdjustCompletionListConcurrencyCount(ptr long)
-@ stdcall -stub -version=0x600+ AlpcFreeCompletionListMessage(ptr ptr)
-@ stdcall -stub -version=0x600+ AlpcGetCompletionListLastMessageInformation(ptr ptr ptr)
-@ stdcall -stub -version=0x600+ AlpcGetCompletionListMessageAttributes(ptr ptr)
-@ stdcall -stub -version=0x600+ AlpcGetHeaderSize(long)
-@ stdcall -stub -version=0x600+ AlpcGetMessageAttribute(ptr long)
-@ stdcall -stub -version=0x600+ AlpcGetMessageFromCompletionList(ptr ptr)
-@ stdcall -stub -version=0x600+ AlpcGetOutstandingCompletionListMessageCount(ptr)
-@ stdcall -stub -version=0x600+ AlpcInitializeMessageAttribute(long ptr long ptr)
-@ stdcall -stub -version=0x600+ AlpcMaxAllowedMessageLength()
-@ stdcall -stub -version=0x600+ AlpcRegisterCompletionList(ptr ptr long long long)
-@ stdcall -stub -version=0x600+ AlpcRegisterCompletionListWorkerThread(ptr)
-@ stdcall -stub -version=0x600+ AlpcUnregisterCompletionList(ptr)
-@ stdcall -stub -version=0x600+ AlpcUnregisterCompletionListWorkerThread(ptr)
+@ stub -version=0x600+ AlpcAdjustCompletionListConcurrencyCount
+@ stdcall -version=0x600+ AlpcFreeCompletionListMessage(ptr ptr)
+@ stub -version=0x600+ AlpcGetCompletionListLastMessageInformation
+@ stub -version=0x600+ AlpcGetCompletionListMessageAttributes
+@ stdcall -version=0x600+ AlpcGetHeaderSize(long)
+@ stdcall -version=0x600+ AlpcGetMessageAttribute(ptr long)
+@ stdcall -version=0x600+ AlpcGetMessageFromCompletionList(ptr ptr)
+@ stub -version=0x600+ AlpcGetOutstandingCompletionListMessageCount
+@ stdcall -version=0x600+ AlpcInitializeMessageAttribute(long ptr long ptr)
+@ stub -version=0x600+ AlpcMaxAllowedMessageLength
+@ stub -version=0x600+ AlpcRegisterCompletionList
+@ stub -version=0x600+ AlpcRegisterCompletionListWorkerThread
+@ stub -version=0x600+ AlpcUnregisterCompletionList
+@ stub -version=0x600+ AlpcUnregisterCompletionListWorkerThread
 @ stdcall CsrAllocateCaptureBuffer(long long)
 @ stdcall CsrAllocateMessagePointer(ptr long ptr)
 @ stdcall CsrCaptureMessageBuffer(ptr ptr long ptr)
@@ -224,27 +224,27 @@
 @ stdcall NtAllocateUserPhysicalPages(ptr ptr ptr)
 @ stdcall NtAllocateUuids(ptr ptr ptr ptr)
 @ stdcall NtAllocateVirtualMemory(long ptr ptr ptr long long)
-@ stdcall -stub -version=0x600+ NtAlpcAcceptConnectPort(long long long long long long long long long)
-@ stdcall -stub -version=0x600+ NtAlpcCancelMessage(long long long)
-@ stdcall -stub -version=0x600+ NtAlpcConnectPort(long long long long long long long long long long long)
-@ stdcall -stub -version=0x600+ NtAlpcCreatePort(long long long)
-@ stdcall -stub -version=0x600+ NtAlpcCreatePortSection(long long long long ptr ptr)
-@ stdcall -stub -version=0x600+ NtAlpcCreateResourceReserve(long long long ptr)
-@ stdcall -stub -version=0x600+ NtAlpcCreateSectionView(long long long)
-@ stdcall -stub -version=0x600+ NtAlpcCreateSecurityContext(long long ptr)
-@ stdcall -stub -version=0x600+ NtAlpcDeletePortSection(long long long long ptr ptr)
-@ stdcall -stub -version=0x600+ NtAlpcDeleteResourceReserve(long long long ptr)
-@ stdcall -stub -version=0x600+ NtAlpcDeleteSectionView(long long long ptr)
-@ stdcall -stub -version=0x600+ NtAlpcDeleteSecurityContext(long long long)
-@ stdcall -stub -version=0x600+ NtAlpcDisconnectPort(long long)
-@ stdcall -stub -version=0x600+ NtAlpcImpersonateClientOfPort(long long long)
-@ stub -version=0x600+ NtAlpcOpenSenderProcess
-@ stub -version=0x600+ NtAlpcOpenSenderThread
-@ stdcall -stub -version=0x600+ NtAlpcQueryInformation(long long long long long)
-@ stdcall -stub -version=0x600+ NtAlpcQueryInformationMessage(long long long long long long)
-@ stdcall -stub -version=0x600+ NtAlpcRevokeSecurityContext(long long long)
-@ stdcall -stub -version=0x600+ NtAlpcSendWaitReceivePort(long long long long long long long long)
-@ stdcall -stub -version=0x600+ NtAlpcSetInformation(long long long long)
+@ stdcall -version=0x600+ NtAlpcAcceptConnectPort(long long long long long long long long long)
+@ stdcall -version=0x600+ NtAlpcCancelMessage(long long long)
+@ stdcall -version=0x600+ NtAlpcConnectPort(long long long long long long long long long long long)
+@ stdcall -version=0x600+ NtAlpcCreatePort(long long long)
+@ stdcall -version=0x600+ NtAlpcCreatePortSection(long long long long ptr ptr)
+@ stdcall -version=0x600+ NtAlpcCreateResourceReserve(long long long ptr)
+@ stdcall -version=0x600+ NtAlpcCreateSectionView(long long long)
+@ stdcall -version=0x600+ NtAlpcCreateSecurityContext(long long ptr)
+@ stdcall -version=0x600+ NtAlpcDeletePortSection(long long long)
+@ stdcall -version=0x600+ NtAlpcDeleteResourceReserve(long long long)
+@ stdcall -version=0x600+ NtAlpcDeleteSectionView(long long long)
+@ stdcall -version=0x600+ NtAlpcDeleteSecurityContext(long long long)
+@ stdcall -version=0x600+ NtAlpcDisconnectPort(long long)
+@ stdcall -version=0x600+ NtAlpcImpersonateClientOfPort(long long long)
+@ stdcall -version=0x600+ NtAlpcOpenSenderProcess(long long long long long long)
+@ stdcall -version=0x600+ NtAlpcOpenSenderThread(long long long long long long)
+@ stdcall -version=0x600+ NtAlpcQueryInformation(long long long long long)
+@ stdcall -version=0x600+ NtAlpcQueryInformationMessage(long long long long long long)
+@ stdcall -version=0x600+ NtAlpcRevokeSecurityContext(long long long)
+@ stdcall -version=0x600+ NtAlpcSendWaitReceivePort(long long long long long long long long)
+@ stdcall -version=0x600+ NtAlpcSetInformation(long long long long)
 @ stdcall NtApphelpCacheControl(long ptr)
 @ stdcall NtAreMappedFilesTheSame(ptr ptr)
 @ stdcall NtAssignProcessToJobObject(long long)
@@ -1396,27 +1396,27 @@
 @ stdcall ZwAllocateUserPhysicalPages(ptr ptr ptr)
 @ stdcall ZwAllocateUuids(ptr ptr ptr ptr)
 @ stdcall ZwAllocateVirtualMemory(long ptr ptr ptr long long)
-@ stub -version=0x600+ ZwAlpcAcceptConnectPort
-@ stub -version=0x600+ ZwAlpcCancelMessage
-@ stub -version=0x600+ ZwAlpcConnectPort
-@ stub -version=0x600+ ZwAlpcCreatePort
-@ stub -version=0x600+ ZwAlpcCreatePortSection
-@ stub -version=0x600+ ZwAlpcCreateResourceReserve
-@ stub -version=0x600+ ZwAlpcCreateSectionView
-@ stub -version=0x600+ ZwAlpcCreateSecurityContext
-@ stub -version=0x600+ ZwAlpcDeletePortSection
-@ stub -version=0x600+ ZwAlpcDeleteResourceReserve
-@ stub -version=0x600+ ZwAlpcDeleteSectionView
-@ stub -version=0x600+ ZwAlpcDeleteSecurityContext
-@ stub -version=0x600+ ZwAlpcDisconnectPort
-@ stub -version=0x600+ ZwAlpcImpersonateClientOfPort
-@ stub -version=0x600+ ZwAlpcOpenSenderProcess
-@ stub -version=0x600+ ZwAlpcOpenSenderThread
-@ stub -version=0x600+ ZwAlpcQueryInformation
-@ stub -version=0x600+ ZwAlpcQueryInformationMessage
-@ stub -version=0x600+ ZwAlpcRevokeSecurityContext
-@ stub -version=0x600+ ZwAlpcSendWaitReceivePort
-@ stub -version=0x600+ ZwAlpcSetInformation
+@ stdcall -version=0x600+ ZwAlpcAcceptConnectPort(long long long long long long long long long)
+@ stdcall -version=0x600+ ZwAlpcCancelMessage(long long long)
+@ stdcall -version=0x600+ ZwAlpcConnectPort(long long long long long long long long long long long)
+@ stdcall -version=0x600+ ZwAlpcCreatePort(long long long)
+@ stdcall -version=0x600+ ZwAlpcCreatePortSection(long long long long ptr ptr)
+@ stdcall -version=0x600+ ZwAlpcCreateResourceReserve(long long long ptr)
+@ stdcall -version=0x600+ ZwAlpcCreateSectionView(long long long)
+@ stdcall -version=0x600+ ZwAlpcCreateSecurityContext(long long ptr)
+@ stdcall -version=0x600+ ZwAlpcDeletePortSection(long long long)
+@ stdcall -version=0x600+ ZwAlpcDeleteResourceReserve(long long long)
+@ stdcall -version=0x600+ ZwAlpcDeleteSectionView(long long long)
+@ stdcall -version=0x600+ ZwAlpcDeleteSecurityContext(long long long)
+@ stdcall -version=0x600+ ZwAlpcDisconnectPort(long long)
+@ stdcall -version=0x600+ ZwAlpcImpersonateClientOfPort(long long long)
+@ stdcall -version=0x600+ ZwAlpcOpenSenderProcess(long long long long long long)
+@ stdcall -version=0x600+ ZwAlpcOpenSenderThread(long long long long long long)
+@ stdcall -version=0x600+ ZwAlpcQueryInformation(long long long long long)
+@ stdcall -version=0x600+ ZwAlpcQueryInformationMessage(long long long long long long)
+@ stdcall -version=0x600+ ZwAlpcRevokeSecurityContext(long long long)
+@ stdcall -version=0x600+ ZwAlpcSendWaitReceivePort(long long long long long long long long)
+@ stdcall -version=0x600+ ZwAlpcSetInformation(long long long long)
 @ stdcall ZwApphelpCacheControl(long ptr)
 @ stdcall ZwAreMappedFilesTheSame(ptr ptr)
 @ stdcall ZwAssignProcessToJobObject(long long)
