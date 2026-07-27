@@ -588,6 +588,43 @@ LsapInitDatabase(VOID)
 }
 
 
+static
+VOID
+LsapResolveDbObjectAccess(IN LSA_DB_OBJECT_TYPE ObjectType,
+                          IN OUT PACCESS_MASK DesiredAccess)
+{
+    PGENERIC_MAPPING Mapping;
+
+    switch (ObjectType)
+    {
+        case LsaDbPolicyObject:
+            Mapping = &LsapPolicyMapping;
+            break;
+
+        case LsaDbAccountObject:
+            Mapping = &LsapAccountMapping;
+            break;
+
+        case LsaDbSecretObject:
+            Mapping = &LsapSecretMapping;
+            break;
+
+        default:
+            /* No mapping table yet (e.g. LsaDbDomainObject) - leave as-is. */
+            return;
+    }
+
+    /*
+     * Resolve generic access bits to the object's specific rights. PSXSS opens
+     * the LSA policy with GENERIC_EXECUTE (0x20000000), which must map to
+     * POLICY_EXECUTE (POLICY_VIEW_LOCAL_INFORMATION | POLICY_LOOKUP_NAMES).
+     * Without this the raw generic mask is stored and every specific-right
+     * check in LsapValidateDbObject fails.
+     */
+    RtlMapGenericMask(DesiredAccess, Mapping);
+}
+
+
 NTSTATUS
 LsapCreateDbObject(IN PLSA_DB_OBJECT ParentObject,
                    IN LPWSTR ContainerName,
@@ -694,6 +731,7 @@ LsapCreateDbObject(IN PLSA_DB_OBJECT ParentObject,
     NewObject->Signature = LSAP_DB_SIGNATURE;
     NewObject->RefCount = 1;
     NewObject->ObjectType = ObjectType;
+    LsapResolveDbObjectAccess(ObjectType, &DesiredAccess);
     NewObject->Access = DesiredAccess;
     NewObject->KeyHandle = ObjectKeyHandle;
     NewObject->ParentObject = ParentObject;
@@ -807,6 +845,7 @@ LsapOpenDbObject(IN PLSA_DB_OBJECT ParentObject,
     NewObject->Signature = LSAP_DB_SIGNATURE;
     NewObject->RefCount = 1;
     NewObject->ObjectType = ObjectType;
+    LsapResolveDbObjectAccess(ObjectType, &DesiredAccess);
     NewObject->Access = DesiredAccess;
     NewObject->KeyHandle = ObjectKeyHandle;
     NewObject->ParentObject = ParentObject;
