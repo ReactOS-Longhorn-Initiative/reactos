@@ -585,12 +585,22 @@ AlpcpReceiveMessage(
             BaseType = Message->PortMessage.u2.s2.Type & 0xFF;
             if (BaseType == LPC_CONNECTION_REQUEST)
             {
-                /* Owned by the connect/accept handshake; leave it referenced. */
+                /* Park it on the pending queue so the accept path can look it up
+                 * by message id (a single cached-message slot would be clobbered
+                 * by concurrent connects). It stays owned by the connecting
+                 * thread, which reclaims and frees it when the handshake ends. */
+                KeAcquireGuardedMutex(&AlpcpLock);
+                InsertTailList(&Port->PendingQueue, &Message->Entry);
+                Port->PendingQueueLength++;
+                Message->u1.QueueType = 3;
+                Message->PortQueue = Port;
+                KeReleaseGuardedMutex(&AlpcpLock);
             }
-            else if (NT_SUCCESS(Status))
+            else if (NT_SUCCESS(Status) &&
+                     (Message->WaitingThread != NULL || BaseType == LPC_REQUEST))
             {
                 /* Pend the received message - a synchronous request (for reply
-                 * correlation) or a datagram (so a sender query such as
+                 * correlation) or a request datagram (so a sender query such as
                  * OpenSenderProcess or the message SID can still find it). It is
                  * released by the reply, or when the port is torn down. */
                 KeAcquireGuardedMutex(&AlpcpLock);
@@ -603,6 +613,10 @@ AlpcpReceiveMessage(
             }
             else
             {
+                /* One-way notification (LPC_CLIENT_DIED, LPC_ERROR_EVENT, a
+                 * datagram, ...) or a failed delivery: no reply will ever
+                 * reference it, so release it now instead of leaking it on the
+                 * pending queue. */
                 AlpcpFreeMessage(Message);
             }
 
@@ -677,7 +691,13 @@ AlpcpSendRequest(
     ULONG MessageId;
     BOOLEAN SyncRequest = (Flags & ALPC_MSGFLG_SYNC_REQUEST) != 0;
     ULONG TotalLength = Header->u1.s1.TotalLength;
+    USHORT BaseType = (USHORT)(Header->u2.s2.Type & 0xFF);
     NTSTATUS Status;
+
+    /* Honor a pre-typed message (LPC_CLIENT_DIED, LPC_ERROR_EVENT, ... from the
+     * legacy kernel senders in ps/dbgk/ex); an untyped message is a request. */
+    if (BaseType == 0)
+        BaseType = LPC_REQUEST;
 
     /* Send-side state gate (order matches the Windows kernel). */
     if (SourcePort->u1.ConnectionRefused)
@@ -722,7 +742,7 @@ AlpcpSendRequest(
     if (Message == NULL)
         return STATUS_INSUFFICIENT_RESOURCES;
 
-    Message->PortMessage.u2.s2.Type = ALPC_REQUEST_TYPE;
+    Message->PortMessage.u2.s2.Type = (CSHORT)(0x3000 | BaseType);
     Message->PortMessage.ClientId = Thread->Cid;
     Message->OwnerPort = SourcePort;
     Message->ConnectionPort = TargetPort;
@@ -1034,7 +1054,8 @@ AlpcpSendReply(
          Entry = Entry->Flink)
     {
         PKALPC_MESSAGE Candidate = CONTAINING_RECORD(Entry, KALPC_MESSAGE, Entry);
-        if (Candidate->PortMessage.MessageId == MessageId)
+        if (Candidate->PortMessage.MessageId == MessageId &&
+            (Candidate->PortMessage.u2.s2.Type & 0xFF) != LPC_CONNECTION_REQUEST)
         {
             Request = Candidate;
             break;
