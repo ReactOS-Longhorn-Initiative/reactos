@@ -76,6 +76,39 @@ AlpcpCreateCommunicationPort(
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Finds a received (pending) connection request with the given id on the
+ *        given port's pending queue. AlpcpLock must be held.
+ *
+ * Connection requests are parked on the receiving port's pending queue (rather
+ * than a single cached-message slot) so that concurrent connects to the same
+ * port cannot clobber each other's request.
+ *
+ * @return The pending connection request message, or NULL.
+ */
+PKALPC_MESSAGE
+NTAPI
+AlpcpFindPendingConnectionRequest(
+    _In_ PALPC_PORT Port,
+    _In_ ULONG MessageId)
+{
+    PLIST_ENTRY Entry;
+
+    for (Entry = Port->PendingQueue.Flink;
+         Entry != &Port->PendingQueue;
+         Entry = Entry->Flink)
+    {
+        PKALPC_MESSAGE Message = CONTAINING_RECORD(Entry, KALPC_MESSAGE, Entry);
+        if ((Message->PortMessage.u2.s2.Type & 0xFF) == LPC_CONNECTION_REQUEST &&
+            Message->PortMessage.MessageId == MessageId)
+        {
+            return Message;
+        }
+    }
+
+    return NULL;
+}
+
 /* PUBLIC FUNCTIONS ********************************************************/
 
 /**
@@ -231,10 +264,10 @@ NtAlpcConnectPort(
      * of us and lose the wakeup. */
     KeInitializeSemaphore(&Thread->AlpcWaitSemaphore, 0, MAXLONG);
 
+    /* Queue the request on the server port. The accept path finds it by message
+     * id on the pending queue (after the server received it), so concurrent
+     * connects to the same port do not clobber each other. */
     KeAcquireGuardedMutex(&AlpcpLock);
-    ServerPort->PendingClientPort = ClientPort;
-    ServerPort->CachedMessage = Message;
-    ServerPort->CachedConnectionMessageId = Message->PortMessage.MessageId;
     InsertTailList(&ServerPort->MainQueue, &Message->Entry);
     ServerPort->MainQueueLength++;
     Message->u1.QueueType = 1;
@@ -271,17 +304,20 @@ NtAlpcConnectPort(
         Status = STATUS_SUCCESS;
     }
 
-    /* Reclaim the connection request and detach it from the server port. */
+    /* Reclaim the connection request from whichever queue the handshake left
+     * it on (main queue if never received, pending queue if never accepted). */
     KeAcquireGuardedMutex(&AlpcpLock);
-    if (ServerPort->CachedMessage == Message)
-    {
-        ServerPort->CachedMessage = NULL;
-        ServerPort->PendingClientPort = NULL;
-    }
     if (Message->u1.QueueType == 1)
     {
         RemoveEntryList(&Message->Entry);
         ServerPort->MainQueueLength--;
+        Message->u1.QueueType = 0;
+    }
+    else if (Message->u1.QueueType == 3)
+    {
+        RemoveEntryList(&Message->Entry);
+        if (Message->PortQueue != NULL)
+            Message->PortQueue->PendingQueueLength--;
         Message->u1.QueueType = 0;
     }
     KeReleaseGuardedMutex(&AlpcpLock);
@@ -391,10 +427,9 @@ NtAlpcAcceptConnectPort(
     }
 
     KeAcquireGuardedMutex(&AlpcpLock);
-    Message = ConnectionPort->CachedMessage;
-    ClientPort = ConnectionPort->PendingClientPort;
-    if (Message == NULL || ClientPort == NULL ||
-        Message->PortMessage.MessageId != RequestMessageId)
+    Message = AlpcpFindPendingConnectionRequest(ConnectionPort, RequestMessageId);
+    ClientPort = (Message != NULL) ? Message->OwnerPort : NULL;
+    if (Message == NULL || ClientPort == NULL)
     {
         KeReleaseGuardedMutex(&AlpcpLock);
         Status = STATUS_INVALID_PARAMETER;
@@ -402,6 +437,13 @@ NtAlpcAcceptConnectPort(
     }
 
     WaitingThread = Message->WaitingThread;
+
+    /* Detach the request from the pending queue; the connecting thread frees
+     * it when it wakes up. */
+    RemoveEntryList(&Message->Entry);
+    ConnectionPort->PendingQueueLength--;
+    Message->u1.QueueType = 0;
+
     if (AcceptConnection)
     {
         ClientPort->u1.ConnectionPending = FALSE;
@@ -418,8 +460,6 @@ NtAlpcAcceptConnectPort(
         ClientPort->u1.ConnectionRefused = TRUE;
         ClientPort->u1.ConnectionPending = FALSE;
     }
-    ConnectionPort->CachedMessage = NULL;
-    ConnectionPort->PendingClientPort = NULL;
     KeReleaseGuardedMutex(&AlpcpLock);
 
     if (AcceptConnection)

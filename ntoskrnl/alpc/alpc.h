@@ -350,6 +350,14 @@ FORCEINLINE PVOID AlpcpGetMessageData(_In_ PKALPC_MESSAGE Message)
     return (PUCHAR)&Message->PortMessage + sizeof(PORT_MESSAGE);
 }
 
+/* Pending-connection lookup shared by the native and legacy accept paths
+ * (alpccon.c). AlpcpLock must be held. */
+PKALPC_MESSAGE
+NTAPI
+AlpcpFindPendingConnectionRequest(
+    _In_ PALPC_PORT Port,
+    _In_ ULONG MessageId);
+
 NTSTATUS
 NTAPI
 AlpcpReceiveMessage(
