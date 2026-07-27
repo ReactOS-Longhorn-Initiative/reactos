@@ -750,3 +750,7 @@
     SVC_(UserUnregisterSessionPort, 0)
     SVC_(UserDwmStartRedirection, 1)
     SVC_(UserDwmStopRedirection, 0)
+// NT6
+    SVC_(GdiGetFontFileData, 5)
+    SVC_(GdiGetFontFileInfo, 5)
+    SVC_(GdiGetFontRealizationInfo, 2)
