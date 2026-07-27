@@ -335,7 +335,12 @@ static BOOL init_console_std_handles( BOOL override_all )
 /******************************************************************
  *	AddConsoleAliasA   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+BOOL WINAPI AddConsoleAliasA( LPCSTR source, LPCSTR target, LPCSTR exename )
+#else
 BOOL WINAPI AddConsoleAliasA( LPSTR source, LPSTR target, LPSTR exename )
+#endif
 {
     FIXME( ": (%s, %s, %s) stub!\n", debugstr_a(source), debugstr_a(target), debugstr_a(exename) );
     SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
@@ -346,7 +351,12 @@ BOOL WINAPI AddConsoleAliasA( LPSTR source, LPSTR target, LPSTR exename )
 /******************************************************************
  *	AddConsoleAliasW   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+BOOL WINAPI AddConsoleAliasW( LPCWSTR source, LPCWSTR target, LPCWSTR exename )
+#else
 BOOL WINAPI AddConsoleAliasW( LPWSTR source, LPWSTR target, LPWSTR exename )
+#endif
 {
     FIXME( ": (%s, %s, %s) stub!\n", debugstr_w(source), debugstr_w(target), debugstr_w(exename) );
     SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
@@ -498,9 +508,16 @@ BOOL WINAPI AllocConsole(void)
 /******************************************************************************
  *	CreateConsoleScreenBuffer   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+HANDLE WINAPI DECLSPEC_HOTPATCH CreateConsoleScreenBuffer( DWORD access, DWORD share,
+                                                           CONST SECURITY_ATTRIBUTES *sa, DWORD flags,
+                                                           LPVOID data )
+#else
 HANDLE WINAPI DECLSPEC_HOTPATCH CreateConsoleScreenBuffer( DWORD access, DWORD share,
                                                            SECURITY_ATTRIBUTES *sa, DWORD flags,
                                                            void *data )
+#endif
 {
     OBJECT_ATTRIBUTES attr = {sizeof(attr)};
     IO_STATUS_BLOCK iosb;
@@ -708,7 +725,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH GenerateConsoleCtrlEvent( DWORD event, DWORD group
 /******************************************************************
  *	GetConsoleAliasA   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+DWORD WINAPI GetConsoleAliasA( LPCSTR source, LPSTR buffer, DWORD len, LPCSTR exename )
+#else
 DWORD WINAPI GetConsoleAliasA( LPSTR source, LPSTR buffer, DWORD len, LPSTR exename )
+#endif
 {
     FIXME( "(%s,%p,%ld,%s): stub\n", debugstr_a(source), buffer, len, debugstr_a(exename) );
     SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
@@ -719,7 +741,12 @@ DWORD WINAPI GetConsoleAliasA( LPSTR source, LPSTR buffer, DWORD len, LPSTR exen
 /******************************************************************
  *	GetConsoleAliasW   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+DWORD WINAPI GetConsoleAliasW( LPCWSTR source, LPWSTR buffer, DWORD len, LPCWSTR exename )
+#else
 DWORD WINAPI GetConsoleAliasW( LPWSTR source, LPWSTR buffer, DWORD len, LPWSTR exename )
+#endif
 {
     FIXME( "(%s,%p,%ld,%s): stub\n", debugstr_w(source), buffer, len, debugstr_w(exename) );
     SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
@@ -752,7 +779,12 @@ DWORD WINAPI GetConsoleAliasExesLengthW(void)
 /******************************************************************
  *	GetConsoleAliasesLengthA   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+DWORD WINAPI GetConsoleAliasesLengthA( LPCSTR unknown )
+#else
 DWORD WINAPI GetConsoleAliasesLengthA( LPSTR unknown )
+#endif
 {
     FIXME( ": (%s) stub!\n", debugstr_a(unknown) );
     SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
@@ -763,7 +795,12 @@ DWORD WINAPI GetConsoleAliasesLengthA( LPSTR unknown )
 /******************************************************************
  *	GetConsoleAliasesLengthW   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+DWORD WINAPI GetConsoleAliasesLengthW( LPCWSTR unknown )
+#else
 DWORD WINAPI GetConsoleAliasesLengthW( LPWSTR unknown )
+#endif
 {
     FIXME( ": (%s) stub!\n", debugstr_w(unknown) );
     SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
@@ -1538,7 +1575,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetConsoleCtrlHandler( PHANDLER_ROUTINE func, BOOL
 /******************************************************************************
  *	SetConsoleCursorInfo   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+BOOL WINAPI DECLSPEC_HOTPATCH SetConsoleCursorInfo( HANDLE handle, CONST CONSOLE_CURSOR_INFO *info )
+#else
 BOOL WINAPI DECLSPEC_HOTPATCH SetConsoleCursorInfo( HANDLE handle, CONSOLE_CURSOR_INFO *info )
+#endif
 {
     struct condrv_output_info_params params = { SET_CONSOLE_OUTPUT_INFO_CURSOR_GEOM };
 
@@ -1733,7 +1775,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetConsoleTitleW( LPCWSTR title )
 /******************************************************************************
  *	SetConsoleWindowInfo   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine drops the const the PSDK prototype has on these parameters. */
+BOOL WINAPI DECLSPEC_HOTPATCH SetConsoleWindowInfo( HANDLE handle, BOOL absolute, CONST SMALL_RECT *window )
+#else
 BOOL WINAPI DECLSPEC_HOTPATCH SetConsoleWindowInfo( HANDLE handle, BOOL absolute, SMALL_RECT *window )
+#endif
 {
     struct condrv_output_info_params params = { SET_CONSOLE_OUTPUT_INFO_DISPLAY_WINDOW };
     SMALL_RECT rect = *window;
@@ -2063,7 +2110,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH WriteConsoleOutputCharacterW( HANDLE handle, LPCWS
 /***********************************************************************
  *            ReadConsoleA   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine takes the last parameter as an untyped reserved pointer; the PSDK types it as PCONSOLE_READCONSOLE_CONTROL. */
+BOOL WINAPI ReadConsoleA( HANDLE handle, LPVOID buffer, DWORD length, LPDWORD count, PCONSOLE_READCONSOLE_CONTROL reserved )
+#else
 BOOL WINAPI ReadConsoleA( HANDLE handle, void *buffer, DWORD length, DWORD *count, void *reserved )
+#endif
 {
     if (length > INT_MAX)
     {
@@ -2078,7 +2130,12 @@ BOOL WINAPI ReadConsoleA( HANDLE handle, void *buffer, DWORD length, DWORD *coun
 /***********************************************************************
  *            ReadConsoleW   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine takes the last parameter as an untyped reserved pointer; the PSDK types it as PCONSOLE_READCONSOLE_CONTROL. */
+BOOL WINAPI ReadConsoleW( HANDLE handle, LPVOID buffer, DWORD length, LPDWORD count, PCONSOLE_READCONSOLE_CONTROL reserved )
+#else
 BOOL WINAPI ReadConsoleW( HANDLE handle, void *buffer, DWORD length, DWORD *count, void *reserved )
+#endif
 {
     BOOL ret;
 
@@ -2113,7 +2170,11 @@ BOOL WINAPI ReadConsoleW( HANDLE handle, void *buffer, DWORD length, DWORD *coun
                              tmp, sizeof(DWORD) + length * sizeof(WCHAR), count );
         if (ret)
         {
-            memcpy( &crc->dwConsoleKeyState, tmp, sizeof(DWORD) );
+            #ifdef __REACTOS__
+        memcpy( &crc->dwControlKeyState, tmp, sizeof(DWORD) );
+#else
+        memcpy( &crc->dwConsoleKeyState, tmp, sizeof(DWORD) );
+#endif
             *count -= sizeof(DWORD);
             memcpy( buffer, tmp + sizeof(DWORD), *count );
         }

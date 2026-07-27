@@ -196,3 +196,23 @@ typedef struct _EXCEPTION_REGISTRATION_RECORD
 #endif // __WINE_WINNT_EXCEPTION_REGISTRATION_RECORD
 
 #define HEAP_SHARED           0x04000000
+
+/* Wine declares the RtlRunOnce family in its own <winnt.h>; ReactOS keeps them
+ * in <ndk/rtlfuncs.h>, which Wine sources do not include. All three are
+ * exported by our ntdll. */
+#ifdef __WINESRC__
+NTSYSAPI DWORD WINAPI RtlRunOnceBeginInitialize(PRTL_RUN_ONCE,DWORD,PVOID*);
+NTSYSAPI DWORD WINAPI RtlRunOnceComplete(PRTL_RUN_ONCE,DWORD,PVOID);
+NTSYSAPI DWORD WINAPI RtlRunOnceExecuteOnce(PRTL_RUN_ONCE,PRTL_RUN_ONCE_INIT_FN,PVOID,PVOID*);
+NTSYSAPI void  WINAPI RtlRunOnceInitialize(PRTL_RUN_ONCE);
+
+/* Wine pulls <rtlsupportapi.h> in from its <winnt.h>. We cannot include the
+ * whole header because most of it collides with the declarations generated
+ * into <psdk/winnt.h>; RtlRaiseException is the one Wine sources need that
+ * <psdk/winnt.h> does not declare.
+ *
+ * Deliberately declared without NTSYSAPI: <reactos/stubs.h>, which every
+ * spec2def-generated stub body includes, declares it plain, and mixing a
+ * dllimport and a non-dllimport declaration in one TU is -Werror=attributes. */
+void WINAPI RtlRaiseException(PEXCEPTION_RECORD);
+#endif /* __WINESRC__ */

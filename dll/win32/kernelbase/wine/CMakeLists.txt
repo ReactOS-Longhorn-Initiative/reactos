@@ -37,12 +37,52 @@ if(NOT MSVC)
     #target_compile_options(kernelbase_path PRIVATE -Wno-unused-function)
 endif()
 
+# Every file in dlls/kernelbase now *compiles* against our headers. The ones
+# listed below also link; the rest are held back only by ntdll exports we do
+# not have yet. Move a file up as soon as its blockers land.
 list(APPEND SOURCE_STATIC
-    #console.c #looks like ReactOS console.c is nothing like wine.
+    console.c
+    debug.c
     locale.c
     path.c
+    security.c
     string.c
+    version.c
+    volume.c
     )
+
+# Compiles, but does not link yet. Blocking ntdll exports, per file:
+#
+#   file.c      RtlGetSearchPath, RtlReleasePath, RtlGetSystemTimePrecise
+#   loader.c    LdrSetDefaultDllDirectories, LdrAddDllDirectory,
+#               LdrRemoveDllDirectory, LdrGetDllPath, LdrGetDllFullName,
+#               ApiSetQueryApiSetPresenceEx, RtlReleasePath;
+#               RtlCreateActivationContext is declared @24 in ntdll.spec but
+#               Wine calls the @8 (NT6) form
+#   memory.c    NtAllocateVirtualMemoryEx, NtMapViewOfSectionEx,
+#               NtUnmapViewOfSectionEx, NtSetInformationVirtualMemory,
+#               RtlCopyContext, and the extended-context/XState family
+#               (RtlGetExtendedContextLength2, RtlInitializeExtendedContext2,
+#               RtlLocateExtendedFeature, RtlGetExtendedFeaturesMask,
+#               RtlSetExtendedFeaturesMask, RtlGetEnabledExtendedFeatures)
+#   process.c   NtCompareObjects, RtlGetExePath, RtlReleasePath
+#   registry.c  NtOpenKeyEx
+#   sync.c      RtlQueryUnbiasedInterruptTime
+#   thread.c    RtlFlsGetValue, RtlFlsSetValue; RtlFlsAlloc is declared @16 in
+#               ntdll.spec but Wine calls the @8 (NT6) form
+#   main.c      needs init_locale() from locale.c (still #ifndef __REACTOS__)
+#               and IID_IUnknown (link against uuid)
+#
+#list(APPEND SOURCE_STATIC
+#    file.c
+#    loader.c
+#    main.c
+#    memory.c
+#    process.c
+#    registry.c
+#    sync.c
+#    thread.c
+#    )
 
 add_library(kernelbase_static ${SOURCE_STATIC})
 target_compile_definitions(kernelbase_static PRIVATE WINSHLWAPI= WINPATHCCHAPI= PATHCCH_NO_DEPRECATE=)

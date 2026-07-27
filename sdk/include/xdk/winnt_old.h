@@ -559,7 +559,51 @@
 #define REG_OPTION_BACKUP_RESTORE    4
 #define REG_OPTION_OPEN_LINK    8
 #define REG_LEGAL_OPTION    15
+/* Registry value types. The Windows SDK declares these in <winnt.h>; we used to
+ * have them only in <winreg.h>, which Wine sources do not always include. */
+#ifndef REG_NONE
+#define REG_NONE    0
+#define REG_SZ    1
+#define REG_EXPAND_SZ    2
+#define REG_BINARY    3
+#define REG_DWORD    4
+#define REG_DWORD_LITTLE_ENDIAN    4
+#define REG_DWORD_BIG_ENDIAN    5
+#define REG_LINK    6
+#define REG_MULTI_SZ    7
+#define REG_RESOURCE_LIST    8
+#define REG_FULL_RESOURCE_DESCRIPTOR    9
+#define REG_RESOURCE_REQUIREMENTS_LIST    10
+#define REG_QWORD    11
+#define REG_QWORD_LITTLE_ENDIAN    11
+#endif
 #define MAXIMUM_PROCESSORS 32
+
+#ifndef QUOTA_LIMITS_HARDWS_MIN_ENABLE
+#define QUOTA_LIMITS_HARDWS_MIN_ENABLE  0x00000001
+#define QUOTA_LIMITS_HARDWS_MIN_DISABLE 0x00000002
+#define QUOTA_LIMITS_HARDWS_MAX_ENABLE  0x00000004
+#define QUOTA_LIMITS_HARDWS_MAX_DISABLE 0x00000008
+#endif
+
+typedef enum _PROCESS_MITIGATION_POLICY {
+    ProcessDEPPolicy,
+    ProcessASLRPolicy,
+    ProcessDynamicCodePolicy,
+    ProcessStrictHandleCheckPolicy,
+    ProcessSystemCallDisablePolicy,
+    ProcessMitigationOptionsMask,
+    ProcessExtensionPointDisablePolicy,
+    ProcessControlFlowGuardPolicy,
+    ProcessSignaturePolicy,
+    ProcessFontDisablePolicy,
+    ProcessImageLoadPolicy,
+    ProcessSystemCallFilterPolicy,
+    ProcessPayloadRestrictionPolicy,
+    ProcessChildProcessPolicy,
+    ProcessSideChannelIsolationPolicy,
+    MaxProcessMitigationPolicy
+} PROCESS_MITIGATION_POLICY, *PPROCESS_MITIGATION_POLICY;
 #define PAGE_NOACCESS    0x0001
 #define PAGE_READONLY    0x0002
 #define PAGE_READWRITE    0x0004
@@ -571,6 +615,15 @@
 #define PAGE_GUARD        0x0100
 #define PAGE_NOCACHE        0x0200
 #define PAGE_WRITECOMBINE    0x0400
+#define PAGE_ENCLAVE_MASK           0x10000000
+#define PAGE_ENCLAVE_UNVALIDATED    0x20000000
+#define PAGE_ENCLAVE_NO_CHANGE      0x20000000
+#define PAGE_TARGETS_NO_UPDATE      0x40000000
+#define PAGE_TARGETS_INVALID        0x40000000
+#define PAGE_ENCLAVE_THREAD_CONTROL 0x80000000
+#define PAGE_ENCLAVE_DECOMMIT       (PAGE_ENCLAVE_MASK | 0)
+#define PAGE_ENCLAVE_SS_FIRST       (PAGE_ENCLAVE_MASK | 1)
+#define PAGE_ENCLAVE_SS_REST        (PAGE_ENCLAVE_MASK | 2)
 #define MEM_COMMIT           0x1000
 #define MEM_RESERVE          0x2000
 #define MEM_REPLACE_PLACEHOLDER 0x00004000
@@ -637,6 +690,7 @@
 #define IMAGE_FILE_UP_SYSTEM_ONLY    16384
 #define IMAGE_FILE_BYTES_REVERSED_HI    32768
 #define IMAGE_FILE_MACHINE_UNKNOWN    0
+#define IMAGE_FILE_MACHINE_TARGET_HOST    0x0001
 
 #define IMAGE_FILE_MACHINE_AM33       0x1d3
 #define IMAGE_FILE_MACHINE_AMD64      0x8664

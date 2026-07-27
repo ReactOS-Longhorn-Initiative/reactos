@@ -26,7 +26,14 @@
 #include "windef.h"
 #include "winbase.h"
 #include "winnls.h"
+#ifdef __REACTOS__
+/* Our <wincontypes.h> and <wincon.h> define the console types independently
+ * of each other (different tag names, different pointer typedefs), so pulling
+ * in both is a redefinition error. <wincon.h> is the superset. */
+#include "wincon.h"
+#else
 #include "wincontypes.h"
+#endif
 #include "winternl.h"
 
 #include "kernelbase.h"
@@ -1281,7 +1288,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetProcessWorkingSetSizeEx( HANDLE process, SIZE_T
 /******************************************************************************
  *           TerminateProcess   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine passes the exit code as DWORD; the PSDK prototype uses UINT. */
+BOOL WINAPI DECLSPEC_HOTPATCH TerminateProcess( HANDLE handle, UINT exit_code )
+#else
 BOOL WINAPI DECLSPEC_HOTPATCH TerminateProcess( HANDLE handle, DWORD exit_code )
+#endif
 {
     if (!handle)
     {

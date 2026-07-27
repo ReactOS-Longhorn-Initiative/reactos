@@ -122,6 +122,12 @@ static BOOL open_device_root( LPCWSTR root, HANDLE *handle )
 /* query the type of a drive from the mount manager */
 static DWORD get_mountmgr_drive_type( LPCWSTR root )
 {
+#ifdef __REACTOS__
+    /* IOCTL_MOUNTMGR_QUERY_UNIX_DRIVE and struct mountmgr_unix_drive are Wine
+     * extensions used to map Unix mount points onto drive letters. They have no
+     * meaning on ReactOS, where the drive type comes from the storage stack. */
+    return DRIVE_UNKNOWN;
+#else
     HANDLE mgr;
     struct mountmgr_unix_drive data;
     DWORD br;
@@ -146,6 +152,7 @@ static DWORD get_mountmgr_drive_type( LPCWSTR root )
 
     CloseHandle( mgr );
     return data.type;
+#endif /* __REACTOS__ */
 }
 
 
@@ -546,7 +553,12 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetLogicalDrives(void)
 /***********************************************************************
  *           GetLogicalDriveStringsW   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine declares this returning UINT; the PSDK (and our <winbase.h>) uses DWORD. */
+DWORD WINAPI DECLSPEC_HOTPATCH GetLogicalDriveStringsW( DWORD len, LPWSTR buffer )
+#else
 UINT WINAPI DECLSPEC_HOTPATCH GetLogicalDriveStringsW( UINT len, LPWSTR buffer )
+#endif
 {
     DWORD drives = GetLogicalDrives();
     UINT drive, count;

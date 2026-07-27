@@ -1617,7 +1617,12 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetCompressedFileSizeW( LPCWSTR name, LPDWORD siz
 /***********************************************************************
  *           GetCurrentDirectoryA    (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine declares this returning UINT; the PSDK (and our <winbase.h>) uses DWORD. */
+DWORD WINAPI DECLSPEC_HOTPATCH GetCurrentDirectoryA( DWORD buflen, LPSTR buf )
+#else
 UINT WINAPI DECLSPEC_HOTPATCH GetCurrentDirectoryA( UINT buflen, LPSTR buf )
+#endif
 {
     WCHAR bufferW[MAX_PATH];
     DWORD ret;
@@ -1647,7 +1652,12 @@ UINT WINAPI DECLSPEC_HOTPATCH GetCurrentDirectoryA( UINT buflen, LPSTR buf )
 /***********************************************************************
  *           GetCurrentDirectoryW    (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine declares this returning UINT; the PSDK (and our <winbase.h>) uses DWORD. */
+DWORD WINAPI DECLSPEC_HOTPATCH GetCurrentDirectoryW( DWORD buflen, LPWSTR buf )
+#else
 UINT WINAPI DECLSPEC_HOTPATCH GetCurrentDirectoryW( UINT buflen, LPWSTR buf )
+#endif
 {
     return RtlGetCurrentDirectory_U( buflen * sizeof(WCHAR), buf ) / sizeof(WCHAR);
 }
@@ -4000,7 +4010,12 @@ BOOL WINAPI DECLSPEC_HOTPATCH WriteFileGather( HANDLE file, FILE_SEGMENT_ELEMENT
 /*********************************************************************
  *	CompareFileTime   (kernelbase.@)
  */
+#ifdef __REACTOS__
+/* Wine declares this returning INT; the PSDK (and our <winbase.h>) uses LONG. */
+LONG WINAPI DECLSPEC_HOTPATCH CompareFileTime( const FILETIME *x, const FILETIME *y )
+#else
 INT WINAPI DECLSPEC_HOTPATCH CompareFileTime( const FILETIME *x, const FILETIME *y )
+#endif
 {
     if (!x || !y) return -1;
     if (x->dwHighDateTime > y->dwHighDateTime) return 1;

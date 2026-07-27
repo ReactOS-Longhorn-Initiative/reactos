@@ -7,24 +7,18 @@
  */
 
 /* NTDEF.H */
+#ifndef RTL_CONSTANT_STRING
 #define RTL_CONSTANT_STRING(s) { sizeof(s) - sizeof(s[0]), sizeof(s), (void*)s }
+#endif
+#ifndef NT_SUCCESS
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#endif
 
 /* WINBASE.H */
 typedef void *HPCON;
 
-typedef enum _MACHINE_ATTRIBUTES
-{
-    UserEnabled    = 0x00000001,
-    KernelEnabled  = 0x00000002,
-    Wow64Container = 0x00000004,
-} MACHINE_ATTRIBUTES;
-
-typedef struct _PROCESS_MACHINE_INFORMATION {
-    USHORT ProcessMachine;
-    USHORT Res0;
-    MACHINE_ATTRIBUTES MachineAttributes;
-} PROCESS_MACHINE_INFORMATION;
+/* MACHINE_ATTRIBUTES and PROCESS_MACHINE_INFORMATION now come from
+ * <psdk/winbase.h>. */
 
 /* WINCON.H */
 WINBASEAPI BOOL   WINAPI CloseConsoleHandle(HANDLE);

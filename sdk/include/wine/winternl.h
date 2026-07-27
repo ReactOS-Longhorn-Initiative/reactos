@@ -136,6 +136,52 @@ typedef struct _UNICODE_STRING {
 
 typedef const UNICODE_STRING *PCUNICODE_STRING;
 
+#ifdef __REACTOS__
+/* Wine gets these from its own <ntdef.h>, which we do not include here.
+ * Keep them compatible with <ndk/rtltypes.h> in case both end up visible. */
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(status)      (((NTSTATUS)(status)) >= 0)
+#endif
+#ifndef NT_INFORMATION
+#define NT_INFORMATION(status)  ((((NTSTATUS)(status)) & 0xc0000000) == 0x40000000)
+#endif
+#ifndef NT_WARNING
+#define NT_WARNING(status)      ((((NTSTATUS)(status)) & 0xc0000000) == 0x80000000)
+#endif
+#ifndef NT_ERROR
+#define NT_ERROR(status)        ((((NTSTATUS)(status)) & 0xc0000000) == 0xc0000000)
+#endif
+
+#ifndef RTL_CONST_CAST
+#ifdef __cplusplus
+#define RTL_CONST_CAST(type) const_cast<type>
+#else
+#define RTL_CONST_CAST(type) (type)
+#endif
+#endif /* RTL_CONST_CAST */
+
+#ifndef RTL_CONSTANT_STRING
+#define RTL_CONSTANT_STRING(__SOURCE_STRING__)                  \
+{                                                               \
+    sizeof(__SOURCE_STRING__) - sizeof((__SOURCE_STRING__)[0]), \
+    sizeof(__SOURCE_STRING__),                                  \
+    (__SOURCE_STRING__)                                         \
+}
+#endif /* RTL_CONSTANT_STRING */
+
+#ifndef RTL_CONSTANT_OBJECT_ATTRIBUTES
+#define RTL_CONSTANT_OBJECT_ATTRIBUTES(n, a)                    \
+{                                                               \
+    sizeof(OBJECT_ATTRIBUTES),                                  \
+    NULL,                                                       \
+    RTL_CONST_CAST(PUNICODE_STRING)(n),                         \
+    a,                                                          \
+    NULL,                                                       \
+    NULL                                                        \
+}
+#endif /* RTL_CONSTANT_OBJECT_ATTRIBUTES */
+#endif /* __REACTOS__ */
+
 #ifndef _FILETIME_
 #define _FILETIME_
 /* 64 bit number of 100 nanoseconds intervals since January 1, 1601 */

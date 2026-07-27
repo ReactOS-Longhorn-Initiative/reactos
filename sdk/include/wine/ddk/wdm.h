@@ -1,6 +1,23 @@
 
 #pragma once
 
+/* Object-manager access rights. Wine sources get these from its <ddk/wdm.h>;
+ * ReactOS keeps them in <ndk/obtypes.h>, which Wine sources do not include. */
+#ifndef DIRECTORY_QUERY
+#define DIRECTORY_QUERY                 0x0001
+#define DIRECTORY_TRAVERSE              0x0002
+#define DIRECTORY_CREATE_OBJECT         0x0004
+#define DIRECTORY_CREATE_SUBDIRECTORY   0x0008
+#define DIRECTORY_ALL_ACCESS            (STANDARD_RIGHTS_REQUIRED | 0xF)
+#endif
+
+#ifndef SYMBOLIC_LINK_QUERY
+#define SYMBOLIC_LINK_QUERY             0x0001
+#endif
+#ifndef SYMBOLIC_LINK_ALL_ACCESS
+#define SYMBOLIC_LINK_ALL_ACCESS        (STANDARD_RIGHTS_REQUIRED | 0x1)
+#endif
+
 typedef struct _KSYSTEM_TIME {
     ULONG LowPart;
     LONG High1Time;
