@@ -57,6 +57,7 @@ typedef struct
     FT_Int patch;
 } FT_Version_t;
 
+#ifndef __REACTOS__
 #define MAKE_FUNCPTR(f) static typeof(f) * p##f = NULL
 MAKE_FUNCPTR(FT_Activate_Size);
 MAKE_FUNCPTR(FT_Done_Face);
@@ -87,6 +88,7 @@ MAKE_FUNCPTR(FT_Outline_Transform);
 MAKE_FUNCPTR(FT_Outline_Translate);
 MAKE_FUNCPTR(FT_Set_Pixel_Sizes);
 #undef MAKE_FUNCPTR
+#endif
 static FT_Error (*pFT_Outline_EmboldenXY)(FT_Outline *, FT_Pos, FT_Pos);
 
 #define FaceFromObject(o) ((FT_Face)(ULONG_PTR)(o))
@@ -117,6 +119,7 @@ static NTSTATUS process_attach(void *args)
 {
     FT_Version_t FT_Version;
 
+#ifndef __REACTOS__
     ft_handle = dlopen(SONAME_LIBFREETYPE, RTLD_NOW);
     if (!ft_handle)
     {
@@ -155,6 +158,7 @@ static NTSTATUS process_attach(void *args)
     LOAD_FUNCPTR(FT_Set_Pixel_Sizes)
 #undef LOAD_FUNCPTR
     pFT_Outline_EmboldenXY = dlsym(ft_handle, "FT_Outline_EmboldenXY");
+#endif
 
     if (pFT_Init_FreeType(&library) != 0)
     {
@@ -168,11 +172,13 @@ static NTSTATUS process_attach(void *args)
     TRACE("FreeType version is %d.%d.%d\n", FT_Version.major, FT_Version.minor, FT_Version.patch);
     return STATUS_SUCCESS;
 
+#ifndef __REACTOS__
 sym_not_found:
     WINE_MESSAGE("Wine cannot find certain functions that it needs from FreeType library.\n");
     dlclose(ft_handle);
     ft_handle = NULL;
     return STATUS_UNSUCCESSFUL;
+#endif
 }
 
 static NTSTATUS process_detach(void *args)

@@ -1024,6 +1024,17 @@ GdiRealizationInfo(HDC hdc,
     return NtGdiGetRealizationInfo(hdc, pri, (HFONT) NULL);
 }
 
+BOOL
+WINAPI
+GetFontFileData(DWORD uFileCollectionID,
+                DWORD uFileIndex,
+                UINT64 pullFileOffset,
+                PVOID pvBuf,
+                SIZE_T cjBuf)
+{
+    return NtGdiGetFontFileData(uFileCollectionID, uFileIndex, &pullFileOffset, pvBuf, cjBuf);
+}
+
 
 /*
  * @halfplemented
