@@ -15,6 +15,13 @@
 /* The high bits the kernel folds into a received connection request type. */
 #define ALPC_CONNECTION_REQUEST_TYPE (0x3000 | LPC_CONNECTION_REQUEST)
 
+/* Type of the reply delivered to an asynchronously connecting client. Windows
+ * dispatches the accept's connection reply with the internal type 11
+ * (LPC_CONNECTION_REQUEST + 1), plain, with no folded high bits (verified
+ * against the Vista reference: AlpcpAcceptConnectPort sets DispatchContext.Type
+ * = 11 and AlpcpDispatchReplyToPort stores it as-is for the connection case). */
+#define LPC_CONNECTION_REPLY (LPC_CONNECTION_REQUEST + 1)
+
 /* PRIVATE FUNCTIONS ********************************************************/
 
 /**
@@ -242,7 +249,18 @@ NtAlpcConnectPort(
     Message->PortMessage.ClientId = Thread->Cid;
     Message->OwnerPort = ClientPort;
     Message->ConnectionPort = ServerPort;
-    Message->WaitingThread = Thread;
+    if (Flags & ALPC_MSGFLG_SYNC_REQUEST)
+    {
+        Message->WaitingThread = Thread;
+    }
+    else
+    {
+        /* An asynchronous connect returns without waiting and never reclaims
+         * the request: it is owned by the handshake (released by the accept
+         * path or by port teardown) and must keep the client port alive. */
+        ObReferenceObject(ClientPort);
+        Message->u1.OwnerPortReference = 1;
+    }
 
     if (DataLength != 0 && ConnectionMessage != NULL)
     {
@@ -297,32 +315,36 @@ NtAlpcConnectPort(
         {
             Status = STATUS_TIMEOUT;
         }
+
+        /* Reclaim the connection request from whichever queue the handshake
+         * left it on (main queue if never received, pending queue if never
+         * accepted). */
+        KeAcquireGuardedMutex(&AlpcpLock);
+        if (Message->u1.QueueType == 1)
+        {
+            RemoveEntryList(&Message->Entry);
+            ServerPort->MainQueueLength--;
+            Message->u1.QueueType = 0;
+        }
+        else if (Message->u1.QueueType == 3)
+        {
+            RemoveEntryList(&Message->Entry);
+            if (Message->PortQueue != NULL)
+                Message->PortQueue->PendingQueueLength--;
+            Message->u1.QueueType = 0;
+        }
+        KeReleaseGuardedMutex(&AlpcpLock);
+        AlpcpFreeMessage(Message);
+        Message = NULL;
     }
     else
     {
-        /* Asynchronous connect returns the still-pending client port. */
+        /* Asynchronous connect returns the still-pending client port; the
+         * request stays queued for the server and is released by the accept
+         * path (or port teardown). */
+        Message = NULL;
         Status = STATUS_SUCCESS;
     }
-
-    /* Reclaim the connection request from whichever queue the handshake left
-     * it on (main queue if never received, pending queue if never accepted). */
-    KeAcquireGuardedMutex(&AlpcpLock);
-    if (Message->u1.QueueType == 1)
-    {
-        RemoveEntryList(&Message->Entry);
-        ServerPort->MainQueueLength--;
-        Message->u1.QueueType = 0;
-    }
-    else if (Message->u1.QueueType == 3)
-    {
-        RemoveEntryList(&Message->Entry);
-        if (Message->PortQueue != NULL)
-            Message->PortQueue->PendingQueueLength--;
-        Message->u1.QueueType = 0;
-    }
-    KeReleaseGuardedMutex(&AlpcpLock);
-    AlpcpFreeMessage(Message);
-    Message = NULL;
 
     if (Status == STATUS_SUCCESS)
     {
@@ -375,28 +397,37 @@ NtAlpcAcceptConnectPort(
     PETHREAD WaitingThread = NULL;
     HANDLE ServerHandle = NULL;
     ULONG RequestMessageId = 0;
+    UCHAR ResponseData[0x200];
+    ULONG ResponseLength = 0;
     NTSTATUS Status;
 
-    /* Probe the output handle and capture the request message id. */
-    if (PreviousMode != KernelMode)
+    /* Probe the output handle and capture the request message id, along with
+     * the server's connection-information response (handed back to an
+     * asynchronously connecting client as the connection reply). */
+    _SEH2_TRY
     {
-        _SEH2_TRY
+        if (PreviousMode != KernelMode)
         {
             if (AcceptConnection)
                 ProbeForWriteHandle(PortHandle);
             ProbeForRead(ConnectionRequest, sizeof(PORT_MESSAGE), sizeof(ULONG));
-            RequestMessageId = ConnectionRequest->MessageId;
         }
-        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
-        {
-            _SEH2_YIELD(return _SEH2_GetExceptionCode());
-        }
-        _SEH2_END;
-    }
-    else
-    {
         RequestMessageId = ConnectionRequest->MessageId;
+        ResponseLength = (USHORT)ConnectionRequest->u1.s1.DataLength;
+        if (ResponseLength > sizeof(ResponseData))
+            ResponseLength = sizeof(ResponseData);
+        if (ResponseLength != 0)
+        {
+            if (PreviousMode != KernelMode)
+                ProbeForRead((PUCHAR)ConnectionRequest + sizeof(PORT_MESSAGE), ResponseLength, 1);
+            RtlCopyMemory(ResponseData, (PUCHAR)ConnectionRequest + sizeof(PORT_MESSAGE), ResponseLength);
+        }
     }
+    _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+    {
+        _SEH2_YIELD(return _SEH2_GetExceptionCode());
+    }
+    _SEH2_END;
 
     Status = ObReferenceObjectByHandle(ConnectionPortHandle,
                                        0,
@@ -438,8 +469,9 @@ NtAlpcAcceptConnectPort(
 
     WaitingThread = Message->WaitingThread;
 
-    /* Detach the request from the pending queue; the connecting thread frees
-     * it when it wakes up. */
+    /* Detach the request from the pending queue. A synchronous connect is
+     * reclaimed and freed by the woken client; an asynchronous one belongs to
+     * the handshake and is released below. */
     RemoveEntryList(&Message->Entry);
     ConnectionPort->PendingQueueLength--;
     Message->u1.QueueType = 0;
@@ -460,6 +492,10 @@ NtAlpcAcceptConnectPort(
         ClientPort->u1.ConnectionRefused = TRUE;
         ClientPort->u1.ConnectionPending = FALSE;
     }
+    /* For an asynchronous connect, keep the client port alive across the lock
+     * release; the connection reply is posted on it below. */
+    if (WaitingThread == NULL)
+        ObReferenceObject(ClientPort);
     KeReleaseGuardedMutex(&AlpcpLock);
 
     if (AcceptConnection)
@@ -468,9 +504,45 @@ NtAlpcAcceptConnectPort(
         ServerHandle = NULL; /* owned by the handle table now */
     }
 
-    /* Wake the client last; it may free the connection message afterwards. */
     if (WaitingThread != NULL)
+    {
+        /* Wake the client last; it may free the connection message afterwards. */
         KeReleaseSemaphore(&WaitingThread->AlpcWaitSemaphore, 0, 1, FALSE);
+    }
+    else
+    {
+        /* Asynchronous connect: nobody is blocked on the request. On
+         * acceptance, post the connection reply on the client communication
+         * port so the client can collect it with NtAlpcSendWaitReceivePort;
+         * a refused client discovers its fate from the port state on the next
+         * send. Either way the handshake owns the request - release it. */
+        if (AcceptConnection)
+        {
+            PKALPC_MESSAGE Reply = AlpcpAllocateMessage(ResponseLength);
+            if (Reply != NULL)
+            {
+                PETHREAD Receiver;
+
+                Reply->PortMessage.u2.s2.Type = LPC_CONNECTION_REPLY;
+                Reply->PortMessage.MessageId = Message->PortMessage.MessageId;
+                Reply->PortMessage.ClientId = Message->PortMessage.ClientId;
+                if (ResponseLength != 0)
+                    RtlCopyMemory(AlpcpGetMessageData(Reply), ResponseData, ResponseLength);
+
+                KeAcquireGuardedMutex(&AlpcpLock);
+                InsertTailList(&ClientPort->MainQueue, &Reply->Entry);
+                ClientPort->MainQueueLength++;
+                Reply->u1.QueueType = 1;
+                Receiver = AlpcpDequeueReceiver(ClientPort);
+                KeReleaseGuardedMutex(&AlpcpLock);
+
+                if (Receiver != NULL)
+                    KeReleaseSemaphore(&Receiver->AlpcWaitSemaphore, 0, 1, FALSE);
+            }
+        }
+        AlpcpFreeMessage(Message);
+        ObDereferenceObject(ClientPort);
+    }
 
     Status = STATUS_SUCCESS;
 

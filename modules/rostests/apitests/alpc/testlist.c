@@ -21,6 +21,7 @@ extern void func_CompletionList(void);
 extern void func_ViewTransfer(void);
 extern void func_NtAlpcConnectPortEx(void);
 extern void func_ConnectPending(void);
+extern void func_ConnectAsyncAccept(void);
 extern void func_CommPortReceive(void);
 extern void func_SectionRounding(void);
 extern void func_OpenSenderDatagram(void);
@@ -59,6 +60,7 @@ const struct test winetest_testlist[] =
     { "ViewTransfer",            func_ViewTransfer },
     { "NtAlpcConnectPortEx",     func_NtAlpcConnectPortEx },
     { "ConnectPending",          func_ConnectPending },
+    { "ConnectAsyncAccept",      func_ConnectAsyncAccept },
     { "CommPortReceive",         func_CommPortReceive },
     { "SectionRounding",         func_SectionRounding },
     { "OpenSenderDatagram",      func_OpenSenderDatagram },

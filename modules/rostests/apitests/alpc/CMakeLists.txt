@@ -20,6 +20,7 @@ list(APPEND SOURCE
     ViewTransfer.c
     NtAlpcConnectPortEx.c
     ConnectPending.c
+    ConnectAsyncAccept.c
     CommPortReceive.c
     SectionRounding.c
     OpenSenderDatagram.c

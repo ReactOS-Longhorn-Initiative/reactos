@@ -57,6 +57,11 @@ NTAPI
 AlpcpFreeMessage(
     _In_ PKALPC_MESSAGE Message)
 {
+    /* An asynchronous connection request owns a reference on its client port
+     * (the connecting thread returned without waiting and never reclaims it). */
+    if (Message->u1.OwnerPortReference && Message->OwnerPort != NULL)
+        ObDereferenceObject(Message->OwnerPort);
+
     /* A message carrying a VIEW attribute holds a reference on the section. */
     if (Message->ExtensionBuffer != NULL)
         ObDereferenceObject(Message->ExtensionBuffer);
@@ -480,12 +485,19 @@ AlpcpReceiveMessage(
     USHORT BaseType;
     NTSTATUS Status;
 
-    /* Messages are queued on the connection port. A receiver may wait on a
-     * communication port (e.g. CSR receives on the per-client port after setting
-     * it as the reply port), so operate on the connection port that actually
-     * holds the queue and wait list. */
-    if (Port->CommunicationInfo != NULL && Port->CommunicationInfo->ConnectionPort != NULL)
+    /* Messages are queued on the connection port. A SERVER-side receiver may
+     * wait on a communication port (e.g. CSR receives on the per-client port
+     * after setting it as the reply port), so operate on the connection port
+     * that actually holds the queue and wait list. A client communication port
+     * (its info's ClientCommunicationPort still points at itself) keeps its own
+     * queue — redirecting it would let a client steal server-bound requests,
+     * and its own queue is where an asynchronous connection reply is posted. */
+    if (Port->CommunicationInfo != NULL &&
+        Port->CommunicationInfo->ConnectionPort != NULL &&
+        Port->CommunicationInfo->ClientCommunicationPort != Port)
+    {
         Port = Port->CommunicationInfo->ConnectionPort;
+    }
 
     KeInitializeSemaphore(&Thread->AlpcWaitSemaphore, 0, MAXLONG);
     InitializeListHead(&Thread->AlpcWaitListEntry);

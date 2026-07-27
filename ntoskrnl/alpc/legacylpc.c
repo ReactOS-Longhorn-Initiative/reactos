@@ -1010,48 +1010,68 @@ LpcpRequest(
         return Status;
 
     /*
-     * Validate and normalize the message type, mirroring the classic LPC send
-     * paths: an untyped message becomes LPC_REQUEST (waiting sender) or
-     * LPC_DATAGRAM (one-way sender), while the kernel notification types set by
-     * ps/dbgk/ex (LPC_CLIENT_DIED, LPC_EXCEPTION, LPC_DEBUG_EVENT,
-     * LPC_ERROR_EVENT, LPC_PORT_CLOSED) pass through so receivers such as CSRSS
-     * can tell them apart from API requests. Anything else is rejected.
+     * Validate and normalize the message type. An untyped message becomes
+     * LPC_REQUEST (waiting sender) or LPC_DATAGRAM (one-way sender). The kernel
+     * notification types set by ps/dbgk/ex (LPC_CLIENT_DIED, LPC_EXCEPTION,
+     * LPC_DEBUG_EVENT, LPC_ERROR_EVENT, LPC_PORT_CLOSED) pass through for
+     * kernel-mode senders so receivers such as CSRSS can tell them apart from
+     * API requests. User-mode senders cannot forge them: a waiting send is
+     * delivered as a plain LPC_REQUEST regardless of the supplied type, and a
+     * one-way send must be untyped or LPC_DATAGRAM (both verified against the
+     * Win11 oracle by the LegacyLpc apitest).
      */
     MessageType = (USHORT)(Header.u2.s2.Type & 0xFF);
-    if (WaitForReply)
+    if (PreviousMode == KernelMode)
     {
-        switch (MessageType)
+        if (WaitForReply)
         {
-            case 0:
-            case LPC_REQUEST:
-                MessageType = LPC_REQUEST;
-                break;
+            switch (MessageType)
+            {
+                case 0:
+                case LPC_REQUEST:
+                    MessageType = LPC_REQUEST;
+                    break;
 
-            case LPC_CLIENT_DIED:
-            case LPC_PORT_CLOSED:
-            case LPC_EXCEPTION:
-            case LPC_DEBUG_EVENT:
-            case LPC_ERROR_EVENT:
-                break;
+                case LPC_CLIENT_DIED:
+                case LPC_PORT_CLOSED:
+                case LPC_EXCEPTION:
+                case LPC_DEBUG_EVENT:
+                case LPC_ERROR_EVENT:
+                    break;
 
-            default:
+                default:
+                    if (Data != NULL)
+                        ExFreePoolWithTag(Data, TAG_ALPC_MESSAGE);
+                    return STATUS_INVALID_PARAMETER;
+            }
+        }
+        else
+        {
+            if (MessageType == 0)
+            {
+                MessageType = LPC_DATAGRAM;
+            }
+            else if ((MessageType < LPC_DATAGRAM) || (MessageType > LPC_CLIENT_DIED))
+            {
                 if (Data != NULL)
                     ExFreePoolWithTag(Data, TAG_ALPC_MESSAGE);
                 return STATUS_INVALID_PARAMETER;
+            }
         }
+    }
+    else if (WaitForReply)
+    {
+        MessageType = LPC_REQUEST;
     }
     else
     {
-        if (MessageType == 0)
-        {
-            MessageType = LPC_DATAGRAM;
-        }
-        else if ((MessageType < LPC_DATAGRAM) || (MessageType > LPC_CLIENT_DIED))
+        if (MessageType != 0 && MessageType != LPC_DATAGRAM)
         {
             if (Data != NULL)
                 ExFreePoolWithTag(Data, TAG_ALPC_MESSAGE);
             return STATUS_INVALID_PARAMETER;
         }
+        MessageType = LPC_DATAGRAM;
     }
     Header.u2.s2.Type = MessageType;
 
@@ -1066,6 +1086,22 @@ LpcpRequest(
                               NULL, ReplyMessage,
                               ReplyMessage != NULL ? &ReplyBufferLength : NULL,
                               ReplyBufferLength, PreviousMode, NULL);
+
+    /* Classic LPC receivers see a plain LPC_REPLY on the reply they waited for
+     * (native ALPC keeps LPC_REQUEST in the folded type, so normalize here at
+     * the legacy boundary). */
+    if (NT_SUCCESS(Status) && WaitForReply && ReplyMessage != NULL)
+    {
+        _SEH2_TRY
+        {
+            ReplyMessage->u2.s2.Type = LPC_REPLY;
+        }
+        _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+        {
+            Status = _SEH2_GetExceptionCode();
+        }
+        _SEH2_END;
+    }
 
     if (Data != NULL)
         ExFreePoolWithTag(Data, TAG_ALPC_MESSAGE);
