@@ -59,6 +59,106 @@ NTSTATUS NTAPI LdrSetDefaultDllDirectories(ULONG Flags)
     return STATUS_SUCCESS;
 }
 
+/*
+ * The NT6 RtlGetSearchPath / RtlGetExePath / RtlReleasePath trio. Callers get
+ * a heap-allocated, NUL-terminated search path and hand it back to
+ * RtlReleasePath, so all three must agree on the heap - use the process heap,
+ * not LdrpHeap, since kernelbase and kernel32 also free these.
+ *
+ * LdrpDefaultPath is ProcessParameters->DllPath, which kernel32 already
+ * composed via BaseComputeProcessDllPath (application directory, system32,
+ * system, windows, current directory, %PATH%), so it is exactly the search
+ * path these want to hand out.
+ */
+static
+NTSTATUS
+LdrpDuplicateSearchPath(
+    _In_opt_ PCWSTR Prefix,
+    _In_ PCUNICODE_STRING Path,
+    _Out_ PWSTR *Result)
+{
+    SIZE_T PrefixChars, PathChars, TotalBytes;
+    PWSTR Buffer;
+
+    *Result = NULL;
+
+    PrefixChars = Prefix ? wcslen(Prefix) : 0;
+    PathChars = Path->Length / sizeof(WCHAR);
+
+    /* prefix + ';' + path + NUL */
+    TotalBytes = (PrefixChars + (PrefixChars ? 1 : 0) + PathChars + 1) * sizeof(WCHAR);
+
+    Buffer = RtlAllocateHeap(RtlGetProcessHeap(), 0, TotalBytes);
+    if (!Buffer) return STATUS_NO_MEMORY;
+
+    if (PrefixChars)
+    {
+        RtlCopyMemory(Buffer, Prefix, PrefixChars * sizeof(WCHAR));
+        Buffer[PrefixChars] = L';';
+        PrefixChars++;
+    }
+
+    if (PathChars)
+        RtlCopyMemory(&Buffer[PrefixChars], Path->Buffer, PathChars * sizeof(WCHAR));
+
+    Buffer[PrefixChars + PathChars] = UNICODE_NULL;
+
+    *Result = Buffer;
+    return STATUS_SUCCESS;
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
+RtlGetSearchPath(
+    _Out_ PWSTR *SearchPath)
+{
+    if (!SearchPath) return STATUS_INVALID_PARAMETER;
+
+    return LdrpDuplicateSearchPath(NULL, &LdrpDefaultPath, SearchPath);
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
+RtlGetExePath(
+    _In_ PCWSTR Name,
+    _Out_ PWSTR *SearchPath)
+{
+    UNICODE_STRING VariableName =
+        RTL_CONSTANT_STRING(L"NoDefaultCurrentDirectoryInExePath");
+    UNICODE_STRING Value = { 0, 0, NULL };
+    PCWSTR Prefix = L".";
+
+    if (!Name || !SearchPath) return STATUS_INVALID_PARAMETER;
+
+    /* Same rule as NeedCurrentDirectoryForExePath: the current directory is
+     * only dropped for bare names, never for anything already path-qualified. */
+    if (!wcschr(Name, L'\\') &&
+        RtlQueryEnvironmentVariable_U(NULL, &VariableName, &Value) !=
+            STATUS_VARIABLE_NOT_FOUND)
+    {
+        Prefix = NULL;
+    }
+
+    return LdrpDuplicateSearchPath(Prefix, &LdrpDefaultPath, SearchPath);
+}
+
+/*
+ * @implemented
+ */
+VOID
+NTAPI
+RtlReleasePath(
+    _In_ PWSTR Path)
+{
+    if (Path) RtlFreeHeap(RtlGetProcessHeap(), 0, Path);
+}
+
 /* GLOBALS *******************************************************************/
 
 LIST_ENTRY LdrpUnloadHead;

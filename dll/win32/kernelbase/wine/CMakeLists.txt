@@ -44,10 +44,18 @@ endif()
 list(APPEND SOURCE_STATIC
     console.c
     debug.c
+    file.c
+    loader.c
     locale.c
+    main.c
+    memory.c
     path.c
+    process.c
+    registry.c
     security.c
     string.c
+    sync.c
+    thread.c
     version.c
     volume.c
     )

@@ -3152,6 +3152,32 @@ RtlReleaseRelativeName(
     _In_ PRTL_RELATIVE_NAME_U RelativeName
 );
 
+//
+// NT6 DLL search-path helpers. The returned buffer comes from the process
+// heap and must be freed with RtlReleasePath.
+//
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlGetSearchPath(
+    _Out_ PWSTR *SearchPath
+);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlGetExePath(
+    _In_ PCWSTR Name,
+    _Out_ PWSTR *SearchPath
+);
+
+NTSYSAPI
+VOID
+NTAPI
+RtlReleasePath(
+    _In_ PWSTR Path
+);
+
 NTSYSAPI
 NTSTATUS
 NTAPI
@@ -4664,7 +4690,6 @@ RtlSystemTimeToLocalTime(
     _Out_ PLARGE_INTEGER LocalTime
 );
 
-#if (NTDDI_VERSION >= NTDDI_WIN7)
 NTSYSAPI
 LONGLONG
 NTAPI
@@ -4679,7 +4704,6 @@ NTAPI
 RtlQueryUnbiasedInterruptTime(
     _Out_ PULONGLONG Time
 );
-#endif
 
 //
 // Version Functions

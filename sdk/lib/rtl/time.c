@@ -475,10 +475,14 @@ RtlQueryUnbiasedInterruptTime(_Out_ PULONGLONG Time)
         return FALSE;
     }
 
-    /* The unbiased time excludes any period the machine spent in standby or
-     * hibernation, which is what InterruptTimeBias accumulates. */
+    /* The unbiased time is meant to exclude any period the machine spent in
+     * standby or hibernation, which is what KUSER_SHARED_DATA.InterruptTimeBias
+     * accumulates. We do not subtract it: SHARED_USER_DATA_VERSION is pinned to
+     * NTDDI_WS03SP4 so the field is not part of our KUSER_SHARED_DATA, and
+     * nothing in ReactOS maintains it yet, so it would always read zero.
+     * Wine's ntdll does the same thing for the same reason. */
     InterruptTime = RtlpReadKSystemTime(&SharedUserData->InterruptTime);
-    *Time = InterruptTime - SharedUserData->InterruptTimeBias;
+    *Time = InterruptTime;
 
     return TRUE;
 }
