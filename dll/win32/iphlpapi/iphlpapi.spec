@@ -57,7 +57,7 @@
 @ stub GetIcmpStatsFromStackEx
 @ stdcall GetIfEntry(ptr)
 @ stdcall -version=0x600+ GetIfEntry2(ptr)
-@ stdcall -stub -version=0xA00+ GetIfEntry2Ex(long ptr)
+@ stdcall -version=0xA00+ GetIfEntry2Ex(long ptr)
 @ stub GetIfEntryFromStack
 @ stdcall GetIfTable(ptr ptr long)
 @ stdcall -version=0x600+ GetIfTable2(ptr)
@@ -69,7 +69,7 @@
 @ stub GetIpAddrTableFromStack
 @ stdcall GetIpErrorString(long ptr ptr)
 @ stdcall GetIpForwardTable(ptr ptr long)
-@ stdcall -stub -version=0x600+ GetIpForwardTable2(long ptr)
+@ stdcall -version=0x600+ GetIpForwardTable2(long ptr)
 @ stub GetIpForwardTableFromStack
 @ stdcall GetIpNetTable(ptr ptr long)
 @ stdcall -version=0x600+ GetIpNetTable2(long ptr)

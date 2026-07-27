@@ -4664,6 +4664,23 @@ RtlSystemTimeToLocalTime(
     _Out_ PLARGE_INTEGER LocalTime
 );
 
+#if (NTDDI_VERSION >= NTDDI_WIN7)
+NTSYSAPI
+LONGLONG
+NTAPI
+RtlGetSystemTimePrecise(
+    VOID
+);
+
+_Success_(return != FALSE)
+NTSYSAPI
+BOOLEAN
+NTAPI
+RtlQueryUnbiasedInterruptTime(
+    _Out_ PULONGLONG Time
+);
+#endif
+
 //
 // Version Functions
 //

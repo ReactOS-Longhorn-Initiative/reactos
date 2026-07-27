@@ -37,9 +37,10 @@ if(NOT MSVC)
     #target_compile_options(kernelbase_path PRIVATE -Wno-unused-function)
 endif()
 
-# Every file in dlls/kernelbase now *compiles* against our headers. The ones
-# listed below also link; the rest are held back only by ntdll exports we do
-# not have yet. Move a file up as soon as its blockers land.
+# Every file in dlls/kernelbase now *compiles* against our headers. The eight
+# listed below also link; the eight in the comment block that follows are held
+# back only by ntdll exports we do not have yet. Move a file up as soon as its
+# blockers land.
 list(APPEND SOURCE_STATIC
     console.c
     debug.c
@@ -51,27 +52,44 @@ list(APPEND SOURCE_STATIC
     volume.c
     )
 
-# Compiles, but does not link yet. Blocking ntdll exports, per file:
+# Held back. Each list below is exact: it was produced by putting all sixteen
+# files in the archive and reading the linker's unresolved set, not by guessing.
+# Decorations are the __stdcall arities Wine calls with.
 #
-#   file.c      RtlGetSearchPath, RtlReleasePath, RtlGetSystemTimePrecise
-#   loader.c    LdrSetDefaultDllDirectories, LdrAddDllDirectory,
-#               LdrRemoveDllDirectory, LdrGetDllPath, LdrGetDllFullName,
-#               ApiSetQueryApiSetPresenceEx, RtlReleasePath;
-#               RtlCreateActivationContext is declared @24 in ntdll.spec but
-#               Wine calls the @8 (NT6) form
-#   memory.c    NtAllocateVirtualMemoryEx, NtMapViewOfSectionEx,
-#               NtUnmapViewOfSectionEx, NtSetInformationVirtualMemory,
-#               RtlCopyContext, and the extended-context/XState family
-#               (RtlGetExtendedContextLength2, RtlInitializeExtendedContext2,
-#               RtlLocateExtendedFeature, RtlGetExtendedFeaturesMask,
-#               RtlSetExtendedFeaturesMask, RtlGetEnabledExtendedFeatures)
-#   process.c   NtCompareObjects, RtlGetExePath, RtlReleasePath
-#   registry.c  NtOpenKeyEx
-#   sync.c      RtlQueryUnbiasedInterruptTime
-#   thread.c    RtlFlsGetValue, RtlFlsSetValue; RtlFlsAlloc is declared @16 in
-#               ntdll.spec but Wine calls the @8 (NT6) form
-#   main.c      needs init_locale() from locale.c (still #ifndef __REACTOS__)
-#               and IID_IUnknown (link against uuid)
+#   sync.c      RtlQueryUnbiasedInterruptTime@4
+#               Cheapest one left. KUSER_SHARED_DATA already carries
+#               InterruptTimeBias (ndk/ketypes.h), so this is a few lines.
+#
+#   thread.c    RtlCreateUserStack@24, RtlFreeUserStack@4
+#               Commented out in ntdll.spec (see "TODO HACK RtlCreateUserStack
+#               / RtlFreeUserStack") with no implementation in sdk/lib/rtl.
+#               kernel32's BaseCreateStack() in client/utils.c is the same
+#               algorithm and is the obvious starting point.
+#
+#   registry.c  NtOpenKeyEx@16
+#   process.c   NtCompareObjects@8, RtlGetExePath@8, RtlReleasePath@4
+#   file.c      RtlGetSearchPath@4, RtlReleasePath@4, RtlGetSystemTimePrecise@0
+#               RtlGetSystemTimePrecise is cheap (KUSER_SHARED_DATA); the two
+#               path helpers are the NT6 RtlGetSearchPath/RtlReleasePath pair
+#               that process.c and loader.c also want.
+#
+#   loader.c    The NT6 LOAD_LIBRARY_SEARCH_* loader surface, none of which
+#               exists: LdrSetDefaultDllDirectories@4, LdrAddDllDirectory@8,
+#               LdrRemoveDllDirectory@4, LdrGetDllPath@16, LdrGetDllFullName@8,
+#               ApiSetQueryApiSetPresenceEx@12, RtlReleasePath@4. Also
+#               RtlCreateActivationContext: we export the NT5 @24 form, Wine
+#               calls the NT6 @8 form.
+#
+#   memory.c    Four NT6/NT10 syscalls with no kernel side at all:
+#               NtAllocateVirtualMemoryEx@28, NtMapViewOfSectionEx@36,
+#               NtUnmapViewOfSectionEx@12, NtSetInformationVirtualMemory@24.
+#               The XState/extended-context family and RtlCopyContext that
+#               used to block this file are all implemented now.
+#
+#   main.c      Not an ntdll problem: needs init_locale() from locale.c (still
+#               inside the big #ifndef __REACTOS__ block, which currently
+#               disables ~98% of that file) and IID_IUnknown, which means
+#               adding uuid to kernelbase_ros's link libraries.
 #
 #list(APPEND SOURCE_STATIC
 #    file.c

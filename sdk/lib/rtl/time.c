@@ -420,4 +420,67 @@ RtlSecondsSince1980ToTime(IN ULONG SecondsSince1980,
     Time->QuadPart = ((LONGLONG)SecondsSince1980 * TICKSPERSEC) + TICKSTO1980;
 }
 
+/*
+ * @implemented
+ *
+ * Reads one of the KUSER_SHARED_DATA 64-bit time values. They are updated
+ * without a lock, so the two halves can be seen mid-update; the High1Time /
+ * High2Time pair brackets the write, and we retry until they agree.
+ */
+FORCEINLINE
+ULONGLONG
+RtlpReadKSystemTime(_In_ volatile KSYSTEM_TIME *Source)
+{
+#ifdef _WIN64
+    /* 64-bit reads of the aligned value are atomic, no loop needed */
+    return (ULONGLONG)Source->High1Time << 32 | Source->LowPart;
+#else
+    LARGE_INTEGER Value;
+
+    do
+    {
+        Value.HighPart = Source->High1Time;
+        Value.LowPart = Source->LowPart;
+    }
+    while (Value.HighPart != Source->High2Time);
+
+    return (ULONGLONG)Value.QuadPart;
+#endif
+}
+
+/*
+ * @implemented
+ */
+LONGLONG
+NTAPI
+RtlGetSystemTimePrecise(VOID)
+{
+    /* We have no higher-resolution source than the shared system time yet,
+     * so this is currently just as precise as NtQuerySystemTime. */
+    return (LONGLONG)RtlpReadKSystemTime(&SharedUserData->SystemTime);
+}
+
+/*
+ * @implemented
+ */
+BOOLEAN
+NTAPI
+RtlQueryUnbiasedInterruptTime(_Out_ PULONGLONG Time)
+{
+    ULONGLONG InterruptTime;
+
+    if (!Time)
+    {
+        RtlSetLastWin32ErrorAndNtStatusFromNtStatus(STATUS_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    /* The unbiased time excludes any period the machine spent in standby or
+     * hibernation, which is what InterruptTimeBias accumulates. */
+    InterruptTime = RtlpReadKSystemTime(&SharedUserData->InterruptTime);
+    *Time = InterruptTime - SharedUserData->InterruptTimeBias;
+
+    return TRUE;
+}
+
 /* EOF */
