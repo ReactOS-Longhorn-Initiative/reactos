@@ -641,5 +641,3 @@ SVC_(WaitLowEventPair, 1)
 #if (NTDDI_VERSION >= NTDDI_VISTA)
 SVC_(WorkerFactoryWorkerReady, 1)
 #endif
-
-

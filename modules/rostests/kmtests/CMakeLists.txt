@@ -82,6 +82,7 @@ list(APPEND KMTEST_DRV_SOURCE
     ntos_io/IoMdl.c
     ntos_io/IoVolume.c
     ntos_kd/KdSystemDebugControl.c
+    ntos_lpc/AlpcPortObject.c
     ntos_ke/KeApc.c
     ntos_ke/KeDevQueue.c
     ntos_ke/KeDpc.c

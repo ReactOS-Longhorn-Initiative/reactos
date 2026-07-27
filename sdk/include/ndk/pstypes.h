@@ -1340,7 +1340,7 @@ typedef struct _ETHREAD
 #endif
     UCHAR DisablePageFaultClustering;
     UCHAR ActiveFaultCount;
-#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+#if (NTDDI_VERSION >= NTDDI_LONGHORN) || defined(__REACTOS__)
     ULONG AlpcMessageId;
     union
     {
