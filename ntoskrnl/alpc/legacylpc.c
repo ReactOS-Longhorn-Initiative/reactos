@@ -344,10 +344,10 @@ LpcpConnectPort(
 
     KeInitializeSemaphore(&Thread->AlpcWaitSemaphore, 0, MAXLONG);
 
+    /* Queue the request on the server port. The accept path finds it by message
+     * id on the pending queue (after the server received it), so concurrent
+     * connects to the same port do not clobber each other. */
     KeAcquireGuardedMutex(&AlpcpLock);
-    ServerPort->PendingClientPort = ClientPort;
-    ServerPort->CachedMessage = Message;
-    ServerPort->CachedConnectionMessageId = Message->PortMessage.MessageId;
     InsertTailList(&ServerPort->MainQueue, &Message->Entry);
     ServerPort->MainQueueLength++;
     Message->u1.QueueType = 1;
@@ -380,18 +380,29 @@ LpcpConnectPort(
         RtlCopyMemory(ConnResponse, AlpcpGetMessageData(Message), ConnResponseLength);
     }
 
-    /* Reclaim the connection request. */
+    /* Reclaim the connection request from wherever the handshake left it: the
+     * main queue (never received), the pending queue (received but never
+     * accepted), or parked on the accepted server port (accept ran but complete
+     * never did). */
     KeAcquireGuardedMutex(&AlpcpLock);
-    if (ServerPort->CachedMessage == Message)
-    {
-        ServerPort->CachedMessage = NULL;
-        ServerPort->PendingClientPort = NULL;
-    }
     if (Message->u1.QueueType == 1)
     {
         RemoveEntryList(&Message->Entry);
         ServerPort->MainQueueLength--;
         Message->u1.QueueType = 0;
+    }
+    else if (Message->u1.QueueType == 3)
+    {
+        RemoveEntryList(&Message->Entry);
+        if (Message->PortQueue != NULL)
+            Message->PortQueue->PendingQueueLength--;
+        Message->u1.QueueType = 0;
+    }
+    if (ClientPort->CommunicationInfo != NULL &&
+        ClientPort->CommunicationInfo->ServerCommunicationPort != NULL &&
+        ClientPort->CommunicationInfo->ServerCommunicationPort->CachedMessage == Message)
+    {
+        ClientPort->CommunicationInfo->ServerCommunicationPort->CachedMessage = NULL;
     }
     KeReleaseGuardedMutex(&AlpcpLock);
     AlpcpFreeMessage(Message);
@@ -494,7 +505,10 @@ NtSecureConnectPort(
 /* ACCEPT / COMPLETE ***************************************************/
 
 /**
- * @brief Finds the connection port holding a cached connection request by id.
+ * @brief Finds the connection port holding a received connection request by id.
+ *
+ * The legacy accept syscall does not name the connection port, so search every
+ * port's pending queue. Lock order: AlpcpPortListLock, then AlpcpLock.
  *
  * @return Referenced connection port, or NULL.
  */
@@ -507,17 +521,18 @@ LpcpFindConnectionPortByRequest(
     PLIST_ENTRY Entry;
 
     KeAcquireGuardedMutex(&AlpcpPortListLock);
+    KeAcquireGuardedMutex(&AlpcpLock);
     for (Entry = AlpcpPortList.Flink; Entry != &AlpcpPortList; Entry = Entry->Flink)
     {
         PALPC_PORT Port = CONTAINING_RECORD(Entry, ALPC_PORT, PortListEntry);
-        if (Port->CachedMessage != NULL &&
-            Port->CachedConnectionMessageId == MessageId)
+        if (AlpcpFindPendingConnectionRequest(Port, MessageId) != NULL)
         {
             Found = Port;
             ObReferenceObject(Found);
             break;
         }
     }
+    KeReleaseGuardedMutex(&AlpcpLock);
     KeReleaseGuardedMutex(&AlpcpPortListLock);
 
     return Found;
@@ -608,10 +623,9 @@ NtAcceptConnectPort(
     }
 
     KeAcquireGuardedMutex(&AlpcpLock);
-    Message = ConnectionPort->CachedMessage;
-    ClientPort = ConnectionPort->PendingClientPort;
-    if (Message == NULL || ClientPort == NULL ||
-        Message->PortMessage.MessageId != RequestMessageId)
+    Message = AlpcpFindPendingConnectionRequest(ConnectionPort, RequestMessageId);
+    ClientPort = (Message != NULL) ? Message->OwnerPort : NULL;
+    if (Message == NULL || ClientPort == NULL)
     {
         KeReleaseGuardedMutex(&AlpcpLock);
         Status = STATUS_INVALID_PARAMETER;
@@ -628,17 +642,20 @@ NtAcceptConnectPort(
         if (CopyLen != 0)
             RtlCopyMemory(AlpcpGetMessageData(Message), ResponseData, CopyLen);
 
+        /* Detach the request from the pending queue and park it on the server
+         * port; the client is woken by NtCompleteConnectPort. */
+        RemoveEntryList(&Message->Entry);
+        ConnectionPort->PendingQueueLength--;
+        Message->u1.QueueType = 0;
+
         ClientPort->u1.ConnectionPending = FALSE;
         if (ServerPort->CommunicationInfo != NULL && ClientPort->CommunicationInfo != NULL)
         {
             ServerPort->CommunicationInfo->ClientCommunicationPort = ClientPort;
             ClientPort->CommunicationInfo->ServerCommunicationPort = ServerPort;
         }
-        /* Park the request on the server port; the client is woken by complete. */
         ServerPort->CachedMessage = Message;
         ServerPort->CachedConnectionMessageId = RequestMessageId;
-        ConnectionPort->CachedMessage = NULL;
-        ConnectionPort->PendingClientPort = NULL;
         /* Keep the client port alive while we map its section below. */
         AcceptedClientPort = ClientPort;
         ObReferenceObject(AcceptedClientPort);
@@ -659,10 +676,33 @@ NtAcceptConnectPort(
             Status = MmMapViewOfSection(ViewSection, PsGetCurrentProcess(), &ServerViewBase,
                                         0, 0, &SectionOffset, &MapSize, ViewUnmap, 0,
                                         PAGE_READWRITE);
-            if (NT_SUCCESS(Status))
-                AcceptedClientPort->LpcServerViewBase = ServerViewBase;
+            if (!NT_SUCCESS(Status))
+            {
+                /* Without the server-side view the connection would be unusable
+                 * (the server could never validate client capture buffers), so
+                 * do not swallow the failure: roll the accept back into a
+                 * refusal, wake the client, and report the error. */
+                DPRINT1("LPC: mapping client view into server failed (0x%08lx), refusing connection\n",
+                        Status);
+                KeAcquireGuardedMutex(&AlpcpLock);
+                WaitingThread = Message->WaitingThread;
+                AcceptedClientPort->u1.ConnectionRefused = TRUE;
+                if (ServerPort->CommunicationInfo != NULL)
+                    ServerPort->CommunicationInfo->ClientCommunicationPort = NULL;
+                if (AcceptedClientPort->CommunicationInfo != NULL)
+                    AcceptedClientPort->CommunicationInfo->ServerCommunicationPort = NULL;
+                if (ServerPort->CachedMessage == Message)
+                    ServerPort->CachedMessage = NULL;
+                KeReleaseGuardedMutex(&AlpcpLock);
 
-            if (NT_SUCCESS(Status) && ClientView != NULL)
+                if (WaitingThread != NULL)
+                    KeReleaseSemaphore(&WaitingThread->AlpcWaitSemaphore, 0, 1, FALSE);
+                goto Cleanup;
+            }
+
+            AcceptedClientPort->LpcServerViewBase = ServerViewBase;
+
+            if (ClientView != NULL)
             {
                 _SEH2_TRY
                 {
@@ -696,10 +736,11 @@ NtAcceptConnectPort(
     else
     {
         WaitingThread = Message->WaitingThread;
+        RemoveEntryList(&Message->Entry);
+        ConnectionPort->PendingQueueLength--;
+        Message->u1.QueueType = 0;
         ClientPort->u1.ConnectionRefused = TRUE;
         ClientPort->u1.ConnectionPending = FALSE;
-        ConnectionPort->CachedMessage = NULL;
-        ConnectionPort->PendingClientPort = NULL;
         KeReleaseGuardedMutex(&AlpcpLock);
 
         if (WaitingThread != NULL)
@@ -959,6 +1000,7 @@ LpcpRequest(
     PVOID Data = NULL;
     ULONG DataLength = 0;
     SIZE_T ReplyBufferLength;
+    USHORT MessageType;
     NTSTATUS Status;
 
     Status = LpcpCaptureMessage(RequestMessage, PreviousMode,
@@ -966,6 +1008,52 @@ LpcpRequest(
                                 &Header, &Data, &DataLength);
     if (!NT_SUCCESS(Status))
         return Status;
+
+    /*
+     * Validate and normalize the message type, mirroring the classic LPC send
+     * paths: an untyped message becomes LPC_REQUEST (waiting sender) or
+     * LPC_DATAGRAM (one-way sender), while the kernel notification types set by
+     * ps/dbgk/ex (LPC_CLIENT_DIED, LPC_EXCEPTION, LPC_DEBUG_EVENT,
+     * LPC_ERROR_EVENT, LPC_PORT_CLOSED) pass through so receivers such as CSRSS
+     * can tell them apart from API requests. Anything else is rejected.
+     */
+    MessageType = (USHORT)(Header.u2.s2.Type & 0xFF);
+    if (WaitForReply)
+    {
+        switch (MessageType)
+        {
+            case 0:
+            case LPC_REQUEST:
+                MessageType = LPC_REQUEST;
+                break;
+
+            case LPC_CLIENT_DIED:
+            case LPC_PORT_CLOSED:
+            case LPC_EXCEPTION:
+            case LPC_DEBUG_EVENT:
+            case LPC_ERROR_EVENT:
+                break;
+
+            default:
+                if (Data != NULL)
+                    ExFreePoolWithTag(Data, TAG_ALPC_MESSAGE);
+                return STATUS_INVALID_PARAMETER;
+        }
+    }
+    else
+    {
+        if (MessageType == 0)
+        {
+            MessageType = LPC_DATAGRAM;
+        }
+        else if ((MessageType < LPC_DATAGRAM) || (MessageType > LPC_CLIENT_DIED))
+        {
+            if (Data != NULL)
+                ExFreePoolWithTag(Data, TAG_ALPC_MESSAGE);
+            return STATUS_INVALID_PARAMETER;
+        }
+    }
+    Header.u2.s2.Type = MessageType;
 
     /* Legacy clients do not set MessageId (the kernel assigns it). Clear it so a
      * non-zero/high-bit value from the caller's buffer is not mistaken for a
