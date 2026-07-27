@@ -53,6 +53,11 @@ typedef enum _LSA_DB_OBJECT_TYPE
     LsaDbSecretObject
 } LSA_DB_OBJECT_TYPE, *PLSA_DB_OBJECT_TYPE;
 
+/* Generic access mappings for the LSA database object types (defined in lsarpc.c) */
+extern GENERIC_MAPPING LsapPolicyMapping;
+extern GENERIC_MAPPING LsapAccountMapping;
+extern GENERIC_MAPPING LsapSecretMapping;
+
 typedef struct _LSA_DB_OBJECT
 {
     ULONG Signature;
