@@ -2775,6 +2775,29 @@ RtlCreateUserThread(
 );
 #endif
 
+//
+// NT6 user-stack helpers. RtlFreeUserStack takes the allocation base, i.e.
+// INITIAL_TEB.AllocatedStackBase from RtlCreateUserStack.
+//
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlCreateUserStack(
+    _In_opt_ SIZE_T CommittedStackSize,
+    _In_opt_ SIZE_T MaximumStackSize,
+    _In_opt_ ULONG_PTR ZeroBits,
+    _In_ SIZE_T PageSize,
+    _In_ ULONG_PTR ReserveAlignment,
+    _Out_ PINITIAL_TEB InitialTeb
+);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlFreeUserStack(
+    _In_ PVOID AllocationBase
+);
+
 NTSYSAPI
 PRTL_USER_PROCESS_PARAMETERS
 NTAPI

@@ -227,6 +227,14 @@ NtDeleteObjectAuditAlarm(
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
+NtCompareObjects(
+    _In_ HANDLE FirstObjectHandle,
+    _In_ HANDLE SecondObjectHandle
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
 NtDuplicateObject(
     _In_ HANDLE SourceProcessHandle,
     _In_ HANDLE SourceHandle,

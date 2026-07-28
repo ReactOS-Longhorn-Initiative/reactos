@@ -3423,6 +3423,53 @@ NtClose(IN HANDLE Handle)
     return ObpCloseHandle(Handle, ExGetPreviousMode());
 }
 
+/*
+ * @implemented
+ *
+ * Tells the caller whether two handles refer to the same object. Only the
+ * object pointers are compared - the handles may carry different access masks
+ * and attributes and still name the same object.
+ */
+NTSTATUS
+NTAPI
+NtCompareObjects(
+    _In_ HANDLE FirstObjectHandle,
+    _In_ HANDLE SecondObjectHandle)
+{
+    KPROCESSOR_MODE PreviousMode = ExGetPreviousMode();
+    PVOID FirstObject, SecondObject;
+    NTSTATUS Status;
+    PAGED_CODE();
+
+    /* No particular access is required, we only look at object identity */
+    Status = ObReferenceObjectByHandle(FirstObjectHandle,
+                                       0,
+                                       NULL,
+                                       PreviousMode,
+                                       &FirstObject,
+                                       NULL);
+    if (!NT_SUCCESS(Status)) return Status;
+
+    Status = ObReferenceObjectByHandle(SecondObjectHandle,
+                                       0,
+                                       NULL,
+                                       PreviousMode,
+                                       &SecondObject,
+                                       NULL);
+    if (!NT_SUCCESS(Status))
+    {
+        ObDereferenceObject(FirstObject);
+        return Status;
+    }
+
+    Status = (FirstObject == SecondObject) ? STATUS_SUCCESS : STATUS_NOT_SAME_OBJECT;
+
+    ObDereferenceObject(SecondObject);
+    ObDereferenceObject(FirstObject);
+
+    return Status;
+}
+
 NTSTATUS
 NTAPI
 NtDuplicateObject(IN HANDLE SourceProcessHandle,

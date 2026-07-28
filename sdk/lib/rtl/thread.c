@@ -179,6 +179,58 @@ RtlpFreeUserStack(IN HANDLE ProcessHandle,
 
 /* FUNCTIONS ***************************************************************/
 
+/*
+ * @implemented
+ *
+ * NT6 public wrapper around RtlpCreateUserStack. Unlike the private routine
+ * this always operates on the current process - callers that want a stack in
+ * another process go through NtCreateThreadEx instead.
+ */
+NTSTATUS
+NTAPI
+RtlCreateUserStack(
+    _In_opt_ SIZE_T CommittedStackSize,
+    _In_opt_ SIZE_T MaximumStackSize,
+    _In_opt_ ULONG_PTR ZeroBits,
+    _In_ SIZE_T PageSize,
+    _In_ ULONG_PTR ReserveAlignment,
+    _Out_ PINITIAL_TEB InitialTeb)
+{
+    /* PageSize and ReserveAlignment are hints Windows uses to round the
+     * request; RtlpCreateUserStack already rounds to the real page size and
+     * allocation granularity, so there is nothing extra to honour here. */
+    UNREFERENCED_PARAMETER(PageSize);
+    UNREFERENCED_PARAMETER(ReserveAlignment);
+
+    if (!InitialTeb) return STATUS_INVALID_PARAMETER;
+
+    return RtlpCreateUserStack(NtCurrentProcess(),
+                               MaximumStackSize,
+                               CommittedStackSize,
+                               (ULONG)ZeroBits,
+                               InitialTeb);
+}
+
+/*
+ * @implemented
+ *
+ * Takes the allocation base (INITIAL_TEB.AllocatedStackBase), not the TEB,
+ * which is what the caller kept hold of after RtlCreateUserStack.
+ */
+NTSTATUS
+NTAPI
+RtlFreeUserStack(
+    _In_ PVOID AllocationBase)
+{
+    SIZE_T Size = 0;
+
+    if (!AllocationBase) return STATUS_INVALID_PARAMETER;
+
+    return ZwFreeVirtualMemory(NtCurrentProcess(),
+                               &AllocationBase,
+                               &Size,
+                               MEM_RELEASE);
+}
 
 /*
  * @implemented

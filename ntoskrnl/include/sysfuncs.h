@@ -329,4 +329,10 @@
     SVC_(AlpcSendWaitReceivePort, 8)
     SVC_(AlpcSetInformation, 4)
     SVC_(GetNextThread, 6)
+    SVC_(CompareObjects, 2)
+    SVC_(OpenKeyEx, 4)
+    SVC_(AllocateVirtualMemoryEx, 7)
+    SVC_(MapViewOfSectionEx, 9)
+    SVC_(UnmapViewOfSectionEx, 3)
+    SVC_(SetInformationVirtualMemory, 6)
 #endif

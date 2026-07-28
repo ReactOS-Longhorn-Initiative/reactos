@@ -207,6 +207,16 @@ NtOpenKey(
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
+NtOpenKeyEx(
+    _Out_ PHANDLE KeyHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_ ULONG OpenOptions
+);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
 NtPlugPlayControl(
     _In_ PLUGPLAY_CONTROL_CLASS PlugPlayControlClass,
     _Inout_ PVOID Buffer,

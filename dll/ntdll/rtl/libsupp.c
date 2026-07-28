@@ -1082,6 +1082,52 @@ LdrpApisetVersion(VOID)
     return CachedApisetVersion;
 }
 
+/*
+ * @implemented
+ *
+ * Reports whether an API set contract is named by the schema and whether it
+ * resolves to a host binary. Our schema is the static g_Apisets table, which
+ * only lists sets we can actually satisfy, so the two answers coincide.
+ */
+NTSTATUS
+NTAPI
+ApiSetQueryApiSetPresenceEx(
+    _In_ PCUNICODE_STRING Namespace,
+    _Out_ PBOOLEAN InSchema,
+    _Out_ PBOOLEAN Present)
+{
+    UNICODE_STRING HostBinary = {0};
+    BOOLEAN Resolved = FALSE;
+    DWORD ApisetVersion;
+    NTSTATUS Status;
+    USHORT i;
+
+    if (!Namespace || !Namespace->Buffer || !InSchema || !Present)
+        return STATUS_INVALID_PARAMETER;
+
+    /* Unlike the non-Ex form this takes the bare contract name: a file
+     * extension is rejected outright rather than trimmed. */
+    for (i = 0; i < Namespace->Length / sizeof(WCHAR); i++)
+    {
+        if (Namespace->Buffer[i] == L'.') return STATUS_INVALID_PARAMETER;
+    }
+
+    *InSchema = FALSE;
+    *Present = FALSE;
+
+    /* Zero means this process runs at a compat level with no API sets. */
+    ApisetVersion = LdrpApisetVersion();
+    if (!ApisetVersion) return STATUS_SUCCESS;
+
+    Status = ApiSetResolveToHost(ApisetVersion, Namespace, &Resolved, &HostBinary);
+    if (!NT_SUCCESS(Status)) return Status;
+
+    *InSchema = Resolved;
+    *Present = Resolved;
+
+    return STATUS_SUCCESS;
+}
+
 NTSYSAPI
 NTSTATUS
 NTAPI

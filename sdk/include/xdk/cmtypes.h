@@ -80,6 +80,9 @@ typedef int CM_RESOURCE_TYPE;
 #define REG_OPTION_CREATE_LINK      (0x00000002L)
 #define REG_OPTION_BACKUP_RESTORE   (0x00000004L)
 #define REG_OPTION_OPEN_LINK        (0x00000008L)
+/* NT6+, accepted by NtOpenKeyEx. Left ungated: the kernel builds below Vista's
+ * NTDDI_VERSION but still has to validate the flag. */
+#define REG_OPTION_DONT_VIRTUALIZE  (0x00000010L)
 
 #define REG_LEGAL_OPTION            \
                 (REG_OPTION_RESERVED            |\

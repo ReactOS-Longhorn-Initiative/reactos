@@ -5721,5 +5721,78 @@ MmGetPhysicalAddress(PVOID Address)
     return PhysicalAddress;
 }
 
+/*
+ * @implemented
+ *
+ * NT6 extension of NtAllocateVirtualMemory. The extended parameters carry
+ * things like a preferred NUMA node or an address-range constraint; we do not
+ * implement any of them, so a request that supplies some is refused rather
+ * than silently satisfied with different properties than asked for.
+ */
+NTSTATUS
+NTAPI
+NtAllocateVirtualMemoryEx(
+    _In_ HANDLE ProcessHandle,
+    _Inout_ PVOID *UBaseAddress,
+    _Inout_ PSIZE_T URegionSize,
+    _In_ ULONG AllocationType,
+    _In_ ULONG PageProtection,
+    _Inout_updates_opt_(ExtendedParameterCount) PVOID ExtendedParameters,
+    _In_ ULONG ExtendedParameterCount)
+{
+    if (ExtendedParameterCount != 0)
+    {
+        if (!ExtendedParameters) return STATUS_INVALID_PARAMETER;
+
+        DPRINT1("NtAllocateVirtualMemoryEx: %lu extended parameter(s) not supported\n",
+                ExtendedParameterCount);
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    /* ZeroBits is only expressible through an extended parameter here */
+    return NtAllocateVirtualMemory(ProcessHandle,
+                                   UBaseAddress,
+                                   0,
+                                   URegionSize,
+                                   AllocationType,
+                                   PageProtection);
+}
+
+/*
+ * @unimplemented
+ *
+ * The only class kernelbase asks for is VmPrefetchInformation, which is purely
+ * advisory - reporting success without prefetching is a correct, if lazy,
+ * implementation. Anything else we genuinely cannot honour.
+ */
+NTSTATUS
+NTAPI
+NtSetInformationVirtualMemory(
+    _In_ HANDLE ProcessHandle,
+    _In_ VIRTUAL_MEMORY_INFORMATION_CLASS VmInformationClass,
+    _In_ ULONG_PTR NumberOfEntries,
+    _In_reads_(NumberOfEntries) PMEMORY_RANGE_ENTRY VirtualAddresses,
+    _In_reads_bytes_(VmInformationLength) PVOID VmInformation,
+    _In_ ULONG VmInformationLength)
+{
+    UNREFERENCED_PARAMETER(ProcessHandle);
+
+    if (NumberOfEntries == 0 || !VirtualAddresses) return STATUS_INVALID_PARAMETER;
+
+    switch (VmInformationClass)
+    {
+        case VmPrefetchInformation:
+            if (VmInformationLength != sizeof(ULONG) || !VmInformation)
+                return STATUS_INVALID_PARAMETER;
+
+            /* FIXME: actually prefetch the ranges */
+            return STATUS_SUCCESS;
+
+        default:
+            DPRINT1("NtSetInformationVirtualMemory: class %d not supported\n",
+                    VmInformationClass);
+            return STATUS_NOT_SUPPORTED;
+    }
+}
 
 /* EOF */

@@ -1170,7 +1170,15 @@ HANDLE WINAPI DECLSPEC_HOTPATCH CreateActCtxW( PCACTCTXW ctx )
 
     TRACE( "%p %08lx\n", ctx, ctx ? ctx->dwFlags : 0 );
 
+#ifdef __REACTOS__
+    /* Wine declares a two-argument RtlCreateActivationContext; ours matches
+     * the real ntdll export, which takes flags, extra bytes and a notification
+     * routine as well. */
+    if (!set_ntstatus( RtlCreateActivationContext( 0, ctx, 0, NULL, NULL, &context )))
+        return INVALID_HANDLE_VALUE;
+#else
     if (!set_ntstatus( RtlCreateActivationContext( &context, ctx ))) return INVALID_HANDLE_VALUE;
+#endif
     return context;
 }
 

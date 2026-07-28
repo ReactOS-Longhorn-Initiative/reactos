@@ -146,6 +146,31 @@ typedef enum _POOL_TYPE
 #endif // NTOS_MODE_USER
 
 //
+// Information Classes for NtSetInformationVirtualMemory
+//
+typedef enum _VIRTUAL_MEMORY_INFORMATION_CLASS
+{
+    VmPrefetchInformation,
+    VmPagePriorityInformation,
+    VmCfgCallTargetInformation,
+    VmPageDirtyStateInformation,
+    VmImageHotPatchInformation,
+    VmPhysicalContiguityInformation,
+    VmVirtualMachinePrepopulateInformation,
+    VmRemoveFromWorkingSetInformation,
+} VIRTUAL_MEMORY_INFORMATION_CLASS, *PVIRTUAL_MEMORY_INFORMATION_CLASS;
+
+//
+// Address range descriptor used by NtSetInformationVirtualMemory
+//
+typedef struct _MEMORY_RANGE_ENTRY
+{
+    PVOID VirtualAddress;
+    SIZE_T NumberOfBytes;
+} MEMORY_RANGE_ENTRY, *PMEMORY_RANGE_ENTRY;
+
+
+//
 // Memory Manager Page Lists
 //
 typedef enum _MMLISTS

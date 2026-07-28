@@ -3591,4 +3591,67 @@ NtExtendSection(IN HANDLE SectionHandle,
     return STATUS_NOT_IMPLEMENTED;
 }
 
+/*
+ * @implemented
+ *
+ * NT6 extension of NtMapViewOfSection. It drops ZeroBits, CommitSize and
+ * InheritDisposition from the parameter list and moves that kind of tuning
+ * into the extended parameters, none of which we implement.
+ */
+NTSTATUS
+NTAPI
+NtMapViewOfSectionEx(
+    _In_ HANDLE SectionHandle,
+    _In_ HANDLE ProcessHandle,
+    _Outptr_result_bytebuffer_(*ViewSize) _Pre_valid_ PVOID *BaseAddress,
+    _Inout_opt_ PLARGE_INTEGER SectionOffset,
+    _Inout_ PSIZE_T ViewSize,
+    _In_ ULONG AllocationType,
+    _In_ ULONG Win32Protect,
+    _Inout_updates_opt_(ExtendedParameterCount) PVOID ExtendedParameters,
+    _In_ ULONG ExtendedParameterCount)
+{
+    if (ExtendedParameterCount != 0)
+    {
+        if (!ExtendedParameters) return STATUS_INVALID_PARAMETER;
+
+        DPRINT1("NtMapViewOfSectionEx: %lu extended parameter(s) not supported\n",
+                ExtendedParameterCount);
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    return NtMapViewOfSection(SectionHandle,
+                              ProcessHandle,
+                              BaseAddress,
+                              0,
+                              0,
+                              SectionOffset,
+                              ViewSize,
+                              ViewShare,
+                              AllocationType,
+                              Win32Protect);
+}
+
+/*
+ * @implemented
+ *
+ * The only defined flag is MEM_UNMAP_WITH_TRANSIENT_BOOST, a paging hint we
+ * have nothing to do with, so any known flag is simply ignored.
+ */
+NTSTATUS
+NTAPI
+NtUnmapViewOfSectionEx(
+    _In_ HANDLE ProcessHandle,
+    _In_opt_ PVOID BaseAddress,
+    _In_ ULONG Flags)
+{
+#ifndef MEM_UNMAP_WITH_TRANSIENT_BOOST
+#define MEM_UNMAP_WITH_TRANSIENT_BOOST 0x00000001
+#endif
+
+    if (Flags & ~MEM_UNMAP_WITH_TRANSIENT_BOOST) return STATUS_INVALID_PARAMETER;
+
+    return NtUnmapViewOfSection(ProcessHandle, BaseAddress);
+}
+
 /* EOF */

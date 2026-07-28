@@ -159,6 +159,98 @@ RtlReleasePath(
     if (Path) RtlFreeHeap(RtlGetProcessHeap(), 0, Path);
 }
 
+/*
+ * @implemented
+ *
+ * A NULL module means the process image, matching Windows. The caller supplies
+ * the buffer in Name, so a short buffer is reported rather than reallocated.
+ */
+NTSTATUS
+NTAPI
+LdrGetDllFullName(
+    _In_opt_ PVOID DllHandle,
+    _Out_ PUNICODE_STRING FullDllName)
+{
+    PLDR_DATA_TABLE_ENTRY LdrEntry;
+    NTSTATUS Status;
+
+    if (!FullDllName) return STATUS_INVALID_PARAMETER;
+
+    if (!DllHandle) DllHandle = NtCurrentPeb()->ImageBaseAddress;
+
+    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, NULL);
+
+    if (LdrpCheckForLoadedDllHandle(DllHandle, &LdrEntry))
+    {
+        RtlCopyUnicodeString(FullDllName, &LdrEntry->FullDllName);
+
+        /* RtlCopyUnicodeString truncates silently, so report the overflow
+         * ourselves. Room for the terminator is required as well. */
+        Status = (FullDllName->MaximumLength <
+                      LdrEntry->FullDllName.Length + sizeof(WCHAR))
+                     ? STATUS_BUFFER_TOO_SMALL
+                     : STATUS_SUCCESS;
+    }
+    else
+    {
+        Status = STATUS_DLL_NOT_FOUND;
+    }
+
+    LdrUnlockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, 0);
+
+    return Status;
+}
+
+/*
+ * @implemented
+ *
+ * Builds the search path LdrLoadDll should use for this module. Windows
+ * composes an exact subset of directories from the LOAD_LIBRARY_SEARCH_*
+ * flags; we return the process default path instead, and LdrpResolveDllName
+ * additionally walks LdrpDllDirectoryList, so directories added through
+ * LdrAddDllDirectory are still searched. The only flag we act on is the
+ * validity rule, since getting that wrong would mask caller bugs.
+ *
+ * FIXME: honour the individual LOAD_LIBRARY_SEARCH_* directories once the
+ * loader keeps them separately.
+ */
+NTSTATUS
+NTAPI
+LdrGetDllPath(
+    _In_opt_ PCWSTR DllName,
+    _In_ ULONG Flags,
+    _Out_ PWSTR *DllPath,
+    _Out_ PWSTR *SearchPaths)
+{
+    /* ntdll builds below _WIN32_WINNT_VISTA, so <winbase.h> hides these.
+     * Values must stay in sync with sdk/include/psdk/winbase.h. */
+#define LDRP_LOAD_WITH_ALTERED_SEARCH_PATH      0x00000008
+#define LDRP_LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR   0x00000100
+#define LDRP_LOAD_LIBRARY_SEARCH_APPLICATION_DIR 0x00000200
+#define LDRP_LOAD_LIBRARY_SEARCH_USER_DIRS      0x00000400
+#define LDRP_LOAD_LIBRARY_SEARCH_SYSTEM32       0x00000800
+#define LDRP_LOAD_LIBRARY_SEARCH_DEFAULT_DIRS   0x00001000
+
+    const ULONG SearchFlags = LDRP_LOAD_LIBRARY_SEARCH_APPLICATION_DIR |
+                              LDRP_LOAD_LIBRARY_SEARCH_USER_DIRS |
+                              LDRP_LOAD_LIBRARY_SEARCH_SYSTEM32 |
+                              LDRP_LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                              LDRP_LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR;
+
+    UNREFERENCED_PARAMETER(DllName);
+
+    if (!DllPath || !SearchPaths) return STATUS_INVALID_PARAMETER;
+
+    *DllPath = NULL;
+    *SearchPaths = NULL;
+
+    /* The two search models are mutually exclusive. */
+    if ((Flags & LDRP_LOAD_WITH_ALTERED_SEARCH_PATH) && (Flags & SearchFlags))
+        return STATUS_INVALID_PARAMETER;
+
+    return LdrpDuplicateSearchPath(NULL, &LdrpDefaultPath, DllPath);
+}
+
 /* GLOBALS *******************************************************************/
 
 LIST_ENTRY LdrpUnloadHead;

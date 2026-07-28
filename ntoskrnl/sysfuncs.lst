@@ -294,3 +294,9 @@ NtWaitForKeyedEvent 4
 NtQueryPortInformationProcess 0
 NtGetCurrentProcessorNumber 0
 NtWaitForMultipleObjects32 5
+NtCompareObjects 2
+NtOpenKeyEx 4
+NtAllocateVirtualMemoryEx 7
+NtMapViewOfSectionEx 9
+NtUnmapViewOfSectionEx 3
+NtSetInformationVirtualMemory 6

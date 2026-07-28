@@ -333,20 +333,28 @@ NtCreateKey(OUT PHANDLE KeyHandle,
 
 NTSTATUS
 NTAPI
-NtOpenKey(OUT PHANDLE KeyHandle,
-          IN ACCESS_MASK DesiredAccess,
-          IN POBJECT_ATTRIBUTES ObjectAttributes)
+CmpOpenKey(OUT PHANDLE KeyHandle,
+           IN ACCESS_MASK DesiredAccess,
+           IN POBJECT_ATTRIBUTES ObjectAttributes,
+           IN ULONG OpenOptions)
 {
     CM_PARSE_CONTEXT ParseContext = {0};
     HANDLE Handle;
     NTSTATUS Status;
     KPROCESSOR_MODE PreviousMode = ExGetPreviousMode();
     PAGED_CODE();
-    DPRINT("NtOpenKey(Path: %wZ, Root %x, Access: %x)\n",
-            ObjectAttributes->ObjectName, ObjectAttributes->RootDirectory, DesiredAccess);
+    DPRINT("CmpOpenKey(Path: %wZ, Root %x, Access: %x, Options: %x)\n",
+            ObjectAttributes->ObjectName, ObjectAttributes->RootDirectory,
+            DesiredAccess, OpenOptions);
 
     /* Ignore the WOW64 flag, it's not valid in the kernel */
     DesiredAccess &= ~KEY_WOW64_RES;
+
+    /* CmpParseKey only consults CreateOptions on create paths, so passing the
+     * open options through here is inert today but keeps REG_OPTION_OPEN_LINK
+     * plumbed for when the parse routine grows support for it.
+     * FIXME: honour REG_OPTION_BACKUP_RESTORE and REG_OPTION_DONT_VIRTUALIZE. */
+    ParseContext.CreateOptions = OpenOptions;
 
     /* Check for user-mode caller */
     if (PreviousMode != KernelMode)
@@ -402,6 +410,34 @@ NtOpenKey(OUT PHANDLE KeyHandle,
     return Status;
 }
 
+NTSTATUS
+NTAPI
+NtOpenKey(OUT PHANDLE KeyHandle,
+          IN ACCESS_MASK DesiredAccess,
+          IN POBJECT_ATTRIBUTES ObjectAttributes)
+{
+    return CmpOpenKey(KeyHandle, DesiredAccess, ObjectAttributes, 0);
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
+NtOpenKeyEx(OUT PHANDLE KeyHandle,
+            IN ACCESS_MASK DesiredAccess,
+            IN POBJECT_ATTRIBUTES ObjectAttributes,
+            IN ULONG OpenOptions)
+{
+    /* Reject options we do not recognise rather than silently ignoring them.
+     * REG_OPEN_LEGAL_OPTION predates NT6, so add the flag it does not cover. */
+    if (OpenOptions & ~(REG_OPEN_LEGAL_OPTION | REG_OPTION_DONT_VIRTUALIZE))
+    {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    return CmpOpenKey(KeyHandle, DesiredAccess, ObjectAttributes, OpenOptions);
+}
 
 NTSTATUS
 NTAPI
