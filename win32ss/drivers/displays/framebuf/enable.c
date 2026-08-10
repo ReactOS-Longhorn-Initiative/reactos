@@ -34,42 +34,9 @@ static DRVFN DrvFunctionTable[] =
    {INDEX_DrvMovePointer, (PFN)DrvMovePointer},
    {INDEX_DrvEnableDirectDraw, (PFN)DrvEnableDirectDraw},
    {INDEX_DrvDisableDirectDraw, (PFN)DrvDisableDirectDraw},
+   {INDEX_DrvGetDirectDrawInfo, (PFN)DrvGetDirectDrawInfo},
 
 };
-
-/*
- * DrvEnableDirectDraw
- */
-
-BOOL APIENTRY
-DrvEnableDirectDraw(
-    DHPDEV dhpdev,
-    DD_CALLBACKS *pCallbacks,
-    DD_SURFACECALLBACKS *pSurfaceCallbacks,
-    DD_PALETTECALLBACKS *pPaletteCallbacks)
-{
-    RtlZeroMemory(pCallbacks, sizeof(*pCallbacks));
-    RtlZeroMemory(pSurfaceCallbacks, sizeof(*pSurfaceCallbacks));
-    RtlZeroMemory(pPaletteCallbacks, sizeof(*pPaletteCallbacks));
-
-    pCallbacks->dwSize = sizeof(*pCallbacks);
-    pSurfaceCallbacks->dwSize = sizeof(*pSurfaceCallbacks);
-    pPaletteCallbacks->dwSize = sizeof(*pPaletteCallbacks);
-
-    /* We don't support any optional callback */
-
-    return TRUE;
-}
-
-/*
- * DrvDisableDirectDraw
- */
-
-VOID APIENTRY
-DrvDisableDirectDraw(
-    DHPDEV dhpdev)
-{
-}
 
 /*
  * DrvEnableDriver

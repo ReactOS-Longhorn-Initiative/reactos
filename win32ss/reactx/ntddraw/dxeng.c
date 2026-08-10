@@ -293,7 +293,7 @@ DxEngGetHdevData(HDEV hDev,
     {
       case DxEGShDevData_Surface:
         DPRINT("requested DxEGShDevData_Surface\n");
-        retVal = (DWORD_PTR) PDev->pSurface; // ptr to Surface handle.
+        retVal = (DWORD_PTR)(PDev->pSurface ? PDev->pSurface->BaseObject.hHmgr : 0);
         break;
       case DxEGShDevData_hSpooler:
         DPRINT("requested DxEGShDevData_hSpooler\n");
