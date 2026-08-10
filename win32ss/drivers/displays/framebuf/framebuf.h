@@ -25,6 +25,7 @@
 #include <windef.h>
 #include <wingdi.h>
 #include <winddi.h>
+#include <ddrawint.h>
 #include <winioctl.h>
 #include <ntddvdeo.h>
 
@@ -81,6 +82,39 @@ DrvEnableDirectDraw(
 VOID APIENTRY
 DrvDisableDirectDraw(
     DHPDEV dhpdev);
+
+BOOL APIENTRY
+DrvGetDirectDrawInfo(
+    DHPDEV dhpdev,
+    DD_HALINFO *pHalInfo,
+    DWORD *pdwNumHeaps,
+    VIDEOMEMORY *pvmList,
+    DWORD *pdwNumFourCCCodes,
+    DWORD *pdwFourCC);
+
+DWORD CALLBACK
+DdCanCreateSurface(PDD_CANCREATESURFACEDATA pccsd);
+
+DWORD CALLBACK
+DdCreateSurface(PDD_CREATESURFACEDATA pcsd);
+
+DWORD CALLBACK
+DdLock(PDD_LOCKDATA pld);
+
+DWORD CALLBACK
+DdUnlock(PDD_UNLOCKDATA pud);
+
+DWORD CALLBACK
+DdSetColorKey(PDD_SETCOLORKEYDATA psck);
+
+DWORD CALLBACK
+DdDestroySurface(PDD_DESTROYSURFACEDATA pdsd);
+
+DWORD CALLBACK
+DdBlt(PDD_BLTDATA pbd);
+
+DWORD CALLBACK
+DdFlip(PDD_FLIPDATA pfd);
 
 DHPDEV APIENTRY
 DrvEnablePDEV(
