@@ -1,5 +1,7 @@
 
 list(APPEND SOURCE
+    dd.c
+    ddenable.c
     enable.c
     palette.c
     pointer.c
