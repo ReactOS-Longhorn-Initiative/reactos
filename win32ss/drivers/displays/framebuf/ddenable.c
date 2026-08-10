@@ -93,7 +93,7 @@ DrvEnableDirectDraw(
 		 memset(pCallBacks,0,sizeof(DD_CALLBACKS));
 
 		 /* FILL pCallBacks with hal stuff */
-         pCallBacks->dwSize = sizeof(DDHAL_DDCALLBACKS);
+         pCallBacks->dwSize = sizeof(DD_CALLBACKS);
          pCallBacks->CanCreateSurface = (PDD_CANCREATESURFACE)DdCanCreateSurface;
          pCallBacks->CreateSurface =  (PDD_CREATESURFACE)DdCreateSurface;
 
@@ -106,12 +106,20 @@ DrvEnableDirectDraw(
 		 memset(pSurfaceCallBacks,0,sizeof(DD_SURFACECALLBACKS));
 
 		 /* FILL pSurfaceCallBacks with hal stuff */
-         // pSurfaceCallBacks.dwSize = sizeof(DDHAL_DDSURFACECALLBACKS);
-         // pSurfaceCallBacks.DestroySurface = DdDestroySurface;
-         // pSurfaceCallBacks.Lock = DdLock;
-         // pSurfaceCallBacks.Blt = DdBlt;
+         pSurfaceCallBacks->dwSize = sizeof(DD_SURFACECALLBACKS);
+         pSurfaceCallBacks->DestroySurface = DdDestroySurface;
+         pSurfaceCallBacks->Lock = DdLock;
+         pSurfaceCallBacks->Unlock = DdUnlock;
+         pSurfaceCallBacks->SetColorKey = DdSetColorKey;
+         pSurfaceCallBacks->Blt = DdBlt;
+         pSurfaceCallBacks->Flip = DdFlip;
 
-        // pSurfaceCallBacks->dwFlags = DDHAL_SURFCB32_DESTROYSURFACE | DDHAL_SURFCB32_LOCK | DDHAL_SURFCB32_BLT ;
+         pSurfaceCallBacks->dwFlags = DDHAL_SURFCB32_DESTROYSURFACE |
+                                      DDHAL_SURFCB32_LOCK |
+                                      DDHAL_SURFCB32_UNLOCK |
+                                      DDHAL_SURFCB32_SETCOLORKEY |
+                                      DDHAL_SURFCB32_BLT |
+                                      DDHAL_SURFCB32_FLIP;
 	 }
 
 	 if (pPaletteCallBacks != NULL)
@@ -172,65 +180,61 @@ DrvGetDirectDrawInfo(
 
 
 	/*
-	   check see if pvmList and pdwFourCC are frist call
-	   or frist. Secon call  we fill in pHalInfo info
+	   pHalInfo must always be filled, both on the size query and
+	   the second call that provides heaps.
     */
 
-	if(!(pvmList && pdwFourCC))
+    RtlZeroMemory(pHalInfo, sizeof(DD_HALINFO));
+    pHalInfo->dwSize = sizeof(DD_HALINFO);
+
+	pHalInfo->ddCaps.dwCaps =  DDCAPS_BLT        | DDCAPS_BLTQUEUE | DDCAPS_BLTCOLORFILL | DDCAPS_READSCANLINE |
+		                        DDCAPS_BLTSTRETCH | DDCAPS_COLORKEY | DDCAPS_CANBLTSYSMEM;
+
+	pHalInfo->ddCaps.dwFXCaps = DDFXCAPS_BLTSTRETCHY     | DDFXCAPS_BLTSTRETCHX        |
+		                         DDFXCAPS_BLTSTRETCHYN    | DDFXCAPS_BLTSTRETCHXN       |
+								 DDFXCAPS_BLTSHRINKY      | DDFXCAPS_BLTSHRINKX         |
+                                 DDFXCAPS_BLTSHRINKYN     | DDFXCAPS_BLTSHRINKXN        |
+								 DDFXCAPS_BLTMIRRORUPDOWN | DDFXCAPS_BLTMIRRORLEFTRIGHT;
+
+	pHalInfo->ddCaps.dwCaps2 = DDCAPS2_NONLOCALVIDMEM | DDCAPS2_NONLOCALVIDMEMCAPS;
+
+	pHalInfo->ddCaps.ddsCaps.dwCaps =  DDSCAPS_OFFSCREENPLAIN | DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP;
+
+	pHalInfo->ddCaps.dwCKeyCaps = DDCKEYCAPS_SRCBLT | DDCKEYCAPS_SRCBLTCLRSPACE;
+
+    pHalInfo->ddCaps.dwSVBCaps = DDCAPS_BLT;
+    pHalInfo->ddCaps.ddsCaps.dwCaps |= DDSCAPS_LOCALVIDMEM | DDSCAPS_NONLOCALVIDMEM;
+
+	/* Calc how much memmory is left on the video cards memmory */
+	pHalInfo->ddCaps.dwVidMemTotal = (ppdev->MemHeight - ppdev->ScreenHeight) * ppdev->ScreenDelta;
+
+    /* fill in some basic info that we need */
+    pHalInfo->vmiData.pvPrimary                 = ppdev->ScreenPtr;
+    pHalInfo->vmiData.dwDisplayWidth            = ppdev->ScreenWidth;
+    pHalInfo->vmiData.dwDisplayHeight           = ppdev->ScreenHeight;
+    pHalInfo->vmiData.lDisplayPitch             = ppdev->ScreenDelta;
+    pHalInfo->vmiData.ddpfDisplay.dwSize        = sizeof(DDPIXELFORMAT);
+    pHalInfo->vmiData.ddpfDisplay.dwFlags       = DDPF_RGB;
+    pHalInfo->vmiData.ddpfDisplay.dwRGBBitCount = ppdev->BitsPerPixel;
+	pHalInfo->vmiData.ddpfDisplay.dwRBitMask    = ppdev->RedMask;
+    pHalInfo->vmiData.ddpfDisplay.dwGBitMask    = ppdev->GreenMask;
+    pHalInfo->vmiData.ddpfDisplay.dwBBitMask    = ppdev->BlueMask;
+    pHalInfo->vmiData.dwOffscreenAlign = 4;
+
+	if ( ppdev->BitsPerPixel == 8 )
 	{
+        pHalInfo->vmiData.ddpfDisplay.dwFlags |= DDPF_PALETTEINDEXED8;
+    }
 
-         RtlZeroMemory(pHalInfo, sizeof(DD_HALINFO));
-         pHalInfo->dwSize = sizeof(DD_HALINFO);
-
-		 pHalInfo->ddCaps.dwCaps =  DDCAPS_BLT        | DDCAPS_BLTQUEUE | DDCAPS_BLTCOLORFILL | DDCAPS_READSCANLINE |
-			                        DDCAPS_BLTSTRETCH | DDCAPS_COLORKEY | DDCAPS_CANBLTSYSMEM;
-
-		 pHalInfo->ddCaps.dwFXCaps = DDFXCAPS_BLTSTRETCHY     | DDFXCAPS_BLTSTRETCHX        |
-			                         DDFXCAPS_BLTSTRETCHYN    | DDFXCAPS_BLTSTRETCHXN       |
-									 DDFXCAPS_BLTSHRINKY      | DDFXCAPS_BLTSHRINKX         |
-                                     DDFXCAPS_BLTSHRINKYN     | DDFXCAPS_BLTSHRINKXN        |
-									 DDFXCAPS_BLTMIRRORUPDOWN | DDFXCAPS_BLTMIRRORLEFTRIGHT;
-
-		pHalInfo->ddCaps.dwCaps2 = DDCAPS2_NONLOCALVIDMEM | DDCAPS2_NONLOCALVIDMEMCAPS;
-
-		pHalInfo->ddCaps.ddsCaps.dwCaps =  DDSCAPS_OFFSCREENPLAIN | DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP;
-
-		pHalInfo->ddCaps.dwCKeyCaps = DDCKEYCAPS_SRCBLT | DDCKEYCAPS_SRCBLTCLRSPACE;
-
-	    pHalInfo->ddCaps.dwSVBCaps = DDCAPS_BLT;
-	    pHalInfo->ddCaps.ddsCaps.dwCaps |= DDSCAPS_LOCALVIDMEM | DDSCAPS_NONLOCALVIDMEM;
-
-		/* Calc how much memmory is left on the video cards memmory */
-		pHalInfo->ddCaps.dwVidMemTotal = (ppdev->MemHeight - ppdev->ScreenHeight) * ppdev->ScreenDelta;
-
-        /* fill in some basic info that we need */
-        pHalInfo->vmiData.pvPrimary                 = ppdev->ScreenPtr;
-        pHalInfo->vmiData.dwDisplayWidth            = ppdev->ScreenWidth;
-        pHalInfo->vmiData.dwDisplayHeight           = ppdev->ScreenHeight;
-        pHalInfo->vmiData.lDisplayPitch             = ppdev->ScreenDelta;
-        pHalInfo->vmiData.ddpfDisplay.dwSize        = sizeof(DDPIXELFORMAT);
-        pHalInfo->vmiData.ddpfDisplay.dwFlags       = DDPF_RGB;
-        pHalInfo->vmiData.ddpfDisplay.dwRGBBitCount = ppdev->BitsPerPixel;
-		pHalInfo->vmiData.ddpfDisplay.dwRBitMask    = ppdev->RedMask;
-        pHalInfo->vmiData.ddpfDisplay.dwGBitMask    = ppdev->GreenMask;
-        pHalInfo->vmiData.ddpfDisplay.dwBBitMask    = ppdev->BlueMask;
-        pHalInfo->vmiData.dwOffscreenAlign = 4;
-
-		if ( ppdev->BitsPerPixel == 8 )
-		{
-            pHalInfo->vmiData.ddpfDisplay.dwFlags |= DDPF_PALETTEINDEXED8;
-        }
-
-	    /*  FIXME
-		    Config the rops we do not doing that yet
-		     for we need write the rops table
-        */
-        for(i=0;i<DD_ROP_SPACE;i++ )
-        {
-           // pHALInfo->ddCaps.dwSVBRops[i] = rops[i];
-		  //  pHALInfo->ddCaps.dwRops[i] = rops[i];
-        }
-	}
+    /*  FIXME
+	    Config the rops we do not doing that yet
+	     for we need write the rops table
+    */
+    for(i=0;i<DD_ROP_SPACE;i++ )
+    {
+       // pHALInfo->ddCaps.dwSVBRops[i] = rops[i];
+	   // pHALInfo->ddCaps.dwRops[i] = rops[i];
+    }
 
 	/* Now build pvmList info */
 	if(pvmList)
