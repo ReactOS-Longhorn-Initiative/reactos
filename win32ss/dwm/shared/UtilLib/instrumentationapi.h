@@ -198,9 +198,9 @@
                     s2, /* Second allowed non-S_OK success HRESULT */ \
                     s3  /* Third allowed non-S_OK success HRESULT */) \
     { \
-        C_ASSERT(SUCCEEDED(s1)); \
-        C_ASSERT(SUCCEEDED(s2)); \
-        C_ASSERT(SUCCEEDED(s3)); \
+        static_assert(SUCCEEDED(s1), "SUCCEEDED(s1)"); \
+        static_assert(SUCCEEDED(s2), "SUCCEEDED(s2)"); \
+        static_assert(SUCCEEDED(s3), "SUCCEEDED(s3)"); \
         MilCheckReturnValue( \
                 (hrExpr), \
                 MILINSTRUMENTATIONFLAGS | RRETURN_ADDFLAGS, \

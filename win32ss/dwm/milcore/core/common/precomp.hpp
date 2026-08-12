@@ -24,8 +24,8 @@
 
 #include "sw/swinit.h"
 
-#include "mfapi.h"
+//#include "mfapi.h" //REACTOS
 #include "dxva2api.h"
-#include "evr.h"
+//#include "evr.h" //REACTOS
 #include "av/internal.h"
 #include "av/avloader.h"

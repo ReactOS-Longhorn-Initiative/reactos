@@ -11,7 +11,7 @@
 //                   Assert.inl for more.
 //
 
-#include "Pch.h"
+#include "pch.h"
 
 // Include actual implementation for AssertA/W which this library provides. An
 // inlined source file is used because the debug DLL also needs the logic, but

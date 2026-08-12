@@ -10,7 +10,7 @@
 //  Contents:   Memory utilities
 //------------------------------------------------------------------------------
 
-#include "Pch.h"
+#include "pch.h"
 
 // Globals ---------------------------------------------------------------------
 HANDLE g_hProcessHeap;
@@ -57,6 +57,8 @@ void MtValidateMeter(PERFMETERTAG mt);
 #define PERFMETERPARAM PERFMETERTAG mt,
 #else
 #define PERFMETERPARAM
+// TODO: is this the best way? Some macros expect this to be defined in this file.
+#define DECLPERFMETERPARAM PERFMETERTAG mt = {};
 #endif
 
 //------------------------------------------------------------------------------
@@ -157,6 +159,8 @@ ProcessHeapImpl::AllocImpl(PERFMETERPARAM size_t cbSize)
 
     void * pvRet;
 
+    DECLPERFMETERPARAM;
+
     WHEN_DBG( MtValidateMeter(mt) );
 
 #if defined(PERFMETER)
@@ -241,6 +245,8 @@ ProcessHeapImpl::AllocClear(PERFMETERPARAM size_t cbSize)
 __allocator HRESULT
 ProcessHeapImpl::Realloc(PERFMETERPARAM __deref_bcount(cbSize) void ** ppv, size_t cbSize)
 {
+    DECLPERFMETERPARAM;
+
     Assert(g_hProcessHeap);
 
     if (NULL == *ppv)
@@ -356,10 +362,10 @@ CDbgMeterStackArray<1000> rgmtstkDisableMeterValidate;
 
 void MtValidateMeter(PERFMETERTAG mt)
 {
+    BOOL fLoopError = FALSE;
+    
     if (!DbgExIsFullDebug() || g_fNoMeterChecks)
         goto Success;
-
-    BOOL fLoopError = FALSE;
 
     // All memory meters must roll up to WorkingSet at least -- it
     // would be even better if the resolved to something that
@@ -701,7 +707,7 @@ HRESULT HrMallocAlign(
 }
 
 } // namespace WPF
-
+#if 0
 //------------------------------------------------------------------------------
 // new/delete that asserts if info isn't carried through - - - - - - - - - - -
 // NOTE:    We may want to do something here with a default meter/heap so that
@@ -735,13 +741,13 @@ operator delete[](void * pv)
     WPFFree(ProcessHeap, pv);
 }
 #else
-__allocator inline __bcount(cbSize) void * __cdecl
+__allocator __bcount(cbSize) void * __cdecl
 operator new(size_t cbSize)
 {
     return WPFAlloc(ProcessHeap, Mt(OpNew), cbSize);
 }
 
-__allocator inline __bcount(cbSize) void * __cdecl
+__allocator __bcount(cbSize) void * __cdecl
 operator new[](size_t cbSize)
 {
     return WPFAlloc(ProcessHeap, Mt(OpNew), cbSize);
@@ -759,5 +765,5 @@ operator delete[](void * pv)
     WPFFree(ProcessHeap, pv);
 }
 #endif
-
+#endif
 

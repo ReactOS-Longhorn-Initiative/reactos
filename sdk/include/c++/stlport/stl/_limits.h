@@ -264,9 +264,15 @@ class numeric_limits<unsigned long>
 #if defined (_STLP_LONG_LONG)
 
 #  if defined (_STLP_MSVC) || defined (__BORLANDC__)
+#ifndef LONGLONG_MAX
 #    define LONGLONG_MAX     0x7fffffffffffffffi64
+#endif
+#ifndef LONGLONG_MIN
 #    define LONGLONG_MIN     (-LONGLONG_MAX-1i64)
+#endif
+#ifndef ULONGLONG_MAX
 #    define ULONGLONG_MAX    0xffffffffffffffffUi64
+#endif
 #  else
 #    ifndef LONGLONG_MAX
 #      define LONGLONG_MAX   0x7fffffffffffffffLL

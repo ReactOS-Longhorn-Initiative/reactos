@@ -240,6 +240,14 @@ inline D3DXVECTOR4::D3DXVECTOR4()
 {
 }
 
+inline D3DXVECTOR4::D3DXVECTOR4(CONST D3DVECTOR& xyz, FLOAT newW)
+{
+    x = xyz.x;
+    y = xyz.y;
+    z = xyz.z;
+    w = newW;
+}
+
 inline D3DXVECTOR4::D3DXVECTOR4(const FLOAT *pf)
 {
     if(!pf) return;
@@ -1211,7 +1219,7 @@ static inline D3DXMATRIX* D3DXMatrixIdentity(D3DXMATRIX *pout)
     return pout;
 }
 
-static inline BOOL D3DXMatrixIsIdentity(D3DXMATRIX *pm)
+static inline BOOL D3DXMatrixIsIdentity(const D3DXMATRIX *pm)
 {
     int i,j;
     D3DXMATRIX testmatrix;

@@ -29,7 +29,7 @@
 //
 //-------------------------------------------------------------------------
 
-#if !defined(_PREFAST_) && (!DBG || defined(NO_RTTI))
+#if 1 //!defined(_PREFAST_) && (!DBG || defined(NO_RTTI))
 
 #define DYNCAST(Dest_type, Source_Value) (static_cast<Dest_type*>(Source_Value))
 
@@ -38,7 +38,7 @@
 #if defined(_PREFAST_) || defined(NO_RTTI)
 
 template <class TS, class TD>
-__success(source != NULL) __out_ecount(1) TD * DYNCAST_IMPL(__in_ecount_opt(1) TS * source, __in_opt TD &, __in PCSTR pszType)
+__success(source != NULL) __out_ecount(1) TD * DYNCAST_IMPL(__in_ecount_opt(1) TS * source, __in_opt TD &, _In_ PCSTR pszType)
 {
     return static_cast <TD *> (source);
 }
@@ -53,7 +53,7 @@ __success(source != NULL) __out_ecount(1) TD * DYNCAST_IMPL(__in_ecount_opt(1) T
 #include <strsafe.h>    // For StringCchPrintfA
 
 template <class TS, class TD>
-__success(source != NULL) __out_ecount(1) TD * DYNCAST_IMPL(__in_ecount_opt(1) TS * source, __in_opt TD &, __in PCSTR pszType)
+__success(source != NULL) __out_ecount(1) TD * DYNCAST_IMPL(__in_ecount_opt(1) TS * source, __in_opt TD &, _In_ PCSTR pszType)
 {
     if (!source) return NULL;
 
