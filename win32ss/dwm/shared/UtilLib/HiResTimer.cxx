@@ -8,7 +8,7 @@
 //
 //  File:       HiResTimer.cxx
 //------------------------------------------------------------------------------
-#include "Pch.h"
+#include "pch.h"
 
 MtDefine(HiResTimer, Utilities, "HiResTimer");
 

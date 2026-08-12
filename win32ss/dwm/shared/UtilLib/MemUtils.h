@@ -156,10 +156,10 @@ inline void Free(__inout_ecount(1) Heap* pheap, void * pv);
 //      MtSetDefault(Mt(foo));
 //      SomeRandomLibraryCallThatUsesNew();
 //  }
-_Ret_notnull_ _Post_writable_byte_size_(cbSize) __allocator inline __bcount(cbSize) void * __cdecl operator new(size_t cbSize);
-_Ret_notnull_ _Post_writable_byte_size_(cbSize) __allocator inline __bcount(cbSize) void * __cdecl operator new[](size_t cbSize);
-inline void __cdecl operator delete(void * pv);
-inline void __cdecl operator delete[](void *pv);
+//_Ret_notnull_ _Post_writable_byte_size_(cbSize) __allocator inline __bcount(cbSize) void * __cdecl operator new(size_t cbSize);
+//_Ret_notnull_ _Post_writable_byte_size_(cbSize) __allocator inline __bcount(cbSize) void * __cdecl operator new[](size_t cbSize);
+//void __cdecl operator delete(void * pv);
+//void __cdecl operator delete[](void *pv);
 
 //------------------------------------------------------------------------------
 // Alternatives to new and delete ----------------------------------------------
@@ -212,19 +212,19 @@ inline void __cdecl operator delete[](void *pv);
 
 // Placement new - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _Ret_notnull_ _Post_writable_byte_size_(cb) _Post_satisfies_(return == pv)
-inline __bcount(cb) void * __cdecl operator new(size_t cb, _Writable_bytes_(cb) void * pv);
+//inline __bcount(cb) void * __cdecl operator new(size_t cb, _Writable_bytes_(cb) void * pv);
 
 // Per class new/delete override macros - - - - - - - - - - - - - - - - - - - -
 
 // These don't make users pass in anything, both heap and meter are predefined
 // This will only work with heaps that have global scope
-#define DECLARE_METERHEAP_ALLOC(pheap, mt) \
+#define DECLARE_METERHEAP_ALLOC(pheap, mt) /*\
     __allocator inline __bcount(cb) void * __cdecl operator new(size_t cb)    { return WPFAlloc((pheap), mt, cb); } \
     __allocator inline __bcount(cb) void * __cdecl operator new[](size_t cb)  { return WPFAlloc((pheap), mt, cb); } \
     inline void __cdecl operator delete(void * pv)   { WPFFree((pheap), pv); } \
     inline void __cdecl operator delete[](void * pv) { WPFFree((pheap), pv); } \
     inline __bcount(cb) void * __cdecl operator new(size_t cb, __bcount(cb) void * pv) { return pv; cb; } \
-    inline  void __cdecl operator delete(void* pv, void*) { WPFFree(pheap, pv); }
+    inline  void __cdecl operator delete(void* pv, void*) { WPFFree(pheap, pv); }*/
 
 #define DECLARE_METERHEAP_CLEAR(pheap, mt) \
     __allocator inline __bcount(cb) void * __cdecl operator new(size_t cb)    { return WPFAllocClear((pheap), mt, cb); } \

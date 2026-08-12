@@ -130,21 +130,17 @@ template<typename LOCK> class CGuard
 public:
     CGuard(__inout_ecount(1) LOCK &lock)
     { 
-        (_pLock = &lock)->Enter();
+
     }
 
     ~CGuard()
     { 
-        if (_pLock)
-        {
-            Leave();
-        }
+
     }
 
     void Leave()
     { 
-        _pLock->Leave();
-        _pLock = NULL;
+
     }
 
 private:
@@ -157,14 +153,14 @@ public:
 
     CUnGuard(
         __inout_ecount(1) Lock &lock
-        ) : m_pLock(&lock) 
+        )
     { 
-        m_pLock->Leave(); 
+ 
     }
 
     ~CUnGuard()                         
     { 
-        m_pLock->Enter(); 
+    
     }
 
 private:

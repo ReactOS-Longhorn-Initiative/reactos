@@ -23,7 +23,7 @@
 //------------------------------------------------------------------------
 
 bool RegGetDword(
-    HKEY hKey,
+    const HKEY hKey,
     const LPCTSTR pszValueName, 
     __out_ecount(1) LPDWORD pdwValue
     )

@@ -315,7 +315,8 @@ List<T>::Remove(
     )
 {
     Unlink(pNode);
-    DoClientDelete<T>(pNode);
+    if (pNode)
+        delete pNode;
 }
 
 
@@ -350,7 +351,8 @@ List<T>::RemoveAll()
         ListNode * pNext = m_pHead->pNext;
         m_pHead->pPrev= NULL;
         T * pHead = (T *) m_pHead;
-        DoClientDelete<T>(pHead);
+        if (pHead)
+            delete pHead;
         m_pHead = pNext;
     }
 }
@@ -478,7 +480,8 @@ SingleList<T>::Remove(
         m_pHead = pNode->pNext;
         pNode->pNext = NULL;
     } else {
-        for (T * pTemp = m_pHead; pTemp != NULL; pTemp = pTemp->pNext) {
+        T * pTemp = m_pHead;
+        for (; pTemp != NULL; pTemp = pTemp->pNext) {
             if (pTemp->pNext == pNode) {
                 pTemp->pNext = pNode->pNext;
                 pNode->pNext = NULL;

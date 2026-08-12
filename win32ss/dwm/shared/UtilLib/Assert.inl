@@ -170,9 +170,9 @@ NTSYSCALLAPI
 NTSTATUS
 NTAPI
 NtQuerySystemInformation (
-    __in SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    _In_ SYSTEM_INFORMATION_CLASS SystemInformationClass,
     __out_bcount_part_opt(SystemInformationLength, *ReturnLength) PVOID SystemInformation,
-    __in ULONG SystemInformationLength,
+    _In_ ULONG SystemInformationLength,
     __out_opt PULONG ReturnLength
     );
 
@@ -195,8 +195,8 @@ NTSYSAPI
 ULONG
 __cdecl
 DbgPrintEx (
-    __in ULONG ComponentId,
-    __in ULONG Level,
+    _In_ ULONG ComponentId,
+    _In_ ULONG Level,
     __in_z __drv_formatString(printf) PCSTR Format,
     ...
     );
@@ -209,7 +209,7 @@ NTAPI
 DbgPrompt (
     __in_z PCCH Prompt,
     __out_bcount(Length) PCH Response,
-    __in ULONG Length
+    _In_ ULONG Length
     );
 
 #ifdef __cplusplus
@@ -350,7 +350,7 @@ protected:
 //
 CDbgBookmarkStack<MAX_DISABLED_UNIQUE_ASSERT_STACKS, ASSERT_STACK_CAPTURE_DEPTH> g_rgbmkDisabledAsserts;
 
-#endif DBG
+#endif
 
 
 //+----------------------------------------------------------------------------
@@ -438,8 +438,8 @@ VOID
 AssertA(
     __in_opt PCSTR Message,
     __in_opt PCWSTR FailedAssertion,
-    __in PCWSTR Function,
-    __in PCWSTR FileName,
+    _In_ PCWSTR Function,
+    _In_ PCWSTR FileName,
     ULONG LineNumber
     )
 {
@@ -476,8 +476,8 @@ VOID
 AssertW(
     __in_opt PCWSTR Message,
     __in_opt PCWSTR FailedAssertion,
-    __in PCWSTR Function,
-    __in PCWSTR FileName,
+    _In_ PCWSTR Function,
+    _In_ PCWSTR FileName,
     ULONG LineNumber
     )
 {
@@ -497,7 +497,7 @@ AssertW(
     if (ASSERT_STACK_CAPTURE_DEPTH_MINIMUM <=
             RtlCaptureStackBackTrace(
                 1,                         // Skip this frame
-                ARRAYSIZE(rgStackCapture), // Max # of frames 
+                _ARRAYSIZE(rgStackCapture), // Max # of frames 
                 rgStackCapture,            // Place capture here
                 NULL)                      // Ignored optional param
        )
@@ -515,13 +515,13 @@ AssertW(
         // since we have successfully captured stack.
         fCanDisable = g_rgbmkDisabledAsserts.AreMarksAvailable();
     }
-#endif DBG
+#endif
 
-    PSTR szKDPrompt = 
+    PCCH szKDPrompt = 
 #if DBG
         fCanDisable ?
         "Break, Go (continue), Ignore all, terminate Process, or terminate Thread (bgipt)? " :
-#endif DBG
+#endif
         "Break, Go (continue), terminate Process, or terminate Thread (bgpt)? ";
 
     //
@@ -591,7 +591,7 @@ AssertW(
                 "  g                    -- Go (continue)\n"
 #if DBG
                 "  eb 0x%p 'i';g  -- %s\n"
-#endif DBG
+#endif
                 "  eb 0x%p 'p';g  -- terminate Process\n"
                 "  eb 0x%p 't';g  -- terminate Thread\n"
                 " or regular debugging.\n",
@@ -600,7 +600,7 @@ AssertW(
                 fCanDisable ?
                 "Ignore all future hits" :
                 "<not available>",
-#endif DBG
+#endif
                 &Response[0],
                 &Response[0]
                 );
@@ -646,7 +646,7 @@ AssertW(
             DbgPrintEx(g_uDPFltrID, DPFLTR_ERROR_LEVEL,
                        "'i' is only supported with debug builds.\n"
                        );
-#endif DBG
+#endif
             goto Prompt;
 
             // terminate Process

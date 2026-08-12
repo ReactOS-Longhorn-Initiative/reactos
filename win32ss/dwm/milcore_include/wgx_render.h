@@ -208,10 +208,10 @@ DECLARE_INTERFACE_(IMILCoreFactory, IUnknown)
     // Query graphics accleration capabilities
     STDMETHOD_(void, QueryCurrentGraphicsAccelerationCaps)(
         THIS_
-        __in bool fReturnCommonMinimum,
+        _In_ bool fReturnCommonMinimum,
         __out_ecount(1) ULONG *pulDisplayUniqueness,
         __out_ecount(1) MilGraphicsAccelerationCaps *pCaps
-        );
+        ) PURE;
 
     // Bitmap Render Target
 
@@ -352,7 +352,7 @@ DECLARE_INTERFACE_(IMILRenderTargetHWND, IMILRenderTarget)
         THIS_
         __deref_outro_ecount(*pNumRegions) MilRectF const ** const prgRegions,
         __out_ecount(1) UINT *pNumRegions,
-        __out bool *fWholeTargetInvalid
+        _Out_ bool *fWholeTargetInvalid
         ) PURE;
 
     STDMETHOD(UpdatePresentProperties)(
@@ -379,7 +379,7 @@ DECLARE_INTERFACE_(IMILRenderTargetHWND, IMILRenderTarget)
 
     STDMETHOD_(VOID, GetIntersectionWithDisplay)(
         THIS_
-        __in UINT iDisplay,
+        _In_ UINT iDisplay,
         __out_ecount(1) MilRectL &rcIntersection
         ) PURE;
 
@@ -729,7 +729,7 @@ DECLARE_INTERFACE_(IMILMedia, IUnknown)
 {
     STDMETHOD(Open)(
         THIS_
-        __in LPCWSTR pwszURL
+        _In_ LPCWSTR pwszURL
         ) PURE;
 
     STDMETHOD(Stop)(
@@ -742,32 +742,32 @@ DECLARE_INTERFACE_(IMILMedia, IUnknown)
 
     STDMETHOD(GetPosition)(
         THIS_
-        __out LONGLONG *pllTime
+        _Out_ LONGLONG *pllTime
         ) PURE;
 
     STDMETHOD(SetPosition)(
         THIS_
-        __in LONGLONG llTime
+        _In_ LONGLONG llTime
         ) PURE;
 
     STDMETHOD(SetRate)(
         THIS_
-        __in double dblRate
+        _In_ double dblRate
         ) PURE;
 
     STDMETHOD(SetVolume)(
         THIS_
-        __in double dblVolume
+        _In_ double dblVolume
         ) PURE;
 
     STDMETHOD(SetBalance)(
         THIS_
-        __in double dblBalance
+        _In_ double dblBalance
         ) PURE;
 
     STDMETHOD(SetIsScrubbingEnabled)(
         THIS_
-        __in bool isScrubbingEnabled
+        _In_ bool isScrubbingEnabled
         ) PURE;
 
     STDMETHOD(IsBuffering)(
@@ -853,7 +853,7 @@ DECLARE_INTERFACE_(IMILEventProxy, IUnknown)
 {
     STDMETHOD(RaiseEvent)(
         __in_bcount(cb) BYTE *pb,
-        __in ULONG cb
+        _In_ ULONG cb
         );
 };
 

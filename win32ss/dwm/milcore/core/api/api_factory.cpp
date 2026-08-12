@@ -331,8 +331,9 @@ CMILFactory::CreateMediaPlayer(
 
     IFC(pEventProxy->QueryInterface(IID_IMILEventProxy, reinterpret_cast<void **>(&pProxy)));
 
-    IFC(CMILAV::CreateMedia(pProxy, canOpenAnyMedia, ppMedia));
-
+//    IFC(CMILAV::CreateMedia(pProxy, canOpenAnyMedia, ppMedia));
+    hr = E_NOTIMPL;
+    OutputDebugStringA("CMILFactory::CreateMediaPlayer - AV not enabled\n");
 Cleanup:
     ReleaseInterface(pProxy);
     API_CHECK(hr);

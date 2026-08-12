@@ -12,14 +12,14 @@
 //
 // ARRAY_SIZE uses NT provided type safe version
 //
-#define ARRAY_SIZE(A)   ARRAYSIZE(A)
+#define ARRAY_SIZE(A)   _ARRAYSIZE(A)
 
 //
 // ARRAY_COMMA_ELEM_COUNT and ARRAY_COMMA_BYTE_COUNT are useful to prevent
 // typos when calling a method that accepts a buffer parameter followed by
 // its length or size, respectively.
 //
-#define ARRAY_COMMA_ELEM_COUNT(A) ((A)), ARRAYSIZE((A))
+#define ARRAY_COMMA_ELEM_COUNT(A) ((A)), _ARRAYSIZE((A))
 #define ARRAY_COMMA_BYTE_COUNT(A) ((A)), sizeof((A))
 
 

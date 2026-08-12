@@ -10,7 +10,7 @@
 //  Contents:  Implementation of MIL instrumentation functions
 //
 //------------------------------------------------------------------------
-#include "Pch.h"
+#include "pch.h"
 
 //
 // Captured stack failures
@@ -34,8 +34,8 @@ volatile LONG g_nCurrentStackCaptureIndex = -1;
 //
 
 typedef HRESULT (WINAPI *PFNWERREGISTERMEMORYBLOCK)(
-    __in  PVOID pvAddress,
-    __in  DWORD dwSize
+    _In_  PVOID pvAddress,
+    _In_  DWORD dwSize
     );
 
 
@@ -56,7 +56,7 @@ EnsureStackCaptureRegisteredWithWER()
 
     if (InterlockedCompareExchange(&s_lStackCaptureRegisteredWithWER, TRUE, FALSE) == FALSE)
     {
-        HMODULE hKernel32 = GetModuleHandle(L"kernel32.dll");
+        HMODULE hKernel32 = GetModuleHandle(TEXT("kernel32.dll"));
 
         if (hKernel32 != NULL)
         {
@@ -409,8 +409,8 @@ CheckGUIHandleQuota(
     HRESULT hrOtherwise     // HRESULT to return when count is NOT near quota
     )
 {
-    C_ASSERT(GR_GDIOBJECTS == 0);
-    C_ASSERT(GR_USEROBJECTS == 1);
+    static_assert(GR_GDIOBJECTS == 0, "GR_GDIOBJECTS == 0");
+    static_assert(GR_USEROBJECTS == 1, "GR_USEROBJECTS == 1");
 
     Assert(dwGUIHandleType < ARRAY_SIZE(g_GUIHandleQuota));
 
@@ -524,7 +524,7 @@ bool IsOOM(HRESULT hr)
         MILINSTRUMENTATION_DEFAULTOOMHRS
     };
     
-    for (UINT i = 0; i < ARRAYSIZE(rghr); i++)
+    for (UINT i = 0; i < _ARRAYSIZE(rghr); i++)
     {
         if (rghr[i] == hr)
         {

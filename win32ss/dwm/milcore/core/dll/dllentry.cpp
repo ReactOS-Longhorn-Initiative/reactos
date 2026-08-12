@@ -70,27 +70,3 @@ AvDllShutdown(void)
 {
     OutputDebugStringW(L"WARNING: stub AvDllShutdown called\n");
 }
-
-HRESULT CAVLoader::Startup()
-{
-    OutputDebugStringW(L"WARNING: stub CAVLoader::Startup called\n");
-    return S_OK;
-}
-
-void CAVLoader::Shutdown()
-{
-    OutputDebugStringW(L"WARNING: stub CAVLoader::Shutdown called\n");
-}
-
-HRESULT
-CMILAV::
-CreateMedia(
-    _In_        CEventProxy *pEventProxy,
-    _In_        bool        canOpenAnyMedia,
-    __deref_out IMILMedia   **ppMedia
-    )
-{
-    *ppMedia = nullptr;
-    OutputDebugStringW(L"WARNING: stub CMILAV::CreateMedia called\n");
-    return E_NOTIMPL;
-}

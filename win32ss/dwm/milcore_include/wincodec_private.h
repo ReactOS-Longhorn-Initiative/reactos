@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 HRESULT WINAPI WICCreateImagingFactory_Proxy(
-    __in UINT SDKVersion,
+    _In_ UINT SDKVersion,
     __deref_out_ecount(1) IWICImagingFactory **ppIWICImagingFactory
     );
 
