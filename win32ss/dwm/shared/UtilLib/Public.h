@@ -10,6 +10,8 @@
 //------------------------------------------------------------------------------
 #pragma once
 
+#include <specstrings.h>
+
 // Needed by DynCast.h for DBG - include always for consistency
 #include <strsafe.h>
 #include <wgx_error.h>
@@ -17,7 +19,7 @@
 #include "DebugBreak.h"
 #include "Instrumentation.h"
 #include "InstrumentationConfig.h"
-#include "InstrumentationApi.h"
+#include "instrumentationapi.h"
 #include "MemUtils.h"
 #include "Locks.h"
 #include "StrUtil.h"

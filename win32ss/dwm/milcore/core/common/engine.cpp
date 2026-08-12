@@ -168,7 +168,7 @@ HRESULT Startup()
     IFC(CD3DModuleLoader::Startup());
     IFC(g_DisplayManager.Init());
     IFC(g_DWriteLoader.Startup());
-    IFC(CAVLoader::Startup());
+    //IFC(CAVLoader::Startup());
 
     TraceTag((tagMILVerbose, "Startup completed successfully"));
 
@@ -186,7 +186,7 @@ Cleanup:
 void
 Shutdown()
 {
-    CAVLoader::Shutdown();
+    //CAVLoader::Shutdown();
     CD3DModuleLoader::Shutdown();
     g_DWriteLoader.Shutdown();
 }
