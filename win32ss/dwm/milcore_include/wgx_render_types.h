@@ -75,7 +75,7 @@ typedef DWORD MilVertexFormat;
 
 typedef __range(0,MILSP_MAX_HANDLE) UINT MILSPHandle;
 
-#include "Generated\wgx_render_types_generated.h"
+#include "Generated/wgx_render_types_generated.h"
 
 
 
