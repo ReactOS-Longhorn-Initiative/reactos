@@ -77,6 +77,43 @@
 #define RWMCMD_REDIR_NOTIFYCHILDCREATE      0x4000000F
 
 /*
+ * LINKS A REGISTERED WINDOW INTO THE COMPOSITOR'S TREE.
+ *
+ * NOTIFYCHILDCREATE registers a window; this is what gives it a position.
+ * Vista's LinkWindow (win32k.sys.c:152594) emits it whenever a window is
+ * linked into the sibling list:
+ *
+ *     v13 = HWInsertAfter(...);
+ *     DwmChildLink(pwnd->head.h, parent, v13);
+ *
+ * and _DwmStartRedirection's enumeration sends one per window in a second
+ * pass, AFTER every window has been created:
+ *
+ *     DwmNotifyChildrenAddRemove(1):
+ *         DwmNotifyChildrenCreateDestroy(1);   // register everything
+ *         DwmNotifyChildrenLinkUnlink(1);      // then link everything
+ *
+ * -- the two passes are separate so a link can always resolve both of its
+ * endpoints, which a single interleaved pass cannot guarantee.
+ */
+#define RWMCMD_REDIR_NOTIFYCHILDLINK        0x40000010
+
+/*
+ * UNREGISTERS a window -- the counterpart to NOTIFYCHILDCREATE.
+ *
+ * Vista sends it from xxxFreeWindow (win32k.sys.c:174296) per window, and
+ * from the teardown pass of DwmNotifyChildrenAddRemove(0), which runs the
+ * enumeration in REVERSE: unlink everything, then destroy everything.
+ *
+ * Destroying the sprite is not enough on its own. A sprite is a composition
+ * object; the CONTEXT is what holds the hwnd registration, and dwmredir keeps
+ * it until told otherwise. Leaving contexts behind across a dwm.exe restart
+ * means the next registration pass finds every window "already registered"
+ * and keeps a context built around a window that may no longer exist.
+ */
+#define RWMCMD_REDIR_NOTIFYCHILDDESTROY     0x40000012
+
+/*
  * tagMINIWINDOWINFO - 12 dwords. UpdateSprite carries only the first ten;
  * CreateSprite additionally supplies fDpiAware at mini-info slot 10.
  */
@@ -119,6 +156,30 @@ typedef struct _DWM_CMD_NOTIFYCHILDCREATE
     RECT   rcWindow;
     UINT32 dwClsStyle;
 } DWM_CMD_NOTIFYCHILDCREATE;
+
+/*
+ * MILCMD_DWM_REDIRECTION_NOTIFYCHILDLINK, 16 bytes.
+ * dwmredir.dll.c:16111, and the argument list of Vista's
+ * DwmChildLink(hwnd, hwndParent, hwndInsertAfter).
+ *
+ * These are HWNDs, not sprite handles -- unlike ZORDERSPRITE, which carries
+ * sprite ids. The two describe the same ordering from different sides.
+ */
+typedef struct _DWM_CMD_NOTIFYCHILDLINK
+{
+    UINT32 Type;
+    UINT32 hwnd;
+    UINT32 hwndParent;
+    UINT32 hwndInsertAfter;   /* 0 == front of the sibling list */
+} DWM_CMD_NOTIFYCHILDLINK;
+
+/* MILCMD_DWM_REDIRECTION_NOTIFYCHILDDESTROY, 8 bytes (dwmredir dispatches
+ * opcode 0x40000012 with cb 8). Keyed on the HWND, not a sprite. */
+typedef struct _DWM_CMD_NOTIFYCHILDDESTROY
+{
+    UINT32 Type;
+    UINT32 hwnd;
+} DWM_CMD_NOTIFYCHILDDESTROY;
 
 typedef struct _DWM_CMD_DESTROYSPRITE
 {
@@ -190,7 +251,17 @@ typedef struct _DWM_CMD_UPDATESPRITE
  * thread, which is worth having on its own.
  * ------------------------------------------------------------------------- */
 
-#define DWM_QUEUE_ENTRIES   256
+/*
+ * Raised from 256 when the startup enumeration grew from "top-level windows"
+ * to "every window on the desktop, registered then linked" -- two passes over
+ * a whole desktop, so several commands per window rather than one.
+ *
+ * The queue DROPS THE NEWEST when full (IntDwmPost) rather than overwriting,
+ * because it is an ordered command stream; a drop is counted and reported, so
+ * an undersized queue shows up as a number instead of as windows that
+ * silently never appear. If that counter is ever non-zero, this is the knob.
+ */
+#define DWM_QUEUE_ENTRIES   1024
 #define DWM_QUEUE_ENTRYSIZE 96      /* >= sizeof(DWM_CMD_UPDATESPRITE) */
 
 /* ------------------------------------------------------------------------- */
@@ -210,8 +281,19 @@ NTSTATUS IntDwmStartRedirection(BOOL fRedirectContent);
 VOID     IntDwmStopRedirection(VOID);
 
 /* Lifecycle emitters. Each is a no-op unless IntDwmIsActive(). */
+/*
+ * Registers a window with dwmredir. Separate from IntDwmCreateSprite: every
+ * window on the desktop is registered, only top-level ones get sprites.
+ * MUST be called before the window is linked -- see co_UserCreateWindowEx.
+ */
+VOID IntDwmNotifyChildCreate(PWND Wnd);
+
 VOID IntDwmCreateSprite(PWND Wnd);
 VOID IntDwmDestroySprite(PWND Wnd);
+
+/* Unregisters a window. Counterpart to IntDwmNotifyChildCreate; call it
+ * wherever the sprite is torn down. */
+VOID IntDwmNotifyChildDestroy(PWND Wnd);
 VOID IntDwmShowSprite(PWND Wnd, BOOL fShow);
 VOID IntDwmUpdateSprite(PWND Wnd);
 VOID IntDwmZorderSprite(PWND Wnd);

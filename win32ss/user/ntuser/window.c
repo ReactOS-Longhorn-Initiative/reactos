@@ -2430,6 +2430,21 @@ co_UserCreateWindowEx(CREATESTRUCTW* Cs,
       goto cleanup;
    }
 
+   /*
+    * REGISTER WITH DWM BEFORE LINKING, because linking emits NOTIFYCHILDLINK
+    * and dwmredir resolves that message's hwnd in its context map -- a link
+    * for an unregistered window is dropped.
+    *
+    * Vista does exactly this ordering inside xxxCreateWindowEx:
+    * DwmChildCreate at win32k.sys.c:152969, LinkWindow (which emits
+    * DwmChildLink) at :153532.
+    *
+    * This is registration only. The SPRITE is created further down, after
+    * WM_CREATE, because a sprite describes a window that has finished being
+    * built; registration only has to precede the link.
+    */
+   IntDwmNotifyChildCreate(Window);
+
    /* Link the window */
    if (ParentWindow != NULL)
    {
@@ -2878,7 +2893,11 @@ BOOLEAN co_UserDestroyWindow(PVOID Object)
 
    /* Tear the sprite down before the window structure starts coming apart,
     * so the geometry the compositor last saw is still coherent. */
+   /* Sprite first, then the registration -- the composition object goes
+    * before the context it hangs off. Vista's teardown runs the whole
+    * enumeration in that order (unlink, then destroy). */
    IntDwmDestroySprite(Window);
+   IntDwmNotifyChildDestroy(Window);
 
    ASSERT_REFS_CO(Window); // FIXME: Temp HACK?
 

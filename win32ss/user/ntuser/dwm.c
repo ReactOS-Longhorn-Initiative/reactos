@@ -64,6 +64,10 @@ static LONG glDwmDropped = 0;
 static NTSTATUS IntDwmStartWorker(VOID);
 static VOID     IntDwmStopWorker(VOID);
 
+/* Defined below, used by the startup sweep above it. */
+static VOID     IntDwmNotifyChildLink(PWND Wnd);
+static VOID     IntDwmSweepUnregister(PWND Wnd);
+
 /*
  * HSPRITE allocation.
  *
@@ -171,13 +175,87 @@ IntDwmForEachTopLevel(VOID (*pfn)(PWND))
         pfn(Wnd);
 }
 
+/*
+ * Every window on the desktop, the desktop itself first, depth-first through
+ * the child lists.
+ *
+ * Vista walks the HANDLE TABLE instead (win32k.sys.c:49816 -- every entry of
+ * type window whose rpdesk is grpdeskDwm). The difference that matters: a
+ * handle-table walk also finds windows that exist but are not linked into the
+ * tree, which this cannot see. They arrive later through the per-window
+ * CreateWindow hook, so the end state is the same; the enumeration is just
+ * narrower than Vista's at the instant redirection starts.
+ *
+ * Depth is bounded by the window tree, which win32k already bounds elsewhere,
+ * so recursion is safe here -- but it runs under the USER lock, so the walk
+ * has to stay allocation-free.
+ */
 static VOID
-IntDwmSweepCreate(PWND Wnd)
+IntDwmForEachOnDesktop(VOID (*pfn)(PWND))
 {
-    IntDwmCreateSprite(Wnd);
+    PWND Desktop = UserGetDesktopWindow();
+    PWND Stack[64];
+    ULONG Depth = 0;
+    PWND Wnd;
 
-    /* Establish stacking as we go. Front-to-back means the window we name as
-     * "insert after" was created on a previous iteration. */
+    if (Desktop == NULL)
+    {
+        ERR("DWM sweep: no desktop window\n");
+        return;
+    }
+
+    /* The desktop is registered too, and it must come first: it is the parent
+     * every top-level window names. */
+    pfn(Desktop);
+
+    Wnd = Desktop->spwndChild;
+    for (;;)
+    {
+        while (Wnd != NULL)
+        {
+            pfn(Wnd);
+
+            if (Wnd->spwndChild != NULL && Depth < RTL_NUMBER_OF(Stack))
+            {
+                Stack[Depth++] = Wnd->spwndNext;
+                Wnd = Wnd->spwndChild;
+                continue;
+            }
+
+            Wnd = Wnd->spwndNext;
+        }
+
+        if (Depth == 0)
+            break;
+
+        Wnd = Stack[--Depth];
+    }
+}
+
+/*
+ * PASS 1 of Vista's DwmNotifyChildrenAddRemove(1): register everything.
+ * No links and no sprites -- see IntDwmStartRedirection for why the passes
+ * are separate.
+ */
+static VOID
+IntDwmSweepRegister(PWND Wnd)
+{
+    IntDwmNotifyChildCreate(Wnd);
+}
+
+/*
+ * PASS 2: position everything, then give the top-level windows sprites.
+ *
+ * Order within the pass matters as much as the pass split. The link comes
+ * first so the window is in the tree before its sprite exists, and
+ * ZorderSprite last because its "insert after" names a SPRITE, which only
+ * exists once CreateSprite has run for the sibling ahead.
+ */
+static VOID
+IntDwmSweepLink(PWND Wnd)
+{
+    IntDwmNotifyChildLink(Wnd);
+    IntDwmCreateSprite(Wnd);
     IntDwmZorderSprite(Wnd);
 }
 
@@ -203,8 +281,21 @@ IntDwmStartRedirection(BOOL fRedirectContent)
      *
      * Must run AFTER gbDwmRedirectionActive is set: every emitter gates on
      * IntDwmIsActive() and would no-op otherwise.
+     *
+     * TWO PASSES, and the split is not cosmetic. Vista:
+     *
+     *     DwmNotifyChildrenAddRemove(1):
+     *         DwmNotifyChildrenCreateDestroy(1);   // register everything
+     *         DwmNotifyChildrenLinkUnlink(1);      // then link everything
+     *
+     * A link names a parent and an insert-after sibling, and dwmredir looks
+     * BOTH up in its context map. Interleaving register-then-link per window
+     * means the sibling ahead of the one being linked may not be registered
+     * yet, so its position is lost. Registering everything first is what makes
+     * every link resolvable.
      */
-    IntDwmForEachTopLevel(IntDwmSweepCreate);
+    IntDwmForEachOnDesktop(IntDwmSweepRegister);
+    IntDwmForEachOnDesktop(IntDwmSweepLink);
 
     return STATUS_SUCCESS;
 }
@@ -224,7 +315,7 @@ IntDwmStopRedirection(VOID)
      * would silently produce an empty scene and look like a regression in
      * whatever changed between runs.
      */
-    IntDwmForEachTopLevel(IntDwmDestroySprite);
+    IntDwmForEachOnDesktop(IntDwmSweepUnregister);
 
     gbDwmRedirectionActive = FALSE;
     TRACE("DWM redirection stopped\n");
@@ -471,7 +562,43 @@ IntDwmStopWorker(VOID)
  * ------------------------------------------------------------------------- */
 
 /*
- * Which windows get a sprite.
+ * REGISTRATION IS NOT SPRITE CREATION, and Vista keeps them apart.
+ *
+ * DwmNotifyChildrenCreateDestroy (win32k.sys.c:49804) gates registration on
+ * one thing only:
+ *
+ *     if (pwnd->rpdesk == grpdeskDwm && pwnd != <excluded>)
+ *         DwmChildCreate(...);
+ *
+ * -- desktop membership. That includes CHILD windows and the DESKTOP WINDOW
+ * ITSELF. Sprites are a separate, narrower question answered by
+ * IntDwmShouldRedirect below.
+ *
+ * This used to be one gate doing both jobs, and the comment on it said "the
+ * desktop itself is the compositor's root, not a composed window". The first
+ * half is right and the conclusion was wrong: Vista registers the desktop, it
+ * just never gives it a sprite. Registering it matters because it is the
+ * PARENT every top-level window links under -- without it, NOTIFYCHILDLINK
+ * has no context to name.
+ */
+static BOOL
+IntDwmShouldRegister(PWND Wnd)
+{
+    PWND Desktop;
+
+    if (Wnd == NULL || Wnd->head.h == NULL)
+        return FALSE;
+
+    Desktop = UserGetDesktopWindow();
+    if (Desktop == NULL)
+        return FALSE;
+
+    /* Vista's `pwnd->rpdesk == grpdeskDwm`. */
+    return (Wnd->head.rpdesk != NULL && Wnd->head.rpdesk == Desktop->head.rpdesk);
+}
+
+/*
+ * Which registered windows additionally get a SPRITE.
  *
  * Vista gates the compositor's own side on sprite-live plus WS_VISIBLE, and the
  * uDWM notes record what happens without an equivalent gate here: every
@@ -482,15 +609,15 @@ IntDwmStopWorker(VOID)
 static BOOL
 IntDwmShouldRedirect(PWND Wnd)
 {
-    if (Wnd == NULL || Wnd->head.h == NULL)
+    if (!IntDwmShouldRegister(Wnd))
         return FALSE;
 
-    /* Top-level only. Child windows have their own NotifyChild* opcodes,
-     * which phase 1 does not emit. */
+    /* Top-level only. Child windows are registered and linked, but composing
+     * them is content redirection, which structural mode does not do. */
     if (Wnd->style & WS_CHILD)
         return FALSE;
 
-    /* The desktop itself is the compositor's root, not a composed window. */
+    /* The desktop is registered (it is the tree's parent) and never composed. */
     if (Wnd == UserGetDesktopWindow())
         return FALSE;
 
@@ -520,15 +647,45 @@ IntDwmFillMiniInfo(PWND Wnd, PDWM_MINIWINDOWINFO pInfo)
  * hwndParent is 0 for the top-level windows phase 1 redirects, which is the
  * case dwmredir flags as top level.
  */
-static VOID
+/*
+ * The parent handle both notifications report.
+ *
+ * Vista (win32k.sys.c:49830):
+ *
+ *     v6 = grpdeskDwm->pDeskInfo->spwnd;      // the desktop window
+ *     if (pwnd != v6) {                        // anything but the desktop
+ *         v6 = pwnd->spwndParent;
+ *         if (v6) v5 = v6->head.h;
+ *     }
+ *
+ * so ONLY the desktop window reports a null parent, and every other window --
+ * top-level included -- reports its real parent, which for a top-level window
+ * is the desktop. That is what makes the desktop the tree's single root on
+ * dwmredir's side.
+ */
+static UINT32
+IntDwmParentHandle(PWND Wnd)
+{
+    PWND Desktop = UserGetDesktopWindow();
+
+    if (Wnd == Desktop || Wnd->spwndParent == NULL)
+        return 0;
+
+    return HandleToUlong(Wnd->spwndParent->head.h);
+}
+
+VOID
 IntDwmNotifyChildCreate(PWND Wnd)
 {
     DWM_CMD_NOTIFYCHILDCREATE Cmd;
 
+    if (!IntDwmIsActive() || !IntDwmShouldRegister(Wnd))
+        return;
+
     RtlZeroMemory(&Cmd, sizeof(Cmd));
     Cmd.Type       = RWMCMD_REDIR_NOTIFYCHILDCREATE;
     Cmd.hwnd       = HandleToUlong(Wnd->head.h);
-    Cmd.hwndParent = 0;
+    Cmd.hwndParent = IntDwmParentHandle(Wnd);
     Cmd.dwStyle    = Wnd->style;
     Cmd.dwExStyle  = Wnd->ExStyle;
     Cmd.rcWindow   = Wnd->rcWindow;
@@ -549,12 +706,15 @@ IntDwmCreateSprite(PWND Wnd)
         return;
 
     /*
-     * Registration first, and in that order on the wire: both commands go
-     * through the same queue and the same worker, so the ordering here is the
-     * ordering dwmredir sees.
+     * No registration here any more. This used to call
+     * IntDwmNotifyChildCreate, which tied the two together and meant a window
+     * was registered only if it also got a sprite -- so the desktop and every
+     * child window were invisible to dwmredir, and NOTIFYCHILDLINK had no
+     * parent context to name.
+     *
+     * Registration now happens where Vista does it, early in
+     * co_UserCreateWindowEx and before the link. See IntDwmShouldRegister.
      */
-    IntDwmNotifyChildCreate(Wnd);
-
     Wnd->DwmSprite = (UINT32)InterlockedIncrement(&glDwmNextSprite);
 
     RtlZeroMemory(&Cmd, sizeof(Cmd));
@@ -593,6 +753,48 @@ IntDwmDestroySprite(PWND Wnd)
     IntDwmPost(&Cmd, sizeof(Cmd));
 
     Wnd->DwmSprite = 0;
+}
+
+/*
+ * Unregisters a window -- the counterpart to IntDwmNotifyChildCreate.
+ *
+ * Vista emits DwmChildDestroy from xxxFreeWindow (win32k.sys.c:174296) and
+ * from the teardown enumeration. Sprite teardown is NOT a substitute: the
+ * sprite is a composition object, the CONTEXT holds the registration, and
+ * dwmredir keeps the context until told to drop it.
+ *
+ * Not gated on IntDwmShouldRegister. By the time a window is being freed its
+ * desktop pointer may already be torn down, and the registration has to be
+ * undone on the strength of having been made -- the same reasoning that keeps
+ * IntDwmDestroySprite off IntDwmShouldRedirect.
+ */
+VOID
+IntDwmNotifyChildDestroy(PWND Wnd)
+{
+    DWM_CMD_NOTIFYCHILDDESTROY Cmd;
+
+    if (!IntDwmIsActive() || Wnd == NULL || Wnd->head.h == NULL)
+        return;
+
+    Cmd.Type = RWMCMD_REDIR_NOTIFYCHILDDESTROY;
+    Cmd.hwnd = HandleToUlong(Wnd->head.h);
+
+    TRACE("NotifyChildDestroy hwnd=%p\n", Wnd->head.h);
+    IntDwmPost(&Cmd, sizeof(Cmd));
+}
+
+/*
+ * Teardown for one window: sprite first, then the registration.
+ *
+ * Vista's teardown enumeration runs the whole thing in reverse --
+ * DwmNotifyChildrenLinkUnlink(0) then DwmNotifyChildrenCreateDestroy(0) --
+ * so the composition objects go before the registrations they hang off.
+ */
+static VOID
+IntDwmSweepUnregister(PWND Wnd)
+{
+    IntDwmDestroySprite(Wnd);
+    IntDwmNotifyChildDestroy(Wnd);
 }
 
 VOID
@@ -662,6 +864,50 @@ IntDwmActivationChange(PWND Wnd, BOOL fActive)
     IntDwmPost(&Cmd, sizeof(Cmd));
 }
 
+/*
+ * Vista DwmChildLink(hwnd, hwndParent, hwndInsertAfter), emitted from
+ * LinkWindow (win32k.sys.c:152594).
+ *
+ * HWNDs, not sprite handles. dwmredir looks the parent and the insert-after
+ * window up in its hwnd -> context map, so naming a window that was never
+ * registered is a dangling reference -- the same reason ZorderSprite walks
+ * back past spriteless siblings.
+ *
+ * Vista also relinks the whole child subtree the first time a window is
+ * linked (the bit-8 latch at pwnd+172). Phase 1 redirects top-level windows
+ * only, so there is no subtree to relink; when child windows are added, that
+ * latch is what this needs to grow.
+ */
+static VOID
+IntDwmNotifyChildLink(PWND Wnd)
+{
+    DWM_CMD_NOTIFYCHILDLINK Cmd;
+    PWND Prev;
+
+    if (!IntDwmIsActive() || !IntDwmShouldRegister(Wnd))
+        return;
+
+    /*
+     * The sibling ahead of us that dwmredir actually knows about. Walking back
+     * past unregistered siblings keeps this from naming a window with no
+     * context -- the same reason ZorderSprite walks back past spriteless ones,
+     * one layer up.
+     */
+    Prev = Wnd->spwndPrev;
+    while (Prev != NULL && !IntDwmShouldRegister(Prev))
+        Prev = Prev->spwndPrev;
+
+    RtlZeroMemory(&Cmd, sizeof(Cmd));
+    Cmd.Type            = RWMCMD_REDIR_NOTIFYCHILDLINK;
+    Cmd.hwnd            = HandleToUlong(Wnd->head.h);
+    Cmd.hwndParent      = IntDwmParentHandle(Wnd);
+    Cmd.hwndInsertAfter = (Prev != NULL) ? HandleToUlong(Prev->head.h) : 0;
+
+    TRACE("NotifyChildLink hwnd=%p after=%p\n",
+          Wnd->head.h, Prev ? Prev->head.h : NULL);
+    IntDwmPost(&Cmd, sizeof(Cmd));
+}
+
 VOID
 IntDwmZorderSprite(PWND Wnd)
 {
@@ -689,6 +935,16 @@ IntDwmZorderSprite(PWND Wnd)
     TRACE("ZorderSprite hwnd=%p sprite=%lu after=%lu\n",
           Wnd->head.h, Cmd.hSprite, Cmd.hSpriteInsertAfter);
     IntDwmPost(&Cmd, sizeof(Cmd));
+
+    /*
+     * Vista sends BOTH. LinkWindow (win32k.sys.c:152594) emits DwmChildLink
+     * alongside the sprite ordering, because they address different things:
+     * ZORDERSPRITE orders SPRITES, NOTIFYCHILDLINK positions the window in
+     * dwmredir's CMilWindowContext tree -- the parent/child structure
+     * CMilWindowContext::InsertChild maintains. Without it every window stays
+     * where NOTIFYCHILDCREATE first put it, appended under the root.
+     */
+    IntDwmNotifyChildLink(Wnd);
 }
 
 /* ---------------------------------------------------------------------------
