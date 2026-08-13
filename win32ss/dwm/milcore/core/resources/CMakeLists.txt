@@ -23,6 +23,7 @@ ambientlight.cpp
 axisanglerotation3d.cpp
 BitmapCacheBrush.cpp
 BitmapCacheMode.cpp
+GlyphCache.cpp
 bitmapres.cpp
 BlurEffect.cpp
 brush.cpp

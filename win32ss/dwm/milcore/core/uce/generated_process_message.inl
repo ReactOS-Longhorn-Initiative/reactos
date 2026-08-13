@@ -3670,6 +3670,48 @@ switch(nCmdType)
     }
     break;
 
+    //
+    // HAND-ADDED, despite the "do not edit directly" banner at the top: the
+    // generator that produced this file is not in the tree, and this command
+    // is Vista's, not WPF's, so it would never have been generated here.
+    //
+    // uDWM uploads caption glyph bitmaps with this. The record is a 16-byte
+    // header followed by a 20-byte metrics block, the 1bpp bits, and a 2-byte
+    // zero tail -- see CMilGlyphCacheDuce::ProcessAddBitmaps, which is given
+    // the whole record because the bitmap length comes from the metrics
+    // rather than from cbSize.
+    //
+    case MilCmdGlyphCacheAddBitmaps:
+    {
+        if (cbSize < 36)    // sizeof(header) + sizeof(metrics)
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        //
+        // The target handle is the second DWORD of the header. There is no
+        // generated MILCMD_* struct for this command, so it is read
+        // positionally; the layout is pinned by uDWM's CGlyphCache::UpdateCache,
+        // which is 1:1 with uDWM.dll.c:18416.
+        //
+        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+        CMilGlyphCacheDuce* pResource =
+            static_cast<CMilGlyphCacheDuce*>(pHandleTable->GetResource(
+                pdwHeader[1],
+                TYPE_GLYPHCACHE
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle.");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessAddBitmaps(pcvData, cbSize));
+    }
+    break;
+
     default:
         RIP("Invalid command type.");
         IFC(WGXERR_UCE_MALFORMEDPACKET);

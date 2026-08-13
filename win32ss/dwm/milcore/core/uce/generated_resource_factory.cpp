@@ -323,6 +323,14 @@ HRESULT CResourceFactory::Create(
         pResource = new CMilBitmapCacheDuce(pComposition);
         break;
 
+    //
+    // Vista type, not WPF. uDWM's CGlyphCache creates one of these per
+    // channel and then uploads caption glyph bitmaps into it with command 83.
+    //
+    case TYPE_GLYPHCACHE:
+        pResource = new CMilGlyphCacheDuce(pComposition);
+        break;
+
     case TYPE_BITMAPSOURCE:
         pResource = new CMilSlaveBitmap(pComposition);
         break;
