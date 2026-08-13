@@ -692,6 +692,7 @@ AlpcpSendRequest(
     BOOLEAN SyncRequest = (Flags & ALPC_MSGFLG_SYNC_REQUEST) != 0;
     ULONG TotalLength = Header->u1.s1.TotalLength;
     USHORT BaseType = (USHORT)(Header->u2.s2.Type & 0xFF);
+    USHORT KernelFlag = (USHORT)(Header->u2.s2.Type & LPC_KERNELMODE_MESSAGE);
     NTSTATUS Status;
 
     /* Honor a pre-typed message (LPC_CLIENT_DIED, LPC_ERROR_EVENT, ... from the
@@ -742,7 +743,7 @@ AlpcpSendRequest(
     if (Message == NULL)
         return STATUS_INSUFFICIENT_RESOURCES;
 
-    Message->PortMessage.u2.s2.Type = (CSHORT)(0x3000 | BaseType);
+    Message->PortMessage.u2.s2.Type = (CSHORT)(0x3000 | BaseType | KernelFlag);
     Message->PortMessage.ClientId = Thread->Cid;
     Message->OwnerPort = SourcePort;
     Message->ConnectionPort = TargetPort;

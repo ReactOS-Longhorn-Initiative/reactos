@@ -1001,6 +1001,7 @@ LpcpRequest(
     ULONG DataLength = 0;
     SIZE_T ReplyBufferLength;
     USHORT MessageType;
+    USHORT KernelFlag;
     NTSTATUS Status;
 
     Status = LpcpCaptureMessage(RequestMessage, PreviousMode,
@@ -1009,14 +1010,10 @@ LpcpRequest(
     if (!NT_SUCCESS(Status))
         return Status;
 
-    /*
-     * Validate and normalize the message type, mirroring the classic LPC send
-     * paths: an untyped message becomes LPC_REQUEST (waiting sender) or
-     * LPC_DATAGRAM (one-way sender), while the kernel notification types set by
-     * ps/dbgk/ex (LPC_CLIENT_DIED, LPC_EXCEPTION, LPC_DEBUG_EVENT,
-     * LPC_ERROR_EVENT, LPC_PORT_CLOSED) pass through so receivers such as CSRSS
-     * can tell them apart from API requests. Anything else is rejected.
-     */
+    KernelFlag = (PreviousMode == KernelMode)
+               ? (USHORT)(Header.u2.s2.Type & LPC_KERNELMODE_MESSAGE)
+               : 0;
+
     MessageType = (USHORT)(Header.u2.s2.Type & 0xFF);
     if (WaitForReply)
     {
@@ -1053,7 +1050,7 @@ LpcpRequest(
             return STATUS_INVALID_PARAMETER;
         }
     }
-    Header.u2.s2.Type = MessageType;
+    Header.u2.s2.Type = (CSHORT)(MessageType | KernelFlag);
 
     /* Legacy clients do not set MessageId (the kernel assigns it). Clear it so a
      * non-zero/high-bit value from the caller's buffer is not mistaken for a
