@@ -1,0 +1,431 @@
+//-----------------------------------------------------------------------------
+//
+//  Description:
+//      The Vista-only DWM slave resources.
+//
+//      These six types exist in Vista SP1's milcore and not in WPF, so the
+//      generator that produced generated_resource_factory.cpp and
+//      generated_process_message.inl never emitted them. uDWM and dwmredir
+//      address them constantly; without them the first thing uDWM creates
+//      fails the factory.
+//
+//          TYPE_WINDOWNODE            42   cmds 54-72   dwmredir, per window
+//          TYPE_DESKTOPRENDERTARGET   48   cmd  73      uDWM, the output target
+//          TYPE_MESHGEOMETRY2D        23   cmds 148,103 uDWM CMeshImage (chrome)
+//          TYPE_GEOMETRY2DGROUP       24   cmd  149     uDWM CMesh2DVisual
+//          TYPE_SCENE3D                5   cmd  137     uDWM CEnvironmentMap
+//          TYPE_CACHEDVISUALIMAGE     65   cmd  161     uDWM CSecondaryWindowRepresentation
+//
+//      GROUPED IN ONE FILE, against the one-class-per-file convention next
+//      door, because "what is Vista-only" is the single most useful boundary
+//      to be able to see at a glance here -- these are the resources whose
+//      layouts came out of the decompiles rather than out of WPF, and they
+//      are the ones to re-check against the reference when something on the
+//      wire disagrees.
+//
+//      WHAT THESE DO AND DO NOT DO. They parse, validate and RETAIN their
+//      state faithfully. Nothing here renders: the composition pass does not
+//      yet walk window nodes, and the Vista drawing instructions
+//      (MilDrawGlass, MilDrawMesh2D, MilDrawBitmap, MilDrawVisual,
+//      MilDrawOcclusionRectangle, MilDrawScene3D) have no handler in
+//      renderdata_generated.cpp either. Holding the state is the honest half
+//      that can be written from the command formats alone; consuming it needs
+//      the renderer, which is a separate and much larger port.
+//
+//      Every layout below is taken from the SENDER in this workspace --
+//      dwmredir/DuceHelper.cpp and uDWM's CMeshImage / CDesktopManager /
+//      CEnvironmentMap -- each of which is itself 1:1 with a Vista body and
+//      carries the decompile line number. See
+//      DarkFiresReactOSModules/dwm/docs/NOTES-milcore-ids.md.
+//
+//      SIZE CHECKS ARE `>=`, NEVER `==`. A batch record carries alignment
+//      padding: the glyph upload is 2894 bytes of command and arrives as
+//      cbSize 2896. An exact-match check rejects well-formed commands.
+//
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//
+//  The Vista render-data INSTRUCTIONS.
+//
+//  These are not channel commands -- they live inside a TYPE_RENDERDATA blob
+//  and are walked by CMilSlaveRenderData::Draw, so they are dispatched by
+//  renderdata.cpp / renderdata_generated.cpp rather than by
+//  generated_process_message.inl. A scan of the command switch alone reports
+//  them as missing and is wrong about where they belong.
+//
+//  FRAMING. CMilDataStreamReader::GetNextItemSafe hands out
+//
+//      ppItemData  = <start of record> + sizeof(UINT)   // skips the SIZE only
+//      pcbItemSize = cbRecord - sizeof(UINT)
+//
+//  so the pointer lands on the TYPE field and every MILCMD_DRAW_* struct
+//  starts with it. uDWM writes `cbInstruction = sizeof(instr)` where instr
+//  includes cbInstruction itself, so a record of cb bytes arrives as cb-4.
+//
+//  That is the arithmetic behind uDWM's own "24, not 20" note on
+//  DrawGeometry: MILCMD_DRAW_GEOMETRY is 20 bytes and the record is 24.
+//  Getting it wrong truncates every record and milcore then resynchronises
+//  on garbage -- which is how an execute of 0x400000004000 was produced once
+//  already.
+//
+//  pack(4) is uDWM's, and it matters for the one struct containing doubles:
+//  natural alignment would make MILCMD_DRAW_OCCLUSIONRECTANGLE 40 bytes
+//  against the 36 that arrive.
+//
+//-----------------------------------------------------------------------------
+
+#pragma pack(push, 4)
+
+// Instruction 106. Emitted by uDWM's CMesh2DVisual, one per (image, group).
+struct MILCMD_DRAW_MESH2D
+{
+    MILCMD        type;
+    HMIL_RESOURCE hMeshGroup;      // TYPE_GEOMETRY2DGROUP
+    HMIL_RESOURCE hImage;          // TYPE_BITMAPSOURCE
+};
+
+// Instruction 105. Defined by uDWM's CRenderData but not yet emitted by
+// anything, so the four edge handles' resource types are unconfirmed.
+struct MILCMD_DRAW_GLASS
+{
+    MILCMD        type;
+    HMIL_RESOURCE hTop;
+    HMIL_RESOURCE hLeft;
+    HMIL_RESOURCE hRight;
+    HMIL_RESOURCE hBottom;
+    float         reserved[4];
+    HMIL_RESOURCE hColorization;
+};
+
+// Instruction 107. A culling hint: the region is opaque, so what is behind
+// it need not be drawn.
+struct MILCMD_DRAW_OCCLUSIONRECTANGLE
+{
+    MILCMD type;
+    double X;
+    double Y;
+    double Width;
+    double Height;
+};
+
+// Instruction 124. uDWM calls it DrawViewport3D; the resource is TYPE_SCENE3D.
+struct MILCMD_DRAW_SCENE3D
+{
+    MILCMD        type;
+    HMIL_RESOURCE hViewport;       // TYPE_SCENE3D
+    UINT32        Flags;
+};
+
+#pragma pack(pop)
+
+//
+// Sizes are the record size minus the 4-byte length header, matching what
+// uDWM emits. If one of these fires, the sender and the receiver disagree
+// about the layout and every following instruction in the blob is misread.
+//
+C_ASSERT(sizeof(MILCMD_DRAW_MESH2D)               == 16 - 4);
+C_ASSERT(sizeof(MILCMD_DRAW_GLASS)                == 44 - 4);
+C_ASSERT(sizeof(MILCMD_DRAW_OCCLUSIONRECTANGLE)   == 40 - 4);
+C_ASSERT(sizeof(MILCMD_DRAW_SCENE3D)              == 16 - 4);
+
+MtExtern(CMilWindowNodeDuce);
+MtExtern(CMilDesktopRenderTargetDuce);
+MtExtern(CMilMeshGeometry2DDuce);
+MtExtern(CMilGeometry2DGroupDuce);
+MtExtern(CMilScene3DDuce);
+MtExtern(CMilCachedVisualImageDuce);
+
+//+----------------------------------------------------------------------------
+//
+//  CMilWindowNodeDuce -- TYPE_WINDOWNODE (42)
+//
+//  One redirected top-level window, as the compositor sees it. dwmredir's
+//  CMilWindowContext creates one per window and drives it with commands
+//  54-72; this is where win32k's sprite stream finally lands.
+//
+//-----------------------------------------------------------------------------
+
+class CMilWindowNodeDuce : public CMilSlaveResource
+{
+    friend class CResourceFactory;
+
+protected:
+    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilWindowNodeDuce));
+
+    CMilWindowNodeDuce(__in_ecount(1) CComposition *pComposition);
+    ~CMilWindowNodeDuce() { }
+
+public:
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_WINDOWNODE;
+    }
+
+    //
+    // One entry for all of 54-72. The commands share a {Type, Handle} head
+    // and differ only in what follows, so a single switch keeps the dispatch
+    // arm in generated_process_message.inl to one grouped case list instead
+    // of nineteen near-identical copies.
+    //
+    HRESULT ProcessCommand(
+        MILCMD nCmdType,
+        __in_bcount(cbSize) const void *pcvData,
+        UINT cbSize
+        );
+
+    // ---- retained state, for the composition pass that does not exist yet ----
+    bool          IsAttached() const     { return m_fAttached; }
+    const RECT   &Bounds() const         { return m_rcBounds; }
+    UINT32        SpriteHandle() const   { return m_hSprite; }
+    HMIL_RESOURCE SpriteImage() const    { return m_hSpriteImage; }
+    HMIL_RESOURCE SpriteClip() const     { return m_hSpriteClip; }
+    bool          ApplySpriteClip() const{ return m_fApplySpriteClip; }
+    const MARGINS &AlphaMargins() const  { return m_marAlpha; }
+    UINT32        SourceFlags() const    { return m_dwSourceFlags; }
+    UINT32        Color() const          { return m_dwColor; }
+    UINT32        DxAlpha() const        { return m_dwDxAlpha; }
+    bool          ComposeOnce() const    { return m_fComposeOnce; }
+    UINT          DirtyCount() const     { return m_cDirty; }
+
+private:
+    CComposition *m_pCompositionNoRef;
+
+    bool          m_fAttached;
+    bool          m_fApplySpriteClip;
+    bool          m_fComposeOnce;
+
+    RECT          m_rcBounds;
+    MARGINS       m_marAlpha;
+    MARGINS       m_marMaximizedClip;
+
+    UINT32        m_hSprite;          // HSPRITE, win32k's id -- not a MIL handle
+    HMIL_RESOURCE m_hSpriteImage;
+    HMIL_RESOURCE m_hSpriteClip;
+    HMIL_RESOURCE m_hDxImage;
+    HMIL_RESOURCE m_hDxClip;
+
+    UINT32        m_dwSourceFlags;
+    UINT32        m_dwColor;
+    UINT32        m_dwDxAlpha;
+
+    UINT          m_cDirty;           // NotifyDirty count, for tracing
+};
+
+//+----------------------------------------------------------------------------
+//
+//  CMilDesktopRenderTargetDuce -- TYPE_DESKTOPRENDERTARGET (48)
+//
+//  uDWM's output target. CDesktopManager::EnableRenderTargetImpl creates one
+//  and configures it with cmd 73 (MilCmdHwndTargetCreate), whose payload is
+//  0x5C bytes -- Vista reuses the hwnd-target command for the desktop target.
+//
+//-----------------------------------------------------------------------------
+
+class CMilDesktopRenderTargetDuce : public CMilSlaveResource
+{
+    friend class CResourceFactory;
+
+protected:
+    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilDesktopRenderTargetDuce));
+
+    CMilDesktopRenderTargetDuce(__in_ecount(1) CComposition *pComposition);
+    ~CMilDesktopRenderTargetDuce() { }
+
+public:
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_DESKTOPRENDERTARGET;
+    }
+
+    HRESULT ProcessCreate(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
+    HRESULT ProcessSetRoot(HMIL_RESOURCE hRoot);
+
+    HMIL_RESOURCE RootVisual() const { return m_hRootVisual; }
+
+private:
+    CComposition *m_pCompositionNoRef;
+    HMIL_RESOURCE m_hRootVisual;
+    bool          m_fCreated;
+};
+
+//+----------------------------------------------------------------------------
+//
+//  CMilMeshGeometry2DDuce -- TYPE_MESHGEOMETRY2D (23)
+//
+//  uDWM's CMeshImage uploads chrome geometry here with cmd 148: a header of
+//  four byte-counts followed by four concatenated buffers (positions,
+//  texture coordinates, per-vertex opacities, triangle indices). Cmd 103
+//  updates the packed vertex diffuse on its own when only opacity moved.
+//
+//-----------------------------------------------------------------------------
+
+class CMilMeshGeometry2DDuce : public CMilSlaveResource
+{
+    friend class CResourceFactory;
+
+protected:
+    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilMeshGeometry2DDuce));
+
+    CMilMeshGeometry2DDuce(__in_ecount(1) CComposition *pComposition);
+    ~CMilMeshGeometry2DDuce();
+
+public:
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_MESHGEOMETRY2D;
+    }
+
+    HRESULT ProcessUpdate(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
+    HRESULT ProcessSetConstantOpacity(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
+
+    UINT   VertexCount() const   { return m_cbPositions / sizeof(float) / 2; }
+    UINT   IndexCount() const    { return m_cbTriangleIndices / sizeof(UINT16); }
+    UINT32 ConstantOpacity() const { return m_dwConstantOpacity; }
+
+private:
+    void FreeBuffers();
+
+    CComposition *m_pCompositionNoRef;
+
+    BYTE  *m_pbPositions;          UINT m_cbPositions;
+    BYTE  *m_pbTextureCoordinates; UINT m_cbTextureCoordinates;
+    BYTE  *m_pbVertexOpacities;    UINT m_cbVertexOpacities;
+    BYTE  *m_pbTriangleIndices;    UINT m_cbTriangleIndices;
+
+    //
+    // Cmd 103's payload. NOT the hidden-margin mask -- uDWM's CMeshImage
+    // carries those in a different field, and sending the mask here is a bug
+    // that has already been made once (see CMeshImage::Validate).
+    //
+    UINT32 m_dwConstantOpacity;
+};
+
+//+----------------------------------------------------------------------------
+//
+//  CMilGeometry2DGroupDuce -- TYPE_GEOMETRY2DGROUP (24)
+//
+//  An ordered set of TYPE_MESHGEOMETRY2D children. Cmd 149 is a 12-byte
+//  header followed by the child handles.
+//
+//-----------------------------------------------------------------------------
+
+class CMilGeometry2DGroupDuce : public CMilSlaveResource
+{
+    friend class CResourceFactory;
+
+protected:
+    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilGeometry2DGroupDuce));
+
+    CMilGeometry2DGroupDuce(__in_ecount(1) CComposition *pComposition);
+    ~CMilGeometry2DGroupDuce();
+
+public:
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_GEOMETRY2DGROUP;
+    }
+
+    HRESULT ProcessSetChildren(
+        __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
+        __in_bcount(cbSize) const void *pcvData,
+        UINT cbSize
+        );
+
+    /* override */ void UnRegisterNotifiers();
+
+    //
+    // The draw pass needs the MESHES, not their handles -- this used to store
+    // raw HMIL_RESOURCEs, which a render walk has no way to resolve (it holds
+    // rgpResources, not the handle table). They are resolved once here, at
+    // command time, which is also where the handle is guaranteed to still mean
+    // something.
+    //
+    UINT ChildCount() const { return m_rgpChildren.GetCount(); }
+
+    __outro_ecount_opt(1) CMilMeshGeometry2DDuce *Child(UINT i) const
+    {
+        return (i < m_rgpChildren.GetCount()) ? m_rgpChildren[i] : NULL;
+    }
+
+private:
+    CComposition *m_pCompositionNoRef;
+
+    /* RegisterNotifier'd, so the group holds a reference and hears about
+     * changes; UnRegisterNotifiers drops them. */
+    DynArray<CMilMeshGeometry2DDuce*> m_rgpChildren;
+};
+
+//+----------------------------------------------------------------------------
+//
+//  CMilScene3DDuce -- TYPE_SCENE3D (5)
+//
+//  uDWM's CEnvironmentMap and CFlip3D build a 3D scene on one of these and
+//  configure it with cmd 137. uDWM calls it a Viewport3DVisual; Vista's
+//  resource-type name is TYPE_SCENE3D. Same slot, two names -- worth knowing
+//  when grepping.
+//
+//-----------------------------------------------------------------------------
+
+class CMilScene3DDuce : public CMilSlaveResource
+{
+    friend class CResourceFactory;
+
+protected:
+    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilScene3DDuce));
+
+    CMilScene3DDuce(__in_ecount(1) CComposition *pComposition);
+    ~CMilScene3DDuce() { }
+
+public:
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_SCENE3D;
+    }
+
+    HRESULT ProcessUpdate(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
+
+private:
+    CComposition *m_pCompositionNoRef;
+
+    HMIL_RESOURCE m_hCamera;
+    HMIL_RESOURCE m_hModel;
+    UINT32        m_rgdwViewport[4];
+    UINT          m_cbPayload;    // what actually arrived, for tracing
+};
+
+//+----------------------------------------------------------------------------
+//
+//  CMilCachedVisualImageDuce -- TYPE_CACHEDVISUALIMAGE (65)
+//
+//  A cached rasterization of a visual subtree, used by uDWM's
+//  CSecondaryWindowRepresentation (thumbnails / live previews). Cmd 161 is
+//  0x48 bytes and carries the source visual plus the source rect.
+//
+//-----------------------------------------------------------------------------
+
+class CMilCachedVisualImageDuce : public CMilSlaveResource
+{
+    friend class CResourceFactory;
+
+protected:
+    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilCachedVisualImageDuce));
+
+    CMilCachedVisualImageDuce(__in_ecount(1) CComposition *pComposition);
+    ~CMilCachedVisualImageDuce() { }
+
+public:
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_CACHEDVISUALIMAGE;
+    }
+
+    HRESULT ProcessUpdate(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
+
+private:
+    CComposition *m_pCompositionNoRef;
+
+    HMIL_RESOURCE m_hSourceVisual;
+    UINT32        m_rgdwPayload[16];   // retained verbatim; layout part-decoded
+    UINT          m_cbPayload;
+};

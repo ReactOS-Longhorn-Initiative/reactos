@@ -508,6 +508,35 @@ IntDwmFillMiniInfo(PWND Wnd, PDWM_MINIWINDOWINFO pInfo)
     pInfo->fDpiAware = 0;
 }
 
+/*
+ * Registers the window with dwmredir. MUST precede its CREATESPRITE.
+ *
+ * dwmredir's CMilWindowManager::NotifyChildCreate is the only thing that puts
+ * an hwnd into the context map, and CreateSprite looks the hwnd up in that map
+ * rather than creating on demand -- see the comment on
+ * RWMCMD_REDIR_NOTIFYCHILDCREATE in dwm.h. Without this every sprite we sent
+ * was answered with E_HANDLE and dropped.
+ *
+ * hwndParent is 0 for the top-level windows phase 1 redirects, which is the
+ * case dwmredir flags as top level.
+ */
+static VOID
+IntDwmNotifyChildCreate(PWND Wnd)
+{
+    DWM_CMD_NOTIFYCHILDCREATE Cmd;
+
+    RtlZeroMemory(&Cmd, sizeof(Cmd));
+    Cmd.Type       = RWMCMD_REDIR_NOTIFYCHILDCREATE;
+    Cmd.hwnd       = HandleToUlong(Wnd->head.h);
+    Cmd.hwndParent = 0;
+    Cmd.dwStyle    = Wnd->style;
+    Cmd.dwExStyle  = Wnd->ExStyle;
+    Cmd.rcWindow   = Wnd->rcWindow;
+    Cmd.dwClsStyle = (Wnd->pcls != NULL) ? Wnd->pcls->style : 0;
+
+    IntDwmPost(&Cmd, sizeof(Cmd));
+}
+
 VOID
 IntDwmCreateSprite(PWND Wnd)
 {
@@ -518,6 +547,13 @@ IntDwmCreateSprite(PWND Wnd)
 
     if (Wnd->DwmSprite != 0)
         return;
+
+    /*
+     * Registration first, and in that order on the wire: both commands go
+     * through the same queue and the same worker, so the ordering here is the
+     * ordering dwmredir sees.
+     */
+    IntDwmNotifyChildCreate(Wnd);
 
     Wnd->DwmSprite = (UINT32)InterlockedIncrement(&glDwmNextSprite);
 

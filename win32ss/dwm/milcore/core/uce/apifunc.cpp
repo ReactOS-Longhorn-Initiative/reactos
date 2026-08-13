@@ -1111,7 +1111,30 @@ MilResource_SendCommand(
 
     CHECKPTRARG(pChannel);
 
-    IFC(pChannel->SendCommand(pvCommandData, cbSize, TRUE));
+    //
+    // CURRENT BATCH, NOT A SEPARATE ONE.
+    //
+    // This used to pass TRUE, and the commented-out parameter above already
+    // suspected why that was wrong: Vista's MilResource_SendCommand has no
+    // batch argument at all, so it cannot be choosing a separate batch.
+    //
+    // The consequence was an ordering inversion. CreateOrAddRefOnChannel puts
+    // its MilCmdChannelCreateResource in the OPEN batch
+    // (CMilMasterHandleTable::CreateOrAddRefOnChannel -> SendCommand with the
+    // default false), while a separate batch is CLOSED immediately and queued
+    // on m_pClosedBatches -- which Commit drains first. So every
+    // resource-update command overtook the creation of the resource it
+    // addressed:
+    //
+    //     MilResource_CreateOrAddRefOnChannel   -> open batch  (handle 5)
+    //     MilResource_SendCommand(151)          -> closed batch, jumps ahead
+    //     Commit                                -> batch of 48 bytes, cmd 151
+    //     "Invalid resource handle."            generated_process_message.inl
+    //
+    // uDWM's whole environment-map graph failed this way: eight creates and
+    // eight sends produced a 48-byte batch holding one command.
+    //
+    IFC(pChannel->SendCommand(pvCommandData, cbSize, false));
 
 Cleanup:
     RRETURN(hr);

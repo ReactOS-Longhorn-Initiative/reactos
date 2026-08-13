@@ -740,6 +740,77 @@ CMilSlaveRenderData::Draw(
                         ));
                     break;
                 }
+                //
+                // [RWM] Vista's drawing instructions. The handles were
+                // replaced by indices into rgpResources during GetHandles.
+                //
+                case MilDrawMesh2D:
+                {
+                    Assert(nItemDataSize == sizeof(MILCMD_DRAW_MESH2D));
+
+                    MILCMD_DRAW_MESH2D *pData = reinterpret_cast<MILCMD_DRAW_MESH2D*>(pItemData);
+                    Assert(   pData->hMeshGroup < cResources
+                           && pData->hImage < cResources);
+
+                    IFC(pCurrentDC->DrawMesh2D(
+                        DYNCAST(CMilGeometry2DGroupDuce, rgpResources[pData->hMeshGroup]),
+                        rgpResources[pData->hImage]
+                        ));
+                    break;
+                }
+
+                case MilDrawScene3D:
+                {
+                    Assert(nItemDataSize == sizeof(MILCMD_DRAW_SCENE3D));
+
+                    MILCMD_DRAW_SCENE3D *pData = reinterpret_cast<MILCMD_DRAW_SCENE3D*>(pItemData);
+                    Assert(pData->hViewport < cResources);
+
+                    IFC(pCurrentDC->DrawScene3D(
+                        DYNCAST(CMilScene3DDuce, rgpResources[pData->hViewport]),
+                        pData->Flags
+                        ));
+                    break;
+                }
+
+                case MilDrawGlass:
+                {
+                    Assert(nItemDataSize == sizeof(MILCMD_DRAW_GLASS));
+
+                    MILCMD_DRAW_GLASS *pData = reinterpret_cast<MILCMD_DRAW_GLASS*>(pItemData);
+                    Assert(   pData->hTop < cResources
+                           && pData->hLeft < cResources
+                           && pData->hRight < cResources
+                           && pData->hBottom < cResources
+                           && pData->hColorization < cResources);
+
+                    IFC(pCurrentDC->DrawGlass(
+                        rgpResources[pData->hTop],
+                        rgpResources[pData->hLeft],
+                        rgpResources[pData->hRight],
+                        rgpResources[pData->hBottom],
+                        rgpResources[pData->hColorization]
+                        ));
+                    break;
+                }
+
+                case MilDrawOcclusionRectangle:
+                {
+                    Assert(nItemDataSize == sizeof(MILCMD_DRAW_OCCLUSIONRECTANGLE));
+
+                    MILCMD_DRAW_OCCLUSIONRECTANGLE *pData =
+                        reinterpret_cast<MILCMD_DRAW_OCCLUSIONRECTANGLE*>(pItemData);
+
+                    MilPointAndSizeD rc;
+                    rc.X      = pData->X;
+                    rc.Y      = pData->Y;
+                    rc.Width  = pData->Width;
+                    rc.Height = pData->Height;
+
+                    IFC(pCurrentDC->DrawOcclusionRectangle(&rc));
+                    break;
+                }
+
                 case MilDrawGeometry:
                 {
                     Assert(nItemDataSize == sizeof(MILCMD_DRAW_GEOMETRY));

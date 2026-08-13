@@ -1540,6 +1540,31 @@ switch(nCmdType)
 
     case MilCmdHwndTargetCreate:
     {
+        //
+        // [RWM] Vista reuses command 73 for the DESKTOP target, which is what
+        // uDWM's CDesktopManager::EnableRenderTargetImpl creates -- a
+        // TYPE_DESKTOPRENDERTARGET, not a TYPE_HWNDRENDERTARGET. Route it
+        // before the WPF path: its payload is 0x5C bytes, so the DEBUG size
+        // check below would reject it, and HwndTarget_Create would then look
+        // the handle up as the wrong type.
+        //
+        if (cbSize >= 2 * sizeof(UINT32))
+        {
+            const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+            CMilDesktopRenderTargetDuce* pDesktop =
+                static_cast<CMilDesktopRenderTargetDuce*>(pHandleTable->GetResource(
+                    pdwHeader[1],
+                    TYPE_DESKTOPRENDERTARGET
+                    ));
+
+            if (pDesktop != NULL)
+            {
+                IFC(pDesktop->ProcessCreate(pcvData, cbSize));
+                break;
+            }
+        }
+
         #ifdef DEBUG
         if (cbSize != sizeof(MILCMD_HWNDTARGET_CREATE))
         {
@@ -1664,11 +1689,29 @@ switch(nCmdType)
         }
         #endif
 
-        const MILCMD_TARGET_SETROOT* pCmd = 
+        const MILCMD_TARGET_SETROOT* pCmd =
             reinterpret_cast<const MILCMD_TARGET_SETROOT*>(pcvData);
 
+        //
+        // [RWM] As with command 73: uDWM sets the root visual on its
+        // TYPE_DESKTOPRENDERTARGET, which the WPF target path cannot resolve.
+        //
+        {
+            CMilDesktopRenderTargetDuce* pDesktop =
+                static_cast<CMilDesktopRenderTargetDuce*>(pHandleTable->GetResource(
+                    pCmd->Handle,
+                    TYPE_DESKTOPRENDERTARGET
+                    ));
+
+            if (pDesktop != NULL)
+            {
+                IFC(pDesktop->ProcessSetRoot(pCmd->hRoot));
+                break;
+            }
+        }
+
         #ifdef DEBUG
-        if (pCmd->hRoot != NULL) 
+        if (pCmd->hRoot != NULL)
         {
             const CMilVisual* pResource = 
                 static_cast<const CMilVisual*>(pHandleTable->GetResource(
@@ -3711,6 +3754,208 @@ switch(nCmdType)
         IFC(pResource->ProcessAddBitmaps(pcvData, cbSize));
     }
     break;
+
+    //
+    // 82 / 84 / 85 -- the rest of the glyph cache. uDWM has not been observed
+    // sending these (it creates the cache with ChannelCreateResource and
+    // uploads with 83), so they are accepted and traced rather than being
+    // given speculative parsers. If one shows up, its layout needs recovering
+    // from the sender before it is decoded.
+    //
+    case MilCmdGlyphCacheCreate:
+    case MilCmdGlyphBitmap:
+    case MilCmdGlyphCacheRemoveBitmaps:
+        TraceTag((0, "[RWM] glyph cache cmd %u accepted, undecoded", nCmdType));
+        break;
+
+    //
+    // 54-72 -- the window node group. All nineteen share a {Type, Handle}
+    // head, so they route to one entry point that switches internally; see
+    // core/resources/VistaDwmResources.cpp.
+    //
+    case MilCmdWindowNodeCreate:
+    case MilCmdWindowNodeDetach:
+    case MilCmdWindowNodeFlushDxUpdates:
+    case MilCmdWindowNodeNotifyDirty:
+    case MilCmdWindowNodeSetBounds:
+    case MilCmdWindowNodeAddDirtyRegion:
+    case MilCmdWindowNodeUpdateSpriteHandle:
+    case MilCmdWindowNodeNotifyDxUpdate:
+    case MilCmdWindowNodeSetSpriteImage:
+    case MilCmdWindowNodeSetDxImage:
+    case MilCmdWindowNodeSetSpriteClip:
+    case MilCmdWindowNodeSetDxClip:
+    case MilCmdWindowNodeSetSourceModifications:
+    case MilCmdWindowNodeSetAlphaMargins:
+    case MilCmdWindowNodeSetComposeOnce:
+    case MilCmdWindowNodeCopyCompositorOwnedResources:
+    case MilCmdWindowNodeSetMaximizedClipMargins:
+    case MilCmdWindowNodeNotifyVisRgnUpdate:
+    case MilCmdWindowNodeSetDxAlpha:
+    {
+        if (cbSize < 2 * sizeof(UINT32))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+        CMilWindowNodeDuce* pResource =
+            static_cast<CMilWindowNodeDuce*>(pHandleTable->GetResource(
+                pdwHeader[1],
+                TYPE_WINDOWNODE
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilWindowNodeDuce).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessCommand(nCmdType, pcvData, cbSize));
+    }
+    break;
+
+    //
+    // 148 / 103 -- mesh geometry upload and the opacity-only update.
+    //
+    case MilCmdMeshGeometry2D:
+    case MilCmdMeshGeometry2DSetConstantOpacity:
+    {
+        if (cbSize < 2 * sizeof(UINT32))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+        CMilMeshGeometry2DDuce* pResource =
+            static_cast<CMilMeshGeometry2DDuce*>(pHandleTable->GetResource(
+                pdwHeader[1],
+                TYPE_MESHGEOMETRY2D
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilMeshGeometry2DDuce).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        if (nCmdType == MilCmdMeshGeometry2D)
+        {
+            IFC(pResource->ProcessUpdate(pcvData, cbSize));
+        }
+        else
+        {
+            IFC(pResource->ProcessSetConstantOpacity(pcvData, cbSize));
+        }
+    }
+    break;
+
+    // 149 -- the mesh group's child list.
+    case MilCmdGeometry2DGroup:
+    {
+        if (cbSize < 2 * sizeof(UINT32))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+        CMilGeometry2DGroupDuce* pResource =
+            static_cast<CMilGeometry2DGroupDuce*>(pHandleTable->GetResource(
+                pdwHeader[1],
+                TYPE_GEOMETRY2DGROUP
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilGeometry2DGroupDuce).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessSetChildren(pHandleTable, pcvData, cbSize));
+    }
+    break;
+
+    // 137 -- the 3D scene / Viewport3DVisual.
+    case MilCmdScene3D:
+    {
+        if (cbSize < 2 * sizeof(UINT32))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+        CMilScene3DDuce* pResource =
+            static_cast<CMilScene3DDuce*>(pHandleTable->GetResource(
+                pdwHeader[1],
+                TYPE_SCENE3D
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilScene3DDuce).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessUpdate(pcvData, cbSize));
+    }
+    break;
+
+    // 161 -- the cached visual image (thumbnails / live previews).
+    case MilCmdCachedVisualImage:
+    {
+        if (cbSize < 2 * sizeof(UINT32))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+
+        CMilCachedVisualImageDuce* pResource =
+            static_cast<CMilCachedVisualImageDuce*>(pHandleTable->GetResource(
+                pdwHeader[1],
+                TYPE_CACHEDVISUALIMAGE
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilCachedVisualImageDuce).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessUpdate(pcvData, cbSize));
+    }
+    break;
+
+    //
+    // 81 -- TargetCaptureBits. A synchronous screen grab; dwmredir refuses it
+    // on a cross-machine channel. Accepted so it cannot zombie the partition,
+    // but it returns no bits, so anything relying on it will see an empty
+    // capture rather than a failure.
+    //
+    case MilCmdTargetCaptureBits:
+        TraceTag((0, "[RWM] TargetCaptureBits accepted, capture not ported"));
+        break;
+
+    //
+    // 3-8 -- transport and partition control. These are scheduling and
+    // bookkeeping hints (round-trip fences, async flush, MMCSS task,
+    // memory priority, tuning scheme); Vista's own implementations of the
+    // composition-scope trio are no-ops that return S_OK on a cross-machine
+    // channel (dwmredir/DuceHelper.cpp:1310-1431). Accepting them is correct
+    // rather than lenient -- but note that AsyncFlush (4) is a FENCE, and a
+    // sender waiting on its reply will not get one from here.
+    //
+    case MilCmdTransportRoundTripRequest:
+    case MilCmdTransportAsyncFlush:
+    case MilCmdPartitionSetCurrentMmTask:
+    case MilCmdPartitionSetMemoryPriority:
+    case MilCmdPartitionSetTuningScheme:
+        TraceTag((0, "[RWM] transport/partition cmd %u accepted", nCmdType));
+        break;
 
     default:
         RIP("Invalid command type.");

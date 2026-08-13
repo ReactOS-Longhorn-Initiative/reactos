@@ -181,6 +181,72 @@ CMilSlaveRenderData::GetHandles(CMilSlaveHandleTable *pHandleTable)
 
                 break;
 
+            //
+            // [RWM] Vista's drawing instructions. Hand-added: the generator
+            // that made this file never emitted them, and without a
+            // GetHandles arm their resource handles are never translated into
+            // indices, so Draw would index m_rgpResources with a raw handle.
+            //
+            case MilDrawMesh2D:
+                {
+                    if (nItemDataSize < sizeof(MILCMD_DRAW_MESH2D))
+                    {
+                        IFC(WGXERR_UCE_MALFORMEDPACKET);
+                    }
+
+                    MILCMD_DRAW_MESH2D *pData = static_cast<MILCMD_DRAW_MESH2D*>(pItemData);
+                    IFC(AddHandleToArrayAndReplace(&(pData->hMeshGroup), TYPE_GEOMETRY2DGROUP, &m_rgpResources, pHandleTable));
+                    IFC(AddHandleToArrayAndReplace(&(pData->hImage), TYPE_BITMAPSOURCE, &m_rgpResources, pHandleTable));
+                }
+                break;
+
+            case MilDrawScene3D:
+                {
+                    if (nItemDataSize < sizeof(MILCMD_DRAW_SCENE3D))
+                    {
+                        IFC(WGXERR_UCE_MALFORMEDPACKET);
+                    }
+
+                    MILCMD_DRAW_SCENE3D *pData = static_cast<MILCMD_DRAW_SCENE3D*>(pItemData);
+                    IFC(AddHandleToArrayAndReplace(&(pData->hViewport), TYPE_SCENE3D, &m_rgpResources, pHandleTable));
+                }
+                break;
+
+            case MilDrawGlass:
+                {
+                    if (nItemDataSize < sizeof(MILCMD_DRAW_GLASS))
+                    {
+                        IFC(WGXERR_UCE_MALFORMEDPACKET);
+                    }
+
+                    //
+                    // The four edge handles are bound as TYPE_BITMAPSOURCE on
+                    // the strength of the surrounding chrome code, NOT from a
+                    // Vista body -- nothing emits instruction 105 yet, so
+                    // there has been nothing to check against. Confirm before
+                    // trusting.
+                    //
+                    MILCMD_DRAW_GLASS *pData = static_cast<MILCMD_DRAW_GLASS*>(pItemData);
+                    IFC(AddHandleToArrayAndReplace(&(pData->hTop), TYPE_BITMAPSOURCE, &m_rgpResources, pHandleTable));
+                    IFC(AddHandleToArrayAndReplace(&(pData->hLeft), TYPE_BITMAPSOURCE, &m_rgpResources, pHandleTable));
+                    IFC(AddHandleToArrayAndReplace(&(pData->hRight), TYPE_BITMAPSOURCE, &m_rgpResources, pHandleTable));
+                    IFC(AddHandleToArrayAndReplace(&(pData->hBottom), TYPE_BITMAPSOURCE, &m_rgpResources, pHandleTable));
+                    IFC(AddHandleToArrayAndReplace(&(pData->hColorization), TYPE_BRUSH, &m_rgpResources, pHandleTable));
+                }
+                break;
+
+            //
+            // No resources: an occlusion rectangle is four doubles.
+            //
+            case MilDrawOcclusionRectangle:
+                {
+                    if (nItemDataSize < sizeof(MILCMD_DRAW_OCCLUSIONRECTANGLE))
+                    {
+                        IFC(WGXERR_UCE_MALFORMEDPACKET);
+                    }
+                }
+                break;
+
             case MilDrawGeometry:
                 {
                     if (nItemDataSize < sizeof(MILCMD_DRAW_GEOMETRY))

@@ -331,6 +331,34 @@ HRESULT CResourceFactory::Create(
         pResource = new CMilGlyphCacheDuce(pComposition);
         break;
 
+    //
+    // The remaining Vista-only types. See core/resources/VistaDwmResources.h
+    // and DarkFiresReactOSModules/dwm/docs/NOTES-milcore-ids.md.
+    //
+    case TYPE_WINDOWNODE:
+        pResource = new CMilWindowNodeDuce(pComposition);
+        break;
+
+    case TYPE_DESKTOPRENDERTARGET:
+        pResource = new CMilDesktopRenderTargetDuce(pComposition);
+        break;
+
+    case TYPE_MESHGEOMETRY2D:
+        pResource = new CMilMeshGeometry2DDuce(pComposition);
+        break;
+
+    case TYPE_GEOMETRY2DGROUP:
+        pResource = new CMilGeometry2DGroupDuce(pComposition);
+        break;
+
+    case TYPE_SCENE3D:
+        pResource = new CMilScene3DDuce(pComposition);
+        break;
+
+    case TYPE_CACHEDVISUALIMAGE:
+        pResource = new CMilCachedVisualImageDuce(pComposition);
+        break;
+
     case TYPE_BITMAPSOURCE:
         pResource = new CMilSlaveBitmap(pComposition);
         break;

@@ -57,6 +57,26 @@
 #define RWMCMD_REDIR_NOTIFYACTIVATIONCHANGE 0x4000000B
 
 /*
+ * REGISTERS A WINDOW, and it must precede that window's CREATESPRITE.
+ *
+ * dwmredir's CMilWindowManager::NotifyChildCreate (dwmredir.dll.c:17594) is
+ * the only caller of AddWindowContextForWindow in the whole binary -- nothing
+ * else puts an hwnd into the context map. CreateSprite (:17021) then requires
+ * that entry to exist:
+ *
+ *     if (hwnd)  LookupContext(hwnd, &pwnd);   // must ALREADY be there
+ *     else       CMilWindowContext::Create(&pwnd);
+ *
+ * so sending CREATESPRITE for an unregistered window fails at the lookup with
+ * E_HANDLE, which is what every sprite did before this opcode existed.
+ *
+ * The name says "child" and it means "window": a NULL hwndParent is the
+ * TOP-LEVEL case, and it is the branch that flags the context top-level and
+ * links it under the root.
+ */
+#define RWMCMD_REDIR_NOTIFYCHILDCREATE      0x4000000F
+
+/*
  * tagMINIWINDOWINFO - 12 dwords. UpdateSprite carries only the first ten;
  * CreateSprite additionally supplies fDpiAware at mini-info slot 10.
  */
@@ -81,6 +101,24 @@ typedef struct _DWM_CMD_CREATESPRITE
     UINT32             fVisible;
     DWM_MINIWINDOWINFO MiniInfo;
 } DWM_CMD_CREATESPRITE;
+
+/*
+ * MILCMD_DWM_REDIRECTION_NOTIFYCHILDCREATE, 40 bytes.
+ *
+ * Layout from dwmredir's own RedirCommands.hpp, which recovered it from the
+ * Vista read sites: {Type, hwnd, hwndParent, dwStyle, dwExStyle, RECT, dwClsStyle}.
+ * The dispatcher validates cb >= 40 before casting, so the size is load-bearing.
+ */
+typedef struct _DWM_CMD_NOTIFYCHILDCREATE
+{
+    UINT32 Type;
+    UINT32 hwnd;
+    UINT32 hwndParent;      /* 0 == top level, and that is the branch that matters */
+    UINT32 dwStyle;
+    UINT32 dwExStyle;
+    RECT   rcWindow;
+    UINT32 dwClsStyle;
+} DWM_CMD_NOTIFYCHILDCREATE;
 
 typedef struct _DWM_CMD_DESTROYSPRITE
 {

@@ -21,6 +21,9 @@ class CMilSlaveVideo;
 class CMilDrawingDuce;
 class CMilSlaveRenderData;
 class CMilVisual;
+/* [RWM] Vista-only resources, see core/resources/VistaDwmResources.h. */
+class CMilGeometry2DGroupDuce;
+class CMilScene3DDuce;
 
 
 //---------------------------------------------------------------------------------
@@ -96,6 +99,39 @@ interface IDrawingContext
     virtual HRESULT DrawDrawing(
         __in_ecount_opt(1) CMilDrawingDuce *pDrawing
         ) = 0;
+
+    //
+    // [RWM] Vista's drawing primitives.
+    //
+    // Not pure: CDrawingContext is the only implementer today, but these are
+    // being ported one at a time and a default that a partly-ported context
+    // inherits is better than one that will not compile. The defaults are in
+    // drawingcontext.cpp and every one of them is LOUD -- a silent default
+    // here is indistinguishable from a working renderer, which is the exact
+    // trap these commands have already sprung once (accepted, hr=S_OK,
+    // renders nothing).
+    //
+    virtual HRESULT DrawMesh2D(
+        __in_ecount_opt(1) CMilGeometry2DGroupDuce *pMeshGroup,
+        __in_ecount_opt(1) CMilSlaveResource *pImage
+        );
+
+    virtual HRESULT DrawGlass(
+        __in_ecount_opt(1) CMilSlaveResource *pTop,
+        __in_ecount_opt(1) CMilSlaveResource *pLeft,
+        __in_ecount_opt(1) CMilSlaveResource *pRight,
+        __in_ecount_opt(1) CMilSlaveResource *pBottom,
+        __in_ecount_opt(1) CMilSlaveResource *pColorization
+        );
+
+    virtual HRESULT DrawOcclusionRectangle(
+        __in_ecount(1) const MilPointAndSizeD *prc
+        );
+
+    virtual HRESULT DrawScene3D(
+        __in_ecount_opt(1) CMilScene3DDuce *pScene,
+        UINT32 dwFlags
+        );
 
     //
     // State stack.

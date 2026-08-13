@@ -24,6 +24,7 @@ axisanglerotation3d.cpp
 BitmapCacheBrush.cpp
 BitmapCacheMode.cpp
 GlyphCache.cpp
+VistaDwmResources.cpp
 bitmapres.cpp
 BlurEffect.cpp
 brush.cpp

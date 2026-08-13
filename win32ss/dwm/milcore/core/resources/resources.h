@@ -69,6 +69,7 @@ class CMilSlaveBitmap;
 #include "CacheMode.h"
 #include "BitmapCacheMode.h"
 #include "GlyphCache.h"
+#include "VistaDwmResources.h"
 
 #include "translate.h"
 #include "scale.h"

@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <debug.h>   /* [RWM] DPRINT1, for the Vista primitives at the end of this file */
 
 DeclareTag(tagTintPushOpacitySurfaces, "MIL", "Tint PushOpacity intermediate surfaces");
 MtDefine(CDrawingContext, MILRender, "CDrawingContext");
@@ -6115,3 +6116,130 @@ Cleanup:
 
 
 
+
+//+----------------------------------------------------------------------------
+//
+//  [RWM] Vista's drawing primitives -- IDrawingContext defaults.
+//
+//  Declared in core/uce/idrawingcontext.h; the instruction layouts are in
+//  core/resources/VistaDwmResources.h and the dispatch is in
+//  renderdata.cpp / renderdata_generated.cpp.
+//
+//  THESE DO NOT DRAW. They exist so the instructions are framed, their
+//  resources resolved, and their arrival visible -- which is the half that
+//  can be written from the command formats. Actually rasterizing them needs
+//  the render pipeline, and each note below says what specifically.
+//
+//  Every one of them reports itself once and returns S_OK. S_OK rather than
+//  E_NOTIMPL because a failure here fails the whole batch and zombies the
+//  partition, killing the client over a primitive Vista draws routinely --
+//  but reporting is not optional. An unported primitive that returns S_OK
+//  silently is indistinguishable from a working one, and that is exactly how
+//  "the entire 3D environment-map graph is accepted, hr=S_OK, crashes 0 --
+//  and renders nothing" happened.
+//
+//-----------------------------------------------------------------------------
+
+static bool RwmReportOnce(__inout_ecount(1) LONG *pcSeen)
+{
+    return InterlockedCompareExchange(pcSeen, 1, 0) == 0;
+}
+
+HRESULT
+IDrawingContext::DrawMesh2D(
+    __in_ecount_opt(1) CMilGeometry2DGroupDuce *pMeshGroup,
+    __in_ecount_opt(1) CMilSlaveResource *pImage
+    )
+{
+    static LONG s_cSeen = 0;
+
+    if (RwmReportOnce(&s_cSeen))
+    {
+        //
+        // The chrome path. The geometry is present and parsed -- positions,
+        // texture coordinates, per-vertex opacities and triangle indices are
+        // all stored on the CMilMeshGeometry2DDuce children of this group by
+        // command 148 -- and the texture is a TYPE_BITMAPSOURCE.
+        //
+        // What is missing is a textured-triangle draw. The meshes uDWM emits
+        // for chrome are axis-aligned quads (four vertices, six indices, one
+        // per nine-grid cell), so the tractable first step is per-quad blits
+        // through the existing bitmap path rather than a general rasterizer.
+        //
+        DPRINT1("[RWM] DrawMesh2D: group=%p image=%p -- NOT DRAWN"
+                " (geometry is parsed and stored; no textured-triangle path)\n",
+                (void*)pMeshGroup, (void*)pImage);
+    }
+
+    return S_OK;
+}
+
+HRESULT
+IDrawingContext::DrawGlass(
+    __in_ecount_opt(1) CMilSlaveResource *pTop,
+    __in_ecount_opt(1) CMilSlaveResource *pLeft,
+    __in_ecount_opt(1) CMilSlaveResource *pRight,
+    __in_ecount_opt(1) CMilSlaveResource *pBottom,
+    __in_ecount_opt(1) CMilSlaveResource *pColorization
+    )
+{
+    static LONG s_cSeen = 0;
+
+    if (RwmReportOnce(&s_cSeen))
+    {
+        //
+        // Nothing in uDWM emits instruction 105 yet -- CRenderData::DrawGlass
+        // exists and has no caller -- so if this ever prints, a new emitter
+        // appeared and the four edge handles' resource types need confirming
+        // before they can be bound to anything.
+        //
+        DPRINT1("[RWM] DrawGlass: t=%p l=%p r=%p b=%p color=%p -- NOT DRAWN"
+                " (needs the blur/glass pipeline)\n",
+                (void*)pTop, (void*)pLeft, (void*)pRight,
+                (void*)pBottom, (void*)pColorization);
+    }
+
+    return S_OK;
+}
+
+HRESULT
+IDrawingContext::DrawOcclusionRectangle(
+    __in_ecount(1) const MilPointAndSizeD *prc
+    )
+{
+    UNREFERENCED_PARAMETER(prc);
+
+    //
+    // CORRECT AS A NO-OP, and the only one of these four that is.
+    //
+    // An occlusion rectangle declares a region opaque so the renderer may
+    // skip what is behind it. Honouring it is a speed optimisation; ignoring
+    // it costs overdraw and changes no pixel. Not logged for that reason --
+    // this is implemented, not deferred.
+    //
+    return S_OK;
+}
+
+HRESULT
+IDrawingContext::DrawScene3D(
+    __in_ecount_opt(1) CMilScene3DDuce *pScene,
+    UINT32 dwFlags
+    )
+{
+    static LONG s_cSeen = 0;
+
+    if (RwmReportOnce(&s_cSeen))
+    {
+        //
+        // uDWM's CEnvironmentMap and CFlip3D. The scene's camera and model
+        // handles are stored by command 137 and the 3D resources themselves
+        // (materials, lights, cameras, meshes) do have factory arms -- so the
+        // graph exists; what is missing is a 3D render pass to walk it.
+        //
+        DPRINT1("[RWM] DrawScene3D: scene=%p flags=0x%lx -- NOT DRAWN"
+                " (3D render pass not ported)\n",
+                (void*)pScene, (unsigned long)dwFlags);
+    }
+
+    return S_OK;
+}

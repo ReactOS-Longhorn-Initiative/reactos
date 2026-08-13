@@ -338,6 +338,28 @@ CMilChannel::SendCommand(
     int old_idxFree = 0;
     if (sendInSeparateBatch)
     {
+        //
+        // CLOSE THE OPEN BATCH FIRST, so program order survives.
+        //
+        // A separate batch is closed immediately and appended to
+        // m_pClosedBatches, which Commit drains before it ever looks at the
+        // still-open batch. Without this, anything already queued in the open
+        // batch -- notably the MilCmdChannelCreateResource that CREATES the
+        // resource this command is about to address -- is processed AFTER it.
+        //
+        // Closing here puts the open batch on the queue ahead of the new one,
+        // which is the order the caller issued them in.
+        //
+        // Skipped while a command is under construction: CloseBatch refuses
+        // that (WGXERR_UCE_MISSINGENDCOMMAND), and a caller that interleaves a
+        // whole command into the middle of another one has no well-defined
+        // order to preserve anyway.
+        //
+        if (!m_fIsCommandOpen)
+        {
+            IFC(CloseBatch());
+        }
+
         old_pCommands = m_pCommands;
         m_pCommands = NULL;
         old_idxFree = m_idxFree;
