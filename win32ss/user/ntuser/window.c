@@ -148,6 +148,11 @@ IntSetStyle( PWND pwnd, ULONG set_bits, ULONG clear_bits )
     styleNew = (pwnd->style | set_bits) & ~clear_bits;
     if (styleNew == styleOld) return styleNew;
     pwnd->style = styleNew;
+
+    /* dwStyle rides in the sprite mini-info, and UpdateSprite otherwise only
+     * fires on geometry commit -- so a style change with no move would leave
+     * DWM's copy stale. Cheap: no-ops unless the window has a sprite. */
+    IntDwmUpdateSprite(pwnd);
     if ((styleOld ^ styleNew) & WS_VISIBLE) // State Change.
     {
        if (styleOld & WS_VISIBLE) pwnd->head.pti->cVisWindows--;
@@ -977,6 +982,10 @@ IntLinkWindow(
 
         WndSetChild(Wnd->spwndParent, Wnd);
     }
+
+    /* The sibling chain is consistent again here, so spwndPrev names the
+     * window this one is inserted after -- which is what ZorderSprite needs. */
+    IntDwmZorderSprite(Wnd);
 }
 
 /*
@@ -2517,6 +2526,11 @@ co_UserCreateWindowEx(CREATESTRUCTW* Cs,
    /* Send the WM_PARENTNOTIFY message */
    IntSendParentNotify(Window, WM_CREATE);
 
+   /* The window is fully built here but not yet shown, which is the point
+    * DWM wants: it can create the sprite with final geometry and then take
+    * the ShowSprite from the normal visibility path below. */
+   IntDwmCreateSprite(Window);
+
    /* Notify the shell that a new window was created */
    if (Window->spwndOwner == NULL ||
        !(Window->spwndOwner->style & WS_VISIBLE) ||
@@ -2861,6 +2875,10 @@ BOOLEAN co_UserDestroyWindow(PVOID Object)
    PTHREADINFO ti;
    MSG msg;
    PWND Window = Object;
+
+   /* Tear the sprite down before the window structure starts coming apart,
+    * so the geometry the compositor last saw is still coherent. */
+   IntDwmDestroySprite(Window);
 
    ASSERT_REFS_CO(Window); // FIXME: Temp HACK?
 
@@ -3968,6 +3986,7 @@ co_IntSetWindowLongPtr(HWND hWnd, DWORD Index, LONG_PTR NewValue, BOOL Ansi, ULO
                DceResetActiveDCEs( Window );
             }
             Window->style = (DWORD)Style.styleNew;
+            IntDwmUpdateSprite(Window);
 
             if (!bAlter)
                 co_IntSendMessage(hWnd, WM_STYLECHANGED, GWL_STYLE, (LPARAM) &Style);

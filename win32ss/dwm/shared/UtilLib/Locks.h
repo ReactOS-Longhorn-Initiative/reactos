@@ -125,26 +125,65 @@ inline bool CCriticalSection::IsValid() const
 //
 //-----------------------------------------------------------------------------
 
+//
+// THIS WAS A NO-OP. Every method was empty and _pLock was never assigned, so
+// every `CGuard<CCriticalSection> oGuard(x)` in milcore locked nothing at all.
+//
+// It surfaced as CMilMasterHandleTable::GetEntry's assertion
+//
+//     Unsynchronized access to the handle-table
+//     HandleToULong(g_csCompositionEngine.OwningThread()) == GetCurrentThreadId()
+//
+// firing from CreateOrAddRefOnChannel, which takes the guard on the line
+// before. The assert was right and the guard was lying: nothing held the lock,
+// so OwningThread() was whatever last happened to enter the CS.
+//
+// The comment in CMilChannel::Commit -- "FlushChannelHandlers releases the
+// composition CS when its guard ends" -- described behaviour that did not
+// exist either.
+//
+// CCriticalSection wraps a CRITICAL_SECTION, which is recursive on the same
+// thread, so nested guards are safe. All seven locks used with CGuard are
+// Init()ed before first use (checked) -- worth re-checking before adding an
+// eighth, because an uninitialised lock could not fault while this was inert.
+//
 template<typename LOCK> class CGuard
 {
 public:
     CGuard(__inout_ecount(1) LOCK &lock)
-    { 
-
+        : _pLock(&lock)
+    {
+        _pLock->Enter();
     }
 
     ~CGuard()
-    { 
-
+    {
+        if (_pLock)
+        {
+            _pLock->Leave();
+            _pLock = NULL;
+        }
     }
 
+    //
+    // Release early. The destructor must not release a second time, which is
+    // why this clears the pointer rather than just calling Leave.
+    //
     void Leave()
-    { 
-
+    {
+        if (_pLock)
+        {
+            _pLock->Leave();
+            _pLock = NULL;
+        }
     }
 
 private:
     LOCK * _pLock;
+
+    // A copied guard would release twice.
+    CGuard(const CGuard &);
+    CGuard &operator=(const CGuard &);
 };
 
 template<typename Lock> class CUnGuard

@@ -64,6 +64,7 @@ DBG_CHANNEL DbgChannels[DbgChCount] = {
     {L"UserClass", DbgChUserClass},
     {L"UserClipbrd", DbgChUserClipbrd},
     {L"UserCsr", DbgChUserCsr},
+    {L"UserDwm", DbgChUserDwm},
     {L"UserDce", DbgChUserDce},
     {L"UserDefwnd", DbgChUserDefwnd},
     {L"UserDesktop", DbgChUserDesktop},

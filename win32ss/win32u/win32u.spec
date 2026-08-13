@@ -672,4 +672,7 @@
 @ stdcall NtGdiBRUSHOBJ_DeleteRbrush(ptr ptr)
 @ stdcall NtGdiUMPDEngFreeUserMem(ptr)
 @ stdcall NtGdiDrawStream(ptr long ptr)
-
+@ stdcall NtUserRegisterSessionPort(long)
+@ stdcall NtUserUnregisterSessionPort()
+@ stdcall NtUserDwmStartRedirection(long)
+@ stdcall NtUserDwmStopRedirection()

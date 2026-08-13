@@ -744,3 +744,9 @@
     SVC_(GdiDdDDISharedPrimaryUnLockNotification, 1)
     SVC_(GdiDdDDISignalSynchronizationObject, 1)
     SVC_(GdiDdDDIWaitForSynchronizationObject, 1)
+    /* Vista desktop composition. Vista numbers these 0x1270-0x1274;
+       appended here instead - see the deviation note in ntuser/dwm.c. */
+    SVC_(UserRegisterSessionPort, 1)
+    SVC_(UserUnregisterSessionPort, 0)
+    SVC_(UserDwmStartRedirection, 1)
+    SVC_(UserDwmStopRedirection, 0)

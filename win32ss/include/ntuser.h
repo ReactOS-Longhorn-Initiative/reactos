@@ -63,6 +63,14 @@ typedef enum _HANDLE_TYPE
     TYPE_GENERIC = 255
 } HANDLE_TYPE, *PHANDLE_TYPE;
 
+
+/* Desktop composition (win32ss/user/ntuser/dwm.c). Names and signatures are
+ * 1:1 with Vista SP1 user32; only the syscall ordinals differ. */
+BOOL NTAPI NtUserRegisterSessionPort(HANDLE hPort);
+BOOL NTAPI NtUserUnregisterSessionPort(VOID);
+BOOL NTAPI NtUserDwmStartRedirection(BOOL fRedirectContent);
+BOOL NTAPI NtUserDwmStopRedirection(VOID);
+
 typedef enum _USERTHREADINFOCLASS
 {
     UserThreadShutdownInformation,
@@ -708,6 +716,8 @@ typedef struct _WND
     HINSTANCE hModule;
     DWORD fnid;
 #endif
+    /* DWM sprite id for this window, 0 if it has none. See ntuser/dwm.c. */
+    UINT32 DwmSprite;
     struct _WND *spwndNext;
     struct _WND *spwndPrev;
     struct _WND *spwndParent;

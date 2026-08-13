@@ -567,18 +567,52 @@ CMilChannel::Commit()
     //
     CGuard<CCriticalSection> oGuard(g_csCompositionEngine);
 
+    //
+    // THE SLOT IS CLEARED BEFORE THE CALL, NOT AFTER.
+    //
+    // SubmitBatch takes ownership unconditionally -- its own comment says the
+    // connection context "is responsible for cleaning up the batch even on
+    // failure". This loop used to clear m_pClosedBatches[i] on the line AFTER
+    // IFC(SubmitBatch(...)), so a failure jumped straight to Cleanup with the
+    // array still holding a pointer the connection context had already freed,
+    // and skipped the Reset as well. The next Commit then resubmitted it:
+    //
+    //     SubmitBatch batch=0013DBB8 hChannel=0x00000001 [#1]   <- failed
+    //     ...
+    //     SubmitBatch batch=0013DBB8 hChannel=0x00000004 [#2]   <- freed batch
+    //     ~CMilDataStreamWriter -> FreeResources -> RemoveHeadList  -> AV
+    //     HEAP: Trying to free an invalid address 0013DBA8 (repeating)
+    //
+    // ending in heap free-list corruption. Any partition failure -- a zombie
+    // from one bad command, say -- was enough to trigger it.
+    //
+    // Every batch is submitted even after one fails, because stopping early
+    // would leave the rest owned by nobody: the array is emptied either way,
+    // so a batch not handed to SubmitBatch is simply leaked. The first failure
+    // is the one reported.
+    //
     for (UINT i = 0; i < m_pClosedBatches.GetCount(); i++)
     {
-        m_handleTable.FlushChannelHandles(m_pClosedBatches[i]->GetFreeIndex());
+        CMilCommandBatch *pBatch = m_pClosedBatches[i];
+
+        m_pClosedBatches[i] = NULL;
+        if (pBatch == NULL)
+        {
+            continue;
+        }
+
+        m_handleTable.FlushChannelHandles(pBatch->GetFreeIndex());
 
         Assert(m_pConnection);
-        // SubmitBatch takes ownership of the batch, so we transfer it.
-        IFC(m_pConnection->SubmitBatch(m_pClosedBatches[i]));
-        m_pClosedBatches[i] = NULL;
+
+        HRESULT hrSubmit = m_pConnection->SubmitBatch(pBatch);
+        if (FAILED(hrSubmit) && SUCCEEDED(hr))
+        {
+            hr = hrSubmit;
+        }
     }
     m_pClosedBatches.Reset(FALSE);
 
-Cleanup:
     RRETURN(hr);
 }
 

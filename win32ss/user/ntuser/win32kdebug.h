@@ -86,6 +86,7 @@
         DbgChUserClipbrd,
         DbgChUserCsr,
         DbgChUserDce,
+        DbgChUserDwm,
         DbgChUserDefwnd,
         DbgChUserDesktop,
         DbgChUserDisplay,

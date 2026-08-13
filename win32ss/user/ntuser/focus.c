@@ -590,6 +590,22 @@ co_IntSendActivateMessages(PWND WindowPrev, PWND Window, BOOL MouseActivate, BOO
 
       co_IntMakeWindowActive(Window);
 
+      /*
+       * Activation is a PAIR: the outgoing window has to be told it lost focus
+       * or DWM leaves two windows drawn active. Emitted here because this is
+       * where both are in scope and the switch has actually committed.
+       *
+       * This matters more for phase 1 than it sounds. Phase 1's entire visible
+       * output is chrome, and active vs inactive frames are different art --
+       * without this every window composites inactive, and the first
+       * screenshot comparison is against a meaningless baseline. That exact
+       * mistake already cost nine eliminated hypotheses once; see rule 9 in
+       * CLAUDE.md.
+       */
+      if (WindowPrev != NULL && WindowPrev != Window)
+         IntDwmActivationChange(WindowPrev, FALSE);
+      IntDwmActivationChange(Window, TRUE);
+
       co_IntSendMessage( UserHMGetHandle(Window),
                          WM_NCACTIVATE,
                         (WPARAM)(Window == (gpqForeground ? gpqForeground->spwndActive : NULL)),

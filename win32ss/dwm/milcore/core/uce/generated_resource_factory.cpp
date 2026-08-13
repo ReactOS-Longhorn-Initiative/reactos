@@ -12,6 +12,7 @@
 //---------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1 for the unhandled-resource-type report
 
 /// <summary>
 ///   Given a composition object and a resource type, creates
@@ -335,6 +336,22 @@ HRESULT CResourceFactory::Create(
         break;
 
     default:
+        //
+        // Name the type. "Invalid resource type." alone cannot distinguish a
+        // malformed packet from a type we simply have no slave resource for,
+        // and since the resource-type ids were realigned to Vista the second
+        // case is the common one: TYPE_GLYPHCACHE (38), TYPE_WINDOWNODE (42),
+        // TYPE_DESKTOPRENDERTARGET (48), TYPE_CACHEDVISUALIMAGE (65),
+        // TYPE_MESHGEOMETRY2D (23) and TYPE_GEOMETRY2DGROUP (24) are Vista
+        // types with no arm here yet.
+        //
+        // See DarkFiresReactOSModules/dwm/docs/NOTES-milcore-ids.md. An id at
+        // 200 or above means the caller asked for a WPF-only type, which is a
+        // different bug -- something is still using the unported numbering.
+        //
+        DPRINT1("[RWM] CResourceFactory::Create: no arm for resource type %u"
+                " (>=200 means a WPF-only id; see NOTES-milcore-ids.md)\n",
+                (unsigned)type);
         RIP("Invalid resource type.");
         IFC(WGXERR_UCE_MALFORMEDPACKET);
     }

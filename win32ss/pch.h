@@ -80,6 +80,7 @@ typedef struct _SECURITY_ATTRIBUTES SECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
 #include <ndk/psfuncs.h>
 #include <ndk/sefuncs.h>
 #include <ndk/rtlfuncs.h>
+#include <ndk/lpcfuncs.h>
 
 /* SEH support with PSEH */
 #include <pseh/pseh2.h>

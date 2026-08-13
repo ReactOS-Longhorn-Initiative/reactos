@@ -99,6 +99,7 @@ typedef struct _DC *PDC;
 
 /* CSRSS Interface */
 #include "user/ntuser/csr.h"
+#include "user/ntuser/dwm.h"
 
 #endif // __cplusplus
 

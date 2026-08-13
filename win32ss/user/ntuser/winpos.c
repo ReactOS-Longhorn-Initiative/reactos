@@ -1958,6 +1958,9 @@ co_WinPosSetWindowPos(
    Window->rcWindow = NewWindowRect;
    Window->rcClient = NewClientRect;
 
+   /* Both rects are live now; the mini-info carries them verbatim. */
+   IntDwmUpdateSprite(Window);
+
    /* erase parent when hiding or resizing child */
    if (WinPos.flags & SWP_HIDEWINDOW)
    {
@@ -1972,6 +1975,7 @@ co_WinPosSetWindowPos(
 
       Window->style &= ~WS_VISIBLE; //IntSetStyle( Window, 0, WS_VISIBLE );
       Window->head.pti->cVisWindows--;
+      IntDwmShowSprite(Window, FALSE);
       IntNotifyWinEvent(EVENT_OBJECT_HIDE, Window, OBJID_WINDOW, CHILDID_SELF, WEF_SETBYWNDPTI);
    }
    else if (WinPos.flags & SWP_SHOWWINDOW)
@@ -1999,6 +2003,7 @@ co_WinPosSetWindowPos(
 
       Window->style |= WS_VISIBLE; //IntSetStyle( Window, WS_VISIBLE, 0 );
       Window->head.pti->cVisWindows++;
+      IntDwmShowSprite(Window, TRUE);
       IntNotifyWinEvent(EVENT_OBJECT_SHOW, Window, OBJID_WINDOW, CHILDID_SELF, WEF_SETBYWNDPTI);
    }
    else

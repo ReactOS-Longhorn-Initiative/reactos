@@ -112,6 +112,7 @@ list(APPEND SOURCE
     reactx/ntddraw/dxeng.c
     user/ntuser/accelerator.c
     user/ntuser/callback.c
+    user/ntuser/dwm.c
     user/ntuser/callproc.c
     user/ntuser/caret.c
     user/ntuser/class.c
