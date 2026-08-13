@@ -2190,7 +2190,16 @@ HKLM,"SYSTEM\CurrentControlSet\Services\Themes","FailureActions",0x00000003, \
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","Group",0x00000000,"UIGroup"
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","ImagePath",0x00020000,"%SystemRoot%\system32\svchost.exe -k netsvcs"
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","ObjectName",0x00000000,"LocalSystem"
-HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","Start",0x00010001,0x00000002
+; DEMAND START (3), not auto (2). DELIBERATE, AND A DEVIATION FROM VISTA.
+;
+; Vista auto-starts UxSms, and this should go back to 2 when the DWM work
+; resumes. It is on demand while the theme work happens because starting the
+; compositor on every boot brings up dwm.exe, dwmredir, uDWM and milcore, and
+; a fault anywhere in that stack costs a boot -- which is a bad trade when
+; none of it is what is being worked on.
+;
+; Start it by hand with:  net start UxSms
+HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","Start",0x00010001,0x00000003
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms","Type",0x00010001,0x00000020
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms\Parameters","ServiceDll",0x00020000,"%SystemRoot%\system32\uxsms.dll"
 HKLM,"SYSTEM\CurrentControlSet\Services\UxSms\Parameters","ServiceMain",0x00000000,"ServiceMain"
