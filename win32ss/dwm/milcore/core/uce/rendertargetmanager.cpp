@@ -13,6 +13,7 @@
 //------------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1 frame-loop tracing
 
 MtDefine(CRenderTargetManager, MILRender, "CRenderTargetManager");
 
@@ -329,6 +330,29 @@ CRenderTargetManager::Render(
     HRESULT hr = S_OK;
     HRESULT hrRenderFailure = S_OK;
     
+    //
+    // [RWM] The decisive frame-loop diagnostic.
+    //
+    // "Nothing is on screen" has two very different causes and this is what
+    // separates them: a target count of ZERO means the compositor was never
+    // given anything to draw into (the render-target handshake did not
+    // complete), while a non-zero count with fPresentThisTarget false every
+    // frame means it has a target and nothing dirty to put in it.
+    //
+    // Bounded, and it reports the COUNT as well as the per-target result --
+    // logging only the result would leave the zero-target case invisible,
+    // because a loop over nothing produces no lines at all.
+    //
+    {
+        static LONG s_cRtmRender = 0;
+        if (s_cRtmRender < 32)
+        {
+            InterlockedIncrement(&s_cRtmRender);
+            DPRINT1("[RWM] CRenderTargetManager::Render targets=%u [#%ld]\n",
+                    m_rgpTarget.GetCount(), s_cRtmRender);
+        }
+    }
+
     for (UINT i = 0, limit = m_rgpTarget.GetCount(); i < limit; i++)
     {
         bool fPresentThisTarget = false;
@@ -337,6 +361,16 @@ CRenderTargetManager::Render(
         Assert(pTarget != NULL);
 
         MIL_THR(pTarget->Render(&fPresentThisTarget));
+
+        {
+            static LONG s_cTargetRender = 0;
+            if (s_cTargetRender < 32)
+            {
+                InterlockedIncrement(&s_cTargetRender);
+                DPRINT1("[RWM]   target[%u] Render hr=0x%08lx present=%d [#%ld]\n",
+                        i, hr, (int)fPresentThisTarget, s_cTargetRender);
+            }
+        }
 
         HRESULT hrHandled = HandleRenderErrors(hr);
 

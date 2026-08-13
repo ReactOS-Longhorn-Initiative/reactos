@@ -3,6 +3,12 @@ include(ExternalProject)
 
 function(setup_host_tools)
     list(APPEND HOST_TOOLS asmpp bin2c widl gendib cabman fatten hpp isohybrid mkhive mkisofs obj2bin spec2def geninc mkshelllink txt2nls utf16le xml2sdb)
+    # vtheme builds the Vista (v4) visual style - see sdk/tools/vtheme/README.md.
+    # Windows-hosted only: it writes the carrier PE through UpdateResource.
+    if(CMAKE_HOST_WIN32)
+        list(APPEND HOST_TOOLS vtheme)
+        list(APPEND HOST_MODULES themestub)
+    endif()
     if(NOT MSVC)
         list(APPEND HOST_TOOLS pefixup)
         if (ARCH STREQUAL "i386")

@@ -190,7 +190,7 @@ IntDwmForEachTopLevel(VOID (*pfn)(PWND))
  * so recursion is safe here -- but it runs under the USER lock, so the walk
  * has to stay allocation-free.
  */
-static VOID
+VOID
 IntDwmForEachOnDesktop(VOID (*pfn)(PWND))
 {
     PWND Desktop = UserGetDesktopWindow();
@@ -268,7 +268,18 @@ IntDwmStartRedirection(BOOL fRedirectContent)
     gbDwmRedirectContent = fRedirectContent;
     gbDwmRedirectionActive = TRUE;
 
-    TRACE("DWM redirection started (content=%d)\n", fRedirectContent);
+    /*
+     * Vista _gfStructuralRedirection. dwm.exe calls
+     * DwmStartRedirection(!fStructuralMode), so a FALSE argument means
+     * structural: geometry only, and no redirection bitmap is allocated for
+     * anything. The flag is the inverse of the argument, which is why it is
+     * not simply gbDwmRedirectContent under another name -- everything in
+     * dwmredir.c reads the Vista sense.
+     */
+    gfStructuralRedirection = !fRedirectContent;
+
+    TRACE("DWM redirection started (content=%d, structural=%d)\n",
+          fRedirectContent, gfStructuralRedirection);
 
     /*
      * Tell DWM about the windows that ALREADY EXIST.
@@ -296,6 +307,14 @@ IntDwmStartRedirection(BOOL fRedirectContent)
      */
     IntDwmForEachOnDesktop(IntDwmSweepRegister);
     IntDwmForEachOnDesktop(IntDwmSweepLink);
+
+    /*
+     * THIRD pass, and only in content mode. It has to follow the other two:
+     * IntDwmResetRedirectedWindows ends by dirtying every DC, and a DC
+     * refreshed before the window it belongs to has been registered would be
+     * retargeted at a bitmap the compositor does not know about yet.
+     */
+    IntDwmResetRedirectedWindows();
 
     return STATUS_SUCCESS;
 }

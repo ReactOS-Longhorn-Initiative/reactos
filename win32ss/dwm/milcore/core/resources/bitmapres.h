@@ -107,6 +107,13 @@ public:
         __in_ecount(1) const MILCMD_BITMAP_SOURCE* pBmp
         );
 
+    HRESULT ProcessPixels(
+        __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
+        __in_ecount(1) const MILCMD_BITMAP_PIXELS* pCmd,
+        __in_bcount(cbPayload) const void* pvPayload,
+        UINT cbPayload
+        );
+
     HRESULT ProcessInvalidate(
         __in_ecount(1) CMilSlaveHandleTable* pHandleTable,
         __in_ecount(1) const MILCMD_BITMAP_INVALIDATE* pData

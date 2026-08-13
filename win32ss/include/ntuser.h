@@ -71,6 +71,15 @@ BOOL NTAPI NtUserUnregisterSessionPort(VOID);
 BOOL NTAPI NtUserDwmStartRedirection(BOOL fRedirectContent);
 BOOL NTAPI NtUserDwmStopRedirection(VOID);
 
+/*
+ * Hands the compositor the section behind a redirected window's surface.
+ * Keyed on the SPRITE, because that is dwmredir's identifier for a composed
+ * window. See ntuser/dwmredir.c and dwmredir/RedirCommands.hpp for the struct.
+ */
+struct _DWM_SURFACE_DATA;
+BOOL APIENTRY NtGdiDwmGetSurfaceData(UINT32 hSprite,
+                                     struct _DWM_SURFACE_DATA *pData);
+
 typedef enum _USERTHREADINFOCLASS
 {
     UserThreadShutdownInformation,
@@ -718,6 +727,37 @@ typedef struct _WND
 #endif
     /* DWM sprite id for this window, 0 if it has none. See ntuser/dwm.c. */
     UINT32 DwmSprite;
+    /*
+     * DWM content redirection. Vista keeps the same three per-window slots and
+     * reaches them through _GetRedirectionBitmap / _SetRedirectionBitmap,
+     * _GetOldRedirectionBitmap / _SetOldRedirectionBitmap and
+     * _GetRedirectionFlags (win32k.sys symbol table). All three are NULL/0
+     * unless content redirection is on -- structural mode never allocates.
+     *
+     * DwmRedirOldBitmap holds the pre-resize surface so a window that has not
+     * repainted yet still has something with its old pixels in it; Vista's
+     * _RecreateRedirectionBitmap is what moves one to the other.
+     */
+    HANDLE DwmRedirBitmap;
+    HANDLE DwmRedirOldBitmap;
+    UINT32 DwmRedirFlags;
+    /*
+     * The section object backing DwmRedirBitmap's pixels, and the system-space
+     * view GDI draws through.
+     *
+     * A redirection bitmap is not ordinary pool: the compositor lives in
+     * another process and has to READ these pixels, so the storage has to be
+     * shareable. Vista's redirection surfaces are section-backed for the same
+     * reason -- DWMSURFACEDATA's first field is the section handle, and
+     * dwmredir does nothing with it but NtMapViewOfSection.
+     *
+     * The view is mapped in SYSTEM space, not the creating process's. A window
+     * is painted from whichever process owns it, and a per-process view would
+     * be invalid in every other context GDI touches the surface from.
+     */
+    PVOID  DwmRedirSectionObject;
+    PVOID  DwmRedirSectionView;
+    UINT32 DwmRedirSectionSize;
     struct _WND *spwndNext;
     struct _WND *spwndPrev;
     struct _WND *spwndParent;

@@ -284,6 +284,45 @@ switch(nCmdType)
     }
     break;
 
+    //
+    // 16 -- MilCmdBitmapPixels. Raw pixels inline behind a 52-byte header;
+    // see MILCMD_BITMAP_PIXELS. Vista's dispatch (milcore.dll.c:19144) takes
+    // exactly these three steps -- a >= 0x34 size floor, a TYPE_BITMAPSOURCE
+    // lookup, then ProcessPixels with pcvData + 52 and cbSize - 52. The floor
+    // is >=, not ==, because the payload follows the header in the same
+    // command; ProcessPixels is what checks the payload size exactly.
+    //
+    case MilCmdBitmapPixels:
+    {
+        if (cbSize < sizeof(MILCMD_BITMAP_PIXELS))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const MILCMD_BITMAP_PIXELS* pCmd =
+            reinterpret_cast<const MILCMD_BITMAP_PIXELS*>(pcvData);
+
+        CMilSlaveBitmap* pResource =
+            static_cast<CMilSlaveBitmap*>(pHandleTable->GetResource(
+                pCmd->Handle,
+                TYPE_BITMAPSOURCE
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilSlaveBitmap).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessPixels(
+            pHandleTable,
+            pCmd,
+            reinterpret_cast<const BYTE*>(pcvData) + sizeof(MILCMD_BITMAP_PIXELS),
+            cbSize - sizeof(MILCMD_BITMAP_PIXELS)
+            ));
+    }
+    break;
+
     case MilCmdBitmapInvalidate:
     {
         #ifdef DEBUG
@@ -1134,6 +1173,29 @@ switch(nCmdType)
 
         if (pResource == NULL)
         {
+            //
+            // [RWM] Say WHICH way it failed before asserting.
+            //
+            // GetResource folds three distinct failures into one NULL: the
+            // handle is not in this channel's table at all, the entry exists
+            // but carries no resource, or the resource is there and simply is
+            // not a TYPE_VISUAL. Those have completely different causes --
+            // a missing duplicate, a creation that failed, or a type-identity
+            // mismatch -- and the bare assert cannot tell them apart, which
+            // is how the window-node lead got picked on a guess.
+            //
+            // GetObjectType reports what the table actually holds, so the
+            // third case names the real type instead of leaving it to
+            // inference.
+            //
+            DPRINT1("[RWM] InsertChildAt FAILED: parent h=0x%lx type=%d "
+                    "child h=0x%lx childType=%d index=%u\n",
+                    (unsigned long)pCmd->Handle,
+                    (int)pHandleTable->GetObjectType(pCmd->Handle),
+                    (unsigned long)pCmd->hChild,
+                    (int)pHandleTable->GetObjectType(pCmd->hChild),
+                    (unsigned)pCmd->index);
+
             RIP("Invalid resource handle.");
             IFC(WGXERR_UCE_MALFORMEDPACKET);
         }
@@ -3879,18 +3941,21 @@ switch(nCmdType)
     break;
 
     // 137 -- the 3D scene / Viewport3DVisual.
+    // 137 -- the 3D scene (Aero's glass environment map, and Flip3D).
     case MilCmdScene3D:
     {
-        if (cbSize < 2 * sizeof(UINT32))
+        // Vista requires exactly 0x34 here before it looks anything up.
+        if (cbSize != sizeof(MILCMD_SCENE3D))
         {
             IFC(WGXERR_UCE_MALFORMEDPACKET);
         }
 
-        const UINT32 *pdwHeader = reinterpret_cast<const UINT32*>(pcvData);
+        const MILCMD_SCENE3D *pCmd =
+            reinterpret_cast<const MILCMD_SCENE3D*>(pcvData);
 
         CMilScene3DDuce* pResource =
             static_cast<CMilScene3DDuce*>(pHandleTable->GetResource(
-                pdwHeader[1],
+                pCmd->Handle,
                 TYPE_SCENE3D
                 ));
 
@@ -3900,7 +3965,7 @@ switch(nCmdType)
             IFC(WGXERR_UCE_MALFORMEDPACKET);
         }
 
-        IFC(pResource->ProcessUpdate(pcvData, cbSize));
+        IFC(pResource->ProcessUpdate(pHandleTable, pcvData, cbSize));
     }
     break;
 

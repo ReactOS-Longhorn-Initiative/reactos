@@ -101,7 +101,13 @@
 99 stdcall GetThemePosition(ptr long long long ptr)
 100 stdcall GetThemePropertyOrigin(ptr long long long ptr)
 101 stdcall GetThemeRect(ptr long long long ptr)
-102 stub GetThemeStream
+; GetThemeStream is a real export, not a stub: uDWM binds it by name and uses
+; it to fetch the non-client atlas (UdwmAtlas.cpp), and a spec2def stub RAISES
+; STATUS_NOT_IMPLEMENTED, which takes the compositor down rather than failing
+; the call.  Implemented in DarkFiresReactOSModules/uxtheme_new/src/api/Stream.cpp.
+; NOTE for whoever re-enables dll/win32/uxtheme: that engine has no
+; GetThemeStream and will now fail to link until one is added there.
+102 stdcall GetThemeStream(ptr long long long ptr ptr ptr)
 103 stdcall GetThemeString(ptr long long long wstr long)
 104 stdcall GetThemeSysBool(ptr long)
 105 stdcall GetThemeSysColor(ptr long)

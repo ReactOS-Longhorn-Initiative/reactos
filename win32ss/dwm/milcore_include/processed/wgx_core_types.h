@@ -2152,6 +2152,38 @@ struct MILCMD_BITMAP_SOURCE
     IWICBitmapSource* pIBitmap;
 };
 
+//
+// MilCmdBitmapPixels (16). A raw pixel upload: unlike MilCmdBitmapSource,
+// which marshals an IWICBitmapSource *pointer* and is therefore in-process
+// only, this carries the bits inline immediately after the 52-byte header
+// (pixels first, then cPaletteEntries WICColor entries), DWORD-aligned.
+//
+// Layout is fixed by Vista and recovered from both ends: milcore's cmd-0x10
+// dispatch requires cbSize >= 0x34 and hands ProcessPixels pcvData + 52 as
+// the payload (milcore.dll.c:19144), and uDWM's 1x1 placeholder sender writes
+// exactly these slots (uDWM.dll.c:4554). Reserved0/cbPixels are written by
+// uDWM but never read by Vista's milcore; cbPixels is redundant with
+// Stride * Height, which is what the payload-size check actually uses.
+//
+// This is inside the file's #pragma pack(1) region, which is what keeps the
+// two doubles at their wire offsets 36 and 44 -- natural alignment would push
+// DpiX to 40 and grow the header to 56.
+//
+struct MILCMD_BITMAP_PIXELS
+{
+    MILCMD Type;                        // +0
+    HMIL_RESOURCE Handle;               // +4
+    UINT32 Width;                       // +8
+    UINT32 Height;                      // +12
+    MilPixelFormat::Enum PixelFormat;   // +16
+    UINT32 Stride;                      // +20
+    UINT32 Reserved0;                   // +24
+    UINT32 cbPixels;                    // +28
+    UINT32 cPaletteEntries;             // +32
+    double DpiX;                        // +36
+    double DpiY;                        // +44
+};                                      // = 52 (0x34)
+
 struct MILCMD_BITMAP_INVALIDATE
 {
     MILCMD Type;

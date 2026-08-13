@@ -1961,6 +1961,11 @@ co_WinPosSetWindowPos(
    /* Both rects are live now; the mini-info carries them verbatim. */
    IntDwmUpdateSprite(Window);
 
+   /* And the redirection surface has to follow the window's size. Cheap on a
+    * pure move: IntDwmRecreateRedirectionBitmap compares the pixel size first
+    * and keeps the existing bitmap when it has not changed. */
+   IntDwmRedirOnWindowSized(Window);
+
    /* erase parent when hiding or resizing child */
    if (WinPos.flags & SWP_HIDEWINDOW)
    {

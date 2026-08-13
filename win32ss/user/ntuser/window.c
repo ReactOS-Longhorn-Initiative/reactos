@@ -2445,6 +2445,10 @@ co_UserCreateWindowEx(CREATESTRUCTW* Cs,
     */
    IntDwmNotifyChildCreate(Window);
 
+   /* Content redirection: give the window its own surface before it is linked
+    * and can be painted into. A child is rejected inside -- see dwmredir.c. */
+   IntDwmRedirOnWindowCreated(Window);
+
    /* Link the window */
    if (ParentWindow != NULL)
    {
@@ -2898,6 +2902,11 @@ BOOLEAN co_UserDestroyWindow(PVOID Object)
     * enumeration in that order (unlink, then destroy). */
    IntDwmDestroySprite(Window);
    IntDwmNotifyChildDestroy(Window);
+
+   /* Free the redirection bitmap with the window. Not gated on the current
+    * mode: a bitmap allocated before redirection was switched off still has to
+    * go, or it lives until the session ends. */
+   IntDwmRedirOnWindowDestroyed(Window);
 
    ASSERT_REFS_CO(Window); // FIXME: Temp HACK?
 

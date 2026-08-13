@@ -1,5 +1,13 @@
 #pragma once
 
+/* ---- DWM content redirection: gdi/ntgdi/redirdc.c ---- */
+
+HBITMAP NTAPI GreSelectRedirectionBitmap(_In_ HDC hdc, _In_ HBITMAP hbm);
+BOOL    NTAPI GreConvertMemToRedirectionDC(_In_ HDC hdc, _In_ BOOL bRedirect);
+BOOL    NTAPI GreConvertRedirectionToMemDC(_In_ HDC hdc, _In_ BOOL bUnredirect);
+BOOL    NTAPI GreIsRedirectionDC(_In_ HDC hdc);
+BOOL    NTAPI GreGetBitmapPixelSize(_In_ HBITMAP hbm, _Out_ PSIZEL psizl);
+
 INT     APIENTRY  BITMAP_GetObject(SURFACE * bmp, INT count, LPVOID buffer);
 HBITMAP FASTCALL BITMAP_CopyBitmap (HBITMAP  hBitmap);
 

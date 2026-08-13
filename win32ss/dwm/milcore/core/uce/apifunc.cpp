@@ -378,14 +378,51 @@ MilTransport_Create(CMilConnectionManager *pConnectionManager,
             pConnectionManager, TransportParams, Boolean);
 
     UNREFERENCED_PARAMETER(pConnectionManager);
-    UNREFERENCED_PARAMETER(TransportParams);
     UNREFERENCED_PARAMETER(Boolean);
 
     CHECKPTRARG(phConnection);
 
-    // [RWM] NOTE: forces SameThread marshaling. DWM may need CrossThread; revisit.
+    //
+    // CROSS THREAD, ALWAYS. This used to force MilMarshalType::SameThread with
+    // a note to revisit; revisiting it is what follows.
+    //
+    // Vista's CMilConnectionManager::CreateConnection (milcore.dll.c:98926)
+    // has exactly two arms and neither of them is same-thread:
+    //
+    //     CMilCrossThreadTransport::CreatePacketTransport(...)   local
+    //     CMilTsTransport::CreatePacketTransport(...)            remote (TS)
+    //
+    // and dwmredir picks between them by leaving TransportParams.TransportType
+    // zeroed for a local session and writing MIL_TRANSPORT_TYPE_REMOTE (2) only
+    // when it is remoting (dwmredir.dll.c:4351-4370). There is no third value
+    // and no same-thread path to reach.
+    //
+    // The distinction is not bookkeeping. CSameThreadComposition processes each
+    // batch inline from SubmitBatch and implements ScheduleCompositionPass as a
+    // documented no-op -- "the synchronous compositor is inherently
+    // unscheduled". Under it the visual tree is built correctly and then never
+    // drawn, because Compose/Render/Present are only ever reached through a
+    // scheduled pass. That is precisely what we had: every command dispatching
+    // hr=0 and CRenderTargetManager::Render never called once.
+    //
+    // The TS transport is not ported. A remote session therefore gets the
+    // cross-thread transport too, which is wrong for RDP but strictly better
+    // than same-thread -- it composes. Named here rather than silently mapped.
+    //
+    if (TransportParams != NULL)
+    {
+        const MIL_TRANSPORT_PARAMETERS *pParams =
+            reinterpret_cast<const MIL_TRANSPORT_PARAMETERS*>(TransportParams);
+
+        if (pParams->TransportType == MIL_TRANSPORT_TYPE_REMOTE)
+        {
+            DPRINT1("[RWM] MilTransport_Create: remote transport requested; "
+                    "CMilTsTransport is not ported, using CrossThread\n");
+        }
+    }
+
     IFC(CMilConnection::Create(
-        MilMarshalType::SameThread ,
+        MilMarshalType::CrossThread,
         OUT &pConnection));
 
     HMIL_CONNECTION hNewConnection = PointerToHandle(pConnection);

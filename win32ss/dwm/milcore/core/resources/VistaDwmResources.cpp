@@ -72,6 +72,7 @@ static bool VdwmFirstSeen(UINT32 nCmdType)
  * ========================================================================== */
 
 CMilWindowNodeDuce::CMilWindowNodeDuce(__in_ecount(1) CComposition *pComposition)
+    : CMilVisual(pComposition)
 {
     m_pCompositionNoRef = pComposition;
 
@@ -565,44 +566,152 @@ Cleanup:
 
 CMilScene3DDuce::CMilScene3DDuce(__in_ecount(1) CComposition *pComposition)
 {
-    m_pCompositionNoRef = pComposition;
-    m_hCamera           = 0;
-    m_hModel            = 0;
-    RtlZeroMemory(m_rgdwViewport, sizeof(m_rgdwViewport));
-    m_cbPayload         = 0;
+    m_pCompositionNoRef  = pComposition;
+    m_pModelGroup        = NULL;
+    m_pCamera            = NULL;
+    m_pViewportAnimation = NULL;
+    RtlZeroMemory(&m_viewport, sizeof(m_viewport));
+}
+
+CMilScene3DDuce::~CMilScene3DDuce()
+{
+    UnRegisterNotifiers();
+}
+
+void CMilScene3DDuce::UnRegisterNotifiers()
+{
+    UnRegisterNotifier(m_pViewportAnimation);
+    UnRegisterNotifier(m_pCamera);
+    UnRegisterNotifier(m_pModelGroup);
+
+    m_pViewportAnimation = NULL;
+    m_pCamera            = NULL;
+    m_pModelGroup        = NULL;
 }
 
 //
-// Cmd 137. uDWM sends 0x34 bytes from CFlip3D and a 44-byte-payload form
-// from CEnvironmentMap; both begin {Type, Handle} and carry the camera and
-// model handles next. The remaining fields are the viewport rect, which
-// CEnvironmentMap's own notes record as still only partly decoded -- so they
-// are retained verbatim rather than being given names they may not have.
+// Cmd 137, a fixed 52-byte record. See MILCMD_SCENE3D for where each field
+// came from.
+//
+// The previous decode read the camera and model handles out of dwords 2 and
+// 3, i.e. offsets 8 and 12 -- which are the two halves of the viewport's X
+// double. Both are 0.0, so it reported camera=0x0 model=0x0 on every scene
+// and its "viewport" was Y plus half of Width. It also described cmd 137 as
+// having two forms, a 0x34 one from CFlip3D and a 44-byte one from
+// CEnvironmentMap; those are the same record counted with and without the
+// {Type, Handle} head. Vista has one form and requires exactly 52 bytes.
 //
 HRESULT
 CMilScene3DDuce::ProcessUpdate(
+    __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
     __in_bcount(cbSize) const void *pcvData,
     UINT cbSize
     )
 {
-    if (pcvData == NULL || cbSize < 4 * sizeof(UINT32))
+    HRESULT hr = S_OK;
+
+    CMilModel3DGroupDuce *pModelGroup = NULL;
+    CMilCameraDuce       *pCamera     = NULL;
+    CMilSlaveResource    *pAnimation  = NULL;
+
+    if (pHandleTable == NULL || pcvData == NULL || cbSize != sizeof(MILCMD_SCENE3D))
         return WGXERR_UCE_MALFORMEDPACKET;
 
-    m_hCamera   = VDWM_DWORD(pcvData, 2);
-    m_hModel    = VDWM_DWORD(pcvData, 3);
-    m_cbPayload = cbSize;
+    const MILCMD_SCENE3D *pCmd =
+        reinterpret_cast<const MILCMD_SCENE3D*>(pcvData);
 
-    for (UINT i = 0; i < 4; i++)
+    //
+    // Resolve everything BEFORE dropping the old set, so a malformed record
+    // leaves the scene as it was rather than emptied. Vista unregisters first
+    // and bails to NotifyOnChanged on a bad handle; the difference only shows
+    // on a packet that cannot arrive from a correct sender, and holding the
+    // last good scene is the safer of the two.
+    //
+    if (pCmd->hModel3DGroup != HMIL_RESOURCE_NULL)
     {
-        const UINT idx = 4 + i;
-        m_rgdwViewport[i] =
-            (cbSize >= (idx + 1) * sizeof(UINT32)) ? VDWM_DWORD(pcvData, idx) : 0;
+        pModelGroup =
+            static_cast<CMilModel3DGroupDuce*>(pHandleTable->GetResource(
+                pCmd->hModel3DGroup,
+                TYPE_MODEL3DGROUP
+                ));
+
+        if (pModelGroup == NULL)
+        {
+            DPRINT1("[RWM] Scene3D: model group handle 0x%lx is not a"
+                    " TYPE_MODEL3DGROUP\n", (unsigned long)pCmd->hModel3DGroup);
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
     }
 
-    DPRINT1("[RWM] Scene3D: camera=0x%lx model=0x%lx cb=%u\n",
-            (unsigned long)m_hCamera, (unsigned long)m_hModel,
-            (unsigned)cbSize);
-    return S_OK;
+    //
+    // Looked up as the camera BASE type, exactly as Vista does. uDWM creates a
+    // TYPE_MATRIXCAMERA and a lookup for TYPE_MATRIXCAMERA here would reject
+    // every other camera kind Vista accepts.
+    //
+    if (pCmd->hCamera != HMIL_RESOURCE_NULL)
+    {
+        pCamera =
+            static_cast<CMilCameraDuce*>(pHandleTable->GetResource(
+                pCmd->hCamera,
+                TYPE_CAMERA
+                ));
+
+        if (pCamera == NULL)
+        {
+            DPRINT1("[RWM] Scene3D: camera handle 0x%lx is not a camera\n",
+                    (unsigned long)pCmd->hCamera);
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+    }
+
+    if (pCmd->hViewportAnimation != HMIL_RESOURCE_NULL)
+    {
+        pAnimation =
+            static_cast<CMilSlaveResource*>(pHandleTable->GetResource(
+                pCmd->hViewportAnimation,
+                TYPE_RECTRESOURCE
+                ));
+
+        if (pAnimation == NULL)
+        {
+            DPRINT1("[RWM] Scene3D: viewport animation handle 0x%lx is not a"
+                    " TYPE_RECTRESOURCE\n",
+                    (unsigned long)pCmd->hViewportAnimation);
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+    }
+
+    UnRegisterNotifiers();
+
+    IFC(RegisterNotifier(pModelGroup));
+    m_pModelGroup = pModelGroup;
+
+    IFC(RegisterNotifier(pCamera));
+    m_pCamera = pCamera;
+
+    IFC(RegisterNotifier(pAnimation));
+    m_pViewportAnimation = pAnimation;
+
+    m_viewport = pCmd->Viewport;
+
+    {
+        static LONG s_cLogged = 0;
+        if (InterlockedIncrement(&s_cLogged) <= 8)
+        {
+            DPRINT1("[RWM] Scene3D: model=%p camera=%p viewport=(%d,%d %dx%d)\n",
+                    m_pModelGroup, m_pCamera,
+                    (int)m_viewport.X,     (int)m_viewport.Y,
+                    (int)m_viewport.Width, (int)m_viewport.Height);
+        }
+    }
+
+Cleanup:
+    if (FAILED(hr))
+        UnRegisterNotifiers();
+
+    NotifyOnChanged(this);
+
+    RRETURN(hr);
 }
 
 /* ==========================================================================

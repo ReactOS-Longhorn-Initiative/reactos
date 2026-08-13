@@ -41,6 +41,13 @@ typedef enum _DCTYPE
     DCTYPE_DIRECT = 0,  /* Normal device context */
     DCTYPE_MEMORY = 1,  /* Memory device context */
     DCTYPE_INFO   = 2,  /* Information context   */
+    /*
+     * A window DC whose bits go to that window's DWM redirection bitmap
+     * instead of the primary surface. Behaves as DCTYPE_DIRECT everywhere
+     * except surface selection -- see gdi/ntgdi/redirdc.c for why it is a
+     * type of its own and not DCTYPE_MEMORY with a flag.
+     */
+    DCTYPE_REDIRECTION = 3,
 } DCTYPE;
 
 

@@ -136,6 +136,44 @@ MtExtern(CMilGeometry2DGroupDuce);
 MtExtern(CMilScene3DDuce);
 MtExtern(CMilCachedVisualImageDuce);
 
+class CMilCameraDuce;
+class CMilModel3DGroupDuce;
+
+//
+// Cmd 137, MilCmdScene3D. Recovered field-for-field from Vista's
+// CMilScene3DDuce::ProcessUpdate (milcore.dll.c:70532), which copies the
+// whole 52-byte record into a local int[13] and then reads:
+//
+//    v13[2..9]  -> qmemcpy(this + 24, .., 0x20)   the viewport rect
+//    v13[10]    -> GetResource(.., 12)            TYPE_MODEL3DGROUP
+//    v13[11]    -> GetResource(.., 6)             the camera, as its BASE
+//                                                 type -- uDWM creates a
+//                                                 MatrixCamera (10), which
+//                                                 satisfies IsOfType(6)
+//    v13[12]    -> GetResource(.., 56)            TYPE_RECTRESOURCE, optional
+//
+// The trailing rect resource is the animation slot for Viewport: the base
+// value arrives inline as four doubles and a RectResource handle may override
+// it. uDWM sends 0 there, so nothing exercises it today.
+//
+// This matches uDWM's sender (CEnvironmentMap::EmitViewport) exactly, which is
+// itself decoded from a stock wire capture -- the doubles are recognisable on
+// the wire as 0x405f0000_00000000 = 124.0 and 0x40420000_00000000 = 36.0.
+//
+#pragma pack(push, 1)
+struct MILCMD_SCENE3D
+{
+    MILCMD           Type;              // +0
+    HMIL_RESOURCE    Handle;            // +4
+    MilPointAndSizeD Viewport;          // +8   X, Y, Width, Height as doubles
+    HMIL_RESOURCE    hModel3DGroup;     // +40
+    HMIL_RESOURCE    hCamera;           // +44
+    HMIL_RESOURCE    hViewportAnimation; // +48  TYPE_RECTRESOURCE, may be 0
+};                                      // = 52 (0x34)
+#pragma pack(pop)
+
+C_ASSERT(sizeof(MILCMD_SCENE3D) == 0x34);
+
 //+----------------------------------------------------------------------------
 //
 //  CMilWindowNodeDuce -- TYPE_WINDOWNODE (42)
@@ -146,7 +184,25 @@ MtExtern(CMilCachedVisualImageDuce);
 //
 //-----------------------------------------------------------------------------
 
-class CMilWindowNodeDuce : public CMilSlaveResource
+//
+// A WINDOW NODE IS A VISUAL. Vista is explicit about it -- CWindowNode::IsOfType
+// (milcore.dll.c:21504) is one line:
+//
+//     return a1 == 42 || a1 == 39;      // TYPE_WINDOWNODE || TYPE_VISUAL
+//
+// and that dual identity is load bearing, not a convenience. uDWM parents its
+// chrome visuals under the window node and drives the tree with the ordinary
+// visual commands -- MilCmdVisualInsertChildAt (43) looks the PARENT up as
+// TYPE_VISUAL. A window node that answers only TYPE_WINDOWNODE fails that
+// lookup and the whole window tree fails to assemble.
+//
+// The base class has to change with the type claim, not just the type claim.
+// Answering TYPE_VISUAL while deriving from CMilSlaveResource would satisfy
+// GetResource and then hand ProcessInsertChildAt a static_cast'd pointer to an
+// object that is not a CMilVisual -- a call through a wrong vtable, which is
+// far worse than the assert it replaces.
+//
+class CMilWindowNodeDuce : public CMilVisual
 {
     friend class CResourceFactory;
 
@@ -159,7 +215,10 @@ protected:
 public:
     /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
     {
-        return type == TYPE_WINDOWNODE;
+        /* Vista's exact test. CMilVisual::IsOfType would answer TYPE_VISUAL
+         * on its own, but spelling both out keeps this readable next to the
+         * decompile and independent of the base's implementation. */
+        return type == TYPE_WINDOWNODE || type == TYPE_VISUAL;
     }
 
     //
@@ -375,7 +434,7 @@ protected:
     DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilScene3DDuce));
 
     CMilScene3DDuce(__in_ecount(1) CComposition *pComposition);
-    ~CMilScene3DDuce() { }
+    ~CMilScene3DDuce();
 
 public:
     /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
@@ -383,15 +442,33 @@ public:
         return type == TYPE_SCENE3D;
     }
 
-    HRESULT ProcessUpdate(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
+    HRESULT ProcessUpdate(
+        __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
+        __in_bcount(cbSize) const void *pcvData,
+        UINT cbSize
+        );
+
+    // ---- resolved scene, for the 3D draw pass ----
+    CMilModel3DGroupDuce *ModelGroup() const { return m_pModelGroup; }
+    CMilCameraDuce       *Camera()     const { return m_pCamera; }
+    const MilPointAndSizeD &Viewport() const { return m_viewport; }
 
 private:
+    void UnRegisterNotifiers();
+
     CComposition *m_pCompositionNoRef;
 
-    HMIL_RESOURCE m_hCamera;
-    HMIL_RESOURCE m_hModel;
-    UINT32        m_rgdwViewport[4];
-    UINT          m_cbPayload;    // what actually arrived, for tracing
+    //
+    // Resolved at command time, not stored as handles. The draw pass gets no
+    // handle table (same reason spelled out on CMilGeometry2DGroupDuce), and
+    // command time is the only moment a handle is guaranteed to still name
+    // this resource.
+    //
+    CMilModel3DGroupDuce *m_pModelGroup;
+    CMilCameraDuce       *m_pCamera;
+    CMilSlaveResource    *m_pViewportAnimation;   // TYPE_RECTRESOURCE, usually NULL
+
+    MilPointAndSizeD      m_viewport;
 };
 
 //+----------------------------------------------------------------------------

@@ -673,3 +673,8 @@
 @ stdcall -version=0x600+ D3DKMTWaitForIdle(ptr) NtGdiDdDDIWaitForIdle
 @ stdcall -version=0x600+ D3DKMTWaitForSynchronizationObject(ptr) NtGdiDdDDIWaitForSynchronizationObject
 @ stdcall -version=0x600+ D3DKMTWaitForVerticalBlankEvent(ptr) NtGdiDdDDIWaitForVerticalBlankEvent
+
+# Desktop composition. dwmredir resolves this by name (GetProcAddress) rather
+# than importing it, so the export is the whole contract -- see
+# DarkFiresReactOSModules/dwm/dwmredir/GdiFormat.cpp.
+@ stdcall -version=0x600+ DwmGetSurfaceData(long ptr) NtGdiDwmGetSurfaceData

@@ -69,7 +69,6 @@ class CMilSlaveBitmap;
 #include "CacheMode.h"
 #include "BitmapCacheMode.h"
 #include "GlyphCache.h"
-#include "VistaDwmResources.h"
 
 #include "translate.h"
 #include "scale.h"
@@ -156,6 +155,14 @@ class CMilSlaveBitmap;
 #include "glyphrunslave.h"
 #include "GlyphRunGeometrySink.h"
 #include "node.h"
+
+/*
+ * AFTER node.h, and that ordering is a dependency now: CMilWindowNodeDuce
+ * derives from CMilVisual because Vista's CWindowNode does. It used to sit up
+ * beside GlyphCache.h, which was fine only while the window node was a bare
+ * CMilSlaveResource.
+ */
+#include "VistaDwmResources.h"
 #include "Viewport3DVisual.h"
 #include "Visual3D.h"
 

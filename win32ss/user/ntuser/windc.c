@@ -161,6 +161,55 @@ DceSetDrawable( PWND Window OPTIONAL,
       }
   }
 
+  /*
+   * DWM content redirection. The window's pixels belong in its own bitmap,
+   * not on the primary, so the DC gets that surface and an origin shifted
+   * into it -- see ntuser/dwmredir.c for the model.
+   *
+   * The rectangle is translated as well as the origin. GreSetDCOrg stores it
+   * as the DC's bounds, and bounds left in screen coordinates against a
+   * window-sized surface would reject everything drawn below or right of the
+   * window's own top-left position on the desktop.
+   *
+   * On failure the DC is deliberately left as it was: an unconverted DC draws
+   * to the primary, which is the pre-redirection behaviour and visibly wrong
+   * rather than invisibly lost.
+   */
+  if (Window && UserIsWindowRedirected(Window))
+  {
+      HBITMAP hbmRedir = UserGetRedirectionBitmap(Window);
+      POINT ptOrg;
+
+      UserGetRedirectedWindowOrigin(Window, &ptOrg);
+
+      if (GreConvertMemToRedirectionDC(hDC, TRUE) &&
+          GreSelectRedirectionBitmap(hDC, hbmRedir) != NULL)
+      {
+          RECTL rcBitmap;
+
+          rcBitmap.left   = rect.left   - ptOrg.x;
+          rcBitmap.top    = rect.top    - ptOrg.y;
+          rcBitmap.right  = rect.right  - ptOrg.x;
+          rcBitmap.bottom = rect.bottom - ptOrg.y;
+
+          GreSetDCOrg(hDC, rcBitmap.left, rcBitmap.top, &rcBitmap);
+          return;
+      }
+
+      /* Put the type back so the DC is a plain display DC again. */
+      (VOID)GreConvertMemToRedirectionDC(hDC, FALSE);
+  }
+  else if (GreIsRedirectionDC(hDC))
+  {
+      /*
+       * A cache DC is reused across windows. One that last served a redirected
+       * window still holds that window's bitmap, and handing it to an
+       * unredirected window would send that window's output into someone
+       * else's surface.
+       */
+      (VOID)GreConvertRedirectionToMemDC(hDC, TRUE);
+  }
+
   /* Set DC Origin and Window Rectangle */
   GreSetDCOrg( hDC, rect.left, rect.top, &rect);
 }
@@ -194,6 +243,69 @@ DceUpdateVisRgn(DCE *Dce, PWND Window, ULONG Flags)
    PREGION RgnVisible = NULL;
    ULONG DcxFlags;
    PWND DesktopWindow;
+
+   /*
+    * A REDIRECTED WINDOW IS NOT CLIPPED BY ITS SIBLINGS.
+    *
+    * That is the point of redirection and it has to be handled here, not just
+    * at the surface: the visible region exists to stop a window painting over
+    * the window in front of it on a SHARED surface. A redirected window owns
+    * its surface, nothing else is in it, and DWM decides what covers what at
+    * composition time. Leaving the screen-derived region in place would clip
+    * every occluded window's output away inside its own bitmap, so the
+    * compositor would receive exactly the holes the old model needed -- and
+    * they would then be composited as holes.
+    *
+    * Children still clip: a child draws into the same bitmap as its parent, so
+    * DCX_CLIPCHILDREN keeps meaning what it meant. Only the sibling and
+    * ancestor clipping that came from sharing the primary goes away.
+    */
+   if (Window != NULL && UserIsWindowRedirected(Window))
+   {
+      POINT ptOrg;
+      RECTL rcVis;
+
+      UserGetRedirectedWindowOrigin(Window, &ptOrg);
+
+      rcVis = (Flags & DCX_WINDOW) ? Window->rcWindow : Window->rcClient;
+
+      rcVis.left   -= ptOrg.x;
+      rcVis.top    -= ptOrg.y;
+      rcVis.right  -= ptOrg.x;
+      rcVis.bottom -= ptOrg.y;
+
+      RgnVisible = IntSysCreateRectpRgnIndirect(&rcVis);
+
+      if (RgnVisible != NULL && (Flags & DCX_CLIPCHILDREN) &&
+          Window->spwndChild != NULL)
+      {
+         PWND Child;
+
+         for (Child = Window->spwndChild; Child != NULL; Child = Child->spwndNext)
+         {
+            PREGION RgnChild;
+            RECTL rcChild;
+
+            if (!(Child->style & WS_VISIBLE))
+               continue;
+
+            rcChild = Child->rcWindow;
+            rcChild.left   -= ptOrg.x;
+            rcChild.top    -= ptOrg.y;
+            rcChild.right  -= ptOrg.x;
+            rcChild.bottom -= ptOrg.y;
+
+            RgnChild = IntSysCreateRectpRgnIndirect(&rcChild);
+            if (RgnChild == NULL)
+               continue;
+
+            IntGdiCombineRgn(RgnVisible, RgnVisible, RgnChild, RGN_DIFF);
+            REGION_Delete(RgnChild);
+         }
+      }
+
+      goto noparent;
+   }
 
    if (Flags & DCX_PARENTCLIP)
    {
@@ -1041,6 +1153,39 @@ NtUserSelectPalette(HDC  hDC,
     oldPal = GdiSelectPalette( hDC, hpal, ForceBackground);
     UserLeave();
     return oldPal;
+}
+
+/*
+ * Vista _UpdateRedirectedDCs@0.
+ *
+ * Redirection is switched on and off long after DCs have been handed out, and
+ * a DC caches its surface pointer -- it does not consult the window on every
+ * draw. Without this pass, every DC that existed at the moment of the switch
+ * keeps drawing wherever it was already pointed: to the primary after
+ * redirection starts, or into a bitmap nobody composites after it stops.
+ *
+ * Marking each DCE dirty is enough rather than reselecting here. DCX_DCEDIRTY
+ * makes the next DceUpdateVisRgn recompute, and DceSetDrawable -- which is
+ * what actually moves the surface -- runs on the same path. Doing the surface
+ * swap here as well would duplicate that logic in a second place, and the two
+ * copies would drift.
+ */
+VOID
+FASTCALL
+IntDwmUpdateRedirectedDCs(VOID)
+{
+    PLIST_ENTRY ListEntry;
+    PDCE pDCE;
+
+    ListEntry = LEDce.Flink;
+    while (ListEntry != &LEDce)
+    {
+        pDCE = CONTAINING_RECORD(ListEntry, DCE, List);
+        ListEntry = ListEntry->Flink;
+
+        pDCE->DCXFlags |= DCX_DCEDIRTY;
+        IntGdiSetHookFlags(pDCE->hDC, DCHF_INVALIDATEVISRGN);
+    }
 }
 
 /* EOF */

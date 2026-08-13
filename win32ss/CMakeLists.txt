@@ -113,6 +113,7 @@ list(APPEND SOURCE
     user/ntuser/accelerator.c
     user/ntuser/callback.c
     user/ntuser/dwm.c
+    user/ntuser/dwmredir.c
     user/ntuser/callproc.c
     user/ntuser/caret.c
     user/ntuser/class.c
@@ -176,6 +177,7 @@ list(APPEND SOURCE
     gdi/ntgdi/d3dkmt.c
     gdi/ntgdi/dcattr.c
     gdi/ntgdi/dclife.c
+    gdi/ntgdi/redirdc.c
     gdi/ntgdi/dcobjs.c
     gdi/ntgdi/dcstate.c
     gdi/ntgdi/dcutil.c

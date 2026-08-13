@@ -299,4 +299,60 @@ VOID IntDwmUpdateSprite(PWND Wnd);
 VOID IntDwmZorderSprite(PWND Wnd);
 VOID IntDwmActivationChange(PWND Wnd, BOOL fActive);
 
+/* Enumerate every window on the active desktop, parents before children.
+ * Shared with dwmredir.c, which needs the same walk for the bitmap pass. */
+VOID IntDwmForEachOnDesktop(VOID (*pfn)(PWND));
+
+/* ------------------------------------------------------------------------- */
+/*  Content redirection -- see ntuser/dwmredir.c                              */
+/* ------------------------------------------------------------------------- */
+
+/* WND::DwmRedirFlags. Vista reads the same word through _GetRedirectionFlags. */
+#define DWM_REDIRF_REDIRECTED   0x00000001
+
+/* Vista _gfStructuralRedirection: TRUE = geometry only, no content capture. */
+extern BOOL gfStructuralRedirection;
+
+HBITMAP FASTCALL UserGetRedirectionBitmap(PWND Wnd);
+VOID    FASTCALL UserSetRedirectionBitmap(PWND Wnd, HBITMAP hbm);
+HBITMAP FASTCALL UserGetOldRedirectionBitmap(PWND Wnd);
+VOID    FASTCALL UserSetOldRedirectionBitmap(PWND Wnd, HBITMAP hbm);
+UINT32  FASTCALL UserGetRedirectionFlags(PWND Wnd);
+
+/* TRUE when this window's DCs must be pointed at its redirection bitmap. */
+BOOL    FASTCALL UserIsWindowRedirected(PWND Wnd);
+VOID    FASTCALL UserGetRedirectedWindowOrigin(PWND Wnd, PPOINT ppt);
+
+HBITMAP FASTCALL IntDwmCreateRedirectionBitmap(PWND Wnd);
+HBITMAP FASTCALL IntDwmRecreateRedirectionBitmap(PWND Wnd);
+VOID    FASTCALL IntDwmRemoveRedirectionBitmap(PWND Wnd);
+
+BOOL    FASTCALL IntDwmSetRedirectedWindow(PWND Wnd);
+VOID    FASTCALL IntDwmUnsetRedirectedWindow(PWND Wnd);
+VOID    FASTCALL IntDwmResetRedirectedWindows(VOID);
+
+VOID    FASTCALL IntDwmRedirOnWindowCreated(PWND Wnd);
+VOID    FASTCALL IntDwmRedirOnWindowDestroyed(PWND Wnd);
+VOID    FASTCALL IntDwmRedirOnWindowSized(PWND Wnd);
+
+/*
+ * tagDWMSURFACEDATA -- the win32k -> dwmredir contract, seven DWORDs.
+ * Consumed by CMilWindowContext::GetNewSurfaceData; the authoritative
+ * commentary on each slot is in dwmredir/RedirCommands.hpp, which recovered
+ * it from Vista's read sites. Keep the two in step.
+ */
+typedef struct _DWM_SURFACE_DATA
+{
+    HANDLE hSection;        /* slot 0 -- mapped then closed by dwmredir */
+    UINT32 nWidth;          /* slot 1 */
+    UINT32 nHeight;         /* slot 2 */
+    UINT32 dwGdiFormat;     /* slot 3 -- BI_* compression */
+    UINT32 dwGdiFormatAux;  /* slot 4 -- bits per pixel */
+    UINT32 dwStride;        /* slot 5 */
+    UINT32 dwFlags;         /* slot 6 -- high byte == 1 means "has alpha" */
+} DWM_SURFACE_DATA, *PDWM_SURFACE_DATA;
+
+/* windc.c: retarget DCs that were handed out before the mode changed. */
+VOID    FASTCALL IntDwmUpdateRedirectedDCs(VOID);
+
 /* EOF */
