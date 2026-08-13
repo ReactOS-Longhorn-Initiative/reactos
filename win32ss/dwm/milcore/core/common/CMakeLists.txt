@@ -62,7 +62,7 @@ WatermarkStack.cpp
     )
 
 add_library(milcoreCommon ${SOURCE})
-add_dependencies(milcoreCommon xdk)
+add_dependencies(milcoreCommon xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

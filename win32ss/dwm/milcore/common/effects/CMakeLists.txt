@@ -24,7 +24,7 @@ effectlist.cpp
 )
 
 add_library(effects ${SOURCE})
-add_dependencies(effects xdk)
+add_dependencies(effects xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

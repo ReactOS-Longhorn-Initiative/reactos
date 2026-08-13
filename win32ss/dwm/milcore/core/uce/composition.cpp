@@ -10,6 +10,7 @@
 //------------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1 handshake tracing
 
 #if PRERELEASE
 //
@@ -112,23 +113,26 @@ CComposition::Initialize()
     CMILFactory *pFactory = NULL;
     CRenderTargetManager *pRenderTargetManager = NULL;
 
-    IFC(CMILFactory::Create(&pFactory));
+    DPRINT1("[RWM] CComposition::Initialize ENTER this=%p\n", this);
+
+    hr = CMILFactory::Create(&pFactory);
+    DPRINT1("[RWM] CComposition::Initialize: CMILFactory::Create hr=0x%08lx factory=%p\n", hr, pFactory);
+    IFC(hr);
 
     // Create the render target manager.
-    IFC(CRenderTargetManager::Create(
-            this,
-            &pRenderTargetManager
-            ));
+    hr = CRenderTargetManager::Create(this, &pRenderTargetManager);
+    DPRINT1("[RWM] CComposition::Initialize: CRenderTargetManager::Create hr=0x%08lx rtm=%p\n", hr, pRenderTargetManager);
+    IFC(hr);
 
     // Create the cache manager.
-    IFC(CVisualCacheManager::Create(
-            this,
-            pFactory,
-            &m_pVisualCacheManager
-            ));
+    hr = CVisualCacheManager::Create(this, pFactory, &m_pVisualCacheManager);
+    DPRINT1("[RWM] CComposition::Initialize: CVisualCacheManager::Create hr=0x%08lx\n", hr);
+    IFC(hr);
 
     // Create the glyph cache
-    IFC(CMilSlaveGlyphCache::Create(this, &m_pGlyphCache));
+    hr = CMilSlaveGlyphCache::Create(this, &m_pGlyphCache);
+    DPRINT1("[RWM] CComposition::Initialize: CMilSlaveGlyphCache::Create hr=0x%08lx\n", hr);
+    IFC(hr);
 
     // Now that initialization succeeded, store the MIL factory reference.
     SetInterface(m_pFactory, pFactory);
@@ -254,6 +258,16 @@ CComposition::ProcessCommandBatch(
     Assert(pHandleTable != NULL);
 
     pHandleTable->SetComposition(this);
+
+    {
+        static LONG s_cBatch = 0;
+        if (s_cBatch < 128)
+        {
+            InterlockedIncrement(&s_cBatch);
+            DPRINT1("[RWM] CComposition::ProcessCommandBatch ENTER batch=%p bytes=%llu [#%ld]\n",
+                    pBatch, (unsigned long long)pBatch->GetTotalWrittenByteCount(), s_cBatch);
+        }
+    }
 
     //
     // Trace the execution of this method.
@@ -387,6 +401,23 @@ CComposition::ProcessCommandBatch(
         //
 
         //
+        //
+        // [RWM] Phase-1 observability: log the raw incoming command opcode +
+        // size to confirm Vista's uDWM/dwmredir command stream reaches our
+        // dispatcher. nCmdType is the RAW wire value (Vista's numbering), which
+        // will NOT match our MilCmd* enum until the command table is realigned.
+        // Bounded so it cannot flood the boot log.
+        //
+        {
+            static LONG s_cRwmCmdLog = 0;
+            if (s_cRwmCmdLog < 512)
+            {
+                InterlockedIncrement(&s_cRwmCmdLog);
+                DPRINT1("[RWM] ProcessCommandBatch cmd Type=%u (0x%02X) cbSize=%u [#%ld]\n",
+                        (UINT)nCmdType, (UINT)nCmdType, cbSize, s_cRwmCmdLog);
+            }
+        }
+
         // Ignore false-positive PreFast warning about possible infinite loop when using
         // IFC macro inside this .inl file - PreFast can't seem to parse this correctly.
         #pragma warning (push)
@@ -396,8 +427,22 @@ CComposition::ProcessCommandBatch(
 
         #pragma warning (pop)
 
+        // [RWM] Post-dispatch result (only reached if the handler did NOT
+        // IFC-fail out to Cleanup). Pairs with the pre-dispatch log above so a
+        // pre-dispatch line WITHOUT a matching "dispatched" line = the command
+        // that failed (see the FAILED log in Cleanup for its hr).
+        {
+            static LONG s_cRwmCmdOk = 0;
+            if (s_cRwmCmdOk < 512)
+            {
+                InterlockedIncrement(&s_cRwmCmdOk);
+                DPRINT1("[RWM] ProcessCommandBatch cmd Type=%u dispatched hr=0x%08lx [#%ld]\n",
+                        (UINT)nCmdType, hr, s_cRwmCmdOk);
+            }
+        }
+
         // Watchdog for bugs
-        CFloatFPU::AssertPrecisionAndRoundingMode();            
+        CFloatFPU::AssertPrecisionAndRoundingMode();
 
 
         //
@@ -474,6 +519,8 @@ Cleanup:
 
     if (FAILED(hr))
     {
+        DPRINT1("[RWM] *** ProcessCommandBatch FAILED hr=0x%08lx (last cmd Type=%u) -> "
+                "partition will ZOMBIE, DWM client will abort ***\n", hr, (UINT)nCmdType);
         if (hr != D3DERR_NOTAVAILABLE)
         {
             MilUnexpectedError(hr, TEXT("batch processing error"));
@@ -711,6 +758,16 @@ HRESULT CComposition::ProcessComposition(
 
         MIL_THRX(hrRender, Render(pfPresentNeeded));
 
+        {
+            static LONG s_cRender = 0;
+            if (s_cRender < 64)
+            {
+                InterlockedIncrement(&s_cRender);
+                DPRINT1("[RWM] ProcessComposition: Render hr=0x%08lx presentNeeded=%d [#%ld]\n",
+                        hrRender, (int)*pfPresentNeeded, s_cRender);
+            }
+        }
+
         if (m_bNeedBadShaderNotification)
         {
             // If a user-supplied pixel shader was bad, just send a notification
@@ -742,6 +799,16 @@ HRESULT CComposition::ProcessComposition(
     }
 
 Cleanup:
+
+    {
+        static LONG s_cPC = 0;
+        if (s_cPC < 64)
+        {
+            InterlockedIncrement(&s_cPC);
+            DPRINT1("[RWM] ProcessComposition EXIT hr=0x%08lx updateDisplay=0x%08lx presentNeeded=%d [#%ld]\n",
+                    hr, hrUpdateDisplayState, (int)*pfPresentNeeded, s_cPC);
+        }
+    }
 
     //
     // Consider backbuffer completely composed when present is not needed or
@@ -816,6 +883,16 @@ CComposition::Compose(
     *pfPresentNeeded = fPresentNeeded;
 
 Cleanup:
+
+    {
+        static LONG s_cCompose = 0;
+        if (s_cCompose < 64)
+        {
+            InterlockedIncrement(&s_cCompose);
+            DPRINT1("[RWM] CComposition::Compose EXIT hr=0x%08lx presentNeeded=%d zombie=%d [#%ld]\n",
+                    hr, (int)fPresentNeeded, (int)IsZombie(), s_cCompose);
+        }
+    }
 
     if (SUCCEEDED(hr))
     {
@@ -1595,6 +1672,39 @@ CComposition::Channel_RequestTier(
     tierMessage.tierData.DisplayUniqueness = DisplayUniqueness;
 
     //
+    // [RWM] DWM rejects composition (and tears down the whole transport) when the
+    // reported graphics tier is 0. On the VM, the display-caps assessment never
+    // populates real caps (Mesa SVGA3D isn't recognized as WDDM, and the assessment
+    // path doesn't run during the early probe), so QueryCurrentGraphicsAccelerationCaps
+    // returns all-zero / Tier 0. The assessment D3D device + render targets DO
+    // initialize on this driver, so force a DWM-sufficient hardware tier here to get
+    // past DWM's gate and keep composition alive. TODO: replace with real caps once
+    // the display assessment path runs (see CDisplay::ReadGraphicsAccelerationCaps).
+    //
+    {
+        MilGraphicsAccelerationCaps &c = tierMessage.tierData.Caps;
+        DPRINT1("[RWM] %s: queried caps Tier=0x%lx PS=0x%lx VS=0x%lx maxTex=%ux%u WDDM=%d bpp=%u\n",
+                __FUNCTION__, (unsigned long)c.TierValue, (unsigned long)c.PixelShaderVersion,
+                (unsigned long)c.VertexShaderVersion, c.MaxTextureWidth, c.MaxTextureHeight,
+                (int)c.HasWDDMSupport, c.BitsPerPixel);
+
+        if (c.TierValue == 0)   /* MIL_TIER(0,0) */
+        {
+            c.TierValue            = 0x00020000;   /* MIL_TIER(2,0) - full hardware */
+            c.HasWDDMSupport       = TRUE;
+            c.PixelShaderVersion   = 0xFFFF0300;   /* D3DPS_VERSION(3,0) */
+            c.VertexShaderVersion  = 0xFFFE0300;   /* D3DVS_VERSION(3,0) */
+            if (c.MaxTextureWidth  < 2048) c.MaxTextureWidth  = 2048;
+            if (c.MaxTextureHeight < 2048) c.MaxTextureHeight = 2048;
+            c.WindowCompatibleMode = TRUE;
+            if (c.BitsPerPixel == 0) c.BitsPerPixel = 32;
+            c.HasSSE2Support       = TRUE;
+            c.MaxPixelShader30InstructionSlots = 512;
+            DPRINT1("[RWM] %s: FORCED caps to Tier(2,0)/PS3.0 to pass DWM composition gate\n", __FUNCTION__);
+        }
+    }
+
+    //
     // Grab relevant WinSAT data -- video memory bandwidth in kilobytes 
     // per second and video memory size estimation, in bytes. The caller
     // can use this information to perform display machine assessments.
@@ -1621,13 +1731,64 @@ CComposition::Channel_RequestTier(
         }
     
         tierMessage.tierData.Assessment.VideoMemorySize = VideoMemorySize;
+
+        // [RWM] No WinSAT assessment exists on the VM, so both come back 0. DWM/Aero
+        // has a minimum video-memory requirement and may refuse composition when the
+        // assessment reports 0. Force plausible non-zero values to pass any such gate.
+        if (tierMessage.tierData.Assessment.VideoMemorySize == 0)
+            tierMessage.tierData.Assessment.VideoMemorySize = 256u * 1024u * 1024u;   /* 256 MB */
+        if (tierMessage.tierData.Assessment.VideoMemoryBandwidth == 0)
+            tierMessage.tierData.Assessment.VideoMemoryBandwidth = 4000000u;            /* ~4 GB/s in KB/s */
+        DPRINT1("[RWM] %s: Assessment vmem=%u bandwidth=%u (forced if 0)\n",
+                __FUNCTION__, tierMessage.tierData.Assessment.VideoMemorySize,
+                tierMessage.tierData.Assessment.VideoMemoryBandwidth);
     }
 
     //
     // Send the obtained caps information over the back channel.
     //
-
-    IFC(pChannel->PostMessageToChannel(&tierMessage));
+    // [RWM] Repack into Vista's MIL_MESSAGE/MilMsgTierData byte layout before
+    // posting. WPF's MilGraphicsAccelerationCaps has 10 DWORD fields (it appended
+    // MaxPixelShader30InstructionSlots); Vista's has 9. In WPF layout the video-memory
+    // Assessment lands 4 bytes too low, so Vista's DWM reads the caps + VideoMemorySize
+    // from the wrong offsets and refuses composition. Lay it out exactly as Vista does
+    // (milcore.dll.c:106308 Channel_RequestTier): v[12]/v[13] = the Assessment at byte
+    // offsets 52/56, with 9 caps dwords at v[4..12].
+    //
+    {
+        //
+        // [RWM] Field order derived from dwm.exe CDwmAppHost::VerifyDisplayModesViaMIL
+        // (dwm.exe.c:1842-1883), which reads the tier reply at these exact offsets:
+        //   off20 HasWDDMSupport (must be !=0), off24 PixelShaderVersion (>=PS2.0),
+        //   off32/36 MaxTextureWidth/Height (>= screen res), off44 WindowCompatibleMode
+        //   (!=0), off48 BitsPerPixel (==32), off52/56 VideoMemoryBandwidth/Size.
+        // Vista's caps has an EXTRA field at off40 (remote-compat mode) that WPF's
+        // MilGraphicsAccelerationCaps lacks -- that 4-byte shift is why our earlier
+        // repack failed the BitsPerPixel==32 check (it read our HasSSE2Support=1).
+        // Hardcode passing values (real caps are never queried on this driver; band-aid).
+        //
+        BYTE rawMsg[sizeof(MIL_MESSAGE)];
+        ZeroMemory(rawMsg, sizeof(rawMsg));
+        DWORD *v = reinterpret_cast<DWORD*>(rawMsg);
+        v[0]  = (DWORD)MilMessageClass::Tier;                    /* off 0  : type            */
+        v[2]  = (DWORD)tierMessage.tierData.CommonMinimumCaps;   /* off 8                    */
+        v[3]  = (DWORD)tierMessage.tierData.DisplayUniqueness;   /* off 12                   */
+        v[4]  = 0x00020000;   /* off 16 : TierValue = MIL_TIER(2,0)                          */
+        v[5]  = 1;            /* off 20 : HasWDDMSupport         (dwm: must be != 0)         */
+        v[6]  = 0xFFFF0300;   /* off 24 : PixelShaderVersion     (dwm: must be >= 0xFFFF0200)*/
+        v[7]  = 0xFFFE0300;   /* off 28 : VertexShaderVersion                                */
+        v[8]  = 16384;        /* off 32 : MaxTextureWidth        (dwm: must be >= screen w)  */
+        v[9]  = 16384;        /* off 36 : MaxTextureHeight       (dwm: must be >= screen h)  */
+        v[10] = 1;            /* off 40 : remote-compat mode     (Vista-only extra field)    */
+        v[11] = 1;            /* off 44 : WindowCompatibleMode   (dwm: must be != 0)         */
+        v[12] = 32;           /* off 48 : BitsPerPixel           (dwm: must == 32)           */
+        v[13] = 4000000u;     /* off 52 : VideoMemoryBandwidth                               */
+        v[14] = 268435456u;   /* off 56 : VideoMemorySize (256 MB)                           */
+        DPRINT1("[RWM] %s: posting Vista-layout tier msg (Tier=0x%lx WDDM=%lu PS=0x%lx bpp=%lu vmem=%lu)\n",
+                __FUNCTION__, (unsigned long)v[4], (unsigned long)v[5],
+                (unsigned long)v[6], (unsigned long)v[12], (unsigned long)v[14]);
+        IFC(pChannel->PostMessageToChannel(reinterpret_cast<const MIL_MESSAGE*>(rawMsg)));
+    }
 
 Cleanup:
     RRETURN(hr);
@@ -2095,6 +2256,17 @@ CComposition::FlushChannels(
     // clear the sync flush array.
     //
     // 
+    {
+        static LONG s_cFlush = 0;
+        UINT cFlush = m_rgpFlushChannels.GetCount();
+        if (cFlush > 0 && s_cFlush < 64)
+        {
+            InterlockedIncrement(&s_cFlush);
+            DPRINT1("[RWM] FlushChannels: signaling %u sync-flush channel(s) forceAll=%d zombieHr=0x%08lx [#%ld]\n",
+                    cFlush, (int)fForceAllChannels, m_hrZombieNotificationFailureReason, s_cFlush);
+        }
+    }
+
     for (UINT i = 0, limit = m_rgpFlushChannels.GetCount(); i < limit; i++)
     {
         CMilServerChannel* pChannel = m_rgpFlushChannels[i];
@@ -2498,6 +2670,39 @@ CComposition::NotifyTierChange()
                 &tierMessage.tierData.Caps);
 
     tierMessage.tierData.DisplayUniqueness = DisplayUniqueness;
+
+    //
+    // [RWM] DWM rejects composition (and tears down the whole transport) when the
+    // reported graphics tier is 0. On the VM, the display-caps assessment never
+    // populates real caps (Mesa SVGA3D isn't recognized as WDDM, and the assessment
+    // path doesn't run during the early probe), so QueryCurrentGraphicsAccelerationCaps
+    // returns all-zero / Tier 0. The assessment D3D device + render targets DO
+    // initialize on this driver, so force a DWM-sufficient hardware tier here to get
+    // past DWM's gate and keep composition alive. TODO: replace with real caps once
+    // the display assessment path runs (see CDisplay::ReadGraphicsAccelerationCaps).
+    //
+    {
+        MilGraphicsAccelerationCaps &c = tierMessage.tierData.Caps;
+        DPRINT1("[RWM] %s: queried caps Tier=0x%lx PS=0x%lx VS=0x%lx maxTex=%ux%u WDDM=%d bpp=%u\n",
+                __FUNCTION__, (unsigned long)c.TierValue, (unsigned long)c.PixelShaderVersion,
+                (unsigned long)c.VertexShaderVersion, c.MaxTextureWidth, c.MaxTextureHeight,
+                (int)c.HasWDDMSupport, c.BitsPerPixel);
+
+        if (c.TierValue == 0)   /* MIL_TIER(0,0) */
+        {
+            c.TierValue            = 0x00020000;   /* MIL_TIER(2,0) - full hardware */
+            c.HasWDDMSupport       = TRUE;
+            c.PixelShaderVersion   = 0xFFFF0300;   /* D3DPS_VERSION(3,0) */
+            c.VertexShaderVersion  = 0xFFFE0300;   /* D3DVS_VERSION(3,0) */
+            if (c.MaxTextureWidth  < 2048) c.MaxTextureWidth  = 2048;
+            if (c.MaxTextureHeight < 2048) c.MaxTextureHeight = 2048;
+            c.WindowCompatibleMode = TRUE;
+            if (c.BitsPerPixel == 0) c.BitsPerPixel = 32;
+            c.HasSSE2Support       = TRUE;
+            c.MaxPixelShader30InstructionSlots = 512;
+            DPRINT1("[RWM] %s: FORCED caps to Tier(2,0)/PS3.0 to pass DWM composition gate\n", __FUNCTION__);
+        }
+    }
 
     IGNORE_HR(NotifyHelper(&tierMessage));
 }

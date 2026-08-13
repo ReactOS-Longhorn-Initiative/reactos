@@ -559,6 +559,14 @@ CMilChannel::Commit()
 {
     HRESULT hr = S_OK;
 
+    //
+    // FlushChannelHandlers releases the composition CS when its guard ends, but
+    // SubmitBatch -> ProcessPartitionCommand must still run with the master
+    // handle table lock held (see CMilMasterHandleTable::GetEntry). Hold the
+    // CS across both so same-thread batch processing stays consistent.
+    //
+    CGuard<CCriticalSection> oGuard(g_csCompositionEngine);
+
     for (UINT i = 0; i < m_pClosedBatches.GetCount(); i++)
     {
         m_handleTable.FlushChannelHandles(m_pClosedBatches[i]->GetFreeIndex());

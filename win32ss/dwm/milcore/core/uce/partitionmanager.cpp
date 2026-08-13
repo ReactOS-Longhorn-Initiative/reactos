@@ -13,6 +13,7 @@
 //------------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1
 
 #define TIMER_INTERVAL 10
 
@@ -1036,22 +1037,44 @@ HRESULT CPartitionManager::UpdateSchedulerSettings(
     HRESULT hr = S_OK;
     CGuard<CCriticalSection> oGuard(g_csCompositionEngine);
 
-    if (GetWorkerThreadPriority() != nPriority) 
+    if (GetWorkerThreadPriority() != nPriority)
     {
         static_assert(NUM_WORKER_THREADS == 1, "NUM_WORKER_THREADS == 1");
 
-        Assert(GetWorkerThreadCount() == 0);
-        
+        // [RWM] The original code asserted GetWorkerThreadCount()==0 HERE, before
+        // the cleanup below -- a WPF single-init invariant. In the DWM flow the
+        // scheduler is re-initialized (capability probe spins up the partition
+        // manager + worker thread, then StartDesktopComposition re-inits with a
+        // different priority), so threads already exist at this point and the
+        // assert fired (-> 0x8000ffff -> DWM OnUnhandledException). Stop existing
+        // threads FIRST, then assert the count is clean.
+        DPRINT1("[RWM] UpdateSchedulerSettings: priority %d -> %d, workerThreads=%u, hevWork=%p\n",
+                GetWorkerThreadPriority(), nPriority,
+                (unsigned)GetWorkerThreadCount(), (void*)m_hevWork);
+
         if (m_hevWork != NULL)
         {
             //
             // Stop the worker threads and clean up scheduler related resources.
             //
-            
+
             StopWorkerThreads();
-            
+
             ReleaseSchedulerResources();
         }
+
+        Assert(GetWorkerThreadCount() == 0);
+
+        //
+        // [RWM] StopWorkerThreads() set m_fShutdown = true. CreateWorkerThread()
+        // below only spawns a thread when !m_fShutdown, so on the DWM re-init path
+        // (priority change: probe scheduler -> real composition scheduler) the new
+        // worker thread was silently never created, leaving composition with no
+        // render thread -> 0x8000ffff downstream in StartDesktopComposition. WPF
+        // only called StopWorkerThreads at final shutdown so it never had to clear
+        // this; the re-init must. Clear it before recreating.
+        //
+        m_fShutdown = false;
 
         //
         // Create the work event.
@@ -1065,6 +1088,9 @@ HRESULT CPartitionManager::UpdateSchedulerSettings(
         m_hevBeat = NULL;
 
         IFC(CreateWorkerThread(nPriority));
+
+        DPRINT1("[RWM] UpdateSchedulerSettings: recreated scheduler, workerThreads now=%u\n",
+                (unsigned)GetWorkerThreadCount());
     }
 
 Cleanup:

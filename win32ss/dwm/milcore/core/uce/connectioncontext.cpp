@@ -14,6 +14,7 @@ Module Name:
   and defines a basic implementation of the class.
 ------------------------------------------------------------------------*/
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1 handshake tracing
 
 MtDefine(CConnectionContext, Mem, "CConnectionContext");
 MtDefine(CRecorderConnectionContext, Mem, "CRecorderConnectionContext");
@@ -204,29 +205,25 @@ HRESULT CConnectionContext::OpenChannel(
     bool fAssignedChannel = false;
     CMilCommandBatch *pPartitionCommand = NULL;
 
+    DPRINT1("[RWM] OpenChannel ENTER hChannel=0x%08lx hSrc=0x%08lx marshal=%d\n",
+            (unsigned long)hChannel, (unsigned long)hSourceChannel, (int)m_mType);
+
     IFC(CMilCommandBatch::Create(&pPartitionCommand));
 
     pPartitionCommand->m_commandType = PartitionCommandOpenChannel;
 
-    IFC(GetOwningComposition(
-        hSourceChannel,
-        &pOwningComposition
-        ));
+    hr = GetOwningComposition(hSourceChannel, &pOwningComposition);
+    DPRINT1("[RWM] OpenChannel: GetOwningComposition hr=0x%08lx comp=%p\n", hr, pOwningComposition);
+    IFC(hr);
 
-    IFC(CMilServerChannel::Create(
-        this,
-        pOwningComposition,
-        hChannel,
-        &pChannel
-        ));
+    hr = CMilServerChannel::Create(this, pOwningComposition, hChannel, &pChannel);
+    DPRINT1("[RWM] OpenChannel: CMilServerChannel::Create hr=0x%08lx pChannel=%p\n", hr, pChannel);
+    IFC(hr);
 
-    IFC(AssignChannelInTable(
-        hChannel,
-        hSourceChannel,
-        pChannel,
-        pOwningComposition
-        ));
-        
+    hr = AssignChannelInTable(hChannel, hSourceChannel, pChannel, pOwningComposition);
+    DPRINT1("[RWM] OpenChannel: AssignChannelInTable hr=0x%08lx\n", hr);
+    IFC(hr);
+
     fAssignedChannel = true;
 
     //
@@ -247,9 +244,11 @@ HRESULT CConnectionContext::OpenChannel(
 
     hr = pOwningComposition->SubmitBatch(pPartitionCommand);
     pPartitionCommand = NULL;
+    DPRINT1("[RWM] OpenChannel: SubmitBatch(OpenChannel cmd) hr=0x%08lx\n", hr);
     IFC(hr);
-        
+
 Cleanup:
+    DPRINT1("[RWM] OpenChannel EXIT hr=0x%08lx\n", hr);
 
     // GSchneid: This code does not look robust because it can leave a channel entry in the
     // channel table and still be unable to create the matching data structures on the composition 
@@ -449,10 +448,10 @@ Cleanup:
 //
 //    Synopsis: 
 //        Presents all partitions in a same thread connection context. This is used 
-//        to trigger batch processing and rendering passes on synchronous compositors 
-//        attached to this connection context. Note that presentation is not necessary 
-//        as the rendering results will be accessed through a generic render target's 
-//        IMILRenderTargetBitmap). See WPF's BitmapVisualManager for example of use.
+//        to trigger composition (render) passes on synchronous compositors.
+//        After a successful Compose, HWND (and similar) targets set fPresentNeeded;
+//        we must call CComposition::Present so software/GDI presenters copy pixels
+//        to the window (Compose alone only fills the MIL backbuffer).
 //
 //------------------------------------------------------------------------------
 
@@ -507,6 +506,10 @@ CConnectionContext::PresentAllPartitions()
 
                 if (hr != WGXERR_DISPLAYSTATEINVALID) 
                 {
+                    if (SUCCEEDED(hr) && fPresentNeeded && g_pPartitionManager != NULL)
+                    {
+                        IFC(pServerEntry->pCompDevice->Present(g_pPartitionManager));
+                    }
                     break;
                 }
 

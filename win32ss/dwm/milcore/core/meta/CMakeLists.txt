@@ -28,7 +28,7 @@ precomp.cpp
 )
 
 add_library(milcoreMeta ${SOURCE})
-add_dependencies(milcoreMeta xdk swlib)
+add_dependencies(milcoreMeta xdk psdk d3d_idl_headers swlib)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

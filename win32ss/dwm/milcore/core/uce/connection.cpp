@@ -14,6 +14,138 @@
 //------------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <new>
+#include <unknwn.h>
+#include <debug.h>   // [RWM] DPRINT1 handshake tracing
+
+struct MilConnectionHandleVTable
+{
+    HRESULT (STDAPICALLTYPE *QueryInterface)(MilConnectionHandle *pHandle, REFIID riid, void **ppvObject);
+    ULONG (STDAPICALLTYPE *AddRef)(MilConnectionHandle *pHandle);
+    ULONG (STDAPICALLTYPE *Release)(MilConnectionHandle *pHandle);
+};
+
+static HRESULT STDMETHODCALLTYPE MilConnectionHandleQueryInterface(_In_opt_ MilConnectionHandle *pHandle, REFIID riid, _COM_Outptr_ void **ppvObject)
+{
+    if (!ppvObject)
+    {
+        return E_POINTER;
+    }
+
+    *ppvObject = nullptr;
+
+    if (!pHandle)
+    {
+        return E_POINTER;
+    }
+
+    if (InlineIsEqualGUID(riid, IID_IUnknown))
+    {
+        MilConnectionHandle *pUnknown = pHandle;
+        pUnknown->lpVtbl->AddRef(pUnknown);
+        *ppvObject = pUnknown;
+        return S_OK;
+    }
+
+    return E_NOINTERFACE;
+}
+
+static ULONG STDMETHODCALLTYPE MilConnectionHandleAddRef(_In_ MilConnectionHandle *pHandle)
+{
+    if (!pHandle)
+    {
+        return 0;
+    }
+
+    LONG cRef = InterlockedIncrement(&pHandle->cRef);
+
+    if (pHandle->pConnection)
+    {
+        pHandle->pConnection->AddRef();
+    }
+
+    return static_cast<ULONG>(cRef);
+}
+
+static ULONG STDMETHODCALLTYPE MilConnectionHandleRelease(_In_ MilConnectionHandle *pHandle)
+{
+    if (!pHandle)
+    {
+        return 0;
+    }
+
+    LONG cRef = InterlockedDecrement(&pHandle->cRef);
+
+    if (pHandle->pConnection)
+    {
+        pHandle->pConnection->Release();
+    }
+
+    if (cRef <= 0)
+    {
+        pHandle->pConnection = nullptr;
+        delete pHandle;
+        cRef = 0;
+    }
+
+    return static_cast<ULONG>(cRef);
+}
+
+static const MilConnectionHandleVTable g_MilConnectionHandleVTable =
+{
+    &MilConnectionHandleQueryInterface,
+    &MilConnectionHandleAddRef,
+    &MilConnectionHandleRelease
+};
+
+MilConnectionHandle *DecodeMilConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport)
+{
+    return reinterpret_cast<MilConnectionHandle*>(hTransport);
+}
+
+HMIL_CONNECTION PointerToHandle(_In_opt_ CMilConnection *pTransport)
+{
+    if (!pTransport)
+    {
+        return nullptr;
+    }
+
+    MilConnectionHandle *pHandle = new (std::nothrow) MilConnectionHandle;
+    if (!pHandle)
+    {
+        return nullptr;
+    }
+
+    pHandle->lpVtbl = &g_MilConnectionHandleVTable;
+    pHandle->cRef = 1;
+    pHandle->pConnection = pTransport;
+
+    return reinterpret_cast<HMIL_CONNECTION>(pHandle);
+}
+
+ULONG AddRefConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport)
+{
+    MilConnectionHandle *pHandle = DecodeMilConnectionHandle(hTransport);
+
+    if (!pHandle || !pHandle->lpVtbl)
+    {
+        return 0;
+    }
+
+    return pHandle->lpVtbl->AddRef(pHandle);
+}
+
+ULONG ReleaseConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport)
+{
+    MilConnectionHandle *pHandle = DecodeMilConnectionHandle(hTransport);
+
+    if (!pHandle || !pHandle->lpVtbl)
+    {
+        return 0;
+    }
+
+    return pHandle->lpVtbl->Release(pHandle);
+}
 
 MtDefine(CMilConnection, Mem, "CMilConnection");
 
@@ -167,16 +299,22 @@ CMilConnection::CreateChannelHelper(
     CMilChannel *pChannel = NULL;
     bool serverChannelCreated = false;
 
-    // 
+    //
     // Open a channel on the server.
     //
-    IFC(m_pConnectionContext->OpenChannel(hChannel, hChannelSource));
+    hr = m_pConnectionContext->OpenChannel(hChannel, hChannelSource);
+    DPRINT1("[RWM] CreateChannelHelper: OpenChannel hr=0x%08lx hChannel=0x%08lx src=0x%08lx\n",
+            hr, (unsigned long)hChannel, (unsigned long)hChannelSource);
+    IFC(hr);
     serverChannelCreated = true;
 
     //
     // Create the client channel matching the server channel.
     //
-    IFC(CMilChannel::Create(this, hChannel, &pChannel));
+    hr = CMilChannel::Create(this, hChannel, &pChannel);
+    DPRINT1("[RWM] CreateChannelHelper: CMilChannel::Create hr=0x%08lx pChannel=%p\n",
+            hr, pChannel);
+    IFC(hr);
 
     // take a reference corresponding to the channel being in the channel table.
     pEntry->pMilChannel = pChannel;
@@ -221,9 +359,14 @@ CMilConnection::CreateChannel(
     HMIL_CHANNEL hChannel = NULL;
     CLIENT_CHANNEL_HANDLE_ENTRY *pEntry = NULL;
 
-    IFC(m_channelTable.GetNewChannelEntry(&hChannel, &pEntry));
+    hr = m_channelTable.GetNewChannelEntry(&hChannel, &pEntry);
+    DPRINT1("[RWM] CreateChannel: GetNewChannelEntry hr=0x%08lx hChannel=0x%08lx src=0x%08lx\n",
+            hr, (unsigned long)hChannel, (unsigned long)hChannelSource);
+    IFC(hr);
 
-    IFC(CreateChannelHelper(hChannel, hChannelSource, pEntry, ppChannel));
+    hr = CreateChannelHelper(hChannel, hChannelSource, pEntry, ppChannel);
+    DPRINT1("[RWM] CreateChannel: CreateChannelHelper hr=0x%08lx\n", hr);
+    IFC(hr);
 
     TraceTag((tagMILConnection, 
               "CMilConnection::CreateChannel: connection 0x%08p created at handle 0x%08p, object 0x%08p",
@@ -386,11 +529,21 @@ HRESULT
 CMilConnection::SubmitBatch(_In_ CMilCommandBatch *pBatch)
 {
     HRESULT hr = S_OK;
-    
+
+    {
+        static LONG s_cSubmit = 0;
+        if (s_cSubmit < 128)
+        {
+            InterlockedIncrement(&s_cSubmit);
+            DPRINT1("[RWM] CMilConnection::SubmitBatch batch=%p hChannel=0x%08lx [#%ld]\n",
+                    pBatch, (unsigned long)pBatch->GetChannel(), s_cSubmit);
+        }
+    }
+
     // Note that the ownership of the command batch is transferred to the connection
-    // context with the following call. Hence the connection context is responsible 
+    // context with the following call. Hence the connection context is responsible
     // for cleaning up the batch even on failure.
-    IFC(m_pConnectionContext->SendBatchToChannel(pBatch->GetChannel(), pBatch));                     
+    IFC(m_pConnectionContext->SendBatchToChannel(pBatch->GetChannel(), pBatch));
 
 Cleanup:
     RRETURN(hr);

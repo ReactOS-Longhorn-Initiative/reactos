@@ -17,6 +17,20 @@ MtExtern(CMilConnection);
 
 class CMilChannel;
 
+struct MilConnectionHandleVTable;
+
+struct MilConnectionHandle
+{
+    const MilConnectionHandleVTable *lpVtbl;
+    LONG cRef;
+    CMilConnection *pConnection;
+};
+
+MilConnectionHandle *DecodeMilConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport);
+ULONG AddRefConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport);
+ULONG ReleaseConnectionHandle(_In_opt_ HMIL_CONNECTION hTransport);
+HMIL_CONNECTION PointerToHandle(_In_opt_ CMilConnection *pTransport);
+
 class CMilConnection :
     public IMilBatchDevice,
     public CMILCOMBase 
@@ -101,12 +115,8 @@ private:
 
 inline CMilConnection *HandleToPointer(HMIL_CONNECTION hTransport)
 {
-    return reinterpret_cast<CMilConnection*>(hTransport);
-}
-
-inline HMIL_CONNECTION PointerToHandle(__in_ecount_opt(1) CMilConnection *pTransport)
-{
-    return reinterpret_cast<HMIL_CONNECTION>(pTransport);
+    MilConnectionHandle *pHandle = DecodeMilConnectionHandle(hTransport);
+    return pHandle ? pHandle->pConnection : nullptr;
 }
 
 

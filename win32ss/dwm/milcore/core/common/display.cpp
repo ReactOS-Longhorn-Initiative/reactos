@@ -15,6 +15,7 @@
 #include "precomp.hpp"
 
 #include "strsafe.h"
+#include <debug.h>   // [RWM] DPRINT1
 
 #include "hw/D3DDeviceManager.h"
 #include "hw/HwGraphicsCards.h"
@@ -2706,12 +2707,27 @@ CDisplay::ReadGraphicsAccelerationCaps(
                     m_fIsRecentDriver = CheckForRecentDriver(m_szInstalledDisplayDrivers);
                 }
 
-                if (m_fIsRecentDriver)
-                {
-                    // Get the tier value for this display
-                    m_Caps.TierValue =
-                        GraphicsAccelerationTier::GetTier(GetMemorySize(), caps);
-                }
+                //
+                // [RWM] Vista gates tier assessment behind m_fIsRecentDriver
+                // (WDDM/LDDM support OR a recent driver-date check). Virtualized
+                // GPUs such as the VM's Mesa SVGA3D driver are NOT recognized as
+                // WDDM and fail the date check, so the tier stays MIL_TIER(0,0).
+                // milcore then reports Tier 0 to DWM, which (correctly, by its
+                // own rules) decides Aero is impossible and tears down the whole
+                // composition connection -- the root cause of the "DWM aborts /
+                // black screen" symptom. The assessment D3D HAL device and the
+                // render targets DO initialize on this driver, so assess the tier
+                // from the REAL device caps regardless of the recent-driver gate.
+                //
+                m_Caps.TierValue =
+                    GraphicsAccelerationTier::GetTier(GetMemorySize(), caps);
+
+                DPRINT1("[RWM] ReadGraphicsAccelerationCaps: PS=0x%08lx VS=0x%08lx WDDM=%d "
+                        "recentDrv=%d memSize=%u -> TierValue=0x%08lx\n",
+                        (unsigned long)caps.PixelShaderVersion,
+                        (unsigned long)caps.VertexShaderVersion,
+                        (int)m_Caps.HasWDDMSupport, (int)m_fIsRecentDriver,
+                        (unsigned int)GetMemorySize(), (unsigned long)m_Caps.TierValue);
 
                 // Determine if the processor has SSE2 support
                 m_Caps.HasSSE2Support = CCPUInfo::HasSSE2ForEffects();

@@ -27,7 +27,7 @@ milcore.def
     )
 
 add_library(milcore MODULE ${SOURCE})
-add_dependencies(milcore xdk)
+add_dependencies(milcore xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

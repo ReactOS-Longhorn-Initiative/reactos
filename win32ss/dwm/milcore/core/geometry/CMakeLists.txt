@@ -44,7 +44,7 @@ tessellate.cpp
 utils.cpp)
 
 add_library(geometry ${SOURCE})
-add_dependencies(geometry xdk)
+add_dependencies(geometry xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

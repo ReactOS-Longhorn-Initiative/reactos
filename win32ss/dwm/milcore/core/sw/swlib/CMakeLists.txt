@@ -42,7 +42,7 @@ swsurfrt.cpp
     )
 
 add_library(swlib ${SOURCE})
-add_dependencies(swlib xdk)
+add_dependencies(swlib xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

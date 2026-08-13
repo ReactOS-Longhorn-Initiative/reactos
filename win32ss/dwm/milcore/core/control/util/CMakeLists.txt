@@ -23,7 +23,7 @@ precomp.cpp
 )
 
 add_library(gcutil ${SOURCE})
-add_dependencies(gcutil xdk)
+add_dependencies(gcutil xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

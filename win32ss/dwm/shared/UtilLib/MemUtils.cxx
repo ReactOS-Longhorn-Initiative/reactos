@@ -100,7 +100,10 @@ extern "C"
 
 HRESULT AvCreateProcessHeap()
 {
-    AssertMsg(WPF::g_pProcessHeap == NULL, "Can only setup once");
+    // Safe if DllMain (or host code) calls more than once — e.g. DLL_THREAD_ATTACH
+    // on older entrypoints, or multiple init paths in the same process.
+    if (WPF::g_pProcessHeap != NULL)
+        return S_OK;
 
     g_hProcessHeap = GetProcessHeap();
     WPF::g_pProcessHeap = reinterpret_cast<WPF::ProcessHeapImpl*>(

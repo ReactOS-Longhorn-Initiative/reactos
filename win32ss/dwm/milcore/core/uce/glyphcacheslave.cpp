@@ -14,6 +14,7 @@
 //
 
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1
 
 MtDefine(CMilSlaveGlyphCache, MILRender, "CMilSlaveGlyphCache");
 
@@ -54,16 +55,36 @@ CMilSlaveGlyphCache::Create(_In_ CComposition *pComposition, _Out_ CMilSlaveGlyp
     CMilSlaveGlyphCache *pGlyphCache = new CMilSlaveGlyphCache(pComposition);
     IFCOOM(pGlyphCache);
 
-    IFC(g_DWriteLoader.DWriteCreateFactory(
-            DWRITE_FACTORY_TYPE_SHARED, 
-            IID_IDWriteFactory,
-            &pIUnknown
-            ));
+    //
+    // [RWM] DirectWrite (dwrite.dll) shipped with Windows 7 / the Vista Platform
+    // Update; stock Vista SP1 has no dwrite.dll, so DWriteCreateFactory fails
+    // (IFCNULL on the failed LoadLibraryEx -> E_HANDLE). The original code made
+    // that fatal, which killed the ENTIRE DWM handshake at channel creation
+    // (CComposition::Initialize -> glyph cache -> E_HANDLE). Degrade gracefully:
+    // bring the glyph cache up with a NULL DWrite factory so composition can
+    // initialize. Glyph-run rendering stays unavailable until a Vista-native
+    // (GDI/Uniscribe) glyph path replaces the DWrite dependency.
+    //
+    {
+        HRESULT hrDWrite = g_DWriteLoader.DWriteCreateFactory(
+                DWRITE_FACTORY_TYPE_SHARED,
+                IID_IDWriteFactory,
+                &pIUnknown);
 
-    IFC(pIUnknown->QueryInterface(
-            IID_IDWriteFactory,
-            reinterpret_cast<void**>(&(pGlyphCache->m_pDWriteFactory))
-            ));                
+        if (SUCCEEDED(hrDWrite))
+        {
+            IFC(pIUnknown->QueryInterface(
+                    IID_IDWriteFactory,
+                    reinterpret_cast<void**>(&(pGlyphCache->m_pDWriteFactory))));
+        }
+        else
+        {
+            DPRINT1("[RWM] CMilSlaveGlyphCache::Create: DWrite unavailable "
+                    "(hr=0x%08lx) - continuing with NULL factory (glyph rendering disabled)\n",
+                    hrDWrite);
+            pGlyphCache->m_pDWriteFactory = NULL;
+        }
+    }
 
     *ppGlyphCache = pGlyphCache;
     pGlyphCache = NULL;

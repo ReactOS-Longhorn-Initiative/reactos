@@ -41,6 +41,7 @@ handletable.cpp
 htmaster.cpp
 htslave.cpp
 hwndtarget.cpp
+transport.cpp
 partition.cpp
 partitionmanager.cpp
 partitionthread.cpp
@@ -65,7 +66,7 @@ vt_api.cpp
     )
 
 add_library(uce STATIC ${SOURCE})
-add_dependencies(uce xdk milcoreCommon)
+add_dependencies(uce xdk psdk d3d_idl_headers milcoreCommon)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

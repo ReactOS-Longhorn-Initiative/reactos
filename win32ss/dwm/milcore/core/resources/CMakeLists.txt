@@ -119,7 +119,7 @@ visualbrush.cpp
 )
 
 add_library(milcoreResources ${SOURCE})
-add_dependencies(milcoreResources xdk)
+add_dependencies(milcoreResources xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)

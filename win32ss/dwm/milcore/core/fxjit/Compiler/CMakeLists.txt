@@ -39,7 +39,7 @@ ShuffleRegs.cpp
 )
 
 add_library(Compiler ${SOURCE})
-add_dependencies(Compiler xdk)
+add_dependencies(Compiler xdk psdk d3d_idl_headers)
 
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
