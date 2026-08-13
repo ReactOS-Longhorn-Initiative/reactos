@@ -25,6 +25,10 @@ Author:
 #include <umtypes.h>
 #include <lpctypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //
 // LPC Exports
 //
@@ -702,4 +706,9 @@ AlpcFreeCompletionListMessage(
     _In_ PVOID Message
 );
 #endif // NTOS_MODE_USER
+
+#ifdef __cplusplus
+}; // extern "C"
+#endif
+
 #endif
