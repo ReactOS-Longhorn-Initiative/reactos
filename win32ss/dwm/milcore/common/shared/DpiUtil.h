@@ -374,8 +374,25 @@ namespace wpf
 
             inline static DpiAwarenessContextValue FindCanonicalValue(DPI_AWARENESS_CONTEXT dpiAwarenessContext)
             {
-                // TODO REACTOS DPI
-                auto canonicalValue = DpiAwarenessContextValue::PerMonitorAwareVersion2; /*DpiAwarenessContextValue::Invalid;
+                //
+                // TODO REACTOS DPI -- but it MUST agree with
+                // GetValidDpiAwarenessContextValues() above, which is stubbed to
+                // advertise Unaware and nothing else.
+                //
+                // These two disagreed: this returned PerMonitorAwareVersion2
+                // while the valid set contained only Unaware. CDisplaySet's
+                // constructor seeds m_rcDisplayBounds from the valid set and
+                // captures this as m_defaultDpiAwarenessContextValue, so
+                // CDisplaySet::GetBounds missed on the thread lookup, fell
+                // through its catch, and then threw std::out_of_range from the
+                // fallback .at() -- out of a constructor, taking dwm.exe with
+                // it. Nothing hit it until a render target was first created,
+                // because nothing else calls GetBounds.
+                //
+                // Unaware until the DPI stubs are real; a value the map is
+                // guaranteed to contain is the whole requirement here.
+                //
+                auto canonicalValue = DpiAwarenessContextValue::Unaware; /*DpiAwarenessContextValue::Invalid;
 
                 if (DpiUtil::IsValidDpiAwarenessContext(dpiAwarenessContext))
                 {

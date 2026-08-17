@@ -35,9 +35,20 @@
  * them. Handing them to the compositor is the next piece: Vista carries the
  * surface to dwmredir through the sprite (CMilWindowContext::GetGDISurface and
  * the GdiSpriteBitmap commands), and our CREATESPRITE still carries no surface
- * handle. Until that lands, content redirection produces correct bitmaps that
- * nothing reads, which is why gfStructuralRedirection defaults to structural
- * mode and dwm.exe asks for it.
+ * handle.
+ *
+ * So content redirection is now REQUESTED (dwm.exe passes TRUE) while that
+ * handoff is still missing, and the consequence is known rather than
+ * discovered: window content is captured correctly into bitmaps that nothing
+ * reads, so window interiors do not reach the screen. Frames and glass still
+ * do -- uDWM builds those itself from the theme atlas, and they never went
+ * through a redirection bitmap.
+ *
+ * That is a deliberate intermediate state, not a working one. It is on so that
+ * the redirection layer actually executes -- every gate below had never run a
+ * single time while structural mode was selected -- and so the compositor owns
+ * the primary alone instead of fighting win32k for it. GetGDISurface is what
+ * finishes it.
  */
 
 #include <win32k.h>
@@ -49,7 +60,14 @@ DBG_DEFAULT_CHANNEL(UserDwm);
  * Vista _gfStructuralRedirection. TRUE means geometry only: sprites carry
  * position and z-order, no window content is captured, and no redirection
  * bitmap is ever allocated. dwm.exe picks the mode --
- * DwmStartRedirection(!fStructuralMode) -- and passes FALSE today.
+ * DwmStartRedirection(!fStructuralMode) -- and passes TRUE for content today,
+ * which lands here as FALSE.
+ *
+ * The initialiser stays TRUE: before dwm.exe has said anything, no redirection
+ * is active at all (gbDwmRedirectionActive is FALSE and every emitter gates on
+ * it), and structural is the mode that allocates nothing. A boot-time default
+ * that captured content would be allocating bitmaps for a compositor that does
+ * not exist yet.
  */
 BOOL gfStructuralRedirection = TRUE;
 
@@ -125,22 +143,83 @@ UserIsWindowRedirected(PWND Wnd)
  * i.e. exactly the non-client border thickness -- which is where the client
  * area belongs inside a window-sized surface.
  */
+/*
+ * The window whose redirection bitmap Wnd's output belongs in: itself if it is
+ * redirected, otherwise its nearest redirected ancestor, otherwise NULL.
+ *
+ * CHILDREN DO NOT OWN BITMAPS AND MUST NOT. IntDwmSetRedirectedWindow marks
+ * only top-level windows, which is correct -- a child composes into the same
+ * surface as the window it is part of, and giving it a surface of its own
+ * would separate its output from its frame. But refusing it a bitmap is only
+ * half the model: the other half is pointing it at the ancestor's, and that
+ * half was missing. Without it UserIsWindowRedirected answered FALSE for every
+ * child, DceSetDrawable converted the DC back to a plain display DC, and every
+ * toolbar, list view, scrollbar and button painted straight to the primary --
+ * which is nearly all of the visible desktop, so redirection looked inert even
+ * though the top-level frames really were being captured.
+ *
+ * The walk is bounded by the window tree, which is already bounded elsewhere
+ * in win32k, and stops at the desktop.
+ */
+PWND
+FASTCALL
+UserGetRedirectionTarget(PWND Wnd)
+{
+    PWND Desktop;
+
+    if (Wnd == NULL || gfStructuralRedirection)
+        return NULL;
+
+    Desktop = UserGetDesktopWindow();
+
+    while (Wnd != NULL)
+    {
+        if (UserIsWindowRedirected(Wnd))
+            return Wnd;
+
+        /* The desktop is the top of the walk; it has no parent to climb to. */
+        if (Wnd == Desktop)
+            break;
+
+        Wnd = Wnd->spwndParent;
+    }
+
+    return NULL;
+}
+
+/*
+ * Vista _UserGetRedirectedWindowOrigin@8, corrected to answer for the surface
+ * the window actually draws into rather than for the window itself.
+ *
+ * For a top-level window the two are the same and the result is unchanged. For
+ * a child it is the ANCESTOR's rcWindow top-left, so that DceSetDrawable's
+ * `rect - ptOrg` places the child at its true offset inside the ancestor's
+ * surface instead of at (0,0) of a bitmap it does not have.
+ */
 VOID
 FASTCALL
 UserGetRedirectedWindowOrigin(PWND Wnd, PPOINT ppt)
 {
+    PWND Target;
+
     if (ppt == NULL)
         return;
 
-    if (Wnd == NULL)
-    {
-        ppt->x = 0;
-        ppt->y = 0;
-        return;
-    }
+    ppt->x = 0;
+    ppt->y = 0;
 
-    ppt->x = Wnd->rcWindow.left;
-    ppt->y = Wnd->rcWindow.top;
+    if (Wnd == NULL)
+        return;
+
+    Target = UserGetRedirectionTarget(Wnd);
+
+    /* No redirection target: report the window's own origin, which is what
+     * the unredirected path expects. */
+    if (Target == NULL)
+        Target = Wnd;
+
+    ppt->x = Target->rcWindow.left;
+    ppt->y = Target->rcWindow.top;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -310,6 +389,24 @@ IntDwmCreateRedirectionBitmap(PWND Wnd)
     TRACE("Redirection bitmap %p created for %p (%ldx%ld)\n",
           hbm, Wnd->head.h, cx, cy);
 
+    /*
+     * ANNOUNCE THE NEW SURFACE.
+     *
+     * The notification belongs to the surface lifecycle, not to any one call
+     * site. It used to live only in winpos.c beside IntDwmRedirOnWindowSized,
+     * which left every other path that allocates a bitmap silent -- including
+     * the startup sweep, which allocates one for EVERY window that already
+     * exists. Those windows had sprites, had real bitmaps, and the compositor
+     * was never told, so it kept the 0x0 surface it had queried at
+     * CreateSprite time and composed nothing for the entire session.
+     *
+     * Gated on the window already having a sprite: if it does not, the
+     * CreateSprite that follows carries the geometry itself and DWM queries
+     * the surface as part of handling it.
+     */
+    if (Wnd->DwmSprite != 0)
+        IntDwmUpdateSprite(Wnd);
+
     return hbm;
 }
 
@@ -457,6 +554,15 @@ IntDwmRecreateRedirectionBitmap(PWND Wnd)
     TRACE("Redirection bitmap for %p resized to %ldx%ld (%p -> %p)\n",
           Wnd->head.h, cx, cy, hbmPrev, hbmNew);
 
+    /*
+     * The section changed identity, so the compositor's mapped view now points
+     * at a section that no longer backs this window. It must re-query, and the
+     * same-size early return above means this only fires when the surface
+     * really was replaced -- a drag does not reallocate and does not notify.
+     */
+    if (Wnd->DwmSprite != 0)
+        IntDwmUpdateSprite(Wnd);
+
     return hbmNew;
 }
 
@@ -478,14 +584,70 @@ BOOL
 FASTCALL
 IntDwmSetRedirectedWindow(PWND Wnd)
 {
+    HBITMAP hbm;
+
     if (Wnd == NULL || gfStructuralRedirection)
         return FALSE;
 
-    /* Desktop and top-level only. A window whose parent is the desktop is
-     * top-level; anything else is a child. */
+    /*
+     * NEVER REDIRECT THE DESKTOP WINDOW ITSELF.
+     *
+     * It is the compositor's OUTPUT, not one of its inputs.
+     * CMilDesktopRenderTargetDuce creates its render target on
+     * GetDesktopWindow() (VistaDwmResources.cpp:396), so the software
+     * presenter's final GDI blit goes to the desktop window's DC. Give that
+     * window a redirection bitmap and DceSetDrawable points the DC at the
+     * bitmap, so every composed frame is delivered into a surface nobody
+     * displays -- Render S_OK, Present S_OK, black screen.
+     *
+     * This is the same defect as redirecting dwm.exe's own windows, one level
+     * up, and it survived that fix because the desktop window belongs to
+     * win32k, not to the compositor's process. The test below did not catch it
+     * either: the desktop window has spwndParent == NULL, so "is my parent the
+     * desktop?" admits it rather than rejecting it.
+     */
+    if (Wnd == UserGetDesktopWindow())
+    {
+        return FALSE;
+    }
+
+    /* Top-level only. A window whose parent is the desktop is top-level;
+     * anything else is a child. */
     if (Wnd->spwndParent != NULL &&
         Wnd->spwndParent != UserGetDesktopWindow())
     {
+        return FALSE;
+    }
+
+    /*
+     * NEVER REDIRECT THE COMPOSITOR'S OWN WINDOWS.
+     *
+     * dwm.exe's composition window is top-level and parented to the desktop,
+     * so every test above admits it -- and redirecting it is self-defeating in
+     * a way that reports success at every layer:
+     *
+     *   1. the window gets a redirection bitmap like any other,
+     *   2. DceSetDrawable retargets its DC at that bitmap,
+     *   3. milcore finishes each frame in CSwPresenter32bppGDI::Present with a
+     *      GDI blit to that DC (this is the SoftwareOnly path -- there is no
+     *      D3D device here, see "Could not open device \Device\Video1"),
+     *   4. so the composed desktop lands in DWM's own redirection surface.
+     *
+     * Render returns S_OK, Present returns S_OK, the sprite bitmaps are all
+     * correct, and the screen never changes. Nothing in the pipeline can
+     * report this, because nothing in it is failing.
+     *
+     * Vista has the same requirement -- the compositor's output surface cannot
+     * itself be a redirected surface -- and this is where the exclusion has to
+     * live, because this is the single function that decides what gets one.
+     */
+    if (gpepDwm != NULL &&
+        Wnd->head.pti != NULL &&
+        Wnd->head.pti->ppi != NULL &&
+        Wnd->head.pti->ppi->peProcess == gpepDwm)
+    {
+        TRACE("DwmRedir: hwnd %p belongs to the compositor, not redirecting\n",
+              Wnd->head.h);
         return FALSE;
     }
 
@@ -494,12 +656,30 @@ IntDwmSetRedirectedWindow(PWND Wnd)
 
     Wnd->DwmRedirFlags |= DWM_REDIRF_REDIRECTED;
 
-    if (IntDwmCreateRedirectionBitmap(Wnd) == NULL)
+    hbm = IntDwmCreateRedirectionBitmap(Wnd);
+
+    /*
+     * BOTH OUTCOMES GET LOGGED, because they are indistinguishable downstream.
+     * A window whose bitmap allocation failed keeps its REDIRECTED flag and
+     * quietly carries on drawing to the primary -- deliberately, so its output
+     * is visibly wrong rather than invisibly lost -- and UserIsWindowRedirected
+     * then answers FALSE for it forever. Nothing further in the session says
+     * which of the two happened, so "redirection is on" and "redirection is on
+     * and allocating nothing" read identically in a log.
+     *
+     * Bounded: this fires once per top-level window and the startup sweep
+     * walks every window that already exists.
+     */
     {
-        /* No surface, no redirection -- UserIsWindowRedirected checks for the
-         * bitmap as well as the flag, so this window simply keeps drawing to
-         * the primary until it is resized to something allocatable. */
-        TRACE("Redirection for %p deferred: no bitmap yet\n", Wnd->head.h);
+        static LONG s_cLogged = 0;
+        if (InterlockedIncrement(&s_cLogged) <= 24)
+        {
+            ERR("DwmRedir: hwnd %p %dx%d -> bitmap %p\n",
+                Wnd->head.h,
+                Wnd->rcWindow.right - Wnd->rcWindow.left,
+                Wnd->rcWindow.bottom - Wnd->rcWindow.top,
+                hbm);
+        }
     }
 
     return TRUE;
@@ -535,11 +715,24 @@ IntDwmResetOne(PWND Wnd)
         IntDwmSetRedirectedWindow(Wnd);
 }
 
+/*
+ * Allocate (or tear down) the surfaces only. Split out from
+ * IntDwmResetRedirectedWindows so the startup path can run it BEFORE sprites
+ * are announced while still refreshing DCs afterwards -- see
+ * IntDwmStartRedirection for why both orderings have to hold at once.
+ */
+VOID
+FASTCALL
+IntDwmResetRedirectedWindowSurfaces(VOID)
+{
+    IntDwmForEachOnDesktop(IntDwmResetOne);
+}
+
 VOID
 FASTCALL
 IntDwmResetRedirectedWindows(VOID)
 {
-    IntDwmForEachOnDesktop(IntDwmResetOne);
+    IntDwmResetRedirectedWindowSurfaces();
 
     /*
      * Existing DCs still point at whatever they pointed at before. Vista
@@ -637,34 +830,196 @@ NtGdiDwmGetSurfaceData(
 
     UserEnterExclusive();
 
+    /*
+     * [RWM] Every gate below used to bail silently, so a caller saw one
+     * outcome -- an all-zero struct -- for five different causes. dwmredir
+     * reports exactly that as "0x0 stride=0 fmt=0 section=0", which says
+     * nothing about which link failed. Name them, then STOP.
+     *
+     * The break is one-shot and deliberately fires AFTER the message: the
+     * reason is in the log before the machine halts, so the trap is readable
+     * even if the debugger is not attached to catch it. Continuing past it
+     * will not re-trap -- one failure repeats per window, and eight identical
+     * breaks would be worse than none.
+     *
+     * Remove the break once this is diagnosed; the messages are worth keeping.
+     */
+    {
+        static LONG s_fBroke = 0;
+
+#define RWM_SURFDATA_BAIL(reason)                                              \
+        do {                                                                   \
+            ERR("DwmGetSurfaceData(sprite=%lu): %s\n",                         \
+                (unsigned long)hSprite, (reason));                             \
+            goto Cleanup;                                                      \
+        } while (0)
+
     if (gfStructuralRedirection)
     {
         /* Structural mode has no surfaces at all. Reporting failure rather
          * than an empty struct is what makes dwmredir leave the window on the
          * geometry-only path instead of trying to compose from nothing. */
-        goto Cleanup;
+        RWM_SURFDATA_BAIL("structural mode");
     }
 
     Wnd = IntDwmFindWindowBySprite(hSprite);
-    if (Wnd == NULL || !UserIsWindowRedirected(Wnd))
+    if (Wnd == NULL)
+    {
+        /*
+         * Dump what the table DOES hold, once.
+         *
+         * "No window carries this sprite" has two very different causes and
+         * the bare message cannot separate them: the sprite was cleared before
+         * the query (the window was destroyed -- IntDwmDestroySprite zeroes
+         * DwmSprite), or the id dwmredir asked about never matched what win32k
+         * stores. Printing the live set answers both at once: if the wanted id
+         * is absent but its neighbours are present, it is a lifetime race; if
+         * the whole set is offset or empty, it is an identity problem.
+         */
+        static LONG s_fDumped = 0;
+
+        if (InterlockedCompareExchange(&s_fDumped, 1, 0) == 0 &&
+            gHandleTable != NULL)
+        {
+            int i, cShown = 0;
+
+            ERR("DwmGetSurfaceData: sprite=%lu not found. Live sprites:\n",
+                (unsigned long)hSprite);
+
+            for (i = 0; i < gHandleTable->nb_handles && cShown < 24; i++)
+            {
+                PUSER_HANDLE_ENTRY e = &gHandleTable->handles[i];
+                PWND w;
+
+                if (e->type != TYPE_WINDOW || e->ptr == NULL)
+                    continue;
+
+                w = (PWND)e->ptr;
+                if (w->DwmSprite == 0)
+                    continue;
+
+                ERR("    hwnd %p sprite=%lu flags=0x%lx bitmap=%p %dx%d\n",
+                    w->head.h, (unsigned long)w->DwmSprite,
+                    (unsigned long)w->DwmRedirFlags, (PVOID)w->DwmRedirBitmap,
+                    w->rcWindow.right - w->rcWindow.left,
+                    w->rcWindow.bottom - w->rcWindow.top);
+                cShown++;
+            }
+        }
+
+        RWM_SURFDATA_BAIL("no window carries this sprite");
+    }
+
+    if (!UserIsWindowRedirected(Wnd))
+    {
+        /*
+         * THE ZERO-AREA CASE IS NOT A FAILURE, and must not trap.
+         *
+         * IntDwmSetRedirectedWindow sets DWM_REDIRF_REDIRECTED and then tries
+         * to allocate; a 0x0 window legitimately gets the flag and no bitmap,
+         * and IntDwmRedirOnWindowSized allocates one if it is ever given a
+         * real size. Reporting no surface is the correct answer here.
+         *
+         * These windows are also the FIRST ones swept at startup -- IME and
+         * helper windows -- so a break that fires on the first failure fires
+         * on this every boot and never reaches a real one. Stay quiet.
+         */
+        if (Wnd->DwmRedirBitmap == NULL &&
+            (Wnd->rcWindow.right  - Wnd->rcWindow.left) <= 0 &&
+            (Wnd->rcWindow.bottom - Wnd->rcWindow.top)  <= 0)
+        {
+            /*
+             * Bounded, not silent. Making this fully quiet was an
+             * over-correction: if sprites are created while their windows are
+             * still 0x0 -- which the startup sweep suggests is common -- then
+             * EVERY window fails here, nothing is logged, and the absence of
+             * output reads as "the query is fine" when nothing is succeeding.
+             *
+             * Note also that nothing re-queries once the window is sized:
+             * BuildRedirectionSurface runs at sprite creation only, so a
+             * window that was 0x0 at that instant never gets a surface even
+             * after IntDwmRedirOnWindowSized allocates its bitmap. If this
+             * count is high, that is the next thing to fix, not the lookup.
+             */
+            static LONG s_cZero = 0;
+            LONG n = InterlockedIncrement(&s_cZero);
+
+            if (n <= 4 || (n % 25) == 0)
+            {
+                ERR("DwmGetSurfaceData(sprite=%lu): hwnd %p is 0x0, no surface "
+                    "yet (deferred #%ld)\n",
+                    (unsigned long)hSprite, Wnd->head.h, n);
+            }
+
+            goto Cleanup;
+        }
+
+        /* Spelled out rather than folded into the macro: the flags and the
+         * bitmap handle are what separate "never marked" from "marked but
+         * allocation failed for a window that has real area", which is a bug. */
+        ERR("DwmGetSurfaceData(sprite=%lu): hwnd %p not redirected "
+            "(flags=0x%lx bitmap=%p %dx%d structural=%d)\n",
+            (unsigned long)hSprite, Wnd->head.h,
+            (unsigned long)Wnd->DwmRedirFlags,
+            (PVOID)Wnd->DwmRedirBitmap,
+            Wnd->rcWindow.right  - Wnd->rcWindow.left,
+            Wnd->rcWindow.bottom - Wnd->rcWindow.top,
+            (int)gfStructuralRedirection);
+
+        /*
+         * NO BREAKPOINT HERE.
+         *
+         * This used to __debugbreak() once, to bound the log while the sprite
+         * lookup was being diagnosed. It fires during boot on a window that is
+         * destroyed between the notification and the query -- a benign race --
+         * and an int 3 in win32k halts the whole guest in the debugger, so
+         * every session stopped dead at this line and looked like a hang.
+         *
+         * The message stays; it is cheap and this path is rare. A diagnostic
+         * that stops the machine costs more than the information it returns.
+         */
         goto Cleanup;
+    }
 
     if (Wnd->DwmRedirSectionObject == NULL)
-        goto Cleanup;
+        RWM_SURFDATA_BAIL("redirection bitmap has no section object");
 
     if (!GreGetBitmapPixelSize((HBITMAP)Wnd->DwmRedirBitmap, &sizl))
-        goto Cleanup;
+        RWM_SURFDATA_BAIL("GreGetBitmapPixelSize failed");
+
+    }   /* s_fBroke scope */
 
     /*
      * A handle in the compositor's process. SECTION_MAP_READ only: dwmredir
      * maps it to sample the pixels and has no business writing into a surface
      * that GDI owns.
      */
+    /*
+     * THE OBJECT TYPE IS MANDATORY HERE, not optional.
+     *
+     * This passed NULL, on the usual reading that NULL means "accept any
+     * type". That is only true for KernelMode. ReactOS's
+     * ObReferenceObjectByPointer, which ObOpenObjectByPointer calls first,
+     * reads:
+     *
+     *     if ((Header->Type != ObjectType) &&
+     *         ((AccessMode != KernelMode) || (ObjectType == ObpSymbolicLinkObjectType)))
+     *         return STATUS_OBJECT_TYPE_MISMATCH;
+     *
+     * so with ObjectType == NULL and AccessMode == UserMode the first clause is
+     * trivially true and the second is too -- it fails EVERY time, for every
+     * window, and reported 0xC0000024 with the section, the bitmap and the
+     * flags all perfectly valid.
+     *
+     * UserMode stays: the handle is destined for dwm.exe's table and must be
+     * charged and validated against it. Supplying the type is what makes that
+     * combination legal.
+     */
     Status = ObOpenObjectByPointer(Wnd->DwmRedirSectionObject,
                                    OBJ_CASE_INSENSITIVE,
                                    NULL,
                                    SECTION_MAP_READ | SECTION_QUERY,
-                                   NULL,
+                                   MmSectionObjectType,
                                    UserMode,
                                    &hSectionUser);
     if (!NT_SUCCESS(Status))
@@ -676,7 +1031,28 @@ NtGdiDwmGetSurfaceData(
     Data.hSection       = hSectionUser;
     Data.nWidth         = (UINT32)sizl.cx;
     Data.nHeight        = (UINT32)sizl.cy;
-    Data.dwGdiFormat    = BI_RGB;
+    /*
+     * THE GDI BITMAP FORMAT, not a DIB compression constant.
+     *
+     * This was BI_RGB, which is 0 -- and dwmredir's TranslateGdiFormat
+     * (dwmredir.dll.c:5793) reads slot 3 as a BMF_* code, whose arms are
+     * 4=16bpp, 5=24bpp, 6=32bpp. Zero falls through to MILPIXFMT_UNDEFINED,
+     * and GetNewSurfaceData's unusable-format path then CLOSES the section and
+     * zeroes nWidth/nHeight before CreateSurface ever sees them. The surface
+     * arrived intact and was discarded one function later, which in the log
+     * looked like "the query returned nothing" -- the give-away was dwStride
+     * surviving, because that path does not clear it.
+     *
+     * BMF_32BPP is what IntDwmCreateRedirectionBitmapForSize passes to
+     * GreCreateBitmapEx, so this is the format of the bitmap we actually made,
+     * not an assumption about it.
+     *
+     * The aux word only selects 555-vs-565 on the 16bpp arm; at 32bpp
+     * TranslateGdiFormat ignores it and picks PBGRA32/BGR32 from the alpha
+     * flag below. It stays as the bit depth for the 16bpp case to be correct
+     * if this ever creates one.
+     */
+    Data.dwGdiFormat    = BMF_32BPP;
     Data.dwGdiFormatAux = 32;                       /* bits per pixel */
     Data.dwStride       = IntDwmRedirStride(sizl.cx);
     /*
@@ -715,44 +1091,56 @@ Cleanup:
 
 /* ------------------------------------------------------------------------- */
 
-static PWND g_pWndSpriteFound;
-static UINT32 g_hSpriteWanted;
-
-static
-VOID
-IntDwmMatchSprite(PWND Wnd)
-{
-    if (g_pWndSpriteFound == NULL &&
-        Wnd != NULL &&
-        Wnd->DwmSprite != 0 &&
-        Wnd->DwmSprite == g_hSpriteWanted)
-    {
-        g_pWndSpriteFound = Wnd;
-    }
-}
-
 /*
- * A linear walk, deliberately. The alternative is a sprite -> window map, and
- * this runs once per surface creation or resize -- not per frame -- against a
- * tree win32k already walks for every redirection pass. A map would be a
- * second thing to keep in step with window destruction for no measurable gain.
+ * Vista walks the USER HANDLE TABLE for this (win32k.sys.c:49816: every entry
+ * of type window whose rpdesk is grpdeskDwm), and so do we now.
  *
- * Callers hold the USER lock, which is also what makes the two statics safe.
+ * THIS USED TO WALK THE DESKTOP TREE, and that was wrong for this particular
+ * question. The deviation was written down when the tree walk went in --
+ * "a handle-table walk also finds windows that exist but are not linked into
+ * the tree, which this cannot see" -- with the note that such windows arrive
+ * later through the per-window CreateWindow hook so the end state is the same.
+ * That holds for REGISTRATION, which can be late. It does not hold here.
+ *
+ * A sprite id is minted in IntDwmCreateSprite and the notification is sent
+ * immediately; dwmredir turns straight round and asks for that sprite's
+ * surface. If the window is not yet linked into spwndChild/spwndNext at that
+ * instant the tree walk cannot see it, the query answers "no window carries
+ * this sprite", and the window silently never gets a surface -- there is no
+ * retry, because nothing asks again. The answer is needed NOW, not eventually.
+ *
+ * The table is the same size the tree walk covered plus the unlinked windows,
+ * so this is not a cost increase in any meaningful sense, and it runs once per
+ * surface creation rather than per frame.
+ *
+ * Callers hold the USER lock, which is what makes touching gHandleTable here
+ * safe.
  */
 static
 PWND
 FASTCALL
 IntDwmFindWindowBySprite(UINT32 hSprite)
 {
-    if (hSprite == 0)
+    int i;
+
+    if (hSprite == 0 || gHandleTable == NULL)
         return NULL;
 
-    g_pWndSpriteFound = NULL;
-    g_hSpriteWanted = hSprite;
+    for (i = 0; i < gHandleTable->nb_handles; i++)
+    {
+        PUSER_HANDLE_ENTRY Entry = &gHandleTable->handles[i];
+        PWND Wnd;
 
-    IntDwmForEachOnDesktop(IntDwmMatchSprite);
+        if (Entry->type != TYPE_WINDOW || Entry->ptr == NULL)
+            continue;
 
-    return g_pWndSpriteFound;
+        Wnd = (PWND)Entry->ptr;
+
+        if (Wnd->DwmSprite != 0 && Wnd->DwmSprite == hSprite)
+            return Wnd;
+    }
+
+    return NULL;
 }
 
 /* EOF */

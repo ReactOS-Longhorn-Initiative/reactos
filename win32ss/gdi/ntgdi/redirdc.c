@@ -151,8 +151,54 @@ GreConvertMemToRedirectionDC(
     {
         if (pdc->dctype == DCTYPE_REDIRECTION)
         {
-            pdc->dctype = DCTYPE_DIRECT;
-            bRet = TRUE;
+            PSURFACE psurfPdev;
+
+            /*
+             * PUT THE DC BACK ON THE PRIMARY SURFACE, not merely back to type.
+             *
+             * The caller reaches here through GreConvertRedirectionToMemDC,
+             * which has already detached the bitmap -- so pSurface is NULL at
+             * this instant. Flipping the type alone produces a DCTYPE_DIRECT
+             * DC with a NULL surface, and that combination does not otherwise
+             * exist in GDI: every DIRECT DC is created holding the PDEV
+             * surface. Nothing downstream guards against it.
+             *
+             * DC_vPrepareDCsForBlit is where it detonates. It tests
+             *
+             *     dctype == DCTYPE_DIRECT && ppdev->pSurface != dclevel.pSurface
+             *
+             * which a NULL surface satisfies, and calls DC_vUpdateDC -- whose
+             * first act is SURFACE_ShareUnlockSurface(pSurface). That macro is
+             * a bare GDIOBJ_vDereferenceObject with no NULL check, so the next
+             * blit into such a DC faults in the kernel. It came back as
+             * taskmgr drawing a tab through uxtheme's AlphaBlend.
+             *
+             * PDEVOBJ_pSurface returns the surface with a reference already
+             * taken, and DC_vSelectSurface takes its own, so the extra one is
+             * dropped here -- the same acquire/select/release shape
+             * GreSelectRedirectionBitmap uses for the bitmap.
+             */
+            psurfPdev = PDEVOBJ_pSurface(pdc->ppdev);
+            if (psurfPdev != NULL)
+            {
+                DC_vSelectSurface(pdc, psurfPdev);
+                SURFACE_ShareUnlockSurface(psurfPdev);
+
+                /* And the extent, which the detach zeroed. A DIRECT DC left
+                 * 0x0 clips every subsequent draw away silently. */
+                PDEVOBJ_sizl(pdc->ppdev, &pdc->dclevel.sizl);
+
+                pdc->dctype = DCTYPE_DIRECT;
+                bRet = TRUE;
+            }
+            else
+            {
+                /* No primary surface to go back to. Leaving the DC typed
+                 * REDIRECTION keeps it out of the DIRECT blit path above,
+                 * which is the safe side of this failure. */
+                ERR("GreConvertMemToRedirectionDC: no PDEV surface\n");
+                bRet = FALSE;
+            }
         }
         else
         {

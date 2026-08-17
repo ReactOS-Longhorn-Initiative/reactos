@@ -673,11 +673,30 @@ CRenderTargetManager::Present(
         CRenderTarget *pTarget = m_rgpTarget[i];
         Assert(pTarget);
 
-        // Only HWND render targets can currently split
-        // rendering and present
-        if (pTarget->IsOfType(TYPE_HWNDRENDERTARGET))
+        //
+        // Targets that split rendering from present. The desktop target does
+        // too, and leaving it out of this test is why it was rendered every
+        // frame and never once presented -- silently, because a skipped target
+        // is not an error and produces no log line at all.
+        //
+        // Same shape as the whitelist in AddRenderTarget: WPF enumerates its
+        // own two target kinds exhaustively, and a milcore that also serves DWM
+        // has a third.
+        //
+        if (pTarget->IsOfType(TYPE_HWNDRENDERTARGET) ||
+            pTarget->IsOfType(TYPE_DESKTOPRENDERTARGET))
         {
             MIL_THR(pTarget->Present());
+
+            {
+                static LONG s_cLogged = 0;
+                if (InterlockedIncrement(&s_cLogged) <= 8)
+                {
+                    DPRINT1("[RWM] CRenderTargetManager::Present target[%u] hr=0x%08lx\n",
+                            i, hr);
+                }
+            }
+
             IFC(HandlePresentErrors(hr));
         }
     }
@@ -912,8 +931,20 @@ CRenderTargetManager::AddRenderTarget(
 {
     Assert(pTarget != NULL);
 
+    //
+    // TYPE_DESKTOPRENDERTARGET is admitted here, and the whitelist is a WPF
+    // artefact rather than a real precondition.
+    //
+    // Vista's AddRenderTarget (milcore.dll.c, recovered by disassembly at
+    // 0x7424FF41) checks NOTHING about the type -- it AddRefs the target and
+    // appends it to the array, which is all this function needs. WPF could
+    // enumerate its own two target kinds exhaustively; a milcore that also
+    // serves DWM has a third, and Vista's cmd-73 arm calls straight into here
+    // with it.
+    //
     Assert((pTarget->IsOfType(TYPE_HWNDRENDERTARGET)) ||
-           (pTarget->IsOfType(TYPE_GENERICRENDERTARGET)));
+           (pTarget->IsOfType(TYPE_GENERICRENDERTARGET)) ||
+           (pTarget->IsOfType(TYPE_DESKTOPRENDERTARGET)));
 
     pTarget->AddRef();
 

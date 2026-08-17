@@ -25,6 +25,7 @@ BitmapCacheBrush.cpp
 BitmapCacheMode.cpp
 GlyphCache.cpp
 VistaDwmResources.cpp
+gdispritebitmap.cpp
 bitmapres.cpp
 BlurEffect.cpp
 brush.cpp

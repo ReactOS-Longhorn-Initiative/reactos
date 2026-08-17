@@ -1750,6 +1750,50 @@ CDisplaySet::ComputeDisplayBounds()
         {
             m_rcDisplayBounds[dpiContextValue].Union(m_rgpDisplays[i]->m_rcBounds[dpiContextValue]);
         }
+
+        //
+        // [RWM] An empty display set is invisible everywhere it matters.
+        //
+        // A render target whose bounds are empty renders nothing and asks for
+        // no present -- silently, and indistinguishably from "the tree had
+        // nothing to draw". This reports the per-display rects that fed the
+        // union, so an empty result can be told apart from a display that was
+        // enumerated but never had its monitor rect set (CDisplay::Init writes
+        // m_rcBounds only when the monitor pass reaches it).
+        //
+        {
+            static LONG s_cLogged = 0;
+            if (InterlockedIncrement(&s_cLogged) <= 4)
+            {
+                const CMILSurfaceRect &rc = m_rcDisplayBounds[dpiContextValue];
+
+                DPRINT1("[RWM] ComputeDisplayBounds: dpiCtx=%d displays=%u "
+                        "bounds=(%d,%d)-(%d,%d) empty=%d\n",
+                        (int)dpiContextValue, m_rgpDisplays.GetCount(),
+                        rc.left, rc.top, rc.right, rc.bottom,
+                        (int)rc.IsEmpty());
+
+                for (UINT i = 0; i < m_rgpDisplays.GetCount(); i++)
+                {
+                    const bool fHas =
+                        m_rgpDisplays[i]->m_rcBounds.find(dpiContextValue)
+                            != m_rgpDisplays[i]->m_rcBounds.end();
+
+                    if (fHas)
+                    {
+                        const CMILSurfaceRect &rcD =
+                            m_rgpDisplays[i]->m_rcBounds.at(dpiContextValue);
+
+                        DPRINT1("[RWM]   display[%u] (%d,%d)-(%d,%d)\n",
+                                i, rcD.left, rcD.top, rcD.right, rcD.bottom);
+                    }
+                    else
+                    {
+                        DPRINT1("[RWM]   display[%u] NO BOUNDS for this dpi context\n", i);
+                    }
+                }
+            }
+        }
     }
 }
 

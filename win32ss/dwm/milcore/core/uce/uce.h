@@ -82,6 +82,7 @@ Environment:
 #include "drawingcontext.h"
 
 #include "RenderTarget.h"
+#include "desktoptarget.h"
 #include "hwndtarget.h"
 #include "printtarget.h"
 #include "rendertargetmanager.h"

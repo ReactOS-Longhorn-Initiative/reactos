@@ -16,6 +16,7 @@
 //---------------------------------------------------------------------------
 
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1 for the InsertChildAt failure trace
 
 MtDefine(CMilVisual, MILRender, "CMilVisual");
 
@@ -929,8 +930,37 @@ CMilVisual::ProcessInsertChildAt(
             TYPE_VISUAL
             ));
 
-    if (pChild == NULL) 
+    if (pChild == NULL)
     {
+        //
+        // [RWM] THIS is the check that fires, not the one in the cmd 43 case
+        // in generated_process_message.inl. That one is wrapped in
+        // #ifdef DEBUG, which is not defined in this build, so it and the
+        // cbSize check above it are both compiled out -- and instrumenting
+        // them produced a diagnostic that could never print while the failure
+        // kept happening here, silently, on the identical condition.
+        //
+        // GetObjectType reports what the handle table actually holds, which
+        // separates the three causes GetResource folds into one NULL: handle
+        // absent from this channel's table, entry present but empty, or a real
+        // resource that simply is not a TYPE_VISUAL.
+        //
+        /* GetObjectType is not declared const, and this function takes the
+         * table as const. The call only reads the table; casting here keeps
+         * the diagnostic local rather than changing a shared signature. */
+        {
+            CMilSlaveHandleTable *pTbl =
+                const_cast<CMilSlaveHandleTable *>(pHandleTable);
+
+            DPRINT1("[RWM] ProcessInsertChildAt FAILED: child h=0x%lx childType=%d "
+                    "parent h=0x%lx parentType=%d index=%u\n",
+                    (unsigned long)pCmd->hChild,
+                    (int)pTbl->GetObjectType(pCmd->hChild),
+                    (unsigned long)pCmd->Handle,
+                    (int)pTbl->GetObjectType(pCmd->Handle),
+                    (unsigned)pCmd->index);
+        }
+
         IFC(WGXERR_UCE_MALFORMEDPACKET);
     }
 

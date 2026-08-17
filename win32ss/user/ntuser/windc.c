@@ -175,12 +175,38 @@ DceSetDrawable( PWND Window OPTIONAL,
    * to the primary, which is the pre-redirection behaviour and visibly wrong
    * rather than invisibly lost.
    */
-  if (Window && UserIsWindowRedirected(Window))
+  /*
+   * The target is this window if it is redirected, otherwise its nearest
+   * redirected ancestor. Testing the window ITSELF here is what left every
+   * child control painting to the primary: only top-level windows own a
+   * bitmap, so a toolbar or list view failed the test and fell through to the
+   * unredirect branch below.
+   */
+  PWND RedirTarget = Window ? UserGetRedirectionTarget(Window) : NULL;
+
+  if (RedirTarget != NULL)
   {
-      HBITMAP hbmRedir = UserGetRedirectionBitmap(Window);
+      HBITMAP hbmRedir = UserGetRedirectionBitmap(RedirTarget);
       POINT ptOrg;
 
       UserGetRedirectedWindowOrigin(Window, &ptOrg);
+
+      /*
+       * The decisive trace: a bitmap having been ALLOCATED does not mean any
+       * drawing reaches it. This is the point where a window's output actually
+       * changes destination, and it fires on every DC handed to a redirected
+       * window rather than once at startup -- which is what makes it visible
+       * in an arbitrary slice of the log.
+       */
+      {
+          static LONG s_cLogged = 0;
+          if (InterlockedIncrement(&s_cLogged) <= 12)
+          {
+              ERR("DwmRedirDC: hwnd %p -> surface of %p bitmap %p org (%ld,%ld)\n",
+                  Window->head.h, RedirTarget->head.h, hbmRedir,
+                  ptOrg.x, ptOrg.y);
+          }
+      }
 
       if (GreConvertMemToRedirectionDC(hDC, TRUE) &&
           GreSelectRedirectionBitmap(hDC, hbmRedir) != NULL)

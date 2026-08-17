@@ -590,6 +590,49 @@ CMilChannel::Commit()
     CGuard<CCriticalSection> oGuard(g_csCompositionEngine);
 
     //
+    // CLOSE THE OPEN BATCH FIRST -- otherwise Commit publishes nothing that
+    // has not already been closed by something else.
+    //
+    // This loop drains m_pClosedBatches only. Commands recorded into the
+    // still-open batch stay there, so a channel whose traffic never happens to
+    // take SendCommand's separate-batch path is silently never submitted, no
+    // matter how often the client calls MilChannel_CommitChannel.
+    //
+    // That is exactly what happened to dwmredir's channel. uDWM's channel is
+    // dominated by MilResource_SendCommand, which closes a batch per command,
+    // so its work reached the compositor and looked fine. dwmredir's
+    // MilResource_DuplicateHandle record sat in the open batch forever, so the
+    // client node it published was never created in the handle table -- and
+    // uDWM's insert of that handle, sent on its OWN channel, failed with
+    // UCEERR_MALFORMEDPACKET and zombied the partition every session:
+    //
+    //     ProcessInsertChildAt FAILED: child h=0xe childType=0
+    //                                  parent h=0x11 parentType=39
+    //
+    // childType 0 = "not in the table", against a parent that resolved fine.
+    // The asymmetry was the whole clue: both handles were valid on the client,
+    // and only the one minted on the other channel was missing.
+    //
+    // SyncFlush already pairs CloseBatch() with Commit() for this reason;
+    // Commit on its own was the odd one out. Guarded on m_fIsCommandOpen for
+    // the same reason SendCommand guards it -- CloseBatch refuses a batch with
+    // a half-written command in it, and committing mid-command is a caller
+    // error rather than something to paper over.
+    //
+    // No Cleanup label in this function, and none wanted: a close failure is
+    // recorded and the already-closed batches are still drained, matching the
+    // "every batch is submitted even after one fails" rule below.
+    if (!m_fIsCommandOpen)
+    {
+        HRESULT hrClose = CloseBatch();
+
+        if (FAILED(hrClose))
+        {
+            hr = hrClose;
+        }
+    }
+
+    //
     // THE SLOT IS CLEARED BEFORE THE CALL, NOT AFTER.
     //
     // SubmitBatch takes ownership unconditionally -- its own comment says the

@@ -120,8 +120,13 @@ public:
         );
 
 
-private:
+protected:
 
+    /* [RWM] Was private. CMilGdiSpriteBitmap derives from this class (Vista's
+     * CMilGdiSpriteBitmap::IsOfType answers TYPE_GDISPRITEBITMAP || the base's)
+     * and replaces the bitmap wholesale each time the backing section or the
+     * margins change, so it needs the member rather than a setter that would
+     * exist for one caller. */
     IWGXBitmap *m_pIBitmap;
 
 };

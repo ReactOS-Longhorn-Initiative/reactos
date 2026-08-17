@@ -323,6 +323,127 @@ switch(nCmdType)
     }
     break;
 
+    //
+    // [RWM] Window content redirection -- the four commands that carry a
+    // window's redirection bitmap to the compositor. See NOTES-chrome.md,
+    // "GdiSpriteBitmap: the surface handoff protocol".
+    //
+    // Every size check here is UNCONDITIONAL, not #ifdef DEBUG. DEBUG is not
+    // defined in this build, so the guarded checks elsewhere in this file are
+    // compiled out entirely -- validating attacker-reachable wire data behind
+    // that guard would validate nothing. cmd 17 in particular carries a
+    // section handle that gets mapped, which is not a payload to take on
+    // trust.
+    //
+    case MilCmdGdiSpriteBitmap:
+    {
+        if (cbSize < sizeof(MILCMD_GDISPRITEBITMAP))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const MILCMD_GDISPRITEBITMAP* pCmd =
+            reinterpret_cast<const MILCMD_GDISPRITEBITMAP*>(pcvData);
+
+        CMilGdiSpriteBitmap* pResource =
+            static_cast<CMilGdiSpriteBitmap*>(pHandleTable->GetResource(
+                pCmd->Handle,
+                TYPE_GDISPRITEBITMAP
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilGdiSpriteBitmap).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessUpdate(pHandleTable, pCmd));
+    }
+    break;
+
+    case MilCmdGdiSpriteBitmapUpdateMargins:
+    {
+        if (cbSize < sizeof(MILCMD_GDISPRITEBITMAP_UPDATEMARGINS))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const MILCMD_GDISPRITEBITMAP_UPDATEMARGINS* pCmd =
+            reinterpret_cast<const MILCMD_GDISPRITEBITMAP_UPDATEMARGINS*>(pcvData);
+
+        CMilGdiSpriteBitmap* pResource =
+            static_cast<CMilGdiSpriteBitmap*>(pHandleTable->GetResource(
+                pCmd->Handle,
+                TYPE_GDISPRITEBITMAP
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilGdiSpriteBitmap).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessUpdateMargins(pHandleTable, pCmd));
+    }
+    break;
+
+    //
+    // The LOCAL section handoff. Terminal Services sends
+    // MilCmdGdiSpriteBitmapTSUpdateSection instead and carries no section;
+    // that arm is not implemented because a local desktop never takes it.
+    //
+    case MilCmdBitmapSection:
+    {
+        if (cbSize < sizeof(MILCMD_BITMAP_SECTION))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const MILCMD_BITMAP_SECTION* pCmd =
+            reinterpret_cast<const MILCMD_BITMAP_SECTION*>(pcvData);
+
+        CMilGdiSpriteBitmap* pResource =
+            static_cast<CMilGdiSpriteBitmap*>(pHandleTable->GetResource(
+                pCmd->Handle,
+                TYPE_GDISPRITEBITMAP
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilGdiSpriteBitmap).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessSection(pHandleTable, pCmd));
+    }
+    break;
+
+    case MilCmdGdiSpriteBitmapUnmapSection:
+    {
+        if (cbSize < sizeof(MILCMD_GDISPRITEBITMAP_UNMAPSECTION))
+        {
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        const MILCMD_GDISPRITEBITMAP_UNMAPSECTION* pCmd =
+            reinterpret_cast<const MILCMD_GDISPRITEBITMAP_UNMAPSECTION*>(pcvData);
+
+        CMilGdiSpriteBitmap* pResource =
+            static_cast<CMilGdiSpriteBitmap*>(pHandleTable->GetResource(
+                pCmd->Handle,
+                TYPE_GDISPRITEBITMAP
+                ));
+
+        if (pResource == NULL)
+        {
+            RIP("Invalid resource handle (expected a CMilGdiSpriteBitmap).");
+            IFC(WGXERR_UCE_MALFORMEDPACKET);
+        }
+
+        IFC(pResource->ProcessUnmapSection(pHandleTable, pCmd));
+    }
+    break;
+
     case MilCmdBitmapInvalidate:
     {
         #ifdef DEBUG
@@ -1141,24 +1262,50 @@ switch(nCmdType)
         #ifdef DEBUG
         if (cbSize != sizeof(MILCMD_VISUAL_INSERTCHILDAT))
         {
+            /* [RWM] This path returned MALFORMEDPACKET with no output at all,
+             * which is indistinguishable in a log from the two handle checks
+             * below. Name it. */
+            DPRINT1("[RWM] InsertChildAt BAD SIZE: cbSize=%u expected=%u\n",
+                    (unsigned)cbSize, (unsigned)sizeof(MILCMD_VISUAL_INSERTCHILDAT));
             IFC(WGXERR_UCE_MALFORMEDPACKET);
         }
         #endif
 
-        const MILCMD_VISUAL_INSERTCHILDAT* pCmd = 
+        const MILCMD_VISUAL_INSERTCHILDAT* pCmd =
             reinterpret_cast<const MILCMD_VISUAL_INSERTCHILDAT*>(pcvData);
 
         #ifdef DEBUG
-        if (pCmd->hChild != NULL) 
+        if (pCmd->hChild != NULL)
         {
-            const CMilVisual* pResource = 
+            const CMilVisual* pResource =
                 static_cast<const CMilVisual*>(pHandleTable->GetResource(
-                    pCmd->hChild, 
+                    pCmd->hChild,
                     TYPE_VISUAL
                     ));
 
-            if (pResource == NULL) 
+            if (pResource == NULL)
             {
+                //
+                // [RWM] The CHILD check, instrumented to match the parent one
+                // below. Only a RIP lived here, so a child-handle failure and
+                // a parent-handle failure produced the same MALFORMEDPACKET
+                // with nothing to tell them apart -- and the parent is the one
+                // that got instrumented and investigated, on the strength of an
+                // assert string ("Invalid resource handle") that BOTH paths
+                // raise in near-identical wording.
+                //
+                // GetObjectType reports what the table really holds, so a type
+                // mismatch names the actual type instead of looking like a
+                // missing handle.
+                //
+                DPRINT1("[RWM] InsertChildAt FAILED (CHILD): child h=0x%lx "
+                        "childType=%d parent h=0x%lx parentType=%d index=%u\n",
+                        (unsigned long)pCmd->hChild,
+                        (int)pHandleTable->GetObjectType(pCmd->hChild),
+                        (unsigned long)pCmd->Handle,
+                        (int)pHandleTable->GetObjectType(pCmd->Handle),
+                        (unsigned)pCmd->index);
+
                 RIP("Invalid resource handle (expected a CMilVisual).");
                 IFC(WGXERR_UCE_MALFORMEDPACKET);
             }
@@ -1188,7 +1335,7 @@ switch(nCmdType)
             // third case names the real type instead of leaving it to
             // inference.
             //
-            DPRINT1("[RWM] InsertChildAt FAILED: parent h=0x%lx type=%d "
+            DPRINT1("[RWM] InsertChildAt FAILED (PARENT): parent h=0x%lx type=%d "
                     "child h=0x%lx childType=%d index=%u\n",
                     (unsigned long)pCmd->Handle,
                     (int)pHandleTable->GetObjectType(pCmd->Handle),
@@ -1623,6 +1770,18 @@ switch(nCmdType)
             if (pDesktop != NULL)
             {
                 IFC(pDesktop->ProcessCreate(pcvData, cbSize));
+
+                //
+                // AND REGISTER IT, which is the half that was missing. Vista's
+                // cmd-73 arm finishes with CRenderTargetManager::AddRenderTarget
+                // for the desktop id exactly as for the hwnd id -- only the
+                // desktop slot differs (0x7424FE76, recovered by disassembly).
+                //
+                // Without this the target is configured and invisible to the
+                // compositor: CRenderTargetManager::Render walks an empty list,
+                // reports targets=0, and never draws a frame.
+                //
+                IFC(m_pRenderTargetManager->AddRenderTarget(pDesktop));
                 break;
             }
         }
@@ -1755,22 +1914,12 @@ switch(nCmdType)
             reinterpret_cast<const MILCMD_TARGET_SETROOT*>(pcvData);
 
         //
-        // [RWM] As with command 73: uDWM sets the root visual on its
-        // TYPE_DESKTOPRENDERTARGET, which the WPF target path cannot resolve.
+        // [RWM] No desktop-target special case here any more. The desktop
+        // target is a real CRenderTarget and answers IsOfType(TYPE_RENDERTARGET),
+        // so the generic path below resolves it and CRenderTarget::ProcessSetRoot
+        // stores m_pRoot -- which is the pointer its Render actually walks. The
+        // old shim stashed the handle in a field nothing read.
         //
-        {
-            CMilDesktopRenderTargetDuce* pDesktop =
-                static_cast<CMilDesktopRenderTargetDuce*>(pHandleTable->GetResource(
-                    pCmd->Handle,
-                    TYPE_DESKTOPRENDERTARGET
-                    ));
-
-            if (pDesktop != NULL)
-            {
-                IFC(pDesktop->ProcessSetRoot(pCmd->hRoot));
-                break;
-            }
-        }
 
         #ifdef DEBUG
         if (pCmd->hRoot != NULL)

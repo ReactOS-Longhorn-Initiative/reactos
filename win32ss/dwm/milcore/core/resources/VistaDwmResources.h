@@ -271,42 +271,15 @@ private:
     UINT          m_cDirty;           // NotifyDirty count, for tracing
 };
 
-//+----------------------------------------------------------------------------
 //
-//  CMilDesktopRenderTargetDuce -- TYPE_DESKTOPRENDERTARGET (48)
+// CMilDesktopRenderTargetDuce (TYPE_DESKTOPRENDERTARGET, 48) is NOT here.
 //
-//  uDWM's output target. CDesktopManager::EnableRenderTargetImpl creates one
-//  and configures it with cmd 73 (MilCmdHwndTargetCreate), whose payload is
-//  0x5C bytes -- Vista reuses the hwnd-target command for the desktop target.
+// It is a CRenderTarget, and CRenderTarget lives under uce/, which several
+// precomps that include this header (swlib, glyph, hw) never pull in. It sits
+// in uce/desktoptarget.h beside the other render targets instead -- which is
+// also where Vista keeps its cmd-73 slave resource.
 //
-//-----------------------------------------------------------------------------
 
-class CMilDesktopRenderTargetDuce : public CMilSlaveResource
-{
-    friend class CResourceFactory;
-
-protected:
-    DECLARE_METERHEAP_CLEAR(ProcessHeap, Mt(CMilDesktopRenderTargetDuce));
-
-    CMilDesktopRenderTargetDuce(__in_ecount(1) CComposition *pComposition);
-    ~CMilDesktopRenderTargetDuce() { }
-
-public:
-    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
-    {
-        return type == TYPE_DESKTOPRENDERTARGET;
-    }
-
-    HRESULT ProcessCreate(__in_bcount(cbSize) const void *pcvData, UINT cbSize);
-    HRESULT ProcessSetRoot(HMIL_RESOURCE hRoot);
-
-    HMIL_RESOURCE RootVisual() const { return m_hRootVisual; }
-
-private:
-    CComposition *m_pCompositionNoRef;
-    HMIL_RESOURCE m_hRootVisual;
-    bool          m_fCreated;
-};
 
 //+----------------------------------------------------------------------------
 //
@@ -505,4 +478,108 @@ private:
     HMIL_RESOURCE m_hSourceVisual;
     UINT32        m_rgdwPayload[16];   // retained verbatim; layout part-decoded
     UINT          m_cbPayload;
+};
+
+
+/*
+ * ---------------------------------------------------------------------------
+ * CMilGdiSpriteBitmap -- a window's redirection bitmap, as seen by the
+ * compositor.
+ * ---------------------------------------------------------------------------
+ *
+ * This is the receiving half of the surface handoff. win32k allocates a
+ * section-backed bitmap per redirected window and hands dwmredir a
+ * DWM_SURFACE_DATA describing it; dwmredir creates one of these and sends the
+ * section across. Mapping that section is what lets the compositor read live
+ * window content -- everything else in the chrome pipeline draws art we
+ * generate ourselves.
+ *
+ * Derives from CMilSlaveBitmap because Vista's does: CMilGdiSpriteBitmap::
+ * IsOfType (milcore.dll.c:17782) answers `a1 == 100 || CMilSlaveBitmap::
+ * IsOfType(a1)`. That inheritance is what makes a sprite bitmap usable
+ * anywhere an image source is, with no special-casing in the draw path.
+ *
+ * FIELD MAP, recovered from the decompile (dword indices off `this`):
+ *
+ *      +4/+5   visible width / height      +14..17  margins L,R,T,B
+ *      +6      stride                      +18      hSprite
+ *      +7      byte offset to first pixel  +19      cmd 90 trailing dword
+ *      +8      pixel format                +20      large-surface counted flag
+ *      +9      section handle              +21      composition
+ *      +10     mapped base
+ *      +11     IWGXBitmap
+ */
+MtExtern(CMilGdiSpriteBitmap);
+
+class CMilGdiSpriteBitmap : public CMilSlaveBitmap
+{
+    friend class CResourceFactory;
+
+protected:
+
+    DECLARE_METERHEAP_ALLOC(ProcessHeap, Mt(CMilGdiSpriteBitmap));
+
+    CMilGdiSpriteBitmap(__in_ecount(1) CComposition *pComposition);
+    virtual ~CMilGdiSpriteBitmap();
+
+public:
+
+    /* override */ virtual bool IsOfType(MIL_RESOURCE_TYPE type) const
+    {
+        return type == TYPE_GDISPRITEBITMAP || CMilSlaveBitmap::IsOfType(type);
+    }
+
+    /* cmd 90 -- bind to the sprite. Vista stores and returns S_OK. */
+    HRESULT ProcessUpdate(
+        __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
+        __in_ecount(1) const MILCMD_GDISPRITEBITMAP *pCmd
+        );
+
+    /* cmd 91 -- the non-client crop. */
+    HRESULT ProcessUpdateMargins(
+        __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
+        __in_ecount(1) const MILCMD_GDISPRITEBITMAP_UPDATEMARGINS *pCmd
+        );
+
+    /* cmd 17 -- the local (non-Terminal-Services) section handoff. */
+    HRESULT ProcessSection(
+        __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
+        __in_ecount(1) const MILCMD_BITMAP_SECTION *pCmd
+        );
+
+    /* cmd 93 -- drop the mapping. */
+    HRESULT ProcessUnmapSection(
+        __in_ecount(1) CMilSlaveHandleTable *pHandleTable,
+        __in_ecount(1) const MILCMD_GDISPRITEBITMAP_UNMAPSECTION *pCmd
+        );
+
+    UINT32 GetSpriteHandle() const { return m_hSprite; }
+
+private:
+
+    HRESULT HandleSectionChange(HANDLE hSection, MilPixelFormat::Enum fmt);
+    HRESULT RecreateBitmap();
+    void    UnmapAndDispose();
+
+    CComposition *m_pCompositionNoRef;
+
+    UINT   m_nVisibleWidth;
+    UINT   m_nVisibleHeight;
+    UINT   m_nStride;
+    UINT   m_cbFirstPixelOffset;
+    MilPixelFormat::Enum m_fmt;
+
+    HANDLE m_hSection;
+    void  *m_pvMappedBase;
+
+    UINT   m_nFullWidth;
+    UINT   m_nFullHeight;
+
+    INT    m_cxLeft;
+    INT    m_cxRight;
+    INT    m_cyTop;
+    INT    m_cyBottom;
+
+    UINT32 m_hSprite;
+    UINT32 m_dwReserved0;
 };

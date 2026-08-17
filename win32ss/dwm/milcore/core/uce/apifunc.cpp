@@ -19,23 +19,42 @@
 #include <vector>
 #include <debug.h>   // [RWM] DPRINT1 handshake tracing
 
-// [RWM] Unbounded entry/exit tracer. An RAII object logs ENTER on construction and
-// EXIT (with the final hr, read by reference) on destruction -- so a single
-// RWM_TRACE() at the top of a function brackets it completely, on EVERY return path.
-// Deliberately unbounded: flooding the boot log is preferred over missing the last
-// export call before an abort. Use RWM_TRACE_NOHR() for functions without an `hr`.
+// [RWM] Entry/exit tracer. An RAII object reads the final hr by reference on
+// destruction, so a single RWM_TRACE() at the top of a function covers EVERY
+// return path. Use RWM_TRACE_NOHR() for functions without an `hr`.
+//
+// QUIET BY DEFAULT: only FAILING calls print. This was originally unbounded --
+// "flooding the boot log is preferred over missing the last export call before
+// an abort" -- which was the right trade while the startup handshake was
+// aborting. It now completes on every run, and the flood became the problem
+// instead: two ENTER/EXIT lines per API call buried the one-shot traces we were
+// actually hunting, and pushed them past the log truncation more than once.
+//
+// Set g_fRwmTraceVerbose to restore full bracketing when chasing a hang, where
+// knowing the last call entered is worth the noise again.
+bool g_fRwmTraceVerbose = false;
+
 struct RwmScopeTrace
 {
     const char    *m_name;
     const HRESULT *m_phr;
     RwmScopeTrace(const char *name, const HRESULT *phr) : m_name(name), m_phr(phr)
     {
-        DPRINT1("[RWM] >>> %s ENTER\n", m_name);
+        if (g_fRwmTraceVerbose)
+            DPRINT1("[RWM] >>> %s ENTER\n", m_name);
     }
     ~RwmScopeTrace()
     {
-        if (m_phr) DPRINT1("[RWM] <<< %s EXIT hr=0x%08lx\n", m_name, (unsigned long)*m_phr);
-        else       DPRINT1("[RWM] <<< %s EXIT\n", m_name);
+        if (g_fRwmTraceVerbose)
+        {
+            if (m_phr) DPRINT1("[RWM] <<< %s EXIT hr=0x%08lx\n", m_name, (unsigned long)*m_phr);
+            else       DPRINT1("[RWM] <<< %s EXIT\n", m_name);
+            return;
+        }
+
+        /* Quiet mode: a failure is still always worth a line. */
+        if (m_phr && FAILED(*m_phr))
+            DPRINT1("[RWM] !!! %s FAILED hr=0x%08lx\n", m_name, (unsigned long)*m_phr);
     }
 };
 #define RWM_TRACE()      RwmScopeTrace _rwmScopeTrace(__FUNCTION__, &hr)

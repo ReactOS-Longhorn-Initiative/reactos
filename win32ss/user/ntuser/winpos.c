@@ -1958,13 +1958,31 @@ co_WinPosSetWindowPos(
    Window->rcWindow = NewWindowRect;
    Window->rcClient = NewClientRect;
 
-   /* Both rects are live now; the mini-info carries them verbatim. */
-   IntDwmUpdateSprite(Window);
-
-   /* And the redirection surface has to follow the window's size. Cheap on a
-    * pure move: IntDwmRecreateRedirectionBitmap compares the pixel size first
-    * and keeps the existing bitmap when it has not changed. */
+   /*
+    * SURFACE FIRST, THEN NOTIFY. These were the other way round, which is a
+    * race by construction: the sprite notification is what makes dwmredir
+    * re-query DwmGetSurfaceData, so sending it before the bitmap exists asks
+    * the compositor to look at a surface win32k has not made yet. Nothing
+    * asks a second time, so a window that lost that race stayed contentless
+    * for its whole life.
+    *
+    * Cheap on a pure move: IntDwmRecreateRedirectionBitmap compares the pixel
+    * size first and keeps the existing bitmap when it has not changed.
+    */
    IntDwmRedirOnWindowSized(Window);
+
+   /*
+    * Geometry to dwmredir. This is where the non-client thickness is
+    * recomputed: rcWindow and rcClient are both final at this point, and
+    * dwmredir subtracts them into the content margins that gate chrome.
+    * A window whose caption height changes -- or that had no margins at all
+    * because it was created before redirection started -- picks them up here.
+    */
+   IntDwmNotifyChildMoveSize(Window);
+
+   /* Both rects are live and the surface matches them; the mini-info carries
+    * the rects verbatim. */
+   IntDwmUpdateSprite(Window);
 
    /* erase parent when hiding or resizing child */
    if (WinPos.flags & SWP_HIDEWINDOW)

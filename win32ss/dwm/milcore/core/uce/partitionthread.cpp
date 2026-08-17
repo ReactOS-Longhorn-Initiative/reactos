@@ -13,6 +13,7 @@
 //
 //------------------------------------------------------------------------
 #include "precomp.hpp"
+#include <debug.h>   // [RWM] DPRINT1 handshake tracing
 
 
 //+-----------------------------------------------------------------------
@@ -220,6 +221,15 @@ DWORD CPartitionThread::Run()
 {
     WorkType workType = WorkType_None;
 
+    /* [RWM] Unconditional: did this thread ever start at all? The per-worktype
+     * probe below is inside the loop, so it cannot distinguish "the loop ran
+     * and only ever got Render" from "this function was never entered". */
+    {
+        static LONG s_cRun = 0;
+        if (InterlockedIncrement(&s_cRun) <= 4)
+            DPRINT1("[RWM] CPartitionThread::Run ENTER\n");
+    }
+
     do
     {
         Partition *pPartition = NULL;
@@ -227,6 +237,27 @@ DWORD CPartitionThread::Run()
         workType = GetPartitionManager()->GetWork(&pPartition);
 
         Assert((pPartition != NULL) || (workType == WorkType_None));
+
+        /*
+         * [RWM] Which work the scheduler actually hands out.
+         *
+         * Compose reports presentNeeded=1 on every frame and
+         * CRenderTargetManager::Present never logs, so the frame is composed
+         * and never presented -- but every link between those two points reads
+         * correctly, so this says which one drops it rather than guessing
+         * again. Bounded PER TYPE, not per call: a global cap would be spent
+         * entirely on WorkType_Render, which is the type we already know
+         * occurs.
+         */
+        {
+            static LONG s_cByType[8] = { 0 };
+            const int idx = (int)workType;
+            if (idx >= 0 && idx < 8 && InterlockedIncrement(&s_cByType[idx]) <= 3)
+            {
+                DPRINT1("[RWM] worker GetWork -> workType=%d partition=%p\n",
+                        idx, (PVOID)pPartition);
+            }
+        }
 
         switch (workType) 
         {

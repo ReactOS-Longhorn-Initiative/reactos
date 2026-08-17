@@ -427,19 +427,12 @@ CComposition::ProcessCommandBatch(
 
         #pragma warning (pop)
 
-        // [RWM] Post-dispatch result (only reached if the handler did NOT
-        // IFC-fail out to Cleanup). Pairs with the pre-dispatch log above so a
-        // pre-dispatch line WITHOUT a matching "dispatched" line = the command
-        // that failed (see the FAILED log in Cleanup for its hr).
-        {
-            static LONG s_cRwmCmdOk = 0;
-            if (s_cRwmCmdOk < 512)
-            {
-                InterlockedIncrement(&s_cRwmCmdOk);
-                DPRINT1("[RWM] ProcessCommandBatch cmd Type=%u dispatched hr=0x%08lx [#%ld]\n",
-                        (UINT)nCmdType, hr, s_cRwmCmdOk);
-            }
-        }
+        // [RWM] The matching "dispatched hr=0" line used to go here, doubling
+        // this loop's output to confirm each command succeeded. Dropped: a
+        // command that fails IFCs straight out to Cleanup, which logs the hr,
+        // and the LAST "cmd Type=" line before that FAILED names the command
+        // that did it. The success line only ever restated what its absence
+        // already told us, at the cost of half the batch log.
 
         // Watchdog for bugs
         CFloatFPU::AssertPrecisionAndRoundingMode();

@@ -21,6 +21,27 @@ DBG_DEFAULT_CHANNEL(UserDwm);
 /* The DWM session port, referenced from the handle dwm.exe passed us. */
 PVOID gpDwmApiPort = NULL;
 
+/*
+ * The compositor's own process.
+ *
+ * Captured at port registration, which is a call made BY dwm.exe, so the
+ * current process there is by definition the compositor.
+ *
+ * It exists so IntDwmSetRedirectedWindow can refuse to redirect the
+ * compositor's own windows. Without that refusal the composition window gets a
+ * redirection bitmap like any other top-level window, DceSetDrawable retargets
+ * its DC to that bitmap, and milcore's software presenter -- which finishes a
+ * frame with a GDI blit to that DC -- delivers every composed frame into DWM's
+ * own redirection surface instead of to the screen. Every layer reports
+ * success and the display never changes.
+ *
+ * Not referenced: this is a weak pointer used only for identity comparison,
+ * and it is cleared in IntDwmUnregisterSessionPort, which runs when the
+ * compositor's port goes away. Taking a reference would keep the process
+ * object alive for no reason, and dereferencing it is never needed.
+ */
+PEPROCESS gpepDwm = NULL;
+
 /* Set by NtUserDwmStartRedirection / cleared by NtUserDwmStopRedirection. */
 BOOL gbDwmRedirectionActive = FALSE;
 
@@ -110,6 +131,10 @@ IntDwmRegisterSessionPort(HANDLE hPort)
 
     gpDwmApiPort = PortObject;
 
+    /* This call comes from dwm.exe, so the caller IS the compositor. */
+    gpepDwm = PsGetCurrentProcess();
+    TRACE("DWM process is %p (%s)\n", gpepDwm, gpepDwm->ImageFileName);
+
     Status = IntDwmStartWorker();
     if (!NT_SUCCESS(Status))
     {
@@ -147,6 +172,11 @@ IntDwmUnregisterSessionPort(VOID)
         ObDereferenceObject(gpDwmApiPort);
         gpDwmApiPort = NULL;
     }
+
+    /* Weak pointer, never referenced -- just stop naming a process that is on
+     * its way out, so a stale value cannot exempt an unrelated later process
+     * from redirection if the PEPROCESS address is reused. */
+    gpepDwm = NULL;
 }
 
 /*
@@ -255,6 +285,19 @@ static VOID
 IntDwmSweepLink(PWND Wnd)
 {
     IntDwmNotifyChildLink(Wnd);
+
+    /*
+     * Geometry BEFORE the sprite. dwmredir turns this into the content
+     * margins, and uDWM reads them while handling CreateSprite to decide
+     * whether the window gets chrome at all -- so a window swept at startup
+     * has to arrive with its margins already set, or it is announced as
+     * chrome-less and nothing re-announces it.
+     *
+     * Same shape as the surfaces-before-sprites ordering in
+     * IntDwmStartRedirection, and for the same reason.
+     */
+    IntDwmNotifyChildMoveSize(Wnd);
+
     IntDwmCreateSprite(Wnd);
     IntDwmZorderSprite(Wnd);
 }
@@ -305,16 +348,33 @@ IntDwmStartRedirection(BOOL fRedirectContent)
      * yet, so its position is lost. Registering everything first is what makes
      * every link resolvable.
      */
+    /*
+     * SURFACES FIRST. A window's redirection bitmap has to exist before its
+     * sprite is announced, because DWM queries the surface as part of handling
+     * CreateSprite -- that query is the only one it makes on its own initiative.
+     *
+     * This pass used to run LAST, and the result was that every window in the
+     * session was announced at 0x0, then quietly given a real bitmap that
+     * nobody was told about. The compositor kept the empty surface it had been
+     * handed and composed nothing, for every window that existed before
+     * dwm.exe started -- which is nearly all of them.
+     *
+     * Vista allocates in _SetRedirectedWindow@8 as a window becomes redirected,
+     * i.e. before any sprite exists for it, and this restores that order.
+     */
+    IntDwmResetRedirectedWindowSurfaces();
+
     IntDwmForEachOnDesktop(IntDwmSweepRegister);
     IntDwmForEachOnDesktop(IntDwmSweepLink);
 
     /*
-     * THIRD pass, and only in content mode. It has to follow the other two:
-     * IntDwmResetRedirectedWindows ends by dirtying every DC, and a DC
-     * refreshed before the window it belongs to has been registered would be
-     * retargeted at a bitmap the compositor does not know about yet.
+     * DCs LAST, which is the other half of the constraint the old ordering was
+     * trying to satisfy: a DC retargeted before its window is registered would
+     * point at a bitmap the compositor does not know about. Splitting the pass
+     * lets both hold -- surfaces before sprites, DCs after registration --
+     * where doing it in one lump could only ever satisfy one of them.
      */
-    IntDwmResetRedirectedWindows();
+    IntDwmUpdateRedirectedDCs();
 
     return STATUS_SUCCESS;
 }
@@ -924,6 +984,60 @@ IntDwmNotifyChildLink(PWND Wnd)
 
     TRACE("NotifyChildLink hwnd=%p after=%p\n",
           Wnd->head.h, Prev ? Prev->head.h : NULL);
+    IntDwmPost(&Cmd, sizeof(Cmd));
+}
+
+/*
+ * MILCMD_DWM_REDIRECTION_NOTIFYCHILDMOVESIZE (0x40000013).
+ *
+ * The message that gives windows their chrome. dwmredir subtracts rcContent
+ * from rcWindow to get the non-client thickness, stores it as the content
+ * margins, and uDWM's GetCurrentStyle gates every chrome bit on those margins
+ * being non-zero. Nothing emitted this, so every window in the session had
+ * {0,0,0,0} margins and no frame -- see the opcode note in dwm.h.
+ *
+ * Registered rather than sprite-gated: dwmredir looks the context up by HWND
+ * (LookupContext(p->hwnd), :18104), not by sprite, so this is useful for any
+ * window it has a context for. That is the same test NotifyChildLink uses.
+ */
+VOID
+IntDwmNotifyChildMoveSize(PWND Wnd)
+{
+    DWM_CMD_NOTIFYCHILDMOVESIZE Cmd;
+
+    if (!IntDwmIsActive() || !IntDwmShouldRegister(Wnd))
+        return;
+
+    RtlZeroMemory(&Cmd, sizeof(Cmd));
+    Cmd.Type      = RWMCMD_REDIR_NOTIFYCHILDMOVESIZE;
+    Cmd.hwnd      = HandleToUlong(Wnd->head.h);
+    Cmd.rcWindow  = Wnd->rcWindow;
+    Cmd.rcClient  = Wnd->rcClient;
+
+    /*
+     * rcContent is what the margins are measured against. Vista keeps it
+     * separate from rcClient; we have one client rect, so it serves both. The
+     * deviation is stated in dwm.h beside the struct.
+     */
+    Cmd.rcContent = Wnd->rcClient;
+
+    /*
+     * cBorders is Vista's `p->cBorders`. dwmredir only stores it and uses it
+     * in UpdateContentMargins' change test -- it never reads it back for
+     * geometry -- so a constant keeps that test driven purely by the margins.
+     * Left at zero rather than derived from the style, because a formula
+     * invented here would be a guess wearing a 1:1 costume; the real source
+     * has not been recovered.
+     */
+    Cmd.cBorders  = 0;
+
+    TRACE("NotifyChildMoveSize hwnd=%p win=(%d,%d)-(%d,%d) client=(%d,%d)-(%d,%d)\n",
+          Wnd->head.h,
+          Wnd->rcWindow.left, Wnd->rcWindow.top,
+          Wnd->rcWindow.right, Wnd->rcWindow.bottom,
+          Wnd->rcClient.left, Wnd->rcClient.top,
+          Wnd->rcClient.right, Wnd->rcClient.bottom);
+
     IntDwmPost(&Cmd, sizeof(Cmd));
 }
 

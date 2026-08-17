@@ -280,34 +280,345 @@ CMilWindowNodeDuce::ProcessCommand(
 CMilDesktopRenderTargetDuce::CMilDesktopRenderTargetDuce(
     __in_ecount(1) CComposition *pComposition
     )
+    : CRenderTarget(pComposition)
 {
     m_pCompositionNoRef = pComposition;
-    m_hRootVisual       = 0;
+    m_pRenderTarget     = NULL;
+    m_dwModeFlags       = 0;
+    m_dwScaleX          = 0;
+    m_dwScaleY          = 0;
     m_fCreated          = false;
+    m_fNeedsFullRender  = false;
+
+    m_clearColor.r = 0.0f;
+    m_clearColor.g = 0.0f;
+    m_clearColor.b = 0.0f;
+    m_clearColor.a = 1.0f;
 }
 
+CMilDesktopRenderTargetDuce::~CMilDesktopRenderTargetDuce()
+{
+    ReleaseResources();
+}
+
+/*
+ * Cmd 73, MILCMD_TARGET_CREATE_VSP1: {Type, Handle, Data[21]}.
+ *
+ * Field offsets are uDWM's (uDWM.dll.c:8425-8437, reproduced in
+ * CDesktopManager::EnableRenderTargetImpl):
+ *
+ *     Data[0..5]    zero
+ *     Data[6..7]    16.16 scale, identity (0x00010000) in every capture
+ *     Data[8..11]   four zeroed floats
+ *     Data[12]      mode flags -- 66842, |4 when SyncToVBlank is off
+ *     Data[13]      1
+ *     Data[14..17]  uninitialised stack in Vista; NOT read
+ *     Data[18..20]  zero
+ *
+ * The uninitialised gap is why this reads named slots rather than casting the
+ * record to a struct: four of its dwords are whatever was on Vista's stack,
+ * and a struct would invite someone to give them meanings.
+ */
 HRESULT
 CMilDesktopRenderTargetDuce::ProcessCreate(
     __in_bcount(cbSize) const void *pcvData,
     UINT cbSize
     )
 {
-    if (pcvData == NULL || cbSize < VDWM_HEAD_DWORDS * sizeof(UINT32))
+    /* Vista requires 0x5C before it looks at anything (cmd 73 arm). */
+    if (pcvData == NULL || cbSize < 0x5C)
         return WGXERR_UCE_MALFORMEDPACKET;
 
-    m_fCreated = true;
+    /* Data[i] is dword (2 + i): {Type, Handle} occupy the first two. */
+    m_dwScaleX    = VDWM_DWORD(pcvData, 2 + 6);
+    m_dwScaleY    = VDWM_DWORD(pcvData, 2 + 7);
+    m_dwModeFlags = VDWM_DWORD(pcvData, 2 + 12);
 
-    DPRINT1("[RWM] DesktopRenderTarget: created (cb=%u)\n", (unsigned)cbSize);
+    m_fCreated         = true;
+    m_fNeedsFullRender = true;
+
+    DPRINT1("[RWM] DesktopRenderTarget: created cb=%u modeFlags=0x%lx scale=%lx,%lx\n",
+            (unsigned)cbSize, (unsigned long)m_dwModeFlags,
+            (unsigned long)m_dwScaleX, (unsigned long)m_dwScaleY);
     return S_OK;
 }
 
+/*
+ * The desktop-wide render target.
+ *
+ * THE HWND IS AN ASSUMPTION, and the only part of this class not recovered
+ * from the reference. CDesktopRenderTarget::Create asserts a non-NULL hwnd and
+ * builds a CDesktopHWNDRenderTarget around it -- a NULL target has nothing to
+ * present through -- but uDWM's cmd-73 payload carries no window: Data[0..5]
+ * are zeroed, and Vista's own handler reads nothing that looks like one.
+ * Where Vista's desktop target gets its hwnd is not yet known.
+ *
+ * GetDesktopWindow() is used because it is the window that covers exactly what
+ * this target owns, and presenting through it reaches the primary. The other
+ * candidate is DWM's own top-level window (dwm/app/RWMUserFace.cpp:42), which
+ * would be the answer if Vista composes into a full-screen window of its own
+ * rather than straight to the primary. Deciding between them needs the Vista
+ * side read properly; this is the runnable choice, not a settled one.
+ */
 HRESULT
-CMilDesktopRenderTargetDuce::ProcessSetRoot(HMIL_RESOURCE hRoot)
+CMilDesktopRenderTargetDuce::EnsureRenderTargetInternal()
 {
-    m_hRootVisual = hRoot;
-    DPRINT1("[RWM] DesktopRenderTarget: root visual h=0x%lx\n",
-            (unsigned long)hRoot);
-    return S_OK;
+    HRESULT hr = S_OK;
+    CMILFactory *pMILFactory = NULL;
+    HWND hwndDesktop;
+
+    if (m_pRenderTarget != NULL)
+        goto Cleanup;
+
+    /* Cmd 73 has not arrived yet. Not an error -- the manager can render a
+     * frame between the resource being created and being configured. */
+    if (!m_fCreated)
+        goto Cleanup;
+
+    hwndDesktop = GetDesktopWindow();
+    if (hwndDesktop == NULL)
+    {
+        DPRINT1("[RWM] DesktopRenderTarget: no desktop window\n");
+        IFC(WGXERR_DISPLAYSTATEINVALID);
+    }
+
+    pMILFactory = m_pCompositionNoRef->GetMILFactory();
+    IFCNULL(pMILFactory);
+
+    //
+    // SoftwareOnly, deliberately. This VM has no usable D3D -- wined3d reports
+    // "Required extension ARB_fragment_shader is not supported" and refuses to
+    // initialise -- so the hardware path would fail and fall back anyway.
+    // Asking for software up front makes the first frame's behaviour the same
+    // as the hundredth instead of depending on a fallback that has never run
+    // here. Revisit once a display driver with an OpenGL ICD is present.
+    //
+    IFC(pMILFactory->CreateDesktopRenderTarget(
+        hwndDesktop,
+        MilWindowLayerType::NotLayered,
+        MilRTInitialization::SoftwareOnly,
+        &m_pRenderTarget
+        ));
+
+    //
+    // AND TELL IT WHERE IT IS. A freshly created render target has no position
+    // and therefore no bounds, and a target with empty bounds renders nothing
+    // and asks for no present -- silently, and indistinguishably from "the tree
+    // was empty". That is exactly what this class did on its first working run:
+    // rt=<non-null>, root=<non-null>, present=0, frame after frame.
+    //
+    // CSlaveHWndRenderTarget ends its EnsureRenderTargetInternal with
+    // UpdateWindowSettingsInternal() for the same reason; that path derives the
+    // rect from the window via GetClientRect/ClientToScreen because an hwnd
+    // target tracks a window that moves and resizes.
+    //
+    // The desktop target does not track a window -- it covers the display set,
+    // whose bounds milcore has already computed and unioned across every
+    // display (CDisplaySet::ComputeDisplayBounds). Taking the rect from there
+    // rather than from GetDesktopWindow() keeps the target's extent tied to the
+    // thing it actually represents, and stays correct on a multi-monitor
+    // desktop where the union is what matters.
+    //
+    {
+        const CDisplaySet *pDisplaySet = NULL;
+        CMILSurfaceRect rcDesktop;
+
+        IFC(m_pCompositionNoRef->GetMILFactory()->GetCurrentDisplaySet(&pDisplaySet));
+
+        if (pDisplaySet != NULL)
+        {
+            rcDesktop = pDisplaySet->GetBounds();
+
+            /* SetPosition takes a float rect; the display set keeps integer
+             * device pixels. Widening is exact for any real desktop extent. */
+            CMilRectF rcPosition(
+                static_cast<float>(rcDesktop.left),
+                static_cast<float>(rcDesktop.top),
+                static_cast<float>(rcDesktop.right),
+                static_cast<float>(rcDesktop.bottom),
+                LTRB_Parameters);
+
+            IFC(m_pRenderTarget->SetPosition(&rcPosition));
+
+            DPRINT1("[RWM] DesktopRenderTarget: position (%d,%d)-(%d,%d)\n",
+                    rcDesktop.left, rcDesktop.top,
+                    rcDesktop.right, rcDesktop.bottom);
+        }
+    }
+
+    m_fNeedsFullRender = true;
+
+Cleanup:
+    ReleaseInterfaceNoNULL(pMILFactory);
+    RRETURN(hr);
+}
+
+void
+CMilDesktopRenderTargetDuce::ReleaseResources()
+{
+    ReleaseInterface(m_pRenderTarget);
+}
+
+/*
+ * Render the composition tree into the desktop target.
+ *
+ * Modelled on CSlaveHWndRenderTarget::Render minus everything that is about
+ * being a WINDOW: no invalid-region query (that exists because SetPosition can
+ * resize an hwnd target under the compositor), no layered-window transparency,
+ * no child-window rect recalculation, no display-availability message. The
+ * desktop target is one fixed surface.
+ */
+HRESULT
+CMilDesktopRenderTargetDuce::Render(__out_ecount(1) bool *pfNeedsPresent)
+{
+    HRESULT hr = S_OK;
+    CDrawingContext *pDrawingContext = NULL;
+
+    *pfNeedsPresent = false;
+
+    IFC(EnsureRenderTargetInternal());
+
+    if (m_pRenderTarget == NULL)
+        goto Cleanup;
+
+    IFC(GetDrawingContext(&pDrawingContext));
+
+    //
+    // THE INVALID REGIONS ARE NOT OPTIONAL, even though this target does not
+    // track a window, and they must be queried BEFORE the root check rather
+    // than inside the branch that has one.
+    //
+    // They were trimmed from this Render as window-specific, which misread why
+    // the hwnd path has them: its own comment says they exist because
+    // SetPosition changes the target's size underneath the compositor -- and
+    // this class calls SetPosition too, when the target is first created.
+    //
+    // Querying them is not just informational; it is what CONSUMES the
+    // target's "these areas became invalid when you moved me" state. Leaving
+    // that state unread means the freshly sized target is never reconciled,
+    // and CMetaRenderTarget::UpdateValidContentBounds asserts that its valid
+    // content no longer contains the area it is about to present.
+    //
+    // Putting the query inside the `m_pRoot != NULL` arm hid that on exactly
+    // the frame it mattered. The first Render after cmd 73 creates and
+    // positions the target, but cmd 77 (SetRoot) has not necessarily been
+    // processed yet -- so m_pRoot is still NULL, the query was skipped, and
+    // the assert fired on the very first frame. CSlaveHWndRenderTarget::Render
+    // queries unconditionally, ahead of the same branch, for this reason.
+    //
+    UINT uNumInvalidTargetRegions = 0;
+    MilRectF const *rgInvalidTargetRegions = NULL;
+    bool fWholeTargetInvalid = false;
+
+    IFC(m_pRenderTarget->GetInvalidRegions(
+        &rgInvalidTargetRegions,
+        &uNumInvalidTargetRegions,
+        &fWholeTargetInvalid
+        ));
+
+    m_fNeedsFullRender |= fWholeTargetInvalid;
+
+    if (m_pRoot == NULL)
+    {
+        /*
+         * No root visual yet. Clear once so the first frames show the clear
+         * colour rather than whatever the primary happened to hold -- leaving
+         * the pre-DWM image on screen reads as "the compositor never started".
+         */
+        if (m_fNeedsFullRender)
+        {
+            IFC(m_pRenderTarget->Clear(&m_clearColor));
+            *pfNeedsPresent = true;
+        }
+    }
+    else
+    {
+        CMilRectF rcBounds;
+        BOOL fNeedsFullPresent = FALSE;
+
+        m_pRenderTarget->GetBounds(&rcBounds);
+
+        if (!rcBounds.IsEmpty())
+        {
+            IFC(pDrawingContext->BeginFrame(
+                m_pRenderTarget
+                DBG_ANALYSIS_COMMA_PARAM(CoordinateSpaceId::PageInPixels)
+                ));
+
+            IFC(pDrawingContext->Render(
+                m_pRoot,
+                m_pRenderTarget,
+                &m_clearColor,
+                rcBounds,
+                m_fNeedsFullRender,
+                uNumInvalidTargetRegions,
+                rgInvalidTargetRegions,
+                false,              /* no accelerated scroll */
+                &fNeedsFullPresent
+                ));
+
+            pDrawingContext->EndFrame();
+
+            *pfNeedsPresent = true;
+        }
+    }
+
+    m_fNeedsFullRender = false;
+
+Cleanup:
+    {
+        static LONG s_cLogged = 0;
+        if (InterlockedIncrement(&s_cLogged) <= 8)
+        {
+            DPRINT1("[RWM] DesktopRenderTarget::Render hr=0x%08lx rt=%p root=%p present=%d\n",
+                    hr, m_pRenderTarget, m_pRoot, (int)*pfNeedsPresent);
+        }
+    }
+
+    RRETURN(hr);
+}
+
+HRESULT
+CMilDesktopRenderTargetDuce::Present()
+{
+    HRESULT hr = S_OK;
+
+    if (m_pRenderTarget == NULL)
+        goto Cleanup;
+
+    IFC(m_pRenderTarget->Present());
+
+Cleanup:
+    {
+        static LONG s_cLogged = 0;
+        if (InterlockedIncrement(&s_cLogged) <= 8)
+        {
+            DPRINT1("[RWM] DesktopRenderTarget::Present hr=0x%08lx\n", hr);
+        }
+    }
+
+    RRETURN(hr);
+}
+
+HRESULT
+CMilDesktopRenderTargetDuce::GetBaseRenderTargetInternal(
+    __deref_out_opt IRenderTargetInternal **ppIRT
+    )
+{
+    HRESULT hr = S_OK;
+
+    *ppIRT = NULL;
+
+    if (m_pRenderTarget != NULL)
+    {
+        IFC(m_pRenderTarget->QueryInterface(
+            IID_IRenderTargetInternal,
+            reinterpret_cast<void**>(ppIRT)
+            ));
+    }
+
+Cleanup:
+    RRETURN(hr);
 }
 
 /* ==========================================================================

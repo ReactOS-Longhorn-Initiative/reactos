@@ -114,6 +114,24 @@
 #define RWMCMD_REDIR_NOTIFYCHILDDESTROY     0x40000012
 
 /*
+ * MILCMD_DWM_REDIRECTION_NOTIFYCHILDMOVESIZE, 60 bytes.
+ *
+ * THIS IS WHAT GIVES A WINDOW ITS CHROME. dwmredir's handler
+ * (CMilWindowManager::NotifyChildMoveSize, dwmredir.dll.c:18087) derives the
+ * content margins from it as rcContent minus rcWindow -- the non-client
+ * thickness -- and feeds them to UpdateContentMargins. uDWM's
+ * CTopLevelWindow::GetCurrentStyle then tests that top margin against the
+ * minimum caption height, and only sets the 0x2/0x4 style bits (the ones
+ * fChromeWanted reads) when the margins are non-zero.
+ *
+ * Never emitting it left every window with {0,0,0,0} margins, derived style
+ * 0x1, and all 17 mesh-image slots NULL -- no frames, no caption, no buttons,
+ * for the whole session, with the entire art pipeline loaded and idle behind
+ * the gate.
+ */
+#define RWMCMD_REDIR_NOTIFYCHILDMOVESIZE    0x40000013
+
+/*
  * tagMINIWINDOWINFO - 12 dwords. UpdateSprite carries only the first ten;
  * CreateSprite additionally supplies fDpiAware at mini-info slot 10.
  */
@@ -165,6 +183,26 @@ typedef struct _DWM_CMD_NOTIFYCHILDCREATE
  * These are HWNDs, not sprite handles -- unlike ZORDERSPRITE, which carries
  * sprite ids. The two describe the same ordering from different sides.
  */
+/*
+ * The 15 slots dwmredir's NotifyChildMoveSize reads; see the opcode note.
+ *
+ * rcContent is a THIRD rect, distinct from rcClient in Vista: the handler
+ * stores rcWindow and rcClient onto the context but computes the margins from
+ * rcContent. We send the client rect for both, because win32k has exactly one
+ * client rect to offer and the margin subtraction is the consumer that
+ * matters. Stated as a deviation rather than hidden: if a case turns up where
+ * Vista's content rect differs from its client rect, this is where it lands.
+ */
+typedef struct _DWM_CMD_NOTIFYCHILDMOVESIZE
+{
+    UINT32 Type;        /* slot 0      */
+    UINT32 hwnd;        /* slot 1      */
+    RECT   rcWindow;    /* slots 2-5   */
+    RECT   rcClient;    /* slots 6-9   */
+    RECT   rcContent;   /* slots 10-13 */
+    UINT32 cBorders;    /* slot 14     */
+} DWM_CMD_NOTIFYCHILDMOVESIZE;
+
 typedef struct _DWM_CMD_NOTIFYCHILDLINK
 {
     UINT32 Type;
@@ -267,6 +305,11 @@ typedef struct _DWM_CMD_UPDATESPRITE
 /* ------------------------------------------------------------------------- */
 
 extern PVOID gpDwmApiPort;
+
+/* The compositor's process, captured at port registration. Weak pointer, used
+ * only so IntDwmSetRedirectedWindow can refuse to redirect DWM's own windows;
+ * see the note beside its definition in dwm.c. */
+extern PEPROCESS gpepDwm;
 extern BOOL  gbDwmRedirectionActive;
 
 /* Cheap gate for the lifecycle hooks: no port, no work. */
@@ -296,6 +339,10 @@ VOID IntDwmDestroySprite(PWND Wnd);
 VOID IntDwmNotifyChildDestroy(PWND Wnd);
 VOID IntDwmShowSprite(PWND Wnd, BOOL fShow);
 VOID IntDwmUpdateSprite(PWND Wnd);
+
+/* 0x40000013. Delivers the non-client thickness, which is what opens the
+ * chrome gate in uDWM -- see the opcode note above. */
+VOID IntDwmNotifyChildMoveSize(PWND Wnd);
 VOID IntDwmZorderSprite(PWND Wnd);
 VOID IntDwmActivationChange(PWND Wnd, BOOL fActive);
 
@@ -321,6 +368,7 @@ UINT32  FASTCALL UserGetRedirectionFlags(PWND Wnd);
 
 /* TRUE when this window's DCs must be pointed at its redirection bitmap. */
 BOOL    FASTCALL UserIsWindowRedirected(PWND Wnd);
+PWND    FASTCALL UserGetRedirectionTarget(PWND Wnd);
 VOID    FASTCALL UserGetRedirectedWindowOrigin(PWND Wnd, PPOINT ppt);
 
 HBITMAP FASTCALL IntDwmCreateRedirectionBitmap(PWND Wnd);
@@ -330,6 +378,7 @@ VOID    FASTCALL IntDwmRemoveRedirectionBitmap(PWND Wnd);
 BOOL    FASTCALL IntDwmSetRedirectedWindow(PWND Wnd);
 VOID    FASTCALL IntDwmUnsetRedirectedWindow(PWND Wnd);
 VOID    FASTCALL IntDwmResetRedirectedWindows(VOID);
+VOID    FASTCALL IntDwmResetRedirectedWindowSurfaces(VOID);
 
 VOID    FASTCALL IntDwmRedirOnWindowCreated(PWND Wnd);
 VOID    FASTCALL IntDwmRedirOnWindowDestroyed(PWND Wnd);

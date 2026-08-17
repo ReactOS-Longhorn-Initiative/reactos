@@ -461,6 +461,26 @@ CConnectionContext::PresentAllPartitions()
     HRESULT hr = S_OK;
     SERVER_CHANNEL_HANDLE_ENTRY *pServerEntry = NULL;
 
+    /*
+     * [RWM] UNCONDITIONAL entry marker, and it has to be unconditional.
+     *
+     * The previous probe on this path sat inside
+     * `if (hr != WGXERR_DISPLAYSTATEINVALID)`, and the one on the partition
+     * thread sat inside Run()'s dispatch loop -- both nested under exactly the
+     * condition being investigated, so their silence said nothing about which
+     * of the two Compose callers is live. This one fires before any branch,
+     * and reports the channel count too, since m_nrChannels == 0 is the first
+     * silent bail below.
+     */
+    {
+        static LONG s_cEntry = 0;
+        if (InterlockedIncrement(&s_cEntry) <= 8)
+        {
+            DPRINT1("[RWM] PresentAllPartitions ENTER channels=%u\n",
+                    (unsigned)m_nrChannels);
+        }
+    }
+
     // if we have no channels left bail.
     if (m_nrChannels == 0)
     {
@@ -504,8 +524,34 @@ CConnectionContext::PresentAllPartitions()
 
                 MIL_THR(pServerEntry->pCompDevice->Compose(&fPresentNeeded));
 
-                if (hr != WGXERR_DISPLAYSTATEINVALID) 
+                if (hr != WGXERR_DISPLAYSTATEINVALID)
                 {
+                    /*
+                     * [RWM] The present gate on the SYNCHRONOUS path.
+                     *
+                     * Composition is driven from here, not from
+                     * CPartitionThread::Run -- a probe in that thread's
+                     * dispatch loop never fired once, while Compose logs on
+                     * every frame. So this is the only place that can decide
+                     * whether a composed frame reaches the screen, and all
+                     * three of its conditions fail SILENTLY: a false
+                     * fPresentNeeded, a failed hr, or a NULL
+                     * g_pPartitionManager each skip the present with no error
+                     * and no log line.
+                     *
+                     * Bounded, because it would otherwise fire every frame.
+                     */
+                    {
+                        static LONG s_cGate = 0;
+                        if (InterlockedIncrement(&s_cGate) <= 8)
+                        {
+                            DPRINT1("[RWM] present gate: hr=0x%08lx presentNeeded=%d pm=%p -> %s\n",
+                                    hr, (int)fPresentNeeded, (PVOID)g_pPartitionManager,
+                                    (SUCCEEDED(hr) && fPresentNeeded && g_pPartitionManager != NULL)
+                                        ? "PRESENT" : "SKIPPED");
+                        }
+                    }
+
                     if (SUCCEEDED(hr) && fPresentNeeded && g_pPartitionManager != NULL)
                     {
                         IFC(pServerEntry->pCompDevice->Present(g_pPartitionManager));

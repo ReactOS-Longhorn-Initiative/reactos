@@ -2184,6 +2184,78 @@ struct MILCMD_BITMAP_PIXELS
     double DpiY;                        // +44
 };                                      // = 52 (0x34)
 
+/*
+ * [RWM] The window-content redirection payloads, recovered from
+ * dwmredir.dll (DuceHelper::WindowRedirection_GdiSpriteBitmap_*, ducehelper.cpp
+ * 382-514) and cross-checked against the milcore-side readers
+ * (CMilGdiSpriteBitmap::Process*). Sizes are the sender's literal
+ * MilResource_SendCommand argument, not inferred from the field list.
+ *
+ * See NOTES-chrome.md, "GdiSpriteBitmap: the surface handoff protocol".
+ */
+
+/* Binds a GDISPRITEBITMAP resource to the sprite whose content it carries.
+ * ProcessUpdate stores both trailing dwords and does nothing else. */
+struct MILCMD_GDISPRITEBITMAP
+{
+    MILCMD Type;                        // +0
+    HMIL_RESOURCE Handle;               // +4
+    UINT32 hSprite;                     // +8
+    UINT32 Reserved0;                   // +12  sender writes 0
+};                                      // = 16 (0x10)
+
+/* The non-client inset. RecreateBitmap subtracts these from the full surface
+ * to get the visible sub-rect, so they are a crop, not a border to draw. */
+struct MILCMD_GDISPRITEBITMAP_UPDATEMARGINS
+{
+    MILCMD Type;                        // +0
+    HMIL_RESOURCE Handle;               // +4
+    INT32 cxLeftWidth;                  // +8
+    INT32 cxRightWidth;                 // +12
+    INT32 cyTopHeight;                  // +16
+    INT32 cyBottomHeight;               // +20
+};                                      // = 24 (0x18)
+
+/*
+ * The LOCAL surface handoff: hands milcore the section backing a window's
+ * redirection bitmap. The Terminal Services path uses
+ * MILCMD_GDISPRITEBITMAP_TSUPDATESECTION instead -- IsCrossMachineChannel
+ * picks between them, and a local desktop is never cross-machine.
+ *
+ * hSection is a 64-BIT wrapped handle at +32 (the sender writes the handle at
+ * +32 and zero at +36; milcore reads it with UnwrapHandleFromUInt64), which is
+ * what makes this 56 bytes rather than 52.
+ */
+struct MILCMD_BITMAP_SECTION
+{
+    MILCMD Type;                        // +0
+    HMIL_RESOURCE Handle;               // +4
+    UINT32 Width;                       // +8
+    UINT32 Height;                      // +12
+    MilPixelFormat::Enum PixelFormat;   // +16
+    UINT32 Stride;                      // +20
+    UINT32 Offset;                      // +24  sender writes 0
+    UINT32 Reserved0;                   // +28
+    UINT64 hSection;                    // +32  wrapped handle
+    double DpiX;                        // +40
+    double DpiY;                        // +48
+};                                      // = 56 (0x38)
+
+struct MILCMD_GDISPRITEBITMAP_TSUPDATESECTION
+{
+    MILCMD Type;                        // +0
+    HMIL_RESOURCE Handle;               // +4
+    UINT32 Width;                       // +8
+    UINT32 Height;                      // +12
+    MilPixelFormat::Enum PixelFormat;   // +16
+};                                      // = 20 (0x14)
+
+struct MILCMD_GDISPRITEBITMAP_UNMAPSECTION
+{
+    MILCMD Type;                        // +0
+    HMIL_RESOURCE Handle;               // +4
+};                                      // = 8
+
 struct MILCMD_BITMAP_INVALIDATE
 {
     MILCMD Type;

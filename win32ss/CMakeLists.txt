@@ -259,6 +259,17 @@ endif()
 
 add_importlibs(win32k ntoskrnl hal ftfd)
 add_pch(win32k pch.h SOURCE)
+
+#
+# Emit a link map. Without it every win32k fault symbolizes against the nearest
+# EXPORTED symbol, which for this binary means "VidMemFree + a few hundred KB"
+# for essentially the whole driver -- an offset that names nothing. milcore had
+# the same blind spot and one /MAP turned a multi-session dead end into a
+# two-minute lookup.
+#
+if(MSVC)
+    set_property(TARGET win32k APPEND_STRING PROPERTY LINK_FLAGS " /MAP")
+endif()
 add_cd_file(TARGET win32k DESTINATION reactos/system32 FOR all)
 
 if(ARCH STREQUAL "amd64")

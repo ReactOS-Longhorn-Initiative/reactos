@@ -29,6 +29,16 @@ milcore.def
 add_library(milcore MODULE ${SOURCE})
 add_dependencies(milcore xdk psdk d3d_idl_headers)
 
+#
+# Emit a linker MAP, for the same reason uDWM does. milcore's crash reporter
+# logs faults as "milcore.dll+0xRVA" and the DWM bring-up produces plenty of
+# them; without the MAP every one has to be guessed at from the surrounding
+# log. See vm/symbolize.py and the "SYMBOLIZE OUR OWN CRASHES" note in
+# CLAUDE.md -- a fault inside milcore is ours to explain, and a stack of bare
+# RVAs is not an explanation.
+#
+set_property(TARGET milcore APPEND_STRING PROPERTY LINK_FLAGS " /MAP")
+
 if(MSVC)
 include_directories(${REACTOS_SOURCE_DIR}/win32ss/dwm/milcore_cpp)
 # disable exception specification does not match previous declaration

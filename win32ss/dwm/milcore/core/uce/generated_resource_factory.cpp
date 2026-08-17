@@ -363,6 +363,12 @@ HRESULT CResourceFactory::Create(
         pResource = new CMilSlaveBitmap(pComposition);
         break;
 
+    /* [RWM] Window content redirection. dwmredir creates one of these per
+     * redirected window and then sends the backing section as cmd 17. */
+    case TYPE_GDISPRITEBITMAP:
+        pResource = new CMilGdiSpriteBitmap(pComposition);
+        break;
+
     case TYPE_DOUBLEBUFFEREDBITMAP:
         pResource = new CMilSlaveDoubleBufferedBitmap(pComposition);
         break;
