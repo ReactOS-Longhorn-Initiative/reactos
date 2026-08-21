@@ -63,7 +63,7 @@ extern BOOLEAN ShowProgressBar;
 /*
  * Change this to modify progress bar behaviour
  */
-#define ROT_BAR_DEFAULT_MODE  RB_SQUARE_CELLS  //RB_PROGRESS_BAR
+#define ROT_BAR_DEFAULT_MODE    RB_PROGRESS_BAR
 
 /*
  * Values for PltRotBarStatus:
@@ -90,7 +90,7 @@ typedef enum _ROT_BAR_TYPE
 static BOOLEAN RotBarThreadActive = FALSE;
 static ROT_BAR_TYPE RotBarSelection = RB_UNSPECIFIED;
 static ROT_BAR_STATUS PltRotBarStatus = 0;
-static UCHAR RotBarBuffer[36 * 9];
+static UCHAR RotBarBuffer[24 * 9];
 static UCHAR RotLineBuffer[SCREEN_WIDTH * 6];
 #endif // INBV_ROTBAR_IMPLEMENTED
 
@@ -363,9 +363,8 @@ InbvRotationThread(
     {
         Index = 32;
     }
-    // Rotating bar pixel offset
-    X = ProgressBarLeft - 5; // Positive goes RIGHT
-    Y = ProgressBarTop + 3; // Positive goes DOWN
+    X = ProgressBarLeft + 2;
+    Y = ProgressBarTop + 2;
     InbvReleaseLock();
 
     while (InbvGetDisplayState() == INBV_DISPLAY_STATE_OWNED)
@@ -384,33 +383,34 @@ InbvRotationThread(
             InbvReleaseLock();
             break;
         }
+
         if (RotBarSelection == RB_SQUARE_CELLS)
         {
-            Delay.QuadPart = -200000LL; // 20 ms
-            Total = 42;
+            Delay.QuadPart = -800000LL; // 80 ms
+            Total = 18;
             Index %= Total;
 
-            if (Index >= 12 && Index < 34)
+            if (Index >= 3)
             {
                 /* Fill previous bar position */
-                VidSolidColorFill(X + ((Index - 12) * 6), Y, (X + ((Index - 12) * 6)) + 6 - 1, Y + 9 - 1, BV_COLOR_BLACK);  // Left, Top, Right, Bottom, Color
+                VidSolidColorFill(X + ((Index - 3) * 8), Y, (X + ((Index - 3) * 8)) + 8 - 1, Y + 9 - 1, BV_COLOR_BLACK);
             }
-            if (Index <= 42)
+            if (Index < Total - 1)
             {
-                if (Index < 11)
+                /* Draw the progress bar bit */
+                if (Index < 2)
                 {
                     /* Appearing from the left */
-                    VidBufferToScreenBlt(RotBarBuffer + 6 * (11 - Index) / 2, X, Y, 72 - 6 * (11 - Index), 9, 36); // Buffer, X, Y, Width, Height, Delta
+                    VidBufferToScreenBlt(RotBarBuffer + 8 * (2 - Index) / 2, X, Y, 22 - 8 * (2 - Index), 9, 24);
                 }
-                else if (Index >= 21)
+                else if (Index >= Total - 3)
                 {
                     /* Hiding to the right */
-                    VidBufferToScreenBlt(RotBarBuffer, X + ((Index - 11) * 6), Y, 72 - (6 * (Index - (Total / 2))), 9, 36); // Buffer, X, Y, Width, Height, Delta
+                    VidBufferToScreenBlt(RotBarBuffer, X + ((Index - 2) * 8), Y, 22 - 8 * (4 - (Total - Index)), 9, 24);
                 }
                 else
                 {
-                    /* Slide normally */
-                    VidBufferToScreenBlt(RotBarBuffer, X + ((Index - 11) * 6), Y, 72, 9, 36); // Buffer, X, Y, Width, Height, Delta
+                    VidBufferToScreenBlt(RotBarBuffer, X + ((Index - 2) * 8), Y, 22, 9, 24);
                 }
             }
             Index++;
@@ -663,13 +663,14 @@ DisplayBootBitmap(
             BitBltAligned(BootLogo,
                           TRUE,
                           AL_HORIZONTAL_CENTER,
-                          AL_VERTICAL_BOTTOM,
-                          0, 0, 0, (50 - 2));
+                          AL_VERTICAL_CENTER,
+                          0, 0, 0, 34);
 
 #ifdef INBV_ROTBAR_IMPLEMENTED
             /* Choose progress bar */
             TempRotBarSelection = ROT_BAR_DEFAULT_MODE;
 #endif
+
             /* Set progress bar coordinates and display it */
             InbvSetProgressBarCoordinates(VID_PROGRESS_BAR_LEFT,
                                           VID_PROGRESS_BAR_TOP);
@@ -697,16 +698,16 @@ DisplayBootBitmap(
         BitBltAligned(BootProgress,
                       TRUE,
                       AL_HORIZONTAL_CENTER,
-                      AL_VERTICAL_BOTTOM,
-                      0, 0, 0, (100 - 2));
+                      AL_VERTICAL_CENTER,
+                      0, 118, 0, 0);
 
         /* Load and draw copyright text bitmap */
         BootCopy = InbvGetResourceAddress(IDB_COPYRIGHT);
         BitBltAligned(BootCopy,
                       TRUE,
-                      AL_HORIZONTAL_CENTER,
+                      AL_HORIZONTAL_LEFT,
                       AL_VERTICAL_BOTTOM,
-                      0, 0, 0, 0);
+                      22, 0, 0, 20);
 
 #ifdef REACTOS_SKUS
         /* Draw the SKU text if it exits */
@@ -718,13 +719,13 @@ DisplayBootBitmap(
         if ((TempRotBarSelection == RB_SQUARE_CELLS) && Bar)
         {
             /* Save previous screen pixels to buffer */
-            InbvScreenToBufferBlt(Buffer, 0, 0, 72, 9, 36);
+            InbvScreenToBufferBlt(Buffer, 0, 0, 22, 9, 24);
             /* Draw the progress bar bit */
             BitBltPalette(Bar, TRUE, 0, 0);
             /* Store it in global buffer */
-            InbvScreenToBufferBlt(RotBarBuffer, 0, 0, 72, 9, 36);
+            InbvScreenToBufferBlt(RotBarBuffer, 0, 0, 22, 9, 24);
             /* Restore screen pixels */
-            InbvBufferToScreenBlt(Buffer, 0, 0, 72, 9, 36);
+            InbvBufferToScreenBlt(Buffer, 0, 0, 22, 9, 24);
         }
 
         /*
