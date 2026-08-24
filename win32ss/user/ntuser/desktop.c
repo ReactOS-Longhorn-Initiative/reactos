@@ -1191,11 +1191,16 @@ IntResolveDesktop(
         if (bInherit)
             ObjectAttributes->Attributes |= OBJ_INHERIT;
 
+        /* Ask for the access we are actually granted, not for everything:
+           a sandboxed process may legitimately be denied part of
+           DESKTOP_ALL_ACCESS on its startup desktop and must still be able
+           to connect to it. This matches the rest of this function, and what
+           Windows does. */
         Status = ObOpenObjectByName(ObjectAttributes,
                                     ExDesktopObjectType,
                                     UserMode,
                                     NULL,
-                                    DESKTOP_ALL_ACCESS,
+                                    MAXIMUM_ALLOWED,
                                     NULL,
                                     (PHANDLE)&hDesktop);
         if (!NT_SUCCESS(Status))
