@@ -128,6 +128,8 @@ SepCreateToken(
     ULONG DynamicPartSize, TotalSize;
     ULONG TokenPagedCharges;
     ULONG i;
+    BOOLEAN HasIntegrityGroup = FALSE;
+    ULONG IntegrityGroupCount;
 
     PAGED_CODE();
 
@@ -147,7 +149,20 @@ SepCreateToken(
             /* Remember this so we can optimize queries later */
             TokenFlags |= TOKEN_HAS_ADMIN_GROUP;
         }
+
+        /* Remember whether the caller gave us an integrity level */
+        if (Groups[i].Attributes & SE_GROUP_INTEGRITY)
+        {
+            HasIntegrityGroup = TRUE;
+        }
     }
+
+    /*
+     * Every token carries its mandatory integrity level as a group, so that
+     * it can be reported and changed later. Callers rarely provide one, so
+     * add the default medium level when they do not.
+     */
+    IntegrityGroupCount = HasIntegrityGroup ? 0 : 1;
 
     /* Allocate unique IDs for the token */
     ExAllocateLocallyUniqueId(&TokenId);
@@ -160,11 +175,15 @@ SepCreateToken(
     PrivilegesLength = ALIGN_UP_BY(PrivilegesLength, sizeof(PVOID));
 
     /* User and groups size */
-    UserGroupsLength = (1 + GroupCount) * sizeof(SID_AND_ATTRIBUTES);
+    UserGroupsLength = (1 + GroupCount + IntegrityGroupCount) * sizeof(SID_AND_ATTRIBUTES);
     UserGroupsLength += RtlLengthSid(User->Sid);
     for (i = 0; i < GroupCount; i++)
     {
         UserGroupsLength += RtlLengthSid(Groups[i].Sid);
+    }
+    if (IntegrityGroupCount != 0)
+    {
+        UserGroupsLength += RtlLengthSid(SeMediumMandatorySid);
     }
     UserGroupsLength = ALIGN_UP_BY(UserGroupsLength, sizeof(PVOID));
 
@@ -322,7 +341,7 @@ SepCreateToken(
     SepUpdatePrivilegeFlagsToken(AccessToken);
 
     /* Copy the user and groups */
-    AccessToken->UserAndGroupCount = 1 + GroupCount;
+    AccessToken->UserAndGroupCount = 1 + GroupCount + IntegrityGroupCount;
     AccessToken->UserAndGroups = EndMem;
     EndMem = &AccessToken->UserAndGroups[AccessToken->UserAndGroupCount];
     VariableLength -= ((ULONG_PTR)EndMem - (ULONG_PTR)AccessToken->UserAndGroups);
@@ -346,6 +365,25 @@ SepCreateToken(
                                           &VariableLength);
     if (!NT_SUCCESS(Status))
         goto Quit;
+
+    /* Append the default integrity level if the caller did not supply one */
+    if (IntegrityGroupCount != 0)
+    {
+        SID_AND_ATTRIBUTES Integrity;
+
+        Integrity.Sid = SeMediumMandatorySid;
+        Integrity.Attributes = SE_GROUP_INTEGRITY | SE_GROUP_INTEGRITY_ENABLED;
+
+        Status = RtlCopySidAndAttributesArray(1,
+                                              &Integrity,
+                                              VariableLength,
+                                              &AccessToken->UserAndGroups[1 + GroupCount],
+                                              EndMem,
+                                              &EndMem,
+                                              &VariableLength);
+        if (!NT_SUCCESS(Status))
+            goto Quit;
+    }
 
     /* Find the token primary group and default owner */
     Status = SepFindPrimaryGroupAndDefaultOwner(AccessToken,

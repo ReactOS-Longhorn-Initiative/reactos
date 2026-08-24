@@ -987,4 +987,65 @@ SeReleaseSidAndAttributesArray(
     }
 }
 
+/**
+ * @brief
+ * Determines if a SID names a mandatory integrity level.
+ *
+ * @param[in] Sid
+ * The SID to check. It is expected to be valid.
+ *
+ * @return
+ * Returns TRUE if the SID belongs to the mandatory label authority and names a
+ * level, FALSE otherwise.
+ */
+BOOLEAN
+NTAPI
+SepIsMandatorySid(
+    _In_ PSID Sid)
+{
+    PISID Isid = (PISID)Sid;
+
+    PAGED_CODE();
+
+    /* A mandatory label SID is the authority plus exactly one level */
+    if (Isid->SubAuthorityCount != 1)
+        return FALSE;
+
+    return RtlEqualMemory(&Isid->IdentifierAuthority,
+                          &SeMandatorySidAuthority,
+                          sizeof(SID_IDENTIFIER_AUTHORITY));
+}
+
+/**
+ * @brief
+ * Returns the group of a token that carries its mandatory integrity level.
+ *
+ * @param[in] Token
+ * The token to look in. The caller is expected to hold its lock.
+ *
+ * @return
+ * The integrity group, or NULL if the token has none. Every token created by
+ * SepCreateToken() is given one, so a token without one should not exist.
+ */
+PSID_AND_ATTRIBUTES
+NTAPI
+SepGetIntegrityLevelFromToken(
+    _In_ PTOKEN Token)
+{
+    ULONG Index;
+
+    PAGED_CODE();
+
+    /* Index 0 is the user, the groups follow it */
+    for (Index = 1; Index < Token->UserAndGroupCount; Index++)
+    {
+        if (Token->UserAndGroups[Index].Attributes & SE_GROUP_INTEGRITY)
+        {
+            return &Token->UserAndGroups[Index];
+        }
+    }
+
+    return NULL;
+}
+
 /* EOF */

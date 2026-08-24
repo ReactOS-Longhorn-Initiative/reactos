@@ -15,12 +15,7 @@
 #include <ntlsa.h>
 
 /* INFORMATION CLASSES ********************************************************/
-/* FIXME: Delete this */
-typedef enum _TOKEN_ELEVATION_TYPE {
-    TokenElevationTypeDefault = 1,
-    TokenElevationTypeFull,
-    TokenElevationTypeLimited,
-} TOKEN_ELEVATION_TYPE, *PTOKEN_ELEVATION_TYPE;
+
 static const INFORMATION_CLASS_INFO SeTokenInformationClass[] = {
 
     /* Class 0 not used, blame MS! */
@@ -61,11 +56,27 @@ static const INFORMATION_CLASS_INFO SeTokenInformationClass[] = {
     /* TokenOrigin */
     IQS_SAME(TOKEN_ORIGIN, ULONG, ICIF_QUERY | ICIF_SET),
     /* TokenElevationType */
-    IQS_SAME(TOKEN_ELEVATION_TYPE, ULONG, ICIF_QUERY | ICIF_SET),
+    IQS_NONE,
     /* TokenLinkedToken */
-    IQS_NONE, /* FIXME */
+    IQS_NONE,
     /* TokenElevation */
-    IQS_SAME(TOKEN_ELEVATION, ULONG, ICIF_QUERY | ICIF_SET),
+    IQS_NONE,
+    /* TokenHasRestrictions */
+    IQS_NONE,
+    /* TokenAccessInformation */
+    IQS_NONE,
+    /* TokenVirtualizationAllowed */
+    IQS_NONE,
+    /* TokenVirtualizationEnabled */
+    IQS_NONE,
+    /* TokenIntegrityLevel */
+    IQS_SAME(TOKEN_MANDATORY_LABEL, ULONG, ICIF_QUERY | ICIF_SET | ICIF_SIZE_VARIABLE),
+    /* TokenUIAccess */
+    IQS_NONE,
+    /* TokenMandatoryPolicy */
+    IQS_NONE,
+    /* TokenLogonSid */
+    IQS_SAME(TOKEN_GROUPS, ULONG, ICIF_QUERY | ICIF_QUERY_SIZE_VARIABLE),
 };
 
 /* PUBLIC FUNCTIONS *****************************************************************/
@@ -1082,18 +1093,35 @@ NtQueryInformationToken(
 
                 break;
             }
-            case TokenElevationType:
-            {
-                DPRINT("NtQueryInformationToken(TokenElevationType)\n");
 
-                RequiredLength = sizeof(TOKEN_ELEVATION_TYPE);
+            case TokenIntegrityLevel:
+            {
+                PTOKEN_MANDATORY_LABEL Label = (PTOKEN_MANDATORY_LABEL)TokenInformation;
+                PSID_AND_ATTRIBUTES Integrity;
+
+                DPRINT("NtQueryInformationToken(TokenIntegrityLevel)\n");
+
+                /* Every token is created carrying one, so this is always found */
+                Integrity = SepGetIntegrityLevelFromToken(Token);
+                if (Integrity == NULL)
+                {
+                    Status = STATUS_INVALID_PARAMETER;
+                    break;
+                }
+
+                RequiredLength = sizeof(TOKEN_MANDATORY_LABEL) +
+                                 RtlLengthSid(Integrity->Sid);
 
                 _SEH2_TRY
                 {
                     if (TokenInformationLength >= RequiredLength)
                     {
-                        /* FIXME: HACK */
-                        *((PTOKEN_ELEVATION_TYPE)TokenInformation) = TokenElevationTypeFull;
+                        /* The SID is returned right behind the structure that names it */
+                        Label->Label.Sid = (PSID)(Label + 1);
+                        Label->Label.Attributes = Integrity->Attributes;
+                        RtlCopySid(RtlLengthSid(Integrity->Sid),
+                                   Label->Label.Sid,
+                                   Integrity->Sid);
                     }
                     else
                     {
@@ -1111,18 +1139,47 @@ NtQueryInformationToken(
                 break;
             }
 
-            case TokenElevation:
+            case TokenLogonSid:
             {
-                DPRINT("NtQueryInformationToken(TokenElevation)\n");
+                PTOKEN_GROUPS Groups = (PTOKEN_GROUPS)TokenInformation;
+                PSID_AND_ATTRIBUTES LogonSid = NULL;
+                ULONG Index;
 
-                RequiredLength = sizeof(TOKEN_ELEVATION);
+                DPRINT("NtQueryInformationToken(TokenLogonSid)\n");
+
+                /* Index 0 is the user, the groups follow it */
+                for (Index = 1; Index < Token->UserAndGroupCount; Index++)
+                {
+                    if ((Token->UserAndGroups[Index].Attributes & SE_GROUP_LOGON_ID) ==
+                        SE_GROUP_LOGON_ID)
+                    {
+                        LogonSid = &Token->UserAndGroups[Index];
+                        break;
+                    }
+                }
+
+                /* A token need not belong to a logon session */
+                if (LogonSid == NULL)
+                {
+                    Status = STATUS_NOT_FOUND;
+                    break;
+                }
+
+                RequiredLength = sizeof(TOKEN_GROUPS) +
+                                 RtlLengthSid(LogonSid->Sid);
 
                 _SEH2_TRY
                 {
                     if (TokenInformationLength >= RequiredLength)
                     {
-                        /* FIXME: HACK */
-                        ((PTOKEN_ELEVATION)TokenInformation)->TokenIsElevated = TRUE;
+                        /* One group, with its SID right behind the array */
+                        Groups->GroupCount = 1;
+                        Groups->Groups[0].Sid = (PSID)((PUCHAR)TokenInformation +
+                                                       sizeof(TOKEN_GROUPS));
+                        Groups->Groups[0].Attributes = LogonSid->Attributes;
+                        RtlCopySid(RtlLengthSid(LogonSid->Sid),
+                                   Groups->Groups[0].Sid,
+                                   LogonSid->Sid);
                     }
                     else
                     {
@@ -1139,6 +1196,7 @@ NtQueryInformationToken(
 
                 break;
             }
+
             default:
                 DPRINT1("NtQueryInformationToken(%d) invalid information class\n", TokenInformationClass);
                 Status = STATUS_INVALID_INFO_CLASS;
@@ -1751,6 +1809,92 @@ NtSetInformationToken(
 
                     ExAllocateLocallyUniqueId(&Token->ModifiedId);
                 }
+
+                /* Unlock the token */
+                SepReleaseTokenLock(Token);
+
+                break;
+            }
+
+            case TokenIntegrityLevel:
+            {
+                TOKEN_MANDATORY_LABEL TokenLabel;
+                PSID_AND_ATTRIBUTES Integrity;
+                UCHAR NewSidBuffer[SECURITY_MAX_SID_SIZE];
+                PSID NewSid = (PSID)NewSidBuffer;
+                ULONG NewLevel, CurrentLevel;
+
+                _SEH2_TRY
+                {
+                    /* Copy the label, and the SID it points at */
+                    TokenLabel = *(PTOKEN_MANDATORY_LABEL)TokenInformation;
+
+                    if (PreviousMode != KernelMode)
+                    {
+                        ProbeForRead(TokenLabel.Label.Sid,
+                                     sizeof(SID),
+                                     sizeof(ULONG));
+                    }
+
+                    if (!RtlValidSid(TokenLabel.Label.Sid) ||
+                        RtlLengthSid(TokenLabel.Label.Sid) > sizeof(NewSidBuffer))
+                    {
+                        Status = STATUS_INVALID_PARAMETER;
+                        _SEH2_YIELD(goto Cleanup);
+                    }
+
+                    RtlCopySid(sizeof(NewSidBuffer),
+                               NewSid,
+                               TokenLabel.Label.Sid);
+                }
+                _SEH2_EXCEPT(EXCEPTION_EXECUTE_HANDLER)
+                {
+                    Status = _SEH2_GetExceptionCode();
+                    _SEH2_YIELD(goto Cleanup);
+                }
+                _SEH2_END;
+
+                /* Only a mandatory label SID names an integrity level */
+                if (!SepIsMandatorySid(NewSid))
+                {
+                    DPRINT1("NtSetInformationToken(TokenIntegrityLevel): not a mandatory SID\n");
+                    Status = STATUS_INVALID_PARAMETER;
+                    break;
+                }
+
+                /* Lock the token */
+                SepAcquireTokenLockExclusive(Token);
+
+                Integrity = SepGetIntegrityLevelFromToken(Token);
+                if (Integrity == NULL)
+                {
+                    SepReleaseTokenLock(Token);
+                    Status = STATUS_INVALID_PARAMETER;
+                    break;
+                }
+
+                NewLevel = *RtlSubAuthoritySid(NewSid, 0);
+                CurrentLevel = *RtlSubAuthoritySid(Integrity->Sid, 0);
+
+                /*
+                 * A token may lower its own integrity level freely, but raising
+                 * it is a relabel, which needs the privilege for it.
+                 */
+                if (NewLevel > CurrentLevel &&
+                    !SeSinglePrivilegeCheck(SeRelabelPrivilege, PreviousMode))
+                {
+                    SepReleaseTokenLock(Token);
+                    Status = STATUS_PRIVILEGE_NOT_HELD;
+                    break;
+                }
+
+                /*
+                 * Every mandatory SID has exactly one sub-authority, so they are
+                 * all the same length and the level can be changed in place.
+                 */
+                *RtlSubAuthoritySid(Integrity->Sid, 0) = NewLevel;
+
+                ExAllocateLocallyUniqueId(&Token->ModifiedId);
 
                 /* Unlock the token */
                 SepReleaseTokenLock(Token);

@@ -891,6 +891,19 @@ SeObjectCreateSaclAccessBits(
     _In_ PSECURITY_DESCRIPTOR SecurityDescriptor);
 
 //
+// Mandatory integrity level functions
+//
+BOOLEAN
+NTAPI
+SepIsMandatorySid(
+    _In_ PSID Sid);
+
+PSID_AND_ATTRIBUTES
+NTAPI
+SepGetIntegrityLevelFromToken(
+    _In_ PTOKEN Token);
+
+//
 // Access check functions
 //
 BOOLEAN
