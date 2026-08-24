@@ -527,8 +527,40 @@ SepDuplicateToken(
 
     PAGED_CODE();
 
-    /* Compute how much size we need to allocate for the token */
-    VariableLength = Token->VariableLength;
+    /*
+     * Compute how much size we need to allocate for the token.
+     *
+     * This is worked out from what the token actually holds, rather than taken
+     * from the length it recorded. That length describes the buffer the token
+     * was built in, which is not the same thing: a token that came out of
+     * SepPerformTokenFiltering() replaced its restricted SIDs rather than
+     * appending to them, and one that was duplicated inherited a length
+     * describing yet another layout. Laying the contents out again needs the
+     * room the contents need, so measure them.
+     */
+    VariableLength = 0;
+
+    if (Token->Privileges && (Token->PrivilegeCount > 0))
+    {
+        VariableLength += ALIGN_UP_BY(Token->PrivilegeCount * sizeof(LUID_AND_ATTRIBUTES),
+                                      sizeof(PVOID));
+    }
+
+    if (Token->UserAndGroups && (Token->UserAndGroupCount > 0))
+    {
+        VariableLength += Token->UserAndGroupCount * sizeof(SID_AND_ATTRIBUTES);
+        VariableLength += RtlLengthSidAndAttributes(Token->UserAndGroupCount,
+                                                    Token->UserAndGroups);
+    }
+
+    if (Token->RestrictedSids && (Token->RestrictedSidCount > 0))
+    {
+        VariableLength += Token->RestrictedSidCount * sizeof(SID_AND_ATTRIBUTES);
+        VariableLength += RtlLengthSidAndAttributes(Token->RestrictedSidCount,
+                                                    Token->RestrictedSids);
+    }
+
+    VariableLength = ALIGN_UP_BY(VariableLength, sizeof(PVOID));
     TotalSize = FIELD_OFFSET(TOKEN, VariablePart) + VariableLength;
 
     /*
