@@ -1677,4 +1677,55 @@ SeComputeQuotaInformationSize(
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief
+ * Returns the access the caller must hold in order to create an object with
+ * the given security descriptor attached to it.
+ *
+ * A system ACL normally holds audit entries, and setting those needs
+ * ACCESS_SYSTEM_SECURITY, which in turn needs SeSecurityPrivilege. From Vista
+ * onwards the mandatory integrity label of an object lives in the system ACL
+ * as well, and labelling an object is not a privileged operation, so a system
+ * ACL that holds nothing but label entries costs the caller no access at all.
+ *
+ * @param[in] SecurityDescriptor
+ * The security descriptor the object is to be created with.
+ *
+ * @return
+ * ACCESS_SYSTEM_SECURITY if the system ACL holds anything other than mandatory
+ * label entries, otherwise 0.
+ */
+ACCESS_MASK
+NTAPI
+SeObjectCreateSaclAccessBits(
+    _In_ PSECURITY_DESCRIPTOR SecurityDescriptor)
+{
+    PACL Sacl;
+    PACE_HEADER Ace;
+    ULONG i;
+
+    Sacl = SepGetSaclFromDescriptor(SecurityDescriptor);
+
+    /* A descriptor that claims a system ACL but does not carry one is asking
+       for the object's own ACL to be left alone, which is privileged */
+    if (Sacl == NULL)
+    {
+        return ACCESS_SYSTEM_SECURITY;
+    }
+
+    Ace = (PACE_HEADER)((PUCHAR)Sacl + sizeof(ACL));
+    for (i = 0; i < Sacl->AceCount; i++)
+    {
+        if (Ace->AceType != SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+        {
+            return ACCESS_SYSTEM_SECURITY;
+        }
+
+        Ace = (PACE_HEADER)((PUCHAR)Ace + Ace->AceSize);
+    }
+
+    /* Empty, or nothing but labels */
+    return 0;
+}
+
 /* EOF */

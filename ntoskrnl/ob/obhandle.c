@@ -497,8 +497,10 @@ ObpValidateAccessMask(IN PACCESS_STATE AccessState)
         if ((SecurityDescriptor->Control & SE_SACL_PRESENT) &&
             !(AccessState->PreviouslyGrantedAccess & ACCESS_SYSTEM_SECURITY))
         {
-            /* We're gonna need access */
-            AccessState->RemainingDesiredAccess |= ACCESS_SYSTEM_SECURITY;
+            /* We may need access. A system ACL that holds nothing but mandatory
+               labels is not privileged, so ask what this one really costs. */
+            AccessState->RemainingDesiredAccess |=
+                SeObjectCreateSaclAccessBits(SecurityDescriptor);
         }
     }
 

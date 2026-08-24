@@ -883,6 +883,14 @@ SeCreateAccessStateEx(
     _In_ PGENERIC_MAPPING GenericMapping);
 
 //
+// Security descriptor functions
+//
+ACCESS_MASK
+NTAPI
+SeObjectCreateSaclAccessBits(
+    _In_ PSECURITY_DESCRIPTOR SecurityDescriptor);
+
+//
 // Access check functions
 //
 BOOLEAN
