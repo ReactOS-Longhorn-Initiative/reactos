@@ -20,6 +20,7 @@ SID_IDENTIFIER_AUTHORITY SeWorldSidAuthority = {SECURITY_WORLD_SID_AUTHORITY};
 SID_IDENTIFIER_AUTHORITY SeLocalSidAuthority = {SECURITY_LOCAL_SID_AUTHORITY};
 SID_IDENTIFIER_AUTHORITY SeCreatorSidAuthority = {SECURITY_CREATOR_SID_AUTHORITY};
 SID_IDENTIFIER_AUTHORITY SeNtSidAuthority = {SECURITY_NT_AUTHORITY};
+SID_IDENTIFIER_AUTHORITY SeMandatorySidAuthority = {SECURITY_MANDATORY_LABEL_AUTHORITY};
 
 PSID SeNullSid = NULL;
 PSID SeWorldSid = NULL;
@@ -51,6 +52,7 @@ PSID SeRestrictedSid = NULL;
 PSID SeAnonymousLogonSid = NULL;
 PSID SeLocalServiceSid = NULL;
 PSID SeNetworkServiceSid = NULL;
+PSID SeMediumMandatorySid = NULL;
 
 typedef struct _SID_VALIDATE
 {
@@ -99,6 +101,7 @@ FreeInitializedSids(VOID)
     if (SeAuthenticatedUsersSid) ExFreePoolWithTag(SeAuthenticatedUsersSid, TAG_SID);
     if (SeRestrictedSid) ExFreePoolWithTag(SeRestrictedSid, TAG_SID);
     if (SeAnonymousLogonSid) ExFreePoolWithTag(SeAnonymousLogonSid, TAG_SID);
+    if (SeMediumMandatorySid) ExFreePoolWithTag(SeMediumMandatorySid, TAG_SID);
 }
 
 /**
@@ -154,6 +157,7 @@ SepInitSecurityIDs(VOID)
     SeAnonymousLogonSid = ExAllocatePoolWithTag(PagedPool, SidLength1, TAG_SID);
     SeLocalServiceSid = ExAllocatePoolWithTag(PagedPool, SidLength1, TAG_SID);
     SeNetworkServiceSid = ExAllocatePoolWithTag(PagedPool, SidLength1, TAG_SID);
+    SeMediumMandatorySid = ExAllocatePoolWithTag(PagedPool, SidLength1, TAG_SID);
 
     if (SeNullSid == NULL || SeWorldSid == NULL ||
         SeLocalSid == NULL || SeCreatorOwnerSid == NULL ||
@@ -169,7 +173,7 @@ SepInitSecurityIDs(VOID)
         SeAliasPrintOpsSid == NULL || SeAliasBackupOpsSid == NULL ||
         SeAuthenticatedUsersSid == NULL || SeRestrictedSid == NULL ||
         SeAnonymousLogonSid == NULL || SeLocalServiceSid == NULL ||
-        SeNetworkServiceSid == NULL)
+        SeNetworkServiceSid == NULL || SeMediumMandatorySid == NULL)
     {
         FreeInitializedSids();
         return FALSE;
@@ -205,6 +209,7 @@ SepInitSecurityIDs(VOID)
     RtlInitializeSid(SeAnonymousLogonSid, &SeNtSidAuthority, 1);
     RtlInitializeSid(SeLocalServiceSid, &SeNtSidAuthority, 1);
     RtlInitializeSid(SeNetworkServiceSid, &SeNtSidAuthority, 1);
+    RtlInitializeSid(SeMediumMandatorySid, &SeMandatorySidAuthority, 1);
 
     SubAuthority = RtlSubAuthoritySid(SeNullSid, 0);
     *SubAuthority = SECURITY_NULL_RID;
@@ -280,6 +285,8 @@ SepInitSecurityIDs(VOID)
     *SubAuthority = SECURITY_LOCAL_SERVICE_RID;
     SubAuthority = RtlSubAuthoritySid(SeNetworkServiceSid, 0);
     *SubAuthority = SECURITY_NETWORK_SERVICE_RID;
+    SubAuthority = RtlSubAuthoritySid(SeMediumMandatorySid, 0);
+    *SubAuthority = SECURITY_MANDATORY_MEDIUM_RID;
 
     return TRUE;
 }

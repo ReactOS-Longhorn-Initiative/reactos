@@ -302,6 +302,34 @@ RtlAddAccessAllowedAceEx(IN OUT PACL Acl,
  */
 NTSTATUS
 NTAPI
+RtlAddMandatoryAce(IN OUT PACL Acl,
+                   IN ULONG Revision,
+                   IN ULONG Flags,
+                   IN ULONG MandatoryFlags,
+                   IN UCHAR AceType,
+                   IN PSID LabelSid)
+{
+    PAGED_CODE_RTL();
+
+    /* The only kind of ACE that carries a mandatory label */
+    if (AceType != SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+        return STATUS_INVALID_PARAMETER;
+
+    /* A label ACE has the layout of a known ACE, with the mandatory policy
+       (SYSTEM_MANDATORY_LABEL_NO_*) taking the place of the access mask */
+    return RtlpAddKnownAce(Acl,
+                           Revision,
+                           Flags,
+                           MandatoryFlags,
+                           LabelSid,
+                           AceType);
+}
+
+/*
+ * @implemented
+ */
+NTSTATUS
+NTAPI
 RtlAddAccessAllowedObjectAce(IN OUT PACL Acl,
                              IN ULONG Revision,
                              IN ULONG Flags,

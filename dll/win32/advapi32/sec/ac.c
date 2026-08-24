@@ -15,6 +15,36 @@ WINE_DEFAULT_DEBUG_CHANNEL(advapi);
  */
 BOOL
 WINAPI
+AddMandatoryAce(PACL pAcl,
+                DWORD dwAceRevision,
+                DWORD AceFlags,
+                DWORD MandatoryPolicy,
+                PSID pLabelSid)
+{
+    NTSTATUS Status;
+
+    /* This cannot be a plain forward to RtlAddMandatoryAce(): that one also
+       takes the ACE type, which only ever makes sense as a label here. */
+    Status = RtlAddMandatoryAce(pAcl,
+                                dwAceRevision,
+                                AceFlags,
+                                MandatoryPolicy,
+                                SYSTEM_MANDATORY_LABEL_ACE_TYPE,
+                                pLabelSid);
+    if (!NT_SUCCESS(Status))
+    {
+        SetLastError(RtlNtStatusToDosError(Status));
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/*
+ * @implemented
+ */
+BOOL
+WINAPI
 AddAccessAllowedObjectAce(PACL pAcl,
                           DWORD dwAceRevision,
                           DWORD AceFlags,

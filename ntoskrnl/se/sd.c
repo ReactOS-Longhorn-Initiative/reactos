@@ -615,6 +615,10 @@ SeQuerySecurityDescriptorInfo(
     SECURITY_DESCRIPTOR_CONTROL Control = 0;
     ULONG_PTR Current;
     ULONG SdLength;
+    /* Room for an ACL holding a single mandatory label ACE. The label SID has
+       one sub-authority, but leave room for the largest one we could hand out. */
+    UCHAR LabelSaclBuffer[sizeof(ACL) + sizeof(SYSTEM_MANDATORY_LABEL_ACE) +
+                          SECURITY_MAX_SID_SIZE];
 
     PAGED_CODE();
 
@@ -680,6 +684,65 @@ SeQuerySecurityDescriptorInfo(
         }
 
         Control |= (ObjectSd->Control & (SE_SACL_DEFAULTED | SE_SACL_PRESENT));
+    }
+
+    /* The mandatory label lives in the SACL, but is asked for on its own and,
+       unlike the audit ACEs, needs no privilege to read. An object that carries
+       no label ACE is at the default integrity level, so report that rather
+       than handing back a descriptor with no SACL at all: callers reasonably
+       expect a label to always be there and walk it without checking. */
+    if ((*SecurityInformation & LABEL_SECURITY_INFORMATION) && (Sacl == NULL))
+    {
+        PACL LabelSacl = (PACL)LabelSaclBuffer;
+        PACL ObjectSacl = NULL;
+        PSYSTEM_MANDATORY_LABEL_ACE LabelAce = NULL;
+
+        if (ObjectSd->Control & SE_SACL_PRESENT)
+            ObjectSacl = SepGetSaclFromDescriptor(ObjectSd);
+
+        if (ObjectSacl != NULL)
+        {
+            ULONG AceIndex;
+
+            for (AceIndex = 0; AceIndex < ObjectSacl->AceCount; AceIndex++)
+            {
+                PACE_HEADER Ace;
+
+                if (!NT_SUCCESS(RtlGetAce(ObjectSacl, AceIndex, (PVOID*)&Ace)))
+                    break;
+
+                if (Ace->AceType == SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+                {
+                    LabelAce = (PSYSTEM_MANDATORY_LABEL_ACE)Ace;
+                    break;
+                }
+            }
+        }
+
+        RtlCreateAcl(LabelSacl, sizeof(LabelSaclBuffer), ACL_REVISION);
+
+        if (LabelAce != NULL)
+        {
+            RtlAddMandatoryAce(LabelSacl,
+                               ACL_REVISION,
+                               LabelAce->Header.AceFlags,
+                               LabelAce->Mask,
+                               SYSTEM_MANDATORY_LABEL_ACE_TYPE,
+                               (PSID)&LabelAce->SidStart);
+        }
+        else
+        {
+            RtlAddMandatoryAce(LabelSacl,
+                               ACL_REVISION,
+                               0,
+                               SYSTEM_MANDATORY_LABEL_NO_WRITE_UP,
+                               SYSTEM_MANDATORY_LABEL_ACE_TYPE,
+                               SeMediumMandatorySid);
+        }
+
+        Sacl = LabelSacl;
+        SaclLength = ROUND_UP(LabelSacl->AclSize, 4);
+        Control |= SE_SACL_PRESENT;
     }
 
     SdLength = OwnerLength + GroupLength + DaclLength +

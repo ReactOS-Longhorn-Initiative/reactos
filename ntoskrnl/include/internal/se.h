@@ -213,6 +213,7 @@ extern PSID SeRestrictedSid;
 extern PSID SeAnonymousLogonSid;
 extern PSID SeLocalServiceSid;
 extern PSID SeNetworkServiceSid;
+extern PSID SeMediumMandatorySid;
 
 //
 // Privileges
