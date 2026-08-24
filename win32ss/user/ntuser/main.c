@@ -291,6 +291,16 @@ InitProcessCallback(PEPROCESS Process)
     ppiCurrent->ppiNext = gppiList;
     gppiList = ppiCurrent;
 
+    /* If we belong to a job that restricts the UI, join it now. A process is
+       normally assigned to its job while still suspended, i.e. before it ever
+       calls into win32k, so the kernel could not hand us over back then. */
+    Status = IntJobConnectProcess(ppiCurrent);
+    if (!NT_SUCCESS(Status))
+    {
+        ERR_CH(UserProcess, "IntJobConnectProcess failed, Status 0x%08lx\n", Status);
+        goto error;
+    }
+
     return STATUS_SUCCESS;
 
 error:
@@ -312,6 +322,9 @@ ExitProcessCallback(PEPROCESS Process)
 
     TRACE_CH(UserProcess, "Destroying ppi 0x%p\n", ppiCurrent);
     ppiCurrent->W32PF_flags |= W32PF_TERMINATED;
+
+    /* Leave the job we were restricted by, if any */
+    IntJobDisconnectProcess(ppiCurrent);
 
     /* Remove it from the list */
     pppi = &gppiList;
@@ -1013,7 +1026,7 @@ DriverEntry(
     // CalloutData.GlobalAtomTableCallout = NULL;
     CalloutData.PowerEventCallout = IntHandlePowerEvent;
     CalloutData.PowerStateCallout = IntHandlePowerState;
-    // CalloutData.JobCallout = NULL;
+    CalloutData.JobCallout = Win32kJobCallout;
     CalloutData.BatchFlushRoutine = NtGdiFlushUserBatch;
     CalloutData.DesktopOpenProcedure = IntDesktopObjectOpen;
     CalloutData.DesktopOkToCloseProcedure = IntDesktopOkToClose;

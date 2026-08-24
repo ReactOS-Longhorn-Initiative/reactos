@@ -273,7 +273,7 @@ typedef struct _PROCESSINFO
     struct _CURICON_OBJECT* pCursorCache;
     PVOID pClientBase;
     DWORD dwLpkEntryPoints;
-    PVOID pW32Job;
+    struct _W32JOB *pW32Job;
     DWORD dwImeCompatFlags;
     LUID luidSession;
     USERSTARTUPINFO usi;
