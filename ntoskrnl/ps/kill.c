@@ -282,7 +282,7 @@ PspDeleteProcess(IN PVOID ObjectBody)
     if (Process->Job)
     {
         /* Remove the process from the job */
-        PspRemoveProcessFromJob(Process, Process->Job);
+        PspRemoveProcessFromJob(Process);
 
         /* Dereference it */
         ObDereferenceObject(Process->Job);
@@ -377,6 +377,17 @@ PspDeleteProcess(IN PVOID ObjectBody)
 
     /* Dereference the Device Map */
     ObDereferenceDeviceMap(Process);
+
+#if defined(_WIN64) && defined(BUILD_WOW64_ENABLED)
+    /* Check if this is a WOW64 process */
+    if (Process->Wow64Process && !IS_WOW64_PROCESS_INITIALIZING(Process))
+    {
+        /* Free WOW64_PROCESS structure */
+        ExFreePoolWithTag(Process->Wow64Process, TAG_PS_WOW64);
+
+        PsReturnProcessNonPagedPoolQuota(Process, sizeof(WOW64_PROCESS));
+    }
+#endif
 
     /*
      * Dereference the quota block, the function
@@ -857,7 +868,7 @@ PspExitThread(IN NTSTATUS ExitStatus)
         if (CurrentProcess->Job)
         {
             /* Remove the process from the job */
-            PspExitProcessFromJob(CurrentProcess->Job, CurrentProcess);
+            PspExitProcessFromJob(CurrentProcess);
         }
     }
 
@@ -1128,20 +1139,20 @@ PspExitProcess(IN BOOLEAN LastThread,
             ZwSetTimerResolution(KeMaximumIncrement, 0, &Actual);
         }
 
-        /* Check if we are part of a Job that has a completion port
-           and do I/O completion if needed */
-        if (Process->Job &&
-            Process->Job->CompletionPort &&
-            !(Process->JobStatus & JOB_NOT_REALLY_ACTIVE))
+        if (Process->Job)
         {
-            ExEnterCriticalRegionAndAcquireResourceShared(&Process->Job->JobLock);
+            ExEnterCriticalRegionAndAcquireResourceExclusive(&Process->Job->JobLock);
 
-            IoSetIoCompletion(Process->Job->CompletionPort,
-                              Process->Job->CompletionKey,
-                              Process->UniqueProcessId,
-                              STATUS_SUCCESS,
-                              JOB_OBJECT_MSG_EXIT_PROCESS,
-                              FALSE);
+            /* Check if we are part of a job that has a completion port
+               and do I/O completion if needed */
+            if (Process->Job->CompletionPort &&
+                !FlagOn(Process->JobStatus, PSP_JOB_NOT_REALLY_ACTIVE))
+            {
+                (VOID)PspSendJobMessageLocked(Process->Job,
+                                              JOB_OBJECT_MSG_EXIT_PROCESS,
+                                              Process->UniqueProcessId,
+                                              FALSE);
+            }
 
             ExReleaseResourceAndLeaveCriticalRegion(&Process->Job->JobLock);
         }
