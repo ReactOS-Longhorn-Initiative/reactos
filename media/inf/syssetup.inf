@@ -63,10 +63,20 @@ AddReg=Classes
 11,,devenum.dll,1
 11,,dinput.dll,1
 11,,dinput8.dll,1
+11,,dmband.dll,1
+11,,dmcompos.dll,1
+11,,dmime.dll,1
+11,,dmloader.dll,1
+11,,dmscript.dll,1
+11,,dmstyle.dll,1
 11,,dmusic.dll,1
 11,,dplayx.dll,1
+11,,dpnet.dll,1
+11,,dpnhupnp.dll,1
+11,,dpvoice.dll,1
 11,,dsound.dll,1
 11,,dxdiagn.dll,1
+11,,evr.dll,1
 11,,fontext.dll,1
 11,,hhctrl.ocx,1
 11,,hlink.dll,1
@@ -77,8 +87,10 @@ AddReg=Classes
 11,,itss.dll,1
 11,,jscript.dll,1
 ;11,,ksproxy.ax,1
+11,,mf.dll,1
+11,,mfreadwrite.dll,1
 11,,mlang.dll,1
-11,,mmdevapi.dll,1
+;11,,mmdevapi.dll,1
 11,,mscat32.dll,1
 11,,msctf.dll,1
 11,,mshtml.dll,3
@@ -129,6 +141,14 @@ AddReg=Classes
 11,wbem,wbemprox.dll,1
 11,,shellbtrfs.dll,1
 11,,zipfldr.dll,1
+11,,mfsrcsnk.dll,1
+11,,msvproc.dll,1
+11,,mfmp4srcsnk.dll,1
+11,,colorcnv.dll,1
+
+# Misha: note to self needs gstreamer, delete for final PR
+11,,msmpeg2vdec.dll,1
+11,,wmvdecod.dll,1
 
 [TypeLibraries]
 activeds.tlb

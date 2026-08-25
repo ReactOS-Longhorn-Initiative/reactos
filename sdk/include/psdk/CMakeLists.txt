@@ -96,6 +96,8 @@ list(APPEND SOURCE
 #   dyngraph.idl
     emptyvc.idl
     endpointvolume.idl
+    evr.idl
+    evr9.idl
     exdisp.idl
     fusion.idl
     hlink.idl
@@ -105,6 +107,7 @@ list(APPEND SOURCE
     httprequest.idl
     iads.idl
     icftypes.idl
+    icodecapi.idl
     ieautomation.idl
     imnact.idl
     imnxport.idl
@@ -114,8 +117,12 @@ list(APPEND SOURCE
     inspectable.idl
     mediaobj.idl
     metahost.idl
+    mfd3d12.idl
     mfidl.idl
+    mfmediaengine.idl
     mfobjects.idl
+    mfplay.idl
+    mfreadwrite.idl
     mftransform.idl
     mimeinfo.idl
     mimeole.idl
@@ -196,10 +203,12 @@ list(APPEND SOURCE
     wincodec.idl
     wincodecsdk.idl
     winsxs.idl
+    wmcodecdsp.idl
     wmdrmsdk.idl
     wmiutils.idl
     wmsbuffer.idl
     wmsdkidl.idl
+    wmsecure.idl
     wtypes.idl
     wuapi.idl
     xmldom.idl

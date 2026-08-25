@@ -154,5 +154,12 @@ Signature = "$Windows NT$"
 "modules/optional/vmxnet3n51x86.sys"                  3  optional
 "modules/optional/wine_gecko-2.40-x86.msi"            1  optional
 "modules/optional/winevdm_setup.exe"                  1  optional
+"modules/optional/avcodec-62.dll"                     2  optional
+"modules/optional/avdevice-62.dll"                     2  optional
+"modules/optional/avfilter-11.dll"                     2  optional
+"modules/optional/avformat-62.dll"                     2  optional
+"modules/optional/avutil-60.dll"                     2  optional
+"modules/optional/swresample-6.dll"                     2  optional
+"modules/optional/swscale-9.dll"                     2  optional
 "boot/bootdata/bootcdregtest/AHKAppTests.cmd"         7  optional
 ; DON'T REMOVE THE FOLLOWING NEW LINE ! THIS MEANS YOU !
