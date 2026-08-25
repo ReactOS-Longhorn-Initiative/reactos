@@ -105,6 +105,7 @@ typedef unsigned long HANDLE_PTR;
 
 #define MAXUINT      ((UINT)~((UINT)0))
 #define MAXULONGLONG ((ULONGLONG)~((ULONGLONG)0))
+#define MINLONGLONG ((LONGLONG)~MAXLONGLONG)
 
 #endif
 
