@@ -9,8 +9,8 @@
 #error ks.h needs to be included before ksmedia.h
 #endif /* _KS_ */
 
-#ifndef KSMEDIA_H
-#define KSMEDIA_H
+#ifndef _KSMEDIA_
+#define _KSMEDIA_
 
 /*
     KS CATEGORIES

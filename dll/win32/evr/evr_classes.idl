@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Jacek Caban for CodeWeavers
+ * Copyright 2017 Fabian Maurer
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,11 +16,25 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#include <stdarg.h>
+#pragma makedep register
 
-#define COBJMACROS
+[
+    helpstring("Enhanced Video Renderer"),
+    threading(both),
+    uuid(fa10746c-9b63-4b6c-bc49-fc300ea5f256)
+]
+coclass EnhancedVideoRenderer { interface IBaseFilter; }
 
-#define EXTERN_GUID DEFINE_GUID
+[
+    helpstring("MF Video Mixer"),
+    threading(both),
+    uuid(e474e05a-ab65-4f6a-827c-218b1baaf31f)
+]
+coclass MFVideoMixer9 { interface IMFTransform; }
 
-#include "windef.h"
-#include "winbase.h"
+[
+    helpstring("MF Video Presenter"),
+    threading(both),
+    uuid(98455561-5136-4d28-ab08-4cee40ea2781)
+]
+coclass MFVideoPresenter9 { interface IMFVideoPresenter; }
