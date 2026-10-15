@@ -20,7 +20,7 @@ list(APPEND SOURCE
 
 add_library(wintypes SHARED ${SOURCE})
 set_module_type(wintypes win32dll ENTRYPOINT 0)
-target_link_libraries(wintypes wine wine_dll_register uuid oldnames)
+target_link_libraries(wintypes wine wine_dll_register uuid oldnames wine_dll_canunload)
 add_dependencies(wintypes wintypes_idlheaders)
 add_importlibs(wintypes shell32 shlwapi oleaut32 ole32 combase user32 user32_vista gdi32 ucrtbase advapi32 advapi32_vista kernel32 ntdll )
 add_cd_file(TARGET wintypes DESTINATION reactos/system32 FOR all)

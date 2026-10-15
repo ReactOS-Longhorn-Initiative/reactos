@@ -12,7 +12,7 @@ list(APPEND SOURCE
 add_library(mlang MODULE ${SOURCE} mlang.rc)
 set_module_type(mlang win32dll UNICODE)
 add_idl_reg_scripts(mlang registry mlang_classes.idl)
-target_link_libraries(mlang uuid wine wine_dll_register oldnames)
+target_link_libraries(mlang uuid wine wine_dll_register wine_dll_canunload oldnames)
 add_delay_importlibs(mlang oleaut32)
 add_importlibs(mlang gdi32 advapi32 msvcrt kernelbase ntdll)
 add_cd_file(TARGET mlang DESTINATION reactos/system32 FOR all)

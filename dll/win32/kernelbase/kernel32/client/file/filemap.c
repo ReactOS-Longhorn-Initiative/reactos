@@ -316,7 +316,7 @@ OpenFileMappingW(IN DWORD dwDesiredAccess,
     InitializeObjectAttributes(&ObjectAttributes,
                                &UnicodeName,
                                (bInheritHandle ? OBJ_INHERIT : 0),
-                               BasepGetNamedObjectDirectory(),
+                               BaseGetNamedObjectDirectory(),
                                NULL);
 
     /* Convert COPY to READ */

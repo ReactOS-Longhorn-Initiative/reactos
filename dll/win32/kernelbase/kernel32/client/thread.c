@@ -696,7 +696,7 @@ SetThreadAffinityMask(IN HANDLE hThread,
 }
 
 #define THEONLYGROUP 0 // Fake support for a single group
-
+#if 0
 /*
  * @implemented
  */
@@ -752,7 +752,7 @@ SetThreadGroupAffinity(IN HANDLE hThread,
     }
     return OldMask != 0;
 }
-
+#endif
 /*
  * @implemented
  */

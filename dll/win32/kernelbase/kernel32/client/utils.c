@@ -60,7 +60,7 @@ BasepAnsiStringToUnicodeSize(IN PANSI_STRING String)
 
 NTSTATUS
 WINAPI
-BaseGetNamedObjectDirectory(
+BasepGetNamedObjectDirectory(
     _Out_ PHANDLE DirectoryHandle)
 {
     OBJECT_ATTRIBUTES ObjectAttributes;
@@ -163,12 +163,12 @@ Quickie:
 
 HANDLE
 WINAPI
-BasepGetNamedObjectDirectory(VOID)
+BaseGetNamedObjectDirectory(VOID)
 {
     NTSTATUS Status;
     HANDLE DirectoryHandle;
 
-    Status = BaseGetNamedObjectDirectory(&DirectoryHandle);
+    Status = BasepGetNamedObjectDirectory(&DirectoryHandle);
     if (!NT_SUCCESS(Status))
     {
         return NULL;
@@ -353,7 +353,7 @@ BaseFormatObjectAttributes(OUT POBJECT_ATTRIBUTES ObjectAttributes,
     if (ObjectName)
     {
         Attributes |= OBJ_OPENIF;
-        RootDirectory = BasepGetNamedObjectDirectory();
+        RootDirectory = BaseGetNamedObjectDirectory();
     }
     else
     {

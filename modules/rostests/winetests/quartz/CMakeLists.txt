@@ -31,7 +31,7 @@ add_dependencies(quartz_winetest dxsdk quartz_test_idlheader)
 set_module_type(quartz_winetest win32cui)
 add_importlibs(quartz_winetest
     ole32 oleaut32 advapi32 user32 gdi32 msvfw32 winmm
-    d3d9 ddraw dsound msdmo kernel32_vista msvcrt kernel32 ntdll)
+    d3d9 ddraw dsound msdmo msvcrt kernelbase ntdll)
 
 if(MSVC)
     add_importlibs(quartz_winetest ntdll)

@@ -13,7 +13,7 @@ add_library(rtworkq MODULE
 
 set_module_type(rtworkq win32dll)
 target_link_libraries(rtworkq wine)
-add_importlibs(rtworkq ole32 crypt32 advapi32 msvcrt kernel32 kernel32_vista ntdll)
+add_importlibs(rtworkq ole32 crypt32 advapi32 msvcrt kernelbase ntdll)
 add_dependencies(rtworkq psdk)
 add_cd_file(TARGET rtworkq DESTINATION reactos/system32 FOR all)
 set_wine_module_FIXME(rtworkq)

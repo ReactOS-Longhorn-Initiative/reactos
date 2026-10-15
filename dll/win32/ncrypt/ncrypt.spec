@@ -97,7 +97,10 @@
 @ stub NCryptStreamOpenToUnprotect
 @ stub NCryptStreamOpenToUnprotectEx
 @ stub NCryptStreamUpdate
+<<<<<<< Updated upstream
 @ stub NCryptTranslateHandle
+=======
+>>>>>>> Stashed changes
 @ stub NCryptUnprotectKey
 @ stub NCryptUnprotectSecret
 @ stub NCryptVerifyClaim

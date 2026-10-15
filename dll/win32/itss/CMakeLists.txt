@@ -22,7 +22,7 @@ add_library(itss MODULE
 set_module_type(itss win32dll)
 add_idl_reg_scripts(itss registry itss.idl)
 target_link_libraries(itss uuid wine wine_dll_register oldnames)
-add_importlibs(itss urlmon shlwapi ole32 msvcrt kernel32 kernel32_vista ntdll)
+add_importlibs(itss urlmon shlwapi ole32 msvcrt kernelbase ntdll)
 add_pch(itss precomp.h "${PCH_SKIP_SOURCE}")
 add_dependencies(itss wineheaders)
 add_cd_file(TARGET itss DESTINATION reactos/system32 FOR all)

@@ -22,7 +22,7 @@ set_source_files_properties(rsrc.rc PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_SO
 add_idl_headers(qmgr_idlheader qmgr_local.idl)
 set_module_type(qmgr win32dll)
 target_link_libraries(qmgr uuid wine wine_dll_register wine_dll_canunload oldnames)
-add_importlibs(qmgr winhttp ole32 advapi32 msvcrt kernel32 kernel32_vista ntdll)
+add_importlibs(qmgr winhttp ole32 advapi32 msvcrt kernelbase ntdll)
 add_pch(qmgr precomp.h SOURCE)
 add_cd_file(TARGET qmgr DESTINATION reactos/system32 FOR all)
 add_dependencies(qmgr qmgr_idlheader)

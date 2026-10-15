@@ -34,7 +34,7 @@ set_module_type(d3dx10_43 win32dll)
 target_link_libraries(d3dx10_43 wine dxguid dx10guid uuid)
 add_importlibs(d3dx10_43
     d3d10_1 d3dcompiler_47 d3dx9_36 gdi32
-    kernel32_vista ntdll_vista msvcrt kernel32 ntdll)
+    ntdll_vista msvcrt kernelbase ntdll)
 add_delay_importlibs(d3dx10_43 windowscodecs)
 add_dependencies(d3dx10_43 wineheaders d3d_idl_headers)
 add_cd_file(TARGET d3dx10_43 DESTINATION reactos/system32 FOR all)

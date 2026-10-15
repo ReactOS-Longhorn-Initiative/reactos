@@ -151,7 +151,7 @@
     InitializeObjectAttributes(ObjectAttributes,                                \
                                &ObjectName,                                     \
                                inh ? OBJ_INHERIT : 0,                           \
-                               BasepGetNamedObjectDirectory(),                  \
+                               BaseGetNamedObjectDirectory(),                  \
                                NULL);                                           \
     Status = NtOpen##ntobj(&Handle, acc, ObjectAttributes);                     \
     if (!NT_SUCCESS(Status))                                                    \

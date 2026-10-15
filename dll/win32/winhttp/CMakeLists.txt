@@ -27,7 +27,7 @@ add_library(winhttp MODULE
     ${CMAKE_CURRENT_BINARY_DIR}/winhttp.def)
 
 set_module_type(winhttp win32dll)
-target_link_libraries(winhttp uuid wine oldnames wine_dll_register)
+target_link_libraries(winhttp uuid wine oldnames wine_dll_register wine_dll_canunload)
 add_delay_importlibs(winhttp oleaut32 crypt32 secur32 iphlpapi dhcpcsvc)
 add_importlibs(winhttp user32 advapi32 ws2_32 jsproxy msvcrt kernelbase ntdll)
 add_dependencies(winhttp stdole2)

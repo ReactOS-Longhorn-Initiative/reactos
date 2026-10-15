@@ -19,7 +19,7 @@ add_idl_headers(uiautomationcore_idlheader uia_classes_client.idl uia_classes_co
 add_library(uiautomationcore SHARED ${SOURCE})
 set_module_type(uiautomationcore win32dll ENTRYPOINT 0)
 add_idl_reg_scripts(uiautomationcore regtypelib uia_classes_client.idl uia_classes_core.idl uia_classes.idl)
-target_link_libraries(uiautomationcore wine wine_dll_register uuid)
+target_link_libraries(uiautomationcore wine wine_dll_register uuid wine_dll_canunload)
 add_dependencies(uiautomationcore psdk uiautomationcore_idlheader)
 add_importlibs(uiautomationcore shlwapi oleaut32 ole32 oleacc combase user32 ucrtbase kernelbase ntdll)
 add_cd_file(TARGET uiautomationcore DESTINATION reactos/system32 FOR all)
